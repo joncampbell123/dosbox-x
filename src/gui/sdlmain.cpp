@@ -5813,8 +5813,6 @@ void SBLASTER_Init();
 void GUS_Init();
 void INNOVA_Init();
 void PCSPEAKER_Init();
-void TANDYSOUND_Init();
-void PS1SOUND_Init();
 void BIOS_Init();
 void INT10_Init();
 void JOYSTICK_Init();
@@ -5827,10 +5825,6 @@ void MOUSE_Init();
 void DOS_KeyboardLayout_Init();
 void MSCDEX_Init();
 void DRIVES_Init();
-void IPX_Init();
-void IDE_Init();
-void NE2K_Init();
-void FDC_Primary_Init();
 void AUTOEXEC_Init();
 
 #if defined(WIN32)
@@ -7233,7 +7227,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Init_VGABIOS();
         PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
         PCSPEAKER_Init();
-        TANDYSOUND_Init();
         MPU401_Init();
         MIXER_Init();
         MIDI_Init();
@@ -7243,13 +7236,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         VGA_Init();
         ISAPNP_Cfg_Init();
-        FDC_Primary_Init();
         KEYBOARD_Init();
         SBLASTER_Init();
         JOYSTICK_Init();
-        PS1SOUND_Init();
         GUS_Init();
-        IDE_Init();
         BIOS_Init();
         INT10_Init();
         SERIAL_Init();

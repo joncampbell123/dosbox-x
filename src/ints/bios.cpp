@@ -1799,249 +1799,6 @@ static Bitu INT70_Handler(void) {
     return 0;
 }
 
-CALLBACK_HandlerObject* tandy_DAC_callback[2];
-static struct {
-    Bit16u port;
-    Bit8u irq;
-    Bit8u dma;
-} tandy_sb;
-static struct {
-    Bit16u port;
-    Bit8u irq;
-    Bit8u dma;
-} tandy_dac;
-
-static bool Tandy_InitializeSB() {
-    /* see if soundblaster module available and at what port/IRQ/DMA */
-    Bitu sbport, sbirq, sbdma;
-    if (SB_Get_Address(sbport, sbirq, sbdma)) {
-        tandy_sb.port=(Bit16u)(sbport&0xffff);
-        tandy_sb.irq =(Bit8u)(sbirq&0xff);
-        tandy_sb.dma =(Bit8u)(sbdma&0xff);
-        return true;
-    } else {
-        /* no soundblaster accessible, disable Tandy DAC */
-        tandy_sb.port=0;
-        return false;
-    }
-}
-
-static bool Tandy_InitializeTS() {
-    /* see if Tandy DAC module available and at what port/IRQ/DMA */
-    Bitu tsport, tsirq, tsdma;
-    if (TS_Get_Address(tsport, tsirq, tsdma)) {
-        tandy_dac.port=(Bit16u)(tsport&0xffff);
-        tandy_dac.irq =(Bit8u)(tsirq&0xff);
-        tandy_dac.dma =(Bit8u)(tsdma&0xff);
-        return true;
-    } else {
-        /* no Tandy DAC accessible */
-        tandy_dac.port=0;
-        return false;
-    }
-}
-
-/* check if Tandy DAC is still playing */
-static bool Tandy_TransferInProgress(void) {
-    if (real_readw(0x40,0xd0)) return true;         /* not yet done */
-    if (real_readb(0x40,0xd4)==0xff) return false;  /* still in init-state */
-
-    Bit8u tandy_dma = 1;
-    if (tandy_sb.port) tandy_dma = tandy_sb.dma;
-    else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
-
-    IO_Write(0x0c,0x00);
-    Bit16u datalen=(Bit8u)(IO_ReadB(tandy_dma*2u+1u)&0xffu);
-    datalen|=(IO_ReadB(tandy_dma*2u+1u)<<8u);
-    if (datalen==0xffff) return false;  /* no DMA transfer */
-    else if ((datalen<0x10) && (real_readb(0x40,0xd4)==0x0f) && (real_readw(0x40,0xd2)==0x1c)) {
-        /* stop already requested */
-        return false;
-    }
-    return true;
-}
-
-static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
-    Bitu length=real_readw(0x40,0xd0);
-    if (length==0) return;  /* nothing to do... */
-
-    if ((tandy_sb.port==0) && (tandy_dac.port==0)) return;
-
-    Bit8u tandy_irq = 7;
-    if (tandy_sb.port) tandy_irq = tandy_sb.irq;
-    else if (tandy_dac.port) tandy_irq = tandy_dac.irq;
-    Bit8u tandy_irq_vector = tandy_irq;
-    if (tandy_irq_vector<8) tandy_irq_vector += 8;
-    else tandy_irq_vector += (0x70-8);
-
-    /* revector IRQ-handler if necessary */
-    RealPt current_irq=RealGetVec(tandy_irq_vector);
-    if (current_irq!=tandy_DAC_callback[0]->Get_RealPointer()) {
-        real_writed(0x40,0xd6,current_irq);
-        RealSetVec(tandy_irq_vector,tandy_DAC_callback[0]->Get_RealPointer());
-    }
-
-    Bit8u tandy_dma = 1;
-    if (tandy_sb.port) tandy_dma = tandy_sb.dma;
-    else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
-
-    if (tandy_sb.port) {
-        IO_Write(tandy_sb.port+0xcu,0xd0);               /* stop DMA transfer */
-        IO_Write(0x21,IO_Read(0x21)&(~(1u<<tandy_irq))); /* unmask IRQ */
-        IO_Write(tandy_sb.port+0xcu,0xd1);               /* turn speaker on */
-    } else {
-        IO_Write(tandy_dac.port,IO_Read(tandy_dac.port)&0x60);  /* disable DAC */
-        IO_Write(0x21,IO_Read(0x21)&(~(1u<<tandy_irq)));         /* unmask IRQ */
-    }
-
-    IO_Write(0x0a,0x04|tandy_dma);  /* mask DMA channel */
-    IO_Write(0x0c,0x00);            /* clear DMA flipflop */
-    if (isplayback) IO_Write(0x0b,0x48|tandy_dma);
-    else IO_Write(0x0b,0x44|tandy_dma);
-    /* set physical address of buffer */
-    Bit8u bufpage=(Bit8u)((bufpt>>16u)&0xff);
-    IO_Write(tandy_dma*2u,(Bit8u)(bufpt&0xff));
-    IO_Write(tandy_dma*2u,(Bit8u)((bufpt>>8u)&0xff));
-    switch (tandy_dma) {
-        case 0: IO_Write(0x87,bufpage); break;
-        case 1: IO_Write(0x83,bufpage); break;
-        case 2: IO_Write(0x81,bufpage); break;
-        case 3: IO_Write(0x82,bufpage); break;
-    }
-    real_writeb(0x40,0xd4,bufpage);
-
-    /* calculate transfer size (respects segment boundaries) */
-    Bit32u tlength=length;
-    if (tlength+(bufpt&0xffff)>0x10000) tlength=0x10000-(bufpt&0xffff);
-    real_writew(0x40,0xd0,(Bit16u)(length-tlength));    /* remaining buffer length */
-    tlength--;
-
-    /* set transfer size */
-    IO_Write(tandy_dma*2u+1u,(Bit8u)(tlength&0xffu));
-    IO_Write(tandy_dma*2u+1u,(Bit8u)((tlength>>8u)&0xffu));
-
-    Bit16u delay=(Bit16u)(real_readw(0x40,0xd2)&0xfff);
-    Bit8u amplitude=(Bit8u)(((unsigned int)real_readw(0x40,0xd2)>>13u)&0x7u);
-    if (tandy_sb.port) {
-        IO_Write(0x0a,tandy_dma);   /* enable DMA channel */
-        /* set frequency */
-        IO_Write(tandy_sb.port+0xcu,0x40);
-        IO_Write(tandy_sb.port+0xcu,256u - delay*100u/358u);
-        /* set playback type to 8bit */
-        if (isplayback) IO_Write(tandy_sb.port+0xcu,0x14u);
-        else IO_Write(tandy_sb.port+0xcu,0x24u);
-        /* set transfer size */
-        IO_Write(tandy_sb.port+0xcu,(Bit8u)(tlength&0xffu));
-        IO_Write(tandy_sb.port+0xcu,(Bit8u)((tlength>>8)&0xffu));
-    } else {
-        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x03u);
-        else IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x02u);
-        IO_Write(tandy_dac.port+2u,(Bit8u)(delay&0xffu));
-        IO_Write(tandy_dac.port+3u,(Bit8u)((((unsigned int)delay>>8u)&0xfu) | ((unsigned int)amplitude<<5u)));
-        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x1fu);
-        else IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7c) | 0x1e);
-        IO_Write(0x0a,tandy_dma);   /* enable DMA channel */
-    }
-
-    if (!isplayback) {
-        /* mark transfer as recording operation */
-        real_writew(0x40,0xd2,(Bit16u)(delay|0x1000));
-    }
-}
-
-static Bitu IRQ_TandyDAC(void) {
-    if (tandy_dac.port) {
-        IO_Read(tandy_dac.port);
-    }
-    if (real_readw(0x40,0xd0)) {    /* play/record next buffer */
-        /* acknowledge IRQ */
-        IO_Write(0x20,0x20);
-        if (tandy_sb.port) {
-            IO_Read(tandy_sb.port+0xeu);
-        }
-
-        /* buffer starts at the next page */
-        Bit8u npage=real_readb(0x40,0xd4)+1u;
-        real_writeb(0x40,0xd4,npage);
-
-        Bitu rb=real_readb(0x40,0xd3);
-        if (rb&0x10) {
-            /* start recording */
-            real_writeb(0x40,0xd3,rb&0xefu);
-            Tandy_SetupTransfer((unsigned int)npage<<16u,false);
-        } else {
-            /* start playback */
-            Tandy_SetupTransfer((unsigned int)npage<<16u,true);
-        }
-    } else {    /* playing/recording is finished */
-        Bit8u tandy_irq = 7u;
-        if (tandy_sb.port) tandy_irq = tandy_sb.irq;
-        else if (tandy_dac.port) tandy_irq = tandy_dac.irq;
-        Bit8u tandy_irq_vector = tandy_irq;
-        if (tandy_irq_vector<8u) tandy_irq_vector += 8u;
-        else tandy_irq_vector += (0x70u-8u);
-
-        RealSetVec(tandy_irq_vector,real_readd(0x40,0xd6));
-
-        /* turn off speaker and acknowledge soundblaster IRQ */
-        if (tandy_sb.port) {
-            IO_Write(tandy_sb.port+0xcu,0xd3u);
-            IO_Read(tandy_sb.port+0xeu);
-        }
-
-        /* issue BIOS tandy sound device busy callout */
-        SegSet16(cs, RealSeg(tandy_DAC_callback[1]->Get_RealPointer()));
-        reg_ip = RealOff(tandy_DAC_callback[1]->Get_RealPointer());
-    }
-    return CBRET_NONE;
-}
-
-static void TandyDAC_Handler(Bit8u tfunction) {
-    if ((!tandy_sb.port) && (!tandy_dac.port)) return;
-    switch (tfunction) {
-    case 0x81:  /* Tandy sound system check */
-        if (tandy_dac.port) {
-            reg_ax=tandy_dac.port;
-        } else {
-            reg_ax=0xc4;
-        }
-        CALLBACK_SCF(Tandy_TransferInProgress());
-        break;
-    case 0x82:  /* Tandy sound system start recording */
-    case 0x83:  /* Tandy sound system start playback */
-        if (Tandy_TransferInProgress()) {
-            /* cannot play yet as the last transfer isn't finished yet */
-            reg_ah=0x00;
-            CALLBACK_SCF(true);
-            break;
-        }
-        /* store buffer length */
-        real_writew(0x40,0xd0,reg_cx);
-        /* store delay and volume */
-        real_writew(0x40,0xd2,(reg_dx&0xfff)|((reg_al&7)<<13));
-        Tandy_SetupTransfer(PhysMake(SegValue(es),reg_bx),reg_ah==0x83);
-        reg_ah=0x00;
-        CALLBACK_SCF(false);
-        break;
-    case 0x84:  /* Tandy sound system stop playing */
-        reg_ah=0x00;
-
-        /* setup for a small buffer with silence */
-        real_writew(0x40,0xd0,0x0a);
-        real_writew(0x40,0xd2,0x1c);
-        Tandy_SetupTransfer(PhysMake(0xf000,0xa084),true);
-        CALLBACK_SCF(false);
-        break;
-    case 0x85:  /* Tandy sound system reset */
-        if (tandy_dac.port) {
-            IO_Write(tandy_dac.port,(Bit8u)(IO_Read(tandy_dac.port)&0xe0));
-        }
-        reg_ah=0x00;
-        CALLBACK_SCF(false);
-        break;
-    }
-}
-
 extern bool date_host_forced;
 static Bit8u ReadCmosByte (Bitu index) {
     IO_Write(0x70, index);
@@ -2150,13 +1907,6 @@ static Bitu INT1A_Handler(void) {
         break;
     case 0x80:  /* Pcjr Setup Sound Multiplexer */
         LOG(LOG_BIOS,LOG_ERROR)("INT1A:80:Setup tandy sound multiplexer to %d",reg_al);
-        break;
-    case 0x81:  /* Tandy sound system check */
-    case 0x82:  /* Tandy sound system start recording */
-    case 0x83:  /* Tandy sound system start playback */
-    case 0x84:  /* Tandy sound system stop playing */
-    case 0x85:  /* Tandy sound system reset */
-        TandyDAC_Handler(reg_ah);
         break;
     case 0xb1:      /* PCI Bios Calls */
         if (pcibus_enable) {
@@ -6195,11 +5945,6 @@ private:
         void INT10_Startup(Section *sec);
         INT10_Startup(NULL);
 
-        if (!IS_PC98_ARCH) {
-            extern Bit8u BIOS_tandy_D4_flag;
-            real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
-        }
-
         /* INT 13 Bios Disk Support */
         BIOS_SetupDisks();
 
@@ -6248,54 +5993,6 @@ private:
         phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf); /* bios default interrupt vector location -> IRET */
 
         if (!IS_PC98_ARCH) {
-            // tandy DAC setup
-            bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
-
-            tandy_sb.port=0;
-            tandy_dac.port=0;
-            if (use_tandyDAC) {
-                /* tandy DAC sound requested, see if soundblaster device is available */
-                Bitu tandy_dac_type = 0;
-                if (Tandy_InitializeSB()) {
-                    tandy_dac_type = 1;
-                } else if (Tandy_InitializeTS()) {
-                    tandy_dac_type = 2;
-                }
-                if (tandy_dac_type) {
-                    real_writew(0x40,0xd0,0x0000);
-                    real_writew(0x40,0xd2,0x0000);
-                    real_writeb(0x40,0xd4,0xff);    /* tandy DAC init value */
-                    real_writed(0x40,0xd6,0x00000000);
-                    /* install the DAC callback handler */
-                    tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
-                    tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
-                    tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
-                    tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
-                    // pseudocode for CB_TDE_IRET:
-                    //  push ax
-                    //  mov ax, 0x91fb
-                    //  int 15
-                    //  cli
-                    //  mov al, 0x20
-                    //  out 0x20, al
-                    //  pop ax
-                    //  iret
-
-                    Bit8u tandy_irq = 7;
-                    if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
-                    else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
-                    Bit8u tandy_irq_vector = tandy_irq;
-                    if (tandy_irq_vector<8) tandy_irq_vector += 8;
-                    else tandy_irq_vector += (0x70-8);
-
-                    RealPt current_irq=RealGetVec(tandy_irq_vector);
-                    real_writed(0x40,0xd6,current_irq);
-                    for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
-                } else real_writeb(0x40,0xd4,0x00);
-            }
-        }
-
-        if (!IS_PC98_ARCH) {
             /* Setup some stuff in 0x40 bios segment */
 
             // Disney workaround
@@ -6308,12 +6005,6 @@ private:
             mem_writeb(BIOS_COM2_TIMEOUT,1);
             mem_writeb(BIOS_COM3_TIMEOUT,1);
             mem_writeb(BIOS_COM4_TIMEOUT,1);
-
-            void BIOS_Post_register_parports();
-            BIOS_Post_register_parports();
-
-            void BIOS_Post_register_comports();
-            BIOS_Post_register_comports();
         }
 
         if (!IS_PC98_ARCH) {
@@ -6652,15 +6343,6 @@ private:
                         LOG_MSG("ISAPNP register failed\n");
                 }
             }
-
-            void BIOS_Post_register_comports_PNP();
-            BIOS_Post_register_comports_PNP();
-
-            void BIOS_Post_register_IDE();
-            BIOS_Post_register_IDE();
-
-            void BIOS_Post_register_FDC();
-            BIOS_Post_register_FDC();
         }
 
         if (IS_PC98_ARCH) {
@@ -7456,30 +7138,7 @@ public:
         }
 
         /* abort DAC playing */
-        if (tandy_sb.port) {
-            IO_Write(tandy_sb.port+0xcu,0xd3u);
-            IO_Write(tandy_sb.port+0xcu,0xd0u);
-        }
         real_writeb(0x40,0xd4,0x00);
-        if (tandy_DAC_callback[0]) {
-            Bit32u orig_vector=real_readd(0x40,0xd6);
-            if (orig_vector==tandy_DAC_callback[0]->Get_RealPointer()) {
-                /* set IRQ vector to old value */
-                Bit8u tandy_irq = 7;
-                if (tandy_sb.port) tandy_irq = tandy_sb.irq;
-                else if (tandy_dac.port) tandy_irq = tandy_dac.irq;
-                Bit8u tandy_irq_vector = tandy_irq;
-                if (tandy_irq_vector<8) tandy_irq_vector += 8;
-                else tandy_irq_vector += (0x70-8);
-
-                RealSetVec(tandy_irq_vector,real_readd(0x40,0xd6));
-                real_writed(0x40,0xd6,0x00000000);
-            }
-            delete tandy_DAC_callback[0];
-            delete tandy_DAC_callback[1];
-            tandy_DAC_callback[0]=NULL;
-            tandy_DAC_callback[1]=NULL;
-        }
 
         /* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
          * destructor stage where we're back in protected mode */

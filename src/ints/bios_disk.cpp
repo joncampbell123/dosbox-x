@@ -85,7 +85,6 @@ imageDisk *GetINT13HardDrive(unsigned char drv) {
 void FreeBIOSDiskList() {
     for (int i=0;i < MAX_DISK_IMAGES;i++) {
         if (imageDiskList[i] != NULL) {
-            if (i >= 2) IDE_Hard_Disk_Detach(i);
             imageDiskList[i]->Release();
             imageDiskList[i] = NULL;
         }
@@ -725,10 +724,6 @@ static void readDAP(Bit16u seg, Bit16u off) {
     }
 }
 
-void IDE_ResetDiskByBIOS(unsigned char disk);
-void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect);
-void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
-
 static Bitu INT13_DiskHandler(void) {
     Bit16u segat, bufptr;
     Bit8u sectbuf[512];
@@ -774,7 +769,6 @@ static Bitu INT13_DiskHandler(void) {
                 return CBRET_NONE;
             }
             if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
-            if (reg_dl >= 0x80) IDE_ResetDiskByBIOS(reg_dl);
             last_status = 0x00;
             CALLBACK_SCF(false);
         }
@@ -838,9 +832,6 @@ static Bitu INT13_DiskHandler(void) {
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
             last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
-
-            /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
-            IDE_EmuINT13DiskReadByBIOS(reg_dl, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)reg_dh, (Bit32u)((reg_cl & 63)+i));
 
             if((last_status != 0x00) || (killRead)) {
                 LOG_MSG("Error in disk read");
@@ -1033,8 +1024,6 @@ static Bitu INT13_DiskHandler(void) {
         bufptr = dap.off;
         for(i=0;i<dap.num;i++) {
             last_status = imageDiskList[drivenum]->Read_AbsoluteSector(dap.sector+i, sectbuf);
-
-            IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
 
             if((last_status != 0x00) || (killRead)) {
                 LOG_MSG("Error in disk read");
