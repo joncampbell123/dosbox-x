@@ -277,38 +277,7 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
     lowpassUpdate();
 }
 
-void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char *name);
-
 void MixerChannel::EndFrame(Bitu samples) {
-    if (CaptureState & CAPTURE_MULTITRACK_WAVE) {// TODO: should be a separate call!
-        Bit16s convert[1024][2];
-        Bitu cnv = msbuffer_o;
-        Bitu padding = 0;
-
-        if (cnv > samples)
-            cnv = samples;
-        else
-            padding = samples - cnv;
-
-        if (cnv > 0) {
-            Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 << MIXER_VOLSHIFT));
-            Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 << MIXER_VOLSHIFT));
-
-            if (cnv > 1024) cnv = 1024;
-            for (Bitu i=0;i<cnv;i++) {
-                convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-                convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-            }
-            CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
-        }
-
-        if (padding > 0) {
-            if (padding > 1024) padding = 1024;
-            memset(&convert[0][0],0,padding*sizeof(Bit16s)*2);
-            CAPTURE_MultiTrackAddWave(mixer.freq,padding,(Bit16s*)convert,name);
-        }
-    }
-
     rend_n = rend_d = 0;
     if (msbuffer_o <= samples) {
         msbuffer_o = 0;
@@ -629,14 +598,6 @@ void MixerChannel::AddSamples_s32_nonnative(Bitu len,const Bit32s * data) {
 
 extern bool ticksLocked;
 
-#if 0//unused
-static inline bool Mixer_irq_important(void) {
-    /* In some states correct timing of the irqs is more important then 
-     * non stuttering audo */
-    return (ticksLocked || (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)));
-}
-#endif
-
 unsigned long long mixer_sample_counter = 0;
 double mixer_start_pic_time = 0;
 
@@ -660,22 +621,6 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         chan->Mix(whole,fracs);
         if (endframe) chan->EndFrame(mixer.samples_this_ms.w);
         chan=chan->next;
-    }
-
-    if (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO)) {
-        Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 << MIXER_VOLSHIFT));
-        Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 << MIXER_VOLSHIFT));
-        Bit16s convert[1024][2];
-        Bitu added = whole - prev_rendered;
-        if (added>1024) added=1024;
-        Bitu readpos = mixer.work_in + prev_rendered;
-        for (Bitu i=0;i<added;i++) {
-            convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-            convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-            readpos++;
-        }
-        assert(readpos <= MIXER_BUFSIZE);
-        CAPTURE_AddWave( mixer.freq, added, (Bit16s*)convert );
     }
 
     mixer.samples_rendered_ms.w = whole;
@@ -745,10 +690,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     Bit32s *in;
 
     if (mixer.mute) {
-        if ((CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)) != 0)
-            mixer.work_out = mixer.work_in;
-        else
-            mixer.work_out = mixer.work_in = 0;
+        mixer.work_out = mixer.work_in = 0;
     }
 
     if (mixer.prebuffer_wait) {

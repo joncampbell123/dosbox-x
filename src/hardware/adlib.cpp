@@ -305,75 +305,6 @@ class Capture {
 		}
 	}
 public:
-	bool DoWrite( Bit32u regFull, Bit8u val ) {
-		Bit8u regMask = regFull & 0xff;
-		//Check the raw index for this register if we actually have to save it
-		if ( handle ) {
-			/*
-				Check if we actually care for this to be logged, else just ignore it
-			*/
-			Bit8u raw = ToRaw[ regMask ];
-			if ( raw == 0xff ) {
-				return true;
-			}
-			/* Check if this command will not just replace the same value 
-			   in a reg that doesn't do anything with it
-			*/
-			if ( (*cache)[ regFull ] == val )
-				return true;
-			/* Check how much time has passed */
-			Bitu passed = PIC_Ticks - lastTicks;
-			lastTicks = PIC_Ticks;
-			header.milliseconds += passed;
-
-			//if ( passed > 0 ) LOG_MSG( "Delay %d", passed ) ;
-			
-			// If we passed more than 30 seconds since the last command, we'll restart the the capture
-			if ( passed > 30000 ) {
-				CloseFile();
-				goto skipWrite; 
-			}
-			while (passed > 0) {
-				if (passed < 257) {			//1-256 millisecond delay
-					AddBuf( delay256, passed - 1 );
-					passed = 0;
-				} else {
-					Bitu shift = (passed >> 8);
-					passed -= shift << 8;
-					AddBuf( delayShift8, shift - 1 );
-				}
-			}
-			AddWrite( regFull, val );
-			return true;
-		}
-skipWrite:
-		//Not yet capturing to a file here
-		//Check for commands that would start capturing, if it's not one of them return
-		if ( !(
-			//note on in any channel 
-			( regMask>=0xb0 && regMask<=0xb8 && (val&0x020) ) ||
-			//Percussion mode enabled and a note on in any percussion instrument
-			( regMask == 0xbd && ( (val&0x3f) > 0x20 ) )
-		)) {
-			return true;
-		}
-	  	handle = OpenCaptureFile("Raw Opl",".dro");
-		if (!handle)
-			return false;
-		InitHeader();
-		//Prepare space at start of the file for the header
-		fwrite( &header, 1, sizeof(header), handle );
-		/* write the Raw To Reg table */
-		fwrite( &ToReg, 1, RawUsed, handle );
-		/* Write the cache of last commands */
-		WriteCache( );
-		/* Write the command that triggered this */
-		AddWrite( regFull, val );
-		//Init the timing information for the next commands
-		lastTicks = PIC_Ticks;	
-		startTicks = PIC_Ticks;
-		return true;
-	}
 	Capture( RegisterCache* _cache ) {
 		cache = _cache;
 		handle = 0;
@@ -480,10 +411,6 @@ Bit8u Chip::Read( ) {
 }
 
 void Module::CacheWrite( Bit32u reg, Bit8u val ) {
-	//capturing?
-	if ( capture ) {
-		capture->DoWrite( reg, val );
-	}
 	//Store it into the cache
 	cache[ reg ] = val;
 }
@@ -645,74 +572,10 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	module->PortWrite( port, val, iolen );
 }
 
-/*
-	Save the current state of the operators as instruments in an reality adlib tracker file
-*/
-void SaveRad() {
-	unsigned char b[16 * 1024];
-	unsigned int w = 0;
-
-	FILE* handle = OpenCaptureFile("RAD Capture",".rad");
-	if ( !handle )
-		return;
-	//Header
-	fwrite( "RAD by REALiTY!!", 1, 16, handle );
-	b[w++] = 0x10;		//version
-	b[w++] = 0x06;		//default speed and no description
-	//Write 18 instuments for all operators in the cache
-	for ( unsigned int i = 0; i < 18; i++ ) {
-		Bit8u* set = module->cache + ( i / 9 ) * 256;
-		Bitu offset = ((i % 9) / 3) * 8 + (i % 3);
-		Bit8u* base = set + offset;
-		b[w++] = 1 + i;		//instrument number
-		b[w++] = base[0x23];
-		b[w++] = base[0x20];
-		b[w++] = base[0x43];
-		b[w++] = base[0x40];
-		b[w++] = base[0x63];
-		b[w++] = base[0x60];
-		b[w++] = base[0x83];
-		b[w++] = base[0x80];
-		b[w++] = set[0xc0 + (i % 9)];
-		b[w++] = base[0xe3];
-		b[w++] = base[0xe0];
-	}
-	b[w++] = 0;		//instrument 0, no more instruments following
-	b[w++] = 1;		//1 pattern following
-	//Zero out the remaing part of the file a bit to make rad happy
-	for ( unsigned int i = 0; i < 64; i++ ) {
-		b[w++] = 0;
-	}
-	fwrite( b, 1, w, handle );
-	fclose( handle );
-}
-
-
-void OPL_SaveRawEvent(bool pressed) {
-	if (!pressed)
-		return;
-    if (module == NULL)
-        return;
-
-//	SaveRad();return;
-	/* Check for previously opened wave file */
-	if ( module->capture ) {
-		delete module->capture;
-		module->capture = 0;
-		LOG_MSG("Stopped Raw OPL capturing.");
-	} else {
-		LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
-		module->capture = new Adlib::Capture( &module->cache );
-	}
-
-	mainMenu.get_item("mapper_caprawopl").check(module->capture != NULL).refresh_item(mainMenu);
-}
-
 namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
     Bitu sb_addr=0,sb_irq=0,sb_dma=0;
-	DOSBoxMenu::item *item;
 
     SB_Get_Address(sb_addr,sb_irq,sb_dma);
 
@@ -725,7 +588,6 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	reg.dual[1] = 0;
 	reg.normal = 0;
 	handler = 0;
-	capture = 0;
 
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	Bitu base = (Bitu)section->Get_hex("sbbase");
@@ -812,15 +674,9 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
         WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
         ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
     }
-
-	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
-	item->set_text("Record FM (OPL) output");
 }
 
 Module::~Module() {
-	if ( capture ) {
-		delete capture;
-	}
 	if ( handler ) {
 		delete handler;
 	}

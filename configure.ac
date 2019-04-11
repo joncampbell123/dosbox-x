@@ -827,12 +827,9 @@ src/hardware/Makefile
 src/hardware/serialport/Makefile
 src/hardware/reSID/Makefile
 src/hardware/parport/Makefile
-src/aviwriter/Makefile
 src/ints/Makefile
 src/libs/Makefile
-src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
-src/libs/porttalk/Makefile
 src/output/Makefile
 src/builtin/Makefile
 src/misc/Makefile

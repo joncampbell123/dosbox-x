@@ -430,12 +430,6 @@ void dosbox_integration_trigger_write() {
             break;
  
         case 0xC54010: /* Screenshot/capture trigger */
-            void CAPTURE_WaveEvent(bool pressed);
-
-            /* TODO: It would be wise to grant/deny access to this register through another dosbox.conf option
-             *       so that rogue DOS development cannot shit-spam the capture folder */
-            if (dosbox_int_register & 4)
-                CAPTURE_WaveEvent(true);
             break;
 
         default:

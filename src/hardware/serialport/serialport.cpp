@@ -1113,9 +1113,7 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	}
 
 
-	if(dbg_serialtraffic|dbg_modemcontrol|dbg_register|dbg_interrupt|dbg_aux)
-		debugfp=OpenCaptureFile("serlog",".serlog.txt");
-	else debugfp=0;
+	debugfp=0;
 
 	if(debugfp == 0) {
 		dbg_serialtraffic= 

@@ -97,7 +97,6 @@ static const char *def_menu__toplevel[] =
     "VideoMenu",
     "SoundMenu",
     "DOSMenu",
-    "CaptureMenu",
     NULL
 };
 
@@ -326,17 +325,6 @@ static const char *def_menu_sound[] =
     "--",
     "mixer_mute",
     "mixer_swapstereo",
-    NULL
-};
-
-/* capture menu ("CaptureMenu") */
-static const char *def_menu_capture[] =
-{
-    "mapper_video",
-    "mapper_recwave",
-    "mapper_recmtwave",
-    "mapper_caprawopl",
-    "mapper_caprawmidi",
     NULL
 };
 
@@ -1036,9 +1024,6 @@ void ConstructMenu(void) {
 
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
-
-    /* capture menu */
-    ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {

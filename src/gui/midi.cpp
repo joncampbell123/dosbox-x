@@ -570,9 +570,6 @@ void MIDI_RawOutByte(Bit8u data) {
 			}
 
 			LOG(LOG_ALL,LOG_NORMAL)("Sysex message size %d",(int)midi.sysex.used);
-			if (CaptureState & CAPTURE_MIDI) {
-				CAPTURE_AddMidi( true, midi.sysex.used-1, &midi.sysex.buf[1]);
-			}
 		}
 	}
 	if (data&0x80) {
@@ -587,10 +584,6 @@ void MIDI_RawOutByte(Bit8u data) {
 	if (midi.cmd_len) {
 		midi.cmd_buf[midi.cmd_pos++]=data;
 		if (midi.cmd_pos >= midi.cmd_len) {
-			if (CaptureState & CAPTURE_MIDI) {
-				CAPTURE_AddMidi(false, midi.cmd_len, midi.cmd_buf);
-			}
-
 			midi.handler->PlayMsg(midi.cmd_buf);
 			midi.cmd_pos=1;		//Use Running status
 

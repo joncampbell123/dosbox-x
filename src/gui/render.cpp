@@ -304,10 +304,7 @@ bool RENDER_StartUpdate(void) {
             render.fullFrame = true;
         } else {
             RENDER_DrawLine = RENDER_StartLineHandler;
-            if (GCC_UNLIKELY(CaptureState & (CAPTURE_IMAGE|CAPTURE_VIDEO))) 
-                render.fullFrame = true;
-            else
-                render.fullFrame = false;
+            render.fullFrame = false;
         }
     }
     render.updating = true;
@@ -333,31 +330,10 @@ void RENDER_EndUpdate( bool abort ) {
         render.scale.clearCache = false;
 
     RENDER_DrawLine = RENDER_EmptyLineHandler;
-    if (GCC_UNLIKELY(CaptureState & (CAPTURE_IMAGE|CAPTURE_VIDEO))) {
-        Bitu pitch, flags;
-        flags = 0;
-        if (render.src.dblw != render.src.dblh) {
-            if (render.src.dblw) flags|=CAPTURE_FLAG_DBLW;
-            if (render.src.dblh) flags|=CAPTURE_FLAG_DBLH;
-        }
-        float fps = render.src.fps;
-        pitch = render.scale.cachePitch;
-        if (render.frameskip.max)
-            fps /= 1+render.frameskip.max;
-        CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-            flags, fps, (Bit8u *)&scalerSourceCache, (Bit8u*)&render.pal.rgb );
-    }
     if ( render.scale.outWrite ) {
         GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
         render.frameskip.hadSkip[render.frameskip.index] = 0;
     } else {
-#if 0
-        Bitu total = 0, i;
-        render.frameskip.hadSkip[render.frameskip.index] = 1;
-        for (i = 0;i<RENDER_SKIP_CACHE;i++) 
-            total += render.frameskip.hadSkip[i];
-        LOG_MSG( "Skipped frame %d %d", PIC_Ticks, (total * 100) / RENDER_SKIP_CACHE );
-#endif
         // Force output to update the screen even if nothing changed...
         // works only with Direct3D output (GFX_StartUpdate() was probably not even called)
         if (render.forceUpdate) GFX_EndUpdate( 0 );
