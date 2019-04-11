@@ -738,36 +738,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    /* Ref:
-     *
-     * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
-     *  before the age of SuperIO and PCI use either 10MHz (9.8304MHz) or 8MHz (7.9872MHz)
-     *  for its C-Bus.
-     * 
-     *  It's determined by the CPU clock base (2.4756Mhz or 1.9968MHz). For example, on a
-     *  16MHz 386, C-Bus runs at 8MHz and on a 25MHz 386, C-Bus runs at 10MHz.
-     *
-     *  After NEC brought SuperIO and PCI to PC-98, C-Bus clock no longer ties to the CPU
-     *  oscillator and got fixed to 10MHz." -Yksoft1
-     *
-     * Assuming this is true, the selection is given below */
-
-    Pstring = secprop->Add_string("call binary on reset",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately after CPU reset.\n"
-                      "It will be executed before the BIOS POST routine, only ONCE. The binary blob is expected either to IRET or to\n"
-                      "jump directly to F000:FFF0 to return control to the BIOS.\n"
-                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
-
     Pstring = secprop->Add_string("unhandled irq handler",Property::Changeable::WhenIdle,"");
     Pstring->Set_values(irqhandler);
     Pstring->Set_help("Determines how unhandled IRQs are handled. This may help some errant DOS applications.\n"
                       "Leave unset for default behavior (simple).\n"
                       "simple               Acknowledge the IRQ, and the master (if slave IRQ)\n"
                       "mask_isr             Acknowledge IRQs in service on master and slave and mask IRQs still in service, to deal with errant handlers (em-dosbox method)");
-
-    Pstring = secprop->Add_string("call binary on boot",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately before booting the DOS system.\n"
-                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
 
     Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,128);
