@@ -329,43 +329,6 @@ void DOS_BreakAction() {
 	DOS_BreakFlag = true;
 }
 
-/* unmask IRQ 0 automatically on disk I/O functions.
- * there exist old DOS games and demos that rely on very selective IRQ masking,
- * but, their code also assumes that calling into DOS or the BIOS will unmask the IRQ.
- *
- * This fixes "Rebel by Arkham" which masks IRQ 0-7 (PIC port 21h) in a VERY stingy manner!
- *
- *    Pseudocode (early in demo init):
- *
- *             in     al,21h
- *             or     al,3Bh        ; mask IRQ 0, 1, 3, 4, and 5
- *             out    21h,al
- *
- *    Later:
- *
- *             mov    ah,3Dh        ; open file
- *             ...
- *             int    21h
- *             ...                  ; demo apparently assumes that INT 21h will unmask IRQ 0 when reading, because ....
- *             in     al,21h
- *             or     al,3Ah        ; mask IRQ 1, 3, 4, and 5
- *             out    21h,al
- *
- * The demo runs fine anyway, but if we do not unmask IRQ 0 at the INT 21h call, the timer never ticks and the
- * demo does not play any music (goldplay style, of course).
- *
- * This means several things. One is that a disk cache (which may provide the file without using INT 13h) could
- * mysteriously prevent the demo from playing music. Future OS changes, where IRQ unmasking during INT 21h could
- * not occur, would also prevent it from working. I don't know what the programmer was thinking, but side
- * effects like that are not to be relied on!
- *
- * On the other hand, perhaps masking the keyboard (IRQ 1) was intended as an anti-debugger trick? You can't break
- * into the demo if you can't trigger the debugger, after all! The demo can still poll the keyboard controller
- * for ESC or whatever.
- *
- * --J.C. */
-bool disk_io_unmask_irq0 = true;
-
 //! \brief Is a DOS program running ? (set by INT21 4B/4C)
 bool dos_program_running = false;
 
@@ -1083,7 +1046,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x3c:      /* CREATE Create of truncate file */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
                 CALLBACK_SCF(false);
@@ -1093,7 +1056,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x3d:      /* OPEN Open existing file */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
                 CALLBACK_SCF(false);
@@ -1103,7 +1066,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x3e:      /* CLOSE Close file */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             if (DOS_CloseFile(reg_bx)) {
                 //          reg_al=0x01;    /* al destroyed. Refcount */
                 CALLBACK_SCF(false);
@@ -1113,7 +1076,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x3f:      /* READ Read from file or device */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             /* TODO: If handle is STDIN and not binary do CTRL+C checking */
             { 
                 Bit16u toread=reg_cx;
@@ -1149,7 +1112,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x40:                  /* WRITE Write to file or device */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             {
                 Bit16u towrite=reg_cx;
 
@@ -1179,7 +1142,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             };
         case 0x41:                  /* UNLINK Delete file */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_UnlinkFile(name1)) {
                 CALLBACK_SCF(false);
@@ -1189,7 +1152,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x42:                  /* LSEEK Set current file position */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             {
                 Bit32u pos=((Bit32u)reg_cx << 16u) + reg_dx;
                 if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
@@ -1203,7 +1166,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x43:                  /* Get/Set file attributes */
-            unmask_irq0 |= disk_io_unmask_irq0;
+            unmask_irq0 |= 1;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             switch (reg_al) {
                 case 0x00:              /* Get */
@@ -1893,7 +1856,6 @@ public:
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
-        disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
