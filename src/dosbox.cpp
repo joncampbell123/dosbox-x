@@ -1103,14 +1103,6 @@ void DOSBOX_SetupConfigSections(void) {
     Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
     Phex->Set_help("UMB region last segment");
 
-    Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (LFN patch compat). Common settings are:\n"
-            "auto (or unset)                  Pick a DOS kernel version automatically\n"
-            "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
-            "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
-            "6.22                             MS-DOS 6.22 emulation\n"
-            "7.0                              Windows 95 (pure DOS mode) emulation\n");
-
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");
 
