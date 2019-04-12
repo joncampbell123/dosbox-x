@@ -1558,6 +1558,86 @@ static MouseButton SDL_to_GUI(const int button)
 }
 
 #if defined(C_SDL2)
+static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
+    /* SDL will not uppercase the char for us with shift, etc. */
+    /* Additionally we have to filter out non-char values */
+    if (key.sym == 0 || key.sym > 0x7f) return 0;
+
+    GUI::Char ret = key.sym;
+
+    if (key.mod & KMOD_SHIFT) {
+        switch (ret) {
+            case '[':
+                ret = (GUI::Char)('{');
+                break;
+            case ']':
+                ret = (GUI::Char)('}');
+                break;
+            case '\\':
+                ret = (GUI::Char)('|');
+                break;
+            case ';':
+                ret = (GUI::Char)(':');
+                break;
+            case '\'':
+                ret = (GUI::Char)('"');
+                break;
+            case ',':
+                ret = (GUI::Char)('<');
+                break;
+            case '.':
+                ret = (GUI::Char)('>');
+                break;
+            case '/':
+                ret = (GUI::Char)('?');
+                break;
+            case '-':
+                ret = (GUI::Char)('_');
+                break;
+            case '=':
+                ret = (GUI::Char)('+');
+                break;
+            case '1':
+                ret = (GUI::Char)('!');
+                break;
+            case '2':
+                ret = (GUI::Char)('@');
+                break;
+            case '3':
+                ret = (GUI::Char)('#');
+                break;
+            case '4':
+                ret = (GUI::Char)('$');
+                break;
+            case '5':
+                ret = (GUI::Char)('%');
+                break;
+            case '6':
+                ret = (GUI::Char)('^');
+                break;
+            case '7':
+                ret = (GUI::Char)('&');
+                break;
+            case '8':
+                ret = (GUI::Char)('*');
+                break;
+            case '9':
+                ret = (GUI::Char)('(');
+                break;
+            case '0':
+                ret = (GUI::Char)(')');
+                break;
+            default:
+                ret = (GUI::Char)toupper((int)ret);
+                break;
+        }
+    }
+
+    return ret;
+}
+#endif
+
+#if defined(C_SDL2)
 static const Key SDL_to_GUI(const SDL_Keysym &key)
 #else
 static const Key SDL_to_GUI(const SDL_keysym &key)
@@ -1603,10 +1683,29 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_F1:case SDLK_F2:case SDLK_F3:case SDLK_F4:case SDLK_F5:case SDLK_F6:
 	case SDLK_F7:case SDLK_F8:case SDLK_F9:case SDLK_F10:case SDLK_F11:case SDLK_F12:
 		ksym = (GUI::Key::Special)(GUI::Key::F1 + key.sym-SDLK_F1);
-	default: break;
+    /* do not provide a character code for these keys */
+    case SDLK_LSHIFT: case SDLK_RSHIFT:
+    case SDLK_LCTRL:  case SDLK_RCTRL:
+    case SDLK_LALT:   case SDLK_RALT:
+#if defined(C_SDL2)
+    	return Key(0, ksym,
+    		(key.mod&KMOD_SHIFT)>0,
+    		(key.mod&KMOD_CTRL)>0,
+    		(key.mod&KMOD_ALT)>0,
+            false);
+#else
+    	return Key(0, ksym,
+    		(key.mod&KMOD_SHIFT)>0,
+    		(key.mod&KMOD_CTRL)>0,
+    		(key.mod&KMOD_ALT)>0,
+    		(key.mod&KMOD_META)>0);
+#endif
+    /* anything else, go ahead */
+	default:
+        break;
 	}
 #if defined(C_SDL2)
-	return Key(key.sym, ksym,
+	return Key(SDLSymToChar(key), ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
