@@ -1125,9 +1125,6 @@ void DOSBOX_SetupConfigSections(void) {
             "6.22                             MS-DOS 6.22 emulation\n"
             "7.0                              Windows 95 (pure DOS mode) emulation\n");
 
-    Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable automatic mount.");
-
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");
 

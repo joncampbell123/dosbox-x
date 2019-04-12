@@ -789,72 +789,10 @@ bool DOS_Shell::Execute(char * name,char * args) {
 	{
 		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
-#ifdef WIN32
-			Section_prop * sec=0; sec=static_cast<Section_prop *>(control->GetSection("dos"));
-			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
-			// automount: attempt direct letter to drive map.
-			if((GetDriveType(name)==3) && (strcasecmp(name,"c:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
-first_1:
-			if(GetDriveType(name)==5) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
-			else if(GetDriveType(name)==2) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
-			else if((GetDriveType(name)==3)||(GetDriveType(name)==4)||(GetDriveType(name)==6)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
-			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
-
-first_2:
-		Bit8u c;Bit16u n=1;
-		DOS_ReadFile (STDIN,&c,&n);
-		do switch (c) {
-			case 'n':			case 'N':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 'y':			case 'Y':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 0xD: WriteOut("\n"); goto first_1;
-			case '\t': case 0x08: goto first_2;
-			default:
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n");goto first_1;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-				goto first_2;
-			}
-		} while (DOS_ReadFile (STDIN,&c,&n));
-
-continue_1:
-
-			char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-			sprintf(mountstring,"MOUNT %s ",name);
-
-			if(GetDriveType(name)==5) strcat(mountstring,"-t cdrom ");
-			else if(GetDriveType(name)==2) strcat(mountstring,"-t floppy ");
-			strcat(mountstring,name);
-			strcat(mountstring,"\\");
-//			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
-			
-			this->ParseLine(mountstring);
-//failed:
-			if (!DOS_SetDrive(toupper(name[0])-'A'))
-#endif
-			WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0]));
-		}
-		return true;
-	}
+            WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0]));
+        }
+        return true;
+    }
 	/* Check for a full name */
 	p_fullname = Which(name);
 	if (!p_fullname) return false;
