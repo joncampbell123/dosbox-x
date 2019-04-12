@@ -178,9 +178,6 @@ VGA_Type vga;
 SVGA_Driver svga;
 int enableCGASnow;
 int vesa_modelist_cap = 0;
-int vesa_mode_width_cap = 0;
-int vesa_mode_height_cap = 0;
-bool vesa_bios_modelist_in_info = false;
 bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
@@ -681,8 +678,6 @@ void VGA_Reset(Section*) {
 
     enableCGASnow = section->Get_bool("cgasnow");
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
-    vesa_mode_width_cap = section->Get_int("vesa modelist width limit");
-    vesa_mode_height_cap = section->Get_int("vesa modelist height limit");
     vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
     vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
@@ -702,7 +697,6 @@ void VGA_Reset(Section*) {
     allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
     allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
     allow_vesa_tty = section->Get_bool("allow tty vesa modes");
-    vesa_bios_modelist_in_info = section->Get_bool("vesa vbe put modelist in vesa information");
 
     /* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
     if (!allow_vesa_32bpp && !allow_vesa_24bpp)
