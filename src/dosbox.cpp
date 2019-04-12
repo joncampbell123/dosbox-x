@@ -711,12 +711,6 @@ void DOSBOX_SetupConfigSections(void) {
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
-    Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
-                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
-                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
-                    "This option is enabled by default for best compatibility with PC-98 games.");
-
     Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
 
