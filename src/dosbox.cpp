@@ -118,10 +118,6 @@ extern Bitu         cycle_count;
 extern bool         sse2_available;
 extern bool         dynamic_dos_kernel_alloc;
 extern Bitu         DOS_PRIVATE_SEGMENT_Size;
-extern bool         VGA_BIOS_dont_duplicate_CGA_first_half;
-extern bool         VIDEO_BIOS_always_carry_14_high_font;
-extern bool         VIDEO_BIOS_always_carry_16_high_font;
-extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 
 Bit32u              guest_msdos_LoL = 0;
 Bit16u              guest_msdos_mcb_chain = 0;
@@ -243,8 +239,6 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
 #include "paging.h"
 
-extern bool rom_bios_vptable_enable;
-extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
@@ -550,18 +544,6 @@ void Init_VGABIOS() {
     VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
-    VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
-    VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
-    VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
-    VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
-    /* NTS: mainline compatible mapping demands the 8x8 CGA font */
-    rom_bios_8x8_cga_font = section->Get_bool("rom bios 8x8 CGA font");
-    rom_bios_vptable_enable = section->Get_bool("rom bios video parameter table");
-
-    /* sanity check */
-    if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
-        VGA_BIOS_dont_duplicate_CGA_first_half = false;
-
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (IS_VGA_ARCH) {
@@ -571,18 +553,10 @@ void Init_VGABIOS() {
             VGA_BIOS_Size = 0x3000;
     }
     else if (machine == MCH_EGA) {
-        if (VIDEO_BIOS_always_carry_16_high_font)
-            VGA_BIOS_Size = 0x3000;
-        else
-            VGA_BIOS_Size = 0x2000;
+        VGA_BIOS_Size = 0x3000;
     }
     else {
-        if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
-            VGA_BIOS_Size = 0x3000;
-        else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
-            VGA_BIOS_Size = 0x2000;
-        else
-            VGA_BIOS_Size = 0;
+        VGA_BIOS_Size = 0x3000;
     }
     VGA_BIOS_SEG = 0xC000;
     VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
@@ -830,20 +804,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(512,65536);
     Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
-    Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
-
-    Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, video BIOS will always carry the 14-pixel ROM font. If clear, 14-pixel rom font will not be offered except for EGA/VGA emulation.");
-
-    Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
-
-    Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.\n"
-            "This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.\n"
-            "NOTE: if you disable the 14 & 16 pixel high font AND the second half when machine=cga, you will disable video bios completely.");
-
     Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
     Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
 
@@ -928,12 +888,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("enable pc nmi mask",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC/XT style NMI mask register (0xA0). Note that this option conflicts with the secondary PIC and will be ignored if the slave PIC is enabled.");
-
-    Pbool = secprop->Add_bool("rom bios 8x8 CGA font",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, or mainline compatible bios mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
-
-    Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
 
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"

@@ -65,7 +65,6 @@ bool enable_pc98_copyright_string = false;
 
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
-extern bool rom_bios_8x8_cga_font;
 
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
@@ -5485,7 +5484,7 @@ void ROMBIOS_Init() {
     }
  
     /* some structures when enabled are fixed no matter what */
-    if (rom_bios_8x8_cga_font && !IS_PC98_ARCH) {
+    if (!IS_PC98_ARCH) {
         /* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
          * allocate this NOW before other things get in the way */
         if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
@@ -5511,7 +5510,7 @@ void ROMBIOS_Init() {
     }
 
     /* install the font */
-    if (rom_bios_8x8_cga_font) {
+    {
         for (i=0;i<128*8;i++) {
             phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
         }

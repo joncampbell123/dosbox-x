@@ -24,13 +24,6 @@
 #include "int10.h"
 #include "callback.h"
 
-bool rom_bios_8x8_cga_font = true;
-bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
-bool VIDEO_BIOS_always_carry_14_high_font = true;
-bool VIDEO_BIOS_always_carry_16_high_font = true;
-bool VIDEO_BIOS_enable_CGA_8x8_second_half = false;
-bool VIDEO_BIOS_disable = false;
-
 static Bit8u static_functionality[0x10]=
 {
  /* 0 */ 0xff,  // All modes supported #1
@@ -197,16 +190,13 @@ void INT10_SetupRomMemory(void) {
         // and then other data follows
 		int10.rom.used=0x100;
 	}
-	if (VGA_BIOS_dont_duplicate_CGA_first_half) {
-		int10.rom.font_8_first=RealMake(0xF000,0xFA6E); /* why duplicate data? use the copy in the ROM BIOS */
-	}
-	else {
+	{
 		int10.rom.font_8_first=RealMake(0xC000,int10.rom.used);
 		for (i=0;i<128*8;i++) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_08[i]);
 		}
 	}
-	if (IS_EGAVGA_ARCH || VIDEO_BIOS_enable_CGA_8x8_second_half) {
+	if (IS_EGAVGA_ARCH) {
 		int10.rom.font_8_second=RealMake(0xC000,int10.rom.used);
 		for (i=0;i<128*8;i++) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_08[i+128*8]);
@@ -215,7 +205,7 @@ void INT10_SetupRomMemory(void) {
 	else {
 		int10.rom.font_8_second=0;
 	}
-	if (IS_EGAVGA_ARCH || VIDEO_BIOS_always_carry_14_high_font) {
+	if (IS_EGAVGA_ARCH) {
 		int10.rom.font_14=RealMake(0xC000,int10.rom.used);
 		for (i=0;i<256*14;i++) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_14[i]);
@@ -224,7 +214,7 @@ void INT10_SetupRomMemory(void) {
 	else {
 		int10.rom.font_14=0; /* why write the 14-high version if not emulating EGA/VGA? */
 	}
-	if (IS_VGA_ARCH || VIDEO_BIOS_always_carry_16_high_font) {
+	if (IS_VGA_ARCH) {
 		int10.rom.font_16=RealMake(0xC000,int10.rom.used);
 		for (i=0;i<256*16;i++) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_16[i]);
