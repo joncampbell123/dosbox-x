@@ -1558,6 +1558,19 @@ static MouseButton SDL_to_GUI(const int button)
 }
 
 #if defined(C_SDL2)
+static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
+    /* SDL will not uppercase the char for us with shift, etc. */
+    GUI::Char ret = key.sym;
+
+    if (key.mod & KMOD_SHIFT) {
+        ret = (GUI::Char)toupper((int)ret);
+    }
+
+    return ret;
+}
+#endif
+
+#if defined(C_SDL2)
 static const Key SDL_to_GUI(const SDL_Keysym &key)
 #else
 static const Key SDL_to_GUI(const SDL_keysym &key)
@@ -1625,7 +1638,7 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
         break;
 	}
 #if defined(C_SDL2)
-	return Key(key.sym, ksym,
+	return Key(SDLSymToChar(key), ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
