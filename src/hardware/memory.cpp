@@ -26,7 +26,6 @@
 #include "setup.h"
 #include "paging.h"
 #include "programs.h"
-#include "zipfile.h"
 #include "regs.h"
 #ifndef WIN32
 # include <stdlib.h>
@@ -35,8 +34,6 @@
 #endif
 
 #include <string.h>
-
-extern ZIPFile savestate_zip;
 
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
@@ -1676,49 +1673,10 @@ void MEM_InitCallouts(void) {
 
 void MEM_LoadState(Section *sec) {
     (void)sec;//UNUSED
-
-    if (MemBase != NULL) {
-        ZIPFileEntry *ent = savestate_zip.get_entry("memory.bin");
-        if (ent != NULL) {
-            ent->rewind();
-            if (((off_t)memory.pages * (off_t)4096) == ent->file_length)
-                ent->read(MemBase, memory.pages*4096);
-            else
-                LOG_MSG("Memory load state failure: Memory size mismatch");
-        }
-    }
-
-    {
-        ZIPFileEntry *ent = savestate_zip.get_entry("memory.txt");
-        if (ent != NULL) {
-            zip_nv_pair_map nv(*ent);
-            memory.a20.enabled =     nv.get_bool("a20.enabled");
-            memory.a20.controlport = (Bit8u)nv.get_ulong("a20.controlport");
-            a20_guest_changeable =   nv.get_bool("a20_guest_changeable");
-            a20_fake_changeable =    nv.get_bool("a20_fake_changeable");
-        }
-    }
 }
 
 void MEM_SaveState(Section *sec) {
     (void)sec;//UNUSED
-
-    if (MemBase != NULL) {
-        ZIPFileEntry *ent = savestate_zip.new_entry("memory.bin");
-        if (ent != NULL) {
-            ent->write(MemBase, memory.pages*4096);
-        }
-    }
-
-    {
-        ZIPFileEntry *ent = savestate_zip.new_entry("memory.txt");
-        if (ent != NULL) {
-            zip_nv_write(*ent,    "a20.enabled",            memory.a20.enabled);
-            zip_nv_write_hex(*ent,"a20.controlport",        memory.a20.controlport);
-            zip_nv_write(*ent,    "a20_guest_changeable",   a20_guest_changeable);
-            zip_nv_write(*ent,    "a20_fake_changeable",    a20_fake_changeable);
-        }
-    }
 }
 
 void Init_RAM() {

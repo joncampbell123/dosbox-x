@@ -80,7 +80,6 @@ void GFX_OpenGLRedrawScreen(void);
 #include "ptrop.h"
 #include "mapper.h"
 #include "sdlmain.h"
-#include "zipfile.h"
 #include "shell.h"
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -2555,39 +2554,6 @@ void ResetSystem(bool pressed) {
     throw int(3);
 }
 
-ZIPFile savestate_zip;
-
-void GUI_EXP_LoadState(bool pressed) {
-    if (!pressed) return;
-
-    LOG_MSG("Loading state... (experimental)");
-
-    if (savestate_zip.open("exsavest.zip",O_RDONLY) < 0) {
-        LOG_MSG("Unable to open save state");
-        return;
-    }
-
-    DispatchVMEvent(VM_EVENT_LOAD_STATE);
-
-    savestate_zip.close();
-}
-
-void GUI_EXP_SaveState(bool pressed) {
-    if (!pressed) return;
-
-    LOG_MSG("Saving state... (experimental)");
-
-    if (savestate_zip.open("exsavest.zip",O_RDWR|O_CREAT|O_TRUNC) < 0) {
-        LOG_MSG("Unable to open save state for writing");
-        return;
-    }
-
-    DispatchVMEvent(VM_EVENT_SAVE_STATE);
-
-    savestate_zip.writeZIPFooter();
-    savestate_zip.close();
-}
-
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -2889,14 +2855,6 @@ static void GUI_StartUp() {
 
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
-
-    /* EXPERIMENTAL!!!! */
-    MAPPER_AddHandler(&GUI_EXP_SaveState, MK_f1, MMODHOST, "exp_savestate", "EX:SvState", &item);
-    item->set_text("Save State (EXPERIMENTAL)");
-
-    /* EXPERIMENTAL!!!! */
-    MAPPER_AddHandler(&GUI_EXP_LoadState, MK_f2, MMODHOST, "exp_loadstate", "EX:LdState", &item);
-    item->set_text("Load State (EXPERIMENTAL)");
 
     UpdateWindowDimensions();
 }

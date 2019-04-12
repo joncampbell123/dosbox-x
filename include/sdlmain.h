@@ -189,14 +189,10 @@ extern SDL_Block sdl;
 #include <output/output_opengl.h>
 #include <output/output_tools.h>
 
-#include "zipfile.h"
-
 extern Bitu userResizeWindowWidth;
 extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;
 extern Bitu currentWindowHeight;
-
-extern ZIPFile savestate_zip;
 
 void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl);
 void GFX_LogSDLState(void);

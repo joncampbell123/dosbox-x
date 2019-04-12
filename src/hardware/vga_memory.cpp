@@ -31,9 +31,6 @@
 #include "cpu.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
-#include "zipfile.h"
-
-extern ZIPFile savestate_zip;
 
 unsigned char pc98_vga_mmio[0x200] = {0}; /* PC-98 memory-mapped VGA registers at E0000h */
 uint32_t pc98_vga_banks[2] = {0x8000,0x8000}; /* bank switching offsets */
@@ -2315,28 +2312,10 @@ static void VGA_Memory_ShutDown(Section * /*sec*/) {
 
 void VGAMEM_LoadState(Section *sec) {
     (void)sec;//UNUSED
-
-    if (MemBase != NULL) {
-        ZIPFileEntry *ent = savestate_zip.get_entry("vga.memory.bin");
-        if (ent != NULL) {
-            ent->rewind();
-            if (vga.mem.memsize == ent->file_length)
-                ent->read(vga.mem.linear, vga.mem.memsize);
-            else
-                LOG_MSG("VGA Memory load state failure: VGA Memory size mismatch");
-        }
-    }
 }
 
 void VGAMEM_SaveState(Section *sec) {
     (void)sec;//UNUSED
-
-    if (vga.mem.linear != NULL) {
-        ZIPFileEntry *ent = savestate_zip.new_entry("vga.memory.bin");
-        if (ent != NULL) {
-            ent->write(vga.mem.linear, vga.mem.memsize);
-        }
-    }
 }
 
 void VGA_SetupMemory() {
