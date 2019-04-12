@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Shift and Alt key modifier handling within the configuration
+    GUI now works properly in SDL2 builds.
   - Fixed prefetch queue emulation to allow 8086, 80186, and
     286 CPU types to run with prefetch queue without crashing.
   - CPU type selection menu will now cause guest to reboot
