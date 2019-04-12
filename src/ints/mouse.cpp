@@ -577,9 +577,8 @@ extern bool user_cursor_locked;
 
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
-    extern bool Mouse_Vertical;
     float dx = xrel * mouse.pixelPerMickey_x;
-    float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
+    float dy = yrel * mouse.pixelPerMickey_y;
 
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);

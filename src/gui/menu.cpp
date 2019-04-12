@@ -290,9 +290,6 @@ static const char *def_menu_dos[] =
 /* DOS mouse menu ("DOSMouseMenu") */
 static const char *def_menu_dos_mouse[] =
 {
-    "dos_mouse_enable_int33",
-    "dos_mouse_y_axis_reverse",
-    "--",
     "dos_mouse_sensitivity",
     NULL
 };

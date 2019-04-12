@@ -47,7 +47,6 @@
 #include "render.h"
 #include "mouse.h"
 bool Mouse_Drv=true;
-bool Mouse_Vertical = false;
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -80,34 +79,15 @@ void MOUSE::Run(void) {
             WriteOut(MSG_Get("PROGRAM_MOUSE_NOINSTALLED"));
         else {
             Mouse_Drv = true;
-            mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
             WriteOut(MSG_Get("PROGRAM_MOUSE_INSTALL"));
-            if (cmd->FindExist("/v",false)) {
-                Mouse_Vertical = true;
-                WriteOut(MSG_Get("PROGRAM_MOUSE_VERTICAL"));
-            } else {
-                Mouse_Vertical = false;
-            }
-            mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
         }
         break;
     case 1:
         if (cmd->FindExist("/u",false)) {
             Mouse_Drv = false;
-            mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
             WriteOut(MSG_Get("PROGRAM_MOUSE_UNINSTALL"));
         } else
-            if (cmd->FindExist("/v",false)) {
-                if(!Mouse_Vertical) {
-                    Mouse_Vertical = true;
-                    WriteOut(MSG_Get("PROGRAM_MOUSE_VERTICAL"));
-                } else {
-                    Mouse_Vertical = false;
-                    WriteOut(MSG_Get("PROGRAM_MOUSE_VERTICAL_BACK"));
-                }
-                mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
-            } else
-                WriteOut(MSG_Get("PROGRAM_MOUSE_ERROR"));
+            WriteOut(MSG_Get("PROGRAM_MOUSE_ERROR"));
         break;
     }
     return;
