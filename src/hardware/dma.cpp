@@ -31,8 +31,6 @@ bool has_pcibus_enable(void);
 
 DmaController *DmaControllers[2]={NULL};
 unsigned char dma_extra_page_registers[16]={0}; /* 0x80-0x8F */
-bool enable_dma_extra_page_registers = true;
-bool dma_page_register_writeonly = false;
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
 Bit32u ems_board_mapping[LINK_START];
@@ -41,7 +39,6 @@ static Bit32u dma_wrapping = 0xffff;
 
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
-bool allow_decrement_mode = true;
 int isadma128k = -1;
 
 static void UpdateEMSMapping(void) {
@@ -201,8 +198,6 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x8b:GetDMAChannel(5)->SetPage((Bit8u)val);break;
 			case 0x8f:GetDMAChannel(4)->SetPage((Bit8u)val);break;
 			default:
-				  if (!enable_dma_extra_page_registers)
-					  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",(int)port);
 				  break;
 		}
 	}
@@ -234,11 +229,6 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 		/* read from the second DMA controller (channels 4-7) */
 		return DmaControllers[1]->ReadControllerReg((port-0xc0) >> 1,iolen);
 	} else {
-		/* if we're emulating PC/XT DMA controller behavior, then the page registers
-		 * are write-only and cannot be read */
-		if (dma_page_register_writeonly)
-			return ~0UL;
-
 		switch (port) {
 			/* read DMA page register */
 			case 0x81:return GetDMAChannel(2)->pagenum;
@@ -250,12 +240,8 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 			case 0x8b:return GetDMAChannel(5)->pagenum;
 			case 0x8f:return GetDMAChannel(4)->pagenum;
 			default:
-				  if (enable_dma_extra_page_registers)
-					return dma_extra_page_registers[port&0xF];
- 
-				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",(int)port);
-				  break;
-		}
+                      return dma_extra_page_registers[port&0xF];
+        }
 	}
 
 	return ~0UL;
@@ -304,7 +290,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		UpdateEMSMapping();
 		chan=GetChannel(val & 3);
 		chan->autoinit=(val & 0x10) > 0;
-		chan->increment=(!allow_decrement_mode) || ((val & 0x20) == 0); /* 0=increment 1=decrement */
+		chan->increment=((val & 0x20) == 0); /* 0=increment 1=decrement */
 		//TODO Maybe other bits? Like bits 6-7 to select demand/single/block/cascade mode? */
 		break;
 	case 0xc:		/* Clear Flip/Flip */
@@ -534,9 +520,6 @@ void DMA_Reset(Section* /*sec*/) {
 	 *      the user to change DMA emulation settings and have them take effect on VM reboot. */
 	enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
 	enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
-	enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
-	dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
-	allow_decrement_mode = section->Get_bool("allow dma address decrement");
 
     if (IS_PC98_ARCH) // DMA 4-7 do not exist on PC-98
         enable_2nd_dma = false;

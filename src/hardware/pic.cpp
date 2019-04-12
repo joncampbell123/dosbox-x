@@ -33,9 +33,6 @@
 
 unsigned long PIC_irq_delay_ns = 0;
 
-bool never_mark_cascade_in_service = false;
-bool ignore_cascade_in_service = false;
-
 struct PIC_Controller {
     Bitu icw_words;
     Bitu icw_index;
@@ -116,9 +113,6 @@ void PIC_Controller::check_for_irq(){
     if (possible_irq) {
         Bit8u a_irq = special?8:active_irq;
 
-        if (ignore_cascade_in_service && this == &master && a_irq == (unsigned char)master_cascade_irq)
-            a_irq++;
-
         for(Bit8u i = 0, s = 1; i < a_irq;i++, s<<=1){
             if ( possible_irq & s ) {
                 //There is an irq ready to be served => signal master and/or cpu
@@ -136,7 +130,6 @@ void PIC_Controller::raise_irq(Bit8u val){
         irr|=bit;
         if((bit&imrr)&isrr) { //not masked and not in service
             if(special || val < active_irq) activate();
-            else if (ignore_cascade_in_service && this == &master && val == (unsigned char)master_cascade_irq) activate();
         }
     }
 }
@@ -199,14 +192,9 @@ void PIC_Controller::deactivate() {
 void PIC_Controller::start_irq(Bit8u val){
     irr&=~(1<<(val));
     if (!auto_eoi) {
-        if (never_mark_cascade_in_service && this == &master && val == master_cascade_irq) {
-            /* do nothing */
-        }
-        else {
-            active_irq = val;
-            isr |= 1<<(val);
-            isrr = (~isr) | isr_ignore;
-        }
+        active_irq = val;
+        isr |= 1<<(val);
+        isrr = (~isr) | isr_ignore;
     } else if (GCC_UNLIKELY(rotate_on_auto_eoi)) {
         LOG_MSG("rotate on auto EOI not handled");
     }
@@ -479,9 +467,6 @@ void PIC_runIRQs(void) {
     const Bit8u p = (master.irr & master.imrr)&master.isrr;
     Bit8u max = master.special?8:master.active_irq;
     Bit8u i,s;
-
-    if (ignore_cascade_in_service && max == (unsigned char)master_cascade_irq)
-        max++;
 
     for (i = 0,s = 1;i < max;i++, s<<=1){
         if (p&s) {
@@ -833,9 +818,6 @@ void PIC_Reset(Section *sec) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
 
-    never_mark_cascade_in_service = section->Get_bool("cascade interrupt never in service");
-    ignore_cascade_in_service = section->Get_bool("cascade interrupt ignore in service");
-
     /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
      *      But the ability to respond to interrupts is limited by the CPU, too. */
     PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE;
@@ -899,9 +881,6 @@ void PIC_Reset(Section *sec) {
 
     if (master_cascade_irq >= 0) {
         PIC_SetIRQMask((unsigned int)master_cascade_irq,false);/* Enable second pic */
-
-        if (ignore_cascade_in_service)
-            pics[0].isr_ignore |= 1u << (unsigned char)master_cascade_irq;
     }
 
     /* I/O port map

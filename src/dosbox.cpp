@@ -850,28 +850,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Emulate 2nd (AT) DMA controller (default). Set to 0 if you wish to emulate a PC/XT system without 16-bit DMA.\n"
             "Note: mainline DOSBox automatically disables 16-bit DMA when machine=cga or machine=hercules, while DOSBox-X does not.");
 
-    Pbool = secprop->Add_bool("allow dma address decrement",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, allow increment & decrement modes as specified in the 8237 datasheet.\n"
-            "If clear, always increment the address (as if to emulate clone 8237 implementations that skipped the inc/dec bit).");
-
     Pstring = secprop->Add_string("enable 128k capable 16-bit dma", Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("If true, DMA controller emulation models ISA hardware that permits 16-bit DMA to span 128KB.\n"
                     "If false, DMA controller emulation models PCI hardware that limits 16-bit DMA to 64KB boundaries.\n"
                     "If auto, the choice is made according to other factors in hardware emulation");
-
-    Pbool = secprop->Add_bool("enable dma extra page registers",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, emulate the extra page registers (I/O ports 0x80, 0x84-0x86, 0x88, 0x8C-0x8E), like actual hardware.\n"
-            "Note that mainline DOSBox behavior is to NOT emulate these registers.");
-
-    Pbool = secprop->Add_bool("dma page registers write-only",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Normally (on AT hardware) the DMA page registers are read/write. Set this option if you want to emulate PC/XT hardware where the page registers are write-only.");
-
-    Pbool = secprop->Add_bool("cascade interrupt never in service",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, PIC emulation will never mark cascade interrupt as in service. This is OFF by default. It is a hack for troublesome games.");
-
-    Pbool = secprop->Add_bool("cascade interrupt ignore in service",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, PIC emulation will allow slave pic interrupts even if the cascade interrupt is still \"in service\". This is OFF by default. It is a hack for troublesome games.");
 
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
