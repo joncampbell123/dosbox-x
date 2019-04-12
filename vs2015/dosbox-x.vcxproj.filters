@@ -447,12 +447,6 @@
     <ClCompile Include="..\src\hardware\hardware.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gui\zipfile.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gui\zipcrc.c">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
