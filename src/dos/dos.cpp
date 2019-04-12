@@ -66,8 +66,6 @@ char * shiftjis_upcase(char * str) {
     return str;
 }
 
-unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
-
 bool dos_in_hma = true;
 bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
@@ -1874,9 +1872,7 @@ public:
     void DOS_Write_HMA_CPM_jmp(void) {
         // HMA mirror of CP/M entry point.
         // this is needed for "F01D:FEF0" to be a valid jmp whether or not A20 is enabled
-        if (dos_in_hma &&
-            cpm_compat_mode != CPM_COMPAT_OFF &&
-            cpm_compat_mode != CPM_COMPAT_DIRECT) {
+        if (dos_in_hma) {
             LOG(LOG_MISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
 
             Bitu was_a20 = XMS_GetEnabledA20();
@@ -1922,22 +1918,6 @@ public:
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
 
-        std::string cpmcompat = section->Get_string("cpm compatibility mode");
-
-        if (cpmcompat == "")
-            cpmcompat = "auto";
-
-        if (cpmcompat == "msdos2")
-            cpm_compat_mode = CPM_COMPAT_MSDOS2;
-        else if (cpmcompat == "msdos5")
-            cpm_compat_mode = CPM_COMPAT_MSDOS5;
-        else if (cpmcompat == "direct")
-            cpm_compat_mode = CPM_COMPAT_DIRECT;
-        else if (cpmcompat == "auto")
-            cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
-        else
-            cpm_compat_mode = CPM_COMPAT_OFF;
-
         /* FIXME: Boot up an MS-DOS system and look at what INT 21h on Microsoft's MS-DOS returns
          *        for SDA size and location, then use that here.
          *
@@ -1954,9 +1934,7 @@ public:
         /* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
          * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
          * jump through that address, and therefore doesn't need it. */
-        if (dos_in_hma &&
-            cpm_compat_mode != CPM_COMPAT_OFF &&
-            cpm_compat_mode != CPM_COMPAT_DIRECT) {
+        if (dos_in_hma) {
             LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
             if (dos_initial_hma_free > 0xFF00) {
                 dos_initial_hma_free = 0xFF00;
@@ -2099,8 +2077,7 @@ public:
 		//	... the rest is like int 21
 
         /* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
-        if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&
-            cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
+        if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0)) {
             /* hold on, only if more than 1MB of RAM and memory access permits it */
             if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
                 LOG(LOG_MISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
