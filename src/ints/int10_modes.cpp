@@ -33,7 +33,6 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
-extern bool int10_vesa_map_as_128kb;
 extern bool vesa12_modes_32bpp;
 
 VideoModeBlock ModeList_VGA[]={
@@ -1510,10 +1509,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN32:
     case M_PACKED4:
 		gfx_data[0x5]|=0x40;		//256 color mode
-        if (int10_vesa_map_as_128kb)
-    		gfx_data[0x6]|=0x01;	//graphics mode at 0xa000-bffff
-        else
-    		gfx_data[0x6]|=0x05;	//graphics mode at 0xa000-affff
+    	gfx_data[0x6]|=0x05;	    //graphics mode at 0xa000-affff
 		break;
 	case M_VGA:
 		gfx_data[0x5]|=0x40;		//256 color mode

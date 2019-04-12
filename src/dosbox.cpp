@@ -122,7 +122,6 @@ extern bool         VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
-extern bool         allow_more_than_640kb;
 
 Bit32u              guest_msdos_LoL = 0;
 Bit16u              guest_msdos_mcb_chain = 0;
@@ -617,9 +616,6 @@ void DOSBOX_RealInit() {
     /* private area size param in bytes. round up to nearest paragraph */
     DOS_PRIVATE_SEGMENT_Size = 32768 / 16;
 
-    // TODO: these should be parsed by BIOS startup
-    allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
-
     // TODO: should be parsed by motherboard emulation
     allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
@@ -938,34 +934,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
     Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
-
-    Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
-            "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
-            "This allows you to emulate PC/XT style memory extensions.");
-
-    /* should be set to zero unless for very specific demos:
-     *  - "Melvindale" by MFX (1996): Set this to 2, the nightmarish visual rendering code appears to draw 2 scanlines
-     *    upward from the VESA linear framebuffer base we return, causing DOSBox to emit warnings about illegal read/writes
-     *    from 0xBFFFF000-0xBFFFFFFF (just before the base of the framebuffer at 0xC0000000). It also has the effect of
-     *    properly centering the picture on the screen. I suppose it's a miracle the demo didn't crash people's computers
-     *    writing to undefined areas like that. */
-    Pint = secprop->Add_int("vesa lfb base scanline adjust",Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer offset by this many scanlines.\n"
-            "This does not affect the linear framebuffer's location. It only affects the linear framebuffer\n"
-            "location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
-            "    MFX \"Melvindale\" (1996): Set this option to 2 to center the picture properly.");
-
-    /* If set, all VESA BIOS modes map 128KB of video RAM at A0000-BFFFF even though VESA BIOS emulation
-     * reports a 64KB window. Some demos like the 1996 Wired report
-     * (ftp.scene.org/pub/parties/1995/wired95/misc/e-w95rep.zip) assume they can write past the window
-     * by spilling into B0000 without bank switching. */
-    Pbool = secprop->Add_bool("vesa map non-lfb modes to 128kb region",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, VESA BIOS SVGA modes will be set to map 128KB of video memory to A0000-BFFFF instead of\n"
-                    "64KB at A0000-AFFFF. This does not affect the SVGA window size or granularity.\n"
-                    "Some games or demoscene productions assume that they can render into the next SVGA window/bank\n"
-                    "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
-                    "without this option.");
 
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"

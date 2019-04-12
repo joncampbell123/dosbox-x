@@ -190,7 +190,6 @@ bool pc98_graphics_hide_odd_raster_200line = false;
 bool pc98_attr4_graphic = false;
 bool gdc_analog = true;
 bool pc98_31khz_mode = false;
-bool int10_vesa_map_as_128kb = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -507,7 +506,6 @@ static inline unsigned int int_log2(unsigned int val) {
     return log;
 }
 
-extern int hack_lfb_yadjust;
 extern uint8_t GDC_display_plane_wait_for_vsync;
 
 VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
@@ -669,10 +667,8 @@ void VGA_Reset(Section*) {
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
     vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
-    int10_vesa_map_as_128kb = section->Get_bool("vesa map non-lfb modes to 128kb region");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
-    hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
 
     if (vga_force_refresh_rate > 0)
