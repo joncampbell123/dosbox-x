@@ -179,8 +179,6 @@ SVGA_Driver svga;
 int vesa_modelist_cap = 0;
 bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
-bool enable_page_flip_debugging_marker = false;
-bool enable_vretrace_poll_debugging_marker = false;
 bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
 bool pc98_graphics_hide_odd_raster_200line = false;
@@ -207,16 +205,6 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen);
 void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen);
 Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen);
 void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen);
-
-void page_flip_debug_notify() {
-    if (enable_page_flip_debugging_marker)
-        vga_page_flip_occurred = true;
-}
-
-void vsync_poll_debug_notify() {
-    if (enable_vretrace_poll_debugging_marker)
-        vga_3da_polled = true;
-}
 
 Bit32u CGA_2_Table[16];
 Bit32u CGA_4_Table[256];
@@ -623,8 +611,6 @@ void VGA_Reset(Section*) {
     }
 
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
-    enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
-    enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
 
     if (vga_force_refresh_rate > 0)
@@ -719,9 +705,6 @@ void VGA_Reset(Section*) {
     // TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,
     //       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
     //       know of impossible constraints.
-
-    mainMenu.get_item("debug_pageflip").check(enable_page_flip_debugging_marker).refresh_item(mainMenu);
-    mainMenu.get_item("debug_retracepoll").check(enable_vretrace_poll_debugging_marker).refresh_item(mainMenu);
 
     VGA_SetupMemory();      // memory is allocated here
     if (!IS_PC98_ARCH) {
@@ -1140,26 +1123,6 @@ void VGA_SaveState(Section *sec) {
     }
 }
 
-bool debugpollvga_pf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    enable_page_flip_debugging_marker = !enable_page_flip_debugging_marker;
-    mainMenu.get_item("debug_pageflip").check(enable_page_flip_debugging_marker).refresh_item(mainMenu);
-
-    return true;
-}
-
-bool debugpollvga_rtp_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    enable_vretrace_poll_debugging_marker = !enable_vretrace_poll_debugging_marker;
-    mainMenu.get_item("debug_retracepoll").check(enable_vretrace_poll_debugging_marker).refresh_item(mainMenu);
-
-    return true;
-}
-
 void VGA_Init() {
     string str;
     Bitu i,j;
@@ -1224,9 +1187,6 @@ void VGA_Init() {
 #endif
         }
     }
-
-    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_pageflip").set_text("Page flip debug line").set_callback_function(debugpollvga_pf_menu_callback);
-    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_retracepoll").set_text("Retrace poll debug line").set_callback_function(debugpollvga_rtp_menu_callback);
 
     AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));

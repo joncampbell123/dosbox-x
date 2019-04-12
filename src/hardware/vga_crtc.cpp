@@ -31,7 +31,6 @@
 
 void VGA_MapMMIO(void);
 void VGA_UnmapMMIO(void);
-void page_flip_debug_notify();
 
 void VGA_CheckAddrShift() {
     //Byte,word,dword mode
@@ -212,13 +211,11 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		crtc(start_address_high)=val;
 		vga.config.display_start=(vga.config.display_start & 0xFF00FF)| (val << 8);
 		/* 0-7  Upper 8 bits of the start address of the display buffer */
-		page_flip_debug_notify();
 		break;
 	case 0x0D:	/* Start Address Low Register */
 		crtc(start_address_low)=val;
 		vga.config.display_start=(vga.config.display_start & 0xFFFF00)| val;
 		/*	0-7	Lower 8 bits of the start address of the display buffer */
-		page_flip_debug_notify();
 		break;
 	case 0x0E:	/*Cursor Location High Register */
 		crtc(cursor_location_high)=val;

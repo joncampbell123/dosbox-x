@@ -241,9 +241,6 @@ static const char *def_menu_video_pc98[] =
 static const char *def_menu_video_debug[] =
 {
     "mapper_blankrefreshtest",
-    "--",
-    "debug_pageflip",
-    "debug_retracepoll",
     NULL
 };
 

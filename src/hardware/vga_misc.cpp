@@ -23,8 +23,6 @@
 #include "vga.h"
 #include <math.h>
 
-void vsync_poll_debug_notify();
-
 void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
@@ -58,7 +56,6 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
         retval |= 8; // vertical retrace
     }
 
-	vsync_poll_debug_notify();
 	return retval;
 }
 
