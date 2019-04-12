@@ -235,31 +235,6 @@ static void DOS_AddDays(Bitu days) {
 #include "cpu.h"
 #endif
 
-// TODO: Make this configurable.
-//       Additionally, allow this to vary per-drive so that
-//       Drive D: can be as slow as a 2X IDE CD-ROM drive in PIO mode
-//       Drive C: can be as slow as a IDE drive in PIO mode and
-//       Drive A: can be as slow as a 3.5" 1.44MB floppy disk
-//
-// This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
-// This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
-int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
-
-void diskio_delay(Bits value/*bytes*/) {
-    if (disk_data_rate != 0) {
-        double scalar = (double)value / disk_data_rate;
-        double endtime = PIC_FullIndex() + (scalar * 1000);
-
-        /* MS-DOS will most likely enable interrupts in the course of
-         * performing disk I/O */
-        CPU_STI();
-
-        do {
-            CALLBACK_Idle();
-        } while (PIC_FullIndex() < endtime);
-    }
-}
-
 static inline void overhead() {
 	reg_ip += 2;
 }
@@ -1122,7 +1097,6 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(2048);
             break;
         case 0x3d:      /* OPEN Open existing file */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1133,7 +1107,6 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(1024);
             break;
         case 0x3e:      /* CLOSE Close file */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1144,7 +1117,6 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(512);
             break;
         case 0x3f:      /* READ Read from file or device */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1179,7 +1151,6 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(reg_ax);
                 dos.echo=false;
                 break;
             }
@@ -1211,7 +1182,6 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(reg_ax);
                 break;
             };
         case 0x41:                  /* UNLINK Delete file */
@@ -1223,7 +1193,6 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            diskio_delay(1024);
             break;
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -1237,7 +1206,6 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                diskio_delay(32);
                 break;
             }
         case 0x43:                  /* Get/Set file attributes */
@@ -1928,11 +1896,6 @@ public:
 
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-
-        ::disk_data_rate = section->Get_int("hard drive data rate limit");
-        if (::disk_data_rate < 0) {
-            ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
-        }
 
         dos_in_hma = section->Get_bool("dos in hma");
         dos_sda_size = section->Get_int("dos sda size");
