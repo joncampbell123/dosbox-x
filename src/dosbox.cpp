@@ -650,6 +650,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
+    const char* pc98timerfreqopt[] = { "", "4", "5", "8", "10", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
 
     /* Setup all the different modules making up DOSBox */
@@ -766,15 +767,15 @@ void DOSBOX_SetupConfigSections(void) {
                       "31khz is experimental at this time.");
 
     Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,2457600);
+    Pstring->Set_values(pc98timerfreqopt);
     Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
                    "If your setting is neither of the below the closest appropriate value will be chosen.\n"
                    "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
                    "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
                    "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
                    "    0: Use default (auto)\n"
-                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
-                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
+                   "    4 or 8: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
+                   "    5 or 10: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
 
     Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,1);
