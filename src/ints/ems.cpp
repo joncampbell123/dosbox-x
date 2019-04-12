@@ -79,7 +79,6 @@ Bitu GetEMSPageFrameSize(void) {
 bool ENABLE_VCPI=true;
 bool ENABLE_V86_STARTUP=false;
 bool zero_int67_if_no_ems=true;
-bool ems_syshandle_on_even_mb=false;
 
 /* EMM errors */
 #define EMM_NO_ERROR			0x00
@@ -388,10 +387,6 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, thi
 	 * and the system crashes (random contents in DOS conventional memory interpreted as protected mode structures
 	 * doesn't work very well). */
 	mem = 0;
-	if (ems_syshandle_on_even_mb) {
-		mem = MEM_AllocatePages_A20_friendly(pages*4u,/*sequential=*/true);
-		if (!mem) LOG(LOG_MISC,LOG_WARN)("EMS: Despite configuration setting, I was unable to allocate EMS system handle on even megabyte");
-	}
 	if (!mem) mem = MEM_AllocatePages(pages*4u,/*sequential=*/true);
 	if (!mem) E_Exit("EMS:System handle memory allocation failure");
 	emm_handles[handle].pages = pages;
@@ -1534,7 +1529,6 @@ public:
 		GEMMIS_seg=0;
 
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		ems_syshandle_on_even_mb = section->Get_bool("ems system handle on even megabyte");
 		zero_int67_if_no_ems = section->Get_bool("zero int 67h if no ems");
 		ems_type = GetEMSType(section);
 		if (ems_type == EMS_NONE) {
