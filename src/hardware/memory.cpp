@@ -1367,8 +1367,6 @@ void On_Software_CPU_Reset() {
     /* does not return */
 }
 
-bool allow_port_92_reset = true;
-
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
@@ -1377,13 +1375,8 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 
     // Bit 0 = system reset (switch back to real mode)
     if (val & 1) {
-        if (allow_port_92_reset) {
-            LOG_MSG("Restart by port 92h requested\n");
-            On_Software_CPU_Reset();
-        }
-        else {
-            LOG_MSG("WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
-        }
+        LOG_MSG("Restart by port 92h requested\n");
+        On_Software_CPU_Reset();
     }
 }
 

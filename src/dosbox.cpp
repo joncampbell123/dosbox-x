@@ -238,7 +238,6 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
 #include "paging.h"
 
-extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
 extern bool DOSBox_Paused();
@@ -584,9 +583,6 @@ void DOSBOX_RealInit() {
     /* private area size param in bytes. round up to nearest paragraph */
     DOS_PRIVATE_SEGMENT_Size = 32768 / 16;
 
-    // TODO: should be parsed by motherboard emulation
-    allow_port_92_reset = section->Get_bool("allow port 92 reset");
-
     // TODO: should be parsed by motherboard emulation or lower level equiv..?
     std::string cmd_machine;
     if (control->cmdline->FindString("-machine",cmd_machine,true)){
@@ -799,21 +795,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
             "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
-
-    Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
-
-    Pbool = secprop->Add_bool("unmask keyboard on int 16 read",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set, INT 16h will unmask IRQ 1 (keyboard) when asked to read keyboard input.\n"
-                    "It is strongly recommended that you set this option if running Windows 3.11 Windows for Workgroups in DOSBox-X.");
-
-    Pbool = secprop->Add_bool("int16 keyboard polling undocumented cf behavior",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, INT 16h function AH=01h will also set/clear the carry flag depending on whether input was available.\n"
-                    "There are some old DOS games and demos that rely on this behavior to sense keyboard input, and this behavior\n"
-                    "has been verified to occur on some old (early 90s) BIOSes.");
-
-    Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
     Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
