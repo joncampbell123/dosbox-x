@@ -39,7 +39,6 @@ static Bit32u dma_wrapping = 0xffff;
 
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
-int isadma128k = -1;
 
 static void UpdateEMSMapping(void) {
 	/* if EMS is not present, this will result in a 1:1 mapping */
@@ -368,10 +367,7 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 	channum = num;
 	DMA16 = dma16 ? 0x1 : 0x0;
 
-    if (isadma128k >= 0)
-        Set128KMode(isadma128k > 0); // user's choice
-    else
-        Set128KMode(true); // most hardware seems to implement the 128K case
+    Set128KMode(true); // most hardware seems to implement the 128K case
 
     LOG(LOG_DMACONTROL,LOG_DEBUG)("DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx",
         (unsigned int)channum,(unsigned int)DMA16_PAGESHIFT,(unsigned long)DMA16_ADDRMASK);
@@ -523,17 +519,6 @@ void DMA_Reset(Section* /*sec*/) {
 
     if (IS_PC98_ARCH) // DMA 4-7 do not exist on PC-98
         enable_2nd_dma = false;
-
-    {
-        std::string s = section->Get_string("enable 128k capable 16-bit dma");
-
-        if (s == "true" || s == "1")
-            isadma128k = 1;
-        else if (s == "false" || s == "0")
-            isadma128k = 0;
-        else
-            isadma128k = -1;
-    }
 
 	if (enable_1st_dma)
 		DmaControllers[0] = new DmaController(0);

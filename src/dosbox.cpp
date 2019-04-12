@@ -658,7 +658,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
 
@@ -849,12 +848,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable 2nd dma controller",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate 2nd (AT) DMA controller (default). Set to 0 if you wish to emulate a PC/XT system without 16-bit DMA.\n"
             "Note: mainline DOSBox automatically disables 16-bit DMA when machine=cga or machine=hercules, while DOSBox-X does not.");
-
-    Pstring = secprop->Add_string("enable 128k capable 16-bit dma", Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("If true, DMA controller emulation models ISA hardware that permits 16-bit DMA to span 128KB.\n"
-                    "If false, DMA controller emulation models PCI hardware that limits 16-bit DMA to 64KB boundaries.\n"
-                    "If auto, the choice is made according to other factors in hardware emulation");
 
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
