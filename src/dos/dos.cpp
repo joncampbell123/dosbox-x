@@ -134,7 +134,6 @@ Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 Bit16u minimum_mcb_segment=0x70;
 Bit16u minimum_mcb_free=0x70;
-Bit16u minimum_dos_initial_private_segment=0x70;
 
 Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
 Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
@@ -1850,7 +1849,6 @@ public:
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
-		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 
@@ -1893,15 +1891,7 @@ public:
 
         /* we make use of the DOS_GetMemory() function for the dynamic allocation */
         {
-            if (minimum_dos_initial_private_segment == 0)
-                DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
-            else
-                DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
-
-            if (DOS_PRIVATE_SEGMENT < 0x50)
-                LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
-            if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
-                LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
+            DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
 
             if (MEM_TotalPages() > 0x9C)
                 DOS_PRIVATE_SEGMENT_END = 0x9C00;
