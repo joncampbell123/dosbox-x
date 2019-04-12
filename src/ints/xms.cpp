@@ -684,8 +684,6 @@ public:
 		xms_handles[0].free	= false;
 
 		umb_available=section->Get_bool("umb");
-		first_umb_seg=section->Get_hex("umb start");
-		first_umb_size=section->Get_hex("umb end");
 
         /* This code will mess up the MCB chain in PCjr mode if umb=true */
         if (umb_available && machine == MCH_PCJR) {
@@ -698,33 +696,31 @@ public:
 		// Sanity check
 		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
 
-		if (first_umb_seg == 0) {
-			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
-			if (first_umb_seg < VGA_BIOS_SEG_END)
-				first_umb_seg = VGA_BIOS_SEG_END;
-		}
-		if (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;
+        if (umb_available) {
+            first_umb_seg = DOS_PRIVATE_SEGMENT_END;
+            if (first_umb_seg < 0xC000)
+                first_umb_seg = 0xC000;
+            if (first_umb_seg < VGA_BIOS_SEG_END)
+                first_umb_seg = VGA_BIOS_SEG_END;
 
-		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
-			LOG(LOG_MISC,LOG_WARN)("UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)",
-				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-			first_umb_seg = 0xC000;
-			if (first_umb_seg < (Bitu)DOS_PRIVATE_SEGMENT_END) first_umb_seg = (Bitu)DOS_PRIVATE_SEGMENT_END;
-		}
-		if (first_umb_seg >= (rombios_minimum_location>>4)) {
-			LOG(LOG_MISC,LOG_NORMAL)("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
-			umb_available = false;
-		}
+            if (first_umb_seg >= (rombios_minimum_location>>4)) {
+                LOG(LOG_MISC,LOG_NORMAL)("No room for UMBs");
+                umb_available = false;
+            }
+        }
 
-		if (first_umb_size >= (rombios_minimum_location>>4)) {
-			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
-			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside",(int)first_umb_size,(int)(rombios_minimum_location>>4));
-			ROMBIOS_FreeUnusedMinToLoc((unsigned int)first_umb_size<<4U);
-		}
-		if (first_umb_size >= ((unsigned int)rombios_minimum_location>>4U)) {
-			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
-			first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
-		}
+        if (umb_available) {
+            first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;
+            if (first_umb_size >= (rombios_minimum_location>>4)) {
+                /* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
+                LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside",(int)first_umb_size,(int)(rombios_minimum_location>>4));
+                ROMBIOS_FreeUnusedMinToLoc((unsigned int)first_umb_size<<4U);
+            }
+            if (first_umb_size >= ((unsigned int)rombios_minimum_location>>4U)) {
+                LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
+                first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
+            }
+        }
 
         Bitu GetEMSPageFrameSegment(void);
 
