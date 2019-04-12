@@ -482,18 +482,6 @@ public:
 		return vga.tandy.mem_base[addr];
 	}
 	void writeb(PhysPt addr,Bitu val){
-		if (enableCGASnow) {
-			/* NTS: We can't use PIC_FullIndex() exclusively because it's not precise enough
-			 *      with respect to when DOSBox CPU emulation is writing. We have to use other
-			 *      variables like CPU_Cycles to gain additional precision */
-			double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
-			double timeInLine = fmod(timeInFrame,vga.draw.delay.htotal);
-
-			/* we're in active area. which column should the snow show up on? */
-			Bit32u x = (Bit32u)((timeInLine * 80) / vga.draw.delay.hblkstart);
-			if ((unsigned)x < 80) vga.draw.cga_snow[x] = val;
-		}
-
 		addr = PAGING_GetPhysicalAddress(addr) & 0x3FFF;
 		vga.tandy.mem_base[addr] = val;
 	}
@@ -2099,11 +2087,8 @@ void VGA_SetupHandlers(void) {
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
-		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
-			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.cgatext );
-		else
-			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.slow );
-		goto range_done;
+        MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.slow );
+        goto range_done;
 	case MCH_MCGA://Based on real hardware, A0000-BFFFF is the 64KB of RAM mapped twice
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.mcgatext );     // A0000-AFFFF is the 64KB of video RAM
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped

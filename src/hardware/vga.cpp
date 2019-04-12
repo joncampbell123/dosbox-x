@@ -176,7 +176,6 @@ uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
 VGA_Type vga;
 SVGA_Driver svga;
-int enableCGASnow;
 int vesa_modelist_cap = 0;
 bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
@@ -459,44 +458,6 @@ static void VFRCRATE_ProgramStart(Program * * make) {
     *make=new VFRCRATE;
 }
 
-/*! \brief          CGASNOW.COM utility to control CGA snow emulation
- *
- *  \description    Utility to enable, disable, or query CGA snow emulation.
- *                  This command is only available when machine=cga and
- *                  the video mode is 80x25 text mode.
- */
-class CGASNOW : public Program {
-public:
-    /*! \brief      Program entry point, when the command is run
-     */
-    void Run(void) {
-        if(cmd->FindExist("ON")) {
-            WriteOut("CGA snow enabled\n");
-            enableCGASnow = 1;
-            if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
-                VGA_SetupHandlers();
-                VGA_StartResize();
-            }
-        }
-        else if(cmd->FindExist("OFF")) {
-            WriteOut("CGA snow disabled\n");
-            enableCGASnow = 0;
-            if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT) {
-                VGA_SetupHandlers();
-                VGA_StartResize();
-            }
-        }
-        else {
-            WriteOut("CGA snow currently %s\n",
-                enableCGASnow ? "enabled" : "disabled");
-        }
-    }
-};
-
-static void CGASNOW_ProgramStart(Program * * make) {
-    *make=new CGASNOW;
-}
-
 /* TODO: move to general header */
 static inline unsigned int int_log2(unsigned int val) {
     unsigned int log = 0;
@@ -661,7 +622,6 @@ void VGA_Reset(Section*) {
         vga_force_refresh_rate = atof(str.c_str());
     }
 
-    enableCGASnow = section->Get_bool("cgasnow");
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
@@ -788,7 +748,6 @@ void VGA_Reset(Section*) {
 
     // TODO: Code to remove programs added by PROGRAMS_MakeFile
 
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
     PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 
     if (IS_PC98_ARCH) {

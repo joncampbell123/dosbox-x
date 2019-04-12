@@ -1089,10 +1089,6 @@ static Bit8u * VGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     return CGA_COMMON_TEXT_Draw_Line<false>(vidstart,line);
 }
 
-static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
-    return CGA_COMMON_TEXT_Draw_Line<true>(vidstart,line);
-}
-
 template <const unsigned int card,typename templine_type_t> static inline void Alt_EGAVGA_Common_2BPP_Draw_Line_CharClock(templine_type_t* &draw,const VGA_Latch &pixels) {
     unsigned int val,val2;
 
@@ -1238,10 +1234,6 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
 
 static Bit8u * Alt_CGA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return Alt_CGA_COMMON_TEXT_Draw_Line<false>();
-}
-
-static Bit8u * Alt_CGA_CGASNOW_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    return Alt_CGA_COMMON_TEXT_Draw_Line<true>();
 }
 
 static Bit8u * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
@@ -3874,18 +3866,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_TANDY_TEXT: /* Also CGA */
         vga.draw.blocks=width;
-        if (vga_alt_new_mode) {
-            if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
-                VGA_DrawLine=Alt_CGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
-            else
-                VGA_DrawLine=Alt_CGA_TEXT_Draw_Line;
-        }
-        else {
-            if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
-                VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
-            else
-                VGA_DrawLine=VGA_TEXT_Draw_Line;
-        }
+        if (vga_alt_new_mode)
+            VGA_DrawLine=Alt_CGA_TEXT_Draw_Line;
+        else
+            VGA_DrawLine=VGA_TEXT_Draw_Line;
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
