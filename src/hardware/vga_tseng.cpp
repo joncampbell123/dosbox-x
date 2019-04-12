@@ -26,9 +26,6 @@
 #include "regs.h"
 #include <cstdlib>
 
-extern bool vga_enable_3C6_ramdac;
-extern bool vga_sierra_lock_565;
-
 // Tseng ET4K data
 typedef struct {
     Bit8u extensionsEnabled;
@@ -408,7 +405,7 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
 void DetermineMode_ET4K() {
     // Special case for HiColor DAC enabled modes
     if ((et4k.hicolorDACcommand & 0xc0) == 0x80) {
-        VGA_SetMode(vga_sierra_lock_565 ? M_LIN16 : M_LIN15);
+        VGA_SetMode(M_LIN15);
         return;
     } else if ((et4k.hicolorDACcommand & 0xc0) == 0xc0) {
         VGA_SetMode(M_LIN16);
@@ -502,14 +499,7 @@ void write_p3c9_et4k(Bitu port,Bitu val,Bitu iolen) {
     write_p3c9(port, val, iolen);
 }
 Bitu read_p3c6_et4k(Bitu port,Bitu iolen) {
-    if (et4k.hicolorDACcmdmode <= 3) {
-        if (vga_enable_3C6_ramdac)
-            et4k.hicolorDACcmdmode++;
-
-        return read_p3c6(port, iolen);
-    } else {
-        return et4k.hicolorDACcommand;
-    }
+    return read_p3c6(port, iolen);
 }
 Bitu read_p3c7_et4k(Bitu port,Bitu iolen) {
     et4k.hicolorDACcmdmode = 0;
@@ -547,10 +537,7 @@ void INT10Extensions_ET4K() {
         break;
     case 0x10F1: /* ET4000: GET DAC TYPE */
         reg_ax = 0x0010;
-        if (vga_enable_3C6_ramdac)
-            reg_bl = 0x01;
-        else
-            reg_bl = 0x00;
+        reg_bl = 0x00;
         break;
     case 0x10F2: /* ET4000: CHECK/SET HiColor MODE */
         switch (reg_bl) {

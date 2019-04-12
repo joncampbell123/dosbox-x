@@ -182,8 +182,6 @@ bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
 bool enable_vretrace_poll_debugging_marker = false;
-bool vga_enable_3C6_ramdac = false;
-bool vga_sierra_lock_565 = false;
 bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
 bool pc98_graphics_hide_odd_raster_200line = false;
@@ -665,8 +663,6 @@ void VGA_Reset(Section*) {
 
     enableCGASnow = section->Get_bool("cgasnow");
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
-    vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
-    vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");

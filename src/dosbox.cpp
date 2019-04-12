@@ -796,18 +796,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
     Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
 
-    Pbool = secprop->Add_bool("sierra ramdac",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Whether or not to emulate a Sierra or compatible RAMDAC at port 3C6h-3C9h.\n"
-            "Some DOS games expect to access port 3C6h to enable highcolor/truecolor SVGA modes on older chipsets.\n"
-            "Disable if you wish to emulate SVGA hardware that lacks a RAMDAC or (depending on the chipset) does\n"
-            "not emulate a RAMDAC that is accessible through port 3C6h. This option has no effect for non-VGA video hardware.");
-
-    Pbool = secprop->Add_bool("sierra ramdac lock 565",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("When emulating High Sierra highcolor RAMDAC, assume 5:6:5 at all times if set. Else,\n"
-            "bit 6 of the DAC command selects between 5:5:5 and 5:6:5. Set this option for demos or\n"
-            "games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
-            "not rendering highcolor 16bpp correctly.");
-
     Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
             "This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
