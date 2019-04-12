@@ -342,8 +342,6 @@ int NonUserResizeCounter = 0;
 
 Bitu time_limit_ms = 0;
 
-extern bool keep_umb_on_boot;
-extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 bool guest_machine_power_on = false;
 
@@ -7200,7 +7198,7 @@ fresh_boot:
             RemoveEMSPageFrame();
 
             /* remove UMB block */
-            if (!keep_umb_on_boot) RemoveUMBBlock();
+            RemoveUMBBlock();
 
             /* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
             DisableINT33();
@@ -7208,10 +7206,7 @@ fresh_boot:
             /* unmap the DOSBox kernel private segment. if the user told us not to,
              * but the segment exists below 640KB, then we must, because the guest OS
              * will trample it and assume control of that region of RAM. */
-            if (!keep_private_area_on_boot || reboot_machine)
-                DOS_GetMemory_unmap();
-            else if (DOS_PRIVATE_SEGMENT < 0xA000)
-                DOS_GetMemory_unmap();
+            DOS_GetMemory_unmap();
 
             /* revector some dos-allocated interrupts */
             if (!reboot_machine) {

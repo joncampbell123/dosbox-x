@@ -587,8 +587,6 @@ Bitu XMS_Handler(void) {
 
 bool xms_init = false;
 
-bool keep_umb_on_boot;
-
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern Bitu VGA_BIOS_Size;
@@ -685,8 +683,6 @@ public:
 		/* Disable the 0 handle */
 		xms_handles[0].free	= false;
 
-		/* Set up UMB chain */
-		keep_umb_on_boot=section->Get_bool("keep umb on boot");
 		umb_available=section->Get_bool("umb");
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");

@@ -1790,7 +1790,6 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
@@ -2172,8 +2171,6 @@ public:
 		DOS_SetupMisc();							/* Some additional dos interrupts */
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
-
-		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
 	
 		dos.version.major=5;
 		dos.version.minor=0;
