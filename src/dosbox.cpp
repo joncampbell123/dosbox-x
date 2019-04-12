@@ -648,7 +648,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"8086", "80186", "286", "386", "486old", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
-    const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
@@ -1022,20 +1021,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("hma free space",Property::Changeable::WhenIdle,34*1024); /* default 34KB (TODO: How much does MS-DOS 5.0 usually occupy?) */
     Pint->Set_help("Controls the amount of free space available in HMA. This setting is not meaningful unless the\n"
             "DOS kernel occupies HMA and the emulated DOS version is at least 5.0.");
-
-    Pstring = secprop->Add_string("cpm compatibility mode",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(cpm_compat_modes);
-    Pstring->Set_help(
-            "This controls how the DOS kernel sets up the CP/M compatibility code in the PSP segment.\n"
-            "Several options are provided to emulate one of several undocumented behaviors related to the CP/M entry point.\n"
-            "If set to auto, DOSBox-X will pick the best option to allow it to work properly.\n"
-            "Unless set to 'off', this option will require the DOS kernel to occupy the first 256 bytes of the HMA memory area\n"
-            "to prevent crashes when the A20 gate is switched on.\n"
-            "   auto      Pick the best option\n"
-            "   off       Turn off the CP/M entry point (program will abort if called)\n"
-            "   msdos2    MS-DOS 2.x behavior, offset field also doubles as data segment size\n"
-            "   msdos5    MS-DOS 5.x behavior, entry point becomes one of two fixed addresses\n"
-            "   direct    Non-standard behavior, encode the CALL FAR directly to the entry point rather than indirectly");
 
     Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
