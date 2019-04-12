@@ -1790,7 +1790,6 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-bool iret_only_for_debug_interrupts = true;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
@@ -1896,7 +1895,6 @@ public:
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
-		iret_only_for_debug_interrupts = section->Get_bool("write plain iretf for debug interrupts");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
