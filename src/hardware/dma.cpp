@@ -37,9 +37,6 @@ Bit32u ems_board_mapping[LINK_START];
 
 static Bit32u dma_wrapping = 0xffff;
 
-bool enable_1st_dma = true;
-bool enable_2nd_dma = true;
-
 static void UpdateEMSMapping(void) {
 	/* if EMS is not present, this will result in a 1:1 mapping */
 	Bitu i;
@@ -512,58 +509,42 @@ void DMA_Reset(Section* /*sec*/) {
 
 	DMA_SetWrapping(0xffff);
 
-	/* NTS: parsing on reset means a reboot of the VM (and possibly other conditions) can permit
-	 *      the user to change DMA emulation settings and have them take effect on VM reboot. */
-	enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
-	enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
+    DmaControllers[0] = new DmaController(0);
 
-    if (IS_PC98_ARCH) // DMA 4-7 do not exist on PC-98
-        enable_2nd_dma = false;
+    if (!IS_PC98_ARCH)
+        DmaControllers[1] = new DmaController(1);
+    else
+        DmaControllers[1] = NULL;
 
-	if (enable_1st_dma)
-		DmaControllers[0] = new DmaController(0);
-	else
-		DmaControllers[0] = NULL;
+    for (i=0;i<0x10;i++) {
+        Bitu mask = IO_MB;
+        if (i < 8) mask |= IO_MW;
 
-	if (enable_2nd_dma)
-		DmaControllers[1] = new DmaController(1);
-	else
-		DmaControllers[1] = NULL;
+        /* install handler for first DMA controller ports */
+        DmaControllers[0]->DMA_WriteHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Write_Port,mask);
+        DmaControllers[0]->DMA_ReadHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Read_Port,mask);
 
-	for (i=0;i<0x10;i++) {
-		Bitu mask = IO_MB;
-		if (i < 8) mask |= IO_MW;
-
-		if (enable_1st_dma) {
-			/* install handler for first DMA controller ports */
-			DmaControllers[0]->DMA_WriteHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Write_Port,mask);
-			DmaControllers[0]->DMA_ReadHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Read_Port,mask);
-		}
-		if (enable_2nd_dma) {
-            assert(!IS_PC98_ARCH);
-			/* install handler for second DMA controller ports */
-			DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0+i*2,DMA_Write_Port,mask);
-			DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0+i*2,DMA_Read_Port,mask);
-		}
-	}
-
-	if (enable_1st_dma) {
-        if (IS_PC98_ARCH) {
-            /* install handlers for ports 0x21-0x27 odd */
-            for (unsigned int i=0;i < 4;i++) {
-                DmaControllers[0]->DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
-                DmaControllers[0]->DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
-            }
+        if (!IS_PC98_ARCH) {
+            /* install handler for second DMA controller ports */
+            DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0+i*2,DMA_Write_Port,mask);
+            DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0+i*2,DMA_Read_Port,mask);
         }
-        else {
-            /* install handlers for ports 0x81-0x83 (on the first DMA controller) */
-            DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
-            DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
-        }
-	}
+    }
 
-	if (enable_2nd_dma) {
-        assert(!IS_PC98_ARCH);
+    if (IS_PC98_ARCH) {
+        /* install handlers for ports 0x21-0x27 odd */
+        for (unsigned int i=0;i < 4;i++) {
+            DmaControllers[0]->DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
+            DmaControllers[0]->DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
+        }
+    }
+    else {
+        /* install handlers for ports 0x81-0x83 (on the first DMA controller) */
+        DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
+        DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
+    }
+
+    if (!IS_PC98_ARCH) {
         /* install handlers for ports 0x81-0x83 (on the second DMA controller) */
 		DmaControllers[1]->DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
 		DmaControllers[1]->DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);

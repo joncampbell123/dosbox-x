@@ -830,13 +830,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
 
-    Pbool = secprop->Add_bool("enable 1st dma controller",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate 1st (AT) DMA controller (default). Set to 0 if you wish to emulate a system that lacks DMA (PCjr and some Tandy systems)");
-
-    Pbool = secprop->Add_bool("enable 2nd dma controller",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate 2nd (AT) DMA controller (default). Set to 0 if you wish to emulate a PC/XT system without 16-bit DMA.\n"
-            "Note: mainline DOSBox automatically disables 16-bit DMA when machine=cga or machine=hercules, while DOSBox-X does not.");
-
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
             "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
