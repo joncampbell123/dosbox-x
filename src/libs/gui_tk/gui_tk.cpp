@@ -1603,7 +1603,26 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_F1:case SDLK_F2:case SDLK_F3:case SDLK_F4:case SDLK_F5:case SDLK_F6:
 	case SDLK_F7:case SDLK_F8:case SDLK_F9:case SDLK_F10:case SDLK_F11:case SDLK_F12:
 		ksym = (GUI::Key::Special)(GUI::Key::F1 + key.sym-SDLK_F1);
-	default: break;
+    /* do not provide a character code for these keys */
+    case SDLK_LSHIFT: case SDLK_RSHIFT:
+    case SDLK_LCTRL:  case SDLK_RCTRL:
+    case SDLK_LALT:   case SDLK_RALT:
+#if defined(C_SDL2)
+    	return Key(0, ksym,
+    		(key.mod&KMOD_SHIFT)>0,
+    		(key.mod&KMOD_CTRL)>0,
+    		(key.mod&KMOD_ALT)>0,
+            false);
+#else
+    	return Key(0, ksym,
+    		(key.mod&KMOD_SHIFT)>0,
+    		(key.mod&KMOD_CTRL)>0,
+    		(key.mod&KMOD_ALT)>0,
+    		(key.mod&KMOD_META)>0);
+#endif
+    /* anything else, go ahead */
+	default:
+        break;
 	}
 #if defined(C_SDL2)
 	return Key(key.sym, ksym,
