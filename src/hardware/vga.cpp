@@ -182,8 +182,6 @@ bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
 bool enable_vretrace_poll_debugging_marker = false;
-bool vga_enable_hretrace_effects = false;
-bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
 bool vga_sierra_lock_565 = false;
 bool pc98_allow_scanline_effect = true;
@@ -197,16 +195,7 @@ bool int10_vesa_map_as_128kb = false;
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
 
-bool allow_vesa_4bpp_packed = true;
-bool allow_vesa_lowres_modes = true;
 bool vesa12_modes_32bpp = true;
-bool allow_vesa_32bpp = true;
-bool allow_vesa_24bpp = true;
-bool allow_vesa_16bpp = true;
-bool allow_vesa_15bpp = true;
-bool allow_vesa_8bpp = true;
-bool allow_vesa_4bpp = true;
-bool allow_vesa_tty = true;
 
 void gdc_5mhz_mode_update_vars(void);
 void pc98_port6A_command_write(unsigned char b);
@@ -679,34 +668,12 @@ void VGA_Reset(Section*) {
     enableCGASnow = section->Get_bool("cgasnow");
     vesa_modelist_cap = section->Get_int("vesa modelist cap");
     vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
-    vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
-    hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
     int10_vesa_map_as_128kb = section->Get_bool("vesa map non-lfb modes to 128kb region");
-    vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
-    allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
-    allow_vesa_4bpp_packed = section->Get_bool("allow 4bpp packed vesa modes");
-    allow_vesa_32bpp = section->Get_bool("allow 32bpp vesa modes");
-    allow_vesa_24bpp = section->Get_bool("allow 24bpp vesa modes");
-    allow_vesa_16bpp = section->Get_bool("allow 16bpp vesa modes");
-    allow_vesa_15bpp = section->Get_bool("allow 15bpp vesa modes");
-    allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
-    allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
-    allow_vesa_tty = section->Get_bool("allow tty vesa modes");
-
-    /* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
-    if (!allow_vesa_32bpp && !allow_vesa_24bpp)
-        vesa12_modes_32bpp = 0;
-    /* sanity check: "VBE 1.2 modes 32bpp=true" doesn't make sense if the user disabled 32bpp */
-    else if (vesa12_modes_32bpp && !allow_vesa_32bpp)
-        vesa12_modes_32bpp = 0;
-    /* sanity check: "VBE 1.2 modes 32bpp=false" doesn't make sense if the user disabled 24bpp */
-    else if (!vesa12_modes_32bpp && !allow_vesa_24bpp && allow_vesa_32bpp)
-        vesa12_modes_32bpp = 1;
 
     if (vga_force_refresh_rate > 0)
         LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);

@@ -85,10 +85,7 @@ int vga_mode_frames_since_time_base = 0;
 
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
-extern bool vga_enable_hpel_effects;
-extern bool vga_enable_hretrace_effects;
 extern unsigned int vga_display_start_hretrace;
-extern float hretrace_fx_avg_weight;
 
 extern bool pc98_31khz_mode;
 
@@ -121,7 +118,6 @@ typedef Bit8u * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
 static Bit8u TempLine[SCALER_MAXWIDTH * 4 + 256];
-static float hretrace_fx_avg = 0;
 
 static Bit8u * VGA_Draw_AMS_4BPP_Line(Bitu vidstart, Bitu line) {
     const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
@@ -658,33 +654,6 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
     poff += vidstart & 3u;
     vidstart &= ~3ul;
 
-    /* hack for Surprise! productions "copper" demo.
-     * when the demo talks about making the picture waver, what it's doing is diddling
-     * with the Start Horizontal Retrace register of the CRTC once per scanline.
-     * ...yeah, really. It's a wonder in retrospect the programmer didn't burn out his
-     * VGA monitor, and I bet this makes the demo effect unwatchable on LCD flat panels or
-     * scan converters that rely on the pulses to detect VGA mode changes! */
-    if (vga_enable_hretrace_effects) {
-        /* NTS: This is NOT BACKWARDS. It makes sense if you think about it: the monitor
-         *      begins swinging the electron beam back on horizontal retract, so if the
-         *      retrace starts sooner, then the blanking on the left side appears to last
-         *      longer because there are more clocks until active display.
-         *
-         *      Also don't forget horizontal total/blank/retrace etc. registers are in
-         *      character clocks not pixels. In 320x200x256 mode, one character clock is
-         *      4 pixels.
-         *
-         *      Finally, we average it with "weight" because CRTs have "inertia" */
-        float a = 1.0 / (hretrace_fx_avg_weight + 1);
-
-        hretrace_fx_avg *= 1.0 - a;
-        hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
-        int x = (int)floor(hretrace_fx_avg + 0.5);
-
-        vidstart += (Bitu)((int)skip * (x >> 2));
-        poff += x & 3;
-    }
-
     for(Bitu i = 0; i < ((vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/))+((poff+3)>>2)); i++) {
         Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 
@@ -702,32 +671,6 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
-
-    /* hack for Surprise! productions "copper" demo.
-     * when the demo talks about making the picture waver, what it's doing is diddling
-     * with the Start Horizontal Retrace register of the CRTC once per scanline.
-     * ...yeah, really. It's a wonder in retrospect the programmer didn't burn out his
-     * VGA monitor, and I bet this makes the demo effect unwatchable on LCD flat panels or
-     * scan converters that rely on the pulses to detect VGA mode changes! */
-    if (vga_enable_hretrace_effects) {
-        /* NTS: This is NOT BACKWARDS. It makes sense if you think about it: the monitor
-         *      begins swinging the electron beam back on horizontal retract, so if the
-         *      retrace starts sooner, then the blanking on the left side appears to last
-         *      longer because there are more clocks until active display.
-         *
-         *      Also don't forget horizontal total/blank/retrace etc. registers are in
-         *      character clocks not pixels. In 320x200x256 mode, one character clock is
-         *      4 pixels.
-         *
-         *      Finally, we average it with "weight" because CRTs have "inertia" */
-        float a = 1.0 / (hretrace_fx_avg_weight + 1);
-
-        hretrace_fx_avg *= 1.0 - a;
-        hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
-        int x = (int)floor(hretrace_fx_avg + 0.5);
-
-        vidstart += (Bitu)((int)x);
-    }
 
     for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
         temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
@@ -2402,20 +2345,6 @@ again:
             pc98_gdc[i].next_line();
 
         pc98_text_draw.next_line();
-    }
-
-    /* some VGA cards (ATI chipsets especially) do not double-buffer the
-     * horizontal panning register. some DOS demos take advantage of that
-     * to make the picture "waver".
-     *
-     * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen. */
-    if (IS_VGA_ARCH && vga_enable_hpel_effects) {
-        /* Attribute Mode Controller: If bit 5 (Pixel Panning Mode) is set, then upon line compare the bottom portion is displayed as if Pixel Shift Count and Byte Panning are set to 0.
-         * This ensures some demos like Future Crew "Yo" display correctly instead of the bottom non-scroller half jittering because the top half is scrolling. */
-        if (vga.draw.has_split && (vga.attr.mode_control&0x20))
-            vga.draw.panning = 0;
-        else
-            vga.draw.panning = vga.config.pel_panning;
     }
 
     if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();

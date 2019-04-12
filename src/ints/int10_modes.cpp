@@ -34,16 +34,7 @@
 #define ATT_REGS 0x15
 
 extern bool int10_vesa_map_as_128kb;
-extern bool allow_vesa_lowres_modes;
-extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
-extern bool allow_vesa_32bpp;
-extern bool allow_vesa_24bpp;
-extern bool allow_vesa_16bpp;
-extern bool allow_vesa_15bpp;
-extern bool allow_vesa_8bpp;
-extern bool allow_vesa_4bpp;
-extern bool allow_vesa_tty;
 
 VideoModeBlock ModeList_VGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
@@ -1960,28 +1951,20 @@ Bitu VideoModeMemSize(Bitu mode) {
 
 	switch(vmodeBlock->type) {
     case M_PACKED4:
-		if (mode >= 0x100 && !allow_vesa_4bpp_packed) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN4:
-		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN8:
-		if (mode >= 0x100 && !allow_vesa_8bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight;
 	case M_LIN15:
-		if (mode >= 0x100 && !allow_vesa_15bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
 	case M_LIN16:
-		if (mode >= 0x100 && !allow_vesa_16bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
 	case M_LIN24:
-		if (mode >= 0x100 && !allow_vesa_24bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*3;
 	case M_LIN32:
-		if (mode >= 0x100 && !allow_vesa_32bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*4;
 	case M_TEXT:
-		if (mode >= 0x100 && !allow_vesa_tty) return ~0ul;
 		return vmodeBlock->twidth*vmodeBlock->theight*2;
 	default:
 		break;

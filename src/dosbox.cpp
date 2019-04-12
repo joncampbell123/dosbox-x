@@ -680,7 +680,6 @@ void DOSBOX_SetupConfigSections(void) {
     Prop_hex* Phex;
     Prop_bool* Pbool;
     Prop_string* Pstring;
-    Prop_double* Pdouble;
     Prop_multival* Pmulti;
     Section_prop * secprop;
     Prop_multival_remain* Pmulti_remain;
@@ -968,21 +967,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
                     "without this option.");
 
-    Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
-            "Some early DOS demos use this to create waving or sinus effects on the picture. Not very many VGA\n"
-            "chipsets allow this, so far, only ATI chipsets are known to support this effect. Disabled by default.");
-
-    Pbool = secprop->Add_bool("allow hretrace effects",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, allow the DOS demo or program to make the picture wavy by playing with the 'start horizontal"
-            "retrace' register of the CRTC during the active picture. Some early DOS demos (Copper by Surprise!"
-            "productions) need this option set for some demo effects to work. Disabled by default.");
-
-    Pdouble = secprop->Add_double("hretrace effect weight",Property::Changeable::Always,4.0);
-    Pdouble->Set_help("If emulating hretrace effects, this parameter adds 'weight' to the offset to smooth it out.\n"
-            "the larger the number, the more averaging is applied. This is intended to emulate the inertia\n"
-            "of the electron beam in a CRT monitor");
-
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
             "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
@@ -995,34 +979,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
             "Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
             "option exists.");
-
-    Pbool = secprop->Add_bool("allow low resolution vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on). You could set this to false to simulate\n"
-            "SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.");
-
-    Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 24bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 24bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 16bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 16bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 15bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 15bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 8bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 8bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 4bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow 4bpp packed vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 4bpp packed VESA modes, set to 'false'");
-
-    Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);

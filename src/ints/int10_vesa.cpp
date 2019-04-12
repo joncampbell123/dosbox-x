@@ -30,17 +30,7 @@
 
 int hack_lfb_yadjust = 0;
 
-extern bool allow_vesa_lowres_modes;
-extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
-extern bool allow_vesa_32bpp;
-extern bool allow_vesa_24bpp;
-extern bool allow_vesa_16bpp;
-extern bool allow_vesa_15bpp;
-extern bool allow_vesa_8bpp;
-extern bool allow_vesa_4bpp;
-extern bool allow_vesa_tty;
-extern bool vga_8bit_dac;
 
 #define VESA_SUCCESS          0x00
 #define VESA_FAIL             0x01
@@ -207,12 +197,8 @@ foundit:
     /* do not return information on deleted modes */
     if (mblock->type == M_ERROR) return 0x01;
 
-	bool allow_res = allow_vesa_lowres_modes ||
-		(ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
-
 	switch (mblock->type) {
 	case M_PACKED4:
-		if (!allow_vesa_4bpp_packed) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,(((mblock->swidth+15U)/8U)&(~1U))*4); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -222,7 +208,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN4:
-		if (!allow_vesa_4bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,((mblock->swidth+15U)/8U)&(~1U)); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x4);
@@ -231,7 +216,6 @@ foundit:
 		modeAttributes = 0x1b;	// Color, graphics, no linear buffer
 		break;
 	case M_LIN8:
-		if (!allow_vesa_8bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth);
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -241,7 +225,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN15:
-		if (!allow_vesa_15bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*2);
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -259,7 +242,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN16:
-		if (!allow_vesa_16bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*2;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*2);
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -275,7 +257,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN24:
-		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*3;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*3);
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -291,7 +272,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_LIN32:
-		if (!allow_vesa_32bpp || !allow_res) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*4;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*4);
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -309,7 +289,6 @@ foundit:
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
 	case M_TEXT:
-		if (!allow_vesa_tty) return VESA_FAIL;
 		pageSize = 0;
 		var_write(&minfo.BytesPerScanLine, mblock->twidth * 2);
 		var_write(&minfo.NumberOfPlanes,0x4);
@@ -669,25 +648,6 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                 canuse_mode=true;
             else if (svga.accepts_mode(ModeList_VGA[i].mode))
                 canuse_mode=true;
-
-            if (canuse_mode) {
-                if (ModeList_VGA[i].mode >= 0x100) {
-                    bool allow_res = allow_vesa_lowres_modes ||
-                        (ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
-
-                    switch (ModeList_VGA[i].type) {
-                        case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
-                        case M_LIN24:	canuse_mode=allow_vesa_24bpp && allow_res; break;
-                        case M_LIN16:	canuse_mode=allow_vesa_16bpp && allow_res; break;
-                        case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
-                        case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
-                        case M_LIN4:	canuse_mode=allow_vesa_4bpp && allow_res; break;
-                        case M_PACKED4:	canuse_mode=allow_vesa_4bpp_packed && allow_res; break;
-                        case M_TEXT:	canuse_mode=allow_vesa_tty && allow_res; break;
-                        default:	break;
-                    }
-                }
-            }
         }
 
         if (canuse_mode && vesa_modelist_cap > 0 && (unsigned int)modecount >= (unsigned int)vesa_modelist_cap)
