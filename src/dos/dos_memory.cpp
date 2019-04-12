@@ -522,8 +522,6 @@ static Bitu DOS_default_handler(void) {
 
 extern Bit16u DOS_IHSEG;
 
-extern bool enable_dummy_device_mcb;
-
 static	CALLBACK_HandlerObject callbackhandler;
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
@@ -562,7 +560,7 @@ void DOS_SetupMemory(void) {
 
 	Bit16u mcb_sizes=0;
 
-	if (enable_dummy_device_mcb) {
+	{
 		// Create a dummy device MCB with PSPSeg=0x0008
         LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
 		DOS_MCB mcb_devicedummy((Bit16u)DOS_MEM_START+mcb_sizes);

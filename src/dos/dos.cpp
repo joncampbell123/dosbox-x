@@ -141,8 +141,6 @@ Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
 
 Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox behavior
 
-bool enable_dummy_device_mcb = true;
-
 extern unsigned int MAXENV;// = 32768u;
 extern unsigned int ENV_KEEPFREE;// = 83;
 
@@ -1855,7 +1853,6 @@ public:
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
-		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
