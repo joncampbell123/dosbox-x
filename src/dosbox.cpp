@@ -1038,16 +1038,6 @@ void DOSBOX_SetupConfigSections(void) {
                    "be loaded too low in memory. This differs from 'minimum mcb segment' in that this affects\n"
                    "the lowest free block instead of the starting point of the mcb chain.");
 
-    Pint = secprop->Add_int("maximum environment block size on exec", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,65535);
-    Pint->Set_help("Maximum environment block size to copy for child processes. Set to -1 for default.");
-
-    Pint = secprop->Add_int("additional environment block size on exec", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,65535);
-    Pint->Set_help("When executing a program, compute the size of the parent block then add this amount to allow for a few additional variables.\n"
-            "If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
-            "Set to -1 for default setting.");
-
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);
     Pstring->Set_help("Enable EMS support. The default (=true) provides the best\n"

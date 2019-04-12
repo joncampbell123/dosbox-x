@@ -1849,8 +1849,6 @@ public:
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
-		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
-		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
@@ -1879,13 +1877,8 @@ public:
             }
         }
 
-		if ((int)MAXENV < 0) MAXENV = 65535;
-		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = 1024;
-
-		LOG(LOG_MISC,LOG_DEBUG)("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
-
-		if (ENV_KEEPFREE < 83)
-			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
+		MAXENV = 65535;
+		ENV_KEEPFREE = 1024;
 
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 
