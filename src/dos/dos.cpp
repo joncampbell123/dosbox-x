@@ -1790,7 +1790,6 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
 
 // NOTE about 0x70 and PC-98 emulation mode:
@@ -1890,7 +1889,6 @@ public:
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
-		private_segment_in_umb = section->Get_bool("private area in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
@@ -2058,25 +2056,6 @@ public:
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
-			if (!private_segment_in_umb) {
-				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
-				unsigned int seg;
-				unsigned int segend;
-
-				seg = DOS_MEM_START;
-				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
-				segend = DOS_MEM_START;
-
-				if (segend >= (MEM_TotalPages() << (12 - 4)))
-					E_Exit("Insufficient room for private area");
-
-				DOS_PRIVATE_SEGMENT = seg;
-				DOS_PRIVATE_SEGMENT_END = segend;
-				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
-				DOS_GetMemory_reset();
-				LOG_MSG("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x [dynamic]\n",
-					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-			}
 		}
 
 		if (minimum_mcb_segment != 0) {

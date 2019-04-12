@@ -1103,10 +1103,6 @@ void DOSBOX_SetupConfigSections(void) {
     Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
     Phex->Set_help("UMB region last segment");
 
-    Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
-            "If clear, place private DOS segment at the base of system memory (just below the MCB)");
-
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (LFN patch compat). Common settings are:\n"
             "auto (or unset)                  Pick a DOS kernel version automatically\n"
