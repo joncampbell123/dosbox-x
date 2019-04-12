@@ -1037,36 +1037,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
 
-    Pbool = secprop->Add_bool("double-buffered line compare",Property::Changeable::Always,false);
-    Pbool->Set_help("This setting affects the VGA Line Compare register. Set to false (default value) to emulate most VGA behavior\n"
-            "Set to true for the value to latch once at the start of the frame.");
-
-    Pbool = secprop->Add_bool("ignore vblank wraparound",Property::Changeable::Always,false);
-    Pbool->Set_help("DOSBox-X can handle active display properly if games or demos reprogram vertical blanking to end in the active picture area.\n"
-            "If the wraparound handling prevents the game from displaying properly, set this to false. Out of bounds vblank values will be ignored.\n");
-
-    Pbool = secprop->Add_bool("enable vga resize delay",Property::Changeable::Always,false);
-    Pbool->Set_help("If the DOS game you are running relies on certain VGA raster tricks that affect active display area, enable this option.\n"
-            "This adds a delay between VGA mode changes and window updates. It also means that if you are capturing a demo or game,\n"
-            "that your capture will also show a few garbled frames at any point mode changes occur, which is why this option is disabled\n"
-            "by default. If you intend to run certain DOS games and demos like DoWhackaDo, enable this option.");
-
-    Pbool = secprop->Add_bool("resize only on vga active display width increase",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, changes to the Display End register of the CRTC do not trigger DOSBox to resize it's window\n"
-            "IF the value written is less than the current value. Some demos like DoWhackaDo need this option set\n"
-            "because of the way it's raster effects work. If the DOSBox window rapidly changes size during a demo\n"
-            "try setting this option. Else, leave it turned off. Changes to other VGA CRTC registers will trigger\n"
-            "a DOSBox mode change as normal regardless of this setting.");
-
-    Pbool = secprop->Add_bool("vga palette update on full load",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, all three bytes of the palette entry must be loaded before taking the color,\n"
-                    "which is fairly typical SVGA behavior. If not set, partial changes are allowed.");
-
-    Pbool = secprop->Add_bool("ignore odd-even mode in non-cga modes",Property::Changeable::Always,false);
-    Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
-                    "Setting this option can correct for that and render the demo properly.\n"
-                    "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
-
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
     Pint->SetMinMax(0,10);

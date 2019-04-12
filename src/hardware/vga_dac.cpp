@@ -189,8 +189,6 @@ Bitu read_p3c8(Bitu port, Bitu iolen){
     return vga.dac.write_index;
 }
 
-extern bool vga_palette_update_on_full_load;
-
 static unsigned char tmp_dac[3] = {0,0,0};
 
 void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
@@ -205,22 +203,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     if (vga.dac.pel_index < 3) {
         tmp_dac[vga.dac.pel_index]=val;
 
-        if (!vga_palette_update_on_full_load) {
-            /* update palette right away, partial change */
-            switch (vga.dac.pel_index) {
-                case 0:
-                    vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
-                    break;
-                case 1:
-                    vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
-                    break;
-                case 2:
-                    vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
-                    break;
-            }
-            update = true;
-        }
-        else if (vga.dac.pel_index == 2) {
+        if (vga.dac.pel_index == 2) {
             /* update palette ONLY when all three are given */
             vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
             vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];

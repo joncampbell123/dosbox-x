@@ -89,8 +89,6 @@ extern bool vga_enable_hpel_effects;
 extern bool vga_enable_hretrace_effects;
 extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
-extern bool ignore_vblank_wraparound;
-extern bool vga_double_buffered_line_compare;
 
 extern bool pc98_31khz_mode;
 
@@ -2420,7 +2418,7 @@ again:
             vga.draw.panning = vga.config.pel_panning;
     }
 
-    if (IS_EGAVGA_ARCH && !vga_double_buffered_line_compare) VGA_Update_SplitLineCompare();
+    if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();
 }
 
 static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
@@ -3429,7 +3427,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
     // Vertical blanking tricks
     vblank_skip = 0;
-    if ((IS_VGA_ARCH || IS_PC98_ARCH) && !ignore_vblank_wraparound) { // others need more investigation
+    if (IS_VGA_ARCH || IS_PC98_ARCH) { // others need more investigation
         if (vbstart < vtotal) { // There will be no blanking at all otherwise
             if (vbend > vtotal) {
                 // blanking wraps to the start of the screen

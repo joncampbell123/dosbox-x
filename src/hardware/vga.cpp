@@ -189,13 +189,6 @@ bool vga_enable_hretrace_effects = false;
 bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
 bool vga_sierra_lock_565 = false;
-bool enable_vga_resize_delay = false;
-bool vga_ignore_hdispend_change_if_smaller = false;
-bool ignore_vblank_wraparound = false;
-bool non_cga_ignore_oddeven = false;
-bool non_cga_ignore_oddeven_engage = false;
-bool vga_palette_update_on_full_load = true;
-bool vga_double_buffered_line_compare = false;
 bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
 bool pc98_graphics_hide_odd_raster_200line = false;
@@ -307,9 +300,6 @@ void VGA_DetermineMode(void) {
 
 void VGA_StartResize(Bitu delay /*=50*/) {
     if (!vga.draw.resizing) {
-        /* even if the user disables the delay, we can avoid a lot of window resizing by at least having 1ms of delay */
-        if (!enable_vga_resize_delay && delay > 1) delay = 1;
-
         vga.draw.resizing=true;
         if (vga.mode==M_ERROR) delay = 5;
         /* Start a resize after delay (default 50 ms) */
@@ -697,14 +687,10 @@ void VGA_Reset(Section*) {
     vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
     hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
-    ignore_vblank_wraparound = section->Get_bool("ignore vblank wraparound");
     int10_vesa_map_as_128kb = section->Get_bool("vesa map non-lfb modes to 128kb region");
     vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
-    vga_palette_update_on_full_load = section->Get_bool("vga palette update on full load");
-    non_cga_ignore_oddeven = section->Get_bool("ignore odd-even mode in non-cga modes");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
-    vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
     allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
@@ -716,8 +702,6 @@ void VGA_Reset(Section*) {
     allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
     allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
     allow_vesa_tty = section->Get_bool("allow tty vesa modes");
-    enable_vga_resize_delay = section->Get_bool("enable vga resize delay");
-    vga_ignore_hdispend_change_if_smaller = section->Get_bool("resize only on vga active display width increase");
     vesa_bios_modelist_in_info = section->Get_bool("vesa vbe put modelist in vesa information");
 
     /* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */

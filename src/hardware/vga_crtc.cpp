@@ -46,8 +46,6 @@ void VGA_CheckAddrShift() {
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu DEBUG_EnableDebugger(void);
 
-extern bool vga_ignore_hdispend_change_if_smaller;
-
 void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
@@ -77,19 +75,9 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 	case 0x01:	/* Horizontal Display End Register */
 		if (crtc(read_only)) break;
 		if (val != crtc(horizontal_display_end)) {
-			/* we permit a configuration option that if set, means do NOT call VGA_StartResize()
-			 * if the new value is less than the current value, to protect against rapid changes
-			 * from demos like DoWhackaDo. */
-			if (vga_ignore_hdispend_change_if_smaller && val < crtc(horizontal_display_end)) {
-				/* do not call VGA_StartResize, allow change */
-				crtc(horizontal_display_end)=val;
-				LOG_MSG("VGA Horz. Display End: accepting change but will not call VGA_StartResize()");
-			}
-			else {
-				crtc(horizontal_display_end)=val;
-				VGA_StartResize();
-			}
-		}
+            crtc(horizontal_display_end)=val;
+            VGA_StartResize();
+        }
 		/* 	0-7  Number of Character Clocks Displayed -1 */
 		break;
 	case 0x02:	/* Start Horizontal Blanking Register */
