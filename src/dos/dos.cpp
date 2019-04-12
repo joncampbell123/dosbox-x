@@ -1790,7 +1790,6 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
 
@@ -1892,7 +1891,6 @@ public:
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
-		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
@@ -1937,25 +1935,7 @@ public:
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 
         /* we make use of the DOS_GetMemory() function for the dynamic allocation */
-        if (private_always_from_umb) {
-            DOS_GetMemory_Choose(); /* the pool starts in UMB */
-            if (minimum_mcb_segment == 0)
-                DOS_MEM_START = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
-            else
-                DOS_MEM_START = minimum_mcb_segment;
-
-            if (DOS_MEM_START < 0x40)
-                LOG_MSG("DANGER, DANGER! DOS_MEM_START has been set to within the interrupt vector table! Proceed at your own risk!");
-            else if (DOS_MEM_START < 0x50)
-                LOG_MSG("WARNING: DOS_MEM_START has been assigned to the BIOS data area! Proceed at your own risk!");
-            else if (DOS_MEM_START < 0x51)
-                LOG_MSG("WARNING: DOS_MEM_START has been assigned to segment 0x50, which some programs may use as the Print Screen flag");
-            else if (DOS_MEM_START < 0x80 && IS_PC98_ARCH)
-                LOG_MSG("CAUTION: DOS_MEM_START is less than 0x80 which may cause problems with some DOS games or applications relying on PC-98 BIOS state");
-            else if (DOS_MEM_START < 0x70)
-                LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
-        }
-        else {
+        {
             if (minimum_dos_initial_private_segment == 0)
                 DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
             else
@@ -2072,7 +2052,7 @@ public:
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
-		if (!private_always_from_umb) {
+		{
 			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
 
 			DOS_GetMemory_reset();
