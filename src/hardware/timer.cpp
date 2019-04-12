@@ -895,6 +895,9 @@ void TIMER_OnPowerOn(Section*) {
     if (IS_PC98_ARCH) {
         int pc98rate;
 
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("pc-98"));
+        assert(section != NULL);
+
         /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
         pc98rate = section->Get_int("pc-98 timer master frequency");
         if (pc98rate > 6) pc98rate /= 2;

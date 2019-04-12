@@ -5685,7 +5685,7 @@ void update_capture_fmt_menu(void);
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem);
 
 void update_pc98_clock_pit_menu(void) {
-    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
 
     int pc98rate = dosbox_section->Get_int("pc-98 timer master frequency");
     if (pc98rate > 6) pc98rate /= 2;
@@ -5717,7 +5717,7 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
         tmp += tmp1;
     }
 
-    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
     dosbox_section->HandleInputline(tmp.c_str());
 
     TIMER_OnPowerOn(NULL);
@@ -5774,7 +5774,7 @@ bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         gdc_5mhz_mode = !gdc_5mhz_mode;
         gdc_5mhz_mode_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (gdc_5mhz_mode)
             dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=1");
         else
@@ -5794,7 +5794,7 @@ bool vid_pc98_200scanline_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
 
         pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (pc98_allow_scanline_effect)
             dosbox_section->HandleInputline("pc-98 allow scanline effect=1");
         else
@@ -5815,7 +5815,7 @@ bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 
         updateGDCpartitions4(!pc98_allow_4_display_partitions);
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (pc98_allow_4_display_partitions)
             dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=1");
         else
@@ -5840,7 +5840,7 @@ bool vid_pc98_enable_188user_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::i
         enable_pc98_188usermod = !enable_pc98_188usermod;
         gdc_egc_enable_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (enable_pc98_188usermod)
             dosbox_section->HandleInputline("pc-98 enable 188 user cg=1");
         else
@@ -5865,7 +5865,7 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
         enable_pc98_egc = !enable_pc98_egc;
         gdc_egc_enable_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (enable_pc98_egc) {
             dosbox_section->HandleInputline("pc-98 enable egc=1");
 
@@ -5896,7 +5896,7 @@ bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
         enable_pc98_grcg = !enable_pc98_grcg;
         gdc_grcg_enable_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (enable_pc98_grcg)
             dosbox_section->HandleInputline("pc-98 enable grcg=1");
         else
@@ -5927,7 +5927,7 @@ bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
         enable_pc98_16color = !enable_pc98_16color;
         gdc_16color_enable_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (enable_pc98_16color)
             dosbox_section->HandleInputline("pc-98 enable 16-color=1");
         else
@@ -5950,7 +5950,7 @@ bool vid_pc98_enable_analog256_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu:
         enable_pc98_256color = !enable_pc98_256color;
         gdc_16color_enable_update_vars();
 
-        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("pc-98"));
         if (enable_pc98_256color)
             dosbox_section->HandleInputline("pc-98 enable 256-color=1");
         else

@@ -2378,7 +2378,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
     unsigned int i;
 
     {
-        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop *section=static_cast<Section_prop *>(control->GetSection("pc-98"));
         enable_pc98_bus_mouse = section->Get_bool("pc-98 bus mouse");
     }
 
@@ -2397,7 +2397,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
             WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
-        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        Section_prop *section=static_cast<Section_prop *>(control->GetSection("pc-98"));
         pc98_force_ibm_layout = section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
