@@ -45,7 +45,6 @@ bool                        enable_pc98_16color = true;
 bool                        enable_pc98_256color = true;
 bool                        enable_pc98_188usermod = true;
 bool                        GDC_vsync_interrupt = false;
-uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
 uint8_t                     GDC_display_plane = false;
 

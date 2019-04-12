@@ -61,8 +61,6 @@ const unsigned char pc98_epson_check_2[0x27] = {
     0x09,0x70,0xC6,0x06,0xD8,0x09,0x71
 };
 
-bool enable_pc98_copyright_string = false;
-
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 
@@ -1798,8 +1796,6 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 
 void PC98_Interval_Timer_Continue(void);
 
-bool enable_fdc_timer_hack = false;
-
 void FDC_WAIT_TIMER_HACK(void) {
     unsigned int v,pv;
     unsigned int c=0;
@@ -1887,10 +1883,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 return;
             }
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             fdc_cyl[drive] = reg_cl;
 
@@ -1913,10 +1907,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
@@ -1992,10 +1984,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
@@ -2109,10 +2099,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             /* TODO: Error if write protected */
 
@@ -2165,10 +2153,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 return;
             }
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
@@ -2184,10 +2170,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u drive %c.",
                 (unsigned int)fdc_cyl[drive],
@@ -2211,10 +2195,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            if (enable_fdc_timer_hack) {
-                // Hack for Ys II
-                FDC_WAIT_TIMER_HACK();
-            }
+            // Hack for Ys II
+            FDC_WAIT_TIMER_HACK();
 
             if (reg_ah & 0x10) { // seek to track number in CL
                 if (img_cyl != 0 && reg_cl >= img_cyl) {
@@ -5034,16 +5016,6 @@ public:
         /* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
         Bitu wo;
 
-        { // TODO: Eventually, move this to BIOS POST or init phase
-            Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-            enable_pc98_copyright_string = section->Get_bool("pc-98 BIOS copyright string");
-
-            // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
-            //     the timer count is not too high on exit (Ys II)
-            enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
-        }
-
         /* pick locations */
         BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
         BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
@@ -5244,7 +5216,7 @@ public:
                 phys_writeb(bo+0x05,0xFE);
             }
 
-            if (IS_PC98_ARCH && enable_pc98_copyright_string) {
+            if (IS_PC98_ARCH) {
                 size_t i=0;
 
                 for (;i < pc98_copyright_str.length();i++)
@@ -5476,7 +5448,7 @@ void ROMBIOS_Init() {
 
     write_ID_version_string();
 
-    if (IS_PC98_ARCH && enable_pc98_copyright_string) { // PC-98 BIOSes have a copyright string at E800:0DD8
+    if (IS_PC98_ARCH) { // PC-98 BIOSes have a copyright string at E800:0DD8
         if (ROMBIOS_GetMemory(pc98_copyright_str.length()+1,"PC-98 copyright string",1,0xE8000 + 0x0DD8) == 0)
             LOG_MSG("WARNING: Was not able to mark off E800:0DD8 off-limits for PC-98 copyright string");
         if (ROMBIOS_GetMemory(sizeof(pc98_epson_check_2),"PC-98 unknown data / Epson check",1,0xF5200 + 0x018E) == 0)

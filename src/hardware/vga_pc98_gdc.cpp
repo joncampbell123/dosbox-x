@@ -46,7 +46,6 @@ extern bool                 gdc_5mhz_mode;
 extern bool                 GDC_vsync_interrupt;
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
-extern uint8_t              GDC_display_plane_wait_for_vsync;
 
 double                      gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
 bool                        gdc_proc_delay_set = false;
@@ -627,8 +626,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                  * But: For the user's preference, we do offer a hack to delay display plane
                  *      change until vsync to try to alleviate tearlines. */
                 GDC_display_plane_pending = (val&1);
-                if (!GDC_display_plane_wait_for_vsync)
-                    GDC_display_plane = GDC_display_plane_pending;
+                GDC_display_plane = GDC_display_plane_pending;
             }
             break;
         case 0x06:      /* 0x66: ??

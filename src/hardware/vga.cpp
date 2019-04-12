@@ -453,8 +453,6 @@ static inline unsigned int int_log2(unsigned int val) {
     return log;
 }
 
-extern uint8_t GDC_display_plane_wait_for_vsync;
-
 VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
     if (!strcasecmp(vsyncmodestr,"off")) return VS_Off;
     else if (!strcasecmp(vsyncmodestr,"on")) return VS_On;
@@ -478,8 +476,6 @@ void VGA_Reset(Section*) {
 //    Bit64u cpu_max_addr = (Bit64u)1 << (Bit64u)cpu_addr_bits;
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
-
-    GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
 
     S3_LFB_BASE = 0;
     if (S3_LFB_BASE == 0) {
