@@ -873,12 +873,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("cascade interrupt ignore in service",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, PIC emulation will allow slave pic interrupts even if the cascade interrupt is still \"in service\". This is OFF by default. It is a hack for troublesome games.");
 
-    Pbool = secprop->Add_bool("enable slave pic",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable slave PIC (IRQ 8-15). Set this to 0 if you want to emulate a PC/XT type arrangement with IRQ 0-7 and no IRQ 2 cascade.");
-
-    Pbool = secprop->Add_bool("enable pc nmi mask",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable PC/XT style NMI mask register (0xA0). Note that this option conflicts with the secondary PIC and will be ignored if the slave PIC is enabled.");
-
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
     Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
             "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"

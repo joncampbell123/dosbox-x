@@ -114,7 +114,6 @@ struct button_event {
     Bit8u buttons;
 };
 
-extern bool enable_slave_pic;
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
 uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
@@ -1404,8 +1403,6 @@ void MOUSE_OnReset(Section *sec) {
     (void)sec;//UNUSED
     if (IS_PC98_ARCH)
         MOUSE_IRQ = 13; // PC-98 standard
-    else if (!enable_slave_pic)
-        MOUSE_IRQ = 0;
     else
         MOUSE_IRQ = 12; // IBM PC/AT standard
 
@@ -1428,7 +1425,7 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     /* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
     en_bios_ps2mouse = section->Get_bool("biosps2");
 
-    if (!enable_slave_pic || machine == MCH_PCJR) return;
+    if (machine == MCH_PCJR) return;
 
     if (!en_bios_ps2mouse) return;
 

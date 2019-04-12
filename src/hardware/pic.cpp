@@ -110,8 +110,6 @@ static PIC_Controller& slave  = pics[1];
 Bitu PIC_Ticks = 0;
 Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
 Bitu PIC_IRQCheckPending = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
-bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
-bool enable_pc_xt_nmi_mask = false;
 
 void PIC_Controller::check_for_irq(){
     const Bit8u possible_irq = (irr&imrr)&isrr;
@@ -346,26 +344,6 @@ static Bitu read_data(Bitu port,Bitu iolen) {
     return pic->imr;
 }
 
-/* PC/XT NMI mask register 0xA0. Documentation on the other bits
- * is sparse and spread across the internet, but many seem to
- * agree that bit 7 is used to enable/disable the NMI (1=enable,
- * 0=disable)
- *
- * Confirmed: IBM PCjr technical reference, BIOS source code.
- *            Some part of the code writes 0x80 to this port,
- *            then does some work, then writes 0x00.
- *
- * IBM PCjr definitions:
- *   bit[7]: Enable NMI
- *   bit[6]: IR test enable
- *   bit[5]: Select clock 1 input
- *   bit[4]: Disable HRQ */
-static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
-    (void)iolen;//UNUSED
-    (void)port;//UNUSED
-    CPU_NMI_gate = (val & 0x80) ? true : false;
-}
-
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
@@ -376,15 +354,8 @@ void PIC_ActivateIRQ(Bitu irq) {
             return; /* don't raise cascade IRQ */
         }
     }
-    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    else { /* PC/AT emulation with slave PIC cascade to master */
         if (irq == 2) irq = 9;
-    }
-    else { /* PC/XT emulation with only master PIC */
-        if (irq == 9) irq = 2;
-        if (irq >= 8) {
-            LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u when slave PIC does not exist",(int)irq);
-            return;
-        }
     }
 
     Bitu t = irq>7 ? (irq - 8): irq;
@@ -398,15 +369,8 @@ void PIC_DeActivateIRQ(Bitu irq) {
     if (IS_PC98_ARCH) {
         if (irq == 7) return;
     }
-    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    else { /* PC/AT emulation with slave PIC cascade to master */
         if (irq == 2) irq = 9;
-    }
-    else { /* PC/XT emulation with only master PIC */
-        if (irq == 9) irq = 2;
-        if (irq >= 8) {
-            LOG(LOG_PIC,LOG_ERROR)("Attempted to lower IRQ %u when slave PIC does not exist",(int)irq);
-            return;
-        }
     }
 
     Bitu t = irq>7 ? (irq - 8): irq;
@@ -869,18 +833,8 @@ void PIC_Reset(Section *sec) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
 
-    enable_slave_pic = section->Get_bool("enable slave pic");
-    enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
     never_mark_cascade_in_service = section->Get_bool("cascade interrupt never in service");
     ignore_cascade_in_service = section->Get_bool("cascade interrupt ignore in service");
-
-    if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
-        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");
-        enable_slave_pic = false;
-    }
-
-    if (!enable_slave_pic && IS_PC98_ARCH)
-        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual");
 
     /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
      *      But the ability to respond to interrupts is limited by the CPU, too. */
@@ -890,10 +844,7 @@ void PIC_Reset(Section *sec) {
         if (x >= 0) PIC_irq_delay_ns = (unsigned int)x;
     }
 
-    if (enable_slave_pic)
-        master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
-    else
-        master_cascade_irq = -1;
+    master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
 
     // LOG
     LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): reinitializing PIC controller (cascade=%d)",master_cascade_irq);
@@ -969,15 +920,10 @@ void PIC_Reset(Section *sec) {
     WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
 
     /* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
-    if (enable_slave_pic) {
-        ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
-        ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
-        WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
-        WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
-    }
-    else if (!IS_PC98_ARCH && enable_pc_xt_nmi_mask) {
-        PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
-    }
+    ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
+    ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
+    WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
+    WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
 }
 
 void PIC_Destroy(Section* sec) {
@@ -1038,7 +984,7 @@ void DEBUG_LogPIC_C(PIC_Controller &pic) {
 
 void DEBUG_LogPIC(void) {
     DEBUG_LogPIC_C(master);
-    if (enable_slave_pic) DEBUG_LogPIC_C(slave);
+    DEBUG_LogPIC_C(slave);
 }
 #endif
 

@@ -673,10 +673,6 @@ static Bitu read_p61(Bitu, Bitu) {
 static void write_p61(Bitu, Bitu val, Bitu) {
     Bit8u diff = port_61_data ^ (Bit8u)val;
     if (diff & 0x1) TIMER_SetGate2(val & 0x1);
-    if ((diff & 0x3) && !IS_PC98_ARCH) {
-        bool pit_clock_gate_enabled = val & 0x1;
-        bool pit_output_enabled = !!(val & 0x2);
-    }
     port_61_data = val;
 }
 
@@ -2503,8 +2499,6 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
     pc98_mouse_8255.writePortC(0x10); /* start with interrupt inhibited. INT 33h emulation will enable it later */
 }
 
-extern bool enable_slave_pic;
-
 void KEYBOARD_OnReset(Section *sec) {
     (void)sec;//UNUSED
     Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
@@ -2529,7 +2523,7 @@ void KEYBOARD_OnReset(Section *sec) {
 
     const char * sbtype=section->Get_string("auxdevice");
     keyb.ps2mouse.type = MOUSE_NONE;
-    if (sbtype != NULL && machine != MCH_PCJR && enable_slave_pic) {
+    if (sbtype != NULL && machine != MCH_PCJR) {
         if (!strcasecmp(sbtype,"2button"))
             keyb.ps2mouse.type=MOUSE_2BUTTON;
         else if (!strcasecmp(sbtype,"3button"))
