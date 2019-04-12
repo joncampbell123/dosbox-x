@@ -139,7 +139,6 @@ bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
 int             dynamic_core_cache_block_size = 32;
-Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
@@ -541,12 +540,7 @@ void Init_VGABIOS() {
     // We can remove this once the device callout system is in place.
     assert(MemBase != NULL);
 
-    VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
-    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
-
-    if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
-        VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
-    else if (IS_VGA_ARCH) {
+    if (IS_VGA_ARCH) {
         if (svgaCard == SVGA_S3Trio)
             VGA_BIOS_Size = 0x4000;
         else
@@ -799,10 +793,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
-
-    Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(512,65536);
-    Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
     Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
     Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
