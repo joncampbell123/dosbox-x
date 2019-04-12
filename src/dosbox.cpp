@@ -711,6 +711,27 @@ void DOSBOX_SetupConfigSections(void) {
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
+    Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
+    Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
+
+    Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
+
+    Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
+    Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
+            "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
+            "buffer for querying modes. Such programs may crash if given the entire modelist supported by DOSBox-X.\n"
+            "  Warcraft II by Blizzard ................ Set to a value between 8 and 16. This game has a fixed buffer that it\n"
+            "                                           reads the modelist into. DOSBox-X's normal modelist is too long and\n"
+            "                                           the game will overrun the buffer and crash without this setting.");
+
+    Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
+            "Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
+            "option exists.");
+
+    secprop=control->AddSection_prop("pc-98",&Null_Init,true);
+
     Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
 
@@ -767,25 +788,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
-
-    Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
-    Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
-
-    Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
-
-    Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
-    Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
-            "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
-            "buffer for querying modes. Such programs may crash if given the entire modelist supported by DOSBox-X.\n"
-            "  Warcraft II by Blizzard ................ Set to a value between 8 and 16. This game has a fixed buffer that it\n"
-            "                                           reads the modelist into. DOSBox-X's normal modelist is too long and\n"
-            "                                           the game will overrun the buffer and crash without this setting.");
-
-    Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
-            "Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
-            "option exists.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
