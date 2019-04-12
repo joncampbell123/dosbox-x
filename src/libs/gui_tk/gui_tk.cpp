@@ -1566,7 +1566,71 @@ static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
     GUI::Char ret = key.sym;
 
     if (key.mod & KMOD_SHIFT) {
-        ret = (GUI::Char)toupper((int)ret);
+        switch (ret) {
+            case '[':
+                ret = (GUI::Char)('{');
+                break;
+            case ']':
+                ret = (GUI::Char)('}');
+                break;
+            case '\\':
+                ret = (GUI::Char)('|');
+                break;
+            case ';':
+                ret = (GUI::Char)(':');
+                break;
+            case '\'':
+                ret = (GUI::Char)('"');
+                break;
+            case ',':
+                ret = (GUI::Char)('<');
+                break;
+            case '.':
+                ret = (GUI::Char)('>');
+                break;
+            case '/':
+                ret = (GUI::Char)('?');
+                break;
+            case '-':
+                ret = (GUI::Char)('_');
+                break;
+            case '=':
+                ret = (GUI::Char)('+');
+                break;
+            case '1':
+                ret = (GUI::Char)('!');
+                break;
+            case '2':
+                ret = (GUI::Char)('@');
+                break;
+            case '3':
+                ret = (GUI::Char)('#');
+                break;
+            case '4':
+                ret = (GUI::Char)('$');
+                break;
+            case '5':
+                ret = (GUI::Char)('%');
+                break;
+            case '6':
+                ret = (GUI::Char)('^');
+                break;
+            case '7':
+                ret = (GUI::Char)('&');
+                break;
+            case '8':
+                ret = (GUI::Char)('*');
+                break;
+            case '9':
+                ret = (GUI::Char)('(');
+                break;
+            case '0':
+                ret = (GUI::Char)(')');
+                break;
+            default:
+                ret = (GUI::Char)toupper((int)ret);
+                break;
+        }
     }
 
     return ret;
