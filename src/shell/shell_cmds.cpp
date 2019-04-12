@@ -125,24 +125,6 @@ static char* ExpandDot(char*args, char* buffer) {
 }
 
 
-
-bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
-	Section* test = control->GetSectionFromProperty(cmd_in);
-	if(!test) return false;
-	if(line && !line[0]) {
-		std::string val = test->GetPropValue(cmd_in);
-		if(val != NO_SUCH_PROPERTY) WriteOut("%s\n",val.c_str());
-		return true;
-	}
-	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
-	strcat(newcom,test->GetName());	strcat(newcom," ");
-	strcat(newcom,cmd_in);strcat(newcom,line);
-	DoCommand(newcom);
-	return true;
-}
-
-bool enable_config_as_shell_commands = false;
-
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
 	line=trim(line);
@@ -180,7 +162,6 @@ void DOS_Shell::DoCommand(char * line) {
 	}
 /* This isn't an internal command execute it */
 	if(Execute(cmd_buffer,line)) return;
-	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
 

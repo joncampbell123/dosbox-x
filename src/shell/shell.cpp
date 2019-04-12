@@ -31,7 +31,6 @@
 #include "builtin.h"
 #include "build_timestamp.h"
 
-extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
 
 Bitu shell_psp = 0;
@@ -1079,12 +1078,6 @@ void SHELL_Init() {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,0x80));
 	dos.psp(psp_seg);
-
-    /* settings */
-    {
-        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
-        enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
-    }
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT
