@@ -68,13 +68,9 @@ char * shiftjis_upcase(char * str) {
 
 bool dos_in_hma = true;
 bool DOS_BreakFlag = false;
-bool enable_dbcs_tables = true;
-bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
-
-extern bool int15_wait_force_unmask_irq;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
@@ -1795,7 +1791,6 @@ static Bitu DOS_26Handler(void) {
 }
 
 bool iret_only_for_debug_interrupts = true;
-bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
@@ -1859,8 +1854,6 @@ Bitu MEM_PageMask(void);
 
 #include <assert.h>
 
-extern bool dos_con_use_int16_to_detect_input;
-extern bool dbg_zero_on_dos_allocmem;
 extern bool log_dev_con;
 
 class DOS:public Module_base{
@@ -1896,23 +1889,17 @@ public:
         dos_in_hma = section->Get_bool("dos in hma");
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
-		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe_fake = section->Get_bool("share");
-		enable_filenamechar = section->Get_bool("filenamechar");
 		dos_initial_hma_free = section->Get_int("hma free space");
         minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
-		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
-		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
 		iret_only_for_debug_interrupts = section->Get_bool("write plain iretf for debug interrupts");
-		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
-		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
 
         if (dos_initial_hma_free > 0x10000)
@@ -1949,10 +1936,6 @@ public:
 
 		if (ENV_KEEPFREE < 83)
 			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
-
-		if (dbg_zero_on_dos_allocmem) {
-			LOG_MSG("Debug option enabled: INT 21h memory allocation will always clear memory block before returning\n");
-		}
 
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 

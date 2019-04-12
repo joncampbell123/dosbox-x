@@ -186,10 +186,6 @@ static Bit8u country_info_pc98[0x22] = {
 /* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-extern bool enable_dbcs_tables;
-extern bool enable_filenamechar;
-extern bool enable_collating_uppercase;
-
 void DOS_SetupTables(void) {
 	Bit16u seg;Bitu i;
 	dos.tables.mediaid=RealMake(DOS_GetMemory(4,"dos.tables.mediaid"),0);
@@ -225,7 +221,7 @@ void DOS_SetupTables(void) {
 
 
     /* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-    if (enable_dbcs_tables) {
+    {
         dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
 
         if (IS_PC98_ARCH) {
@@ -241,11 +237,8 @@ void DOS_SetupTables(void) {
             mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
         }
     }
-    else {
-        dos.tables.dbcs=0;
-    }
 	/* FILENAME CHARACTER TABLE */
-	if (enable_filenamechar) {
+	{
 		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);
 		mem_writew(Real2Phys(dos.tables.filenamechar)+0x00,0x16);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x02,0x01);
@@ -271,22 +264,15 @@ void DOS_SetupTables(void) {
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x16,0x3b);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x17,0x2c);
 	}
-	else {
-		dos.tables.filenamechar = 0;
-	}
 	/* COLLATING SEQUENCE TABLE + UPCASE TABLE*/
 	// 256 bytes for col table, 128 for upcase, 4 for number of entries
-	if (enable_collating_uppercase) {
+	{
 		dos.tables.collatingseq=RealMake(DOS_GetMemory(25,"dos.tables.collatingseq"),0);
 		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
 		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,i);
 		dos.tables.upcase=dos.tables.collatingseq+258;
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
 		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,0x80+i);
-	}
-	else {
-		dos.tables.collatingseq = 0;
-		dos.tables.upcase = 0;
 	}
 
 	/* Create a fake FCB SFT */

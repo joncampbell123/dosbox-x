@@ -1068,19 +1068,6 @@ void DOSBOX_SetupConfigSections(void) {
             "If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
             "Set to -1 for default setting.");
 
-    // DEPRECATED, REMOVE
-    Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
-            "at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
-            "A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"
-            "to a20=mask as opposed to a20=fast. This option is enabled by default.");
-
-    Pbool = secprop->Add_bool("zero memory on xms memory allocation",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, memory returned by XMS allocation call is zeroed first. This is NOT what\n"
-            "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
-            "related to uninitialized variables in extended memory. When enabled this option may\n"
-            "incur a slight to moderate performance penalty.");
-
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);
     Pstring->Set_help("Enable EMS support. The default (=true) provides the best\n"
@@ -1104,12 +1091,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set and expanded memory is set to emulate emm386, start the DOS machine with EMM386.EXE active\n"
             "(running the 16-bit DOS environment from within Virtual 8086 mode). If you will be running anything\n"
             "that involves a DOS extender you will also need to enable the VCPI interface as well.");
-
-    Pbool = secprop->Add_bool("zero memory on ems memory allocation",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, memory returned by EMS allocation call is zeroed first. This is NOT what\n"
-            "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
-            "related to uninitialized variables in expanded memory. When enabled this option may\n"
-            "incur a slight to moderate performance penalty.");
 
     Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
     Pint->Set_help("Amount of memory associated with system handle, in KB");
@@ -1183,45 +1164,11 @@ void DOSBOX_SetupConfigSections(void) {
         "probe the AUX port directly and depend on this BIOS interface exclusively\n"
         "for PS/2 mouse support. In other cases there is no harm in leaving this enabled");
 
-    /* bugfix for Yodel "mayday" demo */
-    /* TODO: Set this option to default to "true" if it turns out most BIOSes unmask the IRQ during INT 15h AH=86 WAIT */
-    Pbool = secprop->Add_bool("int15 wait force unmask irq",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Some demos or games mistakingly use INT 15h AH=0x86 (WAIT) while leaving the IRQs needed for it masked.\n"
-            "If this option is set (by default), the necessary IRQs will be unmasked when INT 15 AH=0x86 is used so that the game or demo does not hang.");
-
-    Pbool = secprop->Add_bool("int15 mouse callback does not preserve registers",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Set to true if the guest OS or DOS program assigns an INT 15h mouse callback,\n"
-            "but does not properly preserve CPU registers. Diagnostic function only (default off).");
-
     Pstring = secprop->Add_string("keyboardlayout",Property::Changeable::WhenIdle, "auto");
     Pstring->Set_help("Language code of the keyboard layout (or none).");
 
-    Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable DBCS table.\n"
-            "CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.\n");
-
-    Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable filename char table");
-
-    Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable collating and uppercase table");
-
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
-
-    // DEPRECATED, REMOVE
-    Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
-            "peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
-            "option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
-            "Microsoft Scandisk needs this option to respond to keyboard input correctly.");
-
-    Pbool = secprop->Add_bool("zero memory on int 21h memory allocation",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, memory returned by the INT 21h allocation call is zeroed first. This is NOT what\n"
-            "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
-            "related to uninitialized variables in the data or stack segment. If you intend to run a\n"
-            "game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
-            "set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);

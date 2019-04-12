@@ -343,8 +343,6 @@ void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	}
 }
 
-extern bool dbg_zero_on_ems_allocmem;
-
 /* NTS: "page" in EMS refers to 16KB regions, not the 4KB memory pages we normally work with */
 static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_zpages) {
 	/* Check for 0 page allocation */
@@ -362,7 +360,6 @@ static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_
 	if (pages) {
 		mem = MEM_AllocatePages(pages*4u,false);
 		if (!mem) E_Exit("EMS:Memory allocation failure");
-		else if (dbg_zero_on_ems_allocmem) EMS_ZeroAllocation(mem,pages*4u);
 	}
 	emm_handles[handle].pages = pages;
 	emm_handles[handle].mem = mem;
@@ -1589,11 +1586,6 @@ public:
 
         if (ems_type != EMS_BOARD)
             BIOS_ZeroExtendedSize(true);
-
-		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
-		if (dbg_zero_on_ems_allocmem) {
-			LOG(LOG_MISC,LOG_DEBUG)("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
-		}
 
 		/* FIXME: VM86 monitor is not stable! */
 		if (ENABLE_V86_STARTUP) {

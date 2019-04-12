@@ -210,9 +210,6 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	}
 }
 
-extern bool enable_a20_on_windows_init;
-extern bool dbg_zero_on_xms_allocmem;
-
 Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 	/* Find free handle */
 	Bit16u index=1;
@@ -224,11 +221,9 @@ Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 		Bitu pages=(size/4) + ((size & 3) ? 1 : 0);
 		mem=MEM_AllocatePages(pages,true);
 		if (!mem) return XMS_OUT_OF_SPACE;
-		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,pages);
 	} else {
 		mem=MEM_GetNextFreePage();
 		if (mem==0) LOG(LOG_MISC,LOG_DEBUG)("XMS:Allocate zero pages with no memory left"); // Windows 3.1 triggers this surprisingly often!
-		if (mem != 0 && dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,1);
 	}
 	xms_handles[index].free=false;
 	xms_handles[index].mem=mem;
@@ -670,13 +665,6 @@ public:
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
-
-		enable_a20_on_windows_init = section->Get_bool("enable a20 on windows init");
-		dbg_zero_on_xms_allocmem = section->Get_bool("zero memory on xms memory allocation");
-
-		if (dbg_zero_on_xms_allocmem) {
-			LOG_MSG("Debug option enabled: XMS memory allocation will always clear memory block before returning\n");
-		}
 
 		/* place hookable callback in writable memory area */
 		xms_callback=RealMake(DOS_GetMemory(0x1,"xms_callback")-1,0x10);

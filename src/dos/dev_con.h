@@ -842,10 +842,8 @@ bool device_CON::Close() {
 	return true;
 }
 
-extern bool dos_con_use_int16_to_detect_input;
-
 Bit16u device_CON::GetInformation(void) {
-	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
+	{
 		Bit16u ret = 0x80D3; /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
@@ -909,21 +907,6 @@ Bit16u device_CON::GetInformation(void) {
 
 		reg_ax = saved_ax;
 		return ret;
-	}
-	else {
-		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
-		Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-		Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
-
-		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
-		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
-
-		/* remove the zero from keyboard buffer */
-		Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-		Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
-		head+=2;
-		if (head>=end) head=start;
-		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
 	}
 
 	return 0x80D3; /* No Key Available */

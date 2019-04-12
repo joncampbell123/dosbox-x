@@ -234,9 +234,6 @@ void Mouse_ChangePS2Callback(Bit16u pseg, Bit16u pofs) {
     Mouse_AutoLock(ps2callbackinit);
 }
 
-/* set to true in case of shitty INT 15h device callbacks that fail to preserve CPU registers */
-bool ps2_callback_save_regs = false;
-
 void DoPS2Callback(Bit16u data, Bit16s mouseX, Bit16s mouseY) {
     if (useps2callback && ps2cbseg != 0 && ps2cbofs != 0) {
         Bit16u mdat = (data & 0x03) | 0x08;
@@ -256,11 +253,6 @@ void DoPS2Callback(Bit16u data, Bit16s mouseX, Bit16s mouseY) {
             ydiff = (0x100+ydiff);
             mdat |= 0x20;
         }
-        if (ps2_callback_save_regs) {
-            CPU_Push16(reg_ax);CPU_Push16(reg_cx);CPU_Push16(reg_dx);CPU_Push16(reg_bx);
-            CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
-            CPU_Push16(SegValue(ds)); CPU_Push16(SegValue(es));
-        }
         CPU_Push16((Bit16u)mdat); 
         CPU_Push16((Bit16u)(xdiff % 256)); 
         CPU_Push16((Bit16u)(ydiff % 256)); 
@@ -274,11 +266,6 @@ void DoPS2Callback(Bit16u data, Bit16s mouseX, Bit16s mouseY) {
 
 Bitu PS2_Handler(void) {
     CPU_Pop16();CPU_Pop16();CPU_Pop16();CPU_Pop16();// remove the 4 words
-    if (ps2_callback_save_regs) {
-        SegSet16(es,CPU_Pop16()); SegSet16(ds,CPU_Pop16());
-        reg_di=CPU_Pop16();reg_si=CPU_Pop16();reg_bp=CPU_Pop16();
-        reg_bx=CPU_Pop16();reg_dx=CPU_Pop16();reg_cx=CPU_Pop16();reg_ax=CPU_Pop16();
-    }
     return CBRET_NONE;
 }
 
@@ -1435,8 +1422,6 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
         LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 15H PS/2 emulation enabled");
         bios_enable_ps2();
     }
-
-    ps2_callback_save_regs = section->Get_bool("int15 mouse callback does not preserve registers");
 
     // Callback for ps2 irq
     call_int74=CALLBACK_Allocate();
