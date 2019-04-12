@@ -1398,7 +1398,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\gui\sdl_mapper.cpp" />
     <ClCompile Include="..\src\hardware\cmos.cpp" />
     <ClCompile Include="..\src\hardware\dma.cpp" />
-    <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\hardware.cpp" />
     <ClCompile Include="..\src\hardware\iohandler.cpp" />
     <ClCompile Include="..\src\hardware\keyboard.cpp" />

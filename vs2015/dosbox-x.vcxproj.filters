@@ -234,9 +234,6 @@
     <ClCompile Include="..\src\hardware\dma.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\gameblaster.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\iohandler.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
