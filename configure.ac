@@ -790,6 +790,3 @@ include/Makefile
 ])
 AC_OUTPUT
 
-# HACK: it's a script...
-chmod +x make-rpm.sh
-
