@@ -121,7 +121,6 @@ extern Bitu         DOS_PRIVATE_SEGMENT_Size;
 
 Bit32u              guest_msdos_LoL = 0;
 Bit16u              guest_msdos_mcb_chain = 0;
-int                 boothax = BOOTHAX_NONE;
 
 bool                dos_con_use_int16_to_detect_input = true;
 

@@ -7133,7 +7133,6 @@ fresh_boot:
         if (reboot_machine) {
             LOG_MSG("Rebooting the system\n");
 
-            boothax = BOOTHAX_NONE;
             guest_msdos_LoL = 0;
             guest_msdos_mcb_chain = 0;
 
