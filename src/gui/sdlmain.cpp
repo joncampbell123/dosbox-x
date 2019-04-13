@@ -86,11 +86,6 @@ void GFX_OpenGLRedrawScreen(void);
 # include <shobjidl.h>
 #endif
 
-#if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
-static const GUID __my_IID_ITaskbarList3 = { 0xEA1AFB91ul,0x9E28u,0x4B86u,0x90u,0xE9u,0x9Eu,0x9Fu,0x8Au,0x5Eu,0xEFu,0xAFu };
-# define IID_ITaskbarList3 __my_IID_ITaskbarList3
-#endif
-
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have this */
 typedef enum PROCESS_DPI_AWARENESS {
     PROCESS_DPI_UNAWARE             = 0,
@@ -201,57 +196,6 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
 
     return "";
 }
-
-#if defined(WIN32) && !defined(HX_DOS)
-ITaskbarList3 *winTaskbarList = NULL;
-#endif
-
-#if defined(WIN32) && !defined(HX_DOS)
-void WindowsTaskbarUpdatePreviewRegion(void) {
-    if (winTaskbarList != NULL) {
-        /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
-        RECT r;
-
-        r.top = sdl.clip.y;
-        r.left = sdl.clip.x;
-        r.right = sdl.clip.x + sdl.clip.w;
-        r.bottom = sdl.clip.y + sdl.clip.h;
-
-        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
-                behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
-                the menu bar. Why? */
-        if (GetMenu(GetHWND()) != NULL) {
-            r.top += GetSystemMetrics(SM_CYMENU);//HACK
-            r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
-        }
-
-        if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
-            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
-    }
-}
-
-void WindowsTaskbarResetPreviewRegion(void) {
-    if (winTaskbarList != NULL) {
-        /* Windows 7/8/10: Tell the taskbar which part of our window contains the client area (not including the menu bar) */
-        RECT r;
-
-        GetClientRect(GetHWND(), &r);
-
-        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
-                behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
-                the menu bar. Why? */
-        if (GetMenu(GetHWND()) != NULL) {
-            r.top += GetSystemMetrics(SM_CYMENU);//HACK
-            r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
-        }
-
-        if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
-            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
-    }
-}
-#endif
 
 unsigned int mapper_keyboard_layout = DKM_US;
 unsigned int host_keyboard_layout = DKM_US;
@@ -1756,10 +1700,6 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
     UpdateWindowDimensions();
-
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarUpdatePreviewRegion();
-#endif
 
     return retFlags;
 }
@@ -6983,62 +6923,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.screenHeight = (unsigned int)sdl.surface->h;
         mainMenu.updateRect();
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
-        /* Windows 7 taskbar extension support */
-        {
-            HRESULT hr;
-
-            hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_SERVER, IID_ITaskbarList3, (LPVOID*)(&winTaskbarList));
-            if (hr == S_OK) {
-                LOG_MSG("Windows: IID_ITaskbarList3 is available");
-
-#if !defined(C_SDL2)
-                THUMBBUTTON buttons[8];
-                int buttoni = 0;
-
-                {
-                    THUMBBUTTON &b = buttons[buttoni++];
-                    memset(&b, 0, sizeof(b));
-                    b.iId = ID_WIN_SYSMENU_MAPPER;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAPPER));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Mapper");
-                }
-
-                {
-                    THUMBBUTTON &b = buttons[buttoni++];
-                    memset(&b, 0, sizeof(b));
-                    b.iId = ID_WIN_SYSMENU_CFG_GUI;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_CFG_GUI));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Configuration GUI");
-                }
-
-                {
-                    THUMBBUTTON &b = buttons[buttoni++];
-                    memset(&b, 0, sizeof(b));
-                    b.iId = 1;
-                    b.dwMask = THB_FLAGS;
-                    b.dwFlags = THBF_DISABLED | THBF_NONINTERACTIVE | THBF_NOBACKGROUND;
-                }
-
-                {
-                    THUMBBUTTON &b = buttons[buttoni++];
-                    memset(&b, 0, sizeof(b));
-                    b.iId = ID_WIN_SYSMENU_PAUSE;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_PAUSE));
-                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED;
-                    wcscpy(b.szTip, L"Pause");
-                }
-
-                winTaskbarList->ThumbBarAddButtons(GetHWND(), buttoni, buttons);
-#endif
-            }
-        }
-#endif
         {
             Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
             assert(section != NULL);
@@ -7385,13 +7269,6 @@ fresh_boot:
 #endif
 
     SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
-
-#if defined(WIN32) && !defined(HX_DOS)
-    if (winTaskbarList != NULL) {
-        winTaskbarList->Release();
-        winTaskbarList = NULL;
-    }
-#endif
 
     mainMenu.unbuild();
     mainMenu.clear_all_menu_items();

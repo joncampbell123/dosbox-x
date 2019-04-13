@@ -90,11 +90,6 @@ static bool                 gui_menu_init = true;
 
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
-#if defined(WIN32) && !defined(HX_DOS)
-void                        WindowsTaskbarUpdatePreviewRegion(void);
-void                        WindowsTaskbarResetPreviewRegion(void);
-#endif
-
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
     GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -306,10 +301,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarResetPreviewRegion();
-#endif
-
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     if (gui_menu_init) {
         gui_menu_init = false;
@@ -420,10 +411,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #else
     GFX_ResetScreen();
 #endif
-#endif
-
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarUpdatePreviewRegion();
 #endif
 
 #if !defined(C_SDL2)

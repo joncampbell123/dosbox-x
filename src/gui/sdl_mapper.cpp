@@ -290,10 +290,6 @@ bool                                            MAPPER_DemoOnly(void);
 Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
-#if defined(WIN32) && !defined(HX_DOS)
-void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
-void                                            WindowsTaskbarResetPreviewRegion(void); // external
-#endif
 
 //! \brief Base CEvent class for mapper events
 class CEvent {
@@ -3449,10 +3445,6 @@ void MAPPER_RunInternal() {
     }
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarResetPreviewRegion();
-#endif
-
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mapperMenu);
 #endif
@@ -3514,10 +3506,6 @@ void MAPPER_RunInternal() {
         ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
         SendInput(1, &ip, sizeof(INPUT));
     }
-#endif
-
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarUpdatePreviewRegion();
 #endif
 
 //  KEYBOARD_ClrBuffer();
