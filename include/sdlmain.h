@@ -178,10 +178,6 @@ struct SDL_Block {
 #endif
 };
 
-#if defined(WIN32) && !defined(C_SDL2)
-extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
-#endif
-
 extern Bitu frames;
 extern SDL_Block sdl;
 

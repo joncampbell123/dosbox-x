@@ -194,10 +194,6 @@ void OUTPUT_OPENGL_Select()
 {
     sdl.desktop.want_type = SCREEN_OPENGL;
     render.aspectOffload = true;
-
-#if defined(WIN32) && !defined(C_SDL2)
-    SDL1_hax_inhibit_WM_PAINT = 0;
-#endif
 }
 
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)

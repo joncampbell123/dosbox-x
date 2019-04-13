@@ -19,10 +19,6 @@ void OUTPUT_SURFACE_Select()
 {
     sdl.desktop.want_type = SCREEN_SURFACE;
     render.aspectOffload = false;
-
-#if defined(WIN32) && !defined(C_SDL2)
-    SDL1_hax_inhibit_WM_PAINT = 0;
-#endif
 }
 
 bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)

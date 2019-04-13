@@ -200,71 +200,6 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
 unsigned int mapper_keyboard_layout = DKM_US;
 unsigned int host_keyboard_layout = DKM_US;
 
-void KeyboardLayoutDetect(void) {
-    unsigned int nlayout = DKM_US;
-
-#if defined(LINUX)
-    unsigned int Linux_GetKeyboardLayout(void);
-    nlayout = Linux_GetKeyboardLayout();
-
-    /* BUGFIX: The xkbmap for 'jp' in Linux/X11 has a problem that maps both
-     *         Ro and Yen to backslash, which in SDL's default state makes
-     *         it impossible to map them properly in the mapper. */
-    if (nlayout == DKM_JPN) {
-        LOG_MSG("Engaging Linux/X11 fix for jp xkbmap in order to handle Ro/Yen keys");
-
-        void Linux_JPXKBFix(void);
-        Linux_JPXKBFix();
-    }
-#elif defined(WIN32)
-    WORD lid = LOWORD(GetKeyboardLayout(0));
-
-    LOG_MSG("Windows keyboard layout ID is 0x%04x", lid);
-
-    switch (lid) {
-        case 0x0407:    nlayout = DKM_DEU; break;
-        case 0x0409:    nlayout = DKM_US; break;
-        case 0x0411:    nlayout = DKM_JPN; break;
-        default:        break;
-    };
-#endif
-
-    host_keyboard_layout = nlayout;
-
-    LOG_MSG("Host keyboard layout is now %s (%s)",
-        DKM_to_string(host_keyboard_layout),
-        DKM_to_descriptive_string(host_keyboard_layout));
-}
-
-void SetMapperKeyboardLayout(const unsigned int dkm) {
-    /* TODO: Make mapper re-initialize layout. If the mapper interface is visible, redraw it. */
-    mapper_keyboard_layout = dkm;
-
-    LOG_MSG("Mapper keyboard layout is now %s (%s)",
-        DKM_to_string(mapper_keyboard_layout),
-        DKM_to_descriptive_string(mapper_keyboard_layout));
-}
-
-#if defined(WIN32) && !defined(C_SDL2)
-extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
-extern "C" void SDL1_hax_ackLayoutChanged(void);
-#endif
-
-void CheckMapperKeyboardLayout(void) {
-#if defined(WIN32) && !defined(C_SDL2)
-    if (SDL1_hax_hasLayoutChanged()) {
-        SDL1_hax_ackLayoutChanged();
-        LOG_MSG("Keyboard layout changed");
-        KeyboardLayoutDetect();
-
-        if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
-            SetMapperKeyboardLayout(DKM_JPN_PC98);
-        else
-            SetMapperKeyboardLayout(host_keyboard_layout);
-    }
-#endif
-}
-
 /* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
 #ifndef MAPVK_VK_TO_VSC
 #define MAPVK_VK_TO_VSC 0
@@ -432,12 +367,6 @@ void UpdateWindowDimensions(void)
     UpdateWindowDimensions(r.right, r.bottom);
     UpdateWindowMaximized(IsZoomed(GetHWND()));
     Windows_GetWindowDPI(/*&*/screen_size_info);
-#endif
-#if defined(LINUX)
-    void UpdateWindowDimensions_Linux(void);
-    UpdateWindowDimensions_Linux();
-    void Linux_GetWindowDPI(ScreenSizeInfo &info);
-    Linux_GetWindowDPI(/*&*/screen_size_info);
 #endif
     PrintScreenSizeInfo();
 }
@@ -4092,7 +4021,6 @@ void GFX_EventsMouse()
 bool gfx_in_mapper = false;
 
 void GFX_Events() {
-    CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)
@@ -6502,10 +6430,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             sdl_sec->onpropchange.push_back(&SDL_OnSectionPropChange);
         }
 
-        /* -- -- Keyboard layout detection and setup */
-        KeyboardLayoutDetect();
-        SetMapperKeyboardLayout(host_keyboard_layout);
-
         /* -- -- Initialise Joystick and CD-ROM seperately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
@@ -6766,11 +6690,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         MAPPER_StartUp();
         DOSBOX_InitTickLoop();
         DOSBOX_RealInit();
-
-        /* at this point: If the machine type is PC-98, and the mapper keyboard layout was "Japanese",
-         * then change the mapper layout to "Japanese PC-98" */
-        if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
-            SetMapperKeyboardLayout(DKM_JPN_PC98);
 
         /* more */
         {
