@@ -716,52 +716,6 @@ public:
 
 };
 
-class AutoexecEditor : public GUI::ToplevelWindow {
-    GUI::Button *closeButton;
-    Section_line * section;
-    GUI::Input *content;
-public:
-    AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 450, 300, ""), section(section) {
-        if (section == NULL) {
-            LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
-            return;
-        }
-
-        std::string title(section->GetName());
-        title[0] = std::toupper(title[0]);
-        setTitle("Edit "+title);
-        new GUI::Label(this, 5, 10, "Content:");
-        content = new GUI::Input(this, 5, 30, 420, 185);
-        content->setText(section->data);
-        (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
-    }
-
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "OK") section->data = *(std::string*)content->getText();
-        if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else ToplevelWindow::actionExecuted(b, arg);
-    }
-
-    virtual bool keyDown(const GUI::Key &key) {
-        if (GUI::ToplevelWindow::keyDown(key)) return true;
-        return false;
-    }
-
-    virtual bool keyUp(const GUI::Key &key) {
-        if (GUI::ToplevelWindow::keyUp(key)) return true;
-
-        if (key.special == GUI::Key::Escape) {
-            closeButton->executeAction();
-            return true;
-        }
-
-        return false;
-    }
-
-};
-
 class SaveDialog : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -1022,9 +976,7 @@ public:
             MAPPER_RunEvent(0);
             UI_Startup(dynamic_cast<GUI::ScreenSDL*>(getScreen()));
         } else if (sname == "autoexec") {
-            Section_line *section = static_cast<Section_line *>(control->GetSection((const char *)sname));
-            auto *np = new AutoexecEditor(getScreen(), 50, 30, section);
-            np->raise();
+            /* do nothing */
         } else if ((sec = control->GetSection((const char *)sname))) {
             Section_prop *section = static_cast<Section_prop *>(sec);
             auto *np = new SectionEditor(getScreen(), 50, 30, section);
@@ -1114,7 +1066,6 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 
 static void UI_Select(GUI::ScreenSDL *screen, int select) {
     SDL_Surface *sdlscreen = NULL;
-    Section_line *section2 = NULL;
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
@@ -1153,10 +1104,6 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             sec = control->GetSection("ne2000");
             section=static_cast<Section_prop *>(sec); 
             new SectionEditor(screen,50,30,section);
-            break;
-        case 7:
-            section2 = static_cast<Section_line *>(control->GetSection("autoexec"));
-            new AutoexecEditor(screen, 50, 30, section2);
             break;
         case 8:
             sec = control->GetSection("glide");
