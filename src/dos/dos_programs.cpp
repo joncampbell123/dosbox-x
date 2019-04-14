@@ -2427,10 +2427,6 @@ public:
             DisplayMount();
             return;
         }
-        if(cmd->FindExist("special",false)) {
-            WriteOut(MSG_Get("PROGRAM_INTRO_SPECIAL"));
-            return;
-        }
 
         if(cmd->FindExist("usage",false)) { DisplayUsage(); return; }
         Bit8u c;Bit16u n=1;
@@ -2448,7 +2444,6 @@ menufirst:
         DisplayIntro();
         CURSOR("BASIC")
         CURSOR("CDROM")
-        CURSOR("SPECIAL")
         CURSOR("USAGE")
         DisplayMenuNone(); // None
         CURSOR("INFO")
@@ -2457,7 +2452,6 @@ menufirst:
 
         if (menuname=="BASIC") goto basic;
         else if (menuname=="CDROM") goto cdrom;
-        else if (menuname=="SPECIAL") goto special;
         else if (menuname=="USAGE") goto usage;
         else if (menuname=="INFO") goto info;
         else if (menuname=="QUIT") goto quit;
@@ -2489,22 +2483,9 @@ cdrom:
         CON_IN(&c);
         do switch (c) {
             case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
-            case 0x50|0x80: menuname="SPECIAL"; goto menufirst; // Down
-            case 0xD:   // Run
-                WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
-                DOS_ReadFile (STDIN,&c,&n);
-                goto menufirst;
-        } while (CON_IN(&c));
-
-special:
-        menuname="SPECIAL";
-        WriteOut(MSG_Get("PROGRAM_INTRO_MENU_SPECIAL_HELP")); 
-        CON_IN(&c);
-        do switch (c) {
-            case 0x48|0x80: menuname="CDROM"; goto menufirst; // Up
             case 0x50|0x80: menuname="USAGE"; goto menufirst; // Down
             case 0xD:   // Run
-                WriteOut(MSG_Get("PROGRAM_INTRO_SPECIAL"));
+                WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
                 DOS_ReadFile (STDIN,&c,&n);
                 goto menufirst;
         } while (CON_IN(&c));
@@ -2514,7 +2495,7 @@ usage:
         WriteOut(MSG_Get("PROGRAM_INTRO_MENU_USAGE_HELP")); 
         CON_IN(&c);
         do switch (c) {
-            case 0x48|0x80: menuname="SPECIAL"; goto menufirst; // Up
+            case 0x48|0x80: menuname="CDROM"; goto menufirst; // Down
             case 0x50|0x80: menuname="INFO"; goto menufirst; // Down
             case 0xD:   // Run
                 DisplayUsage();
@@ -4330,13 +4311,11 @@ void DOS_SetupPrograms(void) {
     }
     MSG_Add("PROGRAM_INTRO_MENU_BASIC","Basic mount");
     MSG_Add("PROGRAM_INTRO_MENU_CDROM","CD-ROM support");
-    MSG_Add("PROGRAM_INTRO_MENU_SPECIAL","Special keys");
     MSG_Add("PROGRAM_INTRO_MENU_USAGE","Usage");
     MSG_Add("PROGRAM_INTRO_MENU_INFO","Information");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT","Quit");
     MSG_Add("PROGRAM_INTRO_MENU_BASIC_HELP","\n\033[1m   \033[1m\033[KMOUNT allows you to connect real hardware to DOSBox's emulated PC.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox, you have to specify some additional options\n   when mounting the CD-ROM.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_SPECIAL_HELP","\n\033[1m   \033[1m\033[KSpecial key combinations used in DOSBox.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_USAGE_HELP","\n\033[1m   \033[1m\033[KAn overview of the command line options you can give to DOSBox.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_INFO_HELP","\n\033[1m   \033[1m\033[KHow to get more information about DOSBox.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT_HELP","\n\033[1m   \033[1m\033[KExit from Intro.\033[0m\n");
@@ -4502,31 +4481,6 @@ void DOS_SetupPrograms(void) {
         "Replace \033[0;31mD:\\\033[0m with the location of your CD-ROM.\n"
         "Replace the \033[33;1m0\033[0m in \033[34;1m-usecd \033[33m0\033[0m with the number reported for your CD-ROM if you type:\n"
         "\033[34;1mmount -cd\033[0m\n"
-        );
-    MSG_Add("PROGRAM_INTRO_SPECIAL",
-        "\033[2J\033[32;1mSpecial keys:\033[0m\n"
-        "These are the default keybindings.\n"
-        "They can be changed in the \033[33mkeymapper\033[0m.\n"
-        "\n"
-        "\033[33;1mALT-ENTER\033[0m   : Go full screen and back.\n"
-        "\033[33;1mALT-PAUSE\033[0m   : Pause DOSBox.\n"
-        "\033[33;1mCTRL-1~4\033[0m    : Use normal/full/dynamic/simple core.\n"
-        "\033[33;1mCTRL-=\033[0m      : Maximize CPU cycles.\n"
-        "\033[33;1mALT-F11\033[0m     : Unlock/Lock speed.\n"
-        "\033[33;1mCTRL-F1\033[0m     : Start the \033[33mkeymapper\033[0m.\n"
-        "\033[33;1mCTRL-F4\033[0m     : Update directory cache for all drives! Swap mounted disk-image.\n"
-        "\033[33;1mCTRL-ALT-F5\033[0m : Start/Stop creating a movie of the screen.\n"
-        "\033[33;1mCTRL-F5\033[0m     : Save a screenshot.\n"
-        "\033[33;1mCTRL-F6\033[0m     : Start/Stop recording sound output to a wave file.\n"
-        "\033[33;1mCTRL-ALT-F7\033[0m : Start/Stop recording of OPL commands.\n"
-        "\033[33;1mCTRL-ALT-F8\033[0m : Start/Stop the recording of raw MIDI commands.\n"
-        "\033[33;1mCTRL-F7\033[0m     : Decrease frameskip.\n"
-        "\033[33;1mCTRL-F8\033[0m     : Increase frameskip.\n"
-        "\033[33;1mCTRL-F9\033[0m     : Kill DOSBox.\n"
-        "\033[33;1mCTRL-F10\033[0m    : Capture/Release the mouse.\n"
-        "\033[33;1mCTRL-F11\033[0m    : Slow down emulation (Decrease DOSBox Cycles).\n"
-        "\033[33;1mCTRL-F12\033[0m    : Speed up emulation (Increase DOSBox Cycles).\n"
-        "\033[33;1mALT-F12\033[0m     : Unlock speed (turbo button/fast forward).\n"
         );
     MSG_Add("PROGRAM_BOOT_NOT_EXIST","Bootdisk file does not exist.  Failing.\n");
     MSG_Add("PROGRAM_BOOT_NOT_OPEN","Cannot open bootdisk file.  Failing.\n");

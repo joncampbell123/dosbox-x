@@ -1037,7 +1037,6 @@ public:
         bar->addItem(2,"Introduction");
         bar->addItem(2,"Getting Started");
         bar->addItem(2,"CD-ROM Support");
-        bar->addItem(2,"Special Keys");
         bar->addItem(2,"");
         bar->addItem(2,"About");
         bar->addActionHandler(this);
@@ -1126,8 +1125,6 @@ public:
             new GUI::MessageBox2(getScreen(), 20, 50, 600, std::string("Introduction"), msg);
         } else if (arg == "CD-ROM Support") {
             new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO_CDROM"));
-        } else if (arg == "Special Keys") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO_SPECIAL"));
         } else if (arg == "Save...") {
             new SaveDialog(getScreen(), 90, 100, "Save Configuration...");
         } else if (arg == "Save Language File...") {
