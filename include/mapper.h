@@ -28,6 +28,7 @@ enum MapKeys {
 	MK_1, MK_2, MK_3, MK_4,
     MK_c, MK_d, MK_f, MK_m, MK_r, MK_s, MK_v, MK_w,
     MK_escape,
+    MK_lbracket,MK_rbracket,MK_leftarrow,
 
     MK_MAX
 };

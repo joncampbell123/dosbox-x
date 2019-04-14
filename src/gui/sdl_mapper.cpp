@@ -2428,6 +2428,9 @@ public:
         case MK_rightarrow:
             key=SDL_SCANCODE_RIGHT;
             break;
+        case MK_leftarrow:
+            key=SDL_SCANCODE_LEFT;
+            break;
         case MK_return:
             key=SDL_SCANCODE_RETURN;
             break;
@@ -2494,6 +2497,12 @@ public:
         case MK_escape:
             key=SDL_SCANCODE_ESCAPE;
             break;
+        case MK_lbracket:
+            key=SDL_SCANCODE_LEFTBRACKET;
+            break;
+        case MK_rbracket:
+            key=SDL_SCANCODE_RIGHTBRACKET;
+            break;
         default:
             break;
         }
@@ -2518,6 +2527,9 @@ public:
             break;
         case MK_rightarrow:
             key=SDLK_RIGHT;
+            break;
+        case MK_leftarrow:
+            key=SDLK_LEFT;
             break;
         case MK_return:
             key=SDLK_RETURN;
@@ -2592,6 +2604,12 @@ public:
             break;
         case MK_escape:
             key=SDLK_ESCAPE;
+            break;
+        case MK_lbracket:
+            key=SDLK_LEFTBRACKET;
+            break;
+        case MK_rbracket:
+            key=SDLK_RIGHTBRACKET;
             break;
         default:
             *buf = 0;

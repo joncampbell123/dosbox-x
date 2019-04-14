@@ -770,16 +770,16 @@ void DOSBOX_RealInit() {
         item->set_text("Turbo (Fast Forward)");
     }
     {
-        MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_nothing, 0, "speednorm","SpeedNrm", &item);
+        MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_leftarrow, MMODHOST, "speednorm","SpeedNrm", &item);
         item->set_description("Restore normal emulation speed");
         item->set_text("Normal speed");
     }
     {
-        MAPPER_AddHandler(DOSBOX_SpeedUp, MK_nothing, 0, "speedup","SpeedUp", &item);
+        MAPPER_AddHandler(DOSBOX_SpeedUp, MK_rbracket, MMODHOST, "speedup","SpeedUp", &item);
         item->set_text("Speed up");
     }
     {
-        MAPPER_AddHandler(DOSBOX_SlowDown, MK_nothing, 0,"slowdown","SlowDn", &item);
+        MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDn", &item);
         item->set_text("Slow down");
     }
 
