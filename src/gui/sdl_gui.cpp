@@ -716,60 +716,6 @@ public:
 
 };
 
-class SaveDialog : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
-public:
-    SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
-        new GUI::Label(this, 5, 10, "Enter filename for configuration file:");
-        name = new GUI::Input(this, 5, 30, 350);
-        extern std::string capturedir;
-        std::string fullpath,file;
-        Cross::GetPlatformConfigName(file);
-        const size_t last_slash_idx = capturedir.find_last_of("\\/");
-        if (std::string::npos != last_slash_idx) {
-            fullpath = capturedir.substr(0, last_slash_idx);
-            fullpath += CROSS_FILESPLIT;
-            fullpath += file;
-        } else
-            fullpath = "dosbox.conf";
-        name->setText(fullpath.c_str());
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
-    }
-
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
-        // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
-        (void)arg.size();//UNUSED
-        if (arg == "OK") control->PrintConfig(name->getText());
-        close();
-        if(shortcut) running=false;
-    }
-};
-
-class SaveLangDialog : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
-public:
-    SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
-        new GUI::Label(this, 5, 10, "Enter filename for language file:");
-        name = new GUI::Input(this, 5, 30, 350);
-        name->setText("messages.txt");
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
-    }
-
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
-        if (arg == "OK") MSG_Write(name->getText());
-        close();
-        if(shortcut) running=false;
-    }
-};
-
 // override Input field with one that responds to the Enter key as a keyboard-based cue to click "OK"
 class InputWithEnterKey : public GUI::Input {
 public:
@@ -919,9 +865,6 @@ public:
 
         GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
         bar->addMenu("Configuration");
-        bar->addItem(0,"Save...");
-        bar->addItem(0,"Save Language File...");
-        bar->addItem(0,"");
         bar->addItem(0,"Close");
         bar->addMenu("Settings");
         bar->addMenu("Help");
@@ -1001,10 +944,6 @@ public:
             new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO_CDROM"));
         } else if (arg == "Special Keys") {
             new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO_SPECIAL"));
-        } else if (arg == "Save...") {
-            new SaveDialog(getScreen(), 90, 100, "Save Configuration...");
-        } else if (arg == "Save Language File...") {
-            new SaveLangDialog(getScreen(), 90, 100, "Save Language File...");
         } else {
             return ToplevelWindow::actionExecuted(b, arg);
         }
@@ -1077,9 +1016,6 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             new GUI::MessageBox2(screen, 200, 150, 280, "", "");
             running=false;
             break;
-        case 1:
-            new SaveDialog(screen, 90, 100, "Save Configuration...");
-            break;
         case 2: {
             sec = control->GetSection("sdl");
             section=static_cast<Section_prop *>(sec); 
@@ -1110,9 +1046,6 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             sec = control->GetSection("glide");
             section=static_cast<Section_prop *>(sec); 
             new SectionEditor(screen,50,30,section);
-            break;
-        case 9:
-            new SaveLangDialog(screen, 90, 100, "Save Language File...");
             break;
         case 10: {
             auto *np = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
