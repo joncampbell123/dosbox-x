@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - "Show details" menu option now also enables the realtime
+    percentage display.
   - Mac OS X builds fixed to use older convertRectToScreen
     function instead of convertPointToScreen, which allows
     others to compile DOSBox-X on Mac OS X versions older than
