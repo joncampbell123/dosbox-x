@@ -939,6 +939,11 @@ public:
         int i = 0;
         while ((sec = control->GetSection(i))) {
             std::string name = sec->GetName();
+            if (name == "autoexec") {
+                i++;/*skip*/
+                continue;
+            }
+
             name[0] = std::toupper(name[0]);
             GUI::Button *b = new GUI::Button(this, 12+(i/7)*110, 50+(i%7)*35, name, 100);
             b->addActionHandler(this);
