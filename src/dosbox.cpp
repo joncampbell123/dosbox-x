@@ -580,8 +580,11 @@ void DOSBOX_UnlockSpeed2( bool pressed ) {
 }
 
 void DOSBOX_NormalSpeed( bool pressed ) {
-    LOG_MSG("press=%u",pressed);
     if (pressed) {
+        /* should also cancel turbo mode */
+        if (ticksLocked)
+            DOSBOX_UnlockSpeed2(true);
+
         emulator_speed = 100;
         ticksRemainSpeedFrac = 0;
     }
