@@ -734,8 +734,6 @@ public:
         new GUI::Label(this, 5, 10, "Content:");
         content = new GUI::Input(this, 5, 30, 420, 185);
         content->setText(section->data);
-        if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
-        if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
     }
@@ -743,19 +741,7 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Append Shell Commands") {
-            DOS_Shell *s = static_cast<DOS_Shell *>(first_shell);
-            std::list<std::string>::reverse_iterator i = s->l_history.rbegin();
-            std::string lines = *(std::string*)content->getText();
-            while (i != s->l_history.rend()) {
-                lines += "\n";
-                lines += *i;
-                ++i;
-            }
-            content->setText(lines);
-        } else if (arg == "Execute Now") {
-            UI_RunCommands(dynamic_cast<GUI::ScreenSDL*>(getScreen()), content->getText());
-        } else ToplevelWindow::actionExecuted(b, arg);
+        else ToplevelWindow::actionExecuted(b, arg);
     }
 
     virtual bool keyDown(const GUI::Key &key) {
