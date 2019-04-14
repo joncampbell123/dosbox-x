@@ -38,6 +38,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cctype>
+#include <functional>
 #include <assert.h>
 
 #include "SDL_syswm.h"
