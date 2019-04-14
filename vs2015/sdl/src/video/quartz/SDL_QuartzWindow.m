@@ -25,15 +25,6 @@
 #include "SDL_QuartzWM.h"
 #include "SDL_QuartzWindow.h"
 
-bool sdl1_hax_highdpi_enable = false;
-
-void sdl1_hax_macosx_highdpi_set_enable(const bool enable) {
-	if (sdl1_hax_highdpi_enable != enable) {
-		sdl1_hax_highdpi_enable = enable;
-		// TODO: Force reinitialization of the window
-	}
-}
-
 /*
     This function makes the *SDL region* of the window 100% opaque. 
     The genie effect uses the alpha component. Otherwise,
@@ -149,9 +140,6 @@ void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*)) {
         [ super setFrame:frameRect display:flag ];
         
         newViewFrame = [ window_view frame ];
-
-	if (sdl1_hax_highdpi_enable)
-		newViewFrame = [ qz_window convertRectToBacking:newViewFrame ];
 
         SDL_PrivateResize (newViewFrame.size.width, newViewFrame.size.height);
     }
