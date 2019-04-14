@@ -47,10 +47,10 @@ namespace Color {
 	RGB SelectionBackground =	0xff000080;
 	RGB SelectionForeground =	0xffffffff;
 	RGB EditableBackground =	0xffffffff;
-	RGB Titlebar =			0xff000080;
-	RGB TitlebarText =		0xffffffff;
+	RGB Titlebar =			0xffa4c8f0;
+	RGB TitlebarText =		0xff000000;
 	RGB TitlebarInactive =			0xffffffff;
-	RGB TitlebarInactiveText =		0xff7f7f7f;
+	RGB TitlebarInactiveText =		0xff000000;
 }
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
