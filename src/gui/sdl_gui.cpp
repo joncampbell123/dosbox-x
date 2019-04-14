@@ -215,8 +215,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
     SDL_FillRect(screenshot,0,0);
 
-    // create screenshot for fade effect
     unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
+
+    // create screenshot for fade effect
     for (unsigned int y = 0; (int)y < sh_draw; y++) {
         Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
         for (unsigned int x = 0; (int)x < sw_draw; x++) {
