@@ -506,7 +506,10 @@ int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd) {
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
         NSRect rct = [wnd frame];
-        NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+// NTS: This did not appear until Mojave, and some followers on Github prefer to compile for somewhat older versions of OS X
+//      NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+// NTS: convertRectToScreen however is documented to exist since 10.7, unless Apple got that wrong too...
+        NSPoint pt = [wnd convertRectToScreen:NSMakeRect(rct.size.width / 2, rct.size.height / 2, 0, 0)].origin; /* x,y,w,h */
 
         {
             /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
