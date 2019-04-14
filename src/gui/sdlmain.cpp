@@ -2301,7 +2301,6 @@ static void GUI_StartUp() {
     assert(section != NULL);
 
     sdl.desktop.fullscreen=section->Get_bool("fullscreen");
-    sdl.wait_on_error=section->Get_bool("waitonerror");
 
     Prop_multival* p=section->Get_multival("priority");
     std::string focus = p->GetSection()->Get_string("active");
@@ -3624,11 +3623,7 @@ bool GFX_IsFullscreen(void) {
 }
 
 void* GetSetSDLValue(int isget, std::string target, void* setval) {
-    if (target == "wait_on_error") {
-        if (isget) return (void*) sdl.wait_on_error;
-        else sdl.wait_on_error = setval;
-    }
-    else if (target == "opengl.bilinear") {
+    if (target == "opengl.bilinear") {
 #if C_OPENGL
         if (isget) return (void*) sdl_opengl.bilinear;
         else sdl_opengl.bilinear = setval;
@@ -5719,14 +5714,6 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
-bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    sdl.wait_on_error = !sdl.wait_on_error;
-    mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
-    return true;
-}
-
 bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -5762,49 +5749,6 @@ bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
-
-    return true;
-}
-
-bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)xmenu;//UNUSED
-    (void)menuitem;//UNUSED
-    menu.hidecycles = !menu.hidecycles;
-    GFX_SetTitle(CPU_CycleMax, -1, -1, false);
-    mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
-    return true;
-}
-
-bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    if (menuitem->get_name() == "sendkey_ctrlesc") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_esc, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_esc, false);
-    }
-    else if (menuitem->get_name() == "sendkey_alttab") {
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_tab, true);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_tab, false);
-    }
-    else if (menuitem->get_name() == "sendkey_winlogo") {
-        KEYBOARD_AddKey(KBD_lwindows, true);
-        KEYBOARD_AddKey(KBD_lwindows, false);
-    }
-    else if (menuitem->get_name() == "sendkey_winmenu") {
-        KEYBOARD_AddKey(KBD_rwinmenu, true);
-        KEYBOARD_AddKey(KBD_rwinmenu, false);
-    }
-    else if (menuitem->get_name() == "sendkey_cad") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_delete, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_delete, false);
-    }
 
     return true;
 }
@@ -6598,14 +6542,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
