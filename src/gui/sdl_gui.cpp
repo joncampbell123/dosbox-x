@@ -794,7 +794,7 @@ public:
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Append Shell Commands") {
+        else if (arg == "Append History") {
             DOS_Shell *s = static_cast<DOS_Shell *>(first_shell);
             std::list<std::string>::reverse_iterator i = s->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
