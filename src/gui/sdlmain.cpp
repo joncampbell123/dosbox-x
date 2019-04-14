@@ -491,20 +491,6 @@ static void KillSwitch(bool pressed) {
     throw 1;
 }
 
-void BlankDisplay(void) {
-    if (OpenGL_using()) {
-        LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");
-    }
-    else {
-        SDL_FillRect(sdl.surface,0,0);
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurface(sdl.window);
-#else
-        SDL_Flip(sdl.surface);
-#endif
-    }
-}
-
 bool DOSBox_Paused()
 {
     return emu_paused;
@@ -5695,17 +5681,6 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 
 void CALLBACK_Idle(void);
 
-bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-
-    int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
-    char tmp[64];
-
-    sprintf(tmp,"%u",f);
-    SetVal("render", "frameskip", tmp);
-    return true;
-}
-
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -5728,22 +5703,6 @@ extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #if defined(MACOSX) && !defined(C_SDL2)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-
-void BlankDisplay(void);
-
-bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)xmenu;
-
-    BlankDisplay();
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.setRedraw();
-    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-
-    return true;
-}
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     void MAPPER_ReleaseAllKeys(void);
@@ -6313,23 +6272,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");
             item.set_text("Video");
             {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoFrameskipMenu");
-                item.set_text("Frameskip");
-        
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"frameskip_0").set_text("Off").
-                    set_callback_function(video_frameskip_common_menu_callback);
-
-                for (unsigned int f=1;f <= 10;f++) {
-                    char tmp1[64],tmp2[64];
-
-                    sprintf(tmp1,"frameskip_%u",f);
-                    sprintf(tmp2,"%u frame",f);
-
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
-                        set_callback_function(video_frameskip_common_menu_callback);
-                }
-            }
-            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");
                 item.set_text("Scaler");
 
@@ -6534,8 +6476,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
-
-        mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);

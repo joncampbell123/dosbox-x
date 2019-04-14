@@ -159,23 +159,6 @@ static const char *def_menu_cpu[] =
     NULL
 };
 
-/* video frameskip menu ("VideoFrameskipMenu") */
-static const char *def_menu_video_frameskip[] =
-{
-    "frameskip_0",
-    "frameskip_1",
-    "frameskip_2",
-    "frameskip_3",
-    "frameskip_4",
-    "frameskip_5",
-    "frameskip_6",
-    "frameskip_7",
-    "frameskip_8",
-    "frameskip_9",
-    "frameskip_10",
-    NULL
-};
-
 /* video scaler menu ("VideoScalerMenu") */
 static const char *def_menu_video_scaler[] =
 {
@@ -219,13 +202,6 @@ static const char *def_menu_video_pc98[] =
     NULL
 };
 
-/* video output debug ("VideoDebugMenu") */
-static const char *def_menu_video_debug[] =
-{
-    "mapper_blankrefreshtest",
-    NULL
-};
-
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
 {
@@ -245,15 +221,11 @@ static const char *def_menu_video[] =
     "mapper_resetsize",
 #endif
     "--",
-    "VideoFrameskipMenu",
-    "--",
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
-    "--",
-    "VideoDebugMenu",
     NULL
 };
 
@@ -936,9 +908,6 @@ void ConstructMenu(void) {
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
 
-    /* video frameskip menu */
-    ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);
-
     /* video scaler menu */
     ConstructSubMenu(mainMenu.get_item("VideoScalerMenu").get_master_id(), def_menu_video_scaler);
     {
@@ -973,9 +942,6 @@ void ConstructMenu(void) {
 
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
-
-    /* video debug menu */
-    ConstructSubMenu(mainMenu.get_item("VideoDebugMenu").get_master_id(), def_menu_video_debug);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);

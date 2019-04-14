@@ -644,28 +644,6 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     RENDER_Reset( );
 }
 
-void BlankDisplay(void);
-static void BlankTestRefresh(bool pressed) {
-    (void)pressed;
-    BlankDisplay();
-}
-
-//extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
-static void IncreaseFrameSkip(bool pressed) {
-    if (!pressed)
-        return;
-    if (render.frameskip.max<10) render.frameskip.max++;
-    LOG_MSG("Frame Skip at %d",(int)render.frameskip.max);
-    GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
-}
-
-static void DecreaseFrameSkip(bool pressed) {
-    if (!pressed)
-        return;
-    if (render.frameskip.max>0) render.frameskip.max--;
-    LOG_MSG("Frame Skip at %d",(int)render.frameskip.max);
-    GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
-}
 /* Disabled as I don't want to waste a keybind for that. Might be used in the future (Qbix)
 static void ChangeScaler(bool pressed) {
     if (!pressed)
@@ -685,16 +663,6 @@ void RENDER_UpdateFromScalerSetting(void);
 
 void RENDER_SetForceUpdate(bool f) {
     render.forceUpdate = f;
-}
-
-void RENDER_UpdateFrameskipMenu(void) {
-    char tmp[64];
-
-    for (unsigned int f=0;f <= 10;f++) {
-        sprintf(tmp,"frameskip_%u",f);
-        DOSBoxMenu::item &item = mainMenu.get_item(tmp);
-        item.check(render.frameskip.max == f);
-    }
 }
 
 void VGA_SetupDrawing(Bitu /*val*/);
@@ -730,7 +698,6 @@ void RENDER_OnSectionPropChange(Section *x) {
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
-    RENDER_UpdateFrameskipMenu();
     RENDER_UpdateFromScalerSetting();
     RENDER_UpdateScalerMenu();
 }
@@ -838,8 +805,6 @@ void RENDER_Init() {
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
-    RENDER_UpdateFrameskipMenu();
-
     /* BUG FIX: Some people's dosbox.conf files have frameskip=-1 WTF?? */
     /* without this fix, nothing displays, EVER */
     if ((int)render.frameskip.max < 0) render.frameskip.max = 0;
@@ -870,12 +835,6 @@ void RENDER_Init() {
 
     if(!running) render.updating=true;
     running = true;
-
-    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
-    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
-
-    // DEBUG option
-    MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,"blankrefreshtest","RefrshTest");
 
     GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
 
