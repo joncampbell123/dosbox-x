@@ -597,38 +597,6 @@ public:
     };
 };
 
-class HelpWindow : public GUI::MessageBox2 {
-public:
-    HelpWindow(GUI::Screen *parent, int x, int y, Section *section) :
-        MessageBox2(parent, x, y, 580, "", "") { // 740
-        if (section == NULL) {
-            LOG_MSG("BUG: HelpWindow constructor called with section == NULL\n");
-            return;
-        }
-
-        std::string title(section->GetName());
-        title.at(0) = std::toupper(title.at(0));
-        setTitle("Help for "+title);
-
-        Section_prop* sec = dynamic_cast<Section_prop*>(section);
-        if (sec) {
-            std::string msg;
-            Property *p;
-            int i = 0;
-            while ((p = sec->Get_prop(i++))) {
-                msg += std::string("\033[34m")+p->propname+":\033[0m "+p->Get_help()+"\n";
-            }
-            if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
-            setText(msg);
-        } else {
-        std::string name = section->GetName();
-        std::transform(name.begin(), name.end(), name.begin(), (int(*)(int))std::toupper);
-        name += "_CONFIGFILE_HELP";
-        setText(MSG_Get(name.c_str()));
-        }
-    };
-};
-
 class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
     GUI::Button * closeButton;
@@ -730,7 +698,6 @@ public:
     }
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Help") new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
         else ToplevelWindow::actionExecuted(b, arg);
     }
 
