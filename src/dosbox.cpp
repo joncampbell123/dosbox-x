@@ -585,6 +585,8 @@ void DOSBOX_NormalSpeed( bool pressed ) {
         if (ticksLocked)
             DOSBOX_UnlockSpeed2(true);
 
+        LOG_MSG("Emulation speed restored to normal (100%%)");
+
         emulator_speed = 100;
         ticksRemainSpeedFrac = 0;
     }
@@ -597,6 +599,8 @@ void DOSBOX_SpeedUp( bool pressed ) {
             emulator_speed += 5;
         else
             emulator_speed = 5;
+
+        LOG_MSG("Emulation speed increased to (%u%%)",(unsigned int)emulator_speed);
     }
 }
 
@@ -607,6 +611,8 @@ void DOSBOX_SlowDown( bool pressed ) {
             emulator_speed -= 5;
         else
             emulator_speed = 1;
+
+        LOG_MSG("Emulation speed decreased to (%u%%)",(unsigned int)emulator_speed);
     }
 }
 
