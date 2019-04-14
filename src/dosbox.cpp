@@ -580,6 +580,7 @@ void DOSBOX_UnlockSpeed2( bool pressed ) {
 }
 
 void DOSBOX_NormalSpeed( bool pressed ) {
+    LOG_MSG("press=%u",pressed);
     if (pressed) {
         emulator_speed = 100;
         ticksRemainSpeedFrac = 0;
@@ -765,9 +766,19 @@ void DOSBOX_RealInit() {
         item->set_description("Toggle emulation speed, to allow running faster than realtime (fast forward)");
         item->set_text("Turbo (Fast Forward)");
     }
-    MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_nothing, 0, "normalspeed","SpeedNrm");
-    MAPPER_AddHandler(DOSBOX_SpeedUp, MK_nothing, 0, "speedup","SpeedUp");
-    MAPPER_AddHandler(DOSBOX_SlowDown, MK_nothing, 0,"slowdown","SlowDn");
+    {
+        MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_nothing, 0, "speednorm","SpeedNrm", &item);
+        item->set_description("Restore normal emulation speed");
+        item->set_text("Normal speed");
+    }
+    {
+        MAPPER_AddHandler(DOSBOX_SpeedUp, MK_nothing, 0, "speedup","SpeedUp", &item);
+        item->set_text("Speed up");
+    }
+    {
+        MAPPER_AddHandler(DOSBOX_SlowDown, MK_nothing, 0,"slowdown","SlowDn", &item);
+        item->set_text("Slow down");
+    }
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
