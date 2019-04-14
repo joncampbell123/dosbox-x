@@ -3449,11 +3449,6 @@ void MAPPER_RunInternal() {
     DOSBox_SetMenu(mapperMenu);
 #endif
 
-#if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
-#endif
-
     /* Go in the event loop */
     mapper.exit=false;  
     mapper.redraw=true;
@@ -3523,11 +3518,6 @@ void MAPPER_RunInternal() {
     GFX_ForceRedrawScreen();
 
     mapper.running = false;
-
-#if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
-#endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);

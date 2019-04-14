@@ -138,9 +138,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "sdlmain.h"
 
 #ifdef MACOSX
-extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
-void osx_init_touchbar(void);
 #endif
 
 SDL_Block sdl;
@@ -5891,20 +5889,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
          * But we obey the user if they don't want us to do that. */
         Windows_DPI_Awareness_Init();
-#endif
-
-#ifdef MACOSX
-        osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
-        if (has_touch_bar_support) {
-            LOG_MSG("Mac OS X: NSTouchBar support detected in system");
-            osx_init_touchbar();
-        }
-
-        extern void osx_init_dock_menu(void);
-        osx_init_dock_menu();
-
-        void qz_set_match_monitor_cb(void);
-        qz_set_match_monitor_cb();
 #endif
 
         /* -- SDL init */

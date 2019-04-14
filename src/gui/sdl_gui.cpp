@@ -339,11 +339,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     render.src.bpp = 0;
     running = true;
 
-#if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
-#endif
-
     return screen;
 }
 
@@ -354,11 +349,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);
-#endif
-
-#if defined(MACOSX)
-    void osx_reload_touchbar(void);
-    osx_reload_touchbar();
 #endif
 
 #if defined(C_SDL2)
