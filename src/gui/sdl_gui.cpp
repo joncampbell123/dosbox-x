@@ -1024,9 +1024,7 @@ class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *closeButton;
     ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
-        GUI::ToplevelWindow(parent, (int)x, (int)y, 580, 380, title) {
-
-        (closeButton = new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
+        GUI::ToplevelWindow(parent, (int)x, (int)y, 30/*initial*/, 30/*initial*/, title) {
 
         GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
         bar->addMenu("Configuration");
@@ -1047,15 +1045,34 @@ public:
         new GUI::Label(this, 10, 30, "Choose a settings group to configure:");
 
         Section *sec;
+        int gridbtnwidth = 130;
+        int gridbtnheight = 28;
+        int gridbtnx = 12;
+        int gridbtny = 50;
+        int btnperrow = 4;
         int i = 0;
+
+        std::function< std::pair<int,int>(const int) > gridfunc = [&/*access to locals here*/](const int i){
+            return std::pair<int,int>(gridbtnx+(i%btnperrow)*gridbtnwidth, gridbtny+(i/btnperrow)*gridbtnheight);
+        };
+
         while ((sec = control->GetSection(i))) {
             std::string name = sec->GetName();
             name[0] = std::toupper(name[0]);
-            GUI::Button *b = new GUI::Button(this, 12+(i/7)*110, 50+(i%7)*35, name, 100);
+            const auto sz = gridfunc(i);
+            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, name, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
             bar->addItem(1, name);
             i++;
         }
+
+        const auto finalgridpos = gridfunc(i);
+        int closerow_y = finalgridpos.second + 12;
+
+        (closeButton = new GUI::Button(this, 240, closerow_y, "Close", 80))->addActionHandler(this);
+
+        resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
+               closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
     }
 
     ~ConfigurationWindow() { running = false; }
