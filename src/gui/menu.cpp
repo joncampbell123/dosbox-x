@@ -196,9 +196,6 @@ static const char *def_menu_video_pc98[] =
     "pc98_enable_analog",
     "pc98_enable_analog256",
     "pc98_enable_188user",
-    "--",
-    "pc98_clear_text",
-    "pc98_clear_graphics",
     NULL
 };
 

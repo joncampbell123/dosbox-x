@@ -5591,22 +5591,6 @@ bool vid_pc98_enable_analog256_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu:
     return true;
 }
 
-bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void pc98_clear_text(void);
-    if (IS_PC98_ARCH) pc98_clear_text();
-    return true;
-}
-
-bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    void pc98_clear_graphics(void);
-    if (IS_PC98_ARCH) pc98_clear_graphics();
-    return true;
-}
-
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
 
@@ -6325,10 +6309,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(vid_pc98_enable_analog256_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_188user").set_text("Enable 188+ user CG cells").
                     set_callback_function(vid_pc98_enable_188user_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_text").set_text("Clear text layer").
-                    set_callback_function(vid_pc98_cleartext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
-                    set_callback_function(vid_pc98_graphics_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoDebugMenu");
@@ -6496,8 +6476,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("pc98_enable_analog").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_analog256").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_188user").enable(IS_PC98_ARCH);
-        mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
-        mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_4mhz").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_5mhz").enable(IS_PC98_ARCH);
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
