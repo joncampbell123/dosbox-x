@@ -106,8 +106,6 @@ static const char *def_menu_main[] =
     "mapper_mapper",
     "mapper_gui",
     "--",
-    "MainSendKey",
-    "--",
     "wait_on_error",
     "showdetails",
 #if C_DEBUG
@@ -126,18 +124,6 @@ static const char *def_menu_main[] =
     "mapper_reset",
     "--",
     "mapper_shutdown",
-    NULL
-};
-
-/* main -> send key menu ("MenuSendKey") */
-static const char *def_menu_main_sendkey[] =
-{
-    "sendkey_ctrlesc",
-    "sendkey_alttab",
-    "sendkey_winlogo",
-    "sendkey_winmenu",
-    "--",
-    "sendkey_cad",
     NULL
 };
 
@@ -941,9 +927,6 @@ void ConstructMenu(void) {
 
     /* main menu */
     ConstructSubMenu(mainMenu.get_item("MainMenu").get_master_id(), def_menu_main);
-
-    /* main sendkey menu */
-    ConstructSubMenu(mainMenu.get_item("MainSendKey").get_master_id(), def_menu_main_sendkey);
 
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
