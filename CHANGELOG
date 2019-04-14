@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Configuration GUI AUTOEXEC editor fixed so that
+    "Append History" button actually works.
   - Fixed configuration GUI to show keyboard options instead
     of the mapper interface when you click the "Keyboard"
     button.
