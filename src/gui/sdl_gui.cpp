@@ -645,6 +645,8 @@ public:
     };
 };
 
+static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
+
 class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
     GUI::Button * closeButton;
@@ -773,6 +775,8 @@ class AutoexecEditor : public GUI::ToplevelWindow {
     Section_line * section;
     GUI::Input *content;
 public:
+    std::vector<GUI::Char> cfg_sname;
+public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
         ToplevelWindow(parent, x, y, 450, 300, ""), section(section) {
         if (section == NULL) {
@@ -790,6 +794,13 @@ public:
         if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
         (closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
+    }
+
+    ~AutoexecEditor() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1026,6 +1037,7 @@ public:
     GUI::Button *closeButton;
     ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
         GUI::ToplevelWindow(parent, (int)x, (int)y, 30/*initial*/, 30/*initial*/, title) {
+        cfg_windows_active.clear();
 
         GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth()/*initial*/);
         bar->addMenu("Configuration");
@@ -1077,7 +1089,7 @@ public:
         bar->resize(getWidth(),bar->getHeight());
     }
 
-    ~ConfigurationWindow() { running = false; }
+    ~ConfigurationWindow() { running = false; cfg_windows_active.clear(); }
 
     virtual bool keyDown(const GUI::Key &key) {
         if (GUI::ToplevelWindow::keyDown(key)) return true;
@@ -1102,9 +1114,17 @@ public:
         if (arg == "Close" || arg == "Cancel" || arg == "Close") {
             running = false;
         } else if (sname == "autoexec") {
-            Section_line *section = static_cast<Section_line *>(control->GetSection((const char *)sname));
-            auto *np = new AutoexecEditor(getScreen(), 50, 30, section);
-            np->raise();
+            auto lookup = cfg_windows_active.find(sname);
+            if (lookup == cfg_windows_active.end()) {
+                Section_line *section = static_cast<Section_line *>(control->GetSection((const char *)sname));
+                auto *np = new AutoexecEditor(getScreen(), 50, 30, section);
+                cfg_windows_active[sname] = np;
+                np->cfg_sname = sname;
+                np->raise();
+            }
+            else {
+                lookup->second->raise();
+            }
         } else if ((sec = control->GetSection((const char *)sname))) {
             Section_prop *section = static_cast<Section_prop *>(sec);
             auto *np = new SectionEditor(getScreen(), 50, 30, section);
