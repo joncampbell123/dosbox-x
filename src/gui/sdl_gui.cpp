@@ -202,9 +202,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     assert((sx+sw_draw) <= dw);
     assert((sy+sh_draw) <= dh);
 
-    assert(sw_draw > 0);
-    assert(sh_draw > 0);
-
     assert(sw_draw <= sw);
     assert(sh_draw <= sh);
 
