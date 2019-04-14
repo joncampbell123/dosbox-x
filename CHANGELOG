@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Fixed configuration GUI to show keyboard options instead
+    of the mapper interface when you click the "Keyboard"
+    button.
   - "Show details" menu option now also enables the realtime
     percentage display.
   - Mac OS X builds fixed to use older convertRectToScreen
