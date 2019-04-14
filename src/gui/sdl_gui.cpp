@@ -651,6 +651,8 @@ class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
     GUI::Button * closeButton;
 public:
+    std::vector<GUI::Char> cfg_sname;
+public:
     SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
         ToplevelWindow(parent, x, y, 510, 442, ""), section(section) {
         if (section == NULL) {
@@ -746,6 +748,14 @@ public:
         }
         b->addActionHandler(this);
     }
+
+    ~SectionEditor() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
         else if (arg == "Help") new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
@@ -1126,9 +1136,17 @@ public:
                 lookup->second->raise();
             }
         } else if ((sec = control->GetSection((const char *)sname))) {
-            Section_prop *section = static_cast<Section_prop *>(sec);
-            auto *np = new SectionEditor(getScreen(), 50, 30, section);
-            np->raise();
+            auto lookup = cfg_windows_active.find(sname);
+            if (lookup == cfg_windows_active.end()) {
+                Section_prop *section = static_cast<Section_prop *>(sec);
+                auto *np = new SectionEditor(getScreen(), 50, 30, section);
+                cfg_windows_active[sname] = np;
+                np->cfg_sname = sname;
+                np->raise();
+            }
+            else {
+                lookup->second->raise();
+            }
         } else if (arg == "About") {
             const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
             new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
