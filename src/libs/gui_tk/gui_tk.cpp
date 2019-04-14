@@ -164,7 +164,7 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 				} while (0);
 			default:
 				width += font->getWidth(text[start]);
-				if (x > 0 && x+width > cw) gotoXY(0,y+font->getHeight());
+				if (x > 0 && x+width > this->width) gotoXY(0,y+font->getHeight());
 			}
 			start++;
 		}
@@ -460,7 +460,7 @@ void Drawable::drawText(const Char c, bool interpret)
 		case Font::Tab: gotoXY((((int)(x/font->getWidth()/8))+1)*8*font->getWidth(),y); return;
 		default: break;
 		}
-		if (font->getWidth(c)+x > cw) gotoXY(0,y+font->getHeight());
+		if (font->getWidth(c)+x > this->width) gotoXY(0,y+font->getHeight());
 	}
 	font->drawChar(this,c);
 }
