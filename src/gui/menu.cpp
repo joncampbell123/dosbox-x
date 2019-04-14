@@ -114,7 +114,6 @@ static const char *def_menu_main[] =
 #endif
     "--",
     "mapper_capmouse",
-    "auto_lock_mouse",
     "--",
     "mapper_pause",
     "--",
