@@ -445,61 +445,6 @@ extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *d
 
 int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd);
 
-void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
-    NSWindow *wnd = nil;
-
-    info.clear();
-
-#if !defined(C_SDL2)
-    wnd = sdl1_hax_get_window();
-#else
-    SDL_Window* GFX_GetSDLWindow(void);
-
-    SDL_SysWMinfo wminfo;
-    memset(&wminfo,0,sizeof(wminfo));
-    SDL_VERSION(&wminfo.version);
-
-    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
-        if (wminfo.subsystem == SDL_SYSWM_COCOA && wminfo.info.cocoa.window != NULL) {
-            wnd = wminfo.info.cocoa.window;
-        }
-    }
-#endif
-
-    if (wnd != nil) {
-        CGDirectDisplayID did = 0;
-
-        if (my_quartz_match_window_to_monitor(&did,wnd) >= 0) {
-            CGRect drct = CGDisplayBounds(did);
-            CGSize dsz = CGDisplayScreenSize(did);
-
-            info.method = ScreenSizeInfo::METHOD_COREGRAPHICS;
-
-            info.screen_position_pixels.x        = drct.origin.x;
-            info.screen_position_pixels.y        = drct.origin.y;
-
-            info.screen_dimensions_pixels.width  = drct.size.width;
-            info.screen_dimensions_pixels.height = drct.size.height;
-
-            /* According to Apple documentation, this function CAN return zero */
-            if (dsz.width > 0 && dsz.height > 0) {
-                info.screen_dimensions_mm.width      = dsz.width;
-                info.screen_dimensions_mm.height     = dsz.height;
-
-                if (info.screen_dimensions_mm.width > 0)
-                    info.screen_dpi.width =
-                        ((((double)info.screen_dimensions_pixels.width) * 25.4) /
-                         ((double)info.screen_dimensions_mm.width));
-
-                if (info.screen_dimensions_mm.height > 0)
-                    info.screen_dpi.height =
-                        ((((double)info.screen_dimensions_pixels.height) * 25.4) /
-                         ((double)info.screen_dimensions_mm.height));
-            }
-        }
-    }
-}
-
 int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd) {
     if (wnd != nil) {
         CGError err;
