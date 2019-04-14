@@ -198,6 +198,9 @@ static const char *def_menu_cpu_type[] =
 static const char *def_menu_cpu[] =
 {
     "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
+    "mapper_normalspeed",
+    "mapper_speedup",
+    "mapper_slowdown",
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
