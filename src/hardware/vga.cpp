@@ -544,7 +544,6 @@ void VGA_Reset(Section*) {
         // To enable these games we default to 5.0MHz.
         // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
         gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
-        mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
 
         enable_pc98_egc = section->Get_bool("pc-98 enable egc");
         enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
@@ -579,12 +578,6 @@ void VGA_Reset(Section*) {
         mainMenu.get_item("pc98_allow_4partitions").check(pc98_allow_4_display_partitions).refresh_item(mainMenu);
         // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
         //       a more refined automatic choice according to actual hardware.
-
-        mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_analog").check(enable_pc98_16color).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_analog256").check(enable_pc98_256color).refresh_item(mainMenu);
-        mainMenu.get_item("pc98_enable_188user").check(enable_pc98_188usermod).refresh_item(mainMenu);
     }
 
     vga_force_refresh_rate = -1;

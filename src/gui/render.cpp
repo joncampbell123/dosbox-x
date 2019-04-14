@@ -694,8 +694,6 @@ void RENDER_OnSectionPropChange(Section *x) {
     if (vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
         VGA_StartResize();
 
-    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
-    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
     RENDER_UpdateFromScalerSetting();
@@ -801,8 +799,6 @@ void RENDER_Init() {
 
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
-    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
-    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
     /* BUG FIX: Some people's dosbox.conf files have frameskip=-1 WTF?? */

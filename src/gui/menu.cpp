@@ -176,26 +176,11 @@ static const char *def_menu_video_output[] =
     NULL
 };
 
-/* video output menu ("VideoCompatMenu") */
-static const char *def_menu_video_compat[] =
-{
-    "vga_9widetext",
-    "doublescan",
-    NULL
-};
-
 /* video output menu ("VideoPC98Menu") */
 static const char *def_menu_video_pc98[] =
 {
-    "pc98_5mhz_gdc",
     "pc98_allow_200scanline",
     "pc98_allow_4partitions",
-    "--",
-    "pc98_enable_egc",
-    "pc98_enable_grcg",
-    "pc98_enable_analog",
-    "pc98_enable_analog256",
-    "pc98_enable_188user",
     NULL
 };
 
@@ -221,7 +206,6 @@ static const char *def_menu_video[] =
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
-    "VideoCompatMenu",
     "VideoPC98Menu",
     NULL
 };
@@ -230,8 +214,6 @@ static const char *def_menu_video[] =
 static const char *def_menu_dos[] =
 {
     "DOSMouseMenu",
-    "--",
-    "DOSPC98Menu",
     "--",
     "mapper_swapimg",
     "mapper_swapcd",
@@ -242,14 +224,6 @@ static const char *def_menu_dos[] =
 static const char *def_menu_dos_mouse[] =
 {
     "dos_mouse_sensitivity",
-    NULL
-};
-
-/* DOS pc-98 menu ("DOSPC98Menu") */
-static const char *def_menu_dos_pc98[] =
-{
-    "dos_pc98_pit_4mhz",
-    "dos_pc98_pit_5mhz",
     NULL
 };
 
@@ -934,9 +908,6 @@ void ConstructMenu(void) {
     /* video output menu */
     ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
 
-    /* video compat menu */
-    ConstructSubMenu(mainMenu.get_item("VideoCompatMenu").get_master_id(), def_menu_video_compat);
-
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
 
@@ -948,9 +919,6 @@ void ConstructMenu(void) {
 
     /* DOS mouse menu */
     ConstructSubMenu(mainMenu.get_item("DOSMouseMenu").get_master_id(), def_menu_dos_mouse);
-
-    /* DOS PC-98 menu */
-    ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
