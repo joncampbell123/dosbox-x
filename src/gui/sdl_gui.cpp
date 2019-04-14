@@ -613,7 +613,11 @@ public:
     };
 };
 
+static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
+
 class HelpWindow : public GUI::MessageBox2 {
+public:
+    std::vector<GUI::Char> cfg_sname;
 public:
     HelpWindow(GUI::Screen *parent, int x, int y, Section *section) :
         MessageBox2(parent, x, y, 580, "", "") { // 740
@@ -643,9 +647,14 @@ public:
         setText(MSG_Get(name.c_str()));
         }
     };
-};
 
-static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
+    ~HelpWindow() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+};
 
 class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
@@ -758,8 +767,33 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
-        else if (arg == "Help") new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
-        else ToplevelWindow::actionExecuted(b, arg);
+        else if (arg == "Help") {
+            std::vector<GUI::Char> new_cfg_sname;
+
+            if (!cfg_sname.empty()) {
+//              new_cfg_sname = "help_";
+                new_cfg_sname.resize(5);
+                new_cfg_sname[0] = 'h';
+                new_cfg_sname[1] = 'e';
+                new_cfg_sname[2] = 'l';
+                new_cfg_sname[3] = 'p';
+                new_cfg_sname[4] = '_';
+                new_cfg_sname.insert(new_cfg_sname.end(),cfg_sname.begin(),cfg_sname.end());
+            }
+
+            auto lookup = cfg_windows_active.find(new_cfg_sname);
+            if (lookup == cfg_windows_active.end()) {
+                auto *np = new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
+                cfg_windows_active[new_cfg_sname] = np;
+                np->cfg_sname = new_cfg_sname;
+                np->raise();
+            }
+            else {
+                lookup->second->raise();
+            }
+        }
+        else
+            ToplevelWindow::actionExecuted(b, arg);
     }
 
     virtual bool keyDown(const GUI::Key &key) {
