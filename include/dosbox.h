@@ -193,7 +193,4 @@ typedef uint16_t utf16_t;
 /* for DOS filename handling we want a toupper that uses the MS-DOS code page within not the locale of the host */
 int ascii_toupper(int c);
 
-extern Bit32u guest_msdos_LoL;
-extern Bit16u guest_msdos_mcb_chain;
-
 #endif /* DOSBOX_DOSBOX_H */

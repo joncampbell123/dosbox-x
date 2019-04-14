@@ -119,9 +119,6 @@ extern bool         sse2_available;
 extern bool         dynamic_dos_kernel_alloc;
 extern Bitu         DOS_PRIVATE_SEGMENT_Size;
 
-Bit32u              guest_msdos_LoL = 0;
-Bit16u              guest_msdos_mcb_chain = 0;
-
 bool                dos_con_use_int16_to_detect_input = true;
 
 bool                dbg_zero_on_dos_allocmem = true;

@@ -6872,7 +6872,6 @@ fresh_boot:
         wait_debugger = false;
         reboot_machine = false;
         dos_kernel_shutdown = false;
-        guest_msdos_mcb_chain = -1;
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
@@ -7051,9 +7050,6 @@ fresh_boot:
 
         if (reboot_machine) {
             LOG_MSG("Rebooting the system\n");
-
-            guest_msdos_LoL = 0;
-            guest_msdos_mcb_chain = 0;
 
             void CPU_Snap_Back_Forget();
             /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
