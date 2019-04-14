@@ -1026,7 +1026,7 @@ public:
     ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
         GUI::ToplevelWindow(parent, (int)x, (int)y, 30/*initial*/, 30/*initial*/, title) {
 
-        GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
+        GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth()/*initial*/);
         bar->addMenu("Configuration");
         bar->addItem(0,"Save...");
         bar->addItem(0,"Save Language File...");
@@ -1073,6 +1073,8 @@ public:
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
+
+        bar->resize(getWidth(),bar->getHeight());
     }
 
     ~ConfigurationWindow() { running = false; }
