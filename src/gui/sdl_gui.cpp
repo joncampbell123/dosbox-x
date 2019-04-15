@@ -83,8 +83,8 @@ static int                  old_unicode;
 #endif
 static bool                 mousetoggle;
 static bool                 shortcut=false;
-static SDL_Surface*         screenshot;
-static SDL_Surface*         background;
+static SDL_Surface*         screenshot = NULL;
+static SDL_Surface*         background = NULL;
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static bool                 gui_menu_init = true;
 #endif
@@ -209,45 +209,48 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     old_unicode = SDL_EnableUNICODE(1);
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 #endif
-    screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
-    SDL_FillRect(screenshot,0,0);
 
-    unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
+    if (sw_draw > 0 && sh_draw > 0) {
+        screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
+        SDL_FillRect(screenshot,0,0);
 
-    // create screenshot for fade effect
-    for (unsigned int y = 0; (int)y < sh_draw; y++) {
-        Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
-        for (unsigned int x = 0; (int)x < sw_draw; x++) {
-            int r = 0, g = 0, b = 0;
-            getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
-                     (int)(y*(unsigned int)render.src.height/(unsigned int)sh),
-                     r, g, b, 0);
-            bg[x] = ((unsigned int)r << (unsigned int)rs) |
+        unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
+
+        // create screenshot for fade effect
+        for (unsigned int y = 0; (int)y < sh_draw; y++) {
+            Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
+            for (unsigned int x = 0; (int)x < sw_draw; x++) {
+                int r = 0, g = 0, b = 0;
+                getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
+                        (int)(y*(unsigned int)render.src.height/(unsigned int)sh),
+                        r, g, b, 0);
+                bg[x] = ((unsigned int)r << (unsigned int)rs) |
                     ((unsigned int)g << (unsigned int)gs) |
                     ((unsigned int)b << (unsigned int)bs);
+            }
         }
-    }
 
-    background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
-    SDL_FillRect(background,0,0);
-    for (int y = 0; y < sh_draw; y++) {
-        Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
-        for (int x = 0; x < sw_draw; x++) {
-            int r = 0, g = 0, b = 0;
-            getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
-            getPixel((x-1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
-            getPixel(x    *(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
-            getPixel((x-1)*(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
-            getPixel((x+1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
-            getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-            getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-            getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
-            int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
-            int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
-            int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
-            bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
+        background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
+        SDL_FillRect(background,0,0);
+        for (int y = 0; y < sh_draw; y++) {
+            Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
+            for (int x = 0; x < sw_draw; x++) {
+                int r = 0, g = 0, b = 0;
+                getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+                getPixel((x-1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+                getPixel(x    *(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
+                getPixel((x-1)*(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
+                getPixel((x+1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+                getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
+                getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
+                getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
+                int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
+                int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
+                int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
+                bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
                     ((unsigned int)g1 << (unsigned int)gs) |
                     ((unsigned int)b1 << (unsigned int)bs); 
+            }
         }
     }
 
@@ -268,38 +271,43 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
-    // fade out
-    // Jonathan C: do it FASTER!
-    SDL_Event event;
-    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
-    for (int i = 0xff; i > 0; i -= 0x40) {
-        SDL_SetSurfaceAlphaMod(screenshot, i); 
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
-        SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
-        SDL_Window* GFX_GetSDLWindow(void);
-        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
-        while (SDL_PollEvent(&event)); 
-        SDL_Delay(40); 
-    } 
-    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
+    if (screenshot != NULL && background != NULL) {
+        // fade out
+        // Jonathan C: do it FASTER!
+        SDL_Event event;
+        SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
+        for (int i = 0xff; i > 0; i -= 0x40) {
+            SDL_SetSurfaceAlphaMod(screenshot, i); 
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
+            SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
+            SDL_Window* GFX_GetSDLWindow(void);
+            SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+            while (SDL_PollEvent(&event)); 
+            SDL_Delay(40); 
+        } 
+        SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
+    }
 #else
     SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
 
-    // fade out
-    // Jonathan C: do it FASTER!
-    SDL_Event event; 
-    for (int i = 0xff; i > 0; i -= 0x40) {
-        SDL_SetAlpha(screenshot, SDL_SRCALPHA, i); 
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
-        SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL); 
-        SDL_UpdateRect(sdlscreen, 0, 0, 0, 0); 
-        while (SDL_PollEvent(&event)); 
-        SDL_Delay(40); 
-    } 
+    if (screenshot != NULL && background != NULL) {
+        // fade out
+        // Jonathan C: do it FASTER!
+        SDL_Event event; 
+        for (int i = 0xff; i > 0; i -= 0x40) {
+            SDL_SetAlpha(screenshot, SDL_SRCALPHA, i); 
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
+            SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL); 
+            SDL_UpdateRect(sdlscreen, 0, 0, 0, 0); 
+            while (SDL_PollEvent(&event)); 
+            SDL_Delay(40); 
+        }
+    }
 #endif
  
-    SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+    if (screenshot != NULL && background != NULL)
+        SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 #if defined(C_SDL2)
     SDL_Window* GFX_GetSDLWindow(void);
     SDL_UpdateWindowSurface(GFX_GetSDLWindow());
@@ -372,42 +380,52 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #endif
 
 #if defined(C_SDL2)
-    // fade in
-    // Jonathan C: do it FASTER!
-    SDL_Event event;
-    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
-    for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
-        SDL_SetSurfaceAlphaMod(screenshot, i); 
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
-        SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
-        SDL_Window* GFX_GetSDLWindow(void);
-        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
-        while (SDL_PollEvent(&event)); 
-        SDL_Delay(40); 
-    } 
-    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
+    if (screenshot != NULL && background != NULL) {
+        // fade in
+        // Jonathan C: do it FASTER!
+        SDL_Event event;
+        SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
+        for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
+            SDL_SetSurfaceAlphaMod(screenshot, i); 
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
+            SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
+            SDL_Window* GFX_GetSDLWindow(void);
+            SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+            while (SDL_PollEvent(&event)); 
+            SDL_Delay(40); 
+        } 
+        SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
+    }
 
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(true);
 #else
-    // fade in
-    // Jonathan C: do it FASTER!
-    SDL_Event event;
-    for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
-        SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL);
-        SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
-        SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
-        while (SDL_PollEvent(&event)) {};
-        SDL_Delay(40); 
+    if (screenshot != NULL && background != NULL) {
+        // fade in
+        // Jonathan C: do it FASTER!
+        SDL_Event event;
+        for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
+            SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+            SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
+            SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+            while (SDL_PollEvent(&event)) {};
+            SDL_Delay(40); 
+        }
     }
 #endif
 
     // clean up
     if (mousetoggle) GFX_CaptureMouse();
     SDL_ShowCursor(cursor);
-    SDL_FreeSurface(background);
-    SDL_FreeSurface(screenshot);
+    if (background != NULL) {
+        SDL_FreeSurface(background);
+        background = NULL;
+    }
+    if (screenshot != NULL) {
+        SDL_FreeSurface(screenshot);
+        screenshot = NULL;
+    }
     SDL_FreeSurface(sdlscreen);
     screen->setSurface(NULL);
 #ifdef WIN32
@@ -1246,7 +1264,12 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
         //Selecting keyboard will create a new surface.
         screen->watchTime();
         sdlscreen = screen->getSurface();
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+
+        if (background)
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+        else
+            SDL_FillRect(sdlscreen,0,0);
+
         screen->update(screen->getTime());
 
 #if defined(C_SDL2)
@@ -1384,7 +1407,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
                 if (event.type == SDL_QUIT) running = false;
             }
         }
-        SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+
+        if (background)
+            SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+        else
+            SDL_FillRect(sdlscreen,0,0);
+
         screen->update(4);
 #if defined(C_SDL2)
         SDL_Window* GFX_GetSDLWindow(void);
