@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Configuration GUI no longer crashes at startup if run
+    from the command line using the --startui or --startgui
+    command line options.
   - Configuration GUI fixed not to allow multiple instances
     of the same settings window.
   - Emulator speed controls added, if for any reason you'd
