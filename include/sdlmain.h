@@ -128,7 +128,7 @@ struct SDL_Block {
         SCREEN_TYPES want_type;
     } desktop;
     struct {
-        SDL_Surface * surface;
+        SDL_Surface * surface = NULL;
 #if (HAVE_DDRAW_H) && defined(WIN32)
         RECT rect;
 #endif
@@ -138,18 +138,18 @@ struct SDL_Block {
         PRIORITY_LEVELS nofocus;
     } priority;
     SDL_Rect clip;
-    SDL_Surface * surface;
+    SDL_Surface * surface = NULL;
 #if defined(C_SDL2)
-    SDL_Window * window;
-    SDL_Renderer * renderer;
-    const char * rendererDriver;
+    SDL_Window * window = NULL;
+    SDL_Renderer * renderer = NULL;
+    const char * rendererDriver = NULL;
     int displayNumber;
     struct {
-        SDL_Texture * texture;
-        SDL_PixelFormat * pixelFormat;
+        SDL_Texture * texture = NULL;
+        SDL_PixelFormat * pixelFormat = NULL;
     } texture;
 #endif
-    SDL_cond *cond;
+    SDL_cond *cond = NULL;
     struct {
         bool autolock;
         AUTOLOCK_FEEDBACK autolock_feedback;
