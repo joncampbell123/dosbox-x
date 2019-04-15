@@ -1138,8 +1138,8 @@ public:
             i++;
         }
 
-        const auto finalgridpos = gridfunc(i);
-        int closerow_y = finalgridpos.second + 12;
+        const auto finalgridpos = gridfunc(i > 0 ? (i - 1) : 0);
+        int closerow_y = finalgridpos.second + 12 + gridbtnheight;
 
         (closeButton = new GUI::Button(this, 240, closerow_y, "Close", 80))->addActionHandler(this);
 
