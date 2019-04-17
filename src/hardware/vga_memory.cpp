@@ -1432,9 +1432,9 @@ public:
         else
             tb = pc98_gdc_tiles[plane].b[0];
 
-        t  = *((AWT*)(vga.mem.linear + vramoff)) & mask;
+        t  = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) & mask;
         t |= val & tb;
-        *((AWT*)(vga.mem.linear + vramoff)) = t;
+        *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = t;
     }
 
     template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff,const PhysPt fulloff) {
@@ -1673,16 +1673,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        modeC_w<AWT>(0/*plane*/,addr + 0x8000 + vop_offset,mask,val);
+                        modeC_w<AWT>(0/*plane*/,addr + 0x00000,mask,val);
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        modeC_w<AWT>(1/*plane*/,addr + 0x10000 + vop_offset,mask,val);
+                        modeC_w<AWT>(1/*plane*/,addr + 0x08000,mask,val);
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        modeC_w<AWT>(2/*plane*/,addr + 0x18000 + vop_offset,mask,val);
+                        modeC_w<AWT>(2/*plane*/,addr + 0x10000,mask,val);
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        modeC_w<AWT>(3/*plane*/,addr + 0x20000 + vop_offset,mask,val);
+                        modeC_w<AWT>(3/*plane*/,addr + 0x18000,mask,val);
                 }
                 break;
             case 0x0A: /* EGC write */
