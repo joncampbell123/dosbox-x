@@ -1551,10 +1551,11 @@ public:
 
         pc98pgmio::check_align<AWT>(addr);
 
-        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-            addr = (addr & 0x7FFF) + 0x20000;
-        else
-            addr &= 0x1FFFF;
+        /* A8000 -> C0000 -> 00000
+         * B0000 -> C8000 -> 08000
+         * B8000 -> D0000 -> 10000
+         * E0000 -> F8000 -> 18000 */
+        addr = ((addr + 0x18000u) & 0x1FFFFu) + 0x8000u;
 
         vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
 
@@ -1619,10 +1620,11 @@ public:
 
         pc98pgmio::check_align<AWT>(addr);
 
-        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-            addr = (addr & 0x7FFF) + 0x20000;
-        else
-            addr &= 0x1FFFF;
+        /* A8000 -> C0000 -> 00000
+         * B0000 -> C8000 -> 08000
+         * B8000 -> D0000 -> 10000
+         * E0000 -> F8000 -> 18000 */
+        addr = ((addr + 0x18000u) & 0x1FFFFu) + 0x8000u;
 
         vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
 
