@@ -1301,9 +1301,14 @@ static inline unsigned char *pc98_vram_graphics(void) {
     return vga.mem.linear + 0x8000u;
 }
 
+static inline unsigned int pc98_vram_bitplane_offset(const unsigned int b) {
+    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
+    return (b * 0x8000u);
+}
+
 static inline unsigned char *pc98_vram_bitplane(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return pc98_vram_graphics() + (b * 0x8000u);
+    return pc98_vram_graphics() + pc98_vram_bitplane_offset(b);
 }
 
 /* shorthand! */
