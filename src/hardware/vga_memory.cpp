@@ -1293,17 +1293,22 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
  *       256-color packed mode will be retained as direct LFB mapping from the start of
  *       graphics RAM. */
 
+#define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
+#define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
+#define PC98_VRAM_BITPLANE_PAGE_SIZE    ( 0x08000u )        /* size of one (32KB) page in a bitplane (see A4h/A6h) */
+#define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane */
+
 static inline unsigned char *pc98_vram_text(void) {
-    return vga.mem.linear + 0x0000u;
+    return vga.mem.linear + PC98_VRAM_TEXT_OFFSET;
 }
 
 static inline unsigned char *pc98_vram_graphics(void) {
-    return vga.mem.linear + 0x8000u;
+    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET;
 }
 
 static inline unsigned int pc98_vram_bitplane_offset(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return (b * 0x8000u);
+    return (b * PC98_VRAM_BITPLANE_SIZE);
 }
 
 static inline unsigned char *pc98_vram_bitplane(const unsigned int b) {
