@@ -1288,10 +1288,18 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
  *
  *       The bitplane layout change will permit emulating an 8 bitplane 256-color mode
  *       suggested by Yksoft1 that early PC-9821 systems supported and that the 256-color
- *       driver shipped with Windows 3.1 (for PC-98) uses.
+ *       driver shipped with Windows 3.1 (for PC-98) uses. Based on Windows 3.1 behavior
+ *       that also means the linear framebuffer at 0xF00000 must also change in planar
+ *       mode to spread all 8 bits across the planes on write and gather all 8 bits
+ *       on read. As far as I can tell the Windows 3.1 256-color driver uses planar
+ *       and EGC functions as it would in 16-color mode, but draws bitmaps using the
+ *       LFB. The picture is wrong EXCEPT when Windows icons and bitmaps are drawn.
  *
  *       256-color packed mode will be retained as direct LFB mapping from the start of
- *       graphics RAM. */
+ *       graphics RAM.
+ *
+ *       On a real PC-9821 laptop, contents accessible to the CPU noticeably shift order
+ *       and position when you switch on/off 256-color packed mode. */
 
 #define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
 #define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
