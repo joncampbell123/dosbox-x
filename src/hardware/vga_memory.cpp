@@ -36,7 +36,7 @@
 extern ZIPFile savestate_zip;
 
 unsigned char pc98_vga_mmio[0x200] = {0}; /* PC-98 memory-mapped VGA registers at E0000h */
-uint32_t pc98_vga_banks[2] = {0x8000,0x8000}; /* bank switching offsets */
+uint32_t pc98_vga_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -164,10 +164,10 @@ void pc98_vga_mmio_write(unsigned int reg,Bit8u val) {
 
     switch (reg) {
         case 0x004: // bank 0
-            pc98_vga_banks[0] = ((val & 0xFu) + 1u) << 15u;
+            pc98_vga_banks[0] = (val & 0xFu) << 15u;
             break;
         case 0x006: // bank 1
-            pc98_vga_banks[1] = ((val & 0xFu) + 1u) << 15u;
+            pc98_vga_banks[1] = (val & 0xFu) << 15u;
             break;
         default:
             break;
@@ -1307,6 +1307,7 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
 #define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
 #define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
 #define PC98_VRAM_BITPLANE_PAGE_SIZE    ( 0x08000u )        /* size of one (32KB) page in a bitplane (see A4h/A6h) */
+#define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
 #define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane */
 
 static inline unsigned char *pc98_vram_text(void) {
@@ -1325,6 +1326,20 @@ static inline unsigned int pc98_vram_bitplane_offset(const unsigned int b) {
 static inline unsigned char *pc98_vram_bitplane(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
     return pc98_vram_graphics() + pc98_vram_bitplane_offset(b);
+}
+
+static inline unsigned int pc98_vram_256bank_offset(const unsigned int b) {
+    return (b * PC98_VRAM_256BANK_SIZE);
+}
+
+static inline unsigned char *pc98_vram_256bank(const unsigned int b) {
+    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
+    return pc98_vram_graphics() + pc98_vram_256bank_offset(b);
+}
+
+static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b) {
+    /* WARNING: b is not range checked for performance! Do not call with b >= 2 */
+    return pc98_vram_graphics() + pc98_vga_banks[b];
 }
 
 /* shorthand! */
@@ -1430,6 +1445,19 @@ public:
     }
     void writeb(PhysPt addr,Bitu val) {
         pc98_vga_mmio_write(addr & 0x7FFFu,(Bit8u)val);
+    }
+};
+
+// A8000h is bank 0
+// B0000h is bank 1
+template <const unsigned int bank> class VGA_PC98_256BANK_PageHandler : public PageHandler {
+public:
+	VGA_PC98_256BANK_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+	Bitu readb(PhysPt addr) {
+        return pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu];
+    }
+	void writeb(PhysPt addr,Bitu val) {
+        pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu] = (unsigned char)val;
     }
 };
 
@@ -1599,26 +1627,10 @@ public:
 
         check_align<AWT>(addr);
 
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            if (addr >= 0xB8000) {
-                // B8000h is disconnected
-                return ~((AWT)0);
-            }
-            else if (addr >= 0xA8000) {
-                // A8000h is bank 0
-                // B0000h is bank 1
-                addr = pc98_vga_banks[(addr - 0xA8000u) >> 15u] + (addr & 0x7FFFu);
-            }
-            else {
-                addr &= 0x1FFFF;
-            }
-        }
-        else {
-            if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-                addr = (addr & 0x7FFF) + 0x20000;
-            else
-                addr &= 0x1FFFF;
-        }
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
             vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
@@ -1641,6 +1653,8 @@ public:
             case 0x05:
             case 0x06:
             case 0x07:
+            case 0x0C:
+            case 0x0D:
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
             case 0x08: /* TCR/TDW */
             case 0x09:
@@ -1666,9 +1680,6 @@ public:
                      *      sprite engine in "Edge", else visual errors occur. */
                     return ~r;
                 }
-            case 0x0C:
-            case 0x0D:
-                return *((AWT*)(vga.mem.linear+addr+vop_offset));
             case 0x0A: /* EGC read */
             case 0x0B:
             case 0x0E:
@@ -1676,8 +1687,7 @@ public:
                 /* this reads multiple bitplanes at once */
                 return modeEGC_r<AWT>((addr&0x7FFF) + vop_offset,addr + vop_offset);
             default: /* should not happen */
-                LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
-                return *((AWT*)(vga.mem.linear+addr+vop_offset));
+                break;
         };
 
 		return (AWT)(~0ull);
@@ -1690,26 +1700,10 @@ public:
 
         check_align<AWT>(addr);
 
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            if (addr >= 0xB8000) {
-                // B8000h is disconnected
-                return;
-            }
-            else if (addr >= 0xA8000) {
-                // A8000h is bank 0
-                // B0000h is bank 1
-                addr = pc98_vga_banks[(addr - 0xA8000u) >> 15u] + (addr & 0x7FFFu);
-            }
-            else {
-                addr &= 0x1FFFF;
-            }
-        }
-        else {
-            if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-                addr = (addr & 0x7FFF) + 0x20000;
-            else
-                addr &= 0x1FFFF;
-        }
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
             vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
@@ -1782,9 +1776,7 @@ public:
                 /* this reads multiple bitplanes at once */
                 modeEGC_w<AWT>((addr&0x7FFF) + vop_offset,addr + vop_offset,val);
                 break;
-            default: /* Should no longer happen */
-                LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
-                *((AWT*)(vga.mem.linear+addr+vop_offset)) = val;
+            default: /* Should not happen */
                 break;
         };
 	}
@@ -2180,6 +2172,8 @@ static struct vg {
     VGA_PC98_TEXT_PageHandler   pc98_text;
     VGA_PC98_CG_PageHandler     pc98_cg;
     VGA_PC98_256MMIO_PageHandler pc98_256mmio;
+    VGA_PC98_256BANK_PageHandler<0> pc98_256bank0;
+    VGA_PC98_256BANK_PageHandler<1> pc98_256bank1;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
@@ -2264,9 +2258,9 @@ void VGA_SetupHandlers(void) {
         MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x05, 0x03);                   /* A5000-A7FFFh not mapped */
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, bank 0 */
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98 );/* B0000-B7FFFh graphics layer, bank 1 */
-            MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);              /* B8000-BFFFFh graphics layer, not mapped */
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98_256bank0 );/* A8000-AFFFFh graphics layer, bank 0 */
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98_256bank1 );/* B0000-B7FFFh graphics layer, bank 1 */
+            MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                       /* B8000-BFFFFh graphics layer, not mapped */
         }
         else {
             MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, B bitplane */
