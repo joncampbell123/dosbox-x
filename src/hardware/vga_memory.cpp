@@ -1271,89 +1271,6 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
     //       According to documentation writing is only enabled if a register is written elsewhere to allow it.
 }
 
-/* functions to help cleanup memory map access instead of hardcoding offsets.
- * your C++ compiler should be smart enough to inline these into the body of this function. */
-
-/* TODO: Changes to memory layout relative to vga.mem.linear:
- *
- *       Text to take 0x00000-0x03FFF instead of 0x00000-0x07FFF.
- *
- *       Graphics to start at 0x04000
- *
- *       Each bitplane will be 64KB (0x10000) bytes long, and the page flip bit in 0xA6
- *       will select which 32KB half within the 64KB block to use, or if another bit is
- *       set as documented in Undocumented PC-98, the full 64KB block.
- *
- *       The 512KB + 32KB will be reduced slightly to 512KB + 16KB to match the layout.
- *
- *       The bitplane layout change will permit emulating an 8 bitplane 256-color mode
- *       suggested by Yksoft1 that early PC-9821 systems supported and that the 256-color
- *       driver shipped with Windows 3.1 (for PC-98) uses. Based on Windows 3.1 behavior
- *       that also means the linear framebuffer at 0xF00000 must also change in planar
- *       mode to spread all 8 bits across the planes on write and gather all 8 bits
- *       on read. As far as I can tell the Windows 3.1 256-color driver uses planar
- *       and EGC functions as it would in 16-color mode, but draws bitmaps using the
- *       LFB. The picture is wrong EXCEPT when Windows icons and bitmaps are drawn.
- *
- *       256-color packed mode will be retained as direct LFB mapping from the start of
- *       graphics RAM.
- *
- *       On a real PC-9821 laptop, contents accessible to the CPU noticeably shift order
- *       and position when you switch on/off 256-color packed mode, suggesting that the
- *       planar mode is simply reordered memory access in hardware OR that 256-color
- *       mode is "chained" (much like 256-color packed mode on IBM VGA hardware) across
- *       bitplanes. */
-
-#define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
-#define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
-#define PC98_VRAM_BITPLANE_PAGE_SIZE    ( 0x08000u )        /* size of one (32KB) page in a bitplane (see A4h/A6h) */
-#define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
-#define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane */
-
-static inline unsigned char *pc98_vram_text(void) {
-    return vga.mem.linear + PC98_VRAM_TEXT_OFFSET;
-}
-
-static inline unsigned char *pc98_vram_graphics(void) {
-    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET;
-}
-
-static inline unsigned int pc98_vram_bitplane_offset(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return (b * PC98_VRAM_BITPLANE_SIZE);
-}
-
-static inline unsigned char *pc98_vram_bitplane(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return pc98_vram_graphics() + pc98_vram_bitplane_offset(b);
-}
-
-static inline unsigned int pc98_vram_256bank_offset(const unsigned int b) {
-    return (b * PC98_VRAM_256BANK_SIZE);
-}
-
-static inline unsigned char *pc98_vram_256bank(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return pc98_vram_graphics() + pc98_vram_256bank_offset(b);
-}
-
-static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 2 */
-    return pc98_vram_graphics() + pc98_vga_banks[b];
-}
-
-/* shorthand! */
-#define PC98_B_PLANE        0
-#define PC98_R_PLANE        1
-#define PC98_G_PLANE        2
-#define PC98_E_PLANE        3
-
-#define VRAM98_TEXT         ( pc98_vram_text() )
-#define VRAM98_B_PLANE      ( pc98_vram_bitplane(PC98_B_PLANE) )
-#define VRAM98_R_PLANE      ( pc98_vram_bitplane(PC98_R_PLANE) )
-#define VRAM98_G_PLANE      ( pc98_vram_bitplane(PC98_G_PLANE) )
-#define VRAM98_E_PLANE      ( pc98_vram_bitplane(PC98_E_PLANE) )
-
 /* The NEC display is documented to have:
  *
  * A0000-A3FFF      T-RAM (text) (8KB WORDs)
@@ -2478,6 +2395,10 @@ void VGA_SetupMemory() {
 	    vga.draw.linear_base = vga.mem.linear;
         vga.tandy.draw_base = vga.mem.linear;
         vga.tandy.mem_base = vga.mem.linear;
+
+        /* PC-98 pointers */
+        pc98_pgraph_current_cpu_page = vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET;
+        pc98_pgraph_current_display_page = vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET;
 
         /* parallel system */
         if (vga_alt_new_mode) {

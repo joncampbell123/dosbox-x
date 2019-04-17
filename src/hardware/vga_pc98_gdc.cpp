@@ -627,8 +627,12 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                  * But: For the user's preference, we do offer a hack to delay display plane
                  *      change until vsync to try to alleviate tearlines. */
                 GDC_display_plane_pending = (val&1);
-                if (!GDC_display_plane_wait_for_vsync)
+                if (!GDC_display_plane_wait_for_vsync) {
                     GDC_display_plane = GDC_display_plane_pending;
+                    pc98_pgraph_current_display_page = vga.mem.linear +
+                        PC98_VRAM_GRAPHICS_OFFSET +
+                        (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+                }
             }
             break;
         case 0x06:      /* 0x66: ??
@@ -636,6 +640,9 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xA6) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
                 pc98_gdc_vramop |=  (val&1) << VOPBIT_ACCESS;
+                pc98_pgraph_current_cpu_page = vga.mem.linear +
+                    PC98_VRAM_GRAPHICS_OFFSET +
+                    ((val&1) * PC98_VRAM_PAGEFLIP_SIZE);
             }
             else {
                 goto unknown;

@@ -152,6 +152,11 @@ extern ZIPFile savestate_zip;
 
 using namespace std;
 
+/* current dosplay page (controlled by A4h) */
+unsigned char*                      pc98_pgraph_current_display_page;
+/* current CPU page (controlled by A6h) */
+unsigned char*                      pc98_pgraph_current_cpu_page;
+
 bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
 bool                                enable_vga_8bit_dac = true;
