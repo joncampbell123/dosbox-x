@@ -1910,7 +1910,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         }
         else {
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
-            disp_base = GDC_display_plane ? 0x20000U : 0x00000U;
+            disp_base = GDC_display_plane ? 0x40000U : 0x00000U;
 
             while (blocks--) {
                 // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,

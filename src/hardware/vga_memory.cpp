@@ -1639,10 +1639,7 @@ public:
         else
             addr &= 0x1FFFF;
 
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
-        else
-            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+        vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
 
         /* reminder:
          *
@@ -1710,10 +1707,7 @@ public:
         else
             addr &= 0x1FFFF;
 
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
-        else
-            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+        vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
 
         /* reminder:
          *
