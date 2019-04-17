@@ -1461,10 +1461,10 @@ public:
     }
 };
 
-class VGA_PC98_PageHandler : public PageHandler {
-public:
-	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+namespace pc98pgmio {
+
     template <class AWT> static inline void check_align(const PhysPt addr) {
+#if 0
         /* DEBUG: address must be aligned to datatype.
          *        Code that calls us must enforce that or subdivide
          *        to a small datatype that can follow this rule. */
@@ -1474,7 +1474,16 @@ public:
          * TODO: Do you suppose later generation PC-9821's supported DWORD size bitplane transfers?
          *       Or did NEC just give up on anything past 16-bit and focus on the SVGA side of things? */
         assert((addr&chk) == 0);
+#else
+        (void)addr;
+#endif
     }
+
+}
+
+class VGA_PC98_PageHandler : public PageHandler {
+public:
+	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 
     template <class AWT> static inline AWT mode8_r(const unsigned int plane,const PhysPt vramoff) {
         AWT r,b;
@@ -1623,7 +1632,7 @@ public:
     template <class AWT> AWT readc(PhysPt addr) {
         unsigned int vop_offset = 0;
 
-        check_align<AWT>(addr);
+        pc98pgmio::check_align<AWT>(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
@@ -1694,7 +1703,7 @@ public:
 	template <class AWT> void writec(PhysPt addr,AWT val){
         unsigned int vop_offset = 0;
 
-        check_align<AWT>(addr);
+        pc98pgmio::check_align<AWT>(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
