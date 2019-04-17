@@ -2217,8 +2217,36 @@ void VGA_SetupHandlers(void) {
 		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
+        break;
     case PC98_ARCH_CASE:
-		break;
+        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x00, 0x02, &vgaph.pc98 );/* A0000-A1FFFh text layer, character data */
+        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x02, 0x02, &vgaph.pc98 );/* A2000-A3FFFh text layer, attribute data + non-volatile RAM */
+        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x04, 0x01, &vgaph.pc98 );/* A4000-A4FFFh character generator memory-mapped I/O */
+        MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x05, 0x03);              /* A5000-A7FFFh not mapped */
+
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, bank 0 */
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98 );/* B0000-B7FFFh graphics layer, bank 1 */
+            MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);              /* B8000-BFFFFh graphics layer, not mapped */
+        }
+        else {
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, B bitplane */
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98 );/* B0000-B7FFFh graphics layer, R bitplane */
+            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x18, 0x08, &vgaph.pc98 );/* B8000-BFFFFh graphics layer, G bitplane */
+        }
+
+        /* E0000-E7FFFh graphics layer
+         *  - In 8-color mode, E0000-E7FFFh is not mapped
+         *  - In 16-color mode, E0000-E7FFFh is the 4th bitplane (E)
+         *  - In 256-color mode, E0000-E7FFFh is memory-mapped I/O that controls the 256-color mode */
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
+        else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
+            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
+        else
+            MEM_ResetPageHandler_Unmapped(0xE0, 8);
+
+        goto range_done;
 	default:
 		LOG_MSG("Illegal machine type %d", machine );
 		return;
@@ -2265,20 +2293,6 @@ void VGA_SetupHandlers(void) {
         } else {
             newHandler = &vgaph.uvga;
         }
-        break;
-    case M_PC98:
-		newHandler = &vgaph.pc98;
-
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-            /* 256-color mode changes A8000h-B7FFFh from planar to packed, B8000h-BFFFFh is disconnected.
-             * A8000h is bank 0 and B0000h is bank 1, controlled by bank switching registers.
-             * E0000h becomes "memory mapped I/O" to control bank switching */
-            MEM_SetPageHandler(0xE0, 8, newHandler );
-        else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) /* 16-color mode makes E000:0000 appear */
-            MEM_SetPageHandler(0xE0, 8, newHandler );
-        else
-            MEM_ResetPageHandler_Unmapped(0xE0, 8);
-
         break;
 	case M_AMSTRAD:
 		newHandler = &vgaph.map;
