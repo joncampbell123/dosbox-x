@@ -1594,23 +1594,10 @@ public:
                 addr &= 0x1FFFF;
         }
 
-        switch (addr>>13) {
-            case 0:     /* A0000-A1FFF Character RAM */
-                return *((AWT*)(vga.mem.linear+addr));
-            case 1:     /* A2000-A3FFF Attribute RAM */
-                if (addr & 1) return (AWT)(~0ull); /* ignore odd bytes */
-                return *((AWT*)(vga.mem.linear+addr)) | 0xFF00; /* odd bytes 0xFF */
-            case 2:     /* A4000-A5FFF Unknown ?? */
-                return *((AWT*)(vga.mem.linear+addr));
-            case 3:     /* A6000-A7FFF Not present */
-                return (AWT)(~0ull);
-            default:    /* A8000-BFFFF G-RAM */
-                if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
-                else
-                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
-                break;
-        };
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
+        else
+            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
 
         /* reminder:
          *
@@ -1677,9 +1664,6 @@ public:
 
         check_align<AWT>(addr);
 
-        if ((addr & (~0x1F)) == 0xA3FE0)
-            return;
-
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
             if (addr >= 0xE0000) {
                 if (sizeof(AWT) > 1)
@@ -1708,26 +1692,10 @@ public:
                 addr &= 0x1FFFF;
         }
 
-        switch (addr>>13) {
-            case 0:     /* A0000-A1FFF Character RAM */
-                *((AWT*)(vga.mem.linear+addr)) = val;
-                return;
-            case 1:     /* A2000-A3FFF Attribute RAM */
-                if (addr & 1) return; /* ignore odd bytes */
-                *((AWT*)(vga.mem.linear+addr)) = val | 0xFF00;
-                return;
-            case 2:     /* A4000-A5FFF Unknown ?? */
-                *((AWT*)(vga.mem.linear+addr)) = val;
-                return;
-            case 3:     /* A6000-A7FFF Not present */
-                return;
-            default:    /* A8000-BFFFF G-RAM */
-                if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
-                else
-                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
-                break;
-        };
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
+        else
+            vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
 
         /* reminder:
          *
