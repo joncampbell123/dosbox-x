@@ -1405,7 +1405,7 @@ public:
     template <class AWT> static inline AWT mode8_r(const unsigned int plane,const PhysPt vramoff) {
         AWT r,b;
 
-        b = *((AWT*)(vga.mem.linear + vramoff));
+        b = *((AWT*)(pc98_pgraph_current_cpu_page + vramoff));
         r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
 
         return r;
@@ -1420,7 +1420,7 @@ public:
         else
             tb = pc98_gdc_tiles[plane].b[0];
 
-        *((AWT*)(vga.mem.linear + vramoff)) = tb;
+        *((AWT*)(pc98_pgraph_current_cpu_page + vramoff)) = tb;
     }
 
     template <class AWT> static inline void modeC_w(const unsigned int plane,const PhysPt vramoff,const AWT mask,const AWT val) {
@@ -1586,16 +1586,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x8000 + vop_offset);
+                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x00000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x10000 + vop_offset);
+                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x08000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x18000 + vop_offset);
+                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x10000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x20000 + vop_offset);
+                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x18000/* + vop_offset*/);
 
                     /* NTS: Apparently returning this value correctly really matters to the
                      *      sprite engine in "Edge", else visual errors occur. */
@@ -1652,16 +1652,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        mode8_w<AWT>(0/*plane*/,addr + 0x8000 + vop_offset);
+                        mode8_w<AWT>(0/*plane*/,addr + 0x00000);
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        mode8_w<AWT>(1/*plane*/,addr + 0x10000 + vop_offset);
+                        mode8_w<AWT>(1/*plane*/,addr + 0x08000);
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        mode8_w<AWT>(2/*plane*/,addr + 0x18000 + vop_offset);
+                        mode8_w<AWT>(2/*plane*/,addr + 0x10000);
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        mode8_w<AWT>(3/*plane*/,addr + 0x20000 + vop_offset);
+                        mode8_w<AWT>(3/*plane*/,addr + 0x18000);
                 }
                 break;
             case 0x0C:  /* read/modify/write from tile with masking */
