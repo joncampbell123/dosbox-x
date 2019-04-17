@@ -1421,6 +1421,18 @@ public:
     }
 };
 
+/* 256-color control registers, memory mapped I/O */
+class VGA_PC98_256MMIO_PageHandler : public PageHandler {
+public:
+	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+	Bitu readb(PhysPt addr) {
+        return pc98_vga_mmio_read(addr & 0x7FFFu);
+    }
+    void writeb(PhysPt addr,Bitu val) {
+        pc98_vga_mmio_write(addr & 0x7FFFu,(Bit8u)val);
+    }
+};
+
 class VGA_PC98_PageHandler : public PageHandler {
 public:
 	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
@@ -1588,14 +1600,7 @@ public:
         check_align<AWT>(addr);
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            if (addr >= 0xE0000) {
-                if (sizeof(AWT) > 1)
-                    return (pc98_vga_mmio_read(addr + 1 - 0xE0000u) << 8u) +
-                            pc98_vga_mmio_read(addr     - 0xE0000u);
-
-                return pc98_vga_mmio_read(addr - 0xE0000u);
-            }
-            else if (addr >= 0xB8000) {
+            if (addr >= 0xB8000) {
                 // B8000h is disconnected
                 return ~((AWT)0);
             }
@@ -1686,14 +1691,7 @@ public:
         check_align<AWT>(addr);
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            if (addr >= 0xE0000) {
-                if (sizeof(AWT) > 1)
-                    pc98_vga_mmio_write(addr + 1 - 0xE0000u,(Bit8u)(val >> 8u));
-
-                pc98_vga_mmio_write(addr - 0xE0000u,(Bit8u)val);
-                return;
-            }
-            else if (addr >= 0xB8000) {
+            if (addr >= 0xB8000) {
                 // B8000h is disconnected
                 return;
             }
@@ -2181,6 +2179,7 @@ static struct vg {
     VGA_PC98_PageHandler        pc98;
     VGA_PC98_TEXT_PageHandler   pc98_text;
     VGA_PC98_CG_PageHandler     pc98_cg;
+    VGA_PC98_256MMIO_PageHandler pc98_256mmio;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
@@ -2280,7 +2279,7 @@ void VGA_SetupHandlers(void) {
          *  - In 16-color mode, E0000-E7FFFh is the 4th bitplane (E)
          *  - In 256-color mode, E0000-E7FFFh is memory-mapped I/O that controls the 256-color mode */
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
+            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98_256mmio );
         else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
             MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
         else
