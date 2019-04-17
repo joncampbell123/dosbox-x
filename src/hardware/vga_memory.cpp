@@ -1586,16 +1586,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x00000);
+                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x00000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x08000);
+                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x08000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x10000);
+                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x10000/* + vop_offset*/);
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x18000);
+                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x18000/* + vop_offset*/);
 
                     /* NTS: Apparently returning this value correctly really matters to the
                      *      sprite engine in "Edge", else visual errors occur. */
