@@ -1299,7 +1299,10 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
  *       graphics RAM.
  *
  *       On a real PC-9821 laptop, contents accessible to the CPU noticeably shift order
- *       and position when you switch on/off 256-color packed mode. */
+ *       and position when you switch on/off 256-color packed mode, suggesting that the
+ *       planar mode is simply reordered memory access in hardware OR that 256-color
+ *       mode is "chained" (much like 256-color packed mode on IBM VGA hardware) across
+ *       bitplanes. */
 
 #define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
 #define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
