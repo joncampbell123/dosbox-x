@@ -1623,8 +1623,6 @@ public:
     template <class AWT> AWT readc(PhysPt addr) {
         unsigned int vop_offset = 0;
 
-		addr = PAGING_GetPhysicalAddress(addr);
-
         check_align<AWT>(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
@@ -1695,8 +1693,6 @@ public:
 
 	template <class AWT> void writec(PhysPt addr,AWT val){
         unsigned int vop_offset = 0;
-
-		addr = PAGING_GetPhysicalAddress(addr);
 
         check_align<AWT>(addr);
 
@@ -1783,15 +1779,16 @@ public:
 
     /* byte-wise */
 	Bitu readb(PhysPt addr) {
-        return readc<uint8_t>(addr);
+        return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
     }
 	void writeb(PhysPt addr,Bitu val) {
-        writec<uint8_t>(addr,(uint8_t)val);
+        writec<uint8_t>( PAGING_GetPhysicalAddress(addr), (uint8_t)val );
     }
 
     /* word-wise.
      * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
 	Bitu readw(PhysPt addr) {
+        addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             return readc<uint16_t>(addr);
         else {
@@ -1800,6 +1797,7 @@ public:
         }
     }
 	void writew(PhysPt addr,Bitu val) {
+        addr = PAGING_GetPhysicalAddress(addr);
         if (!(addr & 1)) /* if WORD aligned */
             writec<uint16_t>(addr,(uint16_t)val);
         else {
