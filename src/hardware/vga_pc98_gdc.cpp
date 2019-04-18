@@ -67,6 +67,8 @@ void pc98_update_display_page_ptr(void) {
 
 void pc98_update_cpu_page_ptr(void) {
     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+        /* "Drawing screen selection register" is not valid in extended modes
+         * [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%202%20%28webtech.co.jp%29/io%5fdisp%2etxt] */
         pc98_pgraph_current_cpu_page = vga.mem.linear +
             PC98_VRAM_GRAPHICS_OFFSET;
     }
