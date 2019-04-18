@@ -53,15 +53,28 @@ bool                        gdc_proc_delay_set = false;
 struct PC98_GDC_state       pc98_gdc[2];
 
 void pc98_update_display_page_ptr(void) {
-    pc98_pgraph_current_display_page = vga.mem.linear +
-        PC98_VRAM_GRAPHICS_OFFSET +
-        (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+        pc98_pgraph_current_display_page = vga.mem.linear +
+            PC98_VRAM_GRAPHICS_OFFSET +
+            (GDC_display_plane * PC98_VRAM_PAGEFLIP256_SIZE);
+    }
+    else {
+        pc98_pgraph_current_display_page = vga.mem.linear +
+            PC98_VRAM_GRAPHICS_OFFSET +
+            (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+    }
 }
 
 void pc98_update_cpu_page_ptr(void) {
-    pc98_pgraph_current_cpu_page = vga.mem.linear +
-        PC98_VRAM_GRAPHICS_OFFSET +
-        ((pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? PC98_VRAM_PAGEFLIP_SIZE : 0);
+    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+        pc98_pgraph_current_cpu_page = vga.mem.linear +
+            PC98_VRAM_GRAPHICS_OFFSET;
+    }
+    else {
+        pc98_pgraph_current_cpu_page = vga.mem.linear +
+            PC98_VRAM_GRAPHICS_OFFSET +
+            ((pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? PC98_VRAM_PAGEFLIP_SIZE : 0);
+    }
 }
 
 void pc98_update_page_ptrs(void) {

@@ -35,6 +35,8 @@
 #include "pc98_gdc_const.h"
 #include "mixer.h"
 
+void pc98_update_page_ptrs(void);
+
 extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 
@@ -174,6 +176,7 @@ void pc98_port6A_command_write(unsigned char b) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_VGA);
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
                 pc98_update_palette();
+                pc98_update_page_ptrs();
             }
             break;
         case 0x21: // 256-color mode enable
@@ -181,6 +184,7 @@ void pc98_port6A_command_write(unsigned char b) {
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
                 pc98_update_palette();
+                pc98_update_page_ptrs();
             }
             break;
         default:
