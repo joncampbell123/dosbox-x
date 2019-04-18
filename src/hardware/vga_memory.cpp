@@ -842,6 +842,13 @@ void pc98_egc_shift_reinit() {
     pc98_egc_shift.reinit();
 }
 
+template <class AWT> static inline void egc_fetch_planar(egc_quad &dst,const PhysPt vramoff) {
+    dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
+    dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
+    dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
+    dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+}
+
 static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     (void)ad;//UNUSED
     LOG_MSG("EGC ROP 0x%2x not impl",ope);
@@ -887,10 +894,7 @@ static egc_quad &ope_ff(uint8_t ope, const PhysPt vramoff) {
 static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
-	dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-	dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-	dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-	dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = 0;
 	pc98_egc_data[1].w = 0;
@@ -1001,10 +1005,7 @@ static egc_quad &ope_c0(uint8_t ope, const PhysPt vramoff) {
 
     /* assume: ad is word aligned */
 
-	dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-	dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-	dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-	dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = pc98_egc_src[0].w & dst[0].w;
 	pc98_egc_data[1].w = pc98_egc_src[1].w & dst[1].w;
@@ -1027,10 +1028,7 @@ static egc_quad &ope_fc(uint8_t ope, const PhysPt vramoff) {
 
     /* assume: ad is word aligned */
 
-	dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-	dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-	dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-	dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w  =    pc98_egc_src[0].w;
 	pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
@@ -1080,10 +1078,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 			break;
 	}
 
-	dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-	dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-	dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-	dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+    egc_fetch_planar<uint16_t>(/*&*/dst,vramoff);
 
 	pc98_egc_data[0].w = 0;
 	pc98_egc_data[1].w = 0;
