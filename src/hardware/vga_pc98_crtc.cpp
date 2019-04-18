@@ -212,6 +212,7 @@ void pc98_port68_command_write(unsigned char b) {
         //              ^  Needed for 480-line modes, or else there is not enough memory.
         // TODO: 0x82/0x83 GDC Clock #1   0=2.5MHz   1=5MHz
         // TODO: 0x84/0x85 GDC Clock #2   0=2.5MHz   1=5MHz
+        // TODO: 0x8E/0x8F VRAM use selection  0=PC-98 graphics  1=Cirrus Logic CL-GD graphics   (VRAM is shared?)
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
