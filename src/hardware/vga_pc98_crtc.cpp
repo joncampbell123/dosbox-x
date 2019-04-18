@@ -208,6 +208,8 @@ void pc98_port68_command_write(unsigned char b) {
         case 0x0B: // TODO
             // TODO
             break;
+        // TODO: 0x68/0x69 VRAM configuration setting. 0=128KB boundary (32kB per plane)  1=256KB boundary (64kB per plane)
+        //              ^  Needed for 480-line modes, or else there is not enough memory.
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
