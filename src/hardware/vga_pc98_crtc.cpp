@@ -210,6 +210,8 @@ void pc98_port68_command_write(unsigned char b) {
             break;
         // TODO: 0x68/0x69 VRAM configuration setting. 0=128KB boundary (32kB per plane)  1=256KB boundary (64kB per plane)
         //              ^  Needed for 480-line modes, or else there is not enough memory.
+        // TODO: 0x82/0x83 GDC Clock #1   0=2.5MHz   1=5MHz
+        // TODO: 0x84/0x85 GDC Clock #2   0=2.5MHz   1=5MHz
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
