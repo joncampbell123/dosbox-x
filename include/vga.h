@@ -962,8 +962,8 @@ extern unsigned char *pc98_pgraph_current_cpu_page;
  *       mode is "chained" (much like 256-color packed mode on IBM VGA hardware) across
  *       bitplanes. */
 
-#define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
-#define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
+#define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )        /* 16KB memory (8KB text + 8KB attributes) */
+#define PC98_VRAM_GRAPHICS_OFFSET       ( 0x04000u )        /* where graphics memory begins */
 
 #define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane */
 
