@@ -924,6 +924,11 @@ extern unsigned char GFX_Ashift;
 
 extern unsigned char GFX_bpp;
 
+/* current dosplay page (controlled by A4h) */
+extern unsigned char *pc98_pgraph_current_display_page;
+/* current CPU page (controlled by A6h) */
+extern unsigned char *pc98_pgraph_current_cpu_page;
+
 /* functions to help cleanup memory map access instead of hardcoding offsets.
  * your C++ compiler should be smart enough to inline these into the body of this function. */
 
@@ -961,7 +966,7 @@ extern unsigned char GFX_bpp;
 #define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
 #define PC98_VRAM_BITPLANE_PAGE_SIZE    ( 0x08000u )        /* size of one (32KB) page in a bitplane (see A4h/A6h) */
 #define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
-#define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane */
+#define PC98_VRAM_BITPLANE_SIZE         ( 0x08000u )        /* one bitplane */
 #define PC98_VRAM_PAGEFLIP_SIZE         ( 0x40000u )        /* add this amount for the second page */
 
 extern uint32_t pc98_vga_banks[2];
@@ -970,49 +975,17 @@ static inline unsigned char *pc98_vram_text(void) {
     return vga.mem.linear + PC98_VRAM_TEXT_OFFSET;
 }
 
-static inline unsigned char *pc98_vram_graphics(void) {
-    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET;
-}
-
-static inline unsigned int pc98_vram_bitplane_offset(const unsigned int b) {
+/* return value is relative to current CPU page or current display page ptr */
+static inline constexpr unsigned int pc98_pgram_bitplane_offset(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
     return (b * PC98_VRAM_BITPLANE_SIZE);
 }
 
-static inline unsigned char *pc98_vram_bitplane(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return pc98_vram_graphics() + pc98_vram_bitplane_offset(b);
-}
-
-static inline unsigned int pc98_vram_256bank_offset(const unsigned int b) {
-    return (b * PC98_VRAM_256BANK_SIZE);
-}
-
-static inline unsigned char *pc98_vram_256bank(const unsigned int b) {
-    /* WARNING: b is not range checked for performance! Do not call with b >= 8 if memsize = 512KB or b >= 4 if memsize >= 256KB */
-    return pc98_vram_graphics() + pc98_vram_256bank_offset(b);
-}
-
 static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 2 */
-    return pc98_vram_graphics() + pc98_vga_banks[b];
+    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET + pc98_vga_banks[b];
 }
 
-/* shorthand! */
-#define PC98_B_PLANE        0
-#define PC98_R_PLANE        1
-#define PC98_G_PLANE        2
-#define PC98_E_PLANE        3
-
 #define VRAM98_TEXT         ( pc98_vram_text() )
-#define VRAM98_B_PLANE      ( pc98_vram_bitplane(PC98_B_PLANE) )
-#define VRAM98_R_PLANE      ( pc98_vram_bitplane(PC98_R_PLANE) )
-#define VRAM98_G_PLANE      ( pc98_vram_bitplane(PC98_G_PLANE) )
-#define VRAM98_E_PLANE      ( pc98_vram_bitplane(PC98_E_PLANE) )
-
-/* current dosplay page (controlled by A4h) */
-extern unsigned char *pc98_pgraph_current_display_page;
-/* current CPU page (controlled by A6h) */
-extern unsigned char *pc98_pgraph_current_cpu_page;
 
 #endif

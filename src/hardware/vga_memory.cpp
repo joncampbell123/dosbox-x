@@ -843,10 +843,10 @@ void pc98_egc_shift_reinit() {
 }
 
 template <class AWT> static inline void egc_fetch_planar(egc_quad &dst,const PhysPt vramoff) {
-    dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-    dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-    dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-    dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+    dst[0].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+    dst[1].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+    dst[2].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+    dst[3].w = *((uint16_t*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
 }
 
 static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
@@ -1434,10 +1434,10 @@ public:
 
     template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff,const PhysPt fulloff) {
         /* assume: vramoff is even IF AWT is 16-bit wide */
-        *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-        *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-        *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-        *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+        *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+        *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+        *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+        *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
 
         /* bits [10:10] = read source
          *    1 = shifter input is CPU write data
@@ -1488,7 +1488,7 @@ public:
             if (!pc98_egc_shiftinput)
                 return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b));
             else
-                return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*0x8000)));
+                return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*PC98_VRAM_BITPLANE_SIZE)));
         }
 
         return *((AWT*)(pc98_pgraph_current_cpu_page+fulloff));
@@ -1511,10 +1511,10 @@ public:
          */
         /* Neko Project II: if ((egc.ope & 0x0300) == 0x0200) ... */
         if (pc98_egc_regload & 2) { /* load VRAM data before writing on VRAM write (or INVALID) */
-            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x00000));
-            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x08000));
-            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x10000));
-            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x18000));
+            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0)));
+            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1)));
+            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2)));
+            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3)));
         }
 
         egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
@@ -1523,20 +1523,20 @@ public:
 
         if (accmask != 0) {
             if (!(pc98_egc_access & 1)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x00000)) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x00000)) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) &= ~accmask;
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(0))) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
             }
             if (!(pc98_egc_access & 2)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x08000)) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x08000)) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) &= ~accmask;
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(1))) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
             }
             if (!(pc98_egc_access & 4)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x10000)) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x10000)) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) &= ~accmask;
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(2))) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
             }
             if (!(pc98_egc_access & 8)) {
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x18000)) &= ~accmask;
-                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+0x18000)) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) &= ~accmask;
+                *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+pc98_pgram_bitplane_offset(3))) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
             }
         }
     }
@@ -1578,16 +1578,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x00000);
+                        r |= mode8_r<AWT>(/*plane*/0,addr + pc98_pgram_bitplane_offset(0));
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x08000);
+                        r |= mode8_r<AWT>(/*plane*/1,addr + pc98_pgram_bitplane_offset(1));
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x10000);
+                        r |= mode8_r<AWT>(/*plane*/2,addr + pc98_pgram_bitplane_offset(2));
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x18000);
+                        r |= mode8_r<AWT>(/*plane*/3,addr + pc98_pgram_bitplane_offset(3));
 
                     /* NTS: Apparently returning this value correctly really matters to the
                      *      sprite engine in "Edge", else visual errors occur. */
@@ -1641,16 +1641,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        mode8_w<AWT>(0/*plane*/,addr + 0x00000);
+                        mode8_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0));
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        mode8_w<AWT>(1/*plane*/,addr + 0x08000);
+                        mode8_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1));
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        mode8_w<AWT>(2/*plane*/,addr + 0x10000);
+                        mode8_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2));
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        mode8_w<AWT>(3/*plane*/,addr + 0x18000);
+                        mode8_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3));
                 }
                 break;
             case 0x0C:  /* read/modify/write from tile with masking */
@@ -1662,16 +1662,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        modeC_w<AWT>(0/*plane*/,addr + 0x00000,mask,val);
+                        modeC_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0),mask,val);
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        modeC_w<AWT>(1/*plane*/,addr + 0x08000,mask,val);
+                        modeC_w<AWT>(1/*plane*/,addr + pc98_pgram_bitplane_offset(1),mask,val);
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        modeC_w<AWT>(2/*plane*/,addr + 0x10000,mask,val);
+                        modeC_w<AWT>(2/*plane*/,addr + pc98_pgram_bitplane_offset(2),mask,val);
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        modeC_w<AWT>(3/*plane*/,addr + 0x18000,mask,val);
+                        modeC_w<AWT>(3/*plane*/,addr + pc98_pgram_bitplane_offset(3),mask,val);
                 }
                 break;
             case 0x0A: /* EGC write */
@@ -1720,10 +1720,10 @@ class VGA_PC98_LFB_Handler : public PageHandler {
 public:
 	VGA_PC98_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
-		return &vga.mem.linear[(phys_page&0x7F)*4096 + 0x8000u/*Graphics RAM*/]; /* 512KB mapping */
+		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
-		return &vga.mem.linear[(phys_page&0x7F)*4096 + 0x8000u/*Graphics RAM*/]; /* 512KB mapping */
+		return &vga.mem.linear[(phys_page&0x7F)*4096 + PC98_VRAM_GRAPHICS_OFFSET]; /* 512KB mapping */
 	}
 };
 

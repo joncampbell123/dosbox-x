@@ -1900,7 +1900,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
 
             while (blocks--) {
-                s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & 0x7FFFFU]);
+                s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & 0x3FFFFU]);
                 for (unsigned char i=0;i < 8;i++) *draw++ = vga.dac.xlat32[*s++];
 
                 vidmem += 8;
@@ -1913,13 +1913,13 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
                 // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
                 //      the 4th bitplane is no longer rendered.
                 if (gdc_analog)
-                    e8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + 0x18000U]; /* E0000-E7FFF */
+                    e8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(3)];  /* E0000-E7FFF */
                 else
                     e8 = 0x00;
 
-                g8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + 0x10000U];   /* B8000-BFFFF */
-                r8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + 0x08000U];   /* B0000-B7FFF */
-                b8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + 0x00000U];   /* A8000-AFFFF */
+                g8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
+                r8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
+                b8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
 
                 for (unsigned char i=0;i < 8;i++) {
                     foreground  = (e8 & 0x80) ? 8 : 0;
