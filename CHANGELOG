@@ -1,4 +1,5 @@
 0.82.18 (next)
+  - PC-98 planar emulation optimized and cleaned up.
   - Configuration GUI no longer crashes at startup if run
     from the command line using the --startui or --startgui
     command line options.
