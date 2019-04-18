@@ -964,10 +964,10 @@ extern unsigned char *pc98_pgraph_current_cpu_page;
 
 #define PC98_VRAM_TEXT_OFFSET           ( 0x00000u )
 #define PC98_VRAM_GRAPHICS_OFFSET       ( 0x08000u )        /* where graphics memory begins */
-#define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
-#define PC98_VRAM_BITPLANE_SIZE         ( 0x10000u )        /* one bitplane (64KB) */
 #define PC98_VRAM_BITPLANE_PAGE_SIZE    ( 0x08000u )        /* size of one (32KB) page in a bitplane (see A4h/A6h) */
-#define PC98_VRAM_PAGEFLIP_SIZE         ( 0x08000u )        /* add this amount for the second page */
+#define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
+#define PC98_VRAM_BITPLANE_SIZE         ( 0x08000u )        /* one bitplane */
+#define PC98_VRAM_PAGEFLIP_SIZE         ( 0x40000u )        /* add this amount for the second page */
 
 extern uint32_t pc98_vga_banks[2];
 
