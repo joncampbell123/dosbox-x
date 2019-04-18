@@ -1542,11 +1542,8 @@ public:
     template <class AWT> AWT readc(PhysPt addr) {
         pc98pgmio::check_align<AWT>(addr);
 
-        /* A8000 -> C0000 -> 00000
-         * B0000 -> C8000 -> 08000
-         * B8000 -> D0000 -> 10000
-         * E0000 -> F8000 -> 18000 */
-        addr = (addr + 0x18000u) & 0x1FFFFu;
+        unsigned int plane = ((addr >> 15u) + 3u) & 3u;
+        addr &= 0x7FFF;
 
         /* reminder:
          *
@@ -1566,15 +1563,13 @@ public:
             case 0x07:
             case 0x0C:
             case 0x0D:
-                return *((AWT*)(pc98_pgraph_current_cpu_page+addr));
+                return *((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane)));
             case 0x08: /* TCR/TDW */
             case 0x09:
                 {
                     AWT r = 0;
 
                     /* this reads multiple bitplanes at once */
-                    addr &= 0x7FFF;
-
                     if (!(pc98_gdc_modereg & 1)) // blue channel
                         r |= mode8_r<AWT>(/*plane*/0,addr + pc98_pgram_bitplane_offset(0));
 
@@ -1596,7 +1591,7 @@ public:
             case 0x0E:
             case 0x0F:
                 /* this reads multiple bitplanes at once */
-                return modeEGC_r<AWT>(addr&0x7FFF,addr);
+                return modeEGC_r<AWT>(addr,addr);
             default: /* should not happen */
                 break;
         };
@@ -1604,14 +1599,11 @@ public:
 		return (AWT)(~0ull);
 	}
 
-	template <class AWT> void writec(PhysPt addr,AWT val){
+	template <class AWT> void writec(PhysPt addr,AWT val) {
         pc98pgmio::check_align<AWT>(addr);
 
-        /* A8000 -> C0000 -> 00000
-         * B0000 -> C8000 -> 08000
-         * B8000 -> D0000 -> 10000
-         * E0000 -> F8000 -> 18000 */
-        addr = (addr + 0x18000u) & 0x1FFFFu;
+        unsigned int plane = ((addr >> 15u) + 3u) & 3u;
+        addr &= 0x7FFF;
 
         /* reminder:
          *
@@ -1629,15 +1621,13 @@ public:
             case 0x05:
             case 0x06:
             case 0x07:
-                *((AWT*)(pc98_pgraph_current_cpu_page+addr)) = val;
+                *((AWT*)(pc98_pgraph_current_cpu_page+addr+pc98_pgram_bitplane_offset(plane))) = val;
                 break;
             case 0x08:  /* TCR/TDW write tile data, no masking */
             case 0x09:
                 {
                     /* this writes to multiple bitplanes at once.
                      * notice that the value written has no meaning, only the tile data and memory address. */
-                    addr &= 0x7FFF;
-
                     if (!(pc98_gdc_modereg & 1)) // blue channel
                         mode8_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0));
 
@@ -1657,8 +1647,6 @@ public:
                     const AWT mask = ~val;
 
                     /* this writes to multiple bitplanes at once */
-                    addr &= 0x7FFF;
-
                     if (!(pc98_gdc_modereg & 1)) // blue channel
                         modeC_w<AWT>(0/*plane*/,addr + pc98_pgram_bitplane_offset(0),mask,val);
 
@@ -1677,7 +1665,7 @@ public:
             case 0x0E:
             case 0x0F:
                 /* this reads multiple bitplanes at once */
-                modeEGC_w<AWT>(addr&0x7FFF,val);
+                modeEGC_w<AWT>(addr,val);
                 break;
             default: /* Should not happen */
                 break;
