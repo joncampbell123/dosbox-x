@@ -1494,9 +1494,7 @@ public:
         return *((AWT*)(pc98_pgraph_current_cpu_page+fulloff));
     }
 
-    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const PhysPt fulloff,const AWT val) {
-        (void)fulloff;//UNUSED
-
+    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
         /* assume: vramoff is even IF AWT is 16-bit wide */
 
         /* 0x4A4:
@@ -1679,7 +1677,7 @@ public:
             case 0x0E:
             case 0x0F:
                 /* this reads multiple bitplanes at once */
-                modeEGC_w<AWT>(addr&0x7FFF,addr,val);
+                modeEGC_w<AWT>(addr&0x7FFF,val);
                 break;
             default: /* Should not happen */
                 break;
