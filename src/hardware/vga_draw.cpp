@@ -2580,9 +2580,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     if (IS_PC98_ARCH) {
         GDC_display_plane = GDC_display_plane_pending;
-        pc98_pgraph_current_display_page = vga.mem.linear +
-            PC98_VRAM_GRAPHICS_OFFSET +
-            (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            pc98_pgraph_current_display_page = vga.mem.linear +
+                PC98_VRAM_GRAPHICS_OFFSET +
+                (GDC_display_plane * PC98_VRAM_PAGEFLIP256_SIZE);
+        }
+        else {
+            pc98_pgraph_current_display_page = vga.mem.linear +
+                PC98_VRAM_GRAPHICS_OFFSET +
+                (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+        }
     }
 
     vga.draw.delay.framestart = current_time; /* FIXME: Anyone use this?? If not, remove it */
