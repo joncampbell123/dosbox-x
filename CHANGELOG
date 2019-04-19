@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - 8086 and 286 cores now emulate a known bug where an
+    instruction with multiple prefixes that is interrupted
+    will resume at only the most recent prefix.
   - PC-98 planar emulation optimized and cleaned up.
   - Configuration GUI no longer crashes at startup if run
     from the command line using the --startui or --startgui

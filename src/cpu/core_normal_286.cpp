@@ -87,6 +87,7 @@ extern Bitu cycle_count;
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
+    if (GETFLAG(IF) && CPU_Cycles <= 0) goto prefix_out; \
 	BaseDS=SegBase(_SEG);					\
 	BaseSS=SegBase(_SEG);					\
 	core.base_val_ds=_SEG;					\
@@ -97,6 +98,7 @@ extern Bitu cycle_count;
 	abort();									
 
 #define DO_PREFIX_REP(_ZERO)				\
+    if (GETFLAG(IF) && CPU_Cycles <= 0) goto prefix_out; \
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
@@ -119,6 +121,8 @@ static struct {
 #define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;
 #define LOADIP		core.cseip=((PhysPt)(SegBase(cs)+reg_eip));
+
+#define SAVEIP_PREFIX		reg_eip=GETIP-1;
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds
@@ -203,6 +207,13 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+	FillFlags();
+	return CBRET_NONE;
+/* 8086/286 multiple prefix interrupt bug emulation.
+ * If an instruction is interrupted, only the last prefix is restarted.
+ * See also [https://www.pcjs.org/pubs/pc/reference/intel/8086/] and [https://www.youtube.com/watch?v=6FC-tcwMBnU] */ 
+prefix_out:
+	SAVEIP_PREFIX;
 	FillFlags();
 	return CBRET_NONE;
 decode_end:
