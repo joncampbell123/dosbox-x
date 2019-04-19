@@ -184,6 +184,9 @@ void CPU_Core286_Prefetch_reset(void) {
 Bits CPU_Core286_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
+    if (CPU_Cycles <= 0)
+	    return CBRET_NONE;
+
     pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
     pq_reload = min(pq_limit,(Bitu)8u);
 
