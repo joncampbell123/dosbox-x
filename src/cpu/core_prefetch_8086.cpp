@@ -129,7 +129,6 @@ extern Bitu cycle_count;
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
-    if (--CPU_Cycles <= 0) goto prefix_end; \
 	BaseDS=SegBase(_SEG);					\
 	BaseSS=SegBase(_SEG);					\
 	core.base_val_ds=_SEG;					\
@@ -140,7 +139,6 @@ extern Bitu cycle_count;
     abort();
 
 #define DO_PREFIX_REP(_ZERO)				\
-    if (--CPU_Cycles <= 0) goto prefix_end; \
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
@@ -162,8 +160,6 @@ static struct {
 #define GETIP		(core.cseip-SegBase(cs))
 #define SAVEIP		reg_eip=GETIP;
 #define LOADIP		core.cseip=(SegBase(cs)+reg_eip);
-
-#define SAVEIP_PREFIX		reg_eip=GETIP-1;
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds
@@ -314,15 +310,6 @@ restart_opcode:
     }
 #endif
 
-	FillFlags();
-	return CBRET_NONE;
-/* opportunity to break out, to emulate 8086/286 prefix bug.
- * Multiple prefix instructions can fail to execute correctly if interrupted by a hardware interrupt.
- * The CPU seems to keep track of only one prefix, apparently.
- * The purpose of this implementation is to emulate that.
- * See [https://www.youtube.com/watch?v=6FC-tcwMBnU] */
-prefix_end:
-	SAVEIP_PREFIX;
 	FillFlags();
 	return CBRET_NONE;
 decode_end:
