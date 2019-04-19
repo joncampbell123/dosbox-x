@@ -1,5 +1,4 @@
 0.82.18 (next)
-  - 8086 and 286 emulation now emulate multiple prefix bug.
   - PC-98 planar emulation optimized and cleaned up.
   - Configuration GUI no longer crashes at startup if run
     from the command line using the --startui or --startgui
