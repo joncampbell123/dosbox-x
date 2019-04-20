@@ -1607,6 +1607,48 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "INP" || command == "INB") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit8u r = IO_ReadB(port);
+        DEBUG_ShowMsg("Result: %x",(unsigned int)r);
+        return true;
+    }
+
+    if (command == "INW") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit16u r = IO_ReadW(port);
+        DEBUG_ShowMsg("Result: %x",(unsigned int)r);
+        return true;
+    }
+
+    if (command == "IND") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit32u r = IO_ReadD(port);
+        DEBUG_ShowMsg("Result: %x",(unsigned int)r);
+        return true;
+    }
+
+    if (command == "OUTP" || command == "OUTB") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit8u r = (Bit8u)GetHexValue(found,found);
+        IO_WriteB(port,r);
+        return true;
+    }
+
+    if (command == "OUTW") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit16u r = (Bit16u)GetHexValue(found,found);
+        IO_WriteW(port,r);
+        return true;
+    }
+
+    if (command == "OUTD") {
+        Bit16u port = (Bit16u)GetHexValue(found,found);
+        Bit32u r = (Bit32u)GetHexValue(found,found);
+        IO_WriteD(port,r);
+        return true;
+    }
+
 	if (command == "GDT") {LogGDT(); return true;}
 	
 	if (command == "LDT") {LogLDT(); return true;}
@@ -1718,6 +1760,9 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("PAGING [page]             - Display content of page table.\n");
 		DEBUG_ShowMsg("EXTEND                    - Toggle additional info.\n");
 		DEBUG_ShowMsg("TIMERIRQ                  - Run the system timer.\n");
+
+        DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
+        DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
 
 		DEBUG_ShowMsg("HELP                      - Help\n");
         DEBUG_EndPagedContent();
