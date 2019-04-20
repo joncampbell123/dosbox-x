@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Added INP/OUTP commands to debugger to aid debugging
+    I/O ports.
   - 8086 and 286 cores now emulate a known bug where an
     instruction with multiple prefixes that is interrupted
     will resume at only the most recent prefix.
