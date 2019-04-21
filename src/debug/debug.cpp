@@ -72,6 +72,9 @@ extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern bool pc98_graphics_hide_odd_raster_200line;
 
+extern uint16_t                     a1_font_load_addr;
+extern uint8_t                      a1_font_char_offset;
+
 extern unsigned char        pc98_text_first_row_scanline_start;  /* port 70h */
 extern unsigned char        pc98_text_first_row_scanline_end;    /* port 72h */
 extern unsigned char        pc98_text_row_scanline_blank_at;     /* port 74h */
@@ -1975,6 +1978,11 @@ bool ParseCommand(char* str) {
                     pc98_text_row_scroll_count_start,
                     pc98_text_row_scroll_num_lines,
                     pc98_text_row_scroll_lines);
+        }
+        else if (command == "CGIO") {
+            DEBUG_ShowMsg("PC-98 CG I/O port state (A1h-A9h odd): char-row=%u char-code=0x%04x",
+                    a1_font_char_offset,
+                    a1_font_load_addr);
         }
         else {
             return false;
