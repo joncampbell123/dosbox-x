@@ -724,7 +724,7 @@ static void DrawData(void) {
 	/* Data win */	
     getmaxyx(dbg.win_data,h,w);
 
-    if (paging.enabled && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
+    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
 
 	for (y=0;y<h;y++) {
 		// Address
@@ -795,7 +795,7 @@ static void DrawData(void) {
         }
 	}
 
-    if (paging.enabled && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
+    if ((paging.enabled || cpu.pmode) && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
         /* one line was set aside for this information */
         wattrset (dbg.win_data,0);
         if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
