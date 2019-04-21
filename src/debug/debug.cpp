@@ -1367,6 +1367,8 @@ bool ParseCommand(char* str) {
         char tmp[128];
 
         SkipSpace(found);
+        DEBUG_ShowMsg("EV of '%s' is:",found);
+
         while (*found) {
             Bit32u value = GetHexValue(found,found); SkipSpace(found);
             sprintf(tmp,"%lx",(unsigned long)value);
