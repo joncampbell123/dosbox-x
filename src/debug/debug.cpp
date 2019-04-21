@@ -810,8 +810,13 @@ static void DrawData(void) {
             mvwprintw (dbg.win_data,y,0,"              ");
         }
 
-        Bitu naddr = PAGING_GetPhysicalAddress(address);
-        mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
+        if (!mem_readb_checked(address,&ch)) {
+            Bitu naddr = PAGING_GetPhysicalAddress(address);
+            mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
+        }
+        else {
+            mvwprintw (dbg.win_data,y,14,"PHY=XXXXXXXX ");
+        }
 
         wclrtoeol(dbg.win_data);
 
