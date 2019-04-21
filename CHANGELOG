@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Debugger data view now shows linear and physical memory address
+    for the memory address you're viewing if 386 protected mode
+    paging is enabled.
   - Debugger command "SM" now accept B: W: and D: prefixes to
     write BYTE, WORD, and DWORD values to memory.
   - Debugger command "SR" now accept multiple pairs of registers
