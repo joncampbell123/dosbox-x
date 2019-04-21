@@ -2376,18 +2376,20 @@ Bit32u DEBUG_CheckKeys(void) {
                 DBGUI_NextWindow();
                 break;
 		case 0x0A: //Parse typed Command
-				codeViewData.inputStr[MAXCMDLEN] = '\0';
-				if(ParseCommand(codeViewData.inputStr)) {
-					char* cmd = ltrim(codeViewData.inputStr);
-					if (histBuff.empty() || *--histBuff.end()!=cmd)
-						histBuff.push_back(cmd);
-					if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
-					histBuffPos = histBuff.end();
-					ClearInputLine();
-				} else {
-		            DEBUG_ShowMsg("*** Debugger command not recognized");
-					codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
-				} 
+                if (codeViewData.inputPos > 0) {
+                    codeViewData.inputStr[MAXCMDLEN] = '\0';
+                    if(ParseCommand(codeViewData.inputStr)) {
+                        char* cmd = ltrim(codeViewData.inputStr);
+                        if (histBuff.empty() || *--histBuff.end()!=cmd)
+                            histBuff.push_back(cmd);
+                        if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
+                        histBuffPos = histBuff.end();
+                        ClearInputLine();
+                    } else {
+                        DEBUG_ShowMsg("*** Debugger command not recognized");
+                        codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
+                    }
+                }
 				break;
 		case KEY_BACKSPACE: //backspace (linux)
 		case 0x7f:	// backspace in some terminal emulators (linux)
