@@ -62,6 +62,13 @@ int old_cursor_state;
 
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
+extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+extern bool                         enable_pc98_256color;
+extern bool                         enable_pc98_188usermod;
+extern bool                         GDC_vsync_interrupt;
 
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
@@ -131,7 +138,6 @@ static void LogEMUMachine(void) {
     }
 
     if (IS_PC98_ARCH) {
-        char tmp[512];
         std::string cpptmp;
 
         cpptmp.clear();
@@ -155,12 +161,15 @@ static void LogEMUMachine(void) {
         /*--------------------*/
 
         cpptmp.clear();
-        sprintf(tmp,"cpu=%u display-pending=%u display-active=%u",
+        DEBUG_ShowMsg("PC-98 page display: cpu=%u display-pending=%u display-active=%u",
             (pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,
             GDC_display_plane_pending,
             GDC_display_plane);
 
-        DEBUG_ShowMsg("PC-98 page display: %s",tmp);
+        /*--------------------*/
+
+        cpptmp.clear();
+        DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-interrupt-triggered=%u",gdc_5mhz_mode,GDC_vsync_interrupt);
     }
 
     DEBUG_EndPagedContent();
