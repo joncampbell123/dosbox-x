@@ -72,6 +72,13 @@ extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern bool pc98_graphics_hide_odd_raster_200line;
 
+extern unsigned char        pc98_text_first_row_scanline_start;  /* port 70h */
+extern unsigned char        pc98_text_first_row_scanline_end;    /* port 72h */
+extern unsigned char        pc98_text_row_scanline_blank_at;     /* port 74h */
+extern unsigned char        pc98_text_row_scroll_lines;          /* port 76h */
+extern unsigned char        pc98_text_row_scroll_count_start;    /* port 78h */
+extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
+
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
 
@@ -1956,6 +1963,18 @@ bool ParseCommand(char* str) {
                 }
             }
             DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
+
+            /*--------------------*/
+
+            DEBUG_ShowMsg("PC-98 CG raster: row-scan=[start=%u end-incl=%u] blank-at-in-charcell=%u",
+                    pc98_text_first_row_scanline_start,
+                    pc98_text_first_row_scanline_end,
+                    pc98_text_row_scanline_blank_at);
+
+            DEBUG_ShowMsg("PC-98 CG scrollregion: countstart=%u char-rows=%u lines=%u",
+                    pc98_text_row_scroll_count_start,
+                    pc98_text_row_scroll_num_lines,
+                    pc98_text_row_scroll_lines);
         }
         else {
             return false;
