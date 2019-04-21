@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Debugger command "SM" now accept B: W: and D: prefixes to
+    write BYTE, WORD, and DWORD values to memory.
   - Debugger command "SR" now accept multiple pairs of registers
     and values in one command.
   - Debugger commands "EV" and "SM" will no longer hang DOSBox-X
