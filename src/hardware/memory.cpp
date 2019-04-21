@@ -2077,3 +2077,7 @@ Bitu MEM_PageMask(void) {
     return memory.mem_alias_pagemask;
 }
 
+Bitu MEM_PageMaskActive(void) {
+    return memory.mem_alias_pagemask_active;
+}
+

@@ -85,6 +85,26 @@ void DEBUG_DrawInput(void) {
     DrawInput();
 }
 
+void DEBUG_BeginPagedContent(void);
+void DEBUG_EndPagedContent(void);
+Bitu MEM_PageMaskActive(void);
+Bit32u MEM_get_address_bits();
+Bitu MEM_TotalPages(void);
+Bitu MEM_PageMask(void);
+
+static void LogEMUMem(void) {
+    DEBUG_BeginPagedContent();
+
+    DEBUG_ShowMsg("Emulator memory:");
+    DEBUG_ShowMsg("A20 gate:                    %s",MEM_A20_Enabled() ? "ON" : "OFF");
+    DEBUG_ShowMsg("CPU address bits:            %u",(unsigned int)MEM_get_address_bits());
+    DEBUG_ShowMsg("CPU address mask:            0x%lx",((unsigned long)MEM_PageMask() << 12UL) | 0xFFFUL);
+    DEBUG_ShowMsg("CPU address mask current:    0x%lx",((unsigned long)MEM_PageMaskActive() << 12UL) | 0xFFFUL);
+    DEBUG_ShowMsg("Memory reported size:        %lu bytes",(unsigned long)MEM_TotalPages() << 12UL);
+
+    DEBUG_EndPagedContent();
+}
+
 bool XMS_Active(void);
 
 Bitu XMS_GetTotalHandles(void);
@@ -1763,6 +1783,15 @@ bool ParseCommand(char* str) {
         stream >> command;
 
         if (command == "MEM") LogBIOSMem();
+        else return false;
+
+        return true;
+    }
+
+    if (command == "EMU") {
+        stream >> command;
+
+        if (command == "MEM") LogEMUMem();
         else return false;
 
         return true;
