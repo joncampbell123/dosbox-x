@@ -1362,6 +1362,22 @@ bool ParseCommand(char* str) {
 		return true;
 	};
 
+    if (command == "EV") { // echo value (for viewing contents through GetHexValue
+        std::string cpptmp;
+        char tmp[128];
+
+        SkipSpace(found);
+        while (*found) {
+            Bit32u value = GetHexValue(found,found); SkipSpace(found);
+            sprintf(tmp,"%lx",(unsigned long)value);
+            if (!cpptmp.empty()) cpptmp += " ";
+            cpptmp += tmp;
+        }
+
+        DEBUG_ShowMsg("%s",cpptmp.c_str());
+        return true;
+    }
+
 	if (command == "SR") { // Set register value
 		DEBUG_ShowMsg("DEBUG: Set Register %s.\n",(ChangeRegister(found)?"success":"failure"));
 		return true;
