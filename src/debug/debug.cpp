@@ -1403,13 +1403,36 @@ bool ParseCommand(char* str) {
         bool parsed;
 
         while (*found) {
-            Bit8u value = (Bit8u)GetHexValue(found,found,&parsed); SkipSpace(found);
+            char prefix = 'b';
+            Bit32u value;
+
+            /* allow d: w: b: prefixes */
+            if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+                prefix = *found; found += 2;
+                value = GetHexValue(found,found,&parsed);
+            }
+            else {
+                value = GetHexValue(found,found,&parsed);
+            }
+
+            SkipSpace(found);
             if (!parsed) {
                 DEBUG_ShowMsg("GetHexValue parse error at %s",found);
                 break;
             }
-            mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
-            count++;
+
+            if (prefix == 'D') {
+                mem_writed_checked((PhysPt)GetAddress(seg,ofs+count),value);
+                count += 4;
+            }
+            else if (prefix == 'W') {
+                mem_writew_checked((PhysPt)GetAddress(seg,ofs+count),value);
+                count += 2;
+            }
+            else if (prefix == 'B') {
+                mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
+                count++;
+            }
         };
 
         if (count > 0)
