@@ -1202,13 +1202,18 @@ bool ChangeRegister(char* str)
 	if (strstr(hex,"GS")==hex) { hex+=2; SegSet16(gs,(Bit16u)GetHexValue(hex,hex)); } else
 	if (strstr(hex,"SS")==hex) { hex+=2; SegSet16(ss,(Bit16u)GetHexValue(hex,hex)); } else
 
+    if (strstr(hex,"AC")==hex) { hex+=2; SETFLAGBIT(AC,GetHexValue(hex,hex)); } else
     if (strstr(hex,"AF")==hex) { hex+=2; SETFLAGBIT(AF,GetHexValue(hex,hex)); } else
 	if (strstr(hex,"CF")==hex) { hex+=2; SETFLAGBIT(CF,GetHexValue(hex,hex)); } else
 	if (strstr(hex,"DF")==hex) { hex+=2; SETFLAGBIT(DF,GetHexValue(hex,hex)); } else
+	if (strstr(hex,"ID")==hex) { hex+=2; SETFLAGBIT(ID,GetHexValue(hex,hex)); } else
 	if (strstr(hex,"IF")==hex) { hex+=2; SETFLAGBIT(IF,GetHexValue(hex,hex)); } else
+    //             "NT"
 	if (strstr(hex,"OF")==hex) { hex+=2; SETFLAGBIT(OF,GetHexValue(hex,hex)); } else
 	if (strstr(hex,"PF")==hex) { hex+=2; SETFLAGBIT(PF,GetHexValue(hex,hex)); } else
 	if (strstr(hex,"SF")==hex) { hex+=2; SETFLAGBIT(SF,GetHexValue(hex,hex)); } else
+	if (strstr(hex,"TF")==hex) { hex+=2; SETFLAGBIT(TF,GetHexValue(hex,hex)); } else
+    //             "VM"
 	if (strstr(hex,"ZF")==hex) { hex+=2; SETFLAGBIT(ZF,GetHexValue(hex,hex)); } else
 	{ return false; };
 
