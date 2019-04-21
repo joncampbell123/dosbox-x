@@ -1235,9 +1235,10 @@ void DEBUG_EndPagedContent(void);
 static void LogFPUInfo(void);
 
 bool ParseCommand(char* str) {
-	char* found = str;
-	for(char* idx = found;*idx != 0; idx++)
-		*idx = toupper(*idx);
+    std::string copy_str = str;
+    for (auto &c : copy_str) c = toupper(c);
+    copy_str += '\0'; /* paranoid */
+	char* found = &(copy_str[0]); /* cannot use std::string c_str(), that is const char* */
 
 	found = trim(found);
 	string s_found(found);
