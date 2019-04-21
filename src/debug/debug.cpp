@@ -1149,6 +1149,16 @@ bool ChangeRegister(char* str)
 	if (strstr(hex,"SP")==hex) { hex+=2; reg_sp = (Bit16u)GetHexValue(hex,hex); } else
 	if (strstr(hex,"IP")==hex) { hex+=2; reg_ip = (Bit16u)GetHexValue(hex,hex); } else
 
+	if (strstr(hex,"AL")==hex) { hex+=2; reg_al = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"BL")==hex) { hex+=2; reg_bl = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"CL")==hex) { hex+=2; reg_cl = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"DL")==hex) { hex+=2; reg_dl = (Bit8u)GetHexValue(hex,hex); } else
+
+	if (strstr(hex,"AH")==hex) { hex+=2; reg_ah = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"BH")==hex) { hex+=2; reg_bh = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"CH")==hex) { hex+=2; reg_ch = (Bit8u)GetHexValue(hex,hex); } else
+	if (strstr(hex,"DH")==hex) { hex+=2; reg_dh = (Bit8u)GetHexValue(hex,hex); } else
+
 	if (strstr(hex,"CS")==hex) { hex+=2; SegSet16(cs,(Bit16u)GetHexValue(hex,hex)); } else
 	if (strstr(hex,"DS")==hex) { hex+=2; SegSet16(ds,(Bit16u)GetHexValue(hex,hex)); } else
 	if (strstr(hex,"ES")==hex) { hex+=2; SegSet16(es,(Bit16u)GetHexValue(hex,hex)); } else
