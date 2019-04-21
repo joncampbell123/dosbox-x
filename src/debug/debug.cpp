@@ -2368,7 +2368,8 @@ Bit32u DEBUG_CheckKeys(void) {
 					if (histBuff.size() > MAX_HIST_BUFFER) histBuff.pop_front();
 					histBuffPos = histBuff.end();
 					ClearInputLine();
-				} else { 
+				} else {
+		            DEBUG_ShowMsg("*** Debugger command not recognized");
 					codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				} 
 				break;
