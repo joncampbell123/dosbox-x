@@ -1368,12 +1368,17 @@ bool ParseCommand(char* str) {
     if (command == "EV") { // echo value (for viewing contents through GetHexValue
         std::string cpptmp;
         char tmp[128];
+        bool parsed;
 
         SkipSpace(found);
         DEBUG_ShowMsg("EV of '%s' is:",found);
 
         while (*found) {
-            Bit32u value = GetHexValue(found,found); SkipSpace(found);
+            Bit32u value = GetHexValue(found,found,&parsed); SkipSpace(found);
+            if (!parsed) {
+                DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+                break;
+            }
             sprintf(tmp,"%lx",(unsigned long)value);
             if (!cpptmp.empty()) cpptmp += " ";
             cpptmp += tmp;
@@ -1392,9 +1397,14 @@ bool ParseCommand(char* str) {
 		Bit16u seg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
 		Bit32u ofs = GetHexValue(found,found); SkipSpace(found);
 		Bit16u count = 0;
+        bool parsed;
 
         while (*found) {
-            Bit8u value = (Bit8u)GetHexValue(found,found); SkipSpace(found);
+            Bit8u value = (Bit8u)GetHexValue(found,found,&parsed); SkipSpace(found);
+            if (!parsed) {
+                DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+                break;
+            }
             mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
             count++;
         };
