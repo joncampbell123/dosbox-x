@@ -1167,64 +1167,67 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
 bool ChangeRegister(char* const str)
 {
 	char* hex = str;
-	while (*hex==' ') hex++;
 
-	if (strstr(hex,"EFLAGS")==hex) { hex+=6; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL); } else
-	if (strstr(hex,"FLAGS")==hex) { hex+=5; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL & 0xFFFFu); } else
+    while (*hex) {
+    	while (*hex==' ') hex++;
 
-    //             "IOPL"
+    	if (strstr(hex,"EFLAGS")==hex) { hex+=6; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL); } else
+    	if (strstr(hex,"FLAGS")==hex) { hex+=5; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL & 0xFFFFu); } else
 
-	if (strstr(hex,"EAX")==hex) { hex+=3; reg_eax = GetHexValue(hex,hex); } else
-	if (strstr(hex,"EBX")==hex) { hex+=3; reg_ebx = GetHexValue(hex,hex); } else
-	if (strstr(hex,"ECX")==hex) { hex+=3; reg_ecx = GetHexValue(hex,hex); } else
-	if (strstr(hex,"EDX")==hex) { hex+=3; reg_edx = GetHexValue(hex,hex); } else
-	if (strstr(hex,"ESI")==hex) { hex+=3; reg_esi = GetHexValue(hex,hex); } else
-	if (strstr(hex,"EDI")==hex) { hex+=3; reg_edi = GetHexValue(hex,hex); } else
-	if (strstr(hex,"EBP")==hex) { hex+=3; reg_ebp = GetHexValue(hex,hex); } else
-	if (strstr(hex,"ESP")==hex) { hex+=3; reg_esp = GetHexValue(hex,hex); } else
-	if (strstr(hex,"EIP")==hex) { hex+=3; reg_eip = GetHexValue(hex,hex); } else
+        //             "IOPL"
 
-	if (strstr(hex,"AX")==hex) { hex+=2; reg_ax = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"BX")==hex) { hex+=2; reg_bx = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"CX")==hex) { hex+=2; reg_cx = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"DX")==hex) { hex+=2; reg_dx = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"SI")==hex) { hex+=2; reg_si = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"DI")==hex) { hex+=2; reg_di = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"BP")==hex) { hex+=2; reg_bp = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"SP")==hex) { hex+=2; reg_sp = (Bit16u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"IP")==hex) { hex+=2; reg_ip = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EAX")==hex) { hex+=3; reg_eax = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EBX")==hex) { hex+=3; reg_ebx = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"ECX")==hex) { hex+=3; reg_ecx = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EDX")==hex) { hex+=3; reg_edx = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"ESI")==hex) { hex+=3; reg_esi = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EDI")==hex) { hex+=3; reg_edi = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EBP")==hex) { hex+=3; reg_ebp = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"ESP")==hex) { hex+=3; reg_esp = GetHexValue(hex,hex); } else
+    	if (strstr(hex,"EIP")==hex) { hex+=3; reg_eip = GetHexValue(hex,hex); } else
 
-	if (strstr(hex,"AL")==hex) { hex+=2; reg_al = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"BL")==hex) { hex+=2; reg_bl = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"CL")==hex) { hex+=2; reg_cl = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"DL")==hex) { hex+=2; reg_dl = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"AX")==hex) { hex+=2; reg_ax = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"BX")==hex) { hex+=2; reg_bx = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"CX")==hex) { hex+=2; reg_cx = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"DX")==hex) { hex+=2; reg_dx = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"SI")==hex) { hex+=2; reg_si = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"DI")==hex) { hex+=2; reg_di = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"BP")==hex) { hex+=2; reg_bp = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"SP")==hex) { hex+=2; reg_sp = (Bit16u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"IP")==hex) { hex+=2; reg_ip = (Bit16u)GetHexValue(hex,hex); } else
 
-	if (strstr(hex,"AH")==hex) { hex+=2; reg_ah = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"BH")==hex) { hex+=2; reg_bh = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"CH")==hex) { hex+=2; reg_ch = (Bit8u)GetHexValue(hex,hex); } else
-	if (strstr(hex,"DH")==hex) { hex+=2; reg_dh = (Bit8u)GetHexValue(hex,hex); } else
+	    if (strstr(hex,"AL")==hex) { hex+=2; reg_al = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"BL")==hex) { hex+=2; reg_bl = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"CL")==hex) { hex+=2; reg_cl = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"DL")==hex) { hex+=2; reg_dl = (Bit8u)GetHexValue(hex,hex); } else
 
-	if (strstr(hex,"CS")==hex) { hex+=2; SegSet16(cs,(Bit16u)GetHexValue(hex,hex)); } else
-	if (strstr(hex,"DS")==hex) { hex+=2; SegSet16(ds,(Bit16u)GetHexValue(hex,hex)); } else
-	if (strstr(hex,"ES")==hex) { hex+=2; SegSet16(es,(Bit16u)GetHexValue(hex,hex)); } else
-	if (strstr(hex,"FS")==hex) { hex+=2; SegSet16(fs,(Bit16u)GetHexValue(hex,hex)); } else
-	if (strstr(hex,"GS")==hex) { hex+=2; SegSet16(gs,(Bit16u)GetHexValue(hex,hex)); } else
-	if (strstr(hex,"SS")==hex) { hex+=2; SegSet16(ss,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"AH")==hex) { hex+=2; reg_ah = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"BH")==hex) { hex+=2; reg_bh = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"CH")==hex) { hex+=2; reg_ch = (Bit8u)GetHexValue(hex,hex); } else
+    	if (strstr(hex,"DH")==hex) { hex+=2; reg_dh = (Bit8u)GetHexValue(hex,hex); } else
 
-    if (strstr(hex,"AC")==hex) { hex+=2; SETFLAGBIT(AC,GetHexValue(hex,hex)); } else
-    if (strstr(hex,"AF")==hex) { hex+=2; SETFLAGBIT(AF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"CF")==hex) { hex+=2; SETFLAGBIT(CF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"DF")==hex) { hex+=2; SETFLAGBIT(DF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"ID")==hex) { hex+=2; SETFLAGBIT(ID,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"IF")==hex) { hex+=2; SETFLAGBIT(IF,GetHexValue(hex,hex)); } else
-    //             "NT"
-	if (strstr(hex,"OF")==hex) { hex+=2; SETFLAGBIT(OF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"PF")==hex) { hex+=2; SETFLAGBIT(PF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"SF")==hex) { hex+=2; SETFLAGBIT(SF,GetHexValue(hex,hex)); } else
-	if (strstr(hex,"TF")==hex) { hex+=2; SETFLAGBIT(TF,GetHexValue(hex,hex)); } else
-    //             "VM"
-	if (strstr(hex,"ZF")==hex) { hex+=2; SETFLAGBIT(ZF,GetHexValue(hex,hex)); } else
-	{ return false; };
+    	if (strstr(hex,"CS")==hex) { hex+=2; SegSet16(cs,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"DS")==hex) { hex+=2; SegSet16(ds,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"ES")==hex) { hex+=2; SegSet16(es,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"FS")==hex) { hex+=2; SegSet16(fs,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"GS")==hex) { hex+=2; SegSet16(gs,(Bit16u)GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"SS")==hex) { hex+=2; SegSet16(ss,(Bit16u)GetHexValue(hex,hex)); } else
+
+        if (strstr(hex,"AC")==hex) { hex+=2; SETFLAGBIT(AC,GetHexValue(hex,hex)); } else
+        if (strstr(hex,"AF")==hex) { hex+=2; SETFLAGBIT(AF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"CF")==hex) { hex+=2; SETFLAGBIT(CF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"DF")==hex) { hex+=2; SETFLAGBIT(DF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"ID")==hex) { hex+=2; SETFLAGBIT(ID,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"IF")==hex) { hex+=2; SETFLAGBIT(IF,GetHexValue(hex,hex)); } else
+        //             "NT"
+    	if (strstr(hex,"OF")==hex) { hex+=2; SETFLAGBIT(OF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"PF")==hex) { hex+=2; SETFLAGBIT(PF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"SF")==hex) { hex+=2; SETFLAGBIT(SF,GetHexValue(hex,hex)); } else
+    	if (strstr(hex,"TF")==hex) { hex+=2; SETFLAGBIT(TF,GetHexValue(hex,hex)); } else
+        //             "VM"
+	    if (strstr(hex,"ZF")==hex) { hex+=2; SETFLAGBIT(ZF,GetHexValue(hex,hex)); } else
+    	{ return false; };
+    }
 
 	return true;
 }
@@ -1848,7 +1851,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic cpu log when dosbox exits.\n");
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detecion.\n");
 #endif
-		DEBUG_ShowMsg("SR [reg] [value]          - Set register value.\n");
+		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
         DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 	
