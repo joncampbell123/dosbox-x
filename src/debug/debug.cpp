@@ -1660,6 +1660,8 @@ bool ParseCommand(char* str) {
         else if (command == "KERN") LogDOSKernMem();
         else if (command == "XMS") LogXMS();
         else if (command == "EMS") LogEMS();
+        else return false;
+
 		return true;
 	}
 
@@ -1667,6 +1669,7 @@ bool ParseCommand(char* str) {
         stream >> command;
 
         if (command == "MEM") LogBIOSMem();
+        else return false;
 
         return true;
     }
