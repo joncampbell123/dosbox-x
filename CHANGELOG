@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Debugger commands "EV" and "SM" will no longer hang DOSBox-X
+    on invalid (unrecognized) input.
   - Added "EV" debugger command to allow viewing CPU registers
     at the command line, including CPU registers not shown
     in one of the windows of the debugger UI.
