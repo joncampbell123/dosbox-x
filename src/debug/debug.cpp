@@ -137,7 +137,7 @@ static void LogEMUMachine(void) {
         cpptmp.clear();
         if (gdc_analog) {
             if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-                cpptmp += "'256-color planar' ";
+                cpptmp += "'256-color packed' ";
             else
                 cpptmp += "'16-color planar' ";
         }
