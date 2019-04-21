@@ -145,6 +145,11 @@ static void LogEMUMachine(void) {
             cpptmp += "'8-color planar' ";
         }
 
+        if (pc98_gdc_vramop & (1 << VOPBIT_EGC))
+            cpptmp += "EGC ";
+	    if (pc98_gdc_vramop & (1 << VOPBIT_GRCG))
+            cpptmp += "GRCG ";
+
         DEBUG_ShowMsg("PC-98 video: %s",cpptmp.c_str());
 
         /*--------------------*/
