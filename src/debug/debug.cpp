@@ -1165,6 +1165,12 @@ bool ChangeRegister(char* str)
 {
 	char* hex = str;
 	while (*hex==' ') hex++;
+
+	if (strstr(hex,"EFLAGS")==hex) { hex+=6; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL); } else
+	if (strstr(hex,"FLAGS")==hex) { hex+=5; CPU_SetFlags(GetHexValue(hex,hex),FMASK_ALL & 0xFFFFu); } else
+
+    //             "IOPL"
+
 	if (strstr(hex,"EAX")==hex) { hex+=3; reg_eax = GetHexValue(hex,hex); } else
 	if (strstr(hex,"EBX")==hex) { hex+=3; reg_ebx = GetHexValue(hex,hex); } else
 	if (strstr(hex,"ECX")==hex) { hex+=3; reg_ecx = GetHexValue(hex,hex); } else
