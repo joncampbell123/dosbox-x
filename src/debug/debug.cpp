@@ -1151,8 +1151,8 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
 		if ((*hex>='0') && (*hex<='9')) value = (value<<4u) + ((Bit32u)(*hex)) - '0';
 		else if ((*hex>='A') && (*hex<='F')) value = (value<<4u) + ((Bit32u)(*hex)) - 'A' + 10u;
 		else { 
-			if(*hex == '+') {hex++;return regval + value + GetHexValue(hex,hex); };
-			if(*hex == '-') {hex++;return regval + value - GetHexValue(hex,hex); };
+			if(*hex == '+') {hex++;return regval + value + GetHexValue(hex,hex,parsed); };
+			if(*hex == '-') {hex++;return regval + value - GetHexValue(hex,hex,parsed); };
 			break; // No valid char
 		}
 		hex++;
