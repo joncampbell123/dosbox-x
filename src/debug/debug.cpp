@@ -1309,16 +1309,16 @@ bool ParseCommand(char* str) {
 		Bit16u seg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
 		Bit32u ofs = GetHexValue(found,found); SkipSpace(found);
 		Bit16u count = 0;
-		while (*found) {
-			if (*found) {
-				Bit8u value = (Bit8u)GetHexValue(found,found);
-				if(*found) found++;
-				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
-				count++;
-			}
-            SkipSpace(found);
-		};
-		DEBUG_ShowMsg("DEBUG: Memory changed.\n");
+
+        while (*found) {
+            Bit8u value = (Bit8u)GetHexValue(found,found); SkipSpace(found);
+            mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
+            count++;
+        };
+
+        if (count > 0)
+            DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+
 		return true;
 	};
 
