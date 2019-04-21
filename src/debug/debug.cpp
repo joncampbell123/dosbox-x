@@ -719,11 +719,14 @@ static void DrawData(void) {
 	Bit8u ch;
 	Bit32u add = dataOfs;
 	Bit64u address;
-    int w,h;
+    int w,h,y;
 
 	/* Data win */	
     getmaxyx(dbg.win_data,h,w);
-	for (int y=0;y<h;y++) {
+
+    if (paging.enabled && dbg.data_view != DBGBlock::DATV_PHYSICAL) h--;
+
+	for (y=0;y<h;y++) {
 		// Address
         if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
             wattrset (dbg.win_data,0);
@@ -790,7 +793,31 @@ static void DrawData(void) {
                 add++;
             }
         }
-	}	
+	}
+
+    if (paging.enabled && dbg.data_view != DBGBlock::DATV_PHYSICAL) {
+        /* one line was set aside for this information */
+        wattrset (dbg.win_data,0);
+        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+            address = GetAddress(dataSeg,dataOfs);
+            if (address != mem_no_address)
+                mvwprintw (dbg.win_data,y,0," LIN=%08X ",(unsigned int)address);
+            else
+                mvwprintw (dbg.win_data,y,0," LIN=XXXXXXXX ");
+        }
+        else {
+            address = dataOfs;
+            mvwprintw (dbg.win_data,y,0,"              ");
+        }
+
+        Bitu naddr = PAGING_GetPhysicalAddress(address);
+        mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
+
+        wclrtoeol(dbg.win_data);
+
+        y++;
+    }
+
 	wrefresh(dbg.win_data);
 }
 
@@ -3235,6 +3262,8 @@ void DBGBlock::set_data_view(unsigned int view) {
 
     if (data_view != view) {
         data_view  = view;
+
+        if (win_data) wclear(win_data);
 
         switch (view) {
             case DATV_SEGMENTED:
