@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Debugger command "SR" now accept multiple pairs of registers
+    and values in one command.
   - Debugger commands "EV" and "SM" will no longer hang DOSBox-X
     on invalid (unrecognized) input.
   - Added "EV" debugger command to allow viewing CPU registers
