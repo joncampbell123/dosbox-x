@@ -1106,6 +1106,16 @@ Bit32u GetHexValue(char* str, char*& hex)
 	if (strstr(hex,"SP")==hex) { hex+=2; regval = reg_sp; };
 	if (strstr(hex,"IP")==hex) { hex+=2; regval = reg_ip; };
 
+	if (strstr(hex,"AL")==hex) { hex+=2; regval = reg_al; };
+	if (strstr(hex,"BL")==hex) { hex+=2; regval = reg_bl; };
+	if (strstr(hex,"CL")==hex) { hex+=2; regval = reg_cl; };
+	if (strstr(hex,"DL")==hex) { hex+=2; regval = reg_dl; };
+
+	if (strstr(hex,"AH")==hex) { hex+=2; regval = reg_ah; };
+	if (strstr(hex,"BH")==hex) { hex+=2; regval = reg_bh; };
+	if (strstr(hex,"CH")==hex) { hex+=2; regval = reg_ch; };
+	if (strstr(hex,"DH")==hex) { hex+=2; regval = reg_dh; };
+
 	if (strstr(hex,"CS")==hex) { hex+=2; regval = SegValue(cs); };
 	if (strstr(hex,"DS")==hex) { hex+=2; regval = SegValue(ds); };
 	if (strstr(hex,"ES")==hex) { hex+=2; regval = SegValue(es); };
