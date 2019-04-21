@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - New debugger command "PC98" to view PC-98 emulation state in
+    the debugger.
   - New debugger command "EMU" added to view additional emulator
     state.
   - Debugger data view now shows linear and physical memory address
