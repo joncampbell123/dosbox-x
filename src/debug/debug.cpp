@@ -69,6 +69,7 @@ extern bool                         enable_pc98_16color;
 extern bool                         enable_pc98_256color;
 extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
+extern bool pc98_graphics_hide_odd_raster_200line;
 
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
@@ -135,41 +136,6 @@ static void LogEMUMachine(void) {
         };
 
         DEBUG_ShowMsg("Machine: %s %s",m,svga);
-    }
-
-    if (IS_PC98_ARCH) {
-        std::string cpptmp;
-
-        cpptmp.clear();
-        if (gdc_analog) {
-            if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-                cpptmp += "'256-color packed' ";
-            else
-                cpptmp += "'16-color planar' ";
-        }
-        else {
-            cpptmp += "'8-color planar' ";
-        }
-
-        if (pc98_gdc_vramop & (1 << VOPBIT_EGC))
-            cpptmp += "EGC ";
-	    if (pc98_gdc_vramop & (1 << VOPBIT_GRCG))
-            cpptmp += "GRCG ";
-
-        DEBUG_ShowMsg("PC-98 video: %s",cpptmp.c_str());
-
-        /*--------------------*/
-
-        cpptmp.clear();
-        DEBUG_ShowMsg("PC-98 page display: cpu=%u display-pending=%u display-active=%u",
-            (pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,
-            GDC_display_plane_pending,
-            GDC_display_plane);
-
-        /*--------------------*/
-
-        cpptmp.clear();
-        DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-interrupt-triggered=%u",gdc_5mhz_mode,GDC_vsync_interrupt);
     }
 
     DEBUG_EndPagedContent();
@@ -1867,6 +1833,68 @@ bool ParseCommand(char* str) {
 
         if (command == "MEM") LogBIOSMem();
         else return false;
+
+        return true;
+    }
+
+    if (command == "PC98") {
+        stream >> command;
+
+        if (!IS_PC98_ARCH) {
+            DEBUG_ShowMsg("PC-98 debugger commands not available except in PC-98 mode");
+            return false;
+        }
+
+        if (command == "GRAPHICS") {
+            const auto &gdc = pc98_gdc[GDC_SLAVE];
+            std::string cpptmp;
+
+            cpptmp.clear();
+            if (gdc_analog) {
+                if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                    cpptmp += "'256-color packed' ";
+                else
+                    cpptmp += "'16-color planar' ";
+            }
+            else {
+                cpptmp += "'8-color planar' ";
+            }
+
+            if (pc98_gdc_vramop & (1 << VOPBIT_EGC))
+                cpptmp += "EGC ";
+            if (pc98_gdc_vramop & (1 << VOPBIT_GRCG))
+                cpptmp += "GRCG ";
+
+            if (gdc.display_enable)
+                cpptmp += "ENABLED ";
+            else
+                cpptmp += "DISABLED ";
+
+            if (gdc.doublescan) {
+                if (pc98_graphics_hide_odd_raster_200line)
+                    cpptmp += "200-LINE-EVEN-SCAN ";
+                else
+                    cpptmp += "DOUBLESCAN ";
+            }
+
+            DEBUG_ShowMsg("PC-98 graphics mode: %s",cpptmp.c_str());
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 page display: cpu=%u display-pending=%u display-active=%u",
+                    (pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,
+                    GDC_display_plane_pending,
+                    GDC_display_plane);
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-interrupt-triggered=%u rowheight=%u",gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height);
+        }
+        else {
+            return false;
+        }
 
         return true;
     }
