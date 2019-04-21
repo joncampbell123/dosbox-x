@@ -1090,6 +1090,8 @@ Bit32u GetHexValue(char* str, char*& hex)
 	if (strstr(hex,"EFLAGS")==hex) { hex+=6; regval = reg_flags; };
 	if (strstr(hex,"FLAGS")==hex) { hex+=5; regval = reg_flags; };
 
+	if (strstr(hex,"IOPL")==hex) { hex+=4; regval = (reg_flags & FLAG_IOPL) >> 12u; };
+
 	if (strstr(hex,"CR0")==hex) { hex+=3; regval = cpu.cr0; };
 	if (strstr(hex,"CR2")==hex) { hex+=3; regval = paging.cr2; };
 	if (strstr(hex,"CR3")==hex) { hex+=3; regval = paging.cr3; };
@@ -1131,14 +1133,19 @@ Bit32u GetHexValue(char* str, char*& hex)
 	if (strstr(hex,"GS")==hex) { hex+=2; regval = SegValue(gs); };
 	if (strstr(hex,"SS")==hex) { hex+=2; regval = SegValue(ss); };
 
-    if (strstr(hex,"AF")==hex) { hex+=2; regval = GETFLAG(AF); } else
-	if (strstr(hex,"CF")==hex) { hex+=2; regval = GETFLAG(CF); } else
-	if (strstr(hex,"DF")==hex) { hex+=2; regval = GETFLAG(DF); } else
-	if (strstr(hex,"IF")==hex) { hex+=2; regval = GETFLAG(IF); } else
-	if (strstr(hex,"OF")==hex) { hex+=2; regval = GETFLAG(OF); } else
-	if (strstr(hex,"ZF")==hex) { hex+=2; regval = GETFLAG(ZF); } else
-	if (strstr(hex,"PF")==hex) { hex+=2; regval = GETFLAG(PF); } else
-	if (strstr(hex,"SF")==hex) { hex+=2; regval = GETFLAG(SF); } else
+	if (strstr(hex,"AC")==hex) { hex+=2; regval = GETFLAG(AC); };
+    if (strstr(hex,"AF")==hex) { hex+=2; regval = GETFLAG(AF); };
+	if (strstr(hex,"CF")==hex) { hex+=2; regval = GETFLAG(CF); };
+	if (strstr(hex,"DF")==hex) { hex+=2; regval = GETFLAG(DF); };
+	if (strstr(hex,"ID")==hex) { hex+=2; regval = GETFLAG(ID); };
+	if (strstr(hex,"IF")==hex) { hex+=2; regval = GETFLAG(IF); };
+	if (strstr(hex,"NT")==hex) { hex+=2; regval = GETFLAG(NT); };
+	if (strstr(hex,"OF")==hex) { hex+=2; regval = GETFLAG(OF); };
+	if (strstr(hex,"PF")==hex) { hex+=2; regval = GETFLAG(PF); };
+	if (strstr(hex,"SF")==hex) { hex+=2; regval = GETFLAG(SF); };
+	if (strstr(hex,"TF")==hex) { hex+=2; regval = GETFLAG(TF); };
+	if (strstr(hex,"VM")==hex) { hex+=2; regval = GETFLAG(VM); };
+	if (strstr(hex,"ZF")==hex) { hex+=2; regval = GETFLAG(ZF); };
 
 	while (*hex) {
 		if ((*hex>='0') && (*hex<='9')) value = (value<<4u) + ((Bit32u)(*hex)) - '0';
