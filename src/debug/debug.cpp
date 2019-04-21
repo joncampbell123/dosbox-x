@@ -1909,6 +1909,55 @@ bool ParseCommand(char* str) {
             }
             DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
         }
+        else if (command == "TEXT") {
+            const auto &gdc = pc98_gdc[GDC_MASTER];
+            std::string cpptmp;
+
+            cpptmp.clear();
+            if (gdc.display_enable)
+                cpptmp += "ENABLED ";
+            else
+                cpptmp += "DISABLED ";
+
+            if (gdc.doublescan)
+                cpptmp += "DOUBLESCAN ";
+
+            DEBUG_ShowMsg("PC-98 text mode: %s",cpptmp.c_str());
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 display/cursor: pitch=%u curs-en=%u curs-blink=%u curs-blinkrate=%u",
+                gdc.display_pitch,
+                gdc.cursor_enable,
+                gdc.cursor_blink,
+                gdc.cursor_blink_rate);
+
+            DEBUG_ShowMsg("  curs-blink-count=%u curs-blink-state=%u/4",
+                gdc.cursor_blink_count,
+                gdc.cursor_blink_state);
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            {
+                char tmp[16];
+                for (unsigned int i=0;i < 16;i++) {
+                    sprintf(tmp,"%02x%c",gdc.param_ram[i],((i&3) == 3 && i != 15) ? '-' : ' ');
+                    cpptmp += tmp;
+                }
+            }
+            DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
+        }
+
         else {
             return false;
         }
