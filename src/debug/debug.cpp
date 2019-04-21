@@ -94,6 +94,7 @@ LoopHandler *old_loop = NULL;
 
 char* AnalyzeInstruction(char* inst, bool saveSelector);
 Bit32u GetHexValue(char* str, char*& hex);
+void SkipSpace(char*& hex);
 
 #if 0
 class DebugPageHandler : public PageHandler {
@@ -1075,6 +1076,10 @@ void DEBUG_CheckCSIP() {
 /*    User input    */
 /********************/
 
+void SkipSpace(char*& hex) {
+    while (*hex == ' ') hex++;
+}
+
 Bit32u GetHexValue(char* str, char*& hex)
 {
 	Bit32u	value = 0;
@@ -1301,17 +1306,17 @@ bool ParseCommand(char* str) {
 	};
 
 	if (command == "SM") { // Set memory with following values
-		Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
-		Bit32u ofs = GetHexValue(found,found); found++;
+		Bit16u seg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
+		Bit32u ofs = GetHexValue(found,found); SkipSpace(found);
 		Bit16u count = 0;
 		while (*found) {
-			while (*found==' ') found++;
 			if (*found) {
 				Bit8u value = (Bit8u)GetHexValue(found,found);
 				if(*found) found++;
 				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
 				count++;
 			}
+            SkipSpace(found);
 		};
 		DEBUG_ShowMsg("DEBUG: Memory changed.\n");
 		return true;
