@@ -35,6 +35,7 @@ using namespace std;
 #include "fpu.h"
 #include "video.h"
 #include "pic.h"
+#include "vga.h"
 #include "mapper.h"
 #include "cpu.h"
 #include "pc98_gdc.h"
@@ -1891,8 +1892,8 @@ bool ParseCommand(char* str) {
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u",
-                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height);
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
             DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
                 gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
 
