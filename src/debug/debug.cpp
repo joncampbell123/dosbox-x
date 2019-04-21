@@ -1834,7 +1834,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detecion.\n");
 #endif
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value.\n");
-		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");	
+		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
+        DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 	
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
