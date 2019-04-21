@@ -92,6 +92,43 @@ Bit32u MEM_get_address_bits();
 Bitu MEM_TotalPages(void);
 Bitu MEM_PageMask(void);
 
+static void LogEMUMachine(void) {
+    DEBUG_BeginPagedContent();
+
+    DEBUG_ShowMsg("Emulator machine:");
+
+    {
+        const char *m = "?",*svga = "";
+
+        switch (machine) {
+            case MCH_HERC:      m="Hercules";   break;
+            case MCH_CGA:       m="CGA";        break;
+            case MCH_TANDY:     m="Tandy";      break;
+            case MCH_PCJR:      m="PCjr";       break;
+            case MCH_EGA:       m="EGA";        break;
+            case MCH_VGA:       m="VGA";        break;
+            case MCH_AMSTRAD:   m="Amstrad";    break;
+            case MCH_PC98:      m="PC-98";      break;
+            case MCH_FM_TOWNS:  m="FM Towns";   break;
+            case MCH_MCGA:      m="MCGA";       break;
+            case MCH_MDA:       m="MDA";        break;
+            default:            break;
+        };
+
+        switch (svgaCard) {
+            case SVGA_None:             svga="";                break;
+            case SVGA_S3Trio:           svga="S3 Trio";         break;
+            case SVGA_TsengET4K:        svga="Tseng ET4000";    break;
+            case SVGA_TsengET3K:        svga="Tseng ET3000";    break;
+            case SVGA_ParadisePVGA1A:   svga="Paradise PVGA1A"; break;
+        };
+
+        DEBUG_ShowMsg("Machine: %s %s",m,svga);
+    }
+
+    DEBUG_EndPagedContent();
+}
+
 static void LogEMUMem(void) {
     DEBUG_BeginPagedContent();
 
@@ -1792,6 +1829,7 @@ bool ParseCommand(char* str) {
         stream >> command;
 
         if (command == "MEM") LogEMUMem();
+        else if (command == "MACHINE") LogEMUMachine();
         else return false;
 
         return true;
