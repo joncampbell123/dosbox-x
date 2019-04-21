@@ -1895,6 +1895,18 @@ bool ParseCommand(char* str) {
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height);
             DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
                 gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+
+            /*--------------------*/
+
+            cpptmp.clear();
+            {
+                char tmp[16];
+                for (unsigned int i=0;i < 16;i++) {
+                    sprintf(tmp,"%02x%c",gdc.param_ram[i],((i&3) == 3 && i != 15) ? '-' : ' ');
+                    cpptmp += tmp;
+                }
+            }
+            DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
         }
         else {
             return false;
