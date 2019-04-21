@@ -1123,6 +1123,15 @@ Bit32u GetHexValue(char* str, char*& hex)
 	if (strstr(hex,"GS")==hex) { hex+=2; regval = SegValue(gs); };
 	if (strstr(hex,"SS")==hex) { hex+=2; regval = SegValue(ss); };
 
+    if (strstr(hex,"AF")==hex) { hex+=2; regval = GETFLAG(AF); } else
+	if (strstr(hex,"CF")==hex) { hex+=2; regval = GETFLAG(CF); } else
+	if (strstr(hex,"DF")==hex) { hex+=2; regval = GETFLAG(DF); } else
+	if (strstr(hex,"IF")==hex) { hex+=2; regval = GETFLAG(IF); } else
+	if (strstr(hex,"OF")==hex) { hex+=2; regval = GETFLAG(OF); } else
+	if (strstr(hex,"ZF")==hex) { hex+=2; regval = GETFLAG(ZF); } else
+	if (strstr(hex,"PF")==hex) { hex+=2; regval = GETFLAG(PF); } else
+	if (strstr(hex,"SF")==hex) { hex+=2; regval = GETFLAG(SF); } else
+
 	while (*hex) {
 		if ((*hex>='0') && (*hex<='9')) value = (value<<4u) + ((Bit32u)(*hex)) - '0';
 		else if ((*hex>='A') && (*hex<='F')) value = (value<<4u) + ((Bit32u)(*hex)) - 'A' + 10u;
