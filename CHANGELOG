@@ -1,4 +1,11 @@
 0.82.18 (next)
+  - Debugger will now explicitly tell you if it does not
+    recognize the command.
+  - Debugger fixed not to leave your command uppercased on the
+    command line if it does not recognize it.
+  - Debugger "SR" command updated to allow setting upper/lower
+    halves of AX/BX/CX/DX, additional CPU flags and the whole
+    flags register.
   - Added INP/OUTP commands to debugger to aid debugging
     I/O ports.
   - 8086 and 286 cores now emulate a known bug where an
