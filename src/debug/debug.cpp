@@ -1966,7 +1966,7 @@ bool ParseCommand(char* str) {
 
             /*--------------------*/
 
-            DEBUG_ShowMsg("PC-98 CG raster: row-scan=[start=%u end-incl=%u] blank-at-in-charcell=%u",
+            DEBUG_ShowMsg("PC-98 CG raster: row-scan=[start=%u/32 end-incl=%u/32] blank-at-in-charcell=%u/32",
                     pc98_text_first_row_scanline_start,
                     pc98_text_first_row_scanline_end,
                     pc98_text_row_scanline_blank_at);
