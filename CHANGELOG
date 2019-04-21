@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Added "EV" debugger command to allow viewing CPU registers
+    at the command line, including CPU registers not shown
+    in one of the windows of the debugger UI.
   - Debugger will now explicitly tell you if it does not
     recognize the command.
   - Debugger fixed not to leave your command uppercased on the
