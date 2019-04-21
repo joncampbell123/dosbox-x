@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - New debugger command "EMU" added to view additional emulator
+    state.
   - Debugger data view now shows linear and physical memory address
     for the memory address you're viewing when the CPU is in
     protected mode. The physical memory address display is useful
