@@ -1418,14 +1418,17 @@ bool ParseCommand(char* str) {
         void MEM_A20_Enable(bool enabled);
         bool MEM_A20_Enabled(void);
 
+        command.clear();
 		stream >> command;
 
         if (command == "ON" || command == "1")
             MEM_A20_Enable(true);
         else if (command == "OFF" || command == "0")
             MEM_A20_Enable(false);
-        else
+        else if (command == "")
             DEBUG_ShowMsg("A20 gate is %s",MEM_A20_Enabled() ? "ON" : "OFF");
+        else
+            return false;
 
         return true;
     }
@@ -1438,6 +1441,7 @@ bool ParseCommand(char* str) {
 
         DEBUG_BeginPagedContent();
 
+        command.clear();
 		stream >> command;
 
         if (command == "MASKIRQ") {
@@ -1470,8 +1474,12 @@ bool ParseCommand(char* str) {
             int irq = atoi(what.c_str());
             DEBUG_PICSignal(irq,true);
         }
-        else {
+        else if (command == "") {
             DEBUG_LogPIC();
+        }
+        else {
+            DEBUG_EndPagedContent();
+            return false;
         }
 
         DEBUG_EndPagedContent();
