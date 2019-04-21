@@ -93,7 +93,7 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
 LoopHandler *old_loop = NULL;
 
 char* AnalyzeInstruction(char* inst, bool saveSelector);
-Bit32u GetHexValue(char* const str, char* &hex);
+Bit32u GetHexValue(char* const str, char* &hex,bool *parsed=NULL);
 void SkipSpace(char*& hex);
 
 #if 0
@@ -1080,7 +1080,7 @@ void SkipSpace(char*& hex) {
     while (*hex == ' ') hex++;
 }
 
-Bit32u GetHexValue(char* const str, char* &hex)
+Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
 {
 	Bit32u	value = 0;
 	Bit32u regval = 0;
@@ -1157,6 +1157,9 @@ Bit32u GetHexValue(char* const str, char* &hex)
 		}
 		hex++;
 	}
+
+    if (parsed != NULL)
+        *parsed = (hex != str);
 
 	return regval + value;
 }
