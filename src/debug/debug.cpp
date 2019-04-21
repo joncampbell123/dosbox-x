@@ -1882,15 +1882,19 @@ bool ParseCommand(char* str) {
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 page display: cpu=%u display-pending=%u display-active=%u",
+            DEBUG_ShowMsg("PC-98 page display: cpu=%u display-pending=%u display-active=%u pitch=%u",
                     (pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,
                     GDC_display_plane_pending,
-                    GDC_display_plane);
+                    GDC_display_plane,
+                    gdc.display_pitch);
 
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-interrupt-triggered=%u rowheight=%u",gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height);
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
         }
         else {
             return false;
