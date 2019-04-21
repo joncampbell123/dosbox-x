@@ -1622,8 +1622,12 @@ bool ParseCommand(char* str) {
 	};
 
 	if (command == "D") { // Set data overview
-		dataSeg = (Bit16u)GetHexValue(found,found); found++;
-		dataOfs = GetHexValue(found,found);
+		dataSeg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
+        if (*found == ':') { // allow seg:off syntax
+            found++;
+            SkipSpace(found);
+        }
+		dataOfs = GetHexValue(found,found); SkipSpace(found);
         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
@@ -1631,7 +1635,7 @@ bool ParseCommand(char* str) {
 
 	if (command == "DV") { // Set data overview
         dataSeg = 0;
-		dataOfs = GetHexValue(found,found);
+		dataOfs = GetHexValue(found,found); SkipSpace(found);
         dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
@@ -1639,7 +1643,7 @@ bool ParseCommand(char* str) {
 
 	if (command == "DP") { // Set data overview
         dataSeg = 0;
-		dataOfs = GetHexValue(found,found);
+		dataOfs = GetHexValue(found,found); SkipSpace(found);
         dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
