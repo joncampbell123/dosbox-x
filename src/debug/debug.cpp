@@ -1957,7 +1957,6 @@ bool ParseCommand(char* str) {
             }
             DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
         }
-
         else {
             return false;
         }
