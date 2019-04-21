@@ -37,6 +37,7 @@ using namespace std;
 #include "pic.h"
 #include "mapper.h"
 #include "cpu.h"
+#include "pc98_gdc.h"
 #include "callback.h"
 #include "inout.h"
 #include "mixer.h"
@@ -58,6 +59,9 @@ void WIN32_Console();
 static struct termios consolesettings;
 #endif
 int old_cursor_state;
+
+extern uint8_t              GDC_display_plane;
+extern uint8_t              GDC_display_plane_pending;
 
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
@@ -124,6 +128,34 @@ static void LogEMUMachine(void) {
         };
 
         DEBUG_ShowMsg("Machine: %s %s",m,svga);
+    }
+
+    if (IS_PC98_ARCH) {
+        char tmp[512];
+        std::string cpptmp;
+
+        cpptmp.clear();
+        if (gdc_analog) {
+            if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                cpptmp += "'256-color planar' ";
+            else
+                cpptmp += "'16-color planar' ";
+        }
+        else {
+            cpptmp += "'8-color planar' ";
+        }
+
+        DEBUG_ShowMsg("PC-98 video: %s",cpptmp.c_str());
+
+        /*--------------------*/
+
+        cpptmp.clear();
+        sprintf(tmp,"cpu=%u display-pending=%u display-active=%u",
+            (pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,
+            GDC_display_plane_pending,
+            GDC_display_plane);
+
+        DEBUG_ShowMsg("PC-98 page display: %s",tmp);
     }
 
     DEBUG_EndPagedContent();
