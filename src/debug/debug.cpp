@@ -1086,6 +1086,11 @@ Bit32u GetHexValue(char* str, char*& hex)
 	Bit32u regval = 0;
 	hex = str;
 	while (*hex==' ') hex++;
+
+	if (strstr(hex,"CR0")==hex) { hex+=3; regval = cpu.cr0; };
+	if (strstr(hex,"CR2")==hex) { hex+=3; regval = paging.cr2; };
+	if (strstr(hex,"CR3")==hex) { hex+=3; regval = paging.cr3; };
+
 	if (strstr(hex,"EAX")==hex) { hex+=3; regval = reg_eax; };
 	if (strstr(hex,"EBX")==hex) { hex+=3; regval = reg_ebx; };
 	if (strstr(hex,"ECX")==hex) { hex+=3; regval = reg_ecx; };
