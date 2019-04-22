@@ -1887,6 +1887,25 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "VGA") {
+        stream >> command;
+
+        if (IS_PC98_ARCH) {
+            DEBUG_ShowMsg("VGA debugger commands not available in PC-98 mode");
+            return false;
+        }
+
+        if (command == "MODE") {
+            DEBUG_ShowMsg("VGA mode info:");
+            DEBUG_ShowMsg("mode=%s",mode_texts[vga.mode]);
+        }
+        else {
+            return false;
+        }
+
+        return true;
+   }
+
     if (command == "PC98") {
         stream >> command;
 
