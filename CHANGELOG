@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - PC98 debugger command now supports viewing text, graphics, CG,
+    GRCG, and EGC state.
   - New debugger command "PC98" to view PC-98 emulation state in
     the debugger.
   - New debugger command "EMU" added to view additional emulator
