@@ -4051,6 +4051,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     
     vga.draw.lines_total=height;
     vga.draw.line_length = width * ((bpp + 1) / 8);
+    vga.draw.oscclock = oscclock;
     vga.draw.clock = clock;
 
     double vratio = ((double)width)/(double)height; // ratio if pixels were square

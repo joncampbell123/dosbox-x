@@ -204,6 +204,7 @@ typedef struct {
 	bool char9_set;
 	Bitu bpp;
 	double clock;
+	double oscclock;
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/

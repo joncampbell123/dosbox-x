@@ -1897,8 +1897,9 @@ bool ParseCommand(char* str) {
 
         if (command == "MODE") {
             DEBUG_ShowMsg("VGA mode info:");
-            DEBUG_ShowMsg("mode=%s vrefresh=%.3fHz hrefresh=%.3fHz",
-                mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal);
+            DEBUG_ShowMsg("mode=%s vref=%.3fHz href=%.3fHz chrclk=%.3fHz dotclk=%.3fHz",
+                mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
+                vga.draw.clock,vga.draw.oscclock);
         }
         else {
             return false;
