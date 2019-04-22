@@ -3423,6 +3423,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             clock = (PIT_TICK_RATE*12);
             break;
         }
+        oscclock = clock * 8;
         vga.draw.delay.hdend = hdend*1000.0/clock; //in milliseconds
     }
 #if C_DEBUG
