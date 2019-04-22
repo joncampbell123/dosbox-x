@@ -1880,7 +1880,7 @@ bool ParseCommand(char* str) {
                 cpptmp += "EGC-ENABL ";
             if (pc98_gdc_vramop & (1 << VOPBIT_EGC)) /* Port 6Ah, 0x04/0x05 */
                 cpptmp += "EGC ";
-            if (pc98_gdc_vramop & (3 << VOPBIT_GRCG)) /* Port 7Ch, bits [7:6] */
+            if (pc98_gdc_vramop & (2 << VOPBIT_GRCG)) /* Port 7Ch, bits [7:6]. bit 7 (2 << VOPBIT_GRCG) is the enable. */
                 cpptmp += "GRCG ";
 
             if (gdc.display_enable)
