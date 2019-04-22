@@ -3416,8 +3416,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             break;
         case MCH_MDA:
         case MCH_HERC:
-            clock=16000000/8;
-            if (vga.herc.mode_control & 0x2) clock/=2;
+            oscclock=16257000;
+            if (vga.mode == M_HERC_GFX)
+                clock=oscclock/8;
+            else
+                clock=oscclock/9;
+
+            if (vga.herc.mode_control & 0x2) clock /= 2;
             break;
         default:
             clock = (PIT_TICK_RATE*12);
