@@ -62,7 +62,6 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		vga.config.full_not_enable_set_reset=~vga.config.full_enable_set_reset;
 		vga.config.full_enable_and_set_reset=vga.config.full_set_reset &
 			vga.config.full_enable_set_reset;
-//		if (gfx(enable_set_reset)) vga.config.mh_mask|=MH_SETRESET else vga.config.mh_mask&=~MH_SETRESET;
 		break;
 	case 2: /* Color Compare Register */
 		gfx(color_compare)=val & 0x0f;
@@ -78,7 +77,6 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 	case 3: /* Data Rotate */
 		gfx(data_rotate)=val;
 		vga.config.data_rotate=val & 7;
-//		if (val) vga.config.mh_mask|=MH_ROTATEOP else vga.config.mh_mask&=~MH_ROTATEOP;
 		vga.config.raster_op=(val>>3) & 3;
 		/* 
 			0-2	Number of positions to rotate data right before it is written to

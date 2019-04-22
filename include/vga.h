@@ -106,9 +106,6 @@ typedef struct {
 } VGA_Internal;
 
 typedef struct {
-/* Memory handlers */
-	Bitu mh_mask;
-
 /* Video drawing */
 	Bitu display_start;
 	Bitu real_start;
