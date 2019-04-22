@@ -1387,6 +1387,8 @@ void DBGUI_NextWindowIfActiveHidden(void);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
 
+std::string pc98_egc_shift_debug_status(void);
+
 static void LogFPUInfo(void);
 
 bool ParseCommand(char* str) {
@@ -2100,6 +2102,8 @@ bool ParseCommand(char* str) {
                 pc98_egc_shift_destbit,
                 pc98_egc_shift_srcbit,
                 pc98_egc_shift_length);
+            DEBUG_ShowMsg("  %s",
+                pc98_egc_shift_debug_status().c_str());
         }
         else {
             return false;

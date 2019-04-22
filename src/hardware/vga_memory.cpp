@@ -626,6 +626,21 @@ struct pc98_egc_shifter {
     uint8_t             shft8bitr;
     uint8_t             shft8bitl;
 
+    std::string debug_status(void) {
+        char tmp[512];
+
+        sprintf(tmp,"decrement=%u remain=%u srcbit=%u dstbit=%u shf8l=%u shf8br=%u shf8bl=%u",
+            decrement?1:0,
+            remain,
+            srcbit,
+            dstbit,
+            shft8load,
+            shft8bitr,
+            shft8bitl);
+
+        return std::string(tmp);
+    }
+
     template <class AWT> inline void bi(const uint16_t ofs,const AWT val) {
         size_t ip = (bufi + ofs) & (sizeof(buffer) - 1);
 
@@ -835,6 +850,10 @@ egc_quad pc98_egc_data;
 egc_quad pc98_egc_last_vram;
 
 pc98_egc_shifter pc98_egc_shift;
+
+std::string pc98_egc_shift_debug_status(void) {
+    return pc98_egc_shift.debug_status();
+}
 
 typedef egc_quad & (*PC98_OPEFN)(uint8_t ope, const PhysPt ad);
 
