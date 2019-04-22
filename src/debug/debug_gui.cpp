@@ -459,7 +459,7 @@ static void MakeSubWindows(void) {
 
             /* add height to the window */
             yheight[wndi] += (unsigned int)expand_by;
-            outy += (int)wndi;
+            outy += (int)expand_by;
             wndi++;
 
             /* move the others down */
