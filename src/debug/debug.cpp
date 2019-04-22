@@ -1916,7 +1916,13 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "GRAPHICS") {
+        if (command == "MODE") {
+            DEBUG_ShowMsg("Mode info:");
+            DEBUG_ShowMsg("mode=%s vref=%.3fHz href=%.3fHz chrclk=%.3fHz dotclk=%.3fHz",
+                mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
+                vga.draw.clock,vga.draw.oscclock);
+        }
+        else if (command == "GRAPHICS") {
             const auto &gdc = pc98_gdc[GDC_SLAVE];
             std::string cpptmp;
 
