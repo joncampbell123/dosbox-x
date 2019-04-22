@@ -1115,9 +1115,9 @@ void VGA_SetupOther(void) {
 
 		vga.crtc.underline_location = 13;
 		IO_RegisterReadHandler(0x3ba,read_herc_status,IO_MB);
+        IO_RegisterWriteHandler(0x3b8,write_hercules,IO_MB);
     }
 	if (machine==MCH_HERC) {
-        IO_RegisterWriteHandler(0x3b8,write_hercules,IO_MB);
 		IO_RegisterWriteHandler(0x3bf,write_hercules,IO_MB);
 	}
 	if (machine==MCH_MDA) {
