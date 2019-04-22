@@ -1107,7 +1107,12 @@ void VGA_SetupOther(void) {
 		}
 		vga.herc.blend=false;
 		vga.herc.enable_bits=0;
-		vga.herc.mode_control=0xa; // first mode written will be text mode
+
+        if (machine==MCH_HERC)
+            vga.herc.mode_control=0xa; // first mode written will be text mode
+        else
+            vga.herc.mode_control=0x8; // first mode written will be text mode
+
 		vga.crtc.underline_location = 13;
 		IO_RegisterReadHandler(0x3ba,read_herc_status,IO_MB);
     }
