@@ -3343,7 +3343,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (vga.seq.clocking_mode & 1 ) clock = oscclock/8; else clock = oscclock/9;
         if (vga.mode==M_LIN15 || vga.mode==M_LIN16) clock *= 2;
         /* Check for pixel doubling, master clock/2 */
-        if (vga.seq.clocking_mode & 0x8) clock /=2;
+        /* NTS: VGA 256-color mode has a dot clock NOT divided by two, because real hardware reveals
+         *      that internally the card processes pixels 4 bits per cycle through a 8-bit shift
+         *      register and a bit is set to latch the 8-bit value out to the DAC every other cycle. */
+        if (vga.seq.clocking_mode & 0x8) {
+            clock /=2;
+            oscclock /= 2;
+        }
 
         if (svgaCard==SVGA_S3Trio) {
             // support for interlacing used by the S3 BIOS and possibly other drivers
@@ -3408,7 +3414,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_CGA:
         case TANDY_ARCH_CASE:
             clock = (PIT_TICK_RATE*12)/8;
-            // FIXME: This is wrong for Tandy 16-color modes and 640-wide 4-color mode
+            // FIXME: This is wrong for Tandy/PCjr 16-color modes and 640-wide 4-color mode
             if (vga.mode != M_TANDY2) {
                 if (!(vga.tandy.mode_control & 1)) clock /= 2;
             }
