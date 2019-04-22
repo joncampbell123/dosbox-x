@@ -3408,7 +3408,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_CGA:
         case TANDY_ARCH_CASE:
             clock = (PIT_TICK_RATE*12)/8;
-            if (!(vga.tandy.mode_control & 1)) clock /= 2;
+            if (vga.mode != M_TANDY2) {
+                if (!(vga.tandy.mode_control & 1)) clock /= 2;
+            }
+            oscclock = clock * 8;
             break;
         case MCH_MCGA:
             clock = 25175000 / 2 / 8;//FIXME: Guess. Verify
@@ -3425,7 +3428,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             if (vga.herc.mode_control & 0x2) clock /= 2;
             break;
         default:
-            clock = (PIT_TICK_RATE*12);
+            clock = (PIT_TICK_RATE*12)/8;
+            oscclock = clock * 8;
             break;
         }
         vga.draw.delay.hdend = hdend*1000.0/clock; //in milliseconds
