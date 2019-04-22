@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Debugger input bar (at the bottom) fixed to position correctly,
+    mistake in the code that caused it fixed.
   - PC98 debugger command now supports viewing text, graphics, CG,
     GRCG, and EGC state.
   - New debugger command "PC98" to view PC-98 emulation state in
