@@ -3422,7 +3422,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             break;
         case MCH_MCGA:
             clock = 25175000 / 2 / 8;//FIXME: Guess. Verify
-            if (!(vga.tandy.mode_control & 1)) clock /= 2;
+            if (vga.mode != M_TANDY2) {
+                if (!(vga.tandy.mode_control & 1)) clock /= 2;
+            }
+            oscclock = clock * 2 * 8;
             break;
         case MCH_MDA:
         case MCH_HERC:
