@@ -71,6 +71,9 @@ extern bool                         enable_pc98_256color;
 extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern bool pc98_graphics_hide_odd_raster_200line;
+extern uint8_t                      pc98_gdc_tile_counter;
+extern uint8_t                      pc98_gdc_modereg;
+extern egc_quad                     pc98_gdc_tiles;
 
 extern uint16_t                     a1_font_load_addr;
 extern uint8_t                      a1_font_char_offset;
@@ -1918,6 +1921,26 @@ bool ParseCommand(char* str) {
                 }
             }
             DEBUG_ShowMsg("PC-98 GDC PRAM: wptr=%u %s",gdc.param_ram_wptr,cpptmp.c_str());
+
+            /*---------------------*/
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 GRCG: active=%u mode=%s tilecount=%u modereg(7Ch)=%02xh",
+                (pc98_gdc_vramop & (2 << VOPBIT_GRCG))?1:0,
+                (pc98_gdc_vramop & (1 << VOPBIT_GRCG))?"Read/Modify/Write":"TCR/TDW",
+                pc98_gdc_tile_counter,
+                pc98_gdc_modereg);
+
+            /*---------------------*/
+            cpptmp.clear();
+            DEBUG_ShowMsg("PC-98 GRGC tiles: [%02x %02x] [%02x %02x] [%02x %02x] [%02x %02x]",
+                pc98_gdc_tiles[0].b[0],
+                pc98_gdc_tiles[0].b[1],
+                pc98_gdc_tiles[1].b[0],
+                pc98_gdc_tiles[1].b[1],
+                pc98_gdc_tiles[2].b[0],
+                pc98_gdc_tiles[2].b[1],
+                pc98_gdc_tiles[3].b[0],
+                pc98_gdc_tiles[3].b[1]);
         }
         else if (command == "TEXT") {
             const auto &gdc = pc98_gdc[GDC_MASTER];
