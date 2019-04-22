@@ -77,6 +77,8 @@ extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
 extern egc_quad                     pc98_gdc_tiles;
 
+extern uint16_t                     pc98_egc_raw_values[8];
+
 extern uint16_t                     a1_font_load_addr;
 extern uint8_t                      a1_font_char_offset;
 
@@ -2015,6 +2017,19 @@ bool ParseCommand(char* str) {
             DEBUG_ShowMsg("PC-98 CG I/O port state (A1h-A9h odd): char-row=%u char-code=0x%04x",
                     a1_font_char_offset,
                     a1_font_load_addr);
+        }
+        else if (command == "EGC") {
+            DEBUG_ShowMsg("PC-98 EGC Raw registers:");
+            DEBUG_ShowMsg("  4A0h even: %04xh %04xh %04xh %04xh",
+                pc98_egc_raw_values[0],
+                pc98_egc_raw_values[1],
+                pc98_egc_raw_values[2],
+                pc98_egc_raw_values[3]);
+            DEBUG_ShowMsg("  4A8h even: %04xh %04xh %04xh %04xh",
+                pc98_egc_raw_values[4],
+                pc98_egc_raw_values[5],
+                pc98_egc_raw_values[6],
+                pc98_egc_raw_values[7]);
         }
         else {
             return false;

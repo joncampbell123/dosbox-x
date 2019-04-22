@@ -49,6 +49,8 @@ void pc98_egc_shift_reinit();
 extern egc_quad             pc98_egc_bgcm;
 extern egc_quad             pc98_egc_fgcm;
 
+uint16_t                    pc98_egc_raw_values[8] = {0};
+
 uint8_t                     pc98_egc_access=0;
 uint8_t                     pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
@@ -96,6 +98,8 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
 //        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
         return;
     }
+
+    pc98_egc_raw_values[(port>>1u)&7u] = val;
 
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
     switch (port & 0x0E) {
@@ -235,6 +239,15 @@ void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen) {
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
 //        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
         return;
+    }
+
+    if (port & 1) {
+        pc98_egc_raw_values[(port>>1u)&7u] &= ~0xFF00u;
+        pc98_egc_raw_values[(port>>1u)&7u] |= val << 8u;
+    }
+    else {
+        pc98_egc_raw_values[(port>>1u)&7u] &= ~0xFFu;
+        pc98_egc_raw_values[(port>>1u)&7u] |= val;
     }
 
     switch (port & 0xF) {
