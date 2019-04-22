@@ -70,7 +70,8 @@ extern bool                         enable_pc98_16color;
 extern bool                         enable_pc98_256color;
 extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
-extern bool pc98_graphics_hide_odd_raster_200line;
+extern bool                         pc98_graphics_hide_odd_raster_200line;
+extern bool                         pc98_attr4_graphic;
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
 extern egc_quad                     pc98_gdc_tiles;
@@ -1954,6 +1955,11 @@ bool ParseCommand(char* str) {
 
             if (gdc.doublescan)
                 cpptmp += "DOUBLESCAN ";
+
+            if (pc98_attr4_graphic)
+                cpptmp += "SIMPLE-GRPH ";
+            else
+                cpptmp += "VERT-LINE ";
 
             DEBUG_ShowMsg("PC-98 text mode: %s",cpptmp.c_str());
 
