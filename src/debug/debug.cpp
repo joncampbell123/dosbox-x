@@ -72,6 +72,7 @@ extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern bool                         pc98_graphics_hide_odd_raster_200line;
 extern bool                         pc98_attr4_graphic;
+extern bool                         egc_enable_enable;
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
 extern egc_quad                     pc98_gdc_tiles;
@@ -1875,9 +1876,11 @@ bool ParseCommand(char* str) {
                 cpptmp += "'8-color planar' ";
             }
 
-            if (pc98_gdc_vramop & (1 << VOPBIT_EGC))
+            if (egc_enable_enable) /* Port 6Ah, 0x06/0x07 to enable EGC enable commands 0x04/0x05 */
+                cpptmp += "EGC-ENABL ";
+            if (pc98_gdc_vramop & (1 << VOPBIT_EGC)) /* Port 6Ah, 0x04/0x05 */
                 cpptmp += "EGC ";
-            if (pc98_gdc_vramop & (1 << VOPBIT_GRCG))
+            if (pc98_gdc_vramop & (3 << VOPBIT_GRCG)) /* Port 7Ch, bits [7:6] */
                 cpptmp += "GRCG ";
 
             if (gdc.display_enable)
