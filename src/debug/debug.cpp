@@ -61,6 +61,13 @@ static struct termios consolesettings;
 #endif
 int old_cursor_state;
 
+const char *egc_fgc_modes[4] = {
+    "pattern",
+    "background",
+    "foreground",
+    "(invalid)",
+};
+
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
 extern bool                         gdc_5mhz_mode;
@@ -81,6 +88,29 @@ extern uint16_t                     pc98_egc_raw_values[8];
 
 extern uint16_t                     a1_font_load_addr;
 extern uint8_t                      a1_font_char_offset;
+
+extern egc_quad             pc98_egc_bgcm;
+extern egc_quad             pc98_egc_fgcm;
+
+extern uint8_t                     pc98_egc_access;
+extern uint8_t                     pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
+extern uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+extern uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
+
+extern uint8_t                     pc98_egc_fgc;
+extern uint8_t                     pc98_egc_lead_plane;
+extern uint8_t                     pc98_egc_compare_lead;
+extern uint8_t                     pc98_egc_lightsource;
+extern uint8_t                     pc98_egc_shiftinput;
+extern uint8_t                     pc98_egc_regload;
+extern uint8_t                     pc98_egc_rop;
+extern uint8_t                     pc98_egc_foreground_color;
+extern uint8_t                     pc98_egc_background_color;
+
+extern bool                        pc98_egc_shift_descend;
+extern uint8_t                     pc98_egc_shift_destbit;
+extern uint8_t                     pc98_egc_shift_srcbit;
+extern uint16_t                    pc98_egc_shift_length;
 
 extern unsigned char        pc98_text_first_row_scanline_start;  /* port 70h */
 extern unsigned char        pc98_text_first_row_scanline_end;    /* port 72h */
@@ -2025,11 +2055,53 @@ bool ParseCommand(char* str) {
                 pc98_egc_raw_values[1],
                 pc98_egc_raw_values[2],
                 pc98_egc_raw_values[3]);
-            DEBUG_ShowMsg("  4A8h even: %04xh %04xh %04xh %04xh",
+            DEBUG_ShowMsg("  4A8h even: %04xh %04xh %04xh %04xh bitplane-access=%02xh",
                 pc98_egc_raw_values[4],
                 pc98_egc_raw_values[5],
                 pc98_egc_raw_values[6],
-                pc98_egc_raw_values[7]);
+                pc98_egc_raw_values[7],
+                pc98_egc_access);
+            DEBUG_ShowMsg("  bg-color=%02xh bgcm=[%02xh %02xh] [%02xh %02xh] [%02xh %02xh] [%02xh %02xh]",
+                pc98_egc_background_color,
+                pc98_egc_bgcm[0].b[0],
+                pc98_egc_bgcm[0].b[1],
+                pc98_egc_bgcm[1].b[0],
+                pc98_egc_bgcm[1].b[1],
+                pc98_egc_bgcm[2].b[0],
+                pc98_egc_bgcm[2].b[1],
+                pc98_egc_bgcm[3].b[0],
+                pc98_egc_bgcm[3].b[1]);
+            DEBUG_ShowMsg("  fg-color=%02xh fgcm=[%02xh %02xh] [%02xh %02xh] [%02xh %02xh] [%02xh %02xh]",
+                pc98_egc_foreground_color,
+                pc98_egc_fgcm[0].b[0],
+                pc98_egc_fgcm[0].b[1],
+                pc98_egc_fgcm[1].b[0],
+                pc98_egc_fgcm[1].b[1],
+                pc98_egc_fgcm[2].b[0],
+                pc98_egc_fgcm[2].b[1],
+                pc98_egc_fgcm[3].b[0],
+                pc98_egc_fgcm[3].b[1]);
+            DEBUG_ShowMsg("  fgc-select=%d=%s lead-plane=%u srcmask=[%02xh %02xh]",
+                pc98_egc_fgc,
+                egc_fgc_modes[pc98_egc_fgc],
+                pc98_egc_lead_plane,
+                pc98_egc_srcmask[0],pc98_egc_srcmask[1]);
+            DEBUG_ShowMsg("  mask=[%02xh %02xh] mask-effective=[%02xh %02xh] ROP=%02xh",
+                pc98_egc_mask[0],pc98_egc_mask[1],
+                pc98_egc_maskef[0],pc98_egc_maskef[1],
+                pc98_egc_rop);
+
+#if 0
+extern uint8_t                     pc98_egc_compare_lead;
+extern uint8_t                     pc98_egc_lightsource;
+extern uint8_t                     pc98_egc_shiftinput;
+extern uint8_t                     pc98_egc_regload;
+
+extern bool                        pc98_egc_shift_descend;
+extern uint8_t                     pc98_egc_shift_destbit;
+extern uint8_t                     pc98_egc_shift_srcbit;
+extern uint16_t                    pc98_egc_shift_length;
+#endif
         }
         else {
             return false;
