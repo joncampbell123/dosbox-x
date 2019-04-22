@@ -2090,18 +2090,16 @@ bool ParseCommand(char* str) {
                 pc98_egc_mask[0],pc98_egc_mask[1],
                 pc98_egc_maskef[0],pc98_egc_maskef[1],
                 pc98_egc_rop);
-
-#if 0
-extern uint8_t                     pc98_egc_compare_lead;
-extern uint8_t                     pc98_egc_lightsource;
-extern uint8_t                     pc98_egc_shiftinput;
-extern uint8_t                     pc98_egc_regload;
-
-extern bool                        pc98_egc_shift_descend;
-extern uint8_t                     pc98_egc_shift_destbit;
-extern uint8_t                     pc98_egc_shift_srcbit;
-extern uint16_t                    pc98_egc_shift_length;
-#endif
+            DEBUG_ShowMsg("  compare-lead-plane=%u lightsource=%u shiftinput=%u regload=%u",
+                pc98_egc_compare_lead,
+                pc98_egc_lightsource,
+                pc98_egc_shiftinput,
+                pc98_egc_regload);
+            DEBUG_ShowMsg("  shift-desc=%u shf-destbit=%u shf-srcbit=%u shf-length=%u",
+                pc98_egc_shift_descend,
+                pc98_egc_shift_destbit,
+                pc98_egc_shift_srcbit,
+                pc98_egc_shift_length);
         }
         else {
             return false;
