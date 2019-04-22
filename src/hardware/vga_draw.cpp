@@ -3408,6 +3408,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_CGA:
         case TANDY_ARCH_CASE:
             clock = (PIT_TICK_RATE*12)/8;
+            // FIXME: This is wrong for Tandy 16-color modes and 640-wide 4-color mode
             if (vga.mode != M_TANDY2) {
                 if (!(vga.tandy.mode_control & 1)) clock /= 2;
             }
