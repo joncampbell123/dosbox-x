@@ -3934,7 +3934,7 @@ static Bitu INTDC_PC98_Handler(void) {
                 goto unknown; /* TODO: */
             }
             else if (reg_ah == 0x04) { /* CL=0x10 AH=0x04 Move cursor down one line */
-                /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC E */
+                /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC D */
                 goto unknown; /* TODO: */
             }
             else if (reg_ah == 0x05) { /* CL=0x10 AH=0x05 Move cursor up one line */
