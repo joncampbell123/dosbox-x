@@ -1,4 +1,5 @@
 0.82.18 (next)
+  - Added parsing for ESC M / ESC D in the DOS ANSI driver.
   - New debugger "VGA" command added to view additional emulator
     state.
   - Debugger input bar (at the bottom) fixed to position correctly,
