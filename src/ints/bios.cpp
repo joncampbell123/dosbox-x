@@ -3954,6 +3954,16 @@ static Bitu INTDC_PC98_Handler(void) {
                 INTDC_CL10h_AH07h(reg_dx);
                 goto done;
             }
+            else if (reg_ah == 0x08) { /* CL=0x10 AH=0x08 DX=count Move cursor right multiple lines */
+                void INTDC_CL10h_AH08h(Bit16u count);
+                INTDC_CL10h_AH08h(reg_dx);
+                goto done;
+            }
+            else if (reg_ah == 0x09) { /* CL=0x10 AH=0x09 DX=count Move cursor left multiple lines */
+                void INTDC_CL10h_AH09h(Bit16u count);
+                INTDC_CL10h_AH09h(reg_dx);
+                goto done;
+            }
             goto unknown;
         default: /* some compilers don't like not having a default case */
             goto unknown;
