@@ -1900,6 +1900,37 @@ bool ParseCommand(char* str) {
             DEBUG_ShowMsg("mode=%s vref=%.3fHz href=%.3fHz chrclk=%.3fHz dotclk=%.3fHz",
                 mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
                 vga.draw.clock,vga.draw.oscclock);
+            DEBUG_ShowMsg("disp-start=%lxh real-start=%lxh retrace=%u scanlen=%lu cursor-start=%lxh",
+                (unsigned long)vga.config.display_start,
+                (unsigned long)vga.config.real_start,
+                vga.config.retrace?1:0,
+                (unsigned long)vga.config.scan_len,
+                (unsigned long)vga.config.cursor_start);
+            DEBUG_ShowMsg("line-compare=%lu chained=%u compat-chain4=%u pel-pan=%u hline-skip=%u",
+                (unsigned long)vga.config.line_compare,
+                vga.config.chained,
+                (unsigned int)vga.config.compatible_chain4,
+                (unsigned int)vga.config.pel_panning,
+                (unsigned int)vga.config.hlines_skip);
+            DEBUG_ShowMsg("byte-skip=%u addr-shift=%u rd-mode=%u wr-mode=%u rdmap-sel=%u",
+                (unsigned int)vga.config.bytes_skip,
+                (unsigned int)vga.config.addr_shift,
+                (unsigned int)vga.config.read_mode,
+                (unsigned int)vga.config.write_mode,
+                (unsigned int)vga.config.read_map_select);
+            DEBUG_ShowMsg("col-dont-care=%u color-compare=%u data-rotate=%u raster-op=%02xh",
+                (unsigned int)vga.config.color_dont_care,
+                (unsigned int)vga.config.color_compare,
+                (unsigned int)vga.config.data_rotate,
+                (unsigned int)vga.config.raster_op);
+            DEBUG_ShowMsg("fbmsk=%x fmmsk=%x fnmmsk=%x fsr=%x fnesr=%x fesr=%x feasr=%x",
+                (unsigned int)vga.config.full_bit_mask,
+                (unsigned int)vga.config.full_map_mask,
+                (unsigned int)vga.config.full_not_map_mask,
+                (unsigned int)vga.config.full_set_reset,
+                (unsigned int)vga.config.full_not_enable_set_reset,
+                (unsigned int)vga.config.full_enable_set_reset,
+                (unsigned int)vga.config.full_enable_and_set_reset);
         }
         else {
             return false;
