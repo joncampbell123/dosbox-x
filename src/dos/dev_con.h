@@ -600,6 +600,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     LineFeed();
                     ClearAnsi();
                     break;
+                case 'E':/* cursor DOWN, carriage return (with scrolling) */
+                    Real_INT10_TeletypeOutputAttr('\n',ansi.attr,ansi.enabled);
+                    ClearAnsi();
+                    break;
                 case 'M':/* cursor UP (with scrolling) */ 
                     LineFeedRev();
                     ClearAnsi();
