@@ -97,6 +97,37 @@ private:
         ClearAnsi();
     }
 
+    // ESC [ A
+    void ESC_BRACKET_A(void) {
+        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        Bit8u tempdata;
+        Bit8u col,row;
+
+        col=CURSOR_POS_COL(page) ;
+        row=CURSOR_POS_ROW(page) ;
+        tempdata = (ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata > row) { row=0; } 
+        else { row-=tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ B
+    void ESC_BRACKET_B(void) {
+        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        Bit8u tempdata;
+        Bit8u col,row;
+
+        col=CURSOR_POS_COL(page) ;
+        row=CURSOR_POS_ROW(page) ;
+        tempdata = (ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
+        { row = ansi.nrows - 1;}
+        else	{ row += tempdata; }
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
     // ESC = Y X
     void ESC_EQU_cursor_pos(void) {
         Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -843,23 +874,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     break;
                     /* cursor up down and forward and backward only change the row or the col not both */
                 case 'A': /* cursor up*/
-                    col=CURSOR_POS_COL(page) ;
-                    row=CURSOR_POS_ROW(page) ;
-                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata > row) { row=0; } 
-                    else { row-=tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_A();
                     break;
                 case 'B': /*cursor Down */
-                    col=CURSOR_POS_COL(page) ;
-                    row=CURSOR_POS_ROW(page) ;
-                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
-                    { row = ansi.nrows - 1;}
-                    else	{ row += tempdata; }
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_B();
                     break;
                 case 'C': /*cursor forward */
                     col=CURSOR_POS_COL(page);
