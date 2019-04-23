@@ -79,6 +79,24 @@ private:
 		}
 	} ansi;
 
+    // ESC M
+    void ESC_M(void) {
+        LineFeedRev();
+        ClearAnsi();
+    }
+
+    // ESC D
+    void ESC_D(void) {
+        LineFeed();
+        ClearAnsi();
+    }
+
+    // ESC E
+    void ESC_E(void) {
+        Real_INT10_TeletypeOutputAttr('\n',ansi.attr,ansi.enabled);
+        ClearAnsi();
+    }
+
     // ESC = Y X
     void ESC_EQU_cursor_pos(void) {
         Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -634,16 +652,13 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     }
                     break;
                 case 'D':/* cursor DOWN (with scrolling) */
-                    LineFeed();
-                    ClearAnsi();
+                    ESC_D();
                     break;
                 case 'E':/* cursor DOWN, carriage return (with scrolling) */
-                    Real_INT10_TeletypeOutputAttr('\n',ansi.attr,ansi.enabled);
-                    ClearAnsi();
+                    ESC_E();
                     break;
                 case 'M':/* cursor UP (with scrolling) */ 
-                    LineFeedRev();
-                    ClearAnsi();
+                    ESC_M();
                     break;
                 case '=':/* cursor position */
                     ansi.equcurp=true;
