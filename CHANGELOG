@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - PC-98 INT 18h AH=42h display area setup now cancels pending
+    vsync interrupt. This fixes display issues with Quarth when
+    interrupting the game's demo mode to enter the main menu.
   - PC-98 emulation now emulates port 6Ah command that controls
     128KB/256KB VRAM wraparound.
   - INT DCh CL=10h AH=04h through AH=09h added.

@@ -2323,6 +2323,7 @@ bool INT16_peek_key(Bit16u &code);
 
 extern uint8_t                     GDC_display_plane;
 extern uint8_t                     GDC_display_plane_pending;
+extern bool                        GDC_vsync_interrupt;
 
 unsigned char prev_pc98_mode42 = 0;
 
@@ -2825,6 +2826,12 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x42: /* Display area setup (表示領域の設定) */
+            // HACK for Quarth: If the game has triggered vsync interrupt, cancel it now.
+            // Quarth's vsync interrupt will reprogram the display partitions back to what
+            // it would have set for gameplay after this modeset and cause display problems
+            // with the main menu.
+            GDC_vsync_interrupt = false;
+
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
             /* reset scroll area of graphics */
