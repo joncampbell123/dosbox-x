@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - New debugger "VGA" command added to view additional emulator
+    state.
   - Debugger input bar (at the bottom) fixed to position correctly,
     mistake in the code that caused it fixed.
   - PC98 debugger command now supports viewing text, graphics, CG,
