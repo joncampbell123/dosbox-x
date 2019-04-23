@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - PC-98 emulation now emulates port 6Ah command that controls
+    128KB/256KB VRAM wraparound.
   - INT DCh CL=10h AH=04h through AH=09h added.
   - INT DCh CL=10h AH=03h call to set cursor position (backdoor for
     ESC = ANSI code) added.
