@@ -170,6 +170,7 @@ extern bool                         enable_pc98_256color;
 extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
+extern bool                         pc98_256kb_boundary;
 
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
@@ -1080,6 +1081,7 @@ void VGA_OnEnterPC98(Section *sec) {
 
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     pc98_graphics_hide_odd_raster_200line = true;
+    pc98_256kb_boundary = false;         /* port 6Ah command 68h/69h */
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.

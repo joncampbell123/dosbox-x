@@ -44,6 +44,7 @@ using namespace std;
 
 extern bool                 gdc_5mhz_mode;
 extern bool                 GDC_vsync_interrupt;
+extern bool                 pc98_256kb_boundary;
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
 extern uint8_t              GDC_display_plane_wait_for_vsync;
@@ -53,15 +54,22 @@ bool                        gdc_proc_delay_set = false;
 struct PC98_GDC_state       pc98_gdc[2];
 
 void pc98_update_display_page_ptr(void) {
-    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+    if (pc98_256kb_boundary) {
+        /* GDC display plane has no effect in 256KB boundary mode */
         pc98_pgraph_current_display_page = vga.mem.linear +
-            PC98_VRAM_GRAPHICS_OFFSET +
-            (GDC_display_plane * PC98_VRAM_PAGEFLIP256_SIZE);
+            PC98_VRAM_GRAPHICS_OFFSET;
     }
     else {
-        pc98_pgraph_current_display_page = vga.mem.linear +
-            PC98_VRAM_GRAPHICS_OFFSET +
-            (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            pc98_pgraph_current_display_page = vga.mem.linear +
+                PC98_VRAM_GRAPHICS_OFFSET +
+                (GDC_display_plane * PC98_VRAM_PAGEFLIP256_SIZE);
+        }
+        else {
+            pc98_pgraph_current_display_page = vga.mem.linear +
+                PC98_VRAM_GRAPHICS_OFFSET +
+                (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
+        }
     }
 }
 

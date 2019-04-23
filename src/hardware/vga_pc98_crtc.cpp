@@ -46,6 +46,7 @@ bool                        enable_pc98_grcg = true;
 bool                        enable_pc98_16color = true;
 bool                        enable_pc98_256color = true;
 bool                        enable_pc98_188usermod = true;
+bool                        pc98_256kb_boundary = false;         /* port 6Ah command 68h/69h */
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
@@ -186,6 +187,16 @@ void pc98_port6A_command_write(unsigned char b) {
                 pc98_update_palette();
                 pc98_update_page_ptrs();
             }
+            break;
+        case 0x68: // 128KB VRAM boundary
+            // TODO: Any conditions?
+            pc98_256kb_boundary = false;
+            VGA_SetupHandlers(); // memory mapping presented to the CPU changes
+            break;
+         case 0x69: // 256KB VRAM boundary
+            // TODO: Any conditions?
+            pc98_256kb_boundary = true;
+            VGA_SetupHandlers(); // memory mapping presented to the CPU changes
             break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);

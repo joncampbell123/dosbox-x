@@ -1869,6 +1869,8 @@ Text_Draw_State     pc98_text_draw;
  * across other models I have available for testing, or it may not. --J.C.
  */
 
+extern bool                 pc98_256kb_boundary;
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
     Bit32u* draw = ((Bit32u*)TempLine);
@@ -1895,31 +1897,39 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         blocks = vga.draw.blocks;
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            /* WARNING: This code ASSUMES the port A4h page flip emulation will always
+             *          set current_display_page to the same base graphics memory address
+             *          when the 256KB boundary is enabled! If that assumption is WRONG,
+             *          this code will read 256KB past the end of the buffer and possibly
+             *          segfault. */
+            const unsigned long vmask = pc98_256kb_boundary ? 0x7FFFFu : 0x3FFFFu;
             const unsigned char *s;
 
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
 
             while (blocks--) {
-                s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & 0x3FFFFU]);
+                s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & vmask]);
                 for (unsigned char i=0;i < 8;i++) *draw++ = vga.dac.xlat32[*s++];
 
                 vidmem += 8;
             }
         }
         else {
+            const unsigned long vmask = pc98_256kb_boundary ? 0xFFFFu : 0x7FFFu;
+
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
 
             while (blocks--) {
                 // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
                 //      the 4th bitplane is no longer rendered.
                 if (gdc_analog)
-                    e8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(3)];  /* E0000-E7FFF */
+                    e8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(3)];  /* E0000-E7FFF */
                 else
                     e8 = 0x00;
 
-                g8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
-                r8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
-                b8 = pc98_pgraph_current_display_page[(vidmem & 0x7FFFU) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
+                g8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
+                r8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
+                b8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
 
                 for (unsigned char i=0;i < 8;i++) {
                     foreground  = (e8 & 0x80) ? 8 : 0;
@@ -2575,21 +2585,14 @@ static void VGA_PanningLatch(Bitu /*val*/) {
     }
 }
 
+void pc98_update_display_page_ptr(void);
+
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
     if (IS_PC98_ARCH) {
         GDC_display_plane = GDC_display_plane_pending;
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            pc98_pgraph_current_display_page = vga.mem.linear +
-                PC98_VRAM_GRAPHICS_OFFSET +
-                (GDC_display_plane * PC98_VRAM_PAGEFLIP256_SIZE);
-        }
-        else {
-            pc98_pgraph_current_display_page = vga.mem.linear +
-                PC98_VRAM_GRAPHICS_OFFSET +
-                (GDC_display_plane * PC98_VRAM_PAGEFLIP_SIZE);
-        }
+        pc98_update_display_page_ptr();
     }
 
     vga.draw.delay.framestart = current_time; /* FIXME: Anyone use this?? If not, remove it */
