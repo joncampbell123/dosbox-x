@@ -548,28 +548,13 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 case '[': 
                     ansi.sci=true;
                     break;
-                case '*':/* PC-98: clear screen */
+                case '*':/* PC-98: clear screen (same code path as CTRL+Z) */
                     if (IS_PC98_ARCH) {
-                        /* NTS: Some reverse engineering of INT DCh ANSI handling shows that
-                         *      ESC * handling does nothing but execute the same code path
-                         *      as CTRL+Z handling, which clears the screen including removal
-                         *      of the function key row, then calls into the code path for
-                         *      0x1E (RECORD SEPARATOR) handling which then positions the
-                         *      cursor to home position (upper left corner of the screen).
-                         *
-                         *      boot144.dsk ref NOTES
-                         *
-                         *         0ADC:0B84 ESC * handling
-                         *         0ADC:117D CTRL+Z handling
-                         *         0ADC:1516 Fill (clear) the screen
-                         *         0ADC:13FF Remove function key row
-                         *         0ADC:116B 0x1E RECORD SEPARATOR handling
-                         */
                         Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
-                        /* reverse engineering of a bootdisk shows that ESC * (and CTRL+Z) also remove the function key row */
+                        /* it also redraws the function key row */
                         void update_pc98_function_row(bool enable);
-                        update_pc98_function_row(false);
+                        update_pc98_function_row(pc98_function_row);
 
                         INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                         Real_INT10_SetCursorPos(0,0,page);
