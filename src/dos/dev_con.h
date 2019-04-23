@@ -433,6 +433,15 @@ public:
         ansi.data[1] = raw & 0xFF; // X
         ESC_EQU_cursor_pos();
     }
+
+    void INTDC_CL10h_AH04h(void) {
+        ESC_D();
+    }
+
+    void INTDC_CL10h_AH05h(void) {
+        ESC_M();
+    }
+
 };
 
 // NEC-PC98 keyboard input notes

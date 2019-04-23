@@ -3935,12 +3935,14 @@ static Bitu INTDC_PC98_Handler(void) {
                 goto done;
             }
             else if (reg_ah == 0x04) { /* CL=0x10 AH=0x04 Move cursor down one line */
-                /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC D */
-                goto unknown; /* TODO: */
+                void INTDC_CL10h_AH04h(void);
+                INTDC_CL10h_AH04h();
+                goto done;
             }
             else if (reg_ah == 0x05) { /* CL=0x10 AH=0x05 Move cursor up one line */
-                /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC M */
-                goto unknown; /* TODO: */
+                void INTDC_CL10h_AH05h(void);
+                INTDC_CL10h_AH05h();
+                goto done;
             }
             goto unknown;
         default: /* some compilers don't like not having a default case */
