@@ -722,7 +722,7 @@ INT DC = 60:36B3
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
         CALL 1516h                          ; clear the screen (fill with erasure)
-        CALL 13FFh                          ; remove function row
+        CALL 13FFh                          ; redraw function row
         CALL 116Bh                          ; call 0x1E RECORD SEPARATOR function
     0ADC:118B:
         return
