@@ -248,6 +248,41 @@ private:
 		reg_cx=oldcx;
 	}//static void Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr)
 
+    static void LineFeedRev(void) { // ESC M
+		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
+		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		Bit8u cur_row=CURSOR_POS_ROW(page);
+		Bit8u cur_col=CURSOR_POS_COL(page);
+
+		if(cur_row==0) 
+		{
+            INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),1,defattr,0);
+        }
+        else {
+            cur_row--;
+        }
+
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+    }
+
+    static void LineFeed(void) { // ESC D
+		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
+		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		Bit8u cur_row=CURSOR_POS_ROW(page);
+		Bit8u cur_col=CURSOR_POS_COL(page);
+
+        if (cur_row < nrows) cur_row++;
+
+		if(cur_row==nrows) 
+		{
+            INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,defattr,0);
+            cur_row--;
+		}
+
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+    }
 	
 	static void AdjustCursorPosition(Bit8u& cur_col,Bit8u& cur_row) {
 		BIOS_NCOLS;BIOS_NROWS;
@@ -561,10 +596,16 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         ClearAnsi();
                     }
                     break;
+                case 'D':/* cursor DOWN (with scrolling) */
+                    LineFeed();
+                    ClearAnsi();
+                    break;
+                case 'M':/* cursor UP (with scrolling) */ 
+                    LineFeedRev();
+                    ClearAnsi();
+                    break;
                 case '7': /* save cursor pos + attr TODO */
                 case '8': /* restore this TODO */
-                case 'D':/* scrolling DOWN TODO */
-                case 'M':/* scrolling UP TODO */ 
                 default:
                     LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
                     ClearAnsi();
