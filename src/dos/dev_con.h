@@ -79,6 +79,22 @@ private:
 		}
 	} ansi;
 
+    // ESC = Y X
+    void ESC_EQU_cursor_pos(void) {
+        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+        /* This is what the PC-98 ANSI driver does */
+        if(ansi.data[0] >= 0x20) ansi.data[0] -= 0x20;
+        else ansi.data[0] = 0;
+        if(ansi.data[1] >= 0x20) ansi.data[1] -= 0x20;
+        else ansi.data[1] = 0;
+
+        /* Turn them into positions that are on the screen */
+        if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
+        if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
+        Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
+    }
+
 	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 		Bit16u		oldax,oldbx,olddx;
 
@@ -628,15 +644,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         if (ansi.equcurp) { /* proprietary ESC = Y X command */
             ansi.data[ansi.numberofarg++] = data[count];
             if (ansi.numberofarg >= 2) {
-                /* This is what the PC-98 ANSI driver does */
-                if(ansi.data[0] >= 0x20) ansi.data[0] -= 0x20;
-                else ansi.data[0] = 0;
-                if(ansi.data[1] >= 0x20) ansi.data[1] -= 0x20;
-                else ansi.data[1] = 0;
-                /* Turn them into positions that are on the screen */
-                if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
-                if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
-                Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
+                ESC_EQU_cursor_pos();
                 ClearAnsi();
             }
         }
