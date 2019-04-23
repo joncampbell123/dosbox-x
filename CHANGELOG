@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - INT DCh CL=10h AH=03h call to set cursor position (backdoor for
+    ESC = ANSI code) added.
   - Added parsing for ESC M / ESC D and ESC E in the DOS ANSI driver.
   - New debugger "VGA" command added to view additional emulator
     state.
