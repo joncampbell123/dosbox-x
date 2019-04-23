@@ -241,11 +241,11 @@ void DOS_ShutdownDevices(void) {
 }
 
 // INT 29h emulation needs to keep track of CON
-DOS_Device *DOS_CON = NULL;
+device_CON *DOS_CON = NULL;
 
 void DOS_SetupDevices(void) {
 	DOS_Device * newdev;
-	newdev=new device_CON(); DOS_CON = newdev;
+	DOS_CON=new device_CON(); newdev=DOS_CON;
 	DOS_AddDevice(newdev);
 	DOS_Device * newdev2;
 	newdev2=new device_NUL();
@@ -253,5 +253,30 @@ void DOS_SetupDevices(void) {
 	DOS_Device * newdev3;
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
+}
+
+/* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
+void PC98_INTDC_WriteChar(unsigned char b) {
+    if (DOS_CON != NULL) {
+        Bit16u sz = 1;
+
+        DOS_CON->Write(&b,&sz);
+    }
+}
+
+void INTDC_CL10h_AH03h(Bit16u raw) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH03h(raw);
+}
+
+Bitu INT29_HANDLER(void) {
+    if (DOS_CON != NULL) {
+        unsigned char b = reg_al;
+        Bit16u sz = 1;
+
+        DOS_CON->Write(&b,&sz);
+    }
+
+    return CBRET_NONE;
 }
 

@@ -3929,9 +3929,10 @@ static Bitu INTDC_PC98_Handler(void) {
                 mem_writeb(0x73C,reg_dx);   /* 60:13C */
                 goto done;
             }
-            else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 CL=Y-coord CH=X-coord set cursor position */
-                /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC = */
-                goto unknown; /* TODO: */
+            else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 DL=X-coord DH=Y-coord set cursor position */
+                void INTDC_CL10h_AH03h(Bit16u raw);
+                INTDC_CL10h_AH03h(reg_dx);
+                goto done;
             }
             else if (reg_ah == 0x04) { /* CL=0x10 AH=0x04 Move cursor down one line */
                 /* Reverse engineered from INT DCh. Note that the code path is the same taken for ESC D */

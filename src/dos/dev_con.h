@@ -395,6 +395,24 @@ private:
 		AdjustCursorPosition(cur_col,cur_row);
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
 	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
+public:
+    // INT DC interface: CL=0x10 AH=0x03
+    void INTDC_CL10h_AH03h(Bit16u raw) {
+        /* NTS: This emulates translation behavior seen in INT DCh interface:
+         *
+         *      DX = raw
+         *      DX += 0x2020
+         *      XCHG DL, DH
+         *      CX = DX
+         *      CALL "ESC = HANDLING CODE"
+         *
+         * Technically this means there is a bug where if DL(X) is 0xE0 or larger it will carry into DH(Y) */
+        raw += 0x2020;
+
+        ansi.data[0] = (raw >> 8); // Y
+        ansi.data[1] = raw & 0xFF; // X
+        ESC_EQU_cursor_pos();
+    }
 };
 
 // NEC-PC98 keyboard input notes

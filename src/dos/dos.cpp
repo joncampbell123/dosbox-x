@@ -35,6 +35,8 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+Bitu INT29_HANDLER(void);
+
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
         return c + 'A' - 'a';
@@ -1847,28 +1849,6 @@ static Bitu DOS_27Handler(void) {
 		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
 	}
 	return CBRET_NONE;
-}
-
-extern DOS_Device *DOS_CON;
-
-/* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
-void PC98_INTDC_WriteChar(unsigned char b) {
-    if (DOS_CON != NULL) {
-        Bit16u sz = 1;
-
-        DOS_CON->Write(&b,&sz);
-    }
-}
-
-static Bitu INT29_HANDLER(void) {
-    if (DOS_CON != NULL) {
-        unsigned char b = reg_al;
-        Bit16u sz = 1;
-
-        DOS_CON->Write(&b,&sz);
-    }
-
-    return CBRET_NONE;
 }
 
 static Bitu DOS_25Handler(void) {
