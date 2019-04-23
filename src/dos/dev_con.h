@@ -93,6 +93,8 @@ private:
         if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
         if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
         Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
+
+        ClearAnsi();
     }
 
 	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
@@ -662,8 +664,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         if (ansi.equcurp) { /* proprietary ESC = Y X command */
             ansi.data[ansi.numberofarg++] = data[count];
             if (ansi.numberofarg >= 2) {
-                ESC_EQU_cursor_pos();
-                ClearAnsi();
+                ESC_EQU_cursor_pos(); /* clears ANSI state */
             }
         }
         else if (isdigit(data[count])) {
