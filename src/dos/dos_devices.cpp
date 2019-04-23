@@ -278,7 +278,17 @@ void INTDC_CL10h_AH05h(void) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH05h();
 }
- 
+
+void INTDC_CL10h_AH06h(Bit16u count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH06h(count);
+}
+
+void INTDC_CL10h_AH07h(Bit16u count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH07h(count);
+}
+
 Bitu INT29_HANDLER(void) {
     if (DOS_CON != NULL) {
         unsigned char b = reg_al;

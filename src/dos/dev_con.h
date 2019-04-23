@@ -473,6 +473,16 @@ public:
         ESC_M();
     }
 
+    void INTDC_CL10h_AH06h(Bit16u count) {
+        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_A();
+    }
+
+    void INTDC_CL10h_AH07h(Bit16u count) {
+        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+        ESC_BRACKET_B();
+    }
+
 };
 
 // NEC-PC98 keyboard input notes
