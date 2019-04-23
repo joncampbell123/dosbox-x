@@ -59,6 +59,7 @@ private:
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
 		bool esc;
 		bool sci;
+        bool equcurp;       // ????? ESC = Y X      cursor pos    (not sure if PC-98 specific or general to DOS ANSI.SYS)
         bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
 		bool enabled;
 		Bit8u attr;         // machine-specific
@@ -608,6 +609,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     LineFeedRev();
                     ClearAnsi();
                     break;
+                case '=':/* cursor position */
+                    ansi.equcurp=true;
+                    ansi.sci=true;
+                    break;
                 case '7': /* save cursor pos + attr TODO */
                 case '8': /* restore this TODO */
                 default:
@@ -620,7 +625,22 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         }
         /*ansi.esc and ansi.sci are true */
         Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        if (isdigit(data[count])) {
+        if (ansi.equcurp) { /* proprietary ESC = Y X command */
+            ansi.data[ansi.numberofarg++] = data[count];
+            if (ansi.numberofarg >= 2) {
+                /* This is what the PC-98 ANSI driver does */
+                if(ansi.data[0] >= 0x20) ansi.data[0] -= 0x20;
+                else ansi.data[0] = 0;
+                if(ansi.data[1] >= 0x20) ansi.data[1] -= 0x20;
+                else ansi.data[1] = 0;
+                /* Turn them into positions that are on the screen */
+                if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
+                if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
+                Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
+                ClearAnsi();
+            }
+        }
+        else if (isdigit(data[count])) {
             assert(ansi.numberofarg < NUMBER_ANSI_DATA);
             ansi.data[ansi.numberofarg]=10*ansi.data[ansi.numberofarg]+(data[count]-'0');
         }
@@ -996,6 +1016,7 @@ device_CON::device_CON() {
 void device_CON::ClearAnsi(void){
 	for(Bit8u i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
     ansi.pc98rab=false;
+    ansi.equcurp=false;
 	ansi.esc=false;
 	ansi.sci=false;
 	ansi.numberofarg=0;
