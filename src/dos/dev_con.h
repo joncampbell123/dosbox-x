@@ -128,6 +128,37 @@ private:
         ClearAnsi();
     }
 
+    // ESC [ C
+    void ESC_BRACKET_C(void) {
+        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        Bit8u tempdata;
+        Bit8u col,row;
+
+        col=CURSOR_POS_COL(page);
+        row=CURSOR_POS_ROW(page);
+        tempdata=(ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
+        { col = ansi.ncols - 1;} 
+        else	{ col += tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
+    // ESC [ D
+    void ESC_BRACKET_D(void) {
+        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        Bit8u tempdata;
+        Bit8u col,row;
+
+        col=CURSOR_POS_COL(page);
+        row=CURSOR_POS_ROW(page);
+        tempdata=(ansi.data[0]? ansi.data[0] : 1);
+        if(tempdata > col) {col = 0;}
+        else { col -= tempdata;}
+        Real_INT10_SetCursorPos(row,col,page);
+        ClearAnsi();
+    }
+
     // ESC = Y X
     void ESC_EQU_cursor_pos(void) {
         Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -890,23 +921,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     ESC_BRACKET_B();
                     break;
                 case 'C': /*cursor forward */
-                    col=CURSOR_POS_COL(page);
-                    row=CURSOR_POS_ROW(page);
-                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
-                    { col = ansi.ncols - 1;} 
-                    else	{ col += tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_C();
                     break;
                 case 'D': /*Cursor Backward  */
-                    col=CURSOR_POS_COL(page);
-                    row=CURSOR_POS_ROW(page);
-                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
-                    if(tempdata > col) {col = 0;}
-                    else { col -= tempdata;}
-                    Real_INT10_SetCursorPos(row,col,page);
-                    ClearAnsi();
+                    ESC_BRACKET_D();
                     break;
                 case 'J': /*erase screen and move cursor home*/
                     if(ansi.data[0]==0) ansi.data[0]=2;
