@@ -482,6 +482,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 bool log_dev_con = false;
 std::string log_dev_con_str;
 
+extern bool pc98_function_row;
+
 bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     Bit16u count=0;
     Bitu i;
@@ -517,6 +519,19 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 ansi.esc=true;
                 count++;
                 continue;
+            } else if (data[count] == 0x1A && IS_PC98_ARCH) {
+                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                /* it also redraws the function key row */
+                void update_pc98_function_row(bool enable);
+                update_pc98_function_row(pc98_function_row);
+
+                INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                Real_INT10_SetCursorPos(0,0,page);
+            } else if (data[count] == 0x1E && IS_PC98_ARCH) {
+                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                Real_INT10_SetCursorPos(0,0,page);
             } else { 
                 /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
                 if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
