@@ -70,7 +70,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2E1E BYTE 16*10
                    10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
                             +00h                number of bytes in string following this byte
-                            +01h-0Eh            string to stuff into CON input when CTRL+Fx key pressed
+                            +01h-0Eh            string to stuff into CON input when Shift+Fx key pressed
                             +0Fh                00h
     0060:2EBE BYTE 16*5
                    10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
