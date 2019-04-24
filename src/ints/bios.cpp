@@ -2473,18 +2473,21 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
     if (!force_redraw && pc98_function_row_mode == setting) return;
     pc98_function_row_mode = setting;
 
-    real_writeb(0x60,0x112,25 - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
-
     unsigned char c = real_readb(0x60,0x11C);
     unsigned char r = real_readb(0x60,0x110);
     unsigned int o = 80 * 24;
 
-    if (pc98_function_row_mode == 2) {
+    if (pc98_function_row_mode != 0) {
         if (r > 23) {
-            /* TODO: Trigger scroll up by one line if the cursor is on the line that will be occupied by the function key row */
             r = 23;
+            void INTDC_CL10h_AH04h(void);
+            INTDC_CL10h_AH04h();
         }
+    }
 
+    real_writeb(0x60,0x112,25 - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
+
+    if (pc98_function_row_mode == 2) {
         /* draw the function row.
          * based on on real hardware:
          *
@@ -2543,8 +2546,6 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
         }
     }
     else if (pc98_function_row_mode == 1) {
-        if (r > 23) r = 23;
-
         /* draw the function row.
          * based on on real hardware:
          *
