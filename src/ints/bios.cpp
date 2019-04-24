@@ -2373,7 +2373,7 @@ const char *pc98_shcut_key_defaults[10] = {
 };
 
 #pragma pack(push,1)
-struct pc98_func_key_def {
+struct pc98_func_key_escape_def {
     unsigned char           unknown;        /* +0x00  unknown, always 0x08? */
     unsigned char           text[6];        /* +0x01  6-char wide text */
     unsigned char           escape[8];      /* +0x07  escape code (up to 8 chars) */
@@ -2412,12 +2412,12 @@ struct pc98_func_key_shortcut_def {
 };                                          /* =0x10 */
 #pragma pack(pop)
 
-struct pc98_func_key_def            pc98_func_key[10];
+struct pc98_func_key_escape_def     pc98_func_key[10];
 struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
 
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i) {
     if (i >= 1 && i <= 10) {
-        const pc98_func_key_def &def = pc98_func_key[i-1u];
+        const pc98_func_key_escape_def &def = pc98_func_key[i-1u];
         unsigned int j=0;
         unsigned char c;
 
@@ -2453,7 +2453,7 @@ void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned
 
 void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
-        pc98_func_key_def &def = pc98_func_key[i];
+        pc98_func_key_escape_def &def = pc98_func_key[i];
 
         def.pad = 0x00;
         def.unknown = 0x08;
@@ -4105,7 +4105,7 @@ static Bitu INTDC_PC98_Handler(void) {
 
                 /* function keys F1-F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16) {
-                    pc98_func_key_def &def = pc98_func_key[f];
+                    pc98_func_key_escape_def &def = pc98_func_key[f];
 
                     def.unknown =           0x08;                   /* +0x00  unknown, always 0x08? */
                     for (unsigned int i=0;i < 6;i++)
