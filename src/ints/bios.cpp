@@ -4090,6 +4090,36 @@ static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
     switch (reg_cl) {
+        case 0x0D: /* CL=0x0D General entry point to set function key state */
+            if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to set */
+                /* DS:DX contains
+                 *       16*10 bytes, 16 bytes per entry for function keys F1-F10
+                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: VF1-VF5 keys?)
+                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
+                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: Shift+VF1 to Shift+VF5?)
+                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *       16*15 bytes, 16 bytes per entry of unknown relevence
+                 *
+                 * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+
+                /* function keys F1-F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16) {
+                    pc98_func_key_def &def = pc98_func_key[f];
+
+                    def.unknown =           0x08;                   /* +0x00  unknown, always 0x08? */
+                    for (unsigned int i=0;i < 6;i++)
+                        def.text[i] =       mem_readb(ofs+0x0+i);   /* +0x01  text */
+                    for (unsigned int i=0;i < 8;i++)
+                        def.escape[i] =     mem_readb(ofs+0x6+i);   /* +0x07  escape code (up to 8 chars) */
+                }
+                /* ??? */
+                ofs += 16*5;
+
+                update_pc98_function_row(pc98_function_row_mode,true);
+                goto done;
+            }
+            goto unknown;
         case 0x10:
             if (reg_ah == 0x00) { /* CL=0x10 AH=0x00 DL=char write char to CON */
                 PC98_INTDC_WriteChar(reg_dl);
