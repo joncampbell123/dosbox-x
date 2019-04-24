@@ -1753,6 +1753,14 @@ INT DC = 60:36B3
 
 --
 
+    Lookup table for CL=0Ch, AL=01h through 0FEh inclusive
+
+    0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
+    0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
+    0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|1E 2E 8E 1E 30 00 80  .............0..
+
+--
+
     Called from 0ADC:3180 (near)
 
     0ADC:4080:
