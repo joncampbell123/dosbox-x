@@ -1292,6 +1292,43 @@ INT DC = 60:36B3
         AL = 0, BYTE PTR [ES:DI] = AL, DI++     ; AL = 0 ; STOSB
     0ADC:3287:
         return
+    0ADC:3288:
+        IF AX < 29h JMP 3287h                   ; CMP AX,29h ; JC 3287h
+        IF AX > 39h JMP 3287h                   ; CMP AX,39h ; JA 3287h
+        IF AX == 39h JMP 32B3h                  ; JE 32B3h
+        IF AX <= 32h JMP 32A1h                  ; CMP AX,32h ; JBE 32A1h
+        IF AX != 38h JMP 3287h                  ; CMP AX,38h ; JNE 3287h
+    0ADC:329E:
+        AX = 28h                                ; MOV AX,28h
+    0ADC:32A1:
+        AX -= 29h
+        SI = (AX * 16) + 0x2F87                 ; CL = 4 ; SHL AX,CL ; MOV SI,AX ; ADD SI,2F87h
+        CX = 0Fh
+        JMP 3282h
+    0ADC:32B3:
+        AX = 38h
+        CALL 3294h
+        CX = 0Ah
+    0ADC:32BC:
+        PUSH CX
+        AX = 33h - CX
+        CALL 3294h
+        POP CX
+        IF CX > 0 THEN CX--, JMP 32BCh          ; LOOP 32BCh
+    0ADC:32C8:
+        return
+
+    0ADC:32C9:
+        SI = 3078h
+        _fmemcpy(ES:DI, DS:SI, 0x202);          ; CX = 202h ; REP MOVSB
+        return
+
+    0ADC:32D2:
+        BX = WORD PTR DS:[3076]
+        AX = 200h - BX
+        WORD PTR DS:[05DB] = AX                 ; write AX return to caller
+    0ADC:32DE:
+        return
 
 --
 
