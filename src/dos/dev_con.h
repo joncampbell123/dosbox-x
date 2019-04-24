@@ -36,6 +36,7 @@ void pc98_function_row_user_toggle(void);
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned int scan);
 
 ShiftJISDecoder con_sjis;
 
@@ -219,24 +220,19 @@ private:
         size_t esclen;
 
         switch (code) {
+            case 0x36: // ROLL UP
+            case 0x37: // ROLL DOWN
             case 0x38: // INS
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
-                break;
             case 0x39: // DEL
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
-                return true;
-            case 0x3A: // up arrow
-                dev_con_readbuf[0] = 0x0B; dev_con_pos=0; dev_con_max=1;
-                return true;
-            case 0x3B: // left arrow
-                dev_con_readbuf[0] = 0x08; dev_con_pos=0; dev_con_max=1;
-                return true;
-            case 0x3C: // right arrow
-                dev_con_readbuf[0] = 0x0C; dev_con_pos=0; dev_con_max=1;
-                return true;
-            case 0x3D: // down arrow
-                dev_con_readbuf[0] = 0x0A; dev_con_pos=0; dev_con_max=1;
-                return true;
+            case 0x3A: // UP ARROW
+            case 0x3B: // LEFT ARROW
+            case 0x3C: // RIGHT ARROW
+            case 0x3D: // DOWN ARROW
+            case 0x3E: // HOME/CLR
+            case 0x3F: // HELP
+            case 0x40: // KEYPAD -
+                PC98_GetEditorKeyEscape(/*&*/esclen,dev_con_readbuf,code); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
             case 0x62: // F1
                 PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,1); dev_con_pos=0; dev_con_max=esclen;
                 return true;

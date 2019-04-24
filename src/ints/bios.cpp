@@ -2356,6 +2356,20 @@ const char pc98_func_key_escapes_default[10][3] = {
     {0x1B,0x5A,0}           // F10
 };
 
+const char pc98_editor_key_escapes_default[11][3] = {
+    {0},                    // ROLL UP                  0x36
+    {0},                    // ROLL DOWN                0x37
+    {0x1B,0x50,0},          // INS                      0x38
+    {0x1B,0x44,0},          // DEL                      0x39
+    {0x0B,0},               // UP ARROW                 0x3A
+    {0x08,0},               // LEFT ARROW               0x3B
+    {0x0C,0},               // RIGHT ARROW              0x3C
+    {0x0A,0},               // DOWN ARROW               0x3D
+    {0},                    // HOME/CLR                 0x3E
+    {0},                    // HELP                     0x3F
+    {0}                     // KEYPAD -                 0x40
+};
+
 // shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
 // The text displayed onscreen is obviously just the first 6 chars of the shortcut text.
 const char *pc98_shcut_key_defaults[10] = {
@@ -2413,6 +2427,7 @@ struct pc98_func_key_shortcut_def {
 
 struct pc98_func_key_shortcut_def   pc98_func_key[10];
 struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
+struct pc98_func_key_shortcut_def   pc98_editor_key_escapes[11];
 
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,const struct pc98_func_key_shortcut_def *keylist) {
     if (i >= 1 && i <= 10) {
@@ -2424,6 +2439,23 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int 
          * device. */
         if (def.shortcut[0] == 0xFE)
             j = 6;
+
+        while (j < std::min(0x0Eu,(unsigned int)def.length))
+            buf[o++] = def.shortcut[j++];
+
+        len = (size_t)o;
+        buf[o] = 0;
+    }
+    else {
+        len = 0;
+        buf[0] = 0;
+    }
+}
+
+void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned int scan) {
+    if (scan >= 0x36 && scan <= 0x40) {
+        const pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[scan-0x36];
+        unsigned int j=0,o=0;
 
         while (j < std::min(0x0Eu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
@@ -2455,7 +2487,14 @@ void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i];
 
+        def.pad = 0x00;
         def.set_shortcut(pc98_shcut_key_defaults[i]);
+    }
+    for (unsigned int i=0;i < 11;i++) {
+        pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[i];
+
+        def.pad = 0x00;
+        def.set_shortcut(pc98_editor_key_escapes_default[i]);
     }
 }
 
