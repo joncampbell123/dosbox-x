@@ -32,12 +32,14 @@ extern bool pc98_function_row;
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
 
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i);
+
 ShiftJISDecoder con_sjis;
 
 Bit16u last_int16_code = 0;
 
 static size_t dev_con_pos=0,dev_con_max=0;
-static char dev_con_readbuf[64];
+static unsigned char dev_con_readbuf[64];
 
 Bit8u DefaultANSIAttr() {
 	return IS_PC98_ARCH ? 0xE1 : 0x07;
@@ -211,6 +213,8 @@ private:
      * the CON driver, therefore even though the BIOS says there is key data, Read()
      * will not return anything and will block. */
     bool CommonPC98ExtScanConversionToReadBuf(unsigned char code) {
+        size_t esclen;
+
         switch (code) {
             case 0x38: // INS
                 dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
@@ -231,34 +235,34 @@ private:
                 dev_con_readbuf[0] = 0x0A; dev_con_pos=0; dev_con_max=1;
                 return true;
             case 0x62: // F1
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x53; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,1); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x63: // F2
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x54; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,2); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x64: // F3
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x55; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,3); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x65: // F4
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x56; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,4); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x66: // F5
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x57; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,5); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x67: // F6
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x45; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,6); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x68: // F7
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x4A; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,7); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x69: // F8
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,8); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x6A: // F9
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x51; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,9); dev_con_pos=0; dev_con_max=esclen;
                 return true;
             case 0x6B: // F10
-                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
                 return true;
 #if 0
                 // ROLL UP  --          --          --

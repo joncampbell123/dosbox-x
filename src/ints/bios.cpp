@@ -2382,6 +2382,24 @@ struct pc98_func_key_def {
 
 struct pc98_func_key_def pc98_func_key[10];
 
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i) {
+    if (i >= 1 && i <= 10) {
+        const pc98_func_key_def &def = pc98_func_key[i-1u];
+        unsigned int j=0;
+        unsigned char c;
+
+        while (j < 8 && (c=def.escape[j]) != 0)
+            buf[j++] = c;
+
+        len = (size_t)j;
+        buf[j] = 0;
+    }
+    else {
+        len = 0;
+        buf[0] = 0;
+    }
+}
+
 void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_def &def = pc98_func_key[i];
