@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - PC-98 INT DCh emulation now support INT DCh CL=0Ch/CL=0Dh
+    AX=FFh so that some programs (including SEDIT.EXE) can set,
+    re-define, and restore the function key row.
   - PC-98 MS-DOS emulation now injects escape codes from a table
     for the function keys instead of hard-coded as it does on
     real MS-DOS.
