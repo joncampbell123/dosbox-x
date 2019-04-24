@@ -297,7 +297,22 @@ private:
             case 0x8B: // Shift+F10
                 PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
                 return true;
+            case 0x98: // CTRL+F7   Toggle function key row     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                void pc98_function_row_user_toggle(void);
+                pc98_function_row_user_toggle();
+                break;
+            case 0x99: // CTRL+F8   Clear screen, home cursor   HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                {
+                    Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
+                    /* it also redraws the function key row */
+                    update_pc98_function_row(pc98_function_row_mode,true);
+
+                    INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                    Real_INT10_SetCursorPos(0,0,page);
+                    ClearAnsi();
+                }
+                break;
 #if 0
                 // ROLL UP  --          --          --
                 // POLL DOWN--          --          --
@@ -675,27 +690,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
             if (IS_PC98_ARCH) {
                 /* PC-98 does NOT return scan code, but instead returns nothing or
                  * control/escape code */
-                if (!CommonPC98ExtScanConversionToReadBuf(reg_ah)) {
-                    /* Check for built-in shortcuts like CTRL+F7 */
-                    switch (reg_ah) {
-                        case 0x98: // CTRL+F7   Toggle function key row
-                            void pc98_function_row_user_toggle(void);
-                            pc98_function_row_user_toggle();
-                            break;
-                        case 0x99: // CTRL+F8   Clear screen, home cursor
-                            {
-                                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-
-                                /* it also redraws the function key row */
-                                update_pc98_function_row(pc98_function_row_mode,true);
-
-                                INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
-                                Real_INT10_SetCursorPos(0,0,page);
-                                ClearAnsi();
-                            }
-                            break;
-                    }
-                }
+                CommonPC98ExtScanConversionToReadBuf(reg_ah);
             }
             else {
                 /* IBM PC/XT/AT signals extended code by entering AL, AH.
