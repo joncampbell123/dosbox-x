@@ -34,7 +34,7 @@ Bitu INT16_Handler_Wrap(void);
 
 void pc98_function_row_user_toggle(void);
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
-void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i);
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 
 ShiftJISDecoder con_sjis;

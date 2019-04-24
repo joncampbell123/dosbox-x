@@ -2330,20 +2330,20 @@ unsigned char prev_pc98_mode42 = 0;
 unsigned char pc98_function_row_mode = 0;
 
 const char *pc98_func_key_default[10] = {
-    "\xFE C1  ",
-    "\xFE CU  ",
-    "\xFE CA  ",
-    "\xFE S1  ",
-    "\xFE SU  ",
+    " C1  ",
+    " CU  ",
+    " CA  ",
+    " S1  ",
+    " SU  ",
 
-    "\xFEVOID ",
-    "\xFENWL  ",
-    "\xFEINS  ",
-    "\xFEREP  ",
-    "\xFE ^Z  "
+    "VOID ",
+    "NWL  ",
+    "INS  ",
+    "REP  ",
+    " ^Z  "
 };
 
-const unsigned char pc98_func_key_escapes_default[10][3] = {
+const char pc98_func_key_escapes_default[10][3] = {
     {0x1B,0x53,0},          // F1
     {0x1B,0x54,0},          // F2
     {0x1B,0x55,0},          // F3
@@ -2373,59 +2373,63 @@ const char *pc98_shcut_key_defaults[10] = {
 };
 
 #pragma pack(push,1)
-struct pc98_func_key_escape_def {
-    unsigned char           unknown;        /* +0x00  unknown, always 0x08? */
-    unsigned char           text[6];        /* +0x01  6-char wide text */
-    unsigned char           escape[8];      /* +0x07  escape code (up to 8 chars) */
-    unsigned char           pad;            /* +0x0F  always NUL */
-
-    void set_text(const char *str) {
-        unsigned int i=0;
-        char c;
-
-        while (i < 6 && (c = *str++) != 0) text[i++] = c;
-        while (i < 6) text[i++] = ' ';
-    }
-    void set_esc(const unsigned char *str) {
-        unsigned int i=0;
-        unsigned char c;
-
-        while (i < 8 && (c = *str++) != 0) escape[i++] = c;
-        while (i < 8) escape[i++] = 0;
-    }
-};                                          /* =0x10 */
-#pragma pack(pop)
-
-#pragma pack(push,1)
 struct pc98_func_key_shortcut_def {
     unsigned char           length;         /* +0x00  length of text */
     unsigned char           shortcut[0x0E]; /* +0x01  Shortcut text to insert into CON device */
     unsigned char           pad;            /* +0x0F  always NUL */
 
+    // set shortcut.
+    // usually a direct string to insert.
     void set_shortcut(const char *str) {
         unsigned int i=0;
         char c;
 
         while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = c;
+        length = i;
+
+        while (i < 0x0E) shortcut[i++] = 0;
+    }
+
+    // set text and escape code. text does NOT include the leading 0xFE char.
+    void set_text_and_escape(const char *text,const char *escape) {
+        unsigned int i=1;
+        char c;
+
+        // this is based on observed MS-DOS behavior on PC-98.
+        // the length byte covers both the display text and escape code (sum of the two).
+        // the first byte of the shortcut is 0xFE which apparently means the next 5 chars
+        // are text to display. The 0xFE is copied as-is to the display when rendered.
+        // 0xFE in the CG ROM is a blank space.
+        shortcut[0] = 0xFE;
+        while (i < 6 && (c = *text++) != 0) shortcut[i++] = c;
+        while (i < 6) shortcut[i++] = ' ';
+
+        while (i < 0x0E && (c = *escape++) != 0) shortcut[i++] = c;
+        length = i;
         while (i < 0x0E) shortcut[i++] = 0;
     }
 };                                          /* =0x10 */
 #pragma pack(pop)
 
-struct pc98_func_key_escape_def     pc98_func_key[10];
+struct pc98_func_key_shortcut_def   pc98_func_key[10];
 struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
 
-void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i) {
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,const struct pc98_func_key_shortcut_def *keylist) {
     if (i >= 1 && i <= 10) {
-        const pc98_func_key_escape_def &def = pc98_func_key[i-1u];
-        unsigned int j=0;
-        unsigned char c;
+        const pc98_func_key_shortcut_def &def = keylist[i-1u];
+        unsigned int j=0,o=0;
 
-        while (j < 8 && (c=def.escape[j]) != 0)
-            buf[j++] = c;
+        /* if the shortcut starts with 0xFE then the next 5 chars are intended for display only
+         * and the shortcut starts after that. Else the entire string is stuffed into the CON
+         * device. */
+        if (def.shortcut[0] == 0xFE)
+            j = 6;
 
-        len = (size_t)j;
-        buf[j] = 0;
+        while (j < std::min(0x0Eu,(unsigned int)def.length))
+            buf[o++] = def.shortcut[j++];
+
+        len = (size_t)o;
+        buf[o] = 0;
     }
     else {
         len = 0;
@@ -2433,32 +2437,20 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i
     }
 }
 
+void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i) {
+    PC98_GetFuncKeyEscape(len,buf,i,pc98_func_key);
+}
+
 void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i) {
-    if (i >= 1 && i <= 10) {
-        const pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i-1u];
-        unsigned int j=0;
-        unsigned char c;
-
-        while (j < 0x0E && (c=def.shortcut[j]) != 0)
-            buf[j++] = c;
-
-        len = (size_t)j;
-        buf[j] = 0;
-    }
-    else {
-        len = 0;
-        buf[0] = 0;
-    }
+    PC98_GetFuncKeyEscape(len,buf,i,pc98_func_key_shortcut);
 }
 
 void PC98_InitDefFuncRow(void) {
     for (unsigned int i=0;i < 10;i++) {
-        pc98_func_key_escape_def &def = pc98_func_key[i];
+        pc98_func_key_shortcut_def &def = pc98_func_key[i];
 
         def.pad = 0x00;
-        def.unknown = 0x08;
-        def.set_text(pc98_func_key_default[i]);
-        def.set_esc(pc98_func_key_escapes_default[i]);
+        def.set_text_and_escape(pc98_func_key_default[i],pc98_func_key_escapes_default[i]);
     }
     for (unsigned int i=0;i < 10;i++) {
         pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i];
@@ -2468,6 +2460,31 @@ void PC98_InitDefFuncRow(void) {
 }
 
 #include "int10.h"
+
+void draw_pc98_function_row_elem(unsigned int o,unsigned int co,struct pc98_func_key_shortcut_def &key) {
+    const unsigned char *str = key.shortcut;
+    unsigned int j = 0;
+
+    // NTS: Some shortcut strings start with 0xFE, which is rendered as an invisible space anyway.
+
+    while (j < 6u && str[j] != 0) {
+        mem_writew(0xA0000+((o+co+j)*2u),str[j]);
+        mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+        j++;
+    }
+    while (j < 6u) {
+        mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
+        mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+        j++;
+    }
+}
+
+void draw_pc98_function_row(unsigned int o,struct pc98_func_key_shortcut_def *keylist) {
+    for (unsigned int i=0u;i < 5u;i++)
+        draw_pc98_function_row_elem(o,4u + (i * 7u),keylist[i]);
+    for (unsigned int i=5u;i < 10u;i++)
+        draw_pc98_function_row_elem(o,42u + ((i - 5u) * 7u),keylist[i]);
+}
 
 void update_pc98_function_row(unsigned char setting,bool force_redraw) {
     if (!force_redraw && pc98_function_row_mode == setting) return;
@@ -2511,39 +2528,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
         mem_writew(0xA0000+((o+2)*2),(unsigned char)('*'));
         mem_writeb(0xA2000+((o+2)*2),0xE1);
 
-        for (unsigned int i=0;i < 5u;i++) {
-            unsigned int j = 0;
-            unsigned int co = 4u + (i * 7u);
-            const unsigned char *str = pc98_func_key_shortcut[i].shortcut;
-
-            while (j < 6u && str[j] != 0) {
-                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-                j++;
-            }
-            while (j < 6u) {
-                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-                j++;
-            }
-        }
-
-        for (unsigned int i=5;i < 10;i++) {
-            unsigned int j = 0;
-            unsigned int co = 42u + ((i - 5u) * 7u);
-            const unsigned char *str = pc98_func_key_shortcut[i].shortcut;
-
-            while (j < 6u && str[j] != 0) {
-                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-                j++;
-            }
-            while (j < 6u) {
-                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-                j++;
-            }
-        }
+        draw_pc98_function_row(o,pc98_func_key_shortcut);
     }
     else if (pc98_function_row_mode == 1) {
         /* draw the function row.
@@ -2566,25 +2551,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
                 i++;
         }
 
-        for (unsigned int i=0;i < 5u;i++) {
-            unsigned int co = 4u + (i * 7u);
-            const unsigned char *str = pc98_func_key[i].text;
-
-            for (unsigned int j=0;j < 6u;j++) {
-                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-           }
-        }
-
-        for (unsigned int i=5;i < 10;i++) {
-            unsigned int co = 42u + ((i - 5u) * 7u);
-            const unsigned char *str = pc98_func_key[i].text;
-
-            for (unsigned int j=0;j < 6u;j++) {
-                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-           }
-        }
+        draw_pc98_function_row(o,pc98_func_key);
     }
     else {
         /* erase the function row */
@@ -4105,13 +4072,11 @@ static Bitu INTDC_PC98_Handler(void) {
 
                 /* function keys F1-F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16) {
-                    pc98_func_key_escape_def &def = pc98_func_key[f];
+                    pc98_func_key_shortcut_def &def = pc98_func_key[f];
 
-                    def.unknown =           0x08;                   /* +0x00  unknown, always 0x08? */
-                    for (unsigned int i=0;i < 6;i++)
-                        def.text[i] =       mem_readb(ofs+0x0+i);   /* +0x01  text */
-                    for (unsigned int i=0;i < 8;i++)
-                        def.escape[i] =     mem_readb(ofs+0x6+i);   /* +0x07  escape code (up to 8 chars) */
+                    def.length =            0x08;
+                    for (unsigned int i=0;i < 0x0E;i++)
+                        def.shortcut[i] =   mem_readb(ofs+0x0+i);
                 }
                 /* ??? */
                 ofs += 16*5;
