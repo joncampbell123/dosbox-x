@@ -33,6 +33,7 @@ Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
 
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i);
+void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 
 ShiftJISDecoder con_sjis;
 
@@ -264,6 +265,37 @@ private:
             case 0x6B: // F10
                 PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
                 return true;
+            case 0x82: // Shift+F1
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,1); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x83: // Shift+F2
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,2); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x84: // Shift+F3
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,3); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x85: // Shift+F4
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,4); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x86: // Shift+F5
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,5); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x87: // Shift+F6
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,6); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x88: // Shift+F7
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,7); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x89: // Shift+F8
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,8); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x8A: // Shift+F9
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,9); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+            case 0x8B: // Shift+F10
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
+                return true;
+
 #if 0
                 // ROLL UP  --          --          --
                 // POLL DOWN--          --          --

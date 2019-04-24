@@ -2356,6 +2356,22 @@ const unsigned char pc98_func_key_escapes_default[10][3] = {
     {0x1B,0x5A,0}           // F10
 };
 
+// shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
+// The text displayed onscreen is obviously just the first 6 chars of the shortcut text.
+const char *pc98_shcut_key_defaults[10] = {
+    "dir a:\x0D",
+    "dir b:\x0D",
+    "copy ",
+    "del ",
+    "ren ",
+
+    "chkdsk a:\x0D",
+    "chkdsk b:\x0D",
+    "type ",
+    "date\x0D",
+    "time\x0D"
+};
+
 #pragma pack(push,1)
 struct pc98_func_key_def {
     unsigned char           unknown;        /* +0x00  unknown, always 0x08? */
@@ -2380,7 +2396,24 @@ struct pc98_func_key_def {
 };                                          /* =0x10 */
 #pragma pack(pop)
 
-struct pc98_func_key_def pc98_func_key[10];
+#pragma pack(push,1)
+struct pc98_func_key_shortcut_def {
+    unsigned char           length;         /* +0x00  length of text */
+    unsigned char           shortcut[0x0E]; /* +0x01  Shortcut text to insert into CON device */
+    unsigned char           pad;            /* +0x0F  always NUL */
+
+    void set_shortcut(const char *str) {
+        unsigned int i=0;
+        char c;
+
+        while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = c;
+        while (i < 0x0E) shortcut[i++] = 0;
+    }
+};                                          /* =0x10 */
+#pragma pack(pop)
+
+struct pc98_func_key_def            pc98_func_key[10];
+struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
 
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i) {
     if (i >= 1 && i <= 10) {
@@ -2389,6 +2422,24 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i
         unsigned char c;
 
         while (j < 8 && (c=def.escape[j]) != 0)
+            buf[j++] = c;
+
+        len = (size_t)j;
+        buf[j] = 0;
+    }
+    else {
+        len = 0;
+        buf[0] = 0;
+    }
+}
+
+void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i) {
+    if (i >= 1 && i <= 10) {
+        const pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i-1u];
+        unsigned int j=0;
+        unsigned char c;
+
+        while (j < 0x0E && (c=def.shortcut[j]) != 0)
             buf[j++] = c;
 
         len = (size_t)j;
@@ -2409,23 +2460,12 @@ void PC98_InitDefFuncRow(void) {
         def.set_text(pc98_func_key_default[i]);
         def.set_esc(pc98_func_key_escapes_default[i]);
     }
+    for (unsigned int i=0;i < 10;i++) {
+        pc98_func_key_shortcut_def &def = pc98_func_key_shortcut[i];
+
+        def.set_shortcut(pc98_shcut_key_defaults[i]);
+    }
 }
-
-// shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
-// [0] is onscreen display, [1] is what is entered to STDIN.
-const char *pc98_shcut_key[10][2] = {
-    {"dir a:",   "dir a:\x0D"},
-    {"dir b:",   "dir b:\x0D"},
-    {"copy  ",   "copy "},
-    {"del   ",   "del "},
-    {"ren   ",   "ren "},
-
-    {"chkdsk",   "chkdsk a:\x0D"},
-    {"chkdsk",   "chkdsk b:\x0D"},
-    {"type  ",   "type "},
-    {"date\x0D ","date\x0D"},           // display includes CR
-    {"time\x0D ","time\x0D"}
-};
 
 #include "int10.h"
 
