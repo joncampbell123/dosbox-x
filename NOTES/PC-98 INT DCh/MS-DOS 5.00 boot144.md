@@ -1264,6 +1264,35 @@ INT DC = 60:36B3
     0ADC:3233:
         return
 
+    0ADC:3234: (CL=0Ch, AX != 0, AX was decremented by 1 before coming here)
+        IF AX > 28h JMP 3242h
+    0ADC:3239:
+        PUSH DS
+        DS = CS                                 ; DS = CS = INT DCh segment 0ADCh
+        AL = (BYTE PTR DS:[3DE0h+AL]) - 1       ; BX = 3DE0h ; XLAT ; DEC AX
+        POP DS
+    0ADC:3242:
+        IF AX >= 38h JMP 3288h                  ; CMP AX,38h ; JNC 3288h
+        IF AX >= 1Eh JMP 325Bh                  ; CMP AX,1Eh ; JNC 325Bh
+    0ADC:324C:
+        SI = (AX * 16) + 0x2D2F                 ; CL = 4 ; SHL AX,CL ; MOV SI,AX ; ADD SI,2D2Fh
+        CX = 0Fh
+        JMP 3282h
+    0ADC:325B:
+        IF AX >= 29h JMP 3272h                  ; CMP AX,29h ; JNC 3272h
+        AX -= 1Eh                               ; SUB AX, 1Eh
+        SI = (AX * 8) + 0x2F0F                  ; CL = 3 ; SHL AX,CL ; MOV SI,AX ; ADD SI,2F0Fh
+        CX = 05h
+        JMP 3282h
+    0ADC:3272:
+        AX -= 0x29
+        SI = (AX * 16) + 0x2F87                 ; CL = 4 ; SHL AX,CL ; MOV SI,AX ; ADD SI,2F87h
+    0ADC:3282:
+        _fmemcpy(ES:DI, DS:SI, CX)              ; REP MOVSB
+        AL = 0, BYTE PTR [ES:DI] = AL, DI++     ; AL = 0 ; STOSB
+    0ADC:3287:
+        return
+
 --
 
     0ADC:32DF: (CL=0Dh entry point)
