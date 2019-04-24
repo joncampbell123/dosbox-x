@@ -4053,6 +4053,16 @@ extern bool dos_kernel_disabled;
 
 void PC98_INTDC_WriteChar(unsigned char b);
 
+void INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
+    unsigned int i;
+
+    for (i=0;i < 0x0E;i++)
+        def.shortcut[i] = mem_readb(ofs+0x0+i);
+
+    for (i=0;i < 0x0E && def.shortcut[i] != 0;) i++;
+    def.length = i;
+}
+
 static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
@@ -4071,16 +4081,8 @@ static Bitu INTDC_PC98_Handler(void) {
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
 
                 /* function keys F1-F10 */
-                for (unsigned int f=0;f < 10;f++,ofs += 16) {
-                    pc98_func_key_shortcut_def &def = pc98_func_key[f];
-                    unsigned int i;
-
-                    for (i=0;i < 0x0E;i++)
-                        def.shortcut[i] =   mem_readb(ofs+0x0+i);
-
-                    for (i=0;i < 0x0E && def.shortcut[i] != 0;) i++;
-                    def.length = i;
-                }
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_LOAD_FUNCDEC(pc98_func_key[f],ofs);
                 /* ??? */
                 ofs += 16*5;
 
