@@ -27,6 +27,7 @@
 #define NUMBER_ANSI_DATA 10
 
 extern bool DOS_BreakFlag;
+extern bool pc98_function_row;
 
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
@@ -636,7 +637,24 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
             if (IS_PC98_ARCH) {
                 /* PC-98 does NOT return scan code, but instead returns nothing or
                  * control/escape code */
-                CommonPC98ExtScanConversionToReadBuf(reg_ah);
+                if (!CommonPC98ExtScanConversionToReadBuf(reg_ah)) {
+                    /* Check for built-in shortcuts like CTRL+F7 */
+                    switch (reg_ah) {
+                        case 0x99: // CTRL+F8   Clear screen, home cursor
+                            {
+                                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                                /* it also redraws the function key row */
+                                void update_pc98_function_row(bool enable);
+                                update_pc98_function_row(pc98_function_row);
+
+                                INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                                Real_INT10_SetCursorPos(0,0,page);
+                                ClearAnsi();
+                            }
+                            break;
+                    }
+                }
             }
             else {
                 /* IBM PC/XT/AT signals extended code by entering AL, AH.
@@ -662,8 +680,6 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 
 bool log_dev_con = false;
 std::string log_dev_con_str;
-
-extern bool pc98_function_row;
 
 bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     Bit16u count=0;
