@@ -4063,10 +4063,42 @@ void INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
     def.length = i;
 }
 
+void INTDC_STORE_FUNCDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
+    for (unsigned int i=0;i < 0x0E;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
+    mem_writew(ofs+0xE,0);
+}
+
 static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
     switch (reg_cl) {
+        case 0x0C: /* CL=0x0C General entry point to read function key state */
+            if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to store to */
+                /* DS:DX contains
+                 *       16*10 bytes, 16 bytes per entry for function keys F1-F10
+                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: VF1-VF5 keys?)
+                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
+                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: Shift+VF1 to Shift+VF5?)
+                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *       16*15 bytes, 16 bytes per entry of unknown relevence
+                 *
+                 * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+
+                /* function keys F1-F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key[f]);
+                /* ??? */
+                ofs += 16*5;
+                /* function keys Shift+F1 - Shift+F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key_shortcut[f]);
+                /* ??? */
+                ofs += 16*5;
+
+                goto done;
+            }
+            goto unknown;
         case 0x0D: /* CL=0x0D General entry point to set function key state */
             if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to set */
                 /* DS:DX contains
