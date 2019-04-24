@@ -4085,6 +4085,11 @@ static Bitu INTDC_PC98_Handler(void) {
                     INTDC_LOAD_FUNCDEC(pc98_func_key[f],ofs);
                 /* ??? */
                 ofs += 16*5;
+                /* function keys Shift+F1 - Shift+F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[f],ofs);
+                /* ??? */
+                ofs += 16*5;
 
                 update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
