@@ -1234,6 +1234,36 @@ INT DC = 60:36B3
     0ADC:3201:
         return
 
+    0ADC:3202: (CL=0Ch, AX < FFh)
+        SI = 2D2Fh
+        DL = 1Eh
+        AL = 00h
+    0ADC:3209:
+        _fmemcpy(ES:DI, DS:SI, 0x0F);           ; CX = 0Fh ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI++
+        DL--
+        IF DL != 0 JMP 3209h
+    0ADC:3214:
+        DL = 0Bh                                ; SI is 2F0Fh
+    0ADC:3216:
+        _fmemcpy(ES:DI, DS:SI, 0x05);           ; CX = 05h ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI += 3
+        DL--
+        IF DL != 0 JMP 3216h
+    0ADC:3223:
+        SI = 2F87h
+        DL = 0Fh
+    0ADC:3228:
+        _fmemcpy(ES:DI, DS:SI, 0x0F);           ; CX = 0Fh ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI++
+        DL--
+        IF DL != 0 JMP 3228h
+    0ADC:3233:
+        return
+
 --
 
     0ADC:32DF: (CL=0Dh entry point)
