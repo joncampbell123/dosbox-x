@@ -78,11 +78,11 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2A7A WORD ??
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
-    0060:2D2E FUNCROW_ENTRY * 10
-    0060:2DCE FUNCROW_ENTRY * 5
-    0060:2E1E FUNCROW_ENTRY * 10
-    0060:2EBE FUNCROW_ENTRY * 5
-    0060:2F0E EDITKEY_ENTRY * 11
+    0060:2D2E FUNCROW_ENTRY * 10            Function keys F1 to F10
+    0060:2DCE FUNCROW_ENTRY * 5             Unknown
+    0060:2E1E FUNCROW_ENTRY * 10            Function keys Shift-F1 to Shift-F10
+    0060:2EBE FUNCROW_ENTRY * 5             Unknown
+    0060:2F0E EDITKEY_ENTRY * 11            Editor keys
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
