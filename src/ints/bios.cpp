@@ -2330,17 +2330,17 @@ unsigned char prev_pc98_mode42 = 0;
 bool pc98_function_row = false;
 
 const char *pc98_func_key[10] = {
-    "  C1  ",
-    "  CU  ",
-    "  CA  ",
-    "  S1  ",
-    "  SU  ",
+    "\xFE C1  ",
+    "\xFE CU  ",
+    "\xFE CA  ",
+    "\xFE S1  ",
+    "\xFE SU  ",
 
-    " VOID ",
-    " NWL  ",
-    " INS  ",
-    " REP  ",
-    "  ^Z  "
+    "\xFEVOID ",
+    "\xFENWL  ",
+    "\xFEINS  ",
+    "\xFEREP  ",
+    "\xFE ^Z  "
 };
 
 // shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
