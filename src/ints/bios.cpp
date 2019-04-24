@@ -4073,10 +4073,13 @@ static Bitu INTDC_PC98_Handler(void) {
                 /* function keys F1-F10 */
                 for (unsigned int f=0;f < 10;f++,ofs += 16) {
                     pc98_func_key_shortcut_def &def = pc98_func_key[f];
+                    unsigned int i;
 
-                    def.length =            0x08;
-                    for (unsigned int i=0;i < 0x0E;i++)
+                    for (i=0;i < 0x0E;i++)
                         def.shortcut[i] =   mem_readb(ofs+0x0+i);
+
+                    for (i=0;i < 0x0E && def.shortcut[i] != 0;) i++;
+                    def.length = i;
                 }
                 /* ??? */
                 ofs += 16*5;
