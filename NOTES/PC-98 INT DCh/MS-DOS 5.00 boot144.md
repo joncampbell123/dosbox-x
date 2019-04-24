@@ -60,8 +60,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2D2E BYTE 16*10
                    10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
                             +00h                unknown (0x08)
-                            +01h                unknown (0xFE)
-                            +02h-06h            function row text
+                            +01h-06h            function row text (often starts with 0xFE for some reason)
                             +07h-0Fh            escape code to return to application when Fx key pressed
     0060:2E1E BYTE 16*10
                    10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
