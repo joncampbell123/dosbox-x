@@ -2329,7 +2329,7 @@ unsigned char prev_pc98_mode42 = 0;
 
 bool pc98_function_row = false;
 
-const char *pc98_func_key[10] = {
+const char *pc98_func_key_default[10] = {
     "\xFE C1  ",
     "\xFE CU  ",
     "\xFE CA  ",
@@ -2342,6 +2342,56 @@ const char *pc98_func_key[10] = {
     "\xFEREP  ",
     "\xFE ^Z  "
 };
+
+const unsigned char pc98_func_key_escapes_default[10][3] = {
+    {0x1B,0x53,0},          // F1
+    {0x1B,0x54,0},          // F2
+    {0x1B,0x55,0},          // F3
+    {0x1B,0x56,0},          // F4
+    {0x1B,0x57,0},          // F5
+    {0x1B,0x45,0},          // F6
+    {0x1B,0x4A,0},          // F7
+    {0x1B,0x50,0},          // F8
+    {0x1B,0x51,0},          // F9
+    {0x1B,0x5A,0}           // F10
+};
+
+#pragma pack(push,1)
+struct pc98_func_key_def {
+    unsigned char           unknown;        /* +0x00  unknown, always 0x08? */
+    unsigned char           text[6];        /* +0x01  6-char wide text */
+    unsigned char           escape[8];      /* +0x07  escape code (up to 8 chars) */
+    unsigned char           pad;            /* +0x0F  always NUL */
+
+    void set_text(const char *str) {
+        unsigned int i=0;
+        char c;
+
+        while (i < 6 && (c = *str++) != 0) text[i++] = c;
+        while (i < 6) text[i++] = ' ';
+    }
+    void set_esc(const unsigned char *str) {
+        unsigned int i=0;
+        unsigned char c;
+
+        while (i < 8 && (c = *str++) != 0) escape[i++] = c;
+        while (i < 8) escape[i++] = 0;
+    }
+};                                          /* =0x10 */
+#pragma pack(pop)
+
+struct pc98_func_key_def pc98_func_key[10];
+
+void PC98_InitDefFuncRow(void) {
+    for (unsigned int i=0;i < 10;i++) {
+        pc98_func_key_def &def = pc98_func_key[i];
+
+        def.pad = 0x00;
+        def.unknown = 0x08;
+        def.set_text(pc98_func_key_default[i]);
+        def.set_esc(pc98_func_key_escapes_default[i]);
+    }
+}
 
 // shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
 // [0] is onscreen display, [1] is what is entered to STDIN.
@@ -2395,20 +2445,20 @@ void update_pc98_function_row(bool enable) {
 
         for (unsigned int i=0;i < 5u;i++) {
             unsigned int co = 4u + (i * 7u);
-            const char *str = pc98_func_key[i];
+            const unsigned char *str = pc98_func_key[i].text;
 
             for (unsigned int j=0;j < 6u;j++) {
-                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)str[j]);
+                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
                 mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
            }
         }
 
         for (unsigned int i=5;i < 10;i++) {
             unsigned int co = 42u + ((i - 5u) * 7u);
-            const char *str = pc98_func_key[i];
+            const unsigned char *str = pc98_func_key[i].text;
 
             for (unsigned int j=0;j < 6u;j++) {
-                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)str[j]);
+                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
                 mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
            }
         }
