@@ -1,4 +1,12 @@
 0.82.18 (next)
+  - PC-98 MS-DOS emulation now injects escape codes from a table
+    for the function keys instead of hard-coded as it does on
+    real MS-DOS.
+  - PC-98 MS-DOS emulation now supports Shift+Fn (shift+Function)
+    to inject shortcuts into the CON device.
+  - PC-98 MS-DOS now accepts CTRL+F8 to clear the screen.
+  - PC-98 MS-DOS function key row now accepts CTRL+F7 to toggle
+    between none, function keys, and shortcuts.
   - PC-98 INT 18h AH=42h display area setup now cancels pending
     vsync interrupt. This fixes display issues with Quarth when
     interrupting the game's demo mode to enter the main menu.
