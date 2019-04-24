@@ -2,6 +2,27 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
 --
 
+    STRUCT FUNCROW_ENTRY:
+        +00h length of string
+        +01h string to insert when key is pressed
+        +0Fh NUL
+        =10h ------
+
+        NOTE: function key row will only show the first 6 chars
+
+        NOTE: If the first byte is 0xFE, then the next 5 chars are display only
+              and the string to insert starts at byte 6. Length field still
+              covers the combined display + insert string.
+
+    STRUCT EDITKEY_ENTRY:
+        +00h length of string
+        +01h string to insert when key is pressed
+        +06h NUL (only 5 bytes accepted from application)
+        +07h NUL
+        =08h ------
+
+--
+
     0060:0020 WORD MS-DOS product number        [see INT DCh CL=12h]
     0060:0022 WORD Internal revision number     [see INT DCh CL=15h AH=0]
     0060:002E WORD INT DCh / ANSI segment (in this dump, 0ADCh)
@@ -57,31 +78,11 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2A7A WORD ??
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
-    0060:2D2E BYTE 16*10
-                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
-                            +00h                unknown (0x08)
-                            +01h-06h            function row text (often starts with 0xFE for some reason)
-                            +07h-0Fh            escape code to return to application when Fx key pressed
-    0060:2DCE BYTE 16*5
-                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
-                            +00h                unknown (0x00)
-                            +01h-06h            unknown (0x00)
-                            +07h-0Fh            unknown (0x00)
-    0060:2E1E BYTE 16*10
-                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
-                            +00h                number of bytes in string following this byte
-                            +01h-0Eh            string to stuff into CON input when Shift+Fx key pressed
-                            +0Fh                00h
-    0060:2EBE BYTE 16*5
-                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
-                            +00h                unknown (0x00)
-                            +01h-06h            unknown (0x00)
-                            +07h-0Fh            unknown (0x00)
-    0060:2F0E BYTE 8*11
-                   11 entries of a 8-byte structure: (copied to 6 bytes for application starting at +01h)
-                            +00h                number of bytes in string following this byte
-                            +01h-05h            string to stuff into CON input when specific keys are pressed
-                            +06h-07h            00h
+    0060:2D2E FUNCROW_ENTRY * 10
+    0060:2DCE FUNCROW_ENTRY * 5
+    0060:2E1E FUNCROW_ENTRY * 10
+    0060:2EBE FUNCROW_ENTRY * 5
+    0060:2F0E EDITKEY_ENTRY * 11
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
