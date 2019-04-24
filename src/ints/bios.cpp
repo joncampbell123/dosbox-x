@@ -2327,7 +2327,7 @@ extern bool                        GDC_vsync_interrupt;
 
 unsigned char prev_pc98_mode42 = 0;
 
-bool pc98_function_row = false;
+unsigned char pc98_function_row_mode = 0;
 
 const char *pc98_func_key_default[10] = {
     "\xFE C1  ",
@@ -2469,16 +2469,77 @@ void PC98_InitDefFuncRow(void) {
 
 #include "int10.h"
 
-void update_pc98_function_row(bool enable) {
-    pc98_function_row = enable;
+void update_pc98_function_row(unsigned char setting,bool force_redraw) {
+    if (!force_redraw && pc98_function_row_mode == setting) return;
+    pc98_function_row_mode = setting;
 
-    real_writeb(0x60,0x112,25 - 1 - (pc98_function_row ? 1 : 0));
+    real_writeb(0x60,0x112,25 - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
 
     unsigned char c = real_readb(0x60,0x11C);
     unsigned char r = real_readb(0x60,0x110);
     unsigned int o = 80 * 24;
 
-    if (pc98_function_row) {
+    if (pc98_function_row_mode == 2) {
+        if (r > 23) r = 23;
+
+        /* draw the function row.
+         * based on on real hardware:
+         *
+         * The function key is 72 chars wide. 4 blank chars on each side of the screen.
+         * It is divided into two halves, 36 chars each.
+         * Within each half, aligned to it's side, is 5 x 7 regions.
+         * 6 of the 7 are inverted. centered in the white block is the function key. */
+        for (unsigned int i=0;i < 40;) {
+            mem_writew(0xA0000+((o+i)*2),0x0000);
+            mem_writeb(0xA2000+((o+i)*2),0xE1);
+
+            mem_writew(0xA0000+((o+(79-i))*2),0x0000);
+            mem_writeb(0xA2000+((o+(79-i))*2),0xE1);
+
+            if (i >= 3 && i < 38)
+                i += 7;
+            else
+                i++;
+        }
+
+        mem_writew(0xA0000+((o+2)*2),(unsigned char)('*'));
+        mem_writeb(0xA2000+((o+2)*2),0xE1);
+
+        for (unsigned int i=0;i < 5u;i++) {
+            unsigned int j = 0;
+            unsigned int co = 4u + (i * 7u);
+            const unsigned char *str = pc98_func_key_shortcut[i].shortcut;
+
+            while (j < 6u && str[j] != 0) {
+                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+            while (j < 6u) {
+                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+        }
+
+        for (unsigned int i=5;i < 10;i++) {
+            unsigned int j = 0;
+            unsigned int co = 42u + ((i - 5u) * 7u);
+            const unsigned char *str = pc98_func_key_shortcut[i].shortcut;
+
+            while (j < 6u && str[j] != 0) {
+                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+            while (j < 6u) {
+                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+        }
+    }
+    else if (pc98_function_row_mode == 1) {
         if (r > 23) r = 23;
 
         /* draw the function row.
@@ -2532,10 +2593,17 @@ void update_pc98_function_row(bool enable) {
     real_writeb(0x60,0x11C,c);
     real_writeb(0x60,0x110,r);
 
-    real_writeb(0x60,0x111,pc98_function_row ? 0x01 : 0x00);/* function key row display status */
+    real_writeb(0x60,0x111,(pc98_function_row_mode != 0) ? 0x01 : 0x00);/* function key row display status */
 
     void vga_pc98_direct_cursor_pos(Bit16u address);
     vga_pc98_direct_cursor_pos((r*80)+c);
+}
+
+void pc98_function_row_user_toggle(void) {
+    if (pc98_function_row_mode >= 2)
+        update_pc98_function_row(0,true);
+    else
+        update_pc98_function_row(pc98_function_row_mode+1,true);
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);

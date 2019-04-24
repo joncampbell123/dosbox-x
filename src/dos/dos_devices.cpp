@@ -225,8 +225,6 @@ void DOS_DelDevice(DOS_Device * dev) {
 	delete dev;
 }
 
-void update_pc98_function_row(bool enable);
-
 void DOS_ShutdownDevices(void) {
 	for (Bitu i=0;i < DOS_DEVICES;i++) {
 		if (Devices[i] != NULL) {
@@ -237,7 +235,7 @@ void DOS_ShutdownDevices(void) {
 	}
 
     /* NTS: CON counts as a device */
-    if (IS_PC98_ARCH) update_pc98_function_row(false);
+    if (IS_PC98_ARCH) update_pc98_function_row(0);
 }
 
 // INT 29h emulation needs to keep track of CON

@@ -27,11 +27,13 @@
 #define NUMBER_ANSI_DATA 10
 
 extern bool DOS_BreakFlag;
-extern bool pc98_function_row;
+extern unsigned char pc98_function_row_mode;
 
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
 
+void pc98_function_row_user_toggle(void);
+void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[9],const unsigned int i);
 void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 
@@ -676,13 +678,16 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
                 if (!CommonPC98ExtScanConversionToReadBuf(reg_ah)) {
                     /* Check for built-in shortcuts like CTRL+F7 */
                     switch (reg_ah) {
+                        case 0x98: // CTRL+F7   Toggle function key row
+                            void pc98_function_row_user_toggle(void);
+                            pc98_function_row_user_toggle();
+                            break;
                         case 0x99: // CTRL+F8   Clear screen, home cursor
                             {
                                 Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                                 /* it also redraws the function key row */
-                                void update_pc98_function_row(bool enable);
-                                update_pc98_function_row(pc98_function_row);
+                                update_pc98_function_row(pc98_function_row_mode,true);
 
                                 INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                                 Real_INT10_SetCursorPos(0,0,page);
@@ -752,8 +757,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                 /* it also redraws the function key row */
-                void update_pc98_function_row(bool enable);
-                update_pc98_function_row(pc98_function_row);
+                update_pc98_function_row(pc98_function_row_mode,true);
 
                 INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                 Real_INT10_SetCursorPos(0,0,page);
@@ -782,8 +786,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                         /* it also redraws the function key row */
-                        void update_pc98_function_row(bool enable);
-                        update_pc98_function_row(pc98_function_row);
+                        update_pc98_function_row(pc98_function_row_mode,true);
 
                         INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                         Real_INT10_SetCursorPos(0,0,page);
@@ -841,7 +844,6 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 case 'l': /* RESET MODE */
                     switch (ansi.data[0]) {
                         case 1: // show/hide function key row
-                            void update_pc98_function_row(bool enable);
                             update_pc98_function_row(data[count] == 'l');
                             ansi.nrows = real_readb(0x60,0x112)+1;
                             break;
