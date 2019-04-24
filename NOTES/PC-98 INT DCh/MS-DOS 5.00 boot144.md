@@ -57,6 +57,22 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2A7A WORD ??
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
+    0060:2D2E BYTE 16*10
+                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
+                            +00h                unknown (0x08)
+                            +01h                unknown (0xFE)
+                            +02h-06h            function row text
+                            +07h-0Fh            escape code to return to application when Fx key pressed
+    0060:2E1E BYTE 16*10
+                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
+                            +00h                number of bytes in string following this byte
+                            +01h-0Eh            string to stuff into CON input when CTRL+Fx key pressed
+                            +0Fh                00h
+    0060:2F0E BYTE 8*11
+                   11 entries of a 8-byte structure: (copied to 6 bytes for application starting at +01h)
+                            +00h                number of bytes in string following this byte
+                            +01h-05h            string to stuff into CON input when specific keys are pressed
+                            +06h-07h            00h
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
@@ -1163,6 +1179,60 @@ INT DC = 60:36B3
         Restore caller AX, SS, SP, DX, BX from [5DB], [5DD], [5DF], [5E3], [5E5]
         POP DS (restore caller DS)
         IRET
+--
+
+    0ADC:31A4: (CL=0Bh entry point)
+        return
+    0ADC:31A5: (CL=0Ch entry point)
+        ES = WORD PTR DS:[05E1]                 ; DS from caller
+        DI = DX                                 ; DX from caller
+        AX = WORD PTR DS:[05DB]                 ; AX from caller
+        IF AX > 0xFF JMP 31B8h
+        IF AX != 0xFF JMP 31C8h
+        JMP 3202h
+    0ADC:31B8: (CL=0Ch, AX > 0xFF)
+        IF AX < 0x101 JMP 31C0h
+        IF AX == 0x101 JMP 31C4h
+    0ADC:31BF:
+        return
+    0ADC:31C0: (CL=0Ch, AX < 0x101 && AX > 0xFF)
+        CALL 32C9h
+        return
+    0ADC:31C4: (CL=0Ch, AX == 0x101)
+        CALL 32D2h
+        return
+    0ADC:31C8: (CL=0Ch, AX < 0xFF)
+        IF AX > 0 THEN (AX--; JMP 3234h)        ; SUB AX, 1 ; JNC 3234h
+    0ADC:31CD: (CL=0Ch, AX == 0xFFFF)           ; AX = 0, AX--, AX == 0xFFFF
+        SI = 2D2Fh
+        DL = 0Ah
+        AL = 00h
+    0ADC:31D4:
+        _fmemcpy(ES:DI, DS:SI, 0x0F);           ; CX = 0Fh ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI++
+        DL--
+        IF DL != 0 JMP 31D4h
+    0ADC:31DF:
+        SI += 0x50                              ; SI becomes 2D2Fh + (16*10) + 0x50 = 2E1Fh
+        DL = 0Ah
+    0ADC:31E4:
+        _fmemcpy(ES:DI, DS:SI, 0x0F);           ; CX = 0Fh ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI++
+        DL--
+        IF DL != 0 JMP 31E4h
+    0ADC:31EF:
+        SI += 0x50                              ; SI becomes 2E1Fh + (16*10) + 0x50 = 2F0Fh
+        DL = 0Bh
+    0ADC:31F4:
+        _fmemcpy(ES:DI, DS:SI, 0x05);           ; CX = 05h ; REP MOVSB
+        BYTE PTR [ES:DI] = AL, DI++             ; AL == 00h. STOSB
+        SI += 3
+        DL--
+        IF DL != 0 JMP 31F4h
+    0ADC:3201:
+        return
 
 --
 
