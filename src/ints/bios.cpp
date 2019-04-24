@@ -2480,7 +2480,10 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
     unsigned int o = 80 * 24;
 
     if (pc98_function_row_mode == 2) {
-        if (r > 23) r = 23;
+        if (r > 23) {
+            /* TODO: Trigger scroll up by one line if the cursor is on the line that will be occupied by the function key row */
+            r = 23;
+        }
 
         /* draw the function row.
          * based on on real hardware:
