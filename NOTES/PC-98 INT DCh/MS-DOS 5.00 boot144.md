@@ -62,11 +62,21 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
                             +00h                unknown (0x08)
                             +01h-06h            function row text (often starts with 0xFE for some reason)
                             +07h-0Fh            escape code to return to application when Fx key pressed
+    0060:2DCE BYTE 16*5
+                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
+                            +00h                unknown (0x00)
+                            +01h-06h            unknown (0x00)
+                            +07h-0Fh            unknown (0x00)
     0060:2E1E BYTE 16*10
                    10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
                             +00h                number of bytes in string following this byte
                             +01h-0Eh            string to stuff into CON input when CTRL+Fx key pressed
                             +0Fh                00h
+    0060:2EBE BYTE 16*5
+                   10 entries of a 16-byte structure: (copied to 16 bytes for application starting at +01h)
+                            +00h                unknown (0x00)
+                            +01h-06h            unknown (0x00)
+                            +07h-0Fh            unknown (0x00)
     0060:2F0E BYTE 8*11
                    11 entries of a 8-byte structure: (copied to 6 bytes for application starting at +01h)
                             +00h                number of bytes in string following this byte
