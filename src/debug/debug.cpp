@@ -1554,7 +1554,7 @@ bool ParseCommand(char* str) {
         bool parsed;
 
         while (*found) {
-            char prefix = 'b';
+            char prefix = 'B';
             Bit32u value;
 
             /* allow d: w: b: prefixes */
