@@ -35,6 +35,9 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
     0060:00B4 BYTE INT DCh in-progress flag [undocumented PC-98 webtech]
+    0060:010C BYTE CTRL+Fn shortcut inhibit bitfield
+                   bit 0: inhibit Ctrl+Fn shortcuts         (CL=0Fh AX=0h/1h)
+                   bit 1: ????                              (CL=0Fh AX=2h/3h)
     0060:0110 BYTE Cursor Y coordinate
     0060:0111 BYTE Function row display (0=off 1=on 2=shift function keys)
     0060:0112 BYTE Scroll range lower limit
