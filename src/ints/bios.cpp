@@ -4172,7 +4172,10 @@ bool inhibited_ControlFn(void) {
 /* PC-98 application notes, that are NOT DOSBox-X bugs because they occur on real MS-DOS as well:
  *
  * VZ.COM - If the function key row was hidden when VZ.COM is started, VZ.COM will not restore the
- *          function key row.
+ *          function key row. VZ.COM's function key shortcuts affect Fn and Shift+Fn keys and the
+ *          text they display even if VZ.COM also disables the Ctrl+F7 shortcut that lets you
+ *          toggle the function key row, which makes displaying the Shift+Fn key shortcuts impossible
+ *          unless the function key row was left showing that at startup.
  */
 
 static Bitu INTDC_PC98_Handler(void) {
