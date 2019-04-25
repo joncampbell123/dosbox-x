@@ -258,6 +258,33 @@ private:
             case 0x8B: // Shift+F10
                 PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x82); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
+            case 0x97: // CTRL+F7   Toggle 20/25-line text      HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
+                if (!inhibited_ControlFn()) {
+                    /* toggle the bit and change the text layer */
+                    {
+                        Bit8u b = real_readb(0x60,0x113);
+                        real_writeb(0x60,0x113,b ^ 1);
+
+                        reg_ah = 0x0A; /* Set CRT mode */
+                        reg_al = b;
+                        CALLBACK_RunRealInt(0x18);
+
+                        reg_ah = 0x11; /* show cursor (Func 0x0A hides the cursor) */
+                        CALLBACK_RunRealInt(0x18);
+                    }
+
+                    /* clear the screen */
+                    {
+                        Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+
+                        /* it also redraws the function key row */
+                        update_pc98_function_row(pc98_function_row_mode,true);
+
+                        INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                        Real_INT10_SetCursorPos(0,0,page);
+                    }
+                }
+                break;
             case 0x98: // CTRL+F7   Toggle function key row     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
                 if (!inhibited_ControlFn()) {
                     void pc98_function_row_user_toggle(void);

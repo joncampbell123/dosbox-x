@@ -2556,23 +2556,30 @@ void draw_pc98_function_row(unsigned int o,struct pc98_func_key_shortcut_def *ke
         draw_pc98_function_row_elem(o,42u + ((i - 5u) * 7u),keylist[i]);
 }
 
+unsigned int pc98_DOS_console_rows(void) {
+    Bit8u b = real_readb(0x60,0x113);
+
+    return (b & 0x01) ? 25 : 20;
+}
+
 void update_pc98_function_row(unsigned char setting,bool force_redraw) {
     if (!force_redraw && pc98_function_row_mode == setting) return;
     pc98_function_row_mode = setting;
 
+    unsigned int total_rows = pc98_DOS_console_rows();
     unsigned char c = real_readb(0x60,0x11C);
     unsigned char r = real_readb(0x60,0x110);
-    unsigned int o = 80 * 24;
+    unsigned int o = 80 * (total_rows - 1);
 
     if (pc98_function_row_mode != 0) {
-        if (r > 23) {
-            r = 23;
+        if (r > (total_rows - 2)) {
+            r = (total_rows - 2);
             void INTDC_CL10h_AH04h(void);
             INTDC_CL10h_AH04h();
         }
     }
 
-    real_writeb(0x60,0x112,25 - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
+    real_writeb(0x60,0x112,total_rows - 1 - ((pc98_function_row_mode != 0) ? 1 : 0));
 
     if (pc98_function_row_mode == 2) {
         /* draw the function row.
