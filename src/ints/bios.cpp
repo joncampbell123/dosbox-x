@@ -3043,11 +3043,23 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x42: /* Display area setup (表示領域の設定) */
-            // HACK for Quarth: If the game has triggered vsync interrupt, cancel it now.
+            // HACK for Quarth: If the game has triggered vsync interrupt, wait for it.
             // Quarth's vsync interrupt will reprogram the display partitions back to what
             // it would have set for gameplay after this modeset and cause display problems
-            // with the main menu.
-            GDC_vsync_interrupt = false;
+            // with the main menu. Waiting one vertical retrace period before mode setting
+            // gives Quarth one last frame to reprogram partitions before realizing that
+            // it's time to stop it.
+            //
+            // If the BIOS on real hardware has any check like this, it's probably a loop
+            // to wait for vsync.
+            //
+            // The interrupt does NOT cancel the vertical retrace interrupt. Some games
+            // (Rusty) will not work properly if this call cancels the vertical retrace
+            // interrupt.
+            while (!(IO_ReadB(0x60) & 0x20/*vertical retrace*/)) {
+                void CALLBACK_Idle(void);
+                CALLBACK_Idle();
+            }
 
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
