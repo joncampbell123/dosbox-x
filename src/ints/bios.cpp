@@ -4155,6 +4155,27 @@ static Bitu INTDC_PC98_Handler(void) {
 
                 goto done;
             }
+            else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to store to */
+                /* DS:DX contains
+                 *       16*10 bytes, 16 bytes per entry for function keys F1-F10
+                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
+                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *
+                 * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+
+                /* function keys F1-F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key[f]);
+                /* function keys Shift+F1 - Shift+F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_STORE_FUNCDEC(ofs,pc98_func_key_shortcut[f]);
+                /* editor keys */
+                for (unsigned int f=0;f < 11;f++,ofs += 6)
+                    INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[f]);
+
+                goto done;
+            }
             goto unknown;
         case 0x0D: /* CL=0x0D General entry point to set function key state */
             if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to set */
@@ -4179,6 +4200,28 @@ static Bitu INTDC_PC98_Handler(void) {
                     INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[f],ofs);
                 /* ??? */
                 ofs += 16*5;
+                /* editor keys */
+                for (unsigned int f=0;f < 11;f++,ofs += 6)
+                    INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[f],ofs);
+
+                update_pc98_function_row(pc98_function_row_mode,true);
+                goto done;
+            }
+            else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to set */
+                /* DS:DX contains
+                 *       16*10 bytes, 16 bytes per entry for function keys F1-F10
+                 *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
+                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *
+                 * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+
+                /* function keys F1-F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_LOAD_FUNCDEC(pc98_func_key[f],ofs);
+                /* function keys Shift+F1 - Shift+F10 */
+                for (unsigned int f=0;f < 10;f++,ofs += 16)
+                    INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[f],ofs);
                 /* editor keys */
                 for (unsigned int f=0;f < 11;f++,ofs += 6)
                     INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[f],ofs);
