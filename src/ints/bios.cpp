@@ -4107,6 +4107,21 @@ void INTDC_STORE_FUNCDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
     mem_writew(ofs+0xE,0);
 }
 
+void INTDC_LOAD_EDITDEC(pc98_func_key_shortcut_def &def,const Bitu ofs) {
+    unsigned int i;
+
+    for (i=0;i < 0x05;i++)
+        def.shortcut[i] = mem_readb(ofs+0x0+i);
+
+    for (i=0;i < 0x05 && def.shortcut[i] != 0;) i++;
+    def.length = i;
+}
+
+void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
+    for (unsigned int i=0;i < 0x05;i++) mem_writeb(ofs+0x0+i,def.shortcut[i]);
+    mem_writew(ofs+0x5,0);
+}
+
 static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
@@ -4134,6 +4149,9 @@ static Bitu INTDC_PC98_Handler(void) {
                     INTDC_STORE_FUNCDEC(ofs,pc98_func_key_shortcut[f]);
                 /* ??? */
                 ofs += 16*5;
+                /* editor keys */
+                for (unsigned int f=0;f < 11;f++,ofs += 6)
+                    INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[f]);
 
                 goto done;
             }
@@ -4161,6 +4179,9 @@ static Bitu INTDC_PC98_Handler(void) {
                     INTDC_LOAD_FUNCDEC(pc98_func_key_shortcut[f],ofs);
                 /* ??? */
                 ofs += 16*5;
+                /* editor keys */
+                for (unsigned int f=0;f < 11;f++,ofs += 6)
+                    INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[f],ofs);
 
                 update_pc98_function_row(pc98_function_row_mode,true);
                 goto done;
