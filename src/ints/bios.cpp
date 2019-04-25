@@ -2430,7 +2430,14 @@ struct pc98_func_key_shortcut_def   pc98_func_key[10];
 struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
 struct pc98_func_key_shortcut_def   pc98_editor_key_escapes[11];
 
+// FIXME: This is STUPID. Cleanup is needed in order to properly use std::min without causing grief.
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
 # define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
 
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,const struct pc98_func_key_shortcut_def *keylist) {
     if (i >= 1 && i <= 10) {
