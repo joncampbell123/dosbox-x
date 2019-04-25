@@ -2441,7 +2441,7 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int 
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < std::min(0x0Eu,(unsigned int)def.length))
+        while (j < min(0x0Eu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2458,7 +2458,7 @@ void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned in
         const pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[scan-0x36];
         unsigned int j=0,o=0;
 
-        while (j < std::min(0x0Eu,(unsigned int)def.length))
+        while (j < min(0x0Eu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
