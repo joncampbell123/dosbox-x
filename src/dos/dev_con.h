@@ -681,7 +681,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     Bit16u count=0;
     Bitu i;
     Bit8u col,row;
-    Bit8u tempdata;
+
     INT10_SetCurMode();
 
     if (IS_PC98_ARCH) {
