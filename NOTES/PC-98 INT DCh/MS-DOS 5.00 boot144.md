@@ -1551,6 +1551,35 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:3744: (CL=0Fh entry point)
+        AX = WORD PTR DS:[05DB]                     ; Caller AX value
+        IF (AX & 0x8000) != 0 JMP 376Fh             ; OR AX,AX ; JS 376Fh
+        IF AX == 0 JMP 3757h                        ; ... JZ 3757h
+        AX--
+        IF AX == 0 JMP 3763h                        ; JZ 3763h
+        AX--
+        IF AX == 0 JMP 375Dh                        ; JZ 375Dh
+        AX--
+        IF AX == 0 JMP 3769h                        ; JZ 3769h
+    0ADC:3756:
+        return
+    0ADC:3757: (CL=0Fh AX==0)
+        (BYTE PTR DS:[010C]) |= 0x01                ; OR ... , 01
+        return
+    0ADC:375D: (CL=0FH AX==2)
+        (BYTE PTR DS:[010C]) |= 0x02                ; OR ... , 02
+        return
+    0ADC:3763: (CL=0FH AX==1)
+        (BYTE PTR DS:[010C]) &= ~0x01               ; AND ... , FEh
+        return
+    0ADC:3769: (CL=0FH AX==3)
+        (BYTE PTR DS:[010C]) &= ~0x02               ; AND ... , FDh
+        return
+    0ADC:376F: (CL=0FH AX==0x8000)
+        TODO
+
+--
+
     0ADC:378E: (CL=10h entry point)
         BX = WORD PTR DS:[05DB] caller's AX value
         BX = (BX >> 8)   (BX = caller's AH value)
