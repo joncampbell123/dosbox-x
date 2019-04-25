@@ -4169,6 +4169,12 @@ bool inhibited_ControlFn(void) {
     return real_readb(0x60,0x10C) & 0x01;
 }
 
+/* PC-98 application notes, that are NOT DOSBox-X bugs because they occur on real MS-DOS as well:
+ *
+ * VZ.COM - If the function key row was hidden when VZ.COM is started, VZ.COM will not restore the
+ *          function key row.
+ */
+
 static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
