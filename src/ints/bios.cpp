@@ -2430,6 +2430,8 @@ struct pc98_func_key_shortcut_def   pc98_func_key[10];
 struct pc98_func_key_shortcut_def   pc98_func_key_shortcut[10];
 struct pc98_func_key_shortcut_def   pc98_editor_key_escapes[11];
 
+# define MIN(a,b) std::min(a,b)
+
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i,const struct pc98_func_key_shortcut_def *keylist) {
     if (i >= 1 && i <= 10) {
         const pc98_func_key_shortcut_def &def = keylist[i-1u];
@@ -2441,7 +2443,7 @@ void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int 
         if (def.shortcut[0] == 0xFE)
             j = 6;
 
-        while (j < min(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Eu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
@@ -2458,7 +2460,7 @@ void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned in
         const pc98_func_key_shortcut_def &def = pc98_editor_key_escapes[scan-0x36];
         unsigned int j=0,o=0;
 
-        while (j < min(0x0Eu,(unsigned int)def.length))
+        while (j < MIN(0x0Eu,(unsigned int)def.length))
             buf[o++] = def.shortcut[j++];
 
         len = (size_t)o;
