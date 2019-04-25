@@ -36,6 +36,7 @@
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
+#include "shiftjis.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
@@ -2502,15 +2503,36 @@ void PC98_InitDefFuncRow(void) {
 
 void draw_pc98_function_row_elem(unsigned int o,unsigned int co,struct pc98_func_key_shortcut_def &key) {
     const unsigned char *str = key.shortcut;
-    unsigned int j = 0;
+    unsigned int j = 0,i = 0;
 
     // NTS: Some shortcut strings start with 0xFE, which is rendered as an invisible space anyway.
 
-    while (j < 6u && str[j] != 0) {
-        mem_writew(0xA0000+((o+co+j)*2u),str[j]);
-        mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
-        j++;
+    // NTS: Apparently the strings are Shift-JIS and expected to render to the function key row
+    //      the same way the console normally does it.
+    ShiftJISDecoder sjis;
+
+    while (j < 6u && str[i] != 0) {
+        if (sjis.take(str[i++])) {
+            if (sjis.doublewide) {
+                /* JIS conversion to WORD value appropriate for text RAM */
+                if (sjis.b2 != 0) sjis.b1 -= 0x20;
+
+                uint16_t w = (sjis.b2 << 8) + sjis.b1;
+                mem_writew(0xA0000+((o+co+j)*2u),w);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+                mem_writew(0xA0000+((o+co+j)*2u),w);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+            else {
+                mem_writew(0xA0000+((o+co+j)*2u),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
+                j++;
+            }
+        }
     }
+
     while (j < 6u) {
         mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)(' '));
         mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
