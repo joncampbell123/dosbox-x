@@ -234,65 +234,29 @@ private:
                 PC98_GetEditorKeyEscape(/*&*/esclen,dev_con_readbuf,code); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
             case 0x62: // F1
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,1); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x63: // F2
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,2); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x64: // F3
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,3); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x65: // F4
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,4); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x66: // F5
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,5); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x67: // F6
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,6); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x68: // F7
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,7); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x69: // F8
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,8); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x6A: // F9
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,9); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x6B: // F10
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
-                return true;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x62); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
             case 0x82: // Shift+F1
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,1); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x83: // Shift+F2
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,2); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x84: // Shift+F3
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,3); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x85: // Shift+F4
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,4); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x86: // Shift+F5
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,5); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x87: // Shift+F6
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,6); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x88: // Shift+F7
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,7); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x89: // Shift+F8
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,8); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x8A: // Shift+F9
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,9); dev_con_pos=0; dev_con_max=esclen;
-                return true;
             case 0x8B: // Shift+F10
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,10); dev_con_pos=0; dev_con_max=esclen;
-                return true;
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x82); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
             case 0x98: // CTRL+F7   Toggle function key row     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
                 void pc98_function_row_user_toggle(void);
                 pc98_function_row_user_toggle();
