@@ -2339,8 +2339,10 @@ public:
 			}
 		}
 
-        void PC98_InitDefFuncRow(void);
-        PC98_InitDefFuncRow();
+        if (IS_PC98_ARCH) {
+            void PC98_InitDefFuncRow(void);
+            PC98_InitDefFuncRow();
+        }
 	}
 	~DOS(){
 		/* NTS: We do NOT free the drives! The OS may use them later! */
