@@ -4165,6 +4165,10 @@ void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
     mem_writew(ofs+0x5,0);
 }
 
+bool inhibited_ControlFn(void) {
+    return real_readb(0x60,0x10C) & 0x01;
+}
+
 static Bitu INTDC_PC98_Handler(void) {
     if (dos_kernel_disabled) goto unknown;
 
@@ -4270,6 +4274,16 @@ static Bitu INTDC_PC98_Handler(void) {
                     INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[f],ofs);
 
                 update_pc98_function_row(pc98_function_row_mode,true);
+                goto done;
+            }
+            goto unknown;
+        case 0x0F:
+            if (reg_ax == 0) { /* inhibit Control+Fn shortcuts */
+                real_writeb(0x60,0x10C,real_readb(0x60,0x10C) | 0x01);
+                goto done;
+            }
+            else if (reg_ax == 1) { /* enable Control+Fn shortcuts */
+                real_writeb(0x60,0x10C,real_readb(0x60,0x10C) & (~0x01));
                 goto done;
             }
             goto unknown;

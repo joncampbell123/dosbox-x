@@ -32,6 +32,7 @@ extern unsigned char pc98_function_row_mode;
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
 
+bool inhibited_ControlFn(void);
 void pc98_function_row_user_toggle(void);
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
@@ -258,11 +259,13 @@ private:
                 PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x82); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
             case 0x98: // CTRL+F7   Toggle function key row     HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
-                void pc98_function_row_user_toggle(void);
-                pc98_function_row_user_toggle();
+                if (!inhibited_ControlFn()) {
+                    void pc98_function_row_user_toggle(void);
+                    pc98_function_row_user_toggle();
+                }
                 break;
             case 0x99: // CTRL+F8   Clear screen, home cursor   HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
-                {
+                if (!inhibited_ControlFn()) {
                     Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                     /* it also redraws the function key row */
