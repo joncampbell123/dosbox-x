@@ -2342,6 +2342,8 @@ public:
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
             PC98_InitDefFuncRow();
+
+            real_writeb(0x60,0x113,0x01); /* 25-line mode */
         }
 	}
 	~DOS(){
