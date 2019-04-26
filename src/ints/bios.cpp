@@ -4317,6 +4317,16 @@ static Bitu INTDC_PC98_Handler(void) {
                 INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[reg_ax - 0x15]);
                 goto done;
             }
+            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Read VF1-VF5 keys, DS:DX = data to store to */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+                INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key[reg_ax - 0x20]);
+                goto done;
+            }
+            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Read shift VF1-VF5 keys, DS:DX = data to store to */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+                INTDC_STORE_FUNCDEC(ofs,pc98_vfunc_key_shortcut[reg_ax - 0x25]);
+                goto done;
+            }
             else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to store to */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
@@ -4384,6 +4394,16 @@ static Bitu INTDC_PC98_Handler(void) {
             else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Read individual editor keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
                 INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[reg_ax - 0x15],ofs);
+                goto done;
+            }
+            else if (reg_ax >= 0x20 && reg_ax <= 0x24) { /* Read VF1-VF5 keys, DS:DX = data to store to */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+                INTDC_LOAD_FUNCDEC(pc98_vfunc_key[reg_ax - 0x20],ofs);
+                goto done;
+            }
+            else if (reg_ax >= 0x25 && reg_ax <= 0x29) { /* Read shift VF1-VF5 keys, DS:DX = data to store to */
+                Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
+                INTDC_LOAD_FUNCDEC(pc98_vfunc_key_shortcut[reg_ax - 0x25],ofs);
                 goto done;
             }
             else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to set */
