@@ -4236,6 +4236,17 @@ static Bitu INTDC_PC98_Handler(void) {
              *
              *      If the result is 0x1E or larger, then (result - 0x1E) is an
              *      index into the editor table, 8 bytes/entry.
+             *
+             *      Meanings:
+             *
+             *                    01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10
+             *                     |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+             *      0ADC:00003DE0 01 02 03 04 05 06 07 08 09 0A 10 11 12 13 14 15  ................
+             *                   | --- Function keys F1-F10 ---| Fn shift F1-F6 -
+             *      0ADC:00003DF0 16 17 18 19 1F 20 21 22 23 24 25 26 27 28 29 0B  ..... !"#$%&'().
+             *                   | Sh F7-F10 | ------- EDITOR KEYS -----------| -
+             *      0ADC:00003E00 0C 0D 0E 0F 1A 1B 1C 1D 1E|
+             *                   | --------- | ------------ |
              */
             else if (reg_ax >= 0x01 && reg_ax <= 0x0A) { /* Read individual function keys, DS:DX = data to store to */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
