@@ -4260,7 +4260,7 @@ static Bitu INTDC_PC98_Handler(void) {
             }
             else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Read individual editor keys, DS:DX = data to store to */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
-                INTDC_STORE_FUNCDEC(ofs,pc98_editor_key_escapes[reg_ax - 0x15]);
+                INTDC_STORE_EDITDEC(ofs,pc98_editor_key_escapes[reg_ax - 0x15]);
                 goto done;
             }
             else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to store to */
@@ -4327,7 +4327,7 @@ static Bitu INTDC_PC98_Handler(void) {
             }
             else if (reg_ax >= 0x15 && reg_ax <= 0x1F) { /* Read individual editor keys, DS:DX = data to set */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
-                INTDC_LOAD_FUNCDEC(pc98_editor_key_escapes[reg_ax - 0x15],ofs);
+                INTDC_LOAD_EDITDEC(pc98_editor_key_escapes[reg_ax - 0x15],ofs);
                 goto done;
             }
             else if (reg_ax == 0x00) { /* Read all state, DS:DX = data to set */
