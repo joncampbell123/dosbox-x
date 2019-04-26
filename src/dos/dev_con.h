@@ -38,6 +38,8 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void PC98_GetFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 void PC98_GetShiftFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 void PC98_GetEditorKeyEscape(size_t &len,unsigned char buf[16],const unsigned int scan);
+void PC98_GetVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
+void PC98_GetShiftVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned int i);
 
 ShiftJISDecoder con_sjis;
 
@@ -234,6 +236,13 @@ private:
             case 0x40: // KEYPAD -
                 PC98_GetEditorKeyEscape(/*&*/esclen,dev_con_readbuf,code); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
+            case 0x52: // VF1
+            case 0x53: // VF2
+            case 0x54: // VF3
+            case 0x55: // VF4
+            case 0x56: // VF5
+                PC98_GetVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x52); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
             case 0x62: // F1
             case 0x63: // F2
             case 0x64: // F3
@@ -303,6 +312,13 @@ private:
                     ClearAnsi();
                 }
                 break;
+            case 0xC2: // VF1
+            case 0xC3: // VF2
+            case 0xC4: // VF3
+            case 0xC5: // VF4
+            case 0xC6: // VF5
+                PC98_GetShiftVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0xC2); dev_con_pos=0; dev_con_max=esclen;
+                return (dev_con_max != 0)?true:false;
 #if 0
                 // ROLL UP  --          --          --
                 // POLL DOWN--          --          --
