@@ -76,10 +76,10 @@
 # define C_DYNREC 1
 #else
 /* The type of cpu this target has */
-#define C_TARGETCPU X86
+# define C_TARGETCPU X86
 /* Define to 1 to use x86 dynamic cpu core */
-# define C_DYNAMIC_X86			1
-# undef C_DYNREC
+# undef C_DYNAMIC_X86
+# define C_DYNREC 1
 #endif
 
 /* Define to 1 to enable fluidsynth MIDI synthesis */
