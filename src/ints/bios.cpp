@@ -4245,10 +4245,10 @@ static Bitu INTDC_PC98_Handler(void) {
             if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to store to */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
-                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: VF1-VF5 keys?)
+                 *       16*5 bytes, 16 bytes per entry for VF1-VF5
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
-                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: Shift+VF1 to Shift+VF5?)
-                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *       16*5 bytes, 16 bytes per entry for shift VF1-VF5
+                 *       6*11 bytes, 6 bytes per entry for editor keys
                  *       16*15 bytes, 16 bytes per entry of unknown relevence
                  *
                  * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
@@ -4353,10 +4353,10 @@ static Bitu INTDC_PC98_Handler(void) {
             if (reg_ax == 0xFF) { /* Extended version of the API when AX == 0, DS:DX = data to set */
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
-                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: VF1-VF5 keys?)
+                 *       16*5 bytes, 16 bytes per entry for VF1-VF5
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
-                 *       16*5 bytes, 16 bytes per entry of unknown relevence (GUESS: Shift+VF1 to Shift+VF5?)
-                 *       6*11 bytes, 6 bytes per entry of editor keys (INS, DEL, etc) that match a specific scan code range
+                 *       16*5 bytes, 16 bytes per entry for shift VF1-VF5
+                 *       6*11 bytes, 6 bytes per entry for editor keys
                  *       16*15 bytes, 16 bytes per entry of unknown relevence
                  *
                  * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
