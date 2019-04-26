@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - PC-98 INT DCh CL=0Ch/CL=0Dh AX=01h through AX=28h added,
+    which allows individual function/edit keys to be read or
+    modified.
   - Dynrec dynamic core is now default even on 32-bit builds.
     Dynx86 dynamic core is still an option at this time if you
     compile from source.
