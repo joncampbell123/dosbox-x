@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Dynrec dynamic core is now default even on 32-bit builds.
+    Dynx86 dynamic core is still an option at this time if you
+    compile from source.
   - PC-98 INT DCh CL=0Fh AX=0h/1h added.
   - PC-98 INT DCh CL=0Ch/CL=0Dh added AX=0 handling as well.
   - PC-98 INT DCh emulation now support INT DCh CL=0Ch/CL=0Dh
