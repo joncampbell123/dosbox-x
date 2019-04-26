@@ -82,9 +82,9 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
     0060:2D2E FUNCROW_ENTRY * 10            Function keys F1 to F10
-    0060:2DCE FUNCROW_ENTRY * 5             Unknown
+    0060:2DCE FUNCROW_ENTRY * 5             Function keys VF1 to VF5
     0060:2E1E FUNCROW_ENTRY * 10            Function keys Shift-F1 to Shift-F10
-    0060:2EBE FUNCROW_ENTRY * 5             Unknown
+    0060:2EBE FUNCROW_ENTRY * 5             Function keys Shift-VF1 to Shift-VF5
     0060:2F0E EDITKEY_ENTRY * 11            Editor keys. 11 entries that correspond to scan codes 36h to 40h inclusive.
                                             They correspond to: ROLL UP, ROLL DOWN, INS, DEL, UP ARROW, LEFT ARROW, RIGHT ARROW,
                                                                 DOWN ARROW, HOME/CLR, HELP, AND KEYPAD -
