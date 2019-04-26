@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - PC-98 EGC ROP 9Ch added, apparently used by Windows 3.1
+    CALC.EXE
   - PC-98 INT DCh CL=0Ch/CL=0Dh AX=01h through AX=28h added,
     which allows individual function/edit keys to be read or
     modified.
