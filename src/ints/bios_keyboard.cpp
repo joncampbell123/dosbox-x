@@ -1246,10 +1246,6 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
-            case 0x60: // STOP
-                // does not pass it on
-                break;
-
             case 0x52: // VF1           vf･1    ???     ???     ???     ???
             case 0x53: // VF2           vf･2    ???     ???     ???     ???
             case 0x54: // VF3           vf･3    ???     ???     ???     ???
@@ -1263,6 +1259,10 @@ static Bitu IRQ1_Handler_PC98(void) {
                     else
                         add_key(scan_add + 0x0000); /* 0x52-0x56 */
                 }
+                break;
+
+            case 0x60: // STOP
+                // does not pass it on
                 break;
 
             case 0x62: // F1            f･1     ???     ???     ???     ???
