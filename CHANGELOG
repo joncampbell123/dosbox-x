@@ -1,4 +1,8 @@
 0.82.18 (next)
+  - PSG noise channel emulation (PC-98 FM board) apparently
+    broke on Mac OS X due to type promotion by Clang/LLVM.
+    Modified the code to behave as originally intended, to
+    restore the PSG noise channel on Mac OS X.
   - Added debugger command "DOS FNKEY" to view PC-98 scan code
     escape mapping.
   - PC-98 EGC ROP 9Ch added, apparently used by Windows 3.1
