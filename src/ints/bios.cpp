@@ -2444,6 +2444,13 @@ struct pc98_func_key_shortcut_def {
             sprintf(tmp,"disp=\"%s\" ",getDisplayText().c_str());
             ret += tmp;
 
+            ret += "dispraw={ ";
+            for (unsigned int i=0;i < 6;i++) {
+                sprintf(tmp,"%02x ",shortcut[i]);
+                ret += tmp;
+            }
+            ret += "} ";
+
             ret += "esc={ ";
             for (unsigned int i=6;i < length;i++) {
                 sprintf(tmp,"%02x ",shortcut[i]);
