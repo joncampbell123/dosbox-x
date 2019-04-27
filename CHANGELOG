@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Added debugger command "VGA GC" for the graphics controller
+    section of VGA emulation.
   - Added debugger command "VGA SEQ" for the sequencer section
     of VGA emulation.
   - Added debugger commands "VGA DRAW" and "VGA AC" to view
