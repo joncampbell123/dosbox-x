@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Integrated commits from mainline: 3834, 3839, 3840, 3843,
+    3845, 3849, 3850, 3853 (Allofich)
   - PSG noise channel emulation (PC-98 FM board) apparently
     broke on Mac OS X due to type promotion by Clang/LLVM.
     Modified the code to behave as originally intended, to
