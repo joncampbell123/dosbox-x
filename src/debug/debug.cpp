@@ -513,7 +513,7 @@ void CBreakpoint::Activate(bool _active)
 // Statics
 std::list<CBreakpoint*> CBreakpoint::BPoints;
 CBreakpoint*			CBreakpoint::ignoreOnce = 0;
-Bitu					ignoreAddressOnce = 0;
+PhysPt					ignoreAddressOnce = 0;
 
 CBreakpoint* CBreakpoint::AddBreakpoint(Bit16u seg, Bit32u off, bool once)
 {
@@ -769,7 +769,7 @@ void CBreakpoint::ShowList(void)
 
 bool DEBUG_Breakpoint(void)
 {
-	/* First get the phyiscal address and check for a set Breakpoint */
+	/* First get the physical address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
 	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
@@ -779,7 +779,7 @@ bool DEBUG_Breakpoint(void)
 
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
-	/* First get the phyiscal address and check for a set Breakpoint */
+	/* First get the physical address and check for a set Breakpoint */
 	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah)) return false;
 	// Found. Breakpoint is valid
@@ -1472,7 +1472,7 @@ bool ParseCommand(char* str) {
 		return true;
 	};
 
-	if (command == "MEMDUMPBIN") { // Dump memory to file bineary
+	if (command == "MEMDUMPBIN") { // Dump memory to file binary
 		Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
 		Bit32u ofs = GetHexValue(found,found); found++;
 		Bit32u num = GetHexValue(found,found); found++;
@@ -2426,7 +2426,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 		// Variable found ?
 		CDebugVar* var = CDebugVar::FindVar(address);
 		if (var) {
-			// Replace occurence
+			// Replace occurrence
 			char* pos1 = strchr(inst,'[');
 			char* pos2 = strchr(inst,']');
 			if (pos1 && pos2) {
@@ -3090,7 +3090,8 @@ static void LogMCBChain(Bit16u mcb_segment) {
 	DOS_MCB mcb(mcb_segment);
 	char filename[9]; // 8 characters plus a terminating NUL
 	const char *psp_seg_note;
-	PhysPt dataAddr = PhysMake(dataSeg,dataOfs);// location being viewed in the "Data Overview"
+	Bit16u DOS_dataOfs = static_cast<Bit16u>(dataOfs); //Realmode addressing only
+	PhysPt dataAddr = PhysMake(dataSeg,DOS_dataOfs);// location being viewed in the "Data Overview"
 
 	// loop forever, breaking out of the loop once we've processed the last MCB
 	while (true) {
@@ -3120,7 +3121,7 @@ static void LogMCBChain(Bit16u mcb_segment) {
 		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
 		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
-			LOG(LOG_MISC,LOG_ERROR)("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,dataOfs,dataAddr - mcbStartAddr);
+			LOG(LOG_MISC,LOG_ERROR)("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
 
 		// if we've just processed the last MCB in the chain, break out of the loop

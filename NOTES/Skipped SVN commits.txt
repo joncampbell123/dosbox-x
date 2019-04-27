@@ -1,0 +1,4 @@
+Commit#:	Reason for skipping:
+
+3835		Preparatory commit for 3836, which was skipped.
+3836		Assumes the Windows API. midiOutGetNumDevs() and midiOutGetDevCaps() are specific to Windows and do not exist anywhere else.
