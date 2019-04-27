@@ -122,7 +122,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                 LOG_MSG("A1 port attempt to write FONT ROM char 0x%x",a1_font_load_addr);
             break;
         default:
-            LOG_MSG("A1 port %lx val %lx unexpected",port,val);
+            LOG_MSG("A1 port %lx val %lx unexpected",(unsigned long)port,(unsigned long)val);
             break;
     };
 }
