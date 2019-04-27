@@ -2355,7 +2355,7 @@ void VGAMEM_LoadState(Section *sec) {
         ZIPFileEntry *ent = savestate_zip.get_entry("vga.memory.bin");
         if (ent != NULL) {
             ent->rewind();
-            if (vga.mem.memsize == ent->file_length)
+            if (vga.mem.memsize == (uint32_t)ent->file_length)
                 ent->read(vga.mem.linear, vga.mem.memsize);
             else
                 LOG_MSG("VGA Memory load state failure: VGA Memory size mismatch");
