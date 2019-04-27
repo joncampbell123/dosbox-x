@@ -39,7 +39,7 @@ print "$zipname\n";
 
 my @filelist = ();
 
-my @platforms = ('Win32', 'x64');
+my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
 my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt');
 
