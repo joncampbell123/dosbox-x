@@ -1922,6 +1922,19 @@ bool ParseCommand(char* str) {
                 vga.gfx.mode,               vga.gfx.miscellaneous,  vga.gfx.color_dont_care,
                 vga.gfx.bit_mask);
         }
+        else if (command == "DAC") {
+            // FIXME: Remove this var, use vga.dac.bits == 8 instead!
+            extern bool vga_8bit_dac;
+
+            DEBUG_ShowMsg("VGA DAC info: bits=%u pel_mask=%02xh pel_index[RGB]=%02xh",
+                vga_8bit_dac ? 8 : 6,//FIXME
+                vga.dac.pel_mask,       vga.dac.pel_index);
+            DEBUG_ShowMsg("state=%02xh write_index=%02xh read_index=%02xh first_changed=%u",
+                vga.dac.state,          vga.dac.write_index,
+                vga.dac.read_index,     (unsigned int)vga.dac.first_changed);
+            DEBUG_ShowMsg("hidac_counter=%u reg02=%02xh",
+                vga.dac.hidac_counter,  vga.dac.reg02);
+        }
         else if (command == "SEQ") {
             DEBUG_ShowMsg("VGA Sequencer info: index=%02xh",vga.seq.index);
             DEBUG_ShowMsg("reset=%02xh clockmode=%02xh map_mask=%02xh charmapsel=%02xh memmode=%02xh",
