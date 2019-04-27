@@ -56,11 +56,25 @@ void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 		}
 		mixer = psg->mixer;
 		if (mixer & 0x38) {
+            /* NTS: This code relies on signed integer underflow to determine when to advance
+                    the pseudo-random noise generation sequence. It assumes that it can detect
+                    SINT32 carry by copying the value, subtracting the original, and then
+                    testing to see if the result is larger than the original.
+
+                    Unfortunately, Clang/LLVM break this code by promoting both to long (64-bit)
+                    before comparing, which turns the noise into DC bias popping noises.
+
+                    This hack, with long type masks, emulates the original behavior even if the
+                    compare is promoted to signed long (64-bit) and allows the noise generation
+                    to work even with Clang/LLVM --J.C */
+            const long sint32sign = 1L << (((long)(CHAR_BIT * sizeof(long))) - 1L);
+            const long sint32mask = sint32sign + 0x7FFFFFFFL;
+
 			for (i=0; i<(1 << PSGADDEDBIT); i++) {
 				SINT32 countbak;
 				countbak = psg->noise.count;
 				psg->noise.count -= psg->noise.freq;
-				if (psg->noise.count > countbak) {
+				if (((long)psg->noise.count & sint32mask) > ((long)countbak & sint32mask)) {
 //					psg->noise.base = GETRAND() & (1 << (1 << PSGADDEDBIT));
 					psg->noise.base = rand_get() & (1 << (1 << PSGADDEDBIT));
 				}
