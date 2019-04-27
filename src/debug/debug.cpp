@@ -1913,7 +1913,29 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "GC") {
+        if (command == "CRTC") {
+            DEBUG_ShowMsg("VGA CRTC info: index=%02xh readonly=%u",vga.crtc.index,vga.crtc.read_only?1:0);
+            DEBUG_ShowMsg("htotal=%02xh hdend=%02xh strhb=%02xh endhb=%02xh strrt=%02xh endrt=%02xh",
+                vga.crtc.horizontal_total,              vga.crtc.horizontal_display_end,
+                vga.crtc.start_horizontal_blanking,     vga.crtc.end_horizontal_blanking,
+                vga.crtc.start_horizontal_retrace,      vga.crtc.end_horizontal_retrace);
+            DEBUG_ShowMsg("vtotal=%02xh overflow=%02xh prerwscn=%02xh maxscnl=%02xh offset=%02xh",
+                vga.crtc.vertical_total,                vga.crtc.overflow,
+                vga.crtc.preset_row_scan,               vga.crtc.maximum_scan_line,
+                vga.crtc.offset);
+            DEBUG_ShowMsg("curs-st=%02xh curs-en=%02xh start-addr=%02x%02xh curs-loc=%02x%02xh",
+                vga.crtc.cursor_start,                  vga.crtc.cursor_end,
+                vga.crtc.start_address_high,            vga.crtc.start_address_low,
+                vga.crtc.cursor_location_high,          vga.crtc.cursor_location_low);
+            DEBUG_ShowMsg("strvrt=%02xh endvrt=%02xh vdend=%02xh underline=%02xh modectrl=%02xh",
+                vga.crtc.vertical_retrace_start,        vga.crtc.vertical_retrace_end,
+                vga.crtc.vertical_display_end,          vga.crtc.underline_location,
+                vga.crtc.mode_control);
+            DEBUG_ShowMsg("strvhb=%02xh endvhb=%02xh linecomp=%02xh",
+                vga.crtc.start_vertical_blanking,       vga.crtc.end_vertical_blanking,
+                vga.crtc.line_compare);
+        }
+        else if (command == "GC") {
             DEBUG_ShowMsg("VGA Graphics controller info: index=%02xh setreset=%02xh",vga.gfx.index,vga.gfx.set_reset);
             DEBUG_ShowMsg("enablesetreset=%02xh color-comp=%02xh data-rotate=%02xh rdmapsel=%02xh",
                 vga.gfx.enable_set_reset,   vga.gfx.color_compare,  vga.gfx.data_rotate,
