@@ -363,18 +363,23 @@ void CSerialModem::DoCommand() {
 				helper[0]=0;
 				helper--;
 			}
+
+			//Large enough scope, so the buffers are still valid when reaching Dail.
+			char buffer[128];
+			char obuffer[128];
 			if (strlen(foundstr) >= 12) {
 				// Check if supplied parameter only consists of digits
 				bool isNum = true;
-				for (Bitu i=0; i<strlen(foundstr); i++)
+				size_t fl = strlen(foundstr);
+				for (size_t i = 0; i < fl; i++)
 					if (foundstr[i] < '0' || foundstr[i] > '9') isNum = false;
 				if (isNum) {
 					// Parameter is a number with at least 12 digits => this cannot
 					// be a valid IP/name
 					// Transform by adding dots
-					char buffer[128];
-					Bitu j = 0;
-					for (Bitu i=0; i<strlen(foundstr); i++) {
+					size_t j = 0;
+					size_t foundlen = strlen(foundstr);
+					for (size_t i = 0; i < foundlen; i++) {
 						buffer[j++] = foundstr[i];
 						// Add a dot after the third, sixth and ninth number
 						if (i == 2 || i == 5 || i == 8)
@@ -386,6 +391,19 @@ void CSerialModem::DoCommand() {
 					}
 					buffer[j] = 0;
 					foundstr = buffer;
+					
+					// Remove Zeros from beginning of octets
+					size_t k = 0;
+					size_t foundlen2 = strlen(foundstr);
+					for (size_t i = 0; i < foundlen2; i++) {
+						if (i == 0 && foundstr[0] == '0') continue;
+						if (i == 1 && foundstr[0] == '0' && foundstr[1] == '0') continue;
+						if (foundstr[i] == '0' && foundstr[i-1] == '.') continue;
+						if (foundstr[i] == '0' && foundstr[i-1] == '0' && foundstr[i-2] == '.') continue;
+						obuffer[k++] = foundstr[i];
+						}
+					obuffer[k] = 0;
+					foundstr = obuffer;
 				}
 			}
 			Dial(foundstr);
@@ -393,8 +411,8 @@ void CSerialModem::DoCommand() {
 		}
 		case 'I': // Some strings about firmware
 			switch (ScanNumber(scanbuf)) {
-			case 3: SendLine("DosBox Emulated Modem Firmware V1.00"); break;
-			case 4: SendLine("Modem compiled for DosBox version " VERSION); break;
+			case 3: SendLine("DOSBox Emulated Modem Firmware V1.00"); break;
+			case 4: SendLine("Modem compiled for DOSBox version " VERSION); break;
 			}
 			break;
 		case 'E': // Echo on/off

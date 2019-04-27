@@ -2,3 +2,7 @@ Commit#:	Reason for skipping:
 
 3835		Preparatory commit for 3836, which was skipped.
 3836		Assumes the Windows API. midiOutGetNumDevs() and midiOutGetDevCaps() are specific to Windows and do not exist anywhere else.
+3837		References midi.h, from skipped 3835.
+3838		Related to skipped commit 3836.
+3846		Large commit
+3847		Conflicts with https://github.com/joncampbell123/dosbox-x/commit/ac70b5599fb2fb824be7ed627ec4e70aa8b6bc79
