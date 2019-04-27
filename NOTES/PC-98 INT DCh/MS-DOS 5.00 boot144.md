@@ -88,6 +88,8 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:2F0E EDITKEY_ENTRY * 11            Editor keys. 11 entries that correspond to scan codes 36h to 40h inclusive.
                                             They correspond to: ROLL UP, ROLL DOWN, INS, DEL, UP ARROW, LEFT ARROW, RIGHT ARROW,
                                                                 DOWN ARROW, HOME/CLR, HELP, AND KEYPAD -
+    0060:2F86 FUNCROW_ENTRY * 10            Function keys Ctrl-F1 to Ctrl-F10
+    0060:3026 FUNCROW_ENTRY * 5             Function keys Ctrl-VF1 to Ctrl-VF5
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
