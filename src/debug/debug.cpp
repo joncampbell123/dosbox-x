@@ -1913,7 +1913,13 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "AC") {
+        if (command == "SEQ") {
+            DEBUG_ShowMsg("VGA Sequencer info: index=%02xh",vga.seq.index);
+            DEBUG_ShowMsg("reset=%02xh clockmode=%02xh map_mask=%02xh charmapsel=%02xh memmode=%02xh",
+                vga.seq.reset,      vga.seq.clocking_mode,      vga.seq.map_mask,
+                vga.seq.character_map_select,                   vga.seq.memory_mode);
+        }
+        else if (command == "AC") {
             std::string cpptmp;
             char tmp[64];
 
