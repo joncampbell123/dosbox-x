@@ -134,6 +134,7 @@ static void LogLDT(void);
 static void LogIDT(void);
 static void LogXMS(void);
 static void LogEMS(void);
+static void LogFNKEY(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
@@ -1873,6 +1874,7 @@ bool ParseCommand(char* str) {
         else if (command == "KERN") LogDOSKernMem();
         else if (command == "XMS") LogXMS();
         else if (command == "EMS") LogEMS();
+        else if (command == "FNKEY") LogFNKEY();
         else return false;
 
 		return true;
@@ -3161,6 +3163,15 @@ bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle);
 const char *EMS_Type_String(void);
 Bitu EMS_Max_Handles(void);
 bool EMS_Active(void);
+
+static void LogFNKEY(void) {
+    DEBUG_BeginPagedContent();
+
+    void DEBUG_INTDC_FnKeyMapInfo(void);
+    DEBUG_INTDC_FnKeyMapInfo();
+
+    DEBUG_EndPagedContent();
+}
 
 static void LogEMS(void) {
     Bitu h_size;

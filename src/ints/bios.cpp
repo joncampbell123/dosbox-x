@@ -2393,6 +2393,77 @@ struct pc98_func_key_shortcut_def {
     unsigned char           shortcut[0x0E]; /* +0x01  Shortcut text to insert into CON device */
     unsigned char           pad;            /* +0x0F  always NUL */
 
+    std::string getShortcutText(void) const {
+        unsigned int i;
+        char tmp[0x10];
+
+        /* Whether a shortcut or escape (0xFE or not) the first 6 chars are displayed always */
+        /* TODO: Strings for display are expected to display as Shift-JIS, convert to UTF-8 for display on host */
+        for (i=0;i < 0x0E;i++) {
+            if (shortcut[i] == 0u)
+                break;
+            else if (shortcut[i] > 0x7Fu || shortcut[i] < 32u) /* 0xFE is invisible on real hardware */
+                tmp[i] = ' ';
+            else
+                tmp[i] = (char)shortcut[i];
+        }
+        tmp[i] = 0;
+
+        return tmp;
+    }
+
+    std::string getDisplayText(void) const {
+        unsigned int i;
+        char tmp[8];
+
+        /* Whether a shortcut or escape (0xFE or not) the first 6 chars are displayed always */
+        /* TODO: Strings for display are expected to display as Shift-JIS, convert to UTF-8 for display on host */
+        for (i=0;i < 6;i++) {
+            if (shortcut[i] == 0u)
+                break;
+            else if (shortcut[i] > 0x7Fu || shortcut[i] < 32u) /* 0xFE is invisible on real hardware */
+                tmp[i] = ' ';
+            else
+                tmp[i] = (char)shortcut[i];
+        }
+        tmp[i] = 0;
+
+        return tmp;
+    }
+
+    std::string debugToString(void) const {
+        std::string ret;
+        char tmp[512];
+
+        if (length == 0)
+            return "(none)";
+
+        if (shortcut[0] == 0xFE) {
+            sprintf(tmp,"disp=\"%s\" ",getDisplayText().c_str());
+            ret += tmp;
+
+            ret += "esc={ ";
+            for (unsigned int i=6;i < length;i++) {
+                sprintf(tmp,"%02x ",shortcut[i]);
+                ret += tmp;
+            }
+            ret += "}";
+        }
+        else {
+            sprintf(tmp,"text=\"%s\" ",getShortcutText().c_str());
+            ret += tmp;
+
+            ret += "esc={ ";
+            for (unsigned int i=0;i < length;i++) {
+                sprintf(tmp,"%02x ",shortcut[i]);
+                ret += tmp;
+            }
+            ret += "}";
+        }
+
+        return ret;
+    }
+
     // set shortcut.
     // usually a direct string to insert.
     void set_shortcut(const char *str) {
@@ -4248,6 +4319,37 @@ void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
 
 bool inhibited_ControlFn(void) {
     return real_readb(0x60,0x10C) & 0x01;
+}
+
+extern bool dos_kernel_disabled;
+
+void DEBUG_INTDC_FnKeyMapInfo(void) {
+    if (!IS_PC98_ARCH) {
+        DEBUG_ShowMsg("INT DCh has no meaning except in PC-98 mode");
+    }
+    else if (dos_kernel_disabled) {
+        DEBUG_ShowMsg("INT DCh FnKey mapping has no meaning outside the DOS environment");
+    }
+    else {
+        DEBUG_ShowMsg("INT DCh FnKey mapping. Ctrl+Fn builtin inhibited=%s",inhibited_ControlFn()?"yes":"no");
+        for (unsigned int i=0;i < 10;i++)
+            DEBUG_ShowMsg("  F%u: %s",i+1,pc98_func_key[i].debugToString().c_str());
+        for (unsigned int i=0;i < 5;i++)
+            DEBUG_ShowMsg("  VF%u: %s",i+1,pc98_vfunc_key[i].debugToString().c_str());
+
+        for (unsigned int i=0;i < 10;i++)
+            DEBUG_ShowMsg("  Shift+F%u: %s",i+1,pc98_func_key_shortcut[i].debugToString().c_str());
+        for (unsigned int i=0;i < 5;i++)
+            DEBUG_ShowMsg("  Shift+VF%u: %s",i+1,pc98_vfunc_key_shortcut[i].debugToString().c_str());
+
+        for (unsigned int i=0;i < 10;i++)
+            DEBUG_ShowMsg("  Control+F%u: %s",i+1,pc98_func_key_ctrl[i].debugToString().c_str());
+        for (unsigned int i=0;i < 5;i++)
+            DEBUG_ShowMsg("  Control+VF%u: %s",i+1,pc98_vfunc_key_ctrl[i].debugToString().c_str());
+#if 0
+struct pc98_func_key_shortcut_def   pc98_editor_key_escapes[11];        /* Editor keys */
+#endif
+    }
 }
 
 /* PC-98 application notes, that are NOT DOSBox-X bugs because they occur on real MS-DOS as well:
