@@ -1913,7 +1913,16 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "SEQ") {
+        if (command == "GC") {
+            DEBUG_ShowMsg("VGA Graphics controller info: index=%02xh setreset=%02xh",vga.gfx.index,vga.gfx.set_reset);
+            DEBUG_ShowMsg("enablesetreset=%02xh color-comp=%02xh data-rotate=%02xh rdmapsel=%02xh",
+                vga.gfx.enable_set_reset,   vga.gfx.color_compare,  vga.gfx.data_rotate,
+                vga.gfx.read_map_select);
+            DEBUG_ShowMsg("mode=%02xh misc=%02xh color-dont-care=%02xh bitmask=%02xh",
+                vga.gfx.mode,               vga.gfx.miscellaneous,  vga.gfx.color_dont_care,
+                vga.gfx.bit_mask);
+        }
+        else if (command == "SEQ") {
             DEBUG_ShowMsg("VGA Sequencer info: index=%02xh",vga.seq.index);
             DEBUG_ShowMsg("reset=%02xh clockmode=%02xh map_mask=%02xh charmapsel=%02xh memmode=%02xh",
                 vga.seq.reset,      vga.seq.clocking_mode,      vga.seq.map_mask,
