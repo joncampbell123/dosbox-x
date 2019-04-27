@@ -418,7 +418,7 @@ static INLINE void DSP_FlushData(void) {
 }
 
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
-    if (event==DMA_REACHED_TC) return;
+    if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
     else if (event==DMA_MASKED) {
         if (sb.mode==MODE_DMA) {
             sb.mode=MODE_DMA_MASKED;
