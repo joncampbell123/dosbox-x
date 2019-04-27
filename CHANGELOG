@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Added debugger command "VGA SEQ" for the sequencer section
+    of VGA emulation.
   - Added debugger commands "VGA DRAW" and "VGA AC" to view
     drawing and attribute controller state in the VGA emulation.
   - Integrated commits from mainline: 3834, 3839, 3840, 3843,
