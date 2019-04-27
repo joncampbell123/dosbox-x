@@ -322,23 +322,27 @@ static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fa
 
 // load an immediate value as param'th function parameter
 static void INLINE gen_load_param_imm(Bitu imm,Bitu param) {
+    (void)param;
 	cache_addb(0x68);			// push immediate
 	cache_addd(imm);
 }
 
 // load an address as param'th function parameter
 static void INLINE gen_load_param_addr(Bitu addr,Bitu param) {
+    (void)param;
 	cache_addb(0x68);			// push immediate (address)
 	cache_addd(addr);
 }
 
 // load a host-register as param'th function parameter
 static void INLINE gen_load_param_reg(Bitu reg,Bitu param) {
+    (void)param;
 	cache_addb(0x50+(reg&7));	// push reg
 }
 
 // load a value from memory as param'th function parameter
 static void INLINE gen_load_param_mem(Bitu mem,Bitu param) {
+    (void)param;
 	cache_addw(0x35ff);			// push []
 	cache_addd(mem);
 }
@@ -511,6 +515,6 @@ static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
 }
 #endif
 
-static void cache_block_closing(Bit8u* block_start,Bitu block_size) { }
+static void cache_block_closing(Bit8u* block_start,Bitu block_size) { (void)block_start; (void)block_size; }
 
 static void cache_block_before_close(void) { }

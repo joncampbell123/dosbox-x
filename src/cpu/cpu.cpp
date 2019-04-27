@@ -2866,7 +2866,7 @@ void CPU_CycleIncrease(bool pressed) {
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
-		LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
+		LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		Bit32s old_cycles=CPU_CycleMax;
@@ -2879,16 +2879,16 @@ void CPU_CycleIncrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",(unsigned long)CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
 #if (C_DYNAMIC_X86)
             if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
-                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
+                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",(unsigned long)CPU_CycleMax);
             else
 // TODO: Add C_DYNREC version
 #endif
-                LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
+                LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
         }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
         CPU_SyncCycleMaxToProp();
@@ -2901,9 +2901,9 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CyclePercUsed-=5;
 		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
 		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",(unsigned long)CPU_CyclePercUsed);
 		else
-			LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		if (CPU_CycleDown < 100) {
@@ -2914,10 +2914,10 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",(unsigned long)CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
+		    LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
 		}
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
         CPU_SyncCycleMaxToProp();

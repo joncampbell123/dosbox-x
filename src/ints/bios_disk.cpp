@@ -1746,7 +1746,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
         if (trackoff != 0) {
             fseek(diskimg, trackoff, SEEK_SET);
-            if (ftell(diskimg) != trackoff) continue;
+            if ((off_t)ftell(diskimg) != (off_t)trackoff) continue;
 
             D88SEC s;
             unsigned int count = 0;
@@ -2083,7 +2083,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
             if (trkoff == 0) break;
 
             fseek(diskimg,trkoff,SEEK_SET);
-            if (ftell(diskimg) != trkoff) return;
+            if ((off_t)ftell(diskimg) != (off_t)trkoff) return;
 
             NFDHDR_ENTRY e;
 
