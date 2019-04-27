@@ -2394,22 +2394,24 @@ struct pc98_func_key_shortcut_def {
     unsigned char           pad;            /* +0x0F  always NUL */
 
     std::string getShortcutText(void) const {
+        std::string ret;
         unsigned int i;
-        char tmp[0x10];
 
         /* Whether a shortcut or escape (0xFE or not) the first 6 chars are displayed always */
         /* TODO: Strings for display are expected to display as Shift-JIS, convert to UTF-8 for display on host */
         for (i=0;i < 0x0E;i++) {
             if (shortcut[i] == 0u)
                 break;
+            else if (shortcut[i] == 0x1B) {
+                ret += "<ESC>";
+            }
             else if (shortcut[i] > 0x7Fu || shortcut[i] < 32u) /* 0xFE is invisible on real hardware */
-                tmp[i] = ' ';
+                ret += ' ';
             else
-                tmp[i] = (char)shortcut[i];
+                ret += (char)shortcut[i];
         }
-        tmp[i] = 0;
 
-        return tmp;
+        return ret;
     }
 
     std::string getDisplayText(void) const {
