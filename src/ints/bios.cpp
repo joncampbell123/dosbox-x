@@ -4323,6 +4323,20 @@ bool inhibited_ControlFn(void) {
 
 extern bool dos_kernel_disabled;
 
+static const char *fneditkeys[11] = {
+    "ROLLUP",
+    "ROLLDOWN",
+    "INS",
+    "DEL",
+    "UPARROW",
+    "LEFTARROW",
+    "RIGHTARROW",
+    "DOWNARROW",
+    "HOMECLR",
+    "HELP",
+    "KEYPAD-"
+};
+
 void DEBUG_INTDC_FnKeyMapInfo(void) {
     if (!IS_PC98_ARCH) {
         DEBUG_ShowMsg("INT DCh has no meaning except in PC-98 mode");
@@ -4346,9 +4360,9 @@ void DEBUG_INTDC_FnKeyMapInfo(void) {
             DEBUG_ShowMsg("  Control+F%u: %s",i+1,pc98_func_key_ctrl[i].debugToString().c_str());
         for (unsigned int i=0;i < 5;i++)
             DEBUG_ShowMsg("  Control+VF%u: %s",i+1,pc98_vfunc_key_ctrl[i].debugToString().c_str());
-#if 0
-struct pc98_func_key_shortcut_def   pc98_editor_key_escapes[11];        /* Editor keys */
-#endif
+
+        for (unsigned int i=0;i < 11;i++)
+            DEBUG_ShowMsg("  %s: %s",fneditkeys[i],pc98_editor_key_escapes[i].debugToString().c_str());
     }
 }
 
