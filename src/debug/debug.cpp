@@ -1913,7 +1913,36 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "MODE") {
+        if (command == "DRAW") {
+            DEBUG_ShowMsg("VGA draw info: resizing=%u width=%lu height=%lu blocks=%lu",
+                vga.draw.resizing?1:0,(unsigned long)vga.draw.width,(unsigned long)vga.draw.height,(unsigned long)vga.draw.blocks);
+            DEBUG_ShowMsg("address=%lxh panning=%lu bytes-skip=%lu lin-mask=%lx pln-mask=%lx",
+                (unsigned long)vga.draw.address,(unsigned long)vga.draw.panning,(unsigned long)vga.draw.bytes_skip,
+                (unsigned long)vga.draw.linear_mask,(unsigned long)vga.draw.planar_mask);
+            DEBUG_ShowMsg("addr-add=%lxh line-length=%lu addrline-total=%lu addrline=%lu",
+                (unsigned long)vga.draw.address_add,(unsigned long)vga.draw.line_length,
+                (unsigned long)vga.draw.address_line_total,(unsigned long)vga.draw.address_line);
+            DEBUG_ShowMsg("line-total=%lu vblank-skip=%lu lines-done=%lu split-line=%lu",
+                (unsigned long)vga.draw.lines_total,(unsigned long)vga.draw.vblank_skip,
+                (unsigned long)vga.draw.lines_done,(unsigned long)vga.draw.split_line);
+            DEBUG_ShowMsg("byte-pan-shft=%lu render-stop=%lu render-max=%lu scrn-ratio=%.3f",
+                (unsigned long)vga.draw.byte_panning_shift,(unsigned long)vga.draw.render_step,
+                (unsigned long)vga.draw.render_max,(double)vga.draw.screen_ratio);
+            DEBUG_ShowMsg("blinking=%lu blink=%u char9dot=%u has-split=%u vret-trig=%u",
+                (unsigned long)vga.draw.blinking,vga.draw.blink?1:0,
+                vga.draw.char9dot?1:0,vga.draw.has_split?1:0,
+                vga.draw.vret_triggered?1:0);
+            DEBUG_ShowMsg("bpp=%lu curs-addr=%lxh curs-s=%u curs-e=%u curs-c=%u curs-d=%u curs-en=%u",
+                (unsigned long)vga.draw.bpp,
+                (unsigned long)vga.draw.cursor.address,
+                vga.draw.cursor.sline,
+                vga.draw.cursor.eline,
+                vga.draw.cursor.count,
+                vga.draw.cursor.delay,
+                vga.draw.cursor.enabled);
+// TODO: Remove vga.draw.refresh, appears to be unused
+        }
+        else if (command == "MODE") {
             DEBUG_ShowMsg("VGA mode info:");
             DEBUG_ShowMsg("mode=%s vref=%.3fHz href=%.3fHz chrclk=%.3fHz dotclk=%.3fHz",
                 mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
