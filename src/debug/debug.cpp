@@ -1935,6 +1935,32 @@ bool ParseCommand(char* str) {
             DEBUG_ShowMsg("hidac_counter=%u reg02=%02xh",
                 vga.dac.hidac_counter,  vga.dac.reg02);
         }
+        else if (command == "DACPAL") {
+            std::string cpptmp;
+            char tmp[64];
+
+            DEBUG_BeginPagedContent();
+
+            DEBUG_ShowMsg("VGA DAC palette (RGB):");
+            for (unsigned int i=0;i < 256;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%02x%02x%02x%c",
+                        vga.dac.rgb[i+c].red,
+                        vga.dac.rgb[i+c].green,
+                        vga.dac.rgb[i+c].blue,
+                        c == 3 ? '-' : ' '
+                    );
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_EndPagedContent();
+        }
         else if (command == "SEQ") {
             DEBUG_ShowMsg("VGA Sequencer info: index=%02xh",vga.seq.index);
             DEBUG_ShowMsg("reset=%02xh clockmode=%02xh map_mask=%02xh charmapsel=%02xh memmode=%02xh",
