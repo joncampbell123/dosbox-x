@@ -434,31 +434,33 @@ public:
 
 	CBreakpoint(void);
 	void					SetAddress		(Bit16u seg, Bit32u off)	{ location = (PhysPt)GetAddress(seg,off); type = BKPNT_PHYSICAL; segment = seg; offset = off; };
-	void					SetAddress		(PhysPt adr)				{ location = adr;				type = BKPNT_PHYSICAL; };
-	void					SetInt			(Bit8u _intNr, Bit16u ah)	{ intNr = _intNr, ahValue = ah; type = BKPNT_INTERRUPT; };
+	void					SetAddress		(PhysPt adr)				{ location = adr; type = BKPNT_PHYSICAL; };
+	void					SetInt			(Bit8u _intNr, Bit16u ah, Bit16u al)	{ intNr = _intNr, ahValue = ah; alValue = al; type = BKPNT_INTERRUPT; };
 	void					SetOnce			(bool _once)				{ once = _once; };
 	void					SetType			(EBreakpoint _type)			{ type = _type; };
 	void					SetValue		(Bit8u value)				{ ahValue = value; };
+	void					SetOther		(Bit8u other)				{ alValue = other; };	
 
 	bool					IsActive		(void)						{ return active; };
 	void					Activate		(bool _active);
 
 	EBreakpoint				GetType			(void)						{ return type; };
 	bool					GetOnce			(void)						{ return once; };
-	PhysPt					GetLocation		(void)						{ if (GetType()!=BKPNT_INTERRUPT)	return location;	else return 0; };
+	PhysPt					GetLocation		(void)						{ return location; };
 	Bit16u					GetSegment		(void)						{ return segment; };
 	Bit32u					GetOffset		(void)						{ return offset; };
-	Bit8u					GetIntNr		(void)						{ if (GetType()==BKPNT_INTERRUPT)	return intNr;		else return 0; };
-	Bit16u					GetValue		(void)						{ if (GetType()!=BKPNT_PHYSICAL)	return ahValue;		else return 0; };
+	Bit8u					GetIntNr		(void)						{ return intNr; };
+	Bit16u					GetValue		(void)						{ return ahValue; };
+	Bit16u					GetOther		(void)						{ return alValue; };
 
 	// statics
 	static CBreakpoint*		AddBreakpoint		(Bit16u seg, Bit32u off, bool once);
-	static CBreakpoint*		AddIntBreakpoint	(Bit8u intNum, Bit16u ah, bool once);
+	static CBreakpoint*		AddIntBreakpoint	(Bit8u intNum, Bit16u ah, Bit16u al, bool once);
 	static CBreakpoint*		AddMemBreakpoint	(Bit16u seg, Bit32u off);
 	static void				ActivateBreakpoints	(PhysPt adr, bool activate);
 	static bool				CheckBreakpoint		(PhysPt adr);
 	static bool				CheckBreakpoint		(Bitu seg, Bitu off);
-	static bool				CheckIntBreakpoint	(PhysPt adr, Bit8u intNr, Bit16u ahValue);
+	static bool				CheckIntBreakpoint	(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bit16u alValue);
 	static bool				IsBreakpoint		(PhysPt where);
 	static bool				IsBreakpointDrawn	(PhysPt where);
 	static bool				DeleteBreakpoint	(PhysPt where);
@@ -477,6 +479,7 @@ private:
 	// Int
 	Bit8u		intNr;
 	Bit16u		ahValue;
+	Bit16u		alValue;
 	// Shared
 	bool		active;
 	bool		once;
@@ -486,7 +489,7 @@ public:
 	static CBreakpoint*				ignoreOnce;
 };
 
-CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { }
+CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),alValue(0),active(false),once(false) { }
 
 void CBreakpoint::Activate(bool _active)
 {
@@ -524,10 +527,10 @@ CBreakpoint* CBreakpoint::AddBreakpoint(Bit16u seg, Bit32u off, bool once)
 	return bp;
 }
 
-CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, bool once)
+CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, Bit16u al, bool once)
 {
 	CBreakpoint* bp = new CBreakpoint();
-	bp->SetInt			(intNum,ah);
+	bp->SetInt			(intNum,ah,al);
 	bp->SetOnce			(once);
 	BPoints.push_front	(bp);
 	return bp;
@@ -623,7 +626,7 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 	return false;
 }
 
-bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
+bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bit16u alValue)
 // Checks if interrupt breakpoint is valid and should stop execution
 {
 	if ((ignoreAddressOnce!=0) && (adr==ignoreAddressOnce)) {
@@ -638,7 +641,7 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
 	for(i=BPoints.begin(); i != BPoints.end(); i++) {
 		bp = (*i);
 		if ((bp->GetType()==BKPNT_INTERRUPT) && bp->IsActive() && (bp->GetIntNr()==intNr)) {
-			if ((bp->GetValue()==BPINT_ALL) || (bp->GetValue()==ahValue)) {
+			if (((bp->GetValue()==BPINT_ALL) || (bp->GetValue()==ahValue)) && ((bp->GetOther()==BPINT_ALL) || (bp->GetOther()==alValue))) {
 				// Ignore it once ?
 				if (ignoreOnce==bp) {
 					ignoreOnce=0;
@@ -754,8 +757,9 @@ void CBreakpoint::ShowList(void)
 		if (bp->GetType()==BKPNT_PHYSICAL) {
 			DEBUG_ShowMsg("%02X. BP %04X:%04X\n",nr,bp->GetSegment(),bp->GetOffset());
 		} else if (bp->GetType()==BKPNT_INTERRUPT) {
-			if (bp->GetValue()==BPINT_ALL)	DEBUG_ShowMsg("%02X. BPINT %02X\n",nr,bp->GetIntNr());					
-			else							DEBUG_ShowMsg("%02X. BPINT %02X AH=%02X\n",nr,bp->GetIntNr(),bp->GetValue());
+			if (bp->GetValue()==BPINT_ALL) DEBUG_ShowMsg("%02X. BPINT %02X\n",nr,bp->GetIntNr());
+			else if (bp->GetOther()==BPINT_ALL) DEBUG_ShowMsg("%02X. BPINT %02X AH=%02X\n",nr,bp->GetIntNr(),bp->GetValue());
+			else DEBUG_ShowMsg("%02X. BPINT %02X AH=%02X AL=%02X\n",nr,bp->GetIntNr(),bp->GetValue(),bp->GetOther());
 		} else if (bp->GetType()==BKPNT_MEMORY) {
 			DEBUG_ShowMsg("%02X. BPMEM %04X:%04X (%02X)\n",nr,bp->GetSegment(),bp->GetOffset(),bp->GetValue());
 		} else if (bp->GetType()==BKPNT_MEMORY_PROT) {
@@ -781,7 +785,7 @@ bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
 	/* First get the physical address and check for a set Breakpoint */
 	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
-	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah)) return false;
+	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah,reg_al)) return false;
 	// Found. Breakpoint is valid
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
@@ -1634,14 +1638,21 @@ bool ParseCommand(char* str) {
 
 	if (command == "BPINT") { // Add Interrupt Breakpoint
 		Bit8u intNr	= (Bit8u)GetHexValue(found,found);
-		bool all = !(*found);found++;
-		Bit8u valAH	= (Bit8u)GetHexValue(found,found);
+		bool all = !(*found);
+		Bit8u valAH = (Bit8u)GetHexValue(found,found);
 		if ((valAH==0x00) && (*found=='*' || all)) {
-			CBreakpoint::AddIntBreakpoint(intNr,BPINT_ALL,false);
+			CBreakpoint::AddIntBreakpoint(intNr,BPINT_ALL,BPINT_ALL,false);
 			DEBUG_ShowMsg("DEBUG: Set interrupt breakpoint at INT %02X\n",intNr);
 		} else {
-			CBreakpoint::AddIntBreakpoint(intNr,valAH,false);
-			DEBUG_ShowMsg("DEBUG: Set interrupt breakpoint at INT %02X AH=%02X\n",intNr,valAH);
+			all = !(*found);
+			Bit8u valAL = (Bit8u)GetHexValue(found,found);
+			if ((valAL==0x00) && (*found=='*' || all)) {
+				CBreakpoint::AddIntBreakpoint(intNr,valAH,BPINT_ALL,false);
+				DEBUG_ShowMsg("DEBUG: Set interrupt breakpoint at INT %02X AH=%02X\n",intNr,valAH);
+			} else {
+				CBreakpoint::AddIntBreakpoint(intNr,valAH,valAL,false);
+				DEBUG_ShowMsg("DEBUG: Set interrupt breakpoint at INT %02X AH=%02X AL=%02X\n",intNr,valAH,valAL);
+			}
 		}
 		return true;
 	};
@@ -2307,7 +2318,8 @@ bool ParseCommand(char* str) {
         DEBUG_ShowMsg("TAB                       - Select next window\n");
 		DEBUG_ShowMsg("BP     [segment]:[offset] - Set breakpoint.\n");
 		DEBUG_ShowMsg("BPINT  [intNr] *          - Set interrupt breakpoint.\n");
-		DEBUG_ShowMsg("BPINT  [intNr] [ah]       - Set interrupt breakpoint with ah.\n");
+		DEBUG_ShowMsg("BPINT  [intNr] [ah] *     - Set interrupt breakpoint with ah.\n");
+		DEBUG_ShowMsg("BPINT  [intNr] [ah] [al]  - Set interrupt breakpoint with ah and al.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("BPM    [segment]:[offset] - Set memory breakpoint (memory change).\n");
 		DEBUG_ShowMsg("BPPM   [selector]:[offset]- Set pmode-memory breakpoint (memory change).\n");
