@@ -1913,7 +1913,29 @@ bool ParseCommand(char* str) {
             return false;
         }
 
-        if (command == "DRAW") {
+        if (command == "AC") {
+            std::string cpptmp;
+            char tmp[64];
+
+            DEBUG_ShowMsg("VGA Attribute Controller info: attrindexmode=%u",vga.internal.attrindex?1:0);
+            DEBUG_ShowMsg("mode_control=%02xh horz-pel-pan=%02xh overscan-color=%02xh",
+                vga.attr.mode_control,  vga.attr.horizontal_pel_panning,
+                vga.attr.overscan_color);
+            DEBUG_ShowMsg("color-plane-en=%02xh color-select=%02xh index=%02xh",
+                vga.attr.color_plane_enable,    vga.attr.color_select,  vga.attr.index);
+            DEBUG_ShowMsg("disabled-by-index=%u disabled-by-idx1-bit5=%u",
+                vga.attr.disabled & 1 ? 1 : 0,
+                vga.attr.disabled & 2 ? 1 : 0);
+
+            cpptmp = " ";
+            for (unsigned int i=0;i < 16;i++) {
+                sprintf(tmp,"%02x%c",vga.attr.palette[i],((i&3) == 3 && i != 15) ? '-' : ' ');
+                cpptmp += tmp;
+            }
+
+            DEBUG_ShowMsg("palette={%s}",cpptmp.c_str());
+        }
+        else if (command == "DRAW") {
             DEBUG_ShowMsg("VGA draw info: resizing=%u width=%lu height=%lu blocks=%lu",
                 vga.draw.resizing?1:0,(unsigned long)vga.draw.width,(unsigned long)vga.draw.height,(unsigned long)vga.draw.blocks);
             DEBUG_ShowMsg("address=%lxh panning=%lu bytes-skip=%lu lin-mask=%lx pln-mask=%lx",
