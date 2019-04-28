@@ -263,7 +263,7 @@ int ZIPFile::open(const char *path,int mode) {
             close();
             return -1;
         }
-        if (seek_file(ehdr.offset_of_central_directory_from_start_disk) != ehdr.offset_of_central_directory_from_start_disk) {
+        if (seek_file(ehdr.offset_of_central_directory_from_start_disk) != (off_t)ehdr.offset_of_central_directory_from_start_disk) {
             LOG_MSG("Cannot locate Central Directory #2");
             close();
             return -1;
