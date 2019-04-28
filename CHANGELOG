@@ -1,5 +1,6 @@
 0.82.19 (next)
-  - 
+  - Remove old dynamic x86 core. Dynamic core is exclusively
+    dynrec now.
 0.82.18
   - Added debugger command "VGA CRTC" for the CRTC section of
     VGA emulation.
