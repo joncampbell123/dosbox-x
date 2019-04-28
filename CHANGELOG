@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - Integrated commits from mainline: 3854, 3860, 3861, 3862,
+    3864, 3866 (Allofich)
   - Remove old dynamic x86 core. Dynamic core is exclusively
     dynrec now.
 0.82.18
