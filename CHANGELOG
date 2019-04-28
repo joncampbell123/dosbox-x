@@ -1,3 +1,5 @@
+0.82.19 (next)
+  - 
 0.82.18
   - Added debugger command "VGA CRTC" for the CRTC section of
     VGA emulation.
