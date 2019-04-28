@@ -1,4 +1,4 @@
-0.82.18 (next)
+0.82.18
   - Added debugger command "VGA CRTC" for the CRTC section of
     VGA emulation.
   - Added debugger command "VGA DAC" for the DAC and "VGA DACPAL"
