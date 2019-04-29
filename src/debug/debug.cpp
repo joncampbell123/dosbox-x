@@ -68,6 +68,8 @@ const char *egc_fgc_modes[4] = {
     "(invalid)",
 };
 
+bool pc98_pegc_linear_framebuffer_enabled(void);
+
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
 extern bool                         gdc_5mhz_mode;
@@ -2131,6 +2133,9 @@ bool ParseCommand(char* str) {
                 else
                     cpptmp += "DOUBLESCAN ";
             }
+
+            if (pc98_pegc_linear_framebuffer_enabled())
+                cpptmp += "PEGC-LFB ";
 
             DEBUG_ShowMsg("PC-98 graphics mode: %s",cpptmp.c_str());
 
