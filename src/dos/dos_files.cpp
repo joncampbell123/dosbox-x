@@ -69,6 +69,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	char tempdir[DOS_PATHLENGTH];
 	char upname[DOS_PATHLENGTH];
 	Bitu r,w;
+	Bit8u c;
 	*drive = DOS_GetDefaultDrive();
 	/* First get the drive */
 	if (name_int[1]==':') {
@@ -81,24 +82,15 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	}
 	r=0;w=0;
 	while (name_int[r]!=0 && (r<DOS_PATHLENGTH)) {
-		Bit8u c=(Bit8u)name_int[r++];
-		if ((c>='a') && (c<='z')) {upname[w++]=(char)c-32;continue;}
-		if ((c>='A') && (c<='Z')) {upname[w++]=(char)c;continue;}
-		if ((c>='0') && (c<='9')) {upname[w++]=(char)c;continue;}
-		switch (c) {
-		case '/':
-			upname[w++]='\\';
-			break;
-		case ' ': /* should be seperator */
-			break;
-		default:
-			upname[w++]=(char)c;
-            if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
-                /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
-                upname[w++]=name_int[r++];
-            }
-			break;
-		}
+		c=(Bit8u)name_int[r++];
+		if ((c>='a') && (c<='z')) c-=32;
+		else if (c==' ') continue; /* should be separator */
+		else if (c=='/') c='\\';
+		upname[w++]=(char)c;
+        if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+            /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+            upname[w++]=name_int[r++];
+        }
 	}
 	while (r>0 && name_int[r-1]==' ') r--;
 	if (r>=DOS_PATHLENGTH) { DOS_SetError(DOSERR_PATH_NOT_FOUND);return false; }
