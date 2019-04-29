@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - PEGC emulation will now print a warning if the guest
+    application or OS attempts to use 256-color planar mode.
   - PC-98 PEGC 256-color linear framebuffer is not mapped by
     default anymore, except when 256-color mode and the enable
     bit set, to match real hardware.
