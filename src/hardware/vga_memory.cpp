@@ -155,6 +155,7 @@ bool pc98_pegc_linear_framebuffer_enabled(void) {
     return !!(pc98_pegc_mmio[0x102] & 1);
 }
 
+// TODO: This code may have to handle 16-bit MMIO reads
 Bit8u pc98_pegc_mmio_read(unsigned int reg) {
     if (reg >= 0x200)
         return 0x00;
@@ -162,34 +163,34 @@ Bit8u pc98_pegc_mmio_read(unsigned int reg) {
     return pc98_pegc_mmio[reg];
 }
 
+// TODO: This code may have to handle 16-bit MMIO writes
 void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
     if (reg >= 0x200)
         return;
 
     Bit8u pval = pc98_pegc_mmio[reg];
 
-    // HACK: We do not support 256-color planar mode..... yet.
-    //       Support is planned, though it will take some time to reverse engineer.
-    //
-    //       See also: [https://github.com/joncampbell123/dosbox-x/issues/1061]
-    //            and: [https://translate.google.com/translate?sl=ja&tl=en&u=http%3A%2F%2Fwww.satotomi.com%2Fsl9821%2Fsl9821_tec5.html]
-    //
-    //       According to a newer laptop I test on where this support has been removed, writes to
-    //       104-120h (planar access and ROP functions) do not work. On an older laptop that has
-    //       this mode, these bytes work.
-    if (reg >= 0x100 && reg <= 0x101) // 256-color planar enable
-        return;//IGNORE
-    if (reg >= 0x103 && reg <= 0x120)
-        return;//IGNORE
-
     switch (reg) {
         case 0x004: // bank 0
             pc98_pegc_banks[0] = (val & 0xFu) << 15u;
             pc98_pegc_mmio[reg] = val;
             break;
+        case 0x005: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+            // ignore
+            break;
         case 0x006: // bank 1
             pc98_pegc_banks[1] = (val & 0xFu) << 15u;
             pc98_pegc_mmio[reg] = val;
+            break;
+        case 0x007: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+            // ignore
+            break;
+        case 0x100: // 256-color memory access  (0=packed  1=planar)
+            // WE DO NOT SUPPORT 256-planar MEMORY ACCESS AT THIS TIME!
+            // FUTURE SUPPORT IS PLANNED.
+            // ignore
+            if (val & 1)
+                LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable 256-color planar mode, which is not yet supported");
             break;
         case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
             val &= 1; // as seen on real hardware: only bit 0 can be changed
