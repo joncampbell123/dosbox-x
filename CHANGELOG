@@ -1,4 +1,8 @@
 0.82.19 (next)
+  - Integrated a commit from mainline:
+     #3860 "Use PCJr specific method to clear the video RAM.
+            Also don't scroll at unspecified video page.
+            Fixes issues with KQ1 and KQ2."
   - Integrated commits from mainline: 3854, 3860, 3861, 3862,
     3864, 3866 (Allofich)
   - PEGC emulation will now print a warning if the guest
