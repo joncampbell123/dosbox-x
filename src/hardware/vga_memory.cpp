@@ -1424,6 +1424,26 @@ public:
     }
 };
 
+// A8000h-B7FFFh is 256-color planar (????)
+// I don't THINK the bank switching registers have any effect. Not sure.
+// However it makes sense to make it a 64KB region because 8 planes x 64KB = 512KB of RAM. Right?
+class VGA_PC98_256Planar_PageHandler : public PageHandler {
+public:
+	VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+	Bitu readb(PhysPt addr) {
+        (void)addr;
+
+//      LOG_MSG("PEGC 256-color planar warning: Read from %lxh",(unsigned long)addr);
+        return 0xFF;
+    }
+	void writeb(PhysPt addr,Bitu val) {
+        (void)addr;
+        (void)val;
+
+//      LOG_MSG("PEGC 256-color planar warning: Write to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
+    }
+};
+
 // A8000h is bank 0
 // B0000h is bank 1
 template <const unsigned int bank> class VGA_PC98_256BANK_PageHandler : public PageHandler {
@@ -2131,6 +2151,7 @@ static struct vg {
     VGA_PC98_256MMIO_PageHandler pc98_256mmio;
     VGA_PC98_256BANK_PageHandler<0> pc98_256bank0;
     VGA_PC98_256BANK_PageHandler<1> pc98_256bank1;
+    VGA_PC98_256Planar_PageHandler pc98_256planar;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
@@ -2215,9 +2236,15 @@ void VGA_SetupHandlers(void) {
         MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x05, 0x03);                   /* A5000-A7FFFh not mapped */
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98_256bank0 );/* A8000-AFFFFh graphics layer, bank 0 */
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98_256bank1 );/* B0000-B7FFFh graphics layer, bank 1 */
-            MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                       /* B8000-BFFFFh graphics layer, not mapped */
+            if (pc98_gdc_vramop & (1 << VOPBIT_PEGC_PLANAR)) {
+                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x10, &vgaph.pc98_256planar );/* A8000-B7FFFh planar graphics (???) */
+                MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                        /* B8000-BFFFFh graphics layer, not mapped */
+            }
+            else {
+                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98_256bank0 );/* A8000-AFFFFh graphics layer, bank 0 */
+                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98_256bank1 );/* B0000-B7FFFh graphics layer, bank 1 */
+                MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                       /* B8000-BFFFFh graphics layer, not mapped */
+            }
         }
         else {
             MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, B bitplane */
