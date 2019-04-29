@@ -35,8 +35,8 @@
 
 extern ZIPFile savestate_zip;
 
-unsigned char pc98_vga_mmio[0x200] = {0}; /* PC-98 memory-mapped VGA registers at E0000h */
-uint32_t pc98_vga_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
+unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
+uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -151,32 +151,57 @@ INLINE static Bit32u ModeOperation(Bit8u val) {
 	return full;
 }
 
-Bit8u pc98_vga_mmio_read(unsigned int reg) {
+bool pc98_pegc_linear_framebuffer_enabled(void) {
+    return !!(pc98_pegc_mmio[0x102] & 1);
+}
+
+// TODO: This code may have to handle 16-bit MMIO reads
+Bit8u pc98_pegc_mmio_read(unsigned int reg) {
     if (reg >= 0x200)
         return 0x00;
 
-    return pc98_vga_mmio[reg];
+    return pc98_pegc_mmio[reg];
 }
 
-void pc98_vga_mmio_write(unsigned int reg,Bit8u val) {
+// TODO: This code may have to handle 16-bit MMIO writes
+void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
     if (reg >= 0x200)
         return;
 
+    Bit8u pval = pc98_pegc_mmio[reg];
+
     switch (reg) {
         case 0x004: // bank 0
-            pc98_vga_banks[0] = (val & 0xFu) << 15u;
+            pc98_pegc_banks[0] = (val & 0xFu) << 15u;
+            pc98_pegc_mmio[reg] = val;
+            break;
+        case 0x005: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+            // ignore
             break;
         case 0x006: // bank 1
-            pc98_vga_banks[1] = (val & 0xFu) << 15u;
+            pc98_pegc_banks[1] = (val & 0xFu) << 15u;
+            pc98_pegc_mmio[reg] = val;
+            break;
+        case 0x007: // unknown (WORD size write seen by bank switched (battle skin) and LFB (DOOM, DOOM2) games)
+            // ignore
+            break;
+        case 0x100: // 256-color memory access  (0=packed  1=planar)
+            // WE DO NOT SUPPORT 256-planar MEMORY ACCESS AT THIS TIME!
+            // FUTURE SUPPORT IS PLANNED.
+            // ignore
+            if (val & 1)
+                LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable 256-color planar mode, which is not yet supported");
+            break;
+        case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
+            val &= 1; // as seen on real hardware: only bit 0 can be changed
+            pc98_pegc_mmio[reg] = val;
+            if ((val^pval)&1/*if bit 0 changed*/)
+                VGA_SetupHandlers();
             break;
         default:
+            LOG_MSG("PC-98 PEGC warning: Unhandled write to %xh val %xh",reg+0xE0000u,val);
             break;
     }
-
-    if (reg >= 0x004 && reg <= 0x007)
-        pc98_vga_mmio[reg] = val;
-    else if (reg >= 0x100 && reg <= 0x13F)
-        pc98_vga_mmio[reg] = val;
 }
 
 /* Gonna assume that whoever maps vga memory, maps it on 32/64kb boundary */
@@ -1372,10 +1397,10 @@ class VGA_PC98_256MMIO_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
-        return pc98_vga_mmio_read(addr & 0x7FFFu);
+        return pc98_pegc_mmio_read(addr & 0x7FFFu);
     }
     void writeb(PhysPt addr,Bitu val) {
-        pc98_vga_mmio_write(addr & 0x7FFFu,(Bit8u)val);
+        pc98_pegc_mmio_write(addr & 0x7FFFu,(Bit8u)val);
     }
 };
 
@@ -2191,6 +2216,20 @@ void VGA_SetupHandlers(void) {
         else
             MEM_ResetPageHandler_Unmapped(0xE0, 8);
 
+        // TODO: What about PC-9821 systems with more than 15MB of RAM? Do they maintain a "hole"
+        //       in memory for this linear framebuffer? Intel motherboard chipsets of that era do
+        //       support a 15MB memory hole.
+        if (MEM_TotalPages() <= 0xF00/*FIXME*/) {
+            /* F00000-FF7FFFh linear framebuffer (256-packed)
+             *  - Does not exist except in 256-color mode.
+             *  - Switching from 256-color mode immediately unmaps this linear framebuffer.
+             *  - Switching to 256-color mode will immediately map the linear framebuffer if the enable bit is set in the PEGC MMIO registers */
+            if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
+                MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+            else
+                MEM_ResetPageHandler_Unmapped(0xF00, 512/*kb*/ / 4/*kb*/);
+        }
+
         goto range_done;
 	default:
 		LOG_MSG("Illegal machine type %d", machine );
@@ -2424,20 +2463,5 @@ void VGA_SetupMemory() {
 		   conventional memory below 128k */
 		//TODO map?	
 	}
-
-    if (IS_PC98_ARCH) {
-        if (enable_pc98_256color && MEM_TotalPages() <= 0xF00) {
-            /* on PC-98 systems with 256-color support, there exists a linear framebuffer
-             * of the 256-color mode at 0xF00000 (near the top of the 16MB limit of old
-             * 386SX CPUs). If memsize is smaller than 15MB, we can map that so games
-             * like DOOM and Wolf98 work.
-             *
-             * TODO: If memsize is larger than 15MB, allow user to specify whether to
-             *       emulate a 1MB hole at 15MB around which extended memory is wrapped,
-             *       so these games continue to work. */
-            LOG_MSG("PC-98: Mapping 256-color mode LFB at F00000");
-		    MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
-        }
-    }
 }
 

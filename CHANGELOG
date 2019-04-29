@@ -1,6 +1,15 @@
 0.82.19 (next)
   - Integrated commits from mainline: 3854, 3860, 3861, 3862,
     3864, 3866 (Allofich)
+  - PEGC emulation will now print a warning if the guest
+    application or OS attempts to use 256-color planar mode.
+  - PC-98 PEGC 256-color linear framebuffer is not mapped by
+    default anymore, except when 256-color mode and the enable
+    bit set, to match real hardware.
+  - PC-98 PEGC 256-color emulation fixed not to respond to
+    MMIO registers related to 256-color planar mode according
+    to real hardware behavior. 256-color planar mode support
+    is planned in the future.
   - Remove old dynamic x86 core. Dynamic core is exclusively
     dynrec now.
 0.82.18

@@ -969,7 +969,7 @@ extern unsigned char *pc98_pgraph_current_cpu_page;
 
 #define PC98_VRAM_256BANK_SIZE          ( 0x08000u )        /* window/bank size (256-color packed) */
 
-extern uint32_t pc98_vga_banks[2];
+extern uint32_t pc98_pegc_banks[2];
 
 static inline unsigned char *pc98_vram_text(void) {
     return vga.mem.linear + PC98_VRAM_TEXT_OFFSET;
@@ -983,7 +983,7 @@ static inline constexpr unsigned int pc98_pgram_bitplane_offset(const unsigned i
 
 static inline unsigned char *pc98_vram_256bank_from_window(const unsigned int b) {
     /* WARNING: b is not range checked for performance! Do not call with b >= 2 */
-    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET + pc98_vga_banks[b];
+    return vga.mem.linear + PC98_VRAM_GRAPHICS_OFFSET + pc98_pegc_banks[b];
 }
 
 #define VRAM98_TEXT         ( pc98_vram_text() )
