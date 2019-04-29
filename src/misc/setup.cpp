@@ -272,7 +272,9 @@ char const* Property::Get_help() {
 
 
 bool Prop_int::CheckValue(Value const& in, bool warn) {
-    if(suggested_values.empty() && Property::CheckValue(in,warn)) return true;
+//  if(!suggested_values.empty() && Property::CheckValue(in,warn)) return true;
+    if(!suggested_values.empty()) return Property::CheckValue(in,warn);
+
     //No >= and <= in Value type and == is ambigious
     int mi = min;
     int ma = max;

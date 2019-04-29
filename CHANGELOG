@@ -1,4 +1,14 @@
 0.82.19 (next)
+  - Integrated commits from mainline (Allofich)
+    3854 - "top" is now used as 32 bit in dynrec core
+    3860 - Don't scroll at unspecified video page
+    3862 - Lower the influence of the aspect table correction trick when using high scale factors (320x200 => 2000x1200)
+    3864 - Code reordering to fix build
+    3866 - Correction to Hercules video height parameter
+    3867 - The mapper now uses the wrapper as well
+    3889 - Fix the possible/suggested values for integer properties.
+    3895 - Minor cleanup
+    3896 - Do less to update the frequency of an active SB DMA transfer
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
@@ -27,8 +37,15 @@
     of VGA emulation.
   - Added debugger commands "VGA DRAW" and "VGA AC" to view
     drawing and attribute controller state in the VGA emulation.
-  - Integrated commits from mainline: 3834, 3839, 3840, 3843,
-    3845, 3849, 3850, 3853 (Allofich)
+  - Integrated commits from mainline (Allofich)
+    3834 - Fix typos
+    3839 - CD audio status now returns zero start and end times when no track is playing. Fixes "The Manhole".
+    3840 - Add "ADDLOG" debug command to manually add a message to the log.
+    3843 - "Strip off leading zeroes from the IP", a fix for the serial modem.
+    3845 - Add a small delay when raising the Sound Blaster 8-bit IRQ to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D.
+    3849 - Add ability to set debugger breakpoint on AL values.
+    3850 - The SB DMA callback now ignores previously selected, but not currently selected, DMA channels. Fixes Visual Player 2 with SB16.
+    3853 - Minor cleanup to joystick code.
   - PSG noise channel emulation (PC-98 FM board) apparently
     broke on Mac OS X due to type promotion by Clang/LLVM.
     Modified the code to behave as originally intended, to
