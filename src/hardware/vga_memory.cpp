@@ -168,17 +168,6 @@ void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
 
     Bit8u pval = pc98_pegc_mmio[reg];
 
-    switch (reg) {
-        case 0x004: // bank 0
-            pc98_pegc_banks[0] = (val & 0xFu) << 15u;
-            break;
-        case 0x006: // bank 1
-            pc98_pegc_banks[1] = (val & 0xFu) << 15u;
-            break;
-        default:
-            break;
-    }
-
     // HACK: We do not support 256-color planar mode..... yet.
     //       Support is planned, though it will take some time to reverse engineer.
     //
@@ -193,19 +182,24 @@ void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
     if (reg >= 0x103 && reg <= 0x120)
         return;//IGNORE
 
-    // As seen on real hardware: E0102h only allows bit 0 to be changed
-    if (reg == 0x102)
-        val &= 1;
-
-    if (reg >= 0x004 && reg <= 0x007)
-        pc98_pegc_mmio[reg] = val;
-    else if (reg >= 0x100 && reg <= 0x13F)
-        pc98_pegc_mmio[reg] = val;
-
-    // E0102h affects LFB mapping at F00000h
-    if (reg == 0x102) {
-        if ((val^pval)&1/*if bit 0 changed*/)
-            VGA_SetupHandlers();
+    switch (reg) {
+        case 0x004: // bank 0
+            pc98_pegc_banks[0] = (val & 0xFu) << 15u;
+            pc98_pegc_mmio[reg] = val;
+            break;
+        case 0x006: // bank 1
+            pc98_pegc_banks[1] = (val & 0xFu) << 15u;
+            pc98_pegc_mmio[reg] = val;
+            break;
+        case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
+            val &= 1; // as seen on real hardware: only bit 0 can be changed
+            pc98_pegc_mmio[reg] = val;
+            if ((val^pval)&1/*if bit 0 changed*/)
+                VGA_SetupHandlers();
+            break;
+        default:
+            LOG_MSG("PC-98 PEGC warning: Unhandled write to %xh val %xh",reg+0xE0000u,val);
+            break;
     }
 }
 
