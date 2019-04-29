@@ -10,3 +10,9 @@ Commit#:	Reason for skipping:
 3859		Conflicts with DOSBox-X. Masking/wrapping is implemented in DOSBox-X by masking the array access per pixel.
 3863		Conflicts with DOSBox-X
 3865		Conflicts with DOSBox-X
+3867		Conflicts with DOSBox-X
+3869		Not sure if this is needed for DOSBox-X
+3870		Conflicts with DOSBox-X
+3871		Conflicts with DOSBox-X
+3873		Conflicts with DOSBox-X
+3891		Conflicts with DOSBox-X
