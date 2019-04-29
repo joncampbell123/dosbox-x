@@ -1427,20 +1427,34 @@ public:
 // A8000h-B7FFFh is 256-color planar (????)
 // I don't THINK the bank switching registers have any effect. Not sure.
 // However it makes sense to make it a 64KB region because 8 planes x 64KB = 512KB of RAM. Right?
+// By the way real PEGC hardware seems to prefer WORD (16-bit) sized read/write aligned on WORD boundaries.
+// In fact Windows 3.1's 256-color driver never uses byte-sized read/write in this planar mode.
 class VGA_PC98_256Planar_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
         (void)addr;
 
-//      LOG_MSG("PEGC 256-color planar warning: Read from %lxh",(unsigned long)addr);
-        return 0xFF;
+//        LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
+        return ~((Bitu)0);
     }
 	void writeb(PhysPt addr,Bitu val) {
         (void)addr;
         (void)val;
 
-//      LOG_MSG("PEGC 256-color planar warning: Write to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
+//        LOG_MSG("PEGC 256-color planar warning: Writeb to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
+    }
+	Bitu readw(PhysPt addr) {
+        (void)addr;
+
+//        LOG_MSG("PEGC 256-color planar warning: Readw from %lxh",(unsigned long)addr);
+        return ~((Bitu)0);
+    }
+	void writew(PhysPt addr,Bitu val) {
+        (void)addr;
+        (void)val;
+
+//        LOG_MSG("PEGC 256-color planar warning: Writew to %lxh val %04xh",(unsigned long)addr,(unsigned int)val);
     }
 };
 
