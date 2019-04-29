@@ -217,6 +217,8 @@ void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
             pc98_pegc_mmio[reg] = val;
             if ((val^pval)&1/*if bit 0 changed*/)
                 VGA_SetupHandlers();
+            // FIXME: One PC-9821 laptop seems to allow bit 0 and bit 1 to be set.
+            //        What does bit 1 control?
             break;
         default:
             LOG_MSG("PC-98 PEGC warning: Unhandled write to %xh val %xh",reg+0xE0000u,val);
