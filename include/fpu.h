@@ -168,7 +168,7 @@ typedef struct {
 	FPU_Tag		tags[9];
 	Bit16u		cw,cw_mask_all;
 	Bit16u		sw;
-	Bitu		top;
+	Bit32u		top;
 	FPU_Round	round;
 } FPU_rec;
 

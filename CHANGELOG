@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - Integrated commits from mainline: 3854, 3860, 3861, 3862,
+    3864, 3866 (Allofich)
   - PEGC emulation will now print a warning if the guest
     application or OS attempts to use 256-color planar mode.
   - PC-98 PEGC 256-color linear framebuffer is not mapped by
