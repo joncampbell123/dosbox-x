@@ -173,6 +173,24 @@ void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
             break;
     }
 
+    // HACK: We do not support 256-color planar mode..... yet.
+    //       Support is planned, though it will take some time to reverse engineer.
+    //
+    //       See also: [https://github.com/joncampbell123/dosbox-x/issues/1061]
+    //            and: [https://translate.google.com/translate?sl=ja&tl=en&u=http%3A%2F%2Fwww.satotomi.com%2Fsl9821%2Fsl9821_tec5.html]
+    //
+    //       According to a newer laptop I test on where this support has been removed, writes to
+    //       104-120h (planar access and ROP functions) do not work. On an older laptop that has
+    //       this mode, these bytes work.
+    if (reg >= 0x100 && reg <= 0x101) // 256-color planar enable
+        return;//IGNORE
+    if (reg >= 0x103 && reg <= 0x120)
+        return;//IGNORE
+
+    // As seen on real hardware: E0102h only allows bit 0 to be changed
+    if (reg == 0x102)
+        val &= 1;
+
     if (reg >= 0x004 && reg <= 0x007)
         pc98_pegc_mmio[reg] = val;
     else if (reg >= 0x100 && reg <= 0x13F)
