@@ -40,6 +40,7 @@ uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
+extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
 
 #ifndef C_VGARAM_CHECKED
@@ -189,8 +190,27 @@ void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
             // WE DO NOT SUPPORT 256-planar MEMORY ACCESS AT THIS TIME!
             // FUTURE SUPPORT IS PLANNED.
             // ignore
-            if (val & 1)
-                LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable 256-color planar mode, which is not yet supported");
+            if (enable_pc98_256color_planar) {
+                val &= 1;
+                if (val & 1) {
+                    pc98_gdc_vramop |= (1 << VOPBIT_PEGC_PLANAR);
+                    LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
+                            "256-color planar mode, which is not yet fully functional");
+                }
+                else {
+                    pc98_gdc_vramop &= ~(1 << VOPBIT_PEGC_PLANAR);
+                }
+            }
+            else {
+                if (val & 1)
+                    LOG_MSG("PC-98 PEGC warning: Guest application/OS attempted to enable "
+                            "256-color planar mode, which is not enabled in your configuration");
+ 
+                val = 0;
+            }
+            pc98_pegc_mmio[reg] = val;
+            if ((val^pval)&1/*if bit 0 changed*/)
+                VGA_SetupHandlers();
             break;
         case 0x102: // linear framebuffer (at F00000-F7FFFFh) enable/disable
             val &= 1; // as seen on real hardware: only bit 0 can be changed

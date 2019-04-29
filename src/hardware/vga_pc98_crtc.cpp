@@ -45,6 +45,7 @@ bool                        enable_pc98_egc = true;
 bool                        enable_pc98_grcg = true;
 bool                        enable_pc98_16color = true;
 bool                        enable_pc98_256color = true;
+bool                        enable_pc98_256color_planar = true;
 bool                        enable_pc98_188usermod = true;
 bool                        pc98_256kb_boundary = false;         /* port 6Ah command 68h/69h */
 bool                        GDC_vsync_interrupt = false;

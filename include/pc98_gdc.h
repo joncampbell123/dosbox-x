@@ -21,7 +21,8 @@ enum {
 	VOPBIT_EGC		= 1,
 	VOPBIT_GRCG		= 2,
 	VOPBIT_ANALOG	= 4,
-	VOPBIT_VGA		= 5
+	VOPBIT_VGA		= 5,
+    VOPBIT_PEGC_PLANAR = 6
 };
 
 union pc98_tile {

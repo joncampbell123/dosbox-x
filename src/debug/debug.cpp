@@ -77,6 +77,7 @@ extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
 extern bool                         enable_pc98_16color;
 extern bool                         enable_pc98_256color;
+extern bool                         enable_pc98_256color_planar;
 extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern bool                         pc98_graphics_hide_odd_raster_200line;
@@ -2136,6 +2137,9 @@ bool ParseCommand(char* str) {
 
             if (pc98_pegc_linear_framebuffer_enabled())
                 cpptmp += "PEGC-LFB ";
+
+            if (pc98_gdc_vramop & (1 << VOPBIT_PEGC_PLANAR))
+                cpptmp += "256-PLANAR ";
 
             DEBUG_ShowMsg("PC-98 graphics mode: %s",cpptmp.c_str());
 

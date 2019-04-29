@@ -1379,6 +1379,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
                     "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
 
+    Pbool = secprop->Add_bool("pc-98 enable 256-color planar",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
+                    "This is a form of memory access in 256-color mode that existed for a short\n"
+                    "time before later PC-9821 models removed it. This option must be enabled\n"
+                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
+
     Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
 
