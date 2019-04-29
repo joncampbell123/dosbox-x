@@ -1,4 +1,8 @@
 0.82.19 (next)
+  - PC-98 PEGC 256-color emulation fixed not to respond to
+    MMIO registers related to 256-color planar mode according
+    to real hardware behavior. 256-color planar mode support
+    is planned in the future.
   - Remove old dynamic x86 core. Dynamic core is exclusively
     dynrec now.
 0.82.18
