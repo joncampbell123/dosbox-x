@@ -35,8 +35,8 @@
 
 extern ZIPFile savestate_zip;
 
-unsigned char pc98_vga_mmio[0x200] = {0}; /* PC-98 memory-mapped VGA registers at E0000h */
-uint32_t pc98_vga_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
+unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
+uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -151,32 +151,32 @@ INLINE static Bit32u ModeOperation(Bit8u val) {
 	return full;
 }
 
-Bit8u pc98_vga_mmio_read(unsigned int reg) {
+Bit8u pc98_pegc_mmio_read(unsigned int reg) {
     if (reg >= 0x200)
         return 0x00;
 
-    return pc98_vga_mmio[reg];
+    return pc98_pegc_mmio[reg];
 }
 
-void pc98_vga_mmio_write(unsigned int reg,Bit8u val) {
+void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
     if (reg >= 0x200)
         return;
 
     switch (reg) {
         case 0x004: // bank 0
-            pc98_vga_banks[0] = (val & 0xFu) << 15u;
+            pc98_pegc_banks[0] = (val & 0xFu) << 15u;
             break;
         case 0x006: // bank 1
-            pc98_vga_banks[1] = (val & 0xFu) << 15u;
+            pc98_pegc_banks[1] = (val & 0xFu) << 15u;
             break;
         default:
             break;
     }
 
     if (reg >= 0x004 && reg <= 0x007)
-        pc98_vga_mmio[reg] = val;
+        pc98_pegc_mmio[reg] = val;
     else if (reg >= 0x100 && reg <= 0x13F)
-        pc98_vga_mmio[reg] = val;
+        pc98_pegc_mmio[reg] = val;
 }
 
 /* Gonna assume that whoever maps vga memory, maps it on 32/64kb boundary */
@@ -1372,10 +1372,10 @@ class VGA_PC98_256MMIO_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
-        return pc98_vga_mmio_read(addr & 0x7FFFu);
+        return pc98_pegc_mmio_read(addr & 0x7FFFu);
     }
     void writeb(PhysPt addr,Bitu val) {
-        pc98_vga_mmio_write(addr & 0x7FFFu,(Bit8u)val);
+        pc98_pegc_mmio_write(addr & 0x7FFFu,(Bit8u)val);
     }
 };
 
