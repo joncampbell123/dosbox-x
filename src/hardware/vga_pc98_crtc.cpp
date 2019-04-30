@@ -38,6 +38,7 @@
 void pc98_update_page_ptrs(void);
 
 extern bool                 pc98_attr4_graphic;
+extern bool                 pc98_display_enable;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 
 bool                        gdc_5mhz_mode = false;
@@ -222,6 +223,10 @@ void pc98_port68_command_write(unsigned char b) {
         case 0x0A: // TODO
         case 0x0B: // TODO
             // TODO
+            break;
+        case 0x0E: // Display enable
+        case 0x0F:
+            pc98_display_enable = !!(b&1);
             break;
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);

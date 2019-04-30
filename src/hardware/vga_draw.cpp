@@ -83,6 +83,8 @@ double vga_fps = 70;
 double vga_mode_time_base = -1;
 int vga_mode_frames_since_time_base = 0;
 
+bool pc98_display_enable = true;
+
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 extern bool vga_enable_hpel_effects;
@@ -1890,7 +1892,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Graphic RAM layer (or blank)
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
-    if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster) {
+    if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster && pc98_display_enable) {
         Bit8u g8,r8,b8,e8;
 
         draw = ((Bit32u*)TempLine);
@@ -1954,7 +1956,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     }
 
     // Text RAM layer
-    if (pc98_gdc[GDC_MASTER].display_enable) {
+    if (pc98_gdc[GDC_MASTER].display_enable && pc98_display_enable) {
         Bitu gdcvidmem = pc98_gdc[GDC_MASTER].scan_address;
 
         draw = ((Bit32u*)TempLine);
