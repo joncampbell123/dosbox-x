@@ -3153,6 +3153,57 @@ static Bitu INT18_PC98_Handler(void) {
                 }
             }
             break;
+        case 0x30: /* Set display mode */
+            if (enable_pc98_egc) {
+                unsigned char b597 = mem_readb(0x597);
+                unsigned char tstat = mem_readb(0x53C);
+                unsigned char b54C = mem_readb(0x54C);
+                unsigned char ret = 0x00;
+
+                LOG_MSG("PC-98 INT 18 AH=30h AL=0x%02X BH=%02X",reg_al,reg_bh);
+
+                if ((reg_bh & 0x30) == 0x30) { // 640x480
+                    if (reg_al & 4) { // 31KHz sync
+                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set unsupported 640x480x256-color mode");
+                    }
+                    else {
+                        // according to Neko Project II, this case is ignored
+                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480x256-color mode with 24KHz hsync which is not supported");
+                    }
+                }
+                else {
+                    if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
+                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set 15KHz hsync which is not yet supported");
+                    }
+                    else {
+                        if ((reg_al ^ (((b54C & 0x20) ? 3 : 2) << 2)) & 0x0C) { /* change in bits [3:2] */
+                            LOG_MSG("PC-98 change in hsync frequency to %uHz",(reg_al & 0x04) ? 31 : 24);
+
+                            if (reg_al & 4) {
+                                extern bool pc98_31khz_mode;
+                                void PC98_Set31KHz(void);
+                                pc98_31khz_mode = true;
+                                PC98_Set31KHz();
+                            }
+                            else {
+                                extern bool pc98_31khz_mode;
+                                void PC98_Set24KHz(void);
+                                pc98_31khz_mode = false;
+                                PC98_Set24KHz();
+                            }
+
+                            b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
+                        }
+                    }
+                }
+
+                mem_writeb(0x597,b597);
+                mem_writeb(0x53C,tstat);
+                mem_writeb(0x54C,b54C);
+
+                reg_ah = ret;
+            }
+            break;
         case 0x31: /* Return display mode and status */
             if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
                 unsigned char b597 = mem_readb(0x597);
