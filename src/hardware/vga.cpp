@@ -1218,35 +1218,6 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
     pc98_gdc[GDC_MASTER].display_partition_mask = 3;
 
-    //TODO: Find the correct GDC SYNC parameters in 31-KHz mode by inspecting a real PC-9821.
-    if(!pc98_31khz_mode) { 
-        pc98_gdc[GDC_MASTER].force_fifo_complete();
-        pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x25);
-        pc98_gdc[GDC_MASTER].force_fifo_complete();
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x65);
-        pc98_gdc[GDC_MASTER].force_fifo_complete();
-    } else { //Use 31KHz HS, VS, VFP, VBP
-        pc98_gdc[GDC_MASTER].force_fifo_complete();
-        pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x41);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x24);
-        pc98_gdc[GDC_MASTER].force_fifo_complete();
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x07); 
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x0C); 
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
-        pc98_gdc[GDC_MASTER].write_fifo_param(0x8D);
-        pc98_gdc[GDC_MASTER].force_fifo_complete();     
-    }
-
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
@@ -1254,32 +1225,27 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
-    if(!pc98_31khz_mode) {
-        pc98_gdc[GDC_SLAVE].force_fifo_complete();
-        pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x03);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x11);
-        pc98_gdc[GDC_SLAVE].force_fifo_complete();
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x07);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x65);
-        pc98_gdc[GDC_SLAVE].force_fifo_complete();
-    } else { //Use 31KHz HS, VS, VFP, VBP
-        pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x40);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x10);
-        pc98_gdc[GDC_SLAVE].force_fifo_complete();
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x0C);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
-        pc98_gdc[GDC_SLAVE].write_fifo_param(0x8D);
-        pc98_gdc[GDC_SLAVE].force_fifo_complete();
+    const unsigned char *gdcsync_m;
+    const unsigned char *gdcsync_s;
+
+    if (!pc98_31khz_mode) {
+        gdcsync_m = gdc_defsyncm24;
+        gdcsync_s = gdc_defsyncs24;
     }
+    else {
+        gdcsync_m = gdc_defsyncm31;
+        gdcsync_s = gdc_defsyncs31;
+    }
+
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_MASTER].write_fifo_param(gdcsync_m[i]);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_SLAVE].write_fifo_param(gdcsync_s[i]);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
     VGA_StartResize();
 }
