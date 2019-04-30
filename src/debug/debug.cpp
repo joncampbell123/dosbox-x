@@ -72,6 +72,7 @@ bool pc98_pegc_linear_framebuffer_enabled(void);
 
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
+extern bool                 pc98_256kb_boundary;
 extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
@@ -2159,6 +2160,8 @@ bool ParseCommand(char* str) {
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
             DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
                 gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("  vram-bound=%uKB",
+                pc98_256kb_boundary?256:128);
 
             /*--------------------*/
 
