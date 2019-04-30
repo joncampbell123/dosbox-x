@@ -1018,13 +1018,16 @@ void DOS_Shell::CMD_COPY(char * args) {
 		if(temp && (temp == pathTarget || temp[-1] == '\\')) *temp = 0;//strip off *.* from target
 	
 		// add '\\' if target is a directory
+		bool target_is_file = true;
 		if (pathTarget[strlen(pathTarget)-1]!='\\') {
 			if (DOS_FindFirst(pathTarget,0xffff & ~DOS_ATTR_VOLUME)) {
 				dta.GetResult(name,size,date,time,attr);
-				if (attr & DOS_ATTR_DIRECTORY)	
+				if (attr & DOS_ATTR_DIRECTORY) {
 					strcat(pathTarget,"\\");
+					target_is_file = false;
+				}
 			}
-		};
+		} else target_is_file = false;
 
 		//Find first sourcefile
 		bool ret = DOS_FindFirst(const_cast<char*>(source.filename.c_str()),0xffff & ~DOS_ATTR_VOLUME);
@@ -1082,6 +1085,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			}
 		}
 
+		bool second_file_of_current_source = false;
 		while (ret) {
 			dta.GetResult(name,size,date,time,attr);
 
@@ -1104,6 +1108,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 					}
 					
 					if (nameTarget[pathTargetLen-1]=='\\') strcat(nameTarget,name);
+
+					//Special variable to ensure that copy * a_file, where a_file is not a directory concats.
+					bool special = second_file_of_current_source && target_is_file;
+					second_file_of_current_source = true; 
+					if (special) oldsource.concat = true;
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
@@ -1121,7 +1130,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							failed |= DOS_CloseFile(sourceHandle);
 							failed |= DOS_CloseFile(targetHandle);
 							WriteOut(" %s\n",name);
-							if(!source.concat) count++; //Only count concat files once
+							if(!source.concat && !special) count++; //Only count concat files once
 						} else {
 							DOS_CloseFile(sourceHandle);
 							WriteOut(MSG_Get("SHELL_CMD_COPY_FAILURE"),const_cast<char*>(target.filename.c_str()));
