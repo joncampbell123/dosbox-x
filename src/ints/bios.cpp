@@ -3202,6 +3202,11 @@ static Bitu INT18_PC98_Handler(void) {
                         }
                     }
 
+                    // this path turns off 256-color mode
+                    void pc98_port6A_command_write(unsigned char b);
+                    pc98_port6A_command_write(0x20);        // disable 256-color
+                    PC98_show_cursor(false);                // apparently hides the cursor?
+
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
                     /* reset scroll area of graphics */
