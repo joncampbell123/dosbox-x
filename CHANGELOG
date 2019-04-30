@@ -1,4 +1,10 @@
 0.82.19 (next)
+  - PC-98 port 6Ah now handles command 82h/83h and 84h/85h which
+    allow the guest to reprogram the GDC clock frequency (2.5MHz
+    or 5MHz). This is necessary to handle strange Windows 3.1
+    behavior where entering a DOS program fullscreen causes
+    Windows 3.1 to reprogrm your GDC to run at 5MHz regardless of
+    the BIOS (or dosbox.conf) setting.
   - PC-98 port 68h now supports command 0Eh/0Fh to enable display.
   - Integrated commits from mainline (Allofich)
     3854 - "top" is now used as 32 bit in dynrec core
