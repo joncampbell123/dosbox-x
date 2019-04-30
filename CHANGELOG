@@ -1,4 +1,5 @@
 0.82.19 (next)
+  - PC-98 port 68h now supports command 0Eh/0Fh to enable display.
   - Integrated commits from mainline (Allofich)
     3854 - "top" is now used as 32 bit in dynrec core
     3860 - Don't scroll at unspecified video page
