@@ -81,8 +81,10 @@ bool VM_Boot_DOSBox_Kernel();
 Bit32u MEM_get_address_bits();
 Bitu bios_post_parport_count();
 Bitu bios_post_comport_count();
+void pc98_update_cpu_page_ptr(void);
 bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool gdc_5mhz_according_to_bios(void);
+void pc98_update_display_page_ptr(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
 
@@ -3235,7 +3237,10 @@ static Bitu INT18_PC98_Handler(void) {
                     b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
 
                     pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+                    pc98_update_cpu_page_ptr();
+
                     GDC_display_plane = GDC_display_plane_pending = 0;
+                    pc98_update_display_page_ptr();
                 }
 
                 mem_writeb(0x597,b597);
@@ -3389,7 +3394,10 @@ static Bitu INT18_PC98_Handler(void) {
             }
 
             pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+            pc98_update_cpu_page_ptr();
+
             GDC_display_plane = GDC_display_plane_pending = (reg_ch & 0x10) ? 1 : 0;
+            pc98_update_display_page_ptr();
 
             prev_pc98_mode42 = reg_ch;
 
