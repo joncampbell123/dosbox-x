@@ -82,6 +82,7 @@ Bit32u MEM_get_address_bits();
 Bitu bios_post_parport_count();
 Bitu bios_post_comport_count();
 bool KEYBOARD_Report_BIOS_PS2Mouse();
+bool gdc_5mhz_according_to_bios(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
 
@@ -3245,9 +3246,10 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
                 pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
             }
+
             pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
             pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
-            pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_mode ? 80u : 40u;
+            pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
 
             // CH
             //   [7:6] = G-RAM setup

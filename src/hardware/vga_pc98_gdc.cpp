@@ -630,6 +630,10 @@ void GDC_ProcDelay(Bitu /*val*/) {
         pc98_gdc[i].idle_proc(); // may schedule another delayed proc
 }
 
+bool gdc_5mhz_according_to_bios(void) {
+    return !!(mem_readb(0x54D) & 0x20);
+}
+
 void gdc_5mhz_mode_update_vars(void) {
 // FIXME: Is this right?
     mem_writeb(0x54D,(mem_readb(0x54D) & (~0x20)) | (gdc_5mhz_mode ? 0x20 : 0x00));
