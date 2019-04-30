@@ -3160,9 +3160,15 @@ static Bitu INT18_PC98_Handler(void) {
                 unsigned char b54C = mem_readb(0x54C);
                 unsigned char ret = 0x00;
 
-                LOG_MSG("PC-98 INT 18 AH=30h AL=0x%02X BH=%02X",reg_al,reg_bh);
+                // assume the same as AH=42h
+                while (!(IO_ReadB(0x60) & 0x20/*vertical retrace*/)) {
+                    void CALLBACK_Idle(void);
+                    CALLBACK_Idle();
+                }
 
-                if ((reg_bh & 0x30) == 0x30) { // 640x480
+                LOG_MSG("PC-98 INT 18 AH=30h AL=%02Xh BH=%02Xh",reg_al,reg_bh);
+
+                if ((reg_bh & 0x30) == 0x30) { // 640x480 (according to Neko Project II, this is always 256-color mode)
                     if (reg_al & 4) { // 31KHz sync
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set unsupported 640x480x256-color mode");
                     }
@@ -3171,7 +3177,7 @@ static Bitu INT18_PC98_Handler(void) {
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480x256-color mode with 24KHz hsync which is not supported");
                     }
                 }
-                else {
+                else { // 640x400 or 640x200 (according to Neko Project II, always 8/16-color mode)
                     if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 15KHz hsync which is not yet supported");
                     }
@@ -3195,6 +3201,36 @@ static Bitu INT18_PC98_Handler(void) {
                             b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
                         }
                     }
+
+                    pc98_gdc[GDC_MASTER].force_fifo_complete();
+                    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+                    /* reset scroll area of graphics */
+                    if ((reg_bh & 0x30) == 0x10) { /* 640x200 upper half    bits [5:4] == 1 */
+                        pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
+                        pc98_gdc[GDC_SLAVE].param_ram[1] = (200*40) >> 8;
+                    }
+                    else {
+                        pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
+                        pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+                    }
+
+                    pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
+                    pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
+                    pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
+
+                    if ((reg_bh & 0x20) == 0x00) { /* 640x200 */
+                        pc98_gdc[GDC_SLAVE].doublescan = true;
+                        pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
+                    }
+                    else {
+                        pc98_gdc[GDC_SLAVE].doublescan = false;
+                        pc98_gdc[GDC_SLAVE].row_height = 1;
+                    }
+
+                    b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
+
+                    pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+                    GDC_display_plane = GDC_display_plane_pending = 0;
                 }
 
                 mem_writeb(0x597,b597);
