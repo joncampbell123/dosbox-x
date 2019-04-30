@@ -27,6 +27,7 @@
 #include "setup.h"
 #include "timer.h"
 #include "mem.h"
+#include "menu.h"
 #include "util_units.h"
 #include "control.h"
 #include "pc98_cg.h"
@@ -40,6 +41,10 @@ void pc98_update_page_ptrs(void);
 extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_display_enable;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
+
+// TODO: Other parts that change gdc_5mhz_mode should update these too!
+bool                        gdc_clock_1 = false;
+bool                        gdc_clock_2 = false;
 
 bool                        gdc_5mhz_mode = false;
 bool                        enable_pc98_egc = true;
@@ -65,6 +70,18 @@ extern unsigned char        pc98_text_row_scanline_blank_at;     /* port 74h */
 extern unsigned char        pc98_text_row_scroll_lines;          /* port 76h */
 extern unsigned char        pc98_text_row_scroll_count_start;    /* port 78h */
 extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
+
+// the guest can change the GDC to 5MHz by setting both GDC clock bits.
+// NTS: For whatever reason, Windows 3.1 will set the GDC to 5MHz when entering a DOS application fullscreen.
+void gdc_clock_check(void) {
+    bool nresult = gdc_clock_1 && gdc_clock_2;
+
+    if (gdc_5mhz_mode != nresult) {
+        gdc_5mhz_mode = nresult;
+        LOG_MSG("PC-98: Guest changed GDC clock to %s",gdc_5mhz_mode?"5MHz":"2.5MHz");
+        mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
+    }
+}
 
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
@@ -195,13 +212,21 @@ void pc98_port6A_command_write(unsigned char b) {
             pc98_256kb_boundary = false;
             VGA_SetupHandlers(); // memory mapping presented to the CPU changes
             break;
-         case 0x69: // 256KB VRAM boundary
+        case 0x69: // 256KB VRAM boundary
             // TODO: Any conditions?
             pc98_256kb_boundary = true;
             VGA_SetupHandlers(); // memory mapping presented to the CPU changes
             break;
-        // TODO: 0x82/0x83 GDC Clock #1   0=2.5MHz   1=5MHz
-        // TODO: 0x84/0x85 GDC Clock #2   0=2.5MHz   1=5MHz
+        case 0x82: // GDC Clock #1   0=2.5MHz   1=5MHz
+        case 0x83:
+            gdc_clock_1 = !!(b&1);
+            gdc_clock_check();
+            break;
+        case 0x84: // GDC Clock #2   0=2.5MHz   1=5MHz
+        case 0x85:
+            gdc_clock_2 = !!(b&1);
+            gdc_clock_check();
+            break;
         // TODO: 0x8E/0x8F VRAM use selection  0=PC-98 graphics  1=Cirrus Logic CL-GD graphics   (VRAM is shared?)
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
