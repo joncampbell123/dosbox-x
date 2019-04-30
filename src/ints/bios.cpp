@@ -3157,6 +3157,11 @@ static Bitu INT18_PC98_Handler(void) {
             if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
                 unsigned char b597 = mem_readb(0x597);
                 unsigned char tstat = mem_readb(0x53C);
+                unsigned char b54C = mem_readb(0x54C);
+
+                /* 54Ch:
+                 * bit[5:5] = Horizontal sync rate                      1=31.47KHz      0=24.83KHz */
+
                 /* Return values:
                  *
                  * AL =
@@ -3188,7 +3193,7 @@ static Bitu INT18_PC98_Handler(void) {
                  *                   11 = ?
                  */
                 reg_al =
-                    ((pc98_31khz_mode ? 3 : 2) << 2)/*hsync*/;
+                    (((b54C & 0x20) ? 3 : 2) << 2)/*hsync*/;
                 reg_bh =
                     ((b597 & 3) << 4)/*graphics video mode*/;
                 if (tstat & 0x10)
