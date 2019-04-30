@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - INT 18h AH=31h (PC-98 mode) now uses BIOS data area to
+    return hsync rate (24KHz vs 31KHz)
   - INT 18h AH=42h (PC-98 mode) now uses BIOS data area to
     determine 5MHz GDC instead of internal state to better emulate
     actual hardware behavior.
