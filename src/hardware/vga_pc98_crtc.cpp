@@ -38,6 +38,7 @@
 
 void pc98_update_page_ptrs(void);
 
+extern bool                 pc98_31khz_mode;
 extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_display_enable;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
@@ -271,5 +272,28 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
         retval |= 0x02;
 
 	return retval;
+}
+
+/* Port 0x9A8
+ *
+ * bit[1:0]
+ *     11 = invalid
+ *     10 = invalid
+ *     01 = 31.47KHz
+ *     00 = 24.83KHz */
+Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/) {
+    Bitu retval = 0;
+
+    if (pc98_31khz_mode)
+        retval |= 0x01;/*31khz*/
+
+	return retval;
+}
+
+void pc98_write_9a8(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
+    if ((val&1) != (pc98_31khz_mode?1:0)) {
+        pc98_31khz_mode = !!(val&1);
+        VGA_SetupDrawing(0);
+    }
 }
 

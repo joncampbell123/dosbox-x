@@ -152,6 +152,9 @@ extern ZIPFile savestate_zip;
 
 using namespace std;
 
+Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
+
 /* current dosplay page (controlled by A4h) */
 unsigned char*                      pc98_pgraph_current_display_page;
 /* current CPU page (controlled by A6h) */
@@ -1209,6 +1212,10 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
 
     /* initial implementation of I/O ports 9A0h-9AEh even */
     IO_RegisterReadHandler(0x9A0,pc98_read_9a0,IO_MB);
+
+    /* 9A8h which controls 24khz/31khz mode */
+    IO_RegisterReadHandler(0x9A8,pc98_read_9a8,IO_MB);
+    IO_RegisterWriteHandler(0x9A8,pc98_write_9a8,IO_MB);
 
     /* There are some font character RAM controls at 0xA1-0xA5 (odd)
      * combined with A4000-A4FFF. Found by unknown I/O tracing in DOSBox-X
