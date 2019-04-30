@@ -3213,6 +3213,11 @@ static Bitu INT18_PC98_Handler(void) {
 
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
+
+                    /* clear PRAM, graphics */
+                    for (unsigned int i=0;i < 16;i++)
+                        pc98_gdc[GDC_SLAVE].param_ram[i] = 0x00;
+
                     /* reset scroll area of graphics */
                     if ((reg_bh & 0x30) == 0x10) { /* 640x200 upper half    bits [5:4] == 1 */
                         pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
@@ -3341,6 +3346,11 @@ static Bitu INT18_PC98_Handler(void) {
 
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
+
+            /* clear PRAM, graphics */
+            for (unsigned int i=0;i < 16;i++)
+                pc98_gdc[GDC_SLAVE].param_ram[i] = 0x00;
+
             /* reset scroll area of graphics */
             if ((reg_ch & 0xC0) == 0x40) { /* 640x200 G-RAM upper half */
                 pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
