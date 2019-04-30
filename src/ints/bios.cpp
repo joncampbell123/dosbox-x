@@ -3010,7 +3010,7 @@ static Bitu INT18_PC98_Handler(void) {
             //Attribute bit (bit 2)
             pc98_attr4_graphic = !!(reg_al & 0x04);
 
-            mem_writeb(0x53C,reg_al);
+            mem_writeb(0x53C,(mem_readb(0x53C) & 0xF0u) | (reg_al & 0x0Fu));
 
             if (reg_al & 2)
                 LOG_MSG("INT 18H AH=0Ah warning: 40-column PC-98 text mode not supported");
