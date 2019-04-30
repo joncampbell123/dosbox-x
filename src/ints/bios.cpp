@@ -3247,7 +3247,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
             pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
             pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
-            pc98_gdc[GDC_SLAVE].display_pitch = 40; /* 40 x 16 = 640 pixel wide graphics */
+            pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_mode ? 80u : 40u;
 
             // CH
             //   [7:6] = G-RAM setup

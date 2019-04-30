@@ -1221,7 +1221,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
-    pc98_gdc[GDC_SLAVE].display_pitch = 40;
+    pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_mode ? 80u : 40u;
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
     const unsigned char *gdcsync_m;
