@@ -1,4 +1,7 @@
 0.82.19 (next)
+  - INT 18h AH=42h (PC-98 mode) now uses BIOS data area to
+    determine 5MHz GDC instead of internal state to better emulate
+    actual hardware behavior.
   - PC-98 text console output now fills both cells of doublewide
     characters on the text layer.
   - PC-98 port 6Ah now handles command 82h/83h and 84h/85h which
