@@ -8,8 +8,11 @@
     3866 - Correction to Hercules video height parameter
     3867 - The mapper now uses the wrapper as well
     3889 - Fix the possible/suggested values for integer properties.
-    3895 - Minor cleanup
-    3896 - Do less to update the frequency of an active SB DMA transfer
+    3895 - Minor cleanup. Re-ordering of memory coalescing to match commit from mainline.
+    3896 - Do less to update the frequency of an active SB DMA transfer. Fixes sound in Tempest 2000.
+    3898 - Add missing --disable-fpu-x64 option
+    3899 - Use clock_gettime when available instead of the obsolete ftime.
+    3904 - Allow CRTC read/write access on all mirror ports for non-VGA machine types. Fixes Tandy and EGA display in International Hockey booter.	
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
