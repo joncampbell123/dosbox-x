@@ -55,6 +55,7 @@ bool                        enable_pc98_256color_planar = true;
 bool                        enable_pc98_188usermod = true;
 bool                        pc98_256kb_boundary = false;         /* port 6Ah command 68h/69h */
 bool                        GDC_vsync_interrupt = false;
+bool                        gdc_5mhz_mode_initial = false;
 uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
 uint8_t                     GDC_display_plane = false;

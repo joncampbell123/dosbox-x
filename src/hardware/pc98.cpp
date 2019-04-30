@@ -20,6 +20,7 @@
 
 using namespace std;
 
+extern bool gdc_5mhz_mode_initial;
 extern bool gdc_5mhz_mode;
 extern bool enable_pc98_egc;
 extern bool enable_pc98_grcg;

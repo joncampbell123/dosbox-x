@@ -1658,6 +1658,7 @@ static IO_WriteHandleObject WriteHandler_8255prn_PC98[4];
 static IO_WriteHandleObject Reset_PC98;
 
 extern bool gdc_5mhz_mode;
+extern bool gdc_5mhz_mode_initial;
 
 //! \brief PC-98 Printer 8255 PPI emulation (Intel 8255A device)
 //!
@@ -1814,7 +1815,10 @@ public:
          *       It might help to look at the BIOS setup menus of 1990s PC-98 systems
          *       that offer toggling virtual versions of these DIP switches to see
          *       what the BIOS menu text says. */
-        return 0x63 | (gdc_5mhz_mode ? 0x00 : 0x80); // taken from a PC-9821 Lt2
+        /* NTS: Return the INITIAL setting of the GDC. Guest applications (like Windows 3.1)
+         *      can and will change it later. This must reflect the initial setting as if
+         *      what the BIOS had initially intended. */
+        return 0x63 | (gdc_5mhz_mode_initial ? 0x00 : 0x80); // taken from a PC-9821 Lt2
     }
     /* port B is input */
     virtual uint8_t inPortB(void) const {

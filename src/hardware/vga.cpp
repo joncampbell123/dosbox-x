@@ -163,6 +163,7 @@ bool                                enable_vga_8bit_dac = true;
 
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
+extern bool                         gdc_5mhz_mode_initial;
 extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
 extern bool                         enable_pc98_16color;
@@ -677,6 +678,12 @@ void VGA_Reset(Section*) {
     // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
     gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
     mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
+
+    // record the initial setting.
+    // the guest can change it later.
+    // however the 8255 used to hold dip switch settings needs to reflect the
+    // initial setting.
+    gdc_5mhz_mode_initial = gdc_5mhz_mode;
 
     enable_pc98_egc = section->Get_bool("pc-98 enable egc");
     enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
