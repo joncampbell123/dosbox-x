@@ -2863,11 +2863,11 @@ void pc98_update_text_lineheight_from_bda(void) {
     unsigned char c = mem_readb(0x53C);
     unsigned char lineheight;
 
-    if (c & 0x10)/*30-line mode (640x480)*/
+    if (c & 0x10)/*30-line mode (30x16 = 640x480)*/
         lineheight = 20;
-    else if (c & 0x01)/*20-line mode (640x400)*/
+    else if (c & 0x01)/*20-line mode (20x20 = 640x400)*/
         lineheight = 20;
-    else/*25-line mode (640x400)*/
+    else/*25-line mode (25x16 = 640x400)*/
         lineheight = 16;
 
     mem_writeb(0x53B,lineheight - 1);
