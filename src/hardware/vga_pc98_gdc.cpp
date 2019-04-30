@@ -43,6 +43,7 @@
 using namespace std;
 
 extern bool                 gdc_5mhz_mode;
+extern bool                 gdc_5mhz_mode_initial;
 extern bool                 GDC_vsync_interrupt;
 extern bool                 pc98_256kb_boundary;
 extern uint8_t              GDC_display_plane;
@@ -635,8 +636,24 @@ bool gdc_5mhz_according_to_bios(void) {
 }
 
 void gdc_5mhz_mode_update_vars(void) {
-// FIXME: Is this right?
-    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x20)) | (gdc_5mhz_mode ? 0x20 : 0x00));
+    unsigned char b;
+
+    b = mem_readb(0x54D);
+
+    /* bit[5:5] = GDC at 5.0MHz at boot up (copy of DIP switch 2-8 at startup)      1=yes 0=no
+     * bit[2:2] = GDC clock                                                         1=5MHz 0=2.5MHz */
+
+    if (gdc_5mhz_mode_initial)
+        b |=  0x20;
+    else
+        b &= ~0x20;
+
+    if (gdc_5mhz_mode)
+        b |=  0x04;
+    else
+        b &= ~0x04;
+
+    mem_writeb(0x54D,b);
 }
 
 /*==================================================*/
