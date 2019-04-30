@@ -632,7 +632,7 @@ void GDC_ProcDelay(Bitu /*val*/) {
 }
 
 bool gdc_5mhz_according_to_bios(void) {
-    return !!(mem_readb(0x54D) & 0x20);
+    return !!(mem_readb(0x54D) & 0x04);
 }
 
 void gdc_5mhz_mode_update_vars(void) {
