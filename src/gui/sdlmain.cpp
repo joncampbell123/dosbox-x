@@ -6357,6 +6357,8 @@ bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::ite
     return true;
 }
 
+extern bool                         gdc_5mhz_mode_initial;
+
 bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -6368,6 +6370,10 @@ bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
 
         gdc_5mhz_mode = !gdc_5mhz_mode;
         gdc_5mhz_mode_update_vars();
+
+        // this is the user's command to change GDC setting, so it should appear
+        // as if the initial setting in the dip switches
+        gdc_5mhz_mode_initial = gdc_5mhz_mode;
 
         gdc_clock_1 = gdc_5mhz_mode;
         gdc_clock_2 = gdc_5mhz_mode;
