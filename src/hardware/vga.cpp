@@ -238,6 +238,7 @@ void pc98_port6A_command_write(unsigned char b);
 void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
 void pc98_port68_command_write(unsigned char b);
+Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/);
 Bitu pc98_crtc_read(Bitu port,Bitu iolen);
 Bitu pc98_a1_read(Bitu port,Bitu iolen);
 void pc98_a1_write(Bitu port,Bitu val,Bitu iolen);
@@ -1181,6 +1182,9 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
             IO_RegisterReadHandler(i+j,pc98_gdc_read,IO_MB);
         }
     }
+
+    /* initial implementation of I/O ports 9A0h-9AEh even */
+    IO_RegisterReadHandler(0x9A0,pc98_read_9a0,IO_MB);
 
     /* There are some font character RAM controls at 0xA1-0xA5 (odd)
      * combined with A4000-A4FFF. Found by unknown I/O tracing in DOSBox-X

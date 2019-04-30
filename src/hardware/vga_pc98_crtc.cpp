@@ -260,3 +260,16 @@ void pc98_port68_command_write(unsigned char b) {
     };
 }
 
+/* Port 0x9A0 readback.
+ * This is needed to report the GDC setting so that Windows 3.1 doesn't change the
+ * GDC to 5MHz arbitrarily and leave PC-98 games confused afterward */
+Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
+    Bitu retval = 0;
+
+    /* bit 1: graphic GDC clock frequency as set in hardware at this moment */
+    if (gdc_5mhz_mode)
+        retval |= 0x02;
+
+	return retval;
+}
+
