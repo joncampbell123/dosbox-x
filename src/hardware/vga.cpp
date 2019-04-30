@@ -1222,7 +1222,6 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
     pc98_gdc[GDC_SLAVE].display_pitch = 40;
-    pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
     const unsigned char *gdcsync_m;
