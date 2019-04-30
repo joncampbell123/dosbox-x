@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - PC-98 text console output now fills both cells of doublewide
+    characters on the text layer.
   - PC-98 port 6Ah now handles command 82h/83h and 84h/85h which
     allow the guest to reprogram the GDC clock frequency (2.5MHz
     or 5MHz). This is necessary to handle strange Windows 3.1
