@@ -78,33 +78,25 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
 	vga.misc_output=val;
-	if (val & 0x1) {
-		IO_RegisterWriteHandler(0x3d4,vga_write_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3d4,vga_read_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3da,vga_read_p3da,IO_MB);
+	Bitu base=(val & 0x1) ? 0x3d0 : 0x3b0;
+	Bitu free=(val & 0x1) ? 0x3b0 : 0x3d0;
+	Bitu first=2, last=2;
+	if (machine==MCH_EGA) {first=0; last=3;}
 
-		IO_RegisterWriteHandler(0x3d5,vga_write_p3d5,IO_MB);
-		IO_RegisterReadHandler(0x3d5,vga_read_p3d5,IO_MB);
-
-		IO_FreeWriteHandler(0x3b4,IO_MB);
-		IO_FreeReadHandler(0x3b4,IO_MB);
-		IO_FreeWriteHandler(0x3b5,IO_MB);
-		IO_FreeReadHandler(0x3b5,IO_MB);
-		IO_FreeReadHandler(0x3ba,IO_MB);
-	} else {
-		IO_RegisterWriteHandler(0x3b4,vga_write_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3b4,vga_read_p3d4,IO_MB);
-		IO_RegisterReadHandler(0x3ba,vga_read_p3da,IO_MB);
-
-		IO_RegisterWriteHandler(0x3b5,vga_write_p3d5,IO_MB);
-		IO_RegisterReadHandler(0x3b5,vga_read_p3d5,IO_MB);
-
-		IO_FreeWriteHandler(0x3d4,IO_MB);
-		IO_FreeReadHandler(0x3d4,IO_MB);
-		IO_FreeWriteHandler(0x3d5,IO_MB);
-		IO_FreeReadHandler(0x3d5,IO_MB);
-		IO_FreeReadHandler(0x3da,IO_MB);
+	for (Bitu i=first; i<=last; i++) {
+		IO_RegisterWriteHandler(base+i*2,vga_write_p3d4,IO_MB);
+		IO_RegisterReadHandler(base+i*2,vga_read_p3d4,IO_MB);
+		IO_RegisterWriteHandler(base+i*2+1,vga_write_p3d5,IO_MB);
+		IO_RegisterReadHandler(base+i*2+1,vga_read_p3d5,IO_MB);
+		IO_FreeWriteHandler(free+i*2,IO_MB);
+		IO_FreeReadHandler(free+i*2,IO_MB);
+		IO_FreeWriteHandler(free+i*2+1,IO_MB);
+		IO_FreeReadHandler(free+i*2+1,IO_MB);
 	}
+
+	IO_RegisterReadHandler(base+0xa,vga_read_p3da,IO_MB);
+	IO_FreeReadHandler(free+0xa,IO_MB);
+	
 	/*
 		0	If set Color Emulation. Base Address=3Dxh else Mono Emulation. Base Address=3Bxh.
 		2-3	Clock Select. 0: 25MHz, 1: 28MHz
