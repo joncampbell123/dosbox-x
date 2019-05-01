@@ -5,6 +5,7 @@
 #include "pic.h"
 #include "vga.h"
 #include "regs.h"
+#include "menu.h"
 #include "programs.h"
 #include "support.h"
 #include "setup.h"
@@ -76,6 +77,7 @@ public:
 				int Reflect_Menu(void);
 				Reflect_Menu();
 #endif
+                mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
             }
             else if (arg == "gdc50") {
                 gdc_5mhz_mode_initial = gdc_5mhz_mode = true;
@@ -83,9 +85,10 @@ public:
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 5MHz\n");
 #if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
-				Reflect_Menu();
+                int Reflect_Menu(void);
+                Reflect_Menu();
 #endif
+                mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
             }
             else if (arg == "24khz") {
                 // use the BIOS INT 18h
