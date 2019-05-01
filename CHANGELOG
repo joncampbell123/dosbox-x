@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - PC98UTIL.COM now updates the menu item for PC-98 GDC clock
+    speed when changing GDC clock speed.
   - Added to PC98UTIL.COM the /24khz and /31khz switches to change
     hsync rate.
   - Updated PC-98 graphics plane emulation to more properly
