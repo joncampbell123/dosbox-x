@@ -93,6 +93,7 @@ extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
+extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 
 extern bool pc98_31khz_mode;
 
@@ -1882,9 +1883,13 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit16u chr = 0,attr = 0;
     Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
+    unsigned int disp_off = 0;
     unsigned char font,foreground;
     unsigned char fline;
     bool ok_raster = true;
+
+    // simulate 1-pixel shift in CRT mode by offsetting everything by 1 then rendering text without the offset
+    disp_off = pc98_crt_mode ? 1 : 0;
 
     // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
     if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect)
@@ -1896,7 +1901,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster && pc98_display_enable) {
         Bit8u g8,r8,b8,e8;
 
-        draw = ((Bit32u*)TempLine);
+        draw = ((Bit32u*)TempLine) + disp_off;
         blocks = vga.draw.blocks;
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
@@ -1960,7 +1965,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_MASTER].display_enable && pc98_display_enable) {
         Bitu gdcvidmem = pc98_gdc[GDC_MASTER].scan_address;
 
-        draw = ((Bit32u*)TempLine);
+        draw = ((Bit32u*)TempLine);/* without the disp_off, to emulate 1-pixel cutoff in CRT mode */
         blocks = vga.draw.blocks;
 
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
@@ -2140,7 +2145,7 @@ interrupted_char_begin:
         }
     }
 
-    return TempLine;
+    return TempLine + (disp_off * 4);
 }
 
 static void VGA_ProcessSplit() {

@@ -164,6 +164,9 @@ bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
 bool                                enable_vga_8bit_dac = true;
 
+bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
+                                                                // this boolean is the INVERSE of the bit.
+
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
 extern bool                         gdc_5mhz_mode_initial;
