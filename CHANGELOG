@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - (PC-98) Port 6Ah command 40h/41h, CRT vs Plasma/LCD mode,
+    added.
   - PC98UTIL.COM now updates the menu item for PC-98 GDC clock
     speed when changing GDC clock speed.
   - Added to PC98UTIL.COM the /24khz and /31khz switches to change
