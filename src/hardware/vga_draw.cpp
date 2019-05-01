@@ -1908,7 +1908,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             const unsigned long vmask = pc98_256kb_boundary ? 0x7FFFFu : 0x3FFFFu;
             const unsigned char *s;
 
-            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << ((gdc_5mhz_mode?0u:1u)+3u); /* as if reading across bitplanes */
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
 
             while (blocks--) {
                 s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & vmask]);
@@ -1920,7 +1920,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         else {
             const unsigned long vmask = pc98_256kb_boundary ? 0xFFFFu : 0x7FFFu;
 
-            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (gdc_5mhz_mode?0u:1u);
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
 
             while (blocks--) {
                 // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
