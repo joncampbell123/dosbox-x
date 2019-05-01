@@ -3172,16 +3172,16 @@ static Bitu INT18_PC98_Handler(void) {
 
                 LOG_MSG("PC-98 INT 18 AH=30h AL=%02Xh BH=%02Xh",reg_al,reg_bh);
 
-                if ((reg_bh & 0x30) == 0x30) { // 640x480 (according to Neko Project II, this is always 256-color mode)
+                if ((reg_bh & 0x30) == 0x30) { // 640x480
                     if (reg_al & 4) { // 31KHz sync
-                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set unsupported 640x480x256-color mode");
+                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set unsupported 640x480 mode");
                     }
                     else {
                         // according to Neko Project II, this case is ignored
-                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480x256-color mode with 24KHz hsync which is not supported");
+                        LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480 mode with 24KHz hsync which is not supported");
                     }
                 }
-                else { // 640x400 or 640x200 (according to Neko Project II, always 8/16-color mode)
+                else { // 640x400 or 640x200
                     if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 15KHz hsync which is not yet supported");
                     }
@@ -3205,11 +3205,6 @@ static Bitu INT18_PC98_Handler(void) {
                             b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
                         }
                     }
-
-                    // this path turns off 256-color mode
-                    void pc98_port6A_command_write(unsigned char b);
-                    pc98_port6A_command_write(0x20);        // disable 256-color
-                    PC98_show_cursor(false);                // apparently hides the cursor?
 
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
