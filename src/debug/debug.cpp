@@ -70,6 +70,7 @@ const char *egc_fgc_modes[4] = {
 
 bool pc98_pegc_linear_framebuffer_enabled(void);
 
+extern bool                 pc98_crt_mode;
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
 extern bool                 pc98_256kb_boundary;
@@ -2224,9 +2225,10 @@ bool ParseCommand(char* str) {
                 gdc.cursor_blink,
                 gdc.cursor_blink_rate);
 
-            DEBUG_ShowMsg("  curs-blink-count=%u curs-blink-state=%u/4",
+            DEBUG_ShowMsg("  curs-blink-count=%u curs-blink-state=%u/4 crt-mode=%u",
                 gdc.cursor_blink_count,
-                gdc.cursor_blink_state);
+                gdc.cursor_blink_state,
+                pc98_crt_mode?1:0);
 
             /*--------------------*/
 
