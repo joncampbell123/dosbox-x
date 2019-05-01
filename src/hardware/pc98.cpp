@@ -4,11 +4,13 @@
 #include "video.h"
 #include "pic.h"
 #include "vga.h"
+#include "regs.h"
 #include "programs.h"
 #include "support.h"
 #include "setup.h"
 #include "timer.h"
 #include "mem.h"
+#include "callback.h"
 #include "util_units.h"
 #include "control.h"
 #include "mixer.h"
@@ -86,20 +88,27 @@ public:
 #endif
             }
             else if (arg == "24khz") {
-                WriteOut("Hsync is now 24khz");
+                // use the BIOS INT 18h
+                reg_ah = 0x31;//get
+                CALLBACK_RunRealInt(0x18);
 
-                extern bool pc98_31khz_mode;
-                void PC98_Set24KHz(void);
-                pc98_31khz_mode = false;
-                PC98_Set24KHz();
+                reg_ah = 0x30;//set
+                reg_al &= ~(3u << 2u);// clear bits [3:2]
+                reg_al |=   0x08;//24khz  bits [3:2] = 10
+                CALLBACK_RunRealInt(0x18);
+
+                WriteOut("Hsync is now 24khz");
             }
             else if (arg == "31khz") {
-                WriteOut("Hsync is now 31khz");
+                // use the BIOS INT 18h
+                reg_ah = 0x31;//get
+                CALLBACK_RunRealInt(0x18);
 
-                extern bool pc98_31khz_mode;
-                void PC98_Set31KHz(void);
-                pc98_31khz_mode = true;
-                PC98_Set31KHz();
+                reg_ah = 0x30;//set
+                reg_al |= 0x0C;//31khz  bits [3:2] = 11
+                CALLBACK_RunRealInt(0x18);
+
+                WriteOut("Hsync is now 31khz");
             }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
