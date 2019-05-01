@@ -1,4 +1,7 @@
 0.82.19 (next)
+  - Updated PC-98 graphics plane emulation to more properly
+    handle the 5MHz GDC mode, and the IM bit in the GDC parameter
+    RAM.
   - INT 18h AH=30h and AH=42h mode set fixed to update CPU and
     display pages correctly.
   - INT 18h AH=30h (PC-98 mode) now permits graphics layer changes.
