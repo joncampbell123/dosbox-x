@@ -3229,7 +3229,7 @@ static Bitu INT18_PC98_Handler(void) {
                     }
 
                     pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
-                    pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
+                    pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F + (gdc_5mhz_according_to_bios()?0x40:0x00/*IM bit*/);
                     pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
 
                     if ((reg_bh & 0x20) == 0x00) { /* 640x200 */
@@ -3362,7 +3362,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
 
             pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
-            pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
+            pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F + (gdc_5mhz_according_to_bios()?0x40:0x00/*IM bit*/);
             pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
 
             // CH
