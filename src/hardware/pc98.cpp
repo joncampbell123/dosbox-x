@@ -66,7 +66,7 @@ public:
 #endif
             }
             else if (arg == "gdc25") {
-                gdc_5mhz_mode = false;
+                gdc_5mhz_mode_initial = gdc_5mhz_mode = false;
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 2.5MHz\n");
@@ -76,7 +76,7 @@ public:
 #endif
             }
             else if (arg == "gdc50") {
-                gdc_5mhz_mode = true;
+                gdc_5mhz_mode_initial = gdc_5mhz_mode = true;
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 5MHz\n");
