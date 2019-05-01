@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - Added to PC98UTIL.COM the /24khz and /31khz switches to change
+    hsync rate.
   - Updated PC-98 graphics plane emulation to more properly
     handle the 5MHz GDC mode, and the IM bit in the GDC parameter
     RAM.
