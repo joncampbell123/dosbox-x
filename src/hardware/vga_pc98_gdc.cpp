@@ -110,6 +110,7 @@ PC98_GDC_state::PC98_GDC_state() {
     param_ram[2] = 0xF0;        // LEN=3FF
     param_ram[3] = 0x3F;        // LEN=3FF WD1=0
 
+    IM_bit = false;
     display_partition_mask = 3;
     doublescan = false;
     param_ram_wptr = 0;
@@ -427,7 +428,7 @@ Bit16u PC98_GDC_state::read_fifo(void) {
 void PC98_GDC_state::next_line(void) {
     row_line++;
     if (row_line == row_height) {
-        scan_address += display_pitch;
+        scan_address += display_pitch >> (IM_bit ? 1u : 0u);
         row_line = 0;
     }
     else if (row_line & 0x20) {
@@ -470,6 +471,7 @@ void PC98_GDC_state::load_display_partition(void) {
      *
      * RAM+3 = WD1 0 LEN1 (H) [5:0] */
         scan_address &= 0x1FFF;
+        IM_bit = false;
     }
     else { /* graphics mode */
     /* RAM+0 = SAD1 (L)
@@ -479,6 +481,7 @@ void PC98_GDC_state::load_display_partition(void) {
      * RAM+2 = LEN1 (L) [7:4]  0 0   SAD1 (H) [1:0]
      *
      * RAM+3 = WD1 IM LEN1 (H) [5:0] */
+        IM_bit = !!(pram[3] & 0x40); /* increment the address every other cycle if set, mixed text/graphics only */
     }
 }
 

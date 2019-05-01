@@ -115,6 +115,7 @@ struct PC98_GDC_state {
     bool                    display_enable;
     bool                    cursor_enable;
     bool                    cursor_blink;
+    bool                    IM_bit;                     /* display partition, IM bit */
     bool                    idle;
 
     bool                    doublescan;                 /* 200-line as 400-line */
