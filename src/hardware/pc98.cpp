@@ -100,6 +100,9 @@ public:
                 reg_al |=   0x08;//24khz  bits [3:2] = 10
                 CALLBACK_RunRealInt(0x18);
 
+                reg_ah = 0x11;//show cursor
+                CALLBACK_RunRealInt(0x18);
+
                 WriteOut("Hsync is now 24khz");
             }
             else if (arg == "31khz") {
@@ -109,6 +112,9 @@ public:
 
                 reg_ah = 0x30;//set
                 reg_al |= 0x0C;//31khz  bits [3:2] = 11
+                CALLBACK_RunRealInt(0x18);
+
+                reg_ah = 0x11;//show cursor
                 CALLBACK_RunRealInt(0x18);
 
                 WriteOut("Hsync is now 31khz");
