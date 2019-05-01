@@ -85,6 +85,22 @@ public:
 				Reflect_Menu();
 #endif
             }
+            else if (arg == "24khz") {
+                WriteOut("Hsync is now 24khz");
+
+                extern bool pc98_31khz_mode;
+                void PC98_Set24KHz(void);
+                pc98_31khz_mode = false;
+                PC98_Set24KHz();
+            }
+            else if (arg == "31khz") {
+                WriteOut("Hsync is now 31khz");
+
+                extern bool pc98_31khz_mode;
+                void PC98_Set31KHz(void);
+                pc98_31khz_mode = true;
+                PC98_Set31KHz();
+            }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
                 break;
@@ -99,6 +115,8 @@ public:
         WriteOut("  /gdc50     Set GDC to 5.0MHz\n");
         WriteOut("  /egc       Enable EGC\n");
         WriteOut("  /noegc     Disable EGC\n");
+        WriteOut("  /24khz     Set hsync to 24KHz\n");
+        WriteOut("  /31khz     Set hsync to 31KHz\n");
     }
 };
 
