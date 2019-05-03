@@ -1,4 +1,5 @@
 0.82.19 (next)
+  - PC-98 INT 18h AH=30h now allows setting the 480-line mode.
   - (PC-98) Port 6Ah command 40h/41h, CRT vs Plasma/LCD mode,
     added.
   - PC98UTIL.COM now updates the menu item for PC-98 GDC clock
