@@ -1091,9 +1091,6 @@ void VGA_SetupOther(void) {
 		write_pcjr( 0x3df, 0x7 | (0x7 << 3), 0 );
 		IO_RegisterWriteHandler(0x3da,write_pcjr,IO_MB);
 		IO_RegisterWriteHandler(0x3df,write_pcjr,IO_MB);
-		// additional CRTC access documented
-		IO_RegisterWriteHandler(0x3d0,write_crtc_index_other,IO_MB);
-		IO_RegisterWriteHandler(0x3d1,write_crtc_data_other,IO_MB);
 	}
 	if (machine==MCH_HERC || machine==MCH_MDA) {
 		Bitu base=0x3b0;
@@ -1132,22 +1129,6 @@ void VGA_SetupOther(void) {
 			IO_RegisterReadHandler(base+port_ct*2+1,read_crtc_data_other,IO_MB);
 		}
 	}
-	if (machine==MCH_MCGA) {
-		Bitu base=0x3d0;
-		for (Bitu port_ct=0; port_ct<4; port_ct++) {
-			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
-			IO_RegisterWriteHandler(base+port_ct*2+1,write_crtc_data_mcga,IO_MB);
-			IO_RegisterReadHandler(base+port_ct*2,read_crtc_index_other,IO_MB);
-			IO_RegisterReadHandler(base+port_ct*2+1,read_crtc_data_mcga,IO_MB);
-		}
-	}
-	if (IS_TANDY_ARCH) {
-		Bitu base=0x3d4;
-		IO_RegisterWriteHandler(base,write_crtc_index_other,IO_MB);
-		IO_RegisterWriteHandler(base+1,write_crtc_data_other,IO_MB);
-		IO_RegisterReadHandler(base,read_crtc_index_other,IO_MB);
-		IO_RegisterReadHandler(base+1,read_crtc_data_other,IO_MB);
-	}
 	if (machine==MCH_AMSTRAD) {
 		Bitu base=(machine==MCH_HERC || machine==MCH_MDA) ? 0x3b4 : 0x3d4;
 		IO_RegisterWriteHandler(base,write_crtc_index_other,IO_MB);
@@ -1163,7 +1144,14 @@ void VGA_SetupOther(void) {
 			IO_RegisterReadHandler(base,read_crtc_index_other,IO_MB);
 			IO_RegisterReadHandler(base+1,read_crtc_data_other,IO_MB);
 		}
+	} else if (!IS_EGAVGA_ARCH) {
+		Bitu base=0x3d0;
+		for (Bitu port_ct=0; port_ct<4; port_ct++) {
+			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
+			IO_RegisterWriteHandler(base+port_ct*2+1,write_crtc_data_mcga,IO_MB);
+			IO_RegisterReadHandler(base+port_ct*2,read_crtc_index_other,IO_MB);
+			IO_RegisterReadHandler(base+port_ct*2+1,read_crtc_data_mcga,IO_MB);
+		}
 	}
-	// AMSTRAD
 }
 

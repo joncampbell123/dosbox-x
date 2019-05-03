@@ -230,6 +230,13 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
 ]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn't include powf])])
 LIBS=$LIBS_BACKUP
 
+dnl Look for clock_gettime, a DB_HAVE_CLOCK_GETTIME is set when present
+AH_TEMPLATE([DB_HAVE_CLOCK_GETTIME],[Determines if the function clock_gettime is available.])
+AC_SEARCH_LIBS([clock_gettime], [rt] , [found_clock_gettime=yes], [found_clock_gettime=no])
+if test x$found_clock_gettime = xyes; then
+  AC_DEFINE(DB_HAVE_CLOCK_GETTIME)
+fi
+
 dnl TEST: Check if the compiler support attributes
 AH_TEMPLATE([C_HAS_ATTRIBUTE],[Determines if the compilers supports attributes for structures.])
 AC_MSG_CHECKING(if compiler allows __attribute__)
