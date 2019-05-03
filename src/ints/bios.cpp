@@ -3197,6 +3197,43 @@ static Bitu INT18_PC98_Handler(void) {
 
                         void pc98_port6A_command_write(unsigned char b);
                         pc98_port6A_command_write(0x69); // disable 128KB wrap
+
+                        b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
+
+                        pc98_gdc[GDC_MASTER].force_fifo_complete();
+                        pc98_gdc[GDC_SLAVE].force_fifo_complete();
+
+                        // according to real hardware, this also hides the text layer for some reason
+                        pc98_gdc[GDC_MASTER].display_enable = false;
+
+                        /* clear PRAM, graphics */
+                        for (unsigned int i=0;i < 16;i++)
+                            pc98_gdc[GDC_SLAVE].param_ram[i] = 0x00;
+
+                        /* reset scroll area of graphics */
+                        pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
+                        pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+
+                        pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
+                        pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F + (gdc_5mhz_according_to_bios()?0x40:0x00/*IM bit*/);
+                        pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
+
+                        pc98_gdc[GDC_SLAVE].doublescan = false;
+                        pc98_gdc[GDC_SLAVE].row_height = 1;
+
+                        b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
+
+                        pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+                        pc98_update_cpu_page_ptr();
+
+                        GDC_display_plane = GDC_display_plane_pending = 0;
+                        pc98_update_display_page_ptr();
+
+                        /* based on real hardware behavior, this ALSO sets 256-color mode */
+                        void pc98_port6A_command_write(unsigned char b);
+                        pc98_port6A_command_write(0x07);        // enable EGC
+                        pc98_port6A_command_write(0x01);        // enable 16-color
+                        pc98_port6A_command_write(0x21);        // enable 256-color
                     }
                     else {
                         // according to Neko Project II, this case is ignored.
@@ -3204,43 +3241,6 @@ static Bitu INT18_PC98_Handler(void) {
                         // that the text layer part of the spec specify at least 25 lines.
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480 mode with 24KHz hsync which is not supported by the platform");
                     }
-
-                    b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
-
-                    pc98_gdc[GDC_MASTER].force_fifo_complete();
-                    pc98_gdc[GDC_SLAVE].force_fifo_complete();
-
-                    // according to real hardware, this also hides the text layer for some reason
-                    pc98_gdc[GDC_MASTER].display_enable = false;
-
-                    /* clear PRAM, graphics */
-                    for (unsigned int i=0;i < 16;i++)
-                        pc98_gdc[GDC_SLAVE].param_ram[i] = 0x00;
-
-                    /* reset scroll area of graphics */
-                    pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
-                    pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
-
-                    pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
-                    pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F + (gdc_5mhz_according_to_bios()?0x40:0x00/*IM bit*/);
-                    pc98_gdc[GDC_SLAVE].display_pitch = gdc_5mhz_according_to_bios() ? 80u : 40u;
-
-                    pc98_gdc[GDC_SLAVE].doublescan = false;
-                    pc98_gdc[GDC_SLAVE].row_height = 1;
-
-                    b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
-
-                    pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
-                    pc98_update_cpu_page_ptr();
-
-                    GDC_display_plane = GDC_display_plane_pending = 0;
-                    pc98_update_display_page_ptr();
-
-                    /* based on real hardware behavior, this ALSO sets 256-color mode */
-                    void pc98_port6A_command_write(unsigned char b);
-                    pc98_port6A_command_write(0x07);        // enable EGC
-                    pc98_port6A_command_write(0x01);        // enable 16-color
-                    pc98_port6A_command_write(0x21);        // enable 256-color
                 }
                 else { // 640x400 or 640x200
                     if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
