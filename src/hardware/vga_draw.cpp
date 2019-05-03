@@ -1925,7 +1925,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         else {
             /* NTS: According to real hardware, the 128KB/256KB boundary control bit ONLY works in 256-color mode.
              *      It has no effect in 8/16-color planar modes, which is probably why the BIOS on such systems
-             *      will not allow a 640x480 16-color mode since the VRAM required exceeds 32KB. */
+             *      will not allow a 640x480 16-color mode since the VRAM required exceeds 32KB per bitplane. */
             const unsigned long vmask = 0x7FFFu;
 
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
