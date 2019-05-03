@@ -3276,9 +3276,18 @@ static Bitu INT18_PC98_Handler(void) {
                     pc98_update_display_page_ptr();
                 }
 
+                tstat &= ~(0x10 | 0x01);
+                if (reg_bh & 2)
+                    tstat |= 0x10;
+                else if ((reg_bh & 1) == 0)
+                    tstat |= 0x01;
+
                 mem_writeb(0x597,b597);
                 mem_writeb(0x53C,tstat);
                 mem_writeb(0x54C,b54C);
+
+                pc98_update_text_lineheight_from_bda();
+                pc98_update_text_layer_lineheight_from_bda();
 
                 reg_ah = ret;
             }
