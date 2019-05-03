@@ -3238,8 +3238,8 @@ static Bitu INT18_PC98_Handler(void) {
                     else {
                         // according to Neko Project II, this case is ignored.
                         // this is confirmed on real hardware as well, in fact it also seems to require
-                        // that the text layer part of the spec specify at least 25 lines.
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 640x480 mode with 24KHz hsync which is not supported by the platform");
+                        ret = 1;
                     }
                 }
                 else { // 640x400 or 640x200
