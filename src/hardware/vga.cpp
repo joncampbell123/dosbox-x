@@ -1170,6 +1170,9 @@ static const UINT8 gdc_defsyncs24[8] = {0x06,0x26,0x03,0x11,0x83,0x07,0x90,0x65}
 static const UINT8 gdc_defsyncm31[8] = {0x10,0x4e,0x47,0x0c,0x07,0x0d,0x90,0x89};
 static const UINT8 gdc_defsyncs31[8] = {0x06,0x26,0x41,0x0c,0x83,0x0d,0x90,0x89};
 
+static const UINT8 gdc_defsyncm31_480[8] = {0x10,0x4e,0x4b,0x0c,0x03,0x06,0xe0,0x95};
+static const UINT8 gdc_defsyncs31_480[8] = {0x06,0x4e,0x4b,0x0c,0x83,0x06,0xe0,0x95};
+
 void PC98_Set24KHz(void) {
     pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
     for (unsigned int i=0;i < 8;i++)
@@ -1191,6 +1194,18 @@ void PC98_Set31KHz(void) {
     pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
     for (unsigned int i=0;i < 8;i++)
         pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31[i]);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+}
+
+void PC98_Set31KHz_480line(void) {
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_MASTER].write_fifo_param(gdc_defsyncm31_480[i]);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    for (unsigned int i=0;i < 8;i++)
+        pc98_gdc[GDC_SLAVE].write_fifo_param(gdc_defsyncs31_480[i]);
     pc98_gdc[GDC_SLAVE].force_fifo_complete();
 }
 
