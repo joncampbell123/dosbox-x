@@ -266,17 +266,43 @@ void pc98_port68_command_write(unsigned char b) {
     };
 }
 
+unsigned char sel_9a0 = 0;
+
 /* Port 0x9A0 readback.
  * This is needed to report the GDC setting so that Windows 3.1 doesn't change the
  * GDC to 5MHz arbitrarily and leave PC-98 games confused afterward */
 Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
     Bitu retval = 0;
 
+    /* bit 0 depends on what was selected by writing to port 9a0.
+     * according to undocumented 9821 (not verified), unknown registers and 0x00 will return 0xff here. */
+    switch (sel_9a0) {
+        case 0x01:      // color/monochrome
+            if (true) retval |= 1u;//FIXME
+            break;
+        case 0x02:      // odd raster mask
+            if (pc98_graphics_hide_odd_raster_200line) retval |= 1u;
+            break;
+        case 0x03:      // display on/off
+            if (pc98_display_enable) retval |= 1u;
+            break;
+        case 0x04:      // palette mode (used by Sim City 2000)
+            if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) retval |= 1u;
+            break;
+        default:
+            retval |= 0xFF;//FIXME: Is this true?
+            break;
+    };
+
     /* bit 1: graphic GDC clock frequency as set in hardware at this moment */
     if (gdc_5mhz_mode)
         retval |= 0x02;
 
 	return retval;
+}
+
+void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen) {
+    sel_9a0 = (unsigned char)val; // what to read back in bit 0
 }
 
 /* Port 0x9A8

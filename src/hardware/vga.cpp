@@ -245,6 +245,7 @@ void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
 void pc98_port68_command_write(unsigned char b);
 Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/);
+void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen);
 Bitu pc98_crtc_read(Bitu port,Bitu iolen);
 Bitu pc98_a1_read(Bitu port,Bitu iolen);
 void pc98_a1_write(Bitu port,Bitu val,Bitu iolen);
@@ -1230,6 +1231,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
 
     /* initial implementation of I/O ports 9A0h-9AEh even */
     IO_RegisterReadHandler(0x9A0,pc98_read_9a0,IO_MB);
+    IO_RegisterWriteHandler(0x9A0,pc98_write_9a0,IO_MB);
 
     /* 9A8h which controls 24khz/31khz mode */
     IO_RegisterReadHandler(0x9A8,pc98_read_9a8,IO_MB);
