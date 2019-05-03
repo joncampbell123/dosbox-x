@@ -3244,6 +3244,10 @@ static Bitu INT18_PC98_Handler(void) {
                     }
                 }
                 else { // 640x400 or 640x200
+                    // TODO: A PC9821Lt2 laptop's BIOS refuses to allow 31khz except for 640x480 mode.
+                    //       Check on other PC-98 hardware to see what the policy is for 31khz in all modes.
+                    //       That restriction would make no sense on another system I have that has a VGA
+                    //       port and a default setting of 70Hz / 31KHz 640x400.
                     if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
                         LOG_MSG("PC-98 INT 18h AH=30h attempt to set 15KHz hsync which is not yet supported");
                     }
