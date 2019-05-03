@@ -3230,6 +3230,12 @@ static Bitu INT18_PC98_Handler(void) {
 
                     GDC_display_plane = GDC_display_plane_pending = 0;
                     pc98_update_display_page_ptr();
+
+                    /* based on real hardware behavior, this ALSO sets 256-color mode */
+                    void pc98_port6A_command_write(unsigned char b);
+                    pc98_port6A_command_write(0x07);        // enable EGC
+                    pc98_port6A_command_write(0x01);        // enable 16-color
+                    pc98_port6A_command_write(0x21);        // enable 256-color
                 }
                 else { // 640x400 or 640x200
                     if ((reg_al & 0x0C) < 0x08) { /* bits [3:2] == 0x */
