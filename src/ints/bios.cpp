@@ -3174,6 +3174,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x30: /* Set display mode */
+            /* FIXME: There is still a lot that is inaccurate about this call */
             if (enable_pc98_egc) {
                 unsigned char b597 = mem_readb(0x597);
                 unsigned char tstat = mem_readb(0x53C);
@@ -3273,6 +3274,9 @@ static Bitu INT18_PC98_Handler(void) {
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
+                    // 640x480 forces 256-color mode.
+                    // the 400 line modes (this case) do not clear 256-color mode.
+
                     // according to real hardware, this also hides the text layer for some reason
                     pc98_gdc[GDC_MASTER].display_enable = false;
 
@@ -3329,6 +3333,8 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x31: /* Return display mode and status */
+            /* NTS: According to NP II this call shouldn't even work unless you first call AH=30h to set 640x480 mode.
+             *      It seems that is wrong. Real hardware will still return the current mode regardless. */
             if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
                 unsigned char b597 = mem_readb(0x597);
                 unsigned char tstat = mem_readb(0x53C);
