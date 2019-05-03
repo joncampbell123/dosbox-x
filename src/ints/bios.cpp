@@ -3194,6 +3194,9 @@ static Bitu INT18_PC98_Handler(void) {
                         void PC98_Set31KHz_480line(void);
                         pc98_31khz_mode = true;
                         PC98_Set31KHz_480line();
+
+                        void pc98_port6A_command_write(unsigned char b);
+                        pc98_port6A_command_write(0x69); // disable 128KB wrap
                     }
                     else {
                         // according to Neko Project II, this case is ignored
@@ -3252,6 +3255,9 @@ static Bitu INT18_PC98_Handler(void) {
                             b54C = (b54C & (~0x20)) + ((reg_al & 0x04) ? 0x20 : 0x00);
                         }
                     }
+
+                    void pc98_port6A_command_write(unsigned char b);
+                    pc98_port6A_command_write(0x68); // restore 128KB wrap
 
                     pc98_gdc[GDC_MASTER].force_fifo_complete();
                     pc98_gdc[GDC_SLAVE].force_fifo_complete();
