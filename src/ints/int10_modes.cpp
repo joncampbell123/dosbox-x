@@ -24,7 +24,6 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
-#include "mouse.h"
 #include "vga.h"
 #include "bios.h"
 #include "programs.h"
@@ -745,8 +744,6 @@ static void FinishSetMode(bool clearmem) {
 	}
 	/* FIXME */
 	VGA_DAC_UpdateColorPalette();
-	/* Tell mouse resolution change */
-	Mouse_NewVideoMode();
 }
 
 extern bool en_int33;
