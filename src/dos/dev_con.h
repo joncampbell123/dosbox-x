@@ -791,9 +791,14 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
                 /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-                if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
+                auto defattr = DefaultANSIAttr();
+                if((data[count] == '\n') && (lastwrite != '\r')) {
+		            if(ansi.enabled) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,true);
+                    else Real_INT10_TeletypeOutput('\r',defattr);
+                }
                 /* ansi attribute will be set to the default if ansi is disabled */
-                Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,true);
+                if(ansi.enabled) Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,true);
+                else Real_INT10_TeletypeOutput(data[count],defattr);
                 lastwrite = data[count++];
                 continue;
             }
