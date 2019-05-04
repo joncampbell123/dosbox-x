@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - PC98UTIL fixed to re-enable the text layer after the BIOS call
+    for /24khz and /31khz options.
   - PC-98 INT 18h AH=30h now allows setting the 480-line mode.
   - (PC-98) Port 6Ah command 40h/41h, CRT vs Plasma/LCD mode,
     added.
