@@ -796,7 +796,7 @@ void CONFIG::Run(void) {
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			// split on the ' '
 			if (spcpos != std::string::npos) {
-				pvars.insert(++pvars.begin(),pvars[0].substr(spcpos+1));
+				pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
 				pvars[0].erase(spcpos);
 			}
 			switch(pvars.size()) {
@@ -890,7 +890,7 @@ void CONFIG::Run(void) {
 			if ((equpos != std::string::npos) && 
 				((spcpos == std::string::npos) || (equpos < spcpos))) {
 				// If we have a '=' possibly before a ' ' split on the =
-				pvars.insert(++pvars.begin(),pvars[0].substr(equpos+1));
+				pvars.insert(pvars.begin()+1,pvars[0].substr(equpos+1));
 				pvars[0].erase(equpos);
 				// As we had a = the first thing must be a property now
 				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
@@ -904,7 +904,7 @@ void CONFIG::Run(void) {
 				if ((spcpos != std::string::npos) &&
 					((equpos == std::string::npos) || (spcpos < equpos))) {
 					// ' ' before a possible '=', split on the ' '
-					pvars.insert(++pvars.begin(),pvars[0].substr(spcpos+1));
+					pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
 					pvars[0].erase(spcpos);
 				}
 				// check if the first parameter is a section or property

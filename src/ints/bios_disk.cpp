@@ -67,7 +67,7 @@ void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 bool imageDiskChange[MAX_DISK_IMAGES]={false};
 imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
-Bits swapPosition;
+Bit32s swapPosition;
 
 imageDisk *GetINT13FloppyDrive(unsigned char drv) {
     if (drv >= 2)
@@ -142,11 +142,11 @@ int swapInDisksSpecificDrive = -1;
 
 void swapInDisks(void) {
     bool allNull = true;
-    Bits diskcount = 0;
+    Bit32s diskcount = 0;
     Bits diskswapcount = 2;
     Bits diskswapdrive = 0;
-    Bits swapPos = swapPosition;
-    int i;
+    Bit32s swapPos = swapPosition;
+    Bit32s i;
 
     /* Check to make sure that  there is at least one setup image */
     for(i=0;i<MAX_SWAPPABLE_DISKS;i++) {
@@ -660,7 +660,7 @@ Bit32u imageDisk::getSectSize(void) {
     return sector_size;
 }
 
-static Bitu GetDosDriveNumber(Bitu biosNum) {
+static Bit8u GetDosDriveNumber(Bit8u biosNum) {
     switch(biosNum) {
         case 0x0:
             return 0x0;
@@ -679,7 +679,7 @@ static Bitu GetDosDriveNumber(Bitu biosNum) {
     }
 }
 
-static bool driveInactive(Bitu driveNum) {
+static bool driveInactive(Bit8u driveNum) {
     if(driveNum>=(2 + MAX_HDD_IMAGES)) {
         LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existant", (int)driveNum);
         last_status = 0x01;
@@ -732,7 +732,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 static Bitu INT13_DiskHandler(void) {
     Bit16u segat, bufptr;
     Bit8u sectbuf[512];
-    Bitu  drivenum;
+    Bit8u  drivenum;
     Bitu  i,t;
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
