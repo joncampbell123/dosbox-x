@@ -34,7 +34,7 @@ BatchFile::BatchFile(DOS_Shell * host,char const * const resolved_name,char cons
 	filename = totalname;
 
 	//Test if file is openable
-	if (!DOS_OpenFile(totalname,128,&file_handle)) {
+	if (!DOS_OpenFile(totalname,(DOS_NOT_INHERIT|OPEN_READ),&file_handle)) {
 		//TODO Come up with something better
 		E_Exit("SHELL:Can't open BatchFile %s",totalname);
 	}
@@ -49,7 +49,7 @@ BatchFile::~BatchFile() {
 
 bool BatchFile::ReadLine(char * line) {
 	//Open the batchfile and seek to stored postion
-	if (!DOS_OpenFile(filename.c_str(),128,&file_handle)) {
+	if (!DOS_OpenFile(filename.c_str(),(DOS_NOT_INHERIT|OPEN_READ),&file_handle)) {
 		LOG(LOG_MISC,LOG_ERROR)("ReadLine Can't open BatchFile %s",filename.c_str());
 		delete this;
 		return false;
@@ -68,8 +68,12 @@ emptyline:
 			 * Exclusion list: tab for batch files 
 			 * escape for ansi
 			 * backspace for alien odyssey */
-			if (c>31 || c==0x1b || c=='\t' || c==8)
-				*cmd_write++=(char)c;
+			if (c>31 || c==0x1b || c=='\t' || c==8) {
+				//Only add it if room for it (and trailing zero) in the buffer, but do the check here instead at the end
+				//So we continue reading till EOL/EOF
+				if (((cmd_write - temp) + 1) < (CMD_MAXLINE - 1))
+					*cmd_write++ = c;
+			}
 		}
 	} while (c!='\n' && n);
 	*cmd_write=0;
@@ -86,52 +90,63 @@ emptyline:
 	cmd_write=line;
 	char * cmd_read=temp;
 	while (*cmd_read) {
-		if (*cmd_read=='%') {
+		if (*cmd_read == '%') {
 			cmd_read++;
 			if (cmd_read[0] == '%') {
 				cmd_read++;
-				*cmd_write++='%';
+				if (((cmd_write - line) + 1) < (CMD_MAXLINE - 1))
+					*cmd_write++ = '%';
 				continue;
 			}
 			if (cmd_read[0] == '0') {  /* Handle %0 */
 				const char *file_name = cmd->GetFileName();
 				cmd_read++;
-				strcpy(cmd_write,file_name);
-				cmd_write+=strlen(file_name);
+				size_t name_len = strlen(file_name);
+				if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+					strcpy(cmd_write,file_name);
+					cmd_write += name_len;
+				}
 				continue;
 			}
 			char next = cmd_read[0];
-			if(next > '0' && next <= '9') {  
+			if(next > '0' && next <= '9') {
 				/* Handle %1 %2 .. %9 */
 				cmd_read++; //Progress reader
 				next -= '0';
 				if (cmd->GetCount()<(unsigned int)next) continue;
 				std::string word;
 				if (!cmd->FindCommand((unsigned int)next,word)) continue;
-				strcpy(cmd_write,word.c_str());
-				cmd_write+=strlen(word.c_str());
+				size_t name_len = strlen(word.c_str());
+				if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+					strcpy(cmd_write,word.c_str());
+					cmd_write += name_len;
+				}
 				continue;
 			} else {
 				/* Not a command line number has to be an environment */
-				char * first=strchr(cmd_read,'%');
-				/* No env afterall.Somewhat of a hack though as %% and % aren't handled consistent in dosbox. Maybe echo needs to parse % and %% as well. */
-				if (!first) {*cmd_write++ = '%';continue;}
+				char * first = strchr(cmd_read,'%');
+				/* No env afterall. Ignore a single % */
+				if (!first) {/* *cmd_write++ = '%';*/continue;}
 				*first++ = 0;
 				std::string env;
 				if (shell->GetEnvStr(cmd_read,env)) {
-					const char * equals=strchr(env.c_str(),'=');
+					const char* equals = strchr(env.c_str(),'=');
 					if (!equals) continue;
 					equals++;
-					strcpy(cmd_write,equals);
-					cmd_write+=strlen(equals);
+					size_t name_len = strlen(equals);
+					if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+						strcpy(cmd_write,equals);
+						cmd_write += name_len;
+					}
 				}
-				cmd_read=first;
+				cmd_read = first;
 			}
 		} else {
-			*cmd_write++=*cmd_read++;
+			if (((cmd_write - line) + 1) < (CMD_MAXLINE - 1))
+				*cmd_write++ = *cmd_read++;
 		}
 	}
-	*cmd_write=0;
+	*cmd_write = 0;
 	//Store current location and close bat file
 	this->location = 0;
 	DOS_SeekFile(file_handle,&(this->location),DOS_SEEK_CUR);
@@ -158,8 +173,10 @@ again:
 		n=1;
 		DOS_ReadFile(file_handle,&c,&n);
 		if (n>0) {
-			if (c>31)
-				*cmd_write++=(char)c;
+			if (c>31) {
+				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
+					*cmd_write++ = c;
+			}
 		}
 	} while (c!='\n' && n);
 	*cmd_write++ = 0;
