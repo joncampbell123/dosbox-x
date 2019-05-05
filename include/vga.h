@@ -144,7 +144,7 @@ typedef struct {
 } VGA_Config;
 
 typedef enum {
-	LINE,
+	DRAWLINE,
 	EGALINE
 } Drawmode;
 

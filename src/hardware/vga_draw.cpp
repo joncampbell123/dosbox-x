@@ -2991,7 +2991,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     // add the draw event
     switch (vga.draw.mode) {
-    case LINE:
+    case DRAWLINE:
     case EGALINE:
         if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
             LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d", 
@@ -3183,7 +3183,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case MCH_MCGA:
     case MCH_PCJR:
     case MCH_TANDY:
-        vga.draw.mode = LINE;
+        vga.draw.mode = DRAWLINE;
         break;
     case MCH_EGA:
         // Note: The Paradise SVGA uses the same panning mechanism as EGA
@@ -3192,12 +3192,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case MCH_VGA:
     case MCH_PC98:
         if (svgaCard==SVGA_None) {
-            vga.draw.mode = LINE;
+            vga.draw.mode = DRAWLINE;
             break;
         }
         // fall-through
     default:
-        vga.draw.mode = LINE;
+        vga.draw.mode = DRAWLINE;
         break;
     }
     
