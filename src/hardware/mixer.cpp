@@ -735,7 +735,7 @@ static void MIXER_Mix(void) {
     MIXER_FillUp();
 }
 
-static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
+static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     (void)userdata;//UNUSED
     Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * (1 << MIXER_VOLSHIFT));
     Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * (1 << MIXER_VOLSHIFT));

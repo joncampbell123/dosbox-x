@@ -64,7 +64,11 @@ TCPClientSocket::TCPClientSocket(int platformsocket) {
 	((struct _TCPsocketX*)nativetcpstruct)->sflag=0;
 	((struct _TCPsocketX*)nativetcpstruct)->channel=(SOCKET) platformsocket;
 	sockaddr_in		sa;
+#ifdef OS2
+	int			sz;
+#else
 	socklen_t		sz;
+#endif
 	sz=sizeof(sa);
 	if(getpeername(platformsocket, (sockaddr *)(&sa), &sz)==0) {
 		((struct _TCPsocketX*)nativetcpstruct)->
