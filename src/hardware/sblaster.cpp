@@ -1147,6 +1147,7 @@ static void DSP_Reset(void) {
 
     DSP_ChangeMode(MODE_NONE);
     DSP_FlushData();
+    sb.dsp.cmd=DSP_NO_COMMAND;
     sb.dsp.cmd_len=0;
     sb.dsp.in.pos=0;
     sb.dsp.out.pos=0;
