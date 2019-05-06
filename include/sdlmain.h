@@ -165,6 +165,8 @@ struct SDL_Block {
     Bitu num_joysticks;
 #if defined (WIN32)
     bool using_windib;
+    // Time when sdl regains focus (alt-tab) in windowed mode
+    Bit32u focus_ticks;
 #endif
     // state of alt-keys for certain special handlings
     Bit16u laltstate;
