@@ -1022,7 +1022,6 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
-	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
 
     /* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
     if (!IS_PC98_ARCH) {
