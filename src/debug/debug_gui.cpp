@@ -751,7 +751,7 @@ void LOG::ParseEnableSetting(_LogGroup &group,const char *setting) {
 }
 
 void LOG::Init() {
-	char buf[1024];
+	char buf[64];
 
 	assert(control != NULL);
 
@@ -787,9 +787,8 @@ void LOG::Init() {
 
 	/* read settings for each log category, unless the -debug option was given,
 	 * in which case everything is set to debug level */
-	for (Bitu i=1;i<LOG_MAX;i++) {
-		strcpy(buf,loggrp[i].front);
-		buf[strlen(buf)]=0;
+	for (Bitu i = LOG_ALL + 1;i < LOG_MAX;i++) { //Skip LOG_ALL, it is always enabled
+		safe_strncpy(buf,loggrp[i].front,sizeof(buf));
 		lowcase(buf);
 
 		if (control->opt_debug)
@@ -872,9 +871,9 @@ void LOG::SetupConfigSection(void) {
 	Section_prop * sect=control->AddSection_prop("log",Null_Init);
 	Prop_string* Pstring = sect->Add_string("logfile",Property::Changeable::Always,"");
 	Pstring->Set_help("file where the log messages will be saved to");
-	char buf[1024];
-	for (Bitu i=1;i<LOG_MAX;i++) {
-		strcpy(buf,loggrp[i].front);
+	char buf[64];
+	for (Bitu i = LOG_ALL + 1;i < LOG_MAX;i++) {
+		safe_strncpy(buf,loggrp[i].front, sizeof(buf));
 		lowcase(buf);
 
 		Pstring = sect->Add_string(buf,Property::Changeable::Always,"false");
