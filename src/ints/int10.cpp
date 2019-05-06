@@ -45,7 +45,7 @@ Bitu INT10_Handler(void) {
 	switch (reg_ah) {
 	case 0x00:								/* Set VideoMode */
 		Mouse_BeforeNewVideoMode(true);
- 		INT10_SetVideoMode(reg_al);
+		INT10_SetVideoMode(reg_al);
 		Mouse_AfterNewVideoMode(true);
 		break;
 	case 0x01:								/* Set TextMode Cursor Shape */
@@ -223,15 +223,15 @@ Bitu INT10_Handler(void) {
 /* Textmode calls */
 		case 0x00:			/* Load user font */
 		case 0x10:
-			INT10_LoadFont(SegPhys(es)+reg_bp,reg_al==0x10,reg_cx,reg_dx,reg_bl,reg_bh);
+			INT10_LoadFont(SegPhys(es)+reg_bp,reg_al==0x10,reg_cx,reg_dx,reg_bl&0x7f,reg_bh);
 			break;
 		case 0x01:			/* Load 8x14 font */
 		case 0x11:
-			INT10_LoadFont(Real2Phys(int10.rom.font_14),reg_al==0x11,256,0,reg_bl,14);
+			INT10_LoadFont(Real2Phys(int10.rom.font_14),reg_al==0x11,256,0,reg_bl&0x7f,14);
 			break;
 		case 0x02:			/* Load 8x8 font */
 		case 0x12:
-			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl,8);
+			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl&0x7f,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
 			IO_Write(0x3c4,0x3);IO_Write(0x3c5,reg_bl);
@@ -239,7 +239,7 @@ Bitu INT10_Handler(void) {
 		case 0x04:			/* Load 8x16 font */
 		case 0x14:
 			if (!IS_VGA_ARCH) break;
-			INT10_LoadFont(Real2Phys(int10.rom.font_16),reg_al==0x14,256,0,reg_bl,16);
+			INT10_LoadFont(Real2Phys(int10.rom.font_16),reg_al==0x14,256,0,reg_bl&0x7f,16);
 			break;
 /* Graphics mode calls */
 		case 0x20:			/* Set User 8x8 Graphics characters */
@@ -301,7 +301,6 @@ graphics_chars:
 				reg_bp=RealOff(int10.rom.font_8_second);
 				break;
 			case 0x05:	/* alpha alternate 9x14 */
-				if (!IS_VGA_ARCH) break;
 				SegSet16(es,RealSeg(int10.rom.font_14_alternate));
 				reg_bp=RealOff(int10.rom.font_14_alternate);
 				break;
@@ -563,8 +562,8 @@ CX	640x480	800x600	  1024x768/1280x1024
 			break;
 		case 0x02:							/* Set videomode */
 			Mouse_BeforeNewVideoMode(true);
- 			reg_al=0x4f;
- 			reg_ah=VESA_SetSVGAMode(reg_bx);
+			reg_al=0x4f;
+			reg_ah=VESA_SetSVGAMode(reg_bx);
 			Mouse_AfterNewVideoMode(true);
 			break;
 		case 0x03:							/* Get videomode */
@@ -1091,8 +1090,6 @@ void INT10_Startup(Section *sec) {
         //Init the 0x40 segment and init the datastructures in the the video rom area
         INT10_SetupRomMemory();
         INT10_Seg40Init();
-        INT10_SetupVESA();
-        INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
         INT10_SetupBasicVideoParameterTable();
 
         LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);

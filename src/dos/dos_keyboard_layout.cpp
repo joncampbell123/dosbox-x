@@ -913,6 +913,8 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
                         for (Bitu i=0;i<256*16;i++) {
                             phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
                         }
+                        // terminate alternate list to prevent loading
+                        phys_writeb(Real2Phys(int10.rom.font_16_alternate),0);
                         font_changed=true;
                     }
 				} else if (font_height==0x0e) {
@@ -922,6 +924,8 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
                         for (Bitu i=0;i<256*14;i++) {
                             phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
                         }
+                        // terminate alternate list to prevent loading
+                        phys_writeb(Real2Phys(int10.rom.font_14_alternate),0);
                         font_changed=true;
                     }
 				} else if (font_height==0x08) {

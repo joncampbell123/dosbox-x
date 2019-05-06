@@ -1070,10 +1070,14 @@ bool INT10_SetVideoMode(Bit16u mode) {
 			if ((modeset_ctl&0x90)==0x80) { // 200 lines emulation
 				if (CurMode->mode <= 3) {
 					CurMode = &ModeList_VGA_Text_200lines[CurMode->mode];
+				} else if (CurMode->mode == 7) {
+					CurMode = &ModeList_VGA_Text_350lines[4];
 				}
 			} else if ((modeset_ctl&0x90)==0x00) { // 350 lines emulation
 				if (CurMode->mode <= 3) {
 					CurMode = &ModeList_VGA_Text_350lines[CurMode->mode];
+				} else if (CurMode->mode == 7) {
+					CurMode = &ModeList_VGA_Text_350lines[4];
 				}
 			}
 		}
@@ -1358,7 +1362,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 				break;
 			}
 		} else max_scanline |= CurMode->cheight-1;
-		underline=mono_mode ? 0x0f : 0x1f; // mode 7 uses a diff underline position
+		underline=mono_mode ? CurMode->cheight-1 : 0x1f; // mode 7 uses underline position
 		break;
 	case M_VGA:
 		underline=0x40;
@@ -1371,11 +1375,10 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		underline=0x60;			//Seems to enable the every 4th clock on my s3
 		break;
 	default:
+	    /* do NOT apply this to VESA BIOS modes */
+		if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
 		break;
 	}
-
-    /* do NOT apply this to VESA BIOS modes */
-	if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
 
 	IO_Write(crtc_base,0x09);IO_Write(crtc_base+1u,max_scanline);
 	IO_Write(crtc_base,0x14);IO_Write(crtc_base+1u,underline);
