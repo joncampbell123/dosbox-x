@@ -892,20 +892,6 @@ struct copysource {
 
 
 void DOS_Shell::CMD_COPY(char * args) {
-	extern Bitu ZDRIVE_NUM;
-	const char root[4] = {(char)('A'+ZDRIVE_NUM),':','\\',0};
-	char cmd[20];
-	strcpy(cmd,root);
-	strcat(cmd,"COPY.EXE");
-	if (DOS_FindFirst(cmd,0xffff & ~DOS_ATTR_VOLUME)) {
-		StripSpaces(args);
-		while(ScanCMDBool(args,"T")) ; //Shouldn't this be A ?
-		ScanCMDBool(args,"Y");
-		ScanCMDBool(args,"-Y");
-		Execute(cmd,args);
-		return;
-	}
-
 	HELP("COPY");
 	static char defaulttarget[] = ".";
 	StripSpaces(args);
