@@ -1060,14 +1060,20 @@ bool DEBUG_IsPagingOutput(void);
 
 static void DrawInput(void) {
     if (!debugging) {
+        if (has_colors())
+        {
         wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        }
 
         mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
         wclrtoeol(dbg.win_inp);
     } else if (DEBUG_IsPagingOutput()) {
+        if (has_colors())
+        {
         wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        }
 
         mvwprintw(dbg.win_inp,0,0,"%s","^ Paged content: Hit ENTER to continue, Q to exit paging");
         wclrtoeol(dbg.win_inp);
@@ -1081,11 +1087,13 @@ static void DrawInput(void) {
         mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
+        mvwchgat(dbg.win_inp,10,0,3,0,(PAIR_BLACK_GREY),NULL);
         if (*curPtr) {
             mvwchgat(dbg.win_inp,0,(int)(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
         } 
     }
 
+    wattrset(dbg.win_inp,0);
     wrefresh(dbg.win_inp);
 }
 
@@ -1134,7 +1142,7 @@ static void DrawCode(void) {
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
                 wbkgdset(dbg.win_code,0);
-				wattrset(dbg.win_code,0);			
+                wattrset(dbg.win_code,0);
 			}
 		}
 
