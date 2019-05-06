@@ -1,4 +1,5 @@
 0.82.19 (next)
+  - INF 2Fh AX=1600h no longer logs an error as unimplemented. (Allofich)
   - COPY.EXE removed, so that the built-in COPY command can work.
   - PC98UTIL fixed to re-enable the text layer after the BIOS call
     for /24khz and /31khz options.
