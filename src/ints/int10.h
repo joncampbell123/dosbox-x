@@ -100,6 +100,8 @@ extern uint32_t S3_LFB_BASE;
 extern Bit8u int10_font_08[256 * 8];
 extern Bit8u int10_font_14[256 * 14];
 extern Bit8u int10_font_16[256 * 16];
+extern Bit8u int10_font_14_alternate[20 * 15 + 1];
+extern Bit8u int10_font_16_alternate[19 * 17 + 1];
 
 struct VideoModeBlock {
 	Bit16u	mode;
