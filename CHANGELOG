@@ -1,4 +1,5 @@
 0.82.19 (next)
+  - COPY.EXE removed, so that the built-in COPY command can work.
   - PC98UTIL fixed to re-enable the text layer after the BIOS call
     for /24khz and /31khz options.
   - PC-98 INT 18h AH=30h now allows setting the 480-line mode.
