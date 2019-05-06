@@ -4964,6 +4964,9 @@ void GFX_Events() {
         case SDL_ACTIVEEVENT:
                 if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
+#ifdef WIN32
+                    if (!sdl.desktop.fullscreen) sdl.focus_ticks = GetTicks();
+#endif
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
@@ -5066,6 +5069,10 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
             if (((event.key.keysym.sym==SDLK_TAB)) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
+            // This can happen as well.
+            if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
+            // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
+            if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
 #endif
 #if defined (MACOSX)            
         case SDL_KEYDOWN:
