@@ -188,6 +188,9 @@ static bool DOS_MultiplexFunctions(void) {
 
 		}
 		return true;
+	case 0x1600:	/* Windows enhanced mode installation check */
+		// Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode nor Windows/386 2.x is running, nor is XMS version 1 driver installed
+		return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
 			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
