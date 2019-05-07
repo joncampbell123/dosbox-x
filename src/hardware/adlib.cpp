@@ -511,6 +511,36 @@ void Module::DualWrite( Bit8u index, Bit8u reg, Bit8u val ) {
 	CacheWrite( fullReg, val );
 }
 
+void Module::CtrlWrite( Bit8u val ) {
+	switch ( ctrl.index ) {
+	case 0x09: /* Left FM Volume */
+		ctrl.lvol = val;
+		goto setvol;
+	case 0x0a: /* Right FM Volume */
+		ctrl.rvol = val;
+setvol:
+		if ( ctrl.mixer ) {
+			//Dune cdrom uses 32 volume steps in an apparent mistake, should be 128
+			mixerChan->SetVolume( (float)(ctrl.lvol&0x1f)/31.0f, (float)(ctrl.rvol&0x1f)/31.0f );
+		}
+		break;
+	}
+}
+
+Bitu Module::CtrlRead( void ) {
+	switch ( ctrl.index ) {
+	case 0x00: /* Board Options */
+		return 0x70; //No options installed
+	case 0x09: /* Left FM Volume */
+		return ctrl.lvol;
+	case 0x0a: /* Right FM Volume */
+		return ctrl.rvol;
+	case 0x15: /* Audio Relocation */
+		return 0x388 >> 3; //Cryo installer detection
+	}
+	return 0xff;
+}
+
 
 void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
     (void)iolen;//UNUSED
@@ -522,6 +552,14 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 	}
 	if ( port&1 ) {
 		switch ( mode ) {
+		case MODE_OPL3GOLD:
+			if ( port == 0x38b ) {
+				if ( ctrl.active ) {
+					CtrlWrite( val );
+					break;
+				}
+			}
+			//Fall-through if not handled by control chip
 		case MODE_OPL2:
 		case MODE_OPL3:
 			if ( !chip[0].Write( reg.normal, val ) ) {
@@ -548,6 +586,20 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 		case MODE_OPL2:
 			reg.normal = handler->WriteAddr( port, val ) & 0xff;
 			break;
+		case MODE_OPL3GOLD:
+			if ( port == 0x38a ) {
+				if ( val == 0xff ) {
+					ctrl.active = true;
+					break;
+				} else if ( val == 0xfe ) {
+					ctrl.active = false;
+					break;
+				} else if ( ctrl.active ) {
+					ctrl.index = val & 0xff;
+					break;
+				}
+			}
+			//Fall-through if not handled by control chip
 		case MODE_OPL3:
 			reg.normal = handler->WriteAddr( port, val ) & 0x1ff;
 			break;
@@ -577,6 +629,15 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 		} else {
 			return 0xff;
 		}
+	case MODE_OPL3GOLD:
+		if ( ctrl.active ) {
+			if ( port == 0x38a ) {
+				return 0; //Control status, not busy
+			} else if ( port == 0x38b ) {
+				return CtrlRead();
+			}
+		}
+		//Fall-through if not handled by control chip
 	case MODE_OPL3:
 		//We allocated 4 ports, so just return -1 for the higher ones
 		if ( !(port & 3 ) ) {
@@ -600,6 +661,7 @@ void Module::Init( Mode m ) {
 	mode = m;
 	switch ( mode ) {
 	case MODE_OPL3:
+	case MODE_OPL3GOLD:
 	case MODE_OPL2:
 		break;
 	case MODE_DUALOPL2:
@@ -724,6 +786,10 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	reg.dual[0] = 0;
 	reg.dual[1] = 0;
 	reg.normal = 0;
+	ctrl.active = false;
+	ctrl.index = 0;
+	ctrl.lvol = 0xff;
+	ctrl.rvol = 0xff;
 	handler = 0;
 	capture = 0;
 
@@ -734,6 +800,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	if ( rate < 8000 )
 		rate = 8000;
 	std::string oplemu( section->Get_string( "oplemu" ) );
+	ctrl.mixer = section->Get_bool("sbmixer");
 
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
 
@@ -766,6 +833,9 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		break;
 	case OPL_opl3:
 		Init( Adlib::MODE_OPL3 );
+		break;
+	case OPL_opl3gold:
+		Init( Adlib::MODE_OPL3GOLD );
 		break;
 	default:
 		break;

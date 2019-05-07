@@ -3165,6 +3165,7 @@ private:
         else if (!strcasecmp(omode,"opl2")) opl_mode=OPL_opl2;
         else if (!strcasecmp(omode,"dualopl2")) opl_mode=OPL_dualopl2;
         else if (!strcasecmp(omode,"opl3")) opl_mode=OPL_opl3;
+        else if (!strcasecmp(omode,"opl3gold")) opl_mode=OPL_opl3gold;
         else if (!strcasecmp(omode,"hardware")) opl_mode=OPL_hardware;
         else if (!strcasecmp(omode,"hardwaregb")) opl_mode=OPL_hardwareCMS;
         /* Else assume auto */
@@ -3363,6 +3364,7 @@ public:
         case OPL_dualopl2:
             assert(!IS_PC98_ARCH);
         case OPL_opl3:
+        case OPL_opl3gold:
             OPL_Init(section,oplmode);
             break;
         case OPL_hardwareCMS:
@@ -3635,6 +3637,7 @@ ASP>
             // fall-through
         case OPL_dualopl2:
         case OPL_opl3:
+        case OPL_opl3gold:
             OPL_ShutDown(m_configuration);
             break;
         default:
