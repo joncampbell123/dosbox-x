@@ -541,6 +541,13 @@ void DMA_Reset(Section* /*sec*/) {
     if (IS_PC98_ARCH) // DMA 4-7 do not exist on PC-98
         enable_2nd_dma = false;
 
+    if (machine == MCH_PCJR) {
+        LOG(LOG_MISC,LOG_DEBUG)("DMA is disabled in PCjr mode");
+        enable_1st_dma = false;
+        enable_2nd_dma = false;
+        return;
+    }
+
     {
         std::string s = section->Get_string("enable 128k capable 16-bit dma");
 
