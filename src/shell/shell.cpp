@@ -452,51 +452,47 @@ public:
 
 #if 0/*FIXME: This is ugly. I don't care to follow through on this nonsense for now. When needed, port to new command line switching. */
 		/* Check for first command being a directory or file */
-		char buffer[CROSS_LEN];
-		char orig[CROSS_LEN];
+		char buffer[CROSS_LEN+1];
+		char orig[CROSS_LEN+1];
 		char cross_filesplit[2] = {CROSS_FILESPLIT , 0};
-		/* Combining -securemode and no parameter leaves you with a lovely Z:\. */ 
-		if ( !control->cmdline->FindCommand(1,line) ) { 
-			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
-		} else {
-			if (line.find(':',((line[0]|0x20) >= 'a' && (line[0]|0x20) <= 'z')?2:0) != std::string::npos) {
-				/* a physfs source */
-				autoexec[12].Install(std::string("MOUNT C \"") + line + std::string("\""));
-				autoexec[13].Install("C:");
-				if(secure) autoexec[14].Install("z:\\config.com -securemode");
-				goto nomount;
-			}
 
+		Bitu dummy = 1;
+		bool command_found = false;
+		while (control->cmdline->FindCommand(dummy++,line) && !command_found) {
 			struct stat test;
+			if (line.length() > CROSS_LEN) continue; 
 			strcpy(buffer,line.c_str());
-			if (stat(buffer,&test)){
-				getcwd(buffer,CROSS_LEN);
+			if (stat(buffer,&test)) {
+				if (getcwd(buffer,CROSS_LEN) == NULL) continue;
+				if (strlen(buffer) + line.length() + 1 > CROSS_LEN) continue;
 				strcat(buffer,cross_filesplit);
 				strcat(buffer,line.c_str());
-				if (stat(buffer,&test)) goto nomount;
+				if (stat(buffer,&test)) continue;
 			}
 			if (test.st_mode & S_IFDIR) { 
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
 				if(secure) autoexec[14].Install("z:\\config.com -securemode");
+				command_found = true;
 			} else {
 				char* name = strrchr(buffer,CROSS_FILESPLIT);
 				if (!name) { //Only a filename 
 					line = buffer;
-					getcwd(buffer,CROSS_LEN);
+					if (getcwd(buffer,CROSS_LEN) == NULL) continue;
+					if (strlen(buffer) + line.length() + 1 > CROSS_LEN) continue;
 					strcat(buffer,cross_filesplit);
 					strcat(buffer,line.c_str());
-					if(stat(buffer,&test)) goto nomount;
+					if(stat(buffer,&test)) continue;
 					name = strrchr(buffer,CROSS_FILESPLIT);
-					if(!name) goto nomount;
+					if(!name) continue;
 				}
 				*name++ = 0;
-				if (access(buffer,F_OK)) goto nomount;
-				upcase(name);
+				if (access(buffer,F_OK)) continue;
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
 				/* Save the non-modified filename (so boot and imgmount can use it (long filenames, case sensivitive)) */
 				strcpy(orig,name);
+				upcase(name);
 				if(strstr(name,".BAT") != 0) {
 					if(secure) autoexec[14].Install("z:\\config.com -securemode");
 					/* BATch files are called else exit will not work */
@@ -518,9 +514,14 @@ public:
 					autoexec[15].Install(name);
 					if(addexit) autoexec[16].Install("exit");
 				}
+				command_found = true;
 			}
 		}
-nomount:
+
+		/* Combining -securemode, noautoexec and no parameters leaves you with a lovely Z:\. */
+		if ( !command_found ) { 
+			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
+		}
 #endif
 
 		if (addexit) autoexec[i++].Install("exit");

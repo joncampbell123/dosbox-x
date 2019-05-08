@@ -958,7 +958,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
     const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "reveal_sc400", "none", 0 };
-    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
+    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", 0};
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
