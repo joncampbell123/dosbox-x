@@ -1076,10 +1076,17 @@ void DOS_Shell::CMD_COPY(char * args) {
 			dta.GetResult(name,size,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
+                Bit16u ftime,fdate;
+                bool ftdvalid=false;
+
 				strcpy(nameSource,pathSource);
 				strcat(nameSource,name);
 				// Open Source
 				if (DOS_OpenFile(nameSource,0,&sourceHandle)) {
+                    // record the file date/time
+                    ftdvalid = DOS_GetFileDate(sourceHandle, &ftime, &fdate);
+                    if (!ftdvalid) LOG_MSG("WARNING: COPY cannot obtain file date/time");
+
 					// Create Target or open it if in concat mode
 					strcpy(nameTarget,pathTarget);
 					
@@ -1102,6 +1109,10 @@ void DOS_Shell::CMD_COPY(char * args) {
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
+
+                        if (!DOS_SetFileDate(targetHandle, ftime, fdate))
+                            LOG_MSG("WARNING: COPY unable to apply date/time to dest");
+
 						//In concat mode. Open the target and seek to the eof
 						if (!oldsource.concat || (DOS_OpenFile(nameTarget,OPEN_READWRITE,&targetHandle) && 
 					        	                  DOS_SeekFile(targetHandle,&dummy,DOS_SEEK_END))) {
