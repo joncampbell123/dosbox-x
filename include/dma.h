@@ -50,6 +50,38 @@ public:
 	bool request;
 	DMA_CallBack callback;
 
+    // additional PC-98 proprietary feature:
+    //  auto "bank" increment on DMA wraparound.
+    //
+    //  I/O port 29h:
+    //    bits [7:4] = 0
+    //    bits [3:2] = increment mode   0=64KB wraparound (no incr)  1=1MB boundary wrap   2=invalid   3=16MB boundary wrap
+    //    bits [1:0] = which DMA channel to set
+    //
+    //  This value is set by:
+    //    0 = 0x00
+    //    1 = 0x0F
+    //    2 = 0xF0 (probably why it's invalid)
+    //    3 = 0xFF
+    //
+    // TODO: Does this setting stick or does it reset after normal legacy programming?
+    // TODO: When the bank auto increments does it increment the actual register or just
+    //       an internal copy?
+    Bit8u page_bank_increment_wraparound = 0u;
+
+    void page_bank_increment(void) { // to be called on DMA wraparound
+        if (page_bank_increment_wraparound != 0u) {
+            // FIXME: Improve this.
+            // Currently this code assumes that the auto increment in PC-98 modifies the
+            // register value (and therefore visible to the guest). Change this code if
+            // that model is wrong.
+            const Bit8u nv =
+                ( pagenum       & (~page_bank_increment_wraparound)) +
+                ((pagenum + 1u) & ( page_bank_increment_wraparound));
+            SetPage(nv);
+        }
+    }
+
 	DmaChannel(Bit8u num, bool dma16);
 	void DoCallBack(DMAEvent event) {
 		if (callback)	(*callback)(this,event);
