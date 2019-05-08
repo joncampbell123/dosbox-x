@@ -483,6 +483,11 @@ void DOS_FCB::SetRandom(Bit32u _random) {
 	sSave(sFCB,rndm,_random);
 }
 
+void DOS_FCB::ClearBlockRecsize(void) {
+	sSave(sFCB,cur_block,0);
+	sSave(sFCB,rec_size,0);
+}
+
 void DOS_FCB::FileOpen(Bit8u _fhandle) {
 	sSave(sFCB,drive,GetDrive()+1u);
 	sSave(sFCB,file_handle,_fhandle);
