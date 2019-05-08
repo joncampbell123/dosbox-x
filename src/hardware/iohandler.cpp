@@ -182,7 +182,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     Bitu ret = ~0ul;
 
     /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
+    if ((port & 0xFF00) == 0x0000 || IS_PC98_ARCH) /* motherboard-level I/O */
         match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
 
     if (match == 0) {

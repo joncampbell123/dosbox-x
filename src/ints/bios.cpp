@@ -7449,7 +7449,11 @@ private:
             {
                 IO_CalloutObject *obj = IO_GetCallout(dosbox_int_iocallout);
                 if (obj == NULL) E_Exit("Failed to get dosbox integration IO callout");
-                obj->Install(0x28,IOMASK_Combine(IOMASK_FULL,IOMASK_Range(4)),dosbox_integration_cb_port_r,dosbox_integration_cb_port_w);
+
+                /* NTS: Ports 28h-2Bh conflict with extended DMA control registers in PC-98 mode.
+                 *      TODO: Move again, if DB28h-DB2Bh are taken by something standard on PC-98. */
+                obj->Install(IS_PC98_ARCH ? 0xDB28 : 0x28,
+                    IOMASK_Combine(IOMASK_FULL,IOMASK_Range(4)),dosbox_integration_cb_port_r,dosbox_integration_cb_port_w);
                 IO_PutCallout(obj);
             }
 
