@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - DMA controller is now completely disabled in IBM PCjr mode
+    (machine=pcjr) to match real hardware.
   - COPY command now copies file date/time as well.
   - INT 2Fh AX=1600h no longer logs an error as unimplemented.
     (Allofich)
