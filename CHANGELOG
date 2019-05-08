@@ -1,4 +1,5 @@
 0.82.19 (next)
+  - COPY command now copies file date/time as well.
   - INT 2Fh AX=1600h no longer logs an error as unimplemented.
     (Allofich)
   - COPY.EXE removed, so that the built-in COPY command can work.
