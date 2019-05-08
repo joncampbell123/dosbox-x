@@ -1,4 +1,7 @@
 0.82.19 (next)
+  - DOSBox Integration Device moved to I/O port DB28h-DB2Bh
+    in PC-98 mode to avoid conflicts with DMA controller
+    registers.
   - DMA controller is now completely disabled in IBM PCjr mode
     (machine=pcjr) to match real hardware.
   - COPY command now copies file date/time as well.
