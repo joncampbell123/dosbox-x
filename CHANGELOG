@@ -48,7 +48,7 @@
     non-VGA machine types. Fixes Tandy and EGA display in
     International Hockey booter.
     - Handle "copy H*.txt file.txt" correctly
-    - Fix detection of always_inline attribute with ming 4.9.2
+    - Fix detection of always_inline attribute with MinGW 4.9.2
     - Introduce mount -pr to mount paths relative to last
     loaded configuration file.
     - Use normal teletype function for non-ANSI output so the
@@ -76,7 +76,11 @@
     - Be compatible by setting the INT 43h vector to the first
     half of the 8-line font table for standard text modes.
     - Move VESA mode table and OEM string before font tables
-    in the video ROM, which is a more compatible ordering.	
+    in the video ROM, which is a more compatible ordering.
+    - Add opl3gold option to oplmode setting. With this option
+    the Adlib Gold music can be selected in Dune. Only music
+    without effects is supported. FM volume control does work.
+    - Add hardware text mode cursor support.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
