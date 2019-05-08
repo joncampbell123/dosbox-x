@@ -935,10 +935,43 @@ continue_1:
 		cmdtail.buffer[strlen(line)]=0xd;
 		/* Copy command line in stack block too */
 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,128);
+		
+		/* Split input line up into parameters, using a few special rules, most notable the one for /AAA => A\0AA
+		 * Qbix: It is extremly messy, but this was the only way I could get things like /:aa and :/aa to work correctly */
+		
+		//Prepare string first
+		char parseline[258] = { 0 };
+		for(char *pl = line,*q = parseline; *pl ;pl++,q++) {
+			if (*pl == '=' || *pl == ';' || *pl ==',' || *pl == '\t' || *pl == ' ') *q = 0; else *q = *pl; //Replace command seperators with 0.
+		} //No end of string \0 needed as parseline is larger than line
+
+		for(char* p = parseline; (p-parseline) < 250 ;p++) { //Stay relaxed within boundaries as we have plenty of room
+			if (*p == '/') { //Transform /Hello into H\0ello
+				*p = 0;
+				p++;
+				while ( *p == 0 && (p-parseline) < 250) p++; //Skip empty fields
+				if ((p-parseline) < 250) { //Found something. Lets get the first letter and break it up
+					p++;
+					memmove(static_cast<void*>(p + 1),static_cast<void*>(p),(250-(p-parseline)));
+					if ((p-parseline) < 250) *p = 0;
+				}
+			}
+		}
+		parseline[255] = parseline[256] = parseline[257] = 0; //Just to be safe.
+
 		/* Parse FCB (first two parameters) and put them into the current DOS_PSP */
 		Bit8u add;
-		FCB_Parsename(dos.psp(),0x5C,0x00,cmdtail.buffer,&add);
-		FCB_Parsename(dos.psp(),0x6C,0x00,&cmdtail.buffer[add],&add);
+		Bit16u skip = 0;
+		//find first argument, we end up at parseline[256] if there is only one argument (similar for the second), which exists and is 0.
+		while(skip < 256 && parseline[skip] == 0) skip++;
+		FCB_Parsename(dos.psp(),0x5C,0x01,parseline + skip,&add);
+		skip += add;
+		
+		//Move to next argument if it exists
+		while(parseline[skip] != 0) skip++;  //This is safe as there is always a 0 in parseline at the end.
+		while(skip < 256 && parseline[skip] == 0) skip++; //Which is higher than 256
+		FCB_Parsename(dos.psp(),0x6C,0x01,parseline + skip,&add);
+
 		block.exec.fcb1=RealMake(dos.psp(),0x5C);
 		block.exec.fcb2=RealMake(dos.psp(),0x6C);
 		/* Set the command line in the block and save it */
