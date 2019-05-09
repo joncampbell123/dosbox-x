@@ -379,7 +379,7 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 }
 
 void DOS_DTA::SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
-	MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,DOS_NAMELENGTH_ASCII);
+	MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,strlen(_name)+1);
 	sSave(sDTA,size,_size);
 	sSave(sDTA,date,_date);
 	sSave(sDTA,time,_time);
