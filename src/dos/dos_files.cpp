@@ -803,7 +803,21 @@ bool DOS_CreateTempFile(char * const name,Bit16u * entry) {
 	return true;
 }
 
-#define FCB_SEP ":.;,=+"
+char DOS_ToUpper(char c) {
+	unsigned char uc = *reinterpret_cast<unsigned char*>(&c);
+	if (uc > 0x60 && uc < 0x7B) uc -= 0x20;
+	else if (uc > 0x7F && uc < 0xA5) {
+		const unsigned char t[0x25] = { 
+			0x00, 0x9a, 0x45, 0x41, 0x8E, 0x41, 0x8F, 0x80, 0x45, 0x45, 0x45, 0x49, 0x49, 0x49, 0x00, 0x00,
+			0x00, 0x92, 0x00, 0x4F, 0x99, 0x4F, 0x55, 0x55, 0x59, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x41, 0x49, 0x4F, 0x55, 0xA5};
+			if (t[uc - 0x80]) uc = t[uc-0x80];
+	}
+	char sc = *reinterpret_cast<char*>(&uc);
+	return sc;
+}
+
+#define FCB_SEP ":;,=+"
 #define ILLEGAL ":.;,=+ \t/\"[]<>|"
 
 static bool isvalid(const char in){
@@ -851,101 +865,117 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 	fcb.GetName(fcb_name.full);
 	fcb_name.part.drive[0]-='A'-1;fcb_name.part.drive[1]=0;
 	fcb_name.part.name[8]=0;fcb_name.part.ext[3]=0;
-	/* Strip of the leading sepetaror */
-	if((parser & PARSE_SEP_STOP) && *string)  {       //ignore leading seperator
-		char sep[] = FCB_SEP;char a[2];
-		a[0]= *string;a[1]='\0';
-		if (strcspn(a,sep)==0) string++;
-	} 
 	/* strip leading spaces */
 	while((*string==' ')||(*string=='\t')) string++;
+
+	/* Strip of the leading separator */
+	if((parser & PARSE_SEP_STOP) && *string) {
+		char sep[] = FCB_SEP;char a[2];
+		a[0] = *string;a[1] = '\0';
+		if (strcspn(a,sep) == 0) string++;
+	} 
+
+	/* Skip following spaces as well */
+	while((*string==' ')||(*string=='\t')) string++;
+
 	/* Check for a drive */
 	if (string[1]==':') {
+		unsigned char d = *reinterpret_cast<unsigned char*>(&string[0]);
+		if (!isvalid(ascii_toupper(d))) {string += 2; goto savefcb;} //TODO check (for ret value)
 		fcb_name.part.drive[0]=0;
 		hasdrive=true;
-		if (isalpha(string[0]) && Drives[ascii_toupper(string[0])-'A']) {
-			fcb_name.part.drive[0]=(char)(ascii_toupper(string[0])-'A'+1);
+		if (isalpha(d) && Drives[ascii_toupper(d)-'A']) { //Floppies under dos always exist, but don't bother with that at this level
+			; //THIS* was here
 		} else ret=0xff;
+		fcb_name.part.drive[0]=DOS_ToUpper(string[0])-'A'+1; //Always do THIS* and continue parsing, just return the right code
 		string+=2;
 	}
-	/* Special checks for . and .. */
-	if (string[0]=='.') {
-		string++;
-		if (!string[0])	{
-			hasname=true;
-			ret=PARSE_RET_NOWILD;
-			strcpy(fcb_name.part.name,".       ");
-			goto savefcb;
-		}
-		if (string[1]=='.' && !string[1])	{
-			string++;
-			hasname=true;
-			ret=PARSE_RET_NOWILD;
-			strcpy(fcb_name.part.name,"..      ");
-			goto savefcb;
-		}
-		goto checkext;
-	}
-	/* Copy the name */	
+
+	/* Check for extension only file names */
+	if (string[0] == '.') {string++;goto checkext;}
+
+	/* do nothing if not a valid name */
+	if(!isvalid(string[0])) goto savefcb;
+
 	hasname=true;finished=false;fill=' ';index=0;
-	while (index<8) {
-		if (!finished) {
-			if (string[0]=='*') {fill='?';fcb_name.part.name[index]='?';if (!ret) ret=1;finished=true;}
-			else if (string[0]=='?') {fcb_name.part.name[index]='?';if (!ret) ret=1;}
-            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
+	/* Copy the name */	
+	while (true) {
+		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
+		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
-                fcb_name.part.name[index]=string[0];
+                fcb_name.part.name[index]=nc;
                 string++;
                 index++;
                 if (index >= 8) break;
 
                 /* should be trailing byte of Shift-JIS */
-                if ((unsigned char)string[0] < 32 || (unsigned char)string[0] >= 127) continue;
+                if (nc < 32 || nc >= 127) continue;
 
-                fcb_name.part.name[index]=string[0];
+                fcb_name.part.name[index]=nc;
             }
-			else if (isvalid(string[0])) {fcb_name.part.name[index]=(char)(ascii_toupper(string[0]));}
-			else { finished=true;continue; }
-			string++;
-		} else {
-			fcb_name.part.name[index]=(char)fill;
+		else
+		{
+			char ncs = (char)ascii_toupper(nc); //Should use DOS_ToUpper, but then more calls need to be changed.
+			if (ncs == '*') { //Handle *
+				fill = '?';
+				ncs = '?';
+			}
+			if (ncs == '?' && !ret && index < 8) ret = 1; //Don't override bad drive
+			if (!isvalid(ncs)) { //Fill up the name.
+				while(index < 8) 
+					fcb_name.part.name[index++] = fill; 
+				break;
+			}
+			if (index < 8) { 
+				fcb_name.part.name[index++] = (fill == '?')?fill:ncs; 
+			}
 		}
-		index++;
+		string++;
 	}
 	if (!(string[0]=='.')) goto savefcb;
 	string++;
 checkext:
 	/* Copy the extension */
 	hasext=true;finished=false;fill=' ';index=0;
-	while (index<3) {
-		if (!finished) {
-			if (string[0]=='*') {fill='?';fcb_name.part.ext[index]='?';finished=true;}
-			else if (string[0]=='?') {fcb_name.part.ext[index]='?';if (!ret) ret=1;}
-			else if (isvalid(string[0])) {fcb_name.part.ext[index]=(char)(ascii_toupper(string[0]));}
-            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
+	while (true) {
+		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
+		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
-                fcb_name.part.ext[index]=string[0];
+                fcb_name.part.ext[index]=nc;
                 string++;
                 index++;
                 if (index >= 3) break;
 
                 /* should be trailing byte of Shift-JIS */
-                if ((unsigned char)string[0] < 32u || (unsigned char)string[0] >= 127u) continue;
+                if (nc < 32u || nc >= 127u) continue;
 
-                fcb_name.part.ext[index]=string[0];
+                fcb_name.part.ext[index]=nc;
             }
-			else { finished=true;continue; }
-			string++;
-		} else {
-			fcb_name.part.ext[index]=(char)fill;
+		else
+		{
+			char ncs = (char)ascii_toupper(nc);
+			if (ncs == '*') { //Handle *
+				fill = '?';
+				ncs = '?';
+			}
+			if (ncs == '?' && !ret && index < 3) ret = 1;
+			if (!isvalid(ncs)) { //Fill up the name.
+				while(index < 3) 
+					fcb_name.part.ext[index++] = fill; 
+				break;
+			}
+			if (index < 3) { 
+				fcb_name.part.ext[index++] = (fill=='?')?fill:ncs; 
+			}
 		}
-		index++;
+		string++;
 	}
 savefcb:
 	if (!hasdrive & !(parser & PARSE_DFLT_DRIVE)) fcb_name.part.drive[0] = 0;
 	if (!hasname & !(parser & PARSE_BLNK_FNAME)) strcpy(fcb_name.part.name,"        ");
 	if (!hasext & !(parser & PARSE_BLNK_FEXT)) strcpy(fcb_name.part.ext,"   ");
 	fcb.SetName((unsigned char)fcb_name.part.drive[0],fcb_name.part.name,fcb_name.part.ext);
+	fcb.ClearBlockRecsize(); //Undocumented bonus work.
 	*change=(Bit8u)(string-string_begin);
 	return ret;
 }

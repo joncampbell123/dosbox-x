@@ -588,6 +588,7 @@ public:
 	void SetAttr(Bit8u attr);
 	void SetResultAttr(Bit8u attr);
 	bool Valid(void);
+	void ClearBlockRecsize(void);
 private:
 	bool extended;
 	PhysPt real_pt;
