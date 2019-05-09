@@ -1,4 +1,8 @@
 0.82.19 (next)
+  - Local directory filesystem support now applies timestamp
+    before closing the file handle, which should help with
+    timestamps even if the filename is not directly valid
+    on the host operating system or filesystem.
   - DOSBox Integration Device moved to I/O port DB28h-DB2Bh
     in PC-98 mode to avoid conflicts with DMA controller
     registers.
