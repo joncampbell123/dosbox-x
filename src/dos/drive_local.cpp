@@ -1190,10 +1190,10 @@ bool localFile::Close() {
         // This should help Yksoft1 with file date/time, PC-98, and Shift-JIS Japanese filenames as well on Windows.
 
 #if defined(WIN32) /* TODO: What about MinGW? */
-        struct utimbuf ftim;
+        struct _utimbuf ftim;
         ftim.actime = ftim.modtime = mktime(&tim);
 
-        if (futime(fileno(fhandle), &ftim)) {
+        if (_futime(fileno(fhandle), &ftim)) {
             extern int errno; 
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
