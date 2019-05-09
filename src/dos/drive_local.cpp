@@ -1164,14 +1164,11 @@ bool localFile::Seek(Bit32u * pos,Bit32u type) {
 }
 
 bool localFile::Close() {
-	// only close if one reference left
-	if (refCtr==1) {
-		if(fhandle) fclose(fhandle); 
-		fhandle = 0;
-		open = false;
-	};
+	if (newtime && fhandle) {
+        // force STDIO to flush buffers on this file handle, or else fclose() will write buffered data
+        // and cause mtime to reset back to current time.
+        fflush(fhandle);
 
-	if (newtime) {
  		// backport from DOS_PackDate() and DOS_PackTime()
 		struct tm tim = { 0 };
 		tim.tm_sec  = (time&0x1f)*2;
@@ -1188,19 +1185,38 @@ bool localFile::Close() {
 		// serialize time
 		mktime(&tim);
 
-		struct utimbuf ftim;
-		ftim.actime = ftim.modtime = mktime(&tim);
-	
-		char fullname[DOS_PATHLENGTH];
-		strcpy(fullname, Drives[drive]->GetBaseDir());
-		strcat(fullname, name);
-//		Dos_SpecoalChar(fullname, true);
-		CROSS_FILENAME(fullname);
-		if (utime(fullname, &ftim)) {
-//			extern int errno; 
-//			LOG_MSG("Set time failed for %s (%s)", fullname, strerror(errno));
-			return false;
-		}
+        // change file time by file handle (while we still have it open)
+        // so that we do not have to duplicate guest to host filename conversion here.
+        // This should help Yksoft1 with file date/time, PC-98, and Shift-JIS Japanese filenames as well on Windows.
+
+#if defined(WIN32) /* TODO: What about MinGW? */
+        struct utimbuf ftim;
+        ftim.actime = ftim.modtime = mktime(&tim);
+
+        if (futime(fileno(fhandle), &ftim)) {
+            extern int errno; 
+            LOG_MSG("Set time failed (%s)", strerror(errno));
+        }
+#else // Linux (TODO: What about Mac OS X/Darwin?)
+        // NTS: Do not attempt futime, Linux doesn't have it.
+        //      Do not attempt futimes, Linux man pages LIE about having it. It's even there in the freaking header, but not recognized!
+        //      Use futimens. Modern stuff should have it. [https://pubs.opengroup.org/onlinepubs/9699919799/functions/futimens.html]
+        struct timespec ftsp[2];
+        ftsp[0].tv_sec =  ftsp[1].tv_sec =  mktime(&tim);
+        ftsp[0].tv_nsec = ftsp[1].tv_nsec = 0;
+
+        if (futimens(fileno(fhandle), ftsp)) {
+            extern int errno; 
+            LOG_MSG("Set time failed (%s)", strerror(errno));
+        }
+#endif
+	}
+
+	// only close if one reference left
+	if (refCtr==1) {
+		if(fhandle) fclose(fhandle); 
+		fhandle = 0;
+		open = false;
 	}
 
 	return true;
