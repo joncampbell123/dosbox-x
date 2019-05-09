@@ -26,7 +26,7 @@
 #include <windows.h>
 #include <io.h>
 
-#if defined (_MSC_VER)
+#if (defined (_MSC_VER)) || (defined __MINGW64_VERSION_MAJOR)
 //#include <ntddcdrm.h>			// Ioctl stuff
 #include <winioctl.h>			// Ioctl stuff
 #else 
