@@ -18,4 +18,5 @@ Commit#:	Reason for skipping:
 3891		Conflicts with DOSBox-X
 3922		Conflicts with DOSBox-X. "Use safe_strncpy for resolution lines" part is already in DOSBox-X.
 3930		Conflicts with DOSBox-X
-3931		Skipped. May not have effect or be wanted
+3931		May not have effect or be wanted
+3939		A commented-out log message.

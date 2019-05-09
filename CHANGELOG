@@ -87,6 +87,27 @@
     the Adlib Gold music can be selected in Dune. Only music
     without effects is supported. FM volume control does work.
     - Add hardware text mode cursor support.
+    - Rework FCB_ParseName
+     -- Remove special code for . and .. as it was wrong
+     -- Continue reading the input string, when the max length
+     of the field has been reached (123456789.12345 is read and
+     returned as 12345678.123)
+     -- Strip spaces before and after reading the separators.
+     -- The drive is always parsed (if present), it doesn't
+     depend on the existence of said drive.
+     -- Fix parsing of .EXE and other extension only names
+     -- Always clear out current block and record size.
+    - Correct AX and BX, they contain information on the
+    existence of the drives specified in the FCBs in the
+    execute block
+    - Rework the parsing of arguments into the FCBs
+    - Use full mask; fixes label search on FAT drives.
+    - Don't write past the terminator in the DTA name field
+    when setting search results. This is what DOS does, and
+    writing junk after the terminator was not good in any case.
+    Fixes file listing in the 16-bit version of Galaxy Player.
+    - Improve rename support for when renaming files (in a
+    folder) on a drive different from the current one.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
