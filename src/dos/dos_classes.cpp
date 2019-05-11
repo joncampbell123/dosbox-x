@@ -538,8 +538,11 @@ void DOS_FCB::SetAttr(Bit8u attr) {
 	if(extended) mem_writeb(pt - 1,attr);
 }
 
-void DOS_FCB::SetResultAttr(Bit8u attr) {
-	mem_writeb(pt + 12,attr);
+void DOS_FCB::SetResult(Bit32u size,Bit16u date,Bit16u time,Bit8u attr) {
+	mem_writed(pt + 0x1d,size);
+	mem_writew(pt + 0x19,date);
+	mem_writew(pt + 0x17,time);
+	mem_writeb(pt + 0x0c,attr);
 }
 
 void DOS_SDA::Init() {

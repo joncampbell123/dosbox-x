@@ -7361,6 +7361,9 @@ private:
             if (KEYBOARD_Report_BIOS_PS2Mouse())
                 config |= 0x04;
 
+            // DMA *not* supported - Ancient Art of War CGA uses this to identify PCjr
+            if (machine==MCH_PCJR) config |= 0x100;
+
             // Gameport
             config |= 0x1000;
             mem_writew(BIOS_CONFIGURATION,config);
