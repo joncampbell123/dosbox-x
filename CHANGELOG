@@ -112,6 +112,22 @@
     Fixes file listing in the 16-bit version of Galaxy Player.
     - Improve rename support for when renaming files (in a
     folder) on a drive different from the current one.
+    - Improve internal ANSI support to adapt to currently
+    displayed columns and rows. Fixes original Infocom
+    interpreters when using something other than 80x25.
+    - Handle double-quoted values and quoted values in
+    dosbox.conf files.
+    - Speed up GetHexValue.
+    - Restore 1,2,3,4,5 as run 5,500,1000,5000,10000
+    instructions.
+    - Change BIOS equipment list to indicate DMA not
+    supported on PCjr machine type, which fixes PCjr
+    detection in old versions of Ancient Art of War.
+    - Correct some offsets in the DTA for FCB-based search
+    results. Fixes DIR listing in COMMAND.COM from MS-DOS
+    and file info in XTree Gold.
+    - Prevent a multiplication overflow and more accuracy
+    by using floats for attack rate loop
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
