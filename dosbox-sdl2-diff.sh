@@ -1,4 +1,4 @@
-#/usr/bin/bash
+#/bin/bash
 #
 # dosbox-x-sdl2 should be master-sdl2 branch
 # dosbox-x should be master branch
