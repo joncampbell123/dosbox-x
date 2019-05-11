@@ -132,6 +132,8 @@ private:
 
         col=CURSOR_POS_COL(page) ;
         row=CURSOR_POS_ROW(page) ;
+        if (!IS_PC98_ARCH)
+            ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
         tempdata = (ansi.data[0]? ansi.data[0] : 1);
         if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
         { row = ansi.nrows - 1;}
@@ -148,6 +150,8 @@ private:
 
         col=CURSOR_POS_COL(page);
         row=CURSOR_POS_ROW(page);
+        if (!IS_PC98_ARCH)
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         tempdata=(ansi.data[0]? ansi.data[0] : 1);
         if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
         { col = ansi.ncols - 1;} 
@@ -181,6 +185,10 @@ private:
         if(ansi.data[1] >= 0x20) ansi.data[1] -= 0x20;
         else ansi.data[1] = 0;
 
+        if (!IS_PC98_ARCH) {
+            ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+        }
         /* Turn them into positions that are on the screen */
         if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
         if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
@@ -998,6 +1006,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         ansi.warned = true;
                         LOG(LOG_IOCTL,LOG_WARN)("ANSI SEQUENCES USED");
                     }
+					if (!IS_PC98_ARCH) {
+						ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+						ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+					}
                     /* Turn them into positions that are on the screen */
                     if(ansi.data[0] == 0) ansi.data[0] = 1;
                     if(ansi.data[1] == 0) ansi.data[1] = 1;
@@ -1045,16 +1057,22 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 case 'K': /* erase till end of line (don't touch cursor) */
                     col = CURSOR_POS_COL(page);
                     row = CURSOR_POS_ROW(page);
-                    INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
+					if (!IS_PC98_ARCH) {
+						ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+					}
+					INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
 
                     //for(i = col;i<(Bitu) ansi.ncols; i++) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
                     Real_INT10_SetCursorPos(row,col,page);
                     ClearAnsi();
                     break;
                 case 'M': /* delete line (NANSI) */
-                    col = CURSOR_POS_COL(page);
                     row = CURSOR_POS_ROW(page);
-                    INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
+					if (!IS_PC98_ARCH) {
+						ansi.ncols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+						ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+					}
+					INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
                     ClearAnsi();
                     break;
                 case '>':/* proprietary NEC PC-98 MS-DOS codes (??) */
@@ -1192,10 +1210,6 @@ device_CON::device_CON() {
         ansi.nrows=25 - 1;
         // the DOS kernel will call on this function to disable, and SDLmain
         // will call on to enable
-    }
-    else {
-        ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
-        ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
     }
 	ansi.saverow=0;
 	ansi.savecol=0;

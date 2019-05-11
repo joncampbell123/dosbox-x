@@ -383,10 +383,10 @@ public:
 class Prop_multival:public Property{
 protected:
 	Section_prop* section;
-	std::string seperator;
+	std::string separator;
 	void make_default_value();
 public:
-	Prop_multival(std::string const& _propname, Changeable::Value when,std::string const& sep):Property(_propname,when), section(new Section_prop("")),seperator(sep) {
+	Prop_multival(std::string const& _propname, Changeable::Value when,std::string const& sep):Property(_propname,when), section(new Section_prop("")),separator(sep) {
 		default_value = value = "";
 	}
 	Section_prop *GetSection() { return section; }
