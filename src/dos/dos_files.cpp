@@ -1008,8 +1008,7 @@ static void SaveFindResult(DOS_FCB & find_fcb) {
 	fcb.Create(find_fcb.Extended());
 	fcb.SetName(drive,file_name,ext);
 	fcb.SetAttr(find_attr);      /* Only adds attribute if fcb is extended */
-	fcb.SetResultAttr(attr);
-	fcb.SetSizeDateTime(size,date,time);
+	fcb.SetResult(size,date,time,attr);
 }
 
 bool DOS_FCBCreate(Bit16u seg,Bit16u offset) { 
