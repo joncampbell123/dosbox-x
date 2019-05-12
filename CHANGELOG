@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - Font vector is now INT 44h for PCjr and Tandy emulation,
+    INT 43h otherwise as documented in the RBIL.
   - Graph key (PC-98 mode) no longer registers as keyboard
     input to INT 18h. EDIT.COM's menu is now usable.
   - PC-98 INT 18h AH=02h fixed to return the correct keyboard
