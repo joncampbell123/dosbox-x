@@ -1078,6 +1078,7 @@ void SHELL_Init() {
 	/* Set the command line for the shell start up */
 	CommandTail tail;
 	tail.count=(Bit8u)strlen(init_line);
+	memset(&tail.buffer, 0, 127);
 	strcpy(tail.buffer,init_line);
 	MEM_BlockWrite(PhysMake(psp_seg,128),&tail,128);
 	
