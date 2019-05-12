@@ -25,3 +25,5 @@ Commit#:	Reason for skipping:
 3967		Conflicts with DOSBox-X and may be unnecessary.
 3968		Conflicts with DOSBox-X and may be unnecessary.
 3969		Related to 3968.
+3980		Conflicts with DOSBox-X
+3981		Conflicts with DOSBox-X

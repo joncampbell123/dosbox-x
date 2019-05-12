@@ -148,6 +148,25 @@
     fixing hang in SETUP.EXE and MSDOSD.EXE from Windows V1.01.
     - Add support for mode 8 row copy/fill. Fixes Tandy
     GW-BASIC interpreter SCREEN 3 scrolling/clearing.
+    - Map inactive video memory regions as empty rather than
+    filled with RAM. Fixes later version of Sargon 3 on color
+    machine types.
+    Set color modes (to the extent that they can be) on the
+    Hercules machine type if the BIOS equipment list is not set
+    to monochrome. Fixes missing text in Victory Road.
+    - Graphics mode text drawing improvements:
+     -Font source according to machine type.
+     -Use compatible method of determining fill attribute for
+     textmode screen scrolling in teletype function.
+    - Prevent DOS buffered input function from hanging in an
+    infinite loop when redirected input reads a linefeed or
+    reaches EOF.
+    - EXEC improvements, mostly for the load-but-do-not-execute
+    function.
+    - Stop writing uninitialized junk into first shell's command
+    tail at startup.
+    - Support writing palette register data to dynamic save area
+    if pointer is non-zero on mode changes. Fixes CV 2.2.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
