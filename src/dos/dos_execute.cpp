@@ -490,26 +490,8 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		if (head.initSP<4) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC SS:SP=%04x:%04x",head.initSS,head.initSP);
 	}
 
-	if (flags==LOAD) {
-		SaveRegisters();
-		DOS_PSP callpsp(dos.psp());
-		/* Save the SS:SP on the PSP of calling program */
-		callpsp.SetStack(RealMakeSeg(ss,reg_sp));
-		reg_sp+=18;
-		/* Switch the psp's */
-		dos.psp(pspseg);
-		DOS_PSP newpsp(dos.psp());
-		dos.dta(RealMake(newpsp.GetSegment(),0x80));
-		/* First word on the stack is the value ax should contain on startup */
-		real_writew(RealSeg(sssp-2),RealOff(sssp-2),0xffff);
-		block.exec.initsssp = sssp-2;
-		block.exec.initcsip = csip;
-		block.SaveData();
-		return true;
-	}
 
-	if (flags==LOADNGO) {
-		if ((reg_sp>0xfffe) || (reg_sp<18)) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC SS:SP=%04x:%04x",SegValue(ss),reg_sp);
+	if ((flags == LOAD) || (flags == LOADNGO)) {
 		/* Get Caller's program CS:IP of the stack and set termination address to that */
 		RealSetVec(0x22,RealMake(mem_readw(SegPhys(ss)+reg_sp+2),mem_readw(SegPhys(ss)+reg_sp)));
 		SaveRegisters();
@@ -526,40 +508,18 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		newpsp.SetFCB1(block.exec.fcb1);
 		newpsp.SetFCB2(block.exec.fcb2);
 		
-		/* Setup ax and bx, they contain a 0xff in al and ah if the drive in the fcb is not valid */
+		/* Save the SS:SP on the PSP of new program */
+		newpsp.SetStack(RealMakeSeg(ss,reg_sp));
+
+		/* Setup bx, contains a 0xff in bl and bh if the drive in the fcb is not valid */
 		DOS_FCB fcb1(RealSeg(block.exec.fcb1),RealOff(block.exec.fcb1));
 		DOS_FCB fcb2(RealSeg(block.exec.fcb2),RealOff(block.exec.fcb2));
 		Bit8u d1 = fcb1.GetDrive(); //depends on 0 giving the dos.default drive
 		if ( (d1>=DOS_DRIVES) || !Drives[d1] ) reg_bl = 0xFF; else reg_bl = 0;
 		Bit8u d2 = fcb2.GetDrive();
 		if ( (d2>=DOS_DRIVES) || !Drives[d2] ) reg_bh = 0xFF; else reg_bh = 0;
-		reg_ax = reg_bx;
 
-        /* Save the SS:SP on the PSP of new program */
-        newpsp.SetStack(RealMakeSeg(ss,reg_sp));
-        /* Set the stack for new program */
-		SegSet16(ss,RealSeg(sssp));reg_sp=RealOff(sssp);
-		/* Add some flags and CS:IP on the stack for the IRET */
-		CPU_Push16(RealSeg(csip));
-		CPU_Push16(RealOff(csip));
-		/* DOS starts programs with a RETF, so critical flags
-		 * should not be modified (IOPL in v86 mode);
-		 * interrupt flag is set explicitly, test flags cleared */
-		reg_flags=(reg_flags&(~FMASK_TEST))|FLAG_IF;
-		//Jump to retf so that we only need to store cs:ip on the stack
-		reg_ip++;
-		/* Setup the rest of the registers */
-		reg_cx=0xff;
-		reg_dx=pspseg;
-		reg_si=RealOff(csip);
-		reg_di=RealOff(sssp);
-		reg_bp=0x91c;	/* DOS internal stack begin relict */
-		SegSet16(ds,pspseg);SegSet16(es,pspseg);
-#if C_DEBUG		
-		/* Started from debug.com, then set breakpoint at start */
-		DEBUG_CheckExecuteBreakpoint(RealSeg(csip),RealOff(csip));
-#endif
-		/* Add the filename to PSP and environment MCB's */
+		/* Write filename in new program MCB */
 		char stripname[8]= { 0 };Bitu index=0;
 		while (char chr=*name++) {
 			switch (chr) {
@@ -577,6 +537,48 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		DOS_MCB pspmcb(dos.psp()-1);
 		pspmcb.SetFileName(stripname);
 		DOS_UpdatePSPName();
+	}
+
+	if (flags==LOAD) {
+		/* First word on the stack is the value ax should contain on startup */
+		real_writew(RealSeg(sssp-2),RealOff(sssp-2),reg_bx);
+		/* Write initial CS:IP and SS:SP in param block */
+		block.exec.initsssp = sssp-2;
+		block.exec.initcsip = csip;
+		block.SaveData();
+		/* Changed registers */
+		reg_sp+=18;
+		reg_ax=RealOff(csip);
+		reg_bx=memsize;
+		reg_dx=0;
+		return true;
+	}
+
+	if (flags==LOADNGO) {
+		if ((reg_sp>0xfffe) || (reg_sp<18)) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC");
+		/* Set the stack for new program */
+		SegSet16(ss,RealSeg(sssp));reg_sp=RealOff(sssp);
+		/* Add some flags and CS:IP on the stack for the IRET */
+		CPU_Push16(RealSeg(csip));
+		CPU_Push16(RealOff(csip));
+		/* DOS starts programs with a RETF, so critical flags
+		 * should not be modified (IOPL in v86 mode);
+		 * interrupt flag is set explicitly, test flags cleared */
+		reg_flags=(reg_flags&(~FMASK_TEST))|FLAG_IF;
+		//Jump to retf so that we only need to store cs:ip on the stack
+		reg_ip++;
+		/* Setup the rest of the registers */
+		reg_ax = reg_bx;
+		reg_cx=0xff;
+		reg_dx=pspseg;
+		reg_si=RealOff(csip);
+		reg_di=RealOff(sssp);
+		reg_bp=0x91c;	/* DOS internal stack begin relict */
+		SegSet16(ds,pspseg);SegSet16(es,pspseg);
+#if C_DEBUG		
+		/* Started from debug.com, then set breakpoint at start */
+		DEBUG_CheckExecuteBreakpoint(RealSeg(csip),RealOff(csip));
+#endif
 		return true;
 	}
 	return false;
