@@ -854,6 +854,8 @@ static void Mouse_ResetHardware(void){
 }
 
 void Mouse_BeforeNewVideoMode(bool setmode) {
+    (void)setmode;//unused
+
     if (CurMode->type!=M_TEXT) RestoreCursorBackground();
     else RestoreCursorBackgroundText();
     if (!mouse.hidden) {

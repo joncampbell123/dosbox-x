@@ -302,6 +302,8 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;
+    (void)iolen;
     sel_9a0 = (unsigned char)val; // what to read back in bit 0
 }
 
