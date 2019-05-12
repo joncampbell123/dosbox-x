@@ -72,7 +72,7 @@ static void CGA4_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
 
 static void TANDY16_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-	Bit8u banks=CurMode->twidth/10;
+    Bit8u banks=CurMode->twidth/10;
     PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/banks)+cleft)*4;
     PhysPt src=base+((CurMode->twidth*rold)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=(Bitu)CurMode->twidth*4u;
@@ -180,7 +180,7 @@ static void CGA4_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u at
 
 static void TANDY16_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-	Bit8u banks=CurMode->twidth/10;
+    Bit8u banks=CurMode->twidth/10;
     PhysPt dest=base+((CurMode->twidth*row)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=CurMode->twidth*4;
     attr=(attr & 0xf) | (attr & 0xf) << 4;
