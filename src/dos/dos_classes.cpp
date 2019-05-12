@@ -474,6 +474,10 @@ void DOS_FCB::GetSeqData(Bit8u & _fhandle,Bit16u & _rec_size) {
 	_rec_size=(Bit16u)sGet(sFCB,rec_size);
 }
 
+void DOS_FCB::SetSeqData(Bit8u _fhandle,Bit16u _rec_size) {
+	sSave(sFCB,file_handle,_fhandle);
+	sSave(sFCB,rec_size,_rec_size);
+}
 
 void DOS_FCB::GetRandom(Bit32u & _random) {
 	_random=sGet(sFCB,rndm);
@@ -494,14 +498,13 @@ void DOS_FCB::FileOpen(Bit8u _fhandle) {
 	sSave(sFCB,cur_block,0u);
 	sSave(sFCB,rec_size,128u);
 //	sSave(sFCB,rndm,0); // breaks Jewels of darkness. 
-	Bit8u temp = RealHandle(_fhandle);
 	Bit32u size = 0;
-	Files[temp]->Seek(&size,DOS_SEEK_END);
+	Files[_fhandle]->Seek(&size,DOS_SEEK_END);
 	sSave(sFCB,filesize,size);
 	size = 0;
-	Files[temp]->Seek(&size,DOS_SEEK_SET);
-	sSave(sFCB,time,Files[temp]->time);
-	sSave(sFCB,date,Files[temp]->date);
+	Files[_fhandle]->Seek(&size,DOS_SEEK_SET);
+	sSave(sFCB,time,Files[_fhandle]->time);
+	sSave(sFCB,date,Files[_fhandle]->date);
 }
 
 bool DOS_FCB::Valid() {
