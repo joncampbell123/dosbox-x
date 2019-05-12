@@ -163,12 +163,12 @@ enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 
 /* Routines for File Class */
 void DOS_SetupFiles (void);
-bool DOS_ReadFile(Bit16u handle,Bit8u * data,Bit16u * amount);
-bool DOS_WriteFile(Bit16u handle,Bit8u * data,Bit16u * amount);
-bool DOS_SeekFile(Bit16u handle,Bit32u * pos,Bit32u type);
+bool DOS_ReadFile(Bit16u handle,Bit8u * data,Bit16u * amount, bool fcb = false);
+bool DOS_WriteFile(Bit16u handle,Bit8u * data,Bit16u * amount,bool fcb = false);
+bool DOS_SeekFile(Bit16u handle,Bit32u * pos,Bit32u type,bool fcb = false);
 /* ert, 20100711: Locking extensions */
 bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size);
-bool DOS_CloseFile(Bit16u handle);
+bool DOS_CloseFile(Bit16u handle,bool fcb = false);
 bool DOS_FlushFile(Bit16u handle);
 bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry);
 bool DOS_ForceDuplicateEntry(Bit16u entry,Bit16u newentry);
@@ -176,9 +176,9 @@ bool DOS_GetFileDate(Bit16u entry, Bit16u* otime, Bit16u* odate);
 bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate);
 
 /* Routines for Drive Class */
-bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry);
+bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry,bool fcb = false);
 bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bit16u action, Bit16u *entry, Bit16u* status);
-bool DOS_CreateFile(char const * name,Bit16u attribute,Bit16u * entry);
+bool DOS_CreateFile(char const * name,Bit16u attribute,Bit16u * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
 bool DOS_FindFirst(char *search,Bit16u attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
@@ -580,6 +580,7 @@ public:
 	void GetRecord(Bit16u & _cur_block,Bit8u & _cur_rec);
 	void SetRecord(Bit16u _cur_block,Bit8u _cur_rec);
 	void GetSeqData(Bit8u & _fhandle,Bit16u & _rec_size);
+	void SetSeqData(Bit8u _fhandle,Bit16u _rec_size);
 	void GetRandom(Bit32u & _random);
 	void SetRandom(Bit32u  _random);
 	Bit8u GetDrive(void);
@@ -608,6 +609,8 @@ private:
 		Bit8u sft_entries;
 		Bit8u share_attributes;
 		Bit8u extra_info;
+		/* Maybe swap file_handle and sft_entries now that fcbs 
+		 * aren't stored in the psp filetable anymore */
 		Bit8u file_handle;
 		Bit8u reserved[4];
 		/* end */

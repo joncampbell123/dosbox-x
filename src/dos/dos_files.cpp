@@ -355,12 +355,12 @@ bool DOS_FindNext(void) {
 }
 
 
-bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
+bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_ReadFile(entry,data,amount);
 #endif
-	Bit32u handle=RealHandle(entry);
+	Bit32u handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -381,12 +381,12 @@ bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
 	return ret;
 }
 
-bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
+bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_WriteFile(entry,data,amount);
 #endif
-	Bit32u handle=RealHandle(entry);
+	Bit32u handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -407,8 +407,8 @@ bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
 	return ret;
 }
 
-bool DOS_SeekFile(Bit16u entry,Bit32u * pos,Bit32u type) {
-	Bit32u handle=RealHandle(entry);
+bool DOS_SeekFile(Bit16u entry,Bit32u * pos,Bit32u type,bool fcb) {
+	Bit32u handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -441,12 +441,12 @@ bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size) {
 #endif
 }
 
-bool DOS_CloseFile(Bit16u entry) {
+bool DOS_CloseFile(Bit16u entry, bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_CloseFile(entry);
 #endif
-	Bit32u handle=RealHandle(entry);
+	Bit32u handle = fcb?entry:RealHandle(entry);
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
@@ -458,8 +458,10 @@ bool DOS_CloseFile(Bit16u entry) {
 	if (Files[handle]->IsOpen()) {
 		Files[handle]->Close();
 	}
+
 	DOS_PSP psp(dos.psp());
-	psp.SetFileHandle(entry,0xff);
+	if (!fcb) psp.SetFileHandle(entry,0xff);
+
 	if (Files[handle]->RemoveRef()<=0) {
 		delete Files[handle];
 		Files[handle]=0;
@@ -496,11 +498,11 @@ static bool PathExists(char const * const name) {
 }
 
 
-bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry) {
+bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry,bool fcb) {
 	// Creation of a device is the same as opening it
 	// Tc201 installer
 	if (DOS_FindDevice(name) != DOS_DEVICES)
-		return DOS_OpenFile(name, OPEN_READ, entry);
+		return DOS_OpenFile(name, OPEN_READ, entry, fcb);
 
 	LOG(LOG_FILES,LOG_NORMAL)("file create attributes %X file %s",attributes,name);
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
@@ -519,7 +521,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry) {
 		return false;
 	}
 	/* We have a position in the main table now find one in the psp table */
-	*entry = psp.FindFreeFileEntry();
+	*entry = fcb?handle:psp.FindFreeFileEntry();
 	if (*entry==0xff) {
 		DOS_SetError(DOSERR_TOO_MANY_OPEN_FILES);
 		return false;
@@ -534,7 +536,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry) {
 		Files[handle]->SetDrive(drive);
 		Files[handle]->AddRef();
 		Files[handle]->drive = drive;
-		psp.SetFileHandle(*entry,handle);
+		if (!fcb) psp.SetFileHandle(*entry,handle);
 		return true;
 	} else {
 		if(!PathExists(name)) DOS_SetError(DOSERR_PATH_NOT_FOUND); 
@@ -543,7 +545,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry) {
 	}
 }
 
-bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry) {
+bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry,bool fcb) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsNetworkResource(const_cast<char *>(name)))
 		return Network_OpenFile(const_cast<char *>(name),flags,entry);
@@ -580,7 +582,7 @@ bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry) {
 		return false;
 	}
 	/* We have a position in the main table now find one in the psp table */
-	*entry = psp.FindFreeFileEntry();
+	*entry = fcb?handle:psp.FindFreeFileEntry();
 
 	if (*entry==0xff) {
 		DOS_SetError(DOSERR_TOO_MANY_OPEN_FILES);
@@ -1018,7 +1020,7 @@ bool DOS_FCBCreate(Bit16u seg,Bit16u offset) {
 	Bit8u attr = DOS_ATTR_ARCHIVE;
 	fcb.GetAttr(attr);
 	if (!attr) attr = DOS_ATTR_ARCHIVE; //Better safe than sorry 
-	if (!DOS_CreateFile(shortname,attr,&handle)) return false;
+	if (!DOS_CreateFile(shortname,attr,&handle,true)) return false;
 	fcb.FileOpen((Bit8u)handle);
 	return true;
 }
@@ -1034,21 +1036,15 @@ bool DOS_FCBOpen(Bit16u seg,Bit16u offset) {
 	if (!DOS_MakeName(shortname,fullname,&drive)) return false;
 	
 	/* Check, if file is already opened */
-	for (Bit8u i=0;i<DOS_FILES;i++) {
-		DOS_PSP psp(dos.psp());
+	for (Bit8u i = 0;i < DOS_FILES;i++) {
 		if (Files[i] && Files[i]->IsOpen() && Files[i]->IsName(fullname)) {
-			handle = psp.FindEntryByHandle(i);
-			if (handle==0xFF) {
-				// This shouldnt happen
-				LOG(LOG_FILES,LOG_ERROR)("DOS: File %s is opened but has no psp entry.",shortname);
-				return false;
-			}
-			fcb.FileOpen((Bit8u)handle);
+			Files[i]->AddRef();
+			fcb.FileOpen(i);
 			return true;
 		}
 	}
 	
-	if (!DOS_OpenFile(shortname,OPEN_READWRITE,&handle)) return false;
+	if (!DOS_OpenFile(shortname,OPEN_READWRITE,&handle,true)) return false;
 	fcb.FileOpen((Bit8u)handle);
 	return true;
 }
@@ -1058,7 +1054,7 @@ bool DOS_FCBClose(Bit16u seg,Bit16u offset) {
 	if(!fcb.Valid()) return false;
 	Bit8u fhandle;
 	fcb.FileClose(fhandle);
-	DOS_CloseFile(fhandle);
+	DOS_CloseFile(fhandle,true);
 	return true;
 }
 
@@ -1092,11 +1088,15 @@ Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset,Bit16u recno) {
 		LOG(LOG_FCB,LOG_WARN)("Reopened closed FCB");
 		fcb.GetSeqData(fhandle,rec_size);
 	}
+	if (rec_size == 0) {
+		rec_size = 128;
+		fcb.SetSeqData(fhandle,rec_size);
+	}
 	fcb.GetRecord(cur_block,cur_rec);
 	Bit32u pos=((cur_block*128u)+cur_rec)*rec_size;
-	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET)) return FCB_READ_NODATA; 
+	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET,true)) return FCB_READ_NODATA; 
 	Bit16u toread=rec_size;
-	if (!DOS_ReadFile(fhandle,dos_copybuf,&toread)) return FCB_READ_NODATA;
+	if (!DOS_ReadFile(fhandle,dos_copybuf,&toread,true)) return FCB_READ_NODATA;
 	if (toread==0) return FCB_READ_NODATA;
 	if (toread < rec_size) { //Zero pad copybuffer to rec_size
 		Bitu i = toread;
@@ -1119,12 +1119,16 @@ Bit8u DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u recno) {
 		LOG(LOG_FCB,LOG_WARN)("Reopened closed FCB");
 		fcb.GetSeqData(fhandle,rec_size);
 	}
+	if (rec_size == 0) {
+		rec_size = 128;
+		fcb.SetSeqData(fhandle,rec_size);
+	}
 	fcb.GetRecord(cur_block,cur_rec);
 	Bit32u pos=((cur_block*128u)+cur_rec)*rec_size;
-	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET)) return FCB_ERR_WRITE; 
+	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET,true)) return FCB_ERR_WRITE; 
 	MEM_BlockRead(Real2Phys(dos.dta())+(PhysPt)(recno*rec_size),dos_copybuf,rec_size);
 	Bit16u towrite=rec_size;
-	if (!DOS_WriteFile(fhandle,dos_copybuf,&towrite)) return FCB_ERR_WRITE;
+	if (!DOS_WriteFile(fhandle,dos_copybuf,&towrite,true)) return FCB_ERR_WRITE;
 	Bit32u size;Bit16u date,time;
 	fcb.GetSizeDateTime(size,date,time);
 	if (pos+towrite>size) size=pos+towrite;
@@ -1136,9 +1140,8 @@ Bit8u DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u recno) {
 	Bit16u min = (Bit16u)((seconds % 3600u)/60u);
 	Bit16u sec = (Bit16u)(seconds % 60u);
 	time = DOS_PackTime(hour,min,sec);
-	Bit8u temp=RealHandle(fhandle);
-	Files[temp]->time=time;
-	Files[temp]->date=date;
+	Files[fhandle]->time = time;
+	Files[fhandle]->date = date;
 	fcb.SetSizeDateTime(size,date,time);
 	if (++cur_rec>127u) { cur_block++;cur_rec=0; }	
 	fcb.SetRecord(cur_block,cur_rec);
@@ -1151,9 +1154,9 @@ Bit8u DOS_FCBIncreaseSize(Bit16u seg,Bit16u offset) {
 	fcb.GetSeqData(fhandle,rec_size);
 	fcb.GetRecord(cur_block,cur_rec);
 	Bit32u pos=((cur_block*128u)+cur_rec)*rec_size;
-	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET)) return FCB_ERR_WRITE; 
+	if (!DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET,true)) return FCB_ERR_WRITE; 
 	Bit16u towrite=0;
-	if (!DOS_WriteFile(fhandle,dos_copybuf,&towrite)) return FCB_ERR_WRITE;
+	if (!DOS_WriteFile(fhandle,dos_copybuf,&towrite,true)) return FCB_ERR_WRITE;
 	Bit32u size;Bit16u date,time;
 	fcb.GetSizeDateTime(size,date,time);
 	if (pos+towrite>size) size=pos+towrite;
@@ -1165,9 +1168,8 @@ Bit8u DOS_FCBIncreaseSize(Bit16u seg,Bit16u offset) {
 	Bit16u min = (Bit16u)((seconds % 3600u)/60u);
 	Bit16u sec = (Bit16u)(seconds % 60u);
 	time = DOS_PackTime(hour,min,sec);
-	Bit8u temp=RealHandle(fhandle);
-	Files[temp]->time=time;
-	Files[temp]->date=date;
+	Files[fhandle]->time = time;
+	Files[fhandle]->date = date;
 	fcb.SetSizeDateTime(size,date,time);
 	fcb.SetRecord(cur_block,cur_rec);
 	return FCB_SUCCESS;
@@ -1237,15 +1239,18 @@ Bit8u DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore) 
 }
 
 bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset) {
-	char shortname[DOS_PATHLENGTH];Bit16u entry;Bit8u handle;Bit16u rec_size;
+	char shortname[DOS_PATHLENGTH];Bit16u entry;
 	DOS_FCB fcb(seg,offset);
 	fcb.GetName(shortname);
-	if (!DOS_OpenFile(shortname,OPEN_READ,&entry)) return false;
-	handle = RealHandle(entry);
+	if (!DOS_OpenFile(shortname,OPEN_READ,&entry,true)) return false;
 	Bit32u size = 0;
-	Files[handle]->Seek(&size,DOS_SEEK_END);
-	DOS_CloseFile(entry);fcb.GetSeqData(handle,rec_size);
+	Files[entry]->Seek(&size,DOS_SEEK_END);
+	DOS_CloseFile(entry,true);
+
+	Bit8u handle; Bit16u rec_size;
+	fcb.GetSeqData(handle,rec_size);
 	if (rec_size == 0) rec_size = 128; //Use default if missing.
+
 	Bit32u random=(size/rec_size);
 	if (size % rec_size) random++;
 	fcb.SetRandom(random);
@@ -1272,7 +1277,7 @@ bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset){
 		nextfile = DOS_FCBFindNext(seg,offset);
 	}
 	dos.dta(old_dta);  /*Restore dta */
-	return  return_value;
+	return return_value;
 }
 
 bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
@@ -1291,12 +1296,12 @@ bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
 	for (Bit8u i=0;i<DOS_FILES;i++) {
 		if (Files[i] && Files[i]->IsOpen() && Files[i]->IsName(fullname)) {
 			Bit16u handle = psp.FindEntryByHandle(i);
+			//(more than once maybe)
 			if (handle == 0xFFu) {
-				// This shouldnt happen
-				LOG(LOG_FILES,LOG_ERROR)("DOS: File %s is opened but has no psp entry.",oldname);
-				return false;
+				DOS_CloseFile(i,true);
+			} else {
+				DOS_CloseFile(handle);
 			}
-			DOS_CloseFile(handle);
 		}
 	}
 

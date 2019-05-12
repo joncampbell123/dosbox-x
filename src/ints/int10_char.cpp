@@ -72,14 +72,12 @@ static void CGA4_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
 
 static void TANDY16_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-    PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/4)+cleft)*4;
-    PhysPt src=base+((CurMode->twidth*rold)*(cheight/4)+cleft)*4;   
+	Bit8u banks=CurMode->twidth/10;
+    PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/banks)+cleft)*4;
+    PhysPt src=base+((CurMode->twidth*rold)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=(Bitu)CurMode->twidth*4u;
-    for (Bitu i=0;i<cheight/4U;i++) {
-        MEM_BlockCopy(dest,src,copy);
-        MEM_BlockCopy(dest+8*1024,src+8*1024,copy);
-        MEM_BlockCopy(dest+16*1024,src+16*1024,copy);
-        MEM_BlockCopy(dest+24*1024,src+24*1024,copy);
+    for (Bitu i=0;i<cheight/banks;i++) {
+		for (Bitu b=0;b<banks;b++) MEM_BlockCopy(dest+b*8*1024,src+b*8*1024,copy);
         dest+=nextline;src+=nextline;
     }
 }
@@ -182,15 +180,13 @@ static void CGA4_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u at
 
 static void TANDY16_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-    PhysPt dest=base+((CurMode->twidth*row)*(cheight/4)+cleft)*4;
+	Bit8u banks=CurMode->twidth/10;
+    PhysPt dest=base+((CurMode->twidth*row)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=CurMode->twidth*4;
     attr=(attr & 0xf) | (attr & 0xf) << 4;
-    for (Bitu i=0;i<cheight/4U;i++) {
+    for (Bitu i=0;i<cheight/banks;i++) {
         for (Bitu x=0;x<copy;x++) {
-            mem_writeb(dest+x,attr);
-            mem_writeb(dest+8*1024+x,attr);
-            mem_writeb(dest+16*1024+x,attr);
-            mem_writeb(dest+24*1024+x,attr);
+            for (Bitu b=0;b<banks;b++) mem_writeb(dest+b*8*1024+x,attr);
         }
         dest+=nextline;
     }
