@@ -428,8 +428,8 @@ bool DOS_FCB::Extended(void) {
 
 void DOS_FCB::Create(bool _extended) {
 	Bitu fill;
-	if (_extended) fill=36+7;
-	else fill=36;
+	if (_extended) fill=33+7;
+	else fill=33;
 	Bitu i;
 	for (i=0;i<fill;i++) mem_writeb(real_pt+i,0);
 	pt=real_pt;
