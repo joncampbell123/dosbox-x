@@ -661,6 +661,7 @@ static void FinishSetMode(bool clearmem) {
 	if (clearmem) {
         switch (CurMode->type) {
         case M_TANDY16:
+        case M_CGA4:
             if ((machine==MCH_PCJR) && (CurMode->mode >= 9)) {
                 // PCJR cannot access the full 32k at 0xb800
                 for (Bit16u ct=0;ct<16*1024;ct++) {
@@ -670,7 +671,6 @@ static void FinishSetMode(bool clearmem) {
                 break;
             }
             // fall-through
-        case M_CGA4:
 		case M_CGA2:
             if (machine == MCH_MCGA && CurMode->mode == 0x11) {
                 for (Bit16u ct=0;ct<32*1024;ct++) {
