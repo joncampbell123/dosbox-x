@@ -603,6 +603,26 @@ static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
 	return false;
 }
 
+static void SetTextLines(void) {
+	// check for scanline backwards compatibility (VESA text modes??)
+	switch (real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL)&0x90) {
+	case 0x80: // 200 lines emulation
+		if (CurMode->mode <= 3) {
+			CurMode = &ModeList_VGA_Text_200lines[CurMode->mode];
+		} else if (CurMode->mode == 7) {
+			CurMode = &ModeList_VGA_Text_350lines[4];
+		}
+		break;
+	case 0x00: // 350 lines emulation
+		if (CurMode->mode <= 3) {
+			CurMode = &ModeList_VGA_Text_350lines[CurMode->mode];
+		} else if (CurMode->mode == 7) {
+			CurMode = &ModeList_VGA_Text_350lines[4];
+		}
+		break;
+	}
+}
+
 bool INT10_SetCurMode(void) {
 	bool mode_changed=false;
 	Bit16u bios_mode=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
@@ -722,7 +742,6 @@ static void FinishSetMode(bool clearmem) {
 
 	// this is an index into the dcc table:
 	if (IS_VGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,0x0b);
-	real_writed(BIOSMEM_SEG,BIOSMEM_VS_POINTER,int10.rom.video_save_pointers);
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
@@ -769,8 +788,12 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
         break;
     case MCH_MDA:
     case MCH_HERC:
-		// Only init the adapter if the equipment word is set to monochrome (Testdrive)
-		if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
+		// Allow standard color modes if equipment word is not set to mono (Victory Road)
+		if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30 && mode<7) {
+			SetCurMode(ModeList_OTHER,mode);
+			FinishSetMode(clearmem);
+			return true;
+		}
 		CurMode=&Hercules_Mode;
 		mode=7; // in case the video parameter table is modified
 		break;
@@ -1065,22 +1088,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 				return false;
 			}
 		}
-		// check for scanline backwards compatibility (VESA text modes??)
-		if (CurMode->type==M_TEXT) {
-			if ((modeset_ctl&0x90)==0x80) { // 200 lines emulation
-				if (CurMode->mode <= 3) {
-					CurMode = &ModeList_VGA_Text_200lines[CurMode->mode];
-				} else if (CurMode->mode == 7) {
-					CurMode = &ModeList_VGA_Text_350lines[4];
-				}
-			} else if ((modeset_ctl&0x90)==0x00) { // 350 lines emulation
-				if (CurMode->mode <= 3) {
-					CurMode = &ModeList_VGA_Text_350lines[CurMode->mode];
-				} else if (CurMode->mode == 7) {
-					CurMode = &ModeList_VGA_Text_350lines[4];
-				}
-			}
-		}
+		if (CurMode->type==M_TEXT) SetTextLines();
 
         // INT 10h modeset will always clear 8-bit DAC mode (by VESA BIOS standards)
         vga_8bit_dac = false;
@@ -1759,6 +1767,15 @@ dac_text16:
 			IO_Write(0x3c0,att_data[ct]);
 		}
 		vga.config.pel_panning = 0;
+	}
+	/* Write palette register data to dynamic save area if pointer is non-zero */
+	RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
+	RealPt dsapt=real_readd(RealSeg(vsavept),RealOff(vsavept)+4);
+	if (dsapt) {
+		for (Bit8u ct=0;ct<0x10;ct++) {
+			real_writeb(RealSeg(dsapt),RealOff(dsapt)+ct,att_data[ct]);
+		}
+		real_writeb(RealSeg(dsapt),RealOff(dsapt)+0x10,0); // overscan
 	}
 	/* Setup some special stuff for different modes */
 	Bit8u feature=real_readb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE);

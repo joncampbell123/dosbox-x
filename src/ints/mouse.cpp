@@ -494,6 +494,7 @@ void RestoreCursorBackground() {
 
 void DrawCursor() {
     if (mouse.hidden || mouse.inhibit_draw) return;
+    INT10_SetCurMode();
     // In Textmode ?
     if (CurMode->type==M_TEXT) {
         DrawCursorText();
@@ -996,7 +997,6 @@ static void Mouse_Reset(void) {
 
 static Bitu INT33_Handler(void) {
 //  LOG(LOG_MOUSE,LOG_NORMAL)("MOUSE: %04X %X %X %d %d",reg_ax,reg_bx,reg_cx,POS_X,POS_Y);
-    INT10_SetCurMode();
     switch (reg_ax) {
     case 0x00:  /* Reset Driver and Read Status */
         Mouse_ResetHardware(); /* fallthrough */

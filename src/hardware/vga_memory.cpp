@@ -2196,10 +2196,13 @@ void VGA_SetupHandlers(void) {
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.mcgatext );      // B8000-BFFFF is the last 32KB half of video RAM, alias
 		goto range_done;
 	case MCH_PCJR:
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+		MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.pcjr );
 		goto range_done;
 	case MCH_MDA:
 	case MCH_HERC:
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
 		vgapages.base=VGA_PAGE_B0;
 		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
 		if (vga.herc.enable_bits & 0x2) { /* bit 1: page in upper 32KB */
@@ -2236,7 +2239,7 @@ void VGA_SetupHandlers(void) {
 		} else {
 			vga.tandy.draw_base = TANDY_VIDBASE( vga.tandy.draw_bank * 16 * 1024);
 			vga.tandy.mem_base = TANDY_VIDBASE( vga.tandy.mem_bank * 16 * 1024);
-			MEM_SetPageHandler( 0xb8, 8, &vgaph.tandy );
+			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.tandy );
 		}
 		goto range_done;
 //		MEM_SetPageHandler(vga.tandy.mem_bank<<2,vga.tandy.is_32k_mode ? 0x08 : 0x04,range_handler);
@@ -2365,21 +2368,21 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_A0;
 		vgapages.mask = 0xffff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 16);
+		MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
 		break;
 	case 2:
 		vgapages.base = VGA_PAGE_B0;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B8, 8 );
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
         break;
 	case 3:
 		vgapages.base = VGA_PAGE_B8;
 		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+		MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
         break;
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))

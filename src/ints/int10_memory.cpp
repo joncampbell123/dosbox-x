@@ -343,7 +343,7 @@ void INT10_SetupRomMemory(void) {
 	INT10_SetupRomMemoryChecksum();
 
 	if (IS_TANDY_ARCH) {
-		RealSetVec(0x44,int10.rom.font_8_first);
+		RealSetVec(0x44,RealMake(0xf000,0xfa6e));
 	}
 }
 

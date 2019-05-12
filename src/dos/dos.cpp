@@ -578,6 +578,10 @@ static Bitu DOS_21Handler(void) {
                 for(;;) {
                     if (!DOS_BreakTest()) return CBRET_NONE;
                     DOS_ReadFile(STDIN,&c,&n);
+                    if (n == 0)				// End of file
+                        E_Exit("DOS:0x0a:Redirected input reached EOF");
+                    if (c == 10)			// Line feed
+                        continue;
                     if (c == 8) {           // Backspace
                         if (read) { //Something to backspace.
                             // STDOUT treats backspace as non-destructive.
