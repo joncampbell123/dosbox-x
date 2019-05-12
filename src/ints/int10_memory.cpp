@@ -171,7 +171,13 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.static_state=0;
 		int10.rom.font_14=0;
 		int10.rom.font_16=0;
-		RealSetVec(0x43,int10.rom.font_8_first);
+
+        /* ref: [http://www.ctyme.com/intr/rb-6173.htm] */
+        if (IS_TANDY_ARCH)
+            RealSetVec(0x44,int10.rom.font_8_first);
+        else
+            RealSetVec(0x43,int10.rom.font_8_first);
+
 		RealSetVec(0x1F,int10.rom.font_8_second);
 
         if (machine == MCH_MCGA) {
