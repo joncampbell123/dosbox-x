@@ -55,6 +55,12 @@ bool Mouse_Vertical = false;
 #include "os2.h"
 #endif
 
+#if defined(WIN32)
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m)&S_IFMT)==S_IFDIR)
+#endif
+#endif
+
 #if defined(RISCOS)
 #include <unixlib/local.h>
 #include <limits.h>
@@ -415,7 +421,7 @@ public:
                 return;
             }
             /* Not a switch so a normal directory/file */
-            if (!is_physfs && !(test.st_mode & S_IFDIR)) {
+            if (!is_physfs && !S_ISDIR(test.st_mode)) {
 #ifdef OS2
                 HFILE cdrom_fd = 0;
                 ULONG ulAction = 0;
@@ -3068,7 +3074,7 @@ private:
                     }
                 }
             }
-            if ((test.st_mode & S_IFDIR)) {
+            if (S_ISDIR(test.st_mode)) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
                 return;
             }
