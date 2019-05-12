@@ -647,6 +647,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 c &= ~b;
 
             mem_writeb(o,c);
+
+            /* mirror CTRL+GRAPH+KANA+CAPS+SHIFT at 0x53A which is returned by INT 18h AH=2 */
+            if (o == 0x538) mem_writeb(0x53A,c);
         }
 
         /* NOTES:
