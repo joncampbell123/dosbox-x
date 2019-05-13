@@ -475,7 +475,7 @@ static Bitu DOS_21Handler(void) {
                 Bit8u c=reg_dl;Bit16u n=1;
                 DOS_WriteFile(STDOUT,&c,&n);
                 //Not in the official specs, but happens nonetheless. (last written character)
-                reg_al = c;// reg_al=(c==9)?0x20:c; //Officially: tab to spaces
+                reg_al=(c==9)?0x20:c; //strangely, tab conversion to spaces is reflected here
             }
             break;
         case 0x03:      /* Read character from STDAUX */
@@ -534,8 +534,10 @@ static Bitu DOS_21Handler(void) {
                 default:
                     {
                         Bit8u c = reg_dl;Bit16u n = 1;
+                        dos.direct_output=true;
                         DOS_WriteFile(STDOUT,&c,&n);
-                        reg_al = reg_dl;
+                        dos.direct_output=false;
+                        reg_al=c;
                     }
                     break;
             };
@@ -565,6 +567,7 @@ static Bitu DOS_21Handler(void) {
                 while ((c=mem_readb(buf++))!='$') {
                     DOS_WriteFile(STDOUT,&c,&n);
                 }
+                reg_al=c;
             }
             break;
         case 0x0a:      /* Buffered Input */
@@ -2315,6 +2318,7 @@ public:
 	
 		dos.version.major=5;
 		dos.version.minor=0;
+		dos.direct_output=false;
 
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {

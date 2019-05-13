@@ -791,13 +791,6 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
 //      cur_col=0; //Seems to break an old chess game
         cur_row++;
         break;
-    case '\t':
-        do {
-            INT10_TeletypeOutputAttr(' ',attr,useattr,page);
-            cur_row=CURSOR_POS_ROW(page);
-            cur_col=CURSOR_POS_COL(page);
-        } while(cur_col%8);
-        break;
     default:
         /* Draw the actual Character */
         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
