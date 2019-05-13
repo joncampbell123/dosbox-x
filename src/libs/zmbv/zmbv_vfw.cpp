@@ -300,7 +300,29 @@ DWORD CodecInst::Compress(ICCOMPRESS* icinfo, DWORD dwSize) {
 	if (icinfo->dwFlags & ICCOMPRESS_KEYFRAME)
 		flags |= 1;
 
-	codec->PrepareCompressFrame( flags, format, 0, icinfo->lpOutput, 99999999);
+	char palette[256 * 4];
+	char *pal = NULL;
+
+	if (lpbiIn->biBitCount == 8) {
+		const int entries = icinfo->lpbiInput->biClrUsed ? icinfo->lpbiInput->biClrUsed : 256;
+		const char* srcpal = (char *)icinfo->lpbiInput + icinfo->lpbiInput->biSize;
+		char* dstpal = palette;
+
+		memset(palette, 0, sizeof palette);
+
+		for(int i=0; i<entries; ++i) {
+			dstpal[0] = srcpal[2];
+			dstpal[1] = srcpal[1];
+			dstpal[2] = srcpal[0];
+			dstpal[3] = 0;
+			dstpal += 4;
+			srcpal += 4;
+		}
+
+		pal = palette;
+	}
+
+	codec->PrepareCompressFrame( flags, format, pal, icinfo->lpOutput, 99999999);
 	char *readPt = (char *)icinfo->lpInput + pitch*(lpbiIn->biHeight - 1);
 	for(i = 0;i<lpbiIn->biHeight;i++) {
 		codec->CompressLines(1, (void **)&readPt );
