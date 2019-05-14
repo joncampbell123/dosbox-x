@@ -65,7 +65,7 @@ MidiHandler * handler_list = 0;
 MidiHandler::MidiHandler(){
 	next = handler_list;
 	handler_list = this;
-};
+}
 
 MidiHandler Midi_none;
 DB_Midi midi;

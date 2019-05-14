@@ -32,7 +32,7 @@ public:
 	virtual void PlayMsg(Bit8u * /*msg*/) {};
 	virtual void PlaySysex(Bit8u * /*sysex*/,Bitu /*len*/) {};
 	virtual const char * GetName(void) { return "none"; };
-	virtual void ListAll(Program * base) {};
+	virtual void ListAll(Program * /*base*/) {};
 	virtual ~MidiHandler() { };
 	MidiHandler * next;
 };
