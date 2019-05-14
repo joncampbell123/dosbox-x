@@ -38,7 +38,7 @@ public:
 };
 
 
-#define SYSEX_SIZE 1024
+#define SYSEX_SIZE 8192
 struct DB_Midi {
 	Bitu status;
 	Bitu cmd_len;
