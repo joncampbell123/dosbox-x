@@ -181,6 +181,11 @@
     - Raise lower limit of cycles in autodetermine mode to
     improve stability.
     - Fix for 256 color encoding in zmbv.dll codec
+    - Rework ListMidi so it can be more easily added to more
+    backends.
+    - Implement mixer /listmidi for coremidi.
+    - Increase size of SysEx buffer to support Sierra's Yamaha
+    FB-01 driver.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
