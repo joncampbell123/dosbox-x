@@ -25,14 +25,14 @@ private:
 public:
 	MidiHandler_coremidi()  {m_pCurPacket = 0;}
 	const char * GetName(void) { return "coremidi"; }
-	bool Open(const char * conf) {
-	
+	bool Open(const char * conf) {	
 		// Get the MIDIEndPoint
 		m_endpoint = 0;
 //		OSStatus result;
 		Bitu numDests = MIDIGetNumberOfDestinations();
-	        Bitu destId = 0;
-	        if(conf && conf[0]) destId = atoi(conf);
+		Bitu destId = 0;
+		if(conf && conf[0]) destId = atoi(conf);
+
 		if (destId < numDests)
 		{
 			m_endpoint = MIDIGetDestination(destId);
@@ -67,7 +67,8 @@ public:
 		MIDIClientDispose(m_client);
 
 		// Dispose the endpoint
-		MIDIEndpointDispose(m_endpoint);
+		// Not, as it is for Endpoints created by us
+//		MIDIEndpointDispose(m_endpoint);
 	}
 	
 	void PlayMsg(Bit8u * msg) {
@@ -98,6 +99,22 @@ public:
 		
 		// Send the MIDIPacketList
 		MIDISend(m_port,m_endpoint,packetList);
+	}
+	
+	void ListAll(Program* base) {
+		Bitu numDests = MIDIGetNumberOfDestinations();
+		for(Bitu i = 0; i < numDests; i++){
+			MIDIEndpointRef dest = MIDIGetDestination(i);
+			if(!dest) continue;
+			CFStringRef midiname = 0;
+			if(MIDIObjectGetStringProperty(dest, kMIDIPropertyDisplayName, &midiname) == noErr) {
+				const char * s = CFStringGetCStringPtr(midiname, kCFStringEncodingMacRoman);
+				if(s) base->WriteOut("%02d\t%s\n",i,s);
+			}
+			//This is for EndPoints created by us.
+			//MIDIEndpointDispose(dest);
+		}
+
 	}
 };
 
