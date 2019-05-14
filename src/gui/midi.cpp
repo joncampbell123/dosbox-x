@@ -25,6 +25,7 @@
 #include "SDL.h"
 
 #include "dosbox.h"
+#include "midi.h"
 #include "control.h"
 #include "cross.h"
 #include "support.h"
@@ -34,7 +35,6 @@
 #include "hardware.h"
 #include "timer.h"
 
-#define SYSEX_SIZE 1024
 #define RAWBUF	1024
 
 Bit8u MIDI_evt_len[256] = {
@@ -60,49 +60,15 @@ Bit8u MIDI_evt_len[256] = {
   0,2,3,2, 0,0,1,0, 1,0,1,1, 1,0,1,0   // 0xf0
 };
 
-class MidiHandler;
+MidiHandler * handler_list = 0;
 
-MidiHandler * handler_list=0;
-
-class MidiHandler {
-public:
-	MidiHandler() {
-		next=handler_list;
-		handler_list=this;
-	};
-	virtual bool Open(const char * /*conf*/) { return true; };
-	virtual void Close(void) {};
-	virtual void PlayMsg(Bit8u * /*msg*/) {};
-	virtual void PlaySysex(Bit8u * /*sysex*/,Bitu /*len*/) {};
-	virtual const char * GetName(void) { return "none"; };
-	virtual void Reset() {};
-	virtual ~MidiHandler() { };
-	MidiHandler * next;
+MidiHandler::MidiHandler(){
+	next = handler_list;
+	handler_list = this;
 };
 
 MidiHandler Midi_none;
-
-
-static struct midi_state_t {
-	Bitu status;
-	Bitu cmd_len;
-	Bitu cmd_pos;
-	Bit8u cmd_buf[8];
-	Bit8u rt_buf[8];
-	struct midi_state_sysex_t {
-		Bit8u buf[SYSEX_SIZE];
-		Bitu used;
-		Bitu delay;
-		Bit32u start;
-
-		midi_state_sysex_t() : used(0), delay(0), start(0) { }
-	} sysex;
-	bool available;
-	MidiHandler * handler;
-
-	midi_state_t() : status(0x00), cmd_len(0), cmd_pos(0), available(false), handler(NULL) { }
-} midi;
-
+DB_Midi midi;
 
 static struct {
 	bool init;
