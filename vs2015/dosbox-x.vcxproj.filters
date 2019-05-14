@@ -1559,6 +1559,9 @@
     <ClInclude Include="..\src\output\direct3d\ScalingEffect.h">
       <Filter>Sources\output\direct3d</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\midi.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

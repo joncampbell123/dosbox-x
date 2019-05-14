@@ -197,6 +197,17 @@ public:
 		}
 #endif
 	}
+	
+	void ListAll(Program* base) {
+#if defined (WIN32)
+		unsigned int total = midiOutGetNumDevs();	
+		for(unsigned int i = 0;i < total;i++) {
+			MIDIOUTCAPS mididev;
+			midiOutGetDevCaps(i, &mididev, sizeof(MIDIOUTCAPS));
+			base->WriteOut("%2d\t \"%s\"\n",i,mididev.szPname);
+		}
+#endif
+	}
 
 	void Reset()
 	{

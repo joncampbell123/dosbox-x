@@ -1,10 +1,5 @@
 Commit#:	Reason for skipping:
 
-3835		Preparatory commit for 3836, which was skipped.
-3836		Assumes the Windows API. midiOutGetNumDevs() and midiOutGetDevCaps() are specific to Windows and do not exist anywhere else.
-3837		References midi.h, from skipped 3835.
-3838		Related to skipped commit 3836.
-3846		Large commit
 3847		Conflicts with https://github.com/joncampbell123/dosbox-x/commit/ac70b5599fb2fb824be7ed627ec4e70aa8b6bc79
 3857		Conflicts with DOSBox-X
 3859		Conflicts with DOSBox-X. Masking/wrapping is implemented in DOSBox-X by masking the array access per pixel.
@@ -21,11 +16,10 @@ Commit#:	Reason for skipping:
 3931		May not have effect or be wanted
 3939		A commented-out log message.
 3960		Thought to be unneeded.
-3963		Relies on midi.h from former skipped commit
 3967		Conflicts with DOSBox-X and may be unnecessary.
 3968		Conflicts with DOSBox-X and may be unnecessary.
 3969		Related to 3968.
 3980		Conflicts with DOSBox-X
 3981		Conflicts with DOSBox-X
 3986		Conflicts with DOSBox-X
-3989		Seems unnecessary, and DOSBox-X's GUI menu uses "Pause"
+3989		Seems unnecessary, and DOSBox-X's GUI uses "Pause"
