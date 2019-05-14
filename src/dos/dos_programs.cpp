@@ -1551,57 +1551,80 @@ static void BOOT_ProgramStart(Program * * make) {
     *make=new BOOT;
 }
 
-class LDGFXROM : public Program {
+class LOADROM : public Program {
 public:
     void Run(void) {
-        if (!(cmd->FindCommand(1, temp_line))) return;
+        if (!(cmd->FindCommand(1, temp_line))) {
+            WriteOut(MSG_Get("PROGRAM_LOADROM_SPECIFY_FILE"));
+            return;
+        }
 
         Bit8u drive;
         char fullname[DOS_PATHLENGTH];
-
         localDrive* ldp=0;
         if (!DOS_MakeName((char *)temp_line.c_str(),fullname,&drive)) return;
 
-        try {       
+        try {
+            /* try to read ROM file into buffer */
             ldp=dynamic_cast<localDrive*>(Drives[drive]);
             if(!ldp) return;
 
             FILE *tmpfile = ldp->GetSystemFilePtr(fullname, "rb");
             if(tmpfile == NULL) {
-                LOG_MSG("BIOS file not accessible.");
+                WriteOut(MSG_Get("PROGRAM_LOADROM_CANT_OPEN"));
                 return;
             }
             fseek(tmpfile, 0L, SEEK_END);
-            if (ftell(tmpfile)>0x10000) {
-                LOG_MSG("BIOS file too large.");
+            if (ftell(tmpfile)>0x8000) {
+                WriteOut(MSG_Get("PROGRAM_LOADROM_TOO_LARGE"));
+                fclose(tmpfile);
                 return;
             }
             fseek(tmpfile, 0L, SEEK_SET);
-
-            PhysPt rom_base=PhysMake(0xc000,0);
-
-            Bit8u vga_buffer[0x10000];
-            Bitu data_written=0;
-            Bitu data_read = (Bitu)fread(vga_buffer, 1, 0x10000, tmpfile);
-            for (Bitu ct=0; ct<data_read; ct++) {
-                phys_writeb(rom_base+(data_written++),vga_buffer[ct]);
-            }
+            Bit8u rom_buffer[0x8000];
+            Bitu data_read = fread(rom_buffer, 1, 0x8000, tmpfile);
             fclose(tmpfile);
 
-            rom_base=PhysMake(0xf000,0);
-            phys_writeb(rom_base+0xf065,0xcf);
+            /* try to identify ROM type */
+            PhysPt rom_base = 0;
+            if (data_read >= 0x4000 && rom_buffer[0] == 0x55 && rom_buffer[1] == 0xaa &&
+                rom_buffer[3] == 0xeb && strncmp((char*)(&rom_buffer[0x1e]), "IBM", 3) == 0) {
+
+                if (!IS_EGAVGA_ARCH) {
+                    WriteOut(MSG_Get("PROGRAM_LOADROM_INCOMPATIBLE"));
+                    return;
+                }
+                rom_base = PhysMake(0xc000, 0); // video BIOS
+            }
+            else if (data_read == 0x8000 && rom_buffer[0] == 0xe9 && rom_buffer[1] == 0x8f &&
+                rom_buffer[2] == 0x7e && strncmp((char*)(&rom_buffer[0x4cd4]), "IBM", 3) == 0) {
+
+                rom_base = PhysMake(0xf600, 0); // BASIC
+            }
+
+            if (rom_base) {
+                /* write buffer into ROM */
+                for (Bitu i=0; i<data_read; i++) phys_writeb(rom_base + i, rom_buffer[i]);
+
+                if (rom_base == 0xc0000) {
+                    /* initialize video BIOS */
+                    phys_writeb(PhysMake(0xf000, 0xf065), 0xcf);
+                    reg_flags &= ~FLAG_IF;
+                    CALLBACK_RunRealFar(0xc000, 0x0003);
+                    LOG_MSG("Video BIOS ROM loaded and initialized.");
+                }
+                else WriteOut(MSG_Get("PROGRAM_LOADROM_BASIC_LOADED"));
+            }
+            else WriteOut(MSG_Get("PROGRAM_LOADROM_UNRECOGNIZED"));
         }
         catch(...) {
             return;
         }
-
-        reg_flags&=~FLAG_IF;
-        CALLBACK_RunRealFar(0xc000,0x0003);
     }
 };
 
-static void LDGFXROM_ProgramStart(Program * * make) {
-    *make=new LDGFXROM;
+static void LOADROM_ProgramStart(Program * * make) {
+    *make=new LOADROM;
 }
 
 const Bit8u freedos_mbr[] = {
@@ -4518,6 +4541,13 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
+    MSG_Add("PROGRAM_LOADROM_SPECIFY_FILE","Must specify ROM file to load.\n");
+    MSG_Add("PROGRAM_LOADROM_CANT_OPEN","ROM file not accessible.\n");
+    MSG_Add("PROGRAM_LOADROM_TOO_LARGE","ROM file too large.\n");
+    MSG_Add("PROGRAM_LOADROM_INCOMPATIBLE","Video BIOS not supported by machine type.\n");
+    MSG_Add("PROGRAM_LOADROM_UNRECOGNIZED","ROM file not recognized.\n");
+    MSG_Add("PROGRAM_LOADROM_BASIC_LOADED","BASIC ROM loaded.\n");
+
     MSG_Add("VHD_ERROR_OPENING", "Could not open the specified VHD file.\n");
     MSG_Add("VHD_INVALID_DATA", "The specified VHD file is corrupt and cannot be opened.\n");
     MSG_Add("VHD_UNSUPPORTED_TYPE", "The specified VHD file is of an unsupported type.\n");
@@ -4650,7 +4680,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
 
     if (!IS_PC98_ARCH)
-        PROGRAMS_MakeFile("LDGFXROM.COM", LDGFXROM_ProgramStart);
+        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart);
 
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart);
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);

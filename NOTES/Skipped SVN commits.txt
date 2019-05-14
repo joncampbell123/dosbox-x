@@ -27,3 +27,5 @@ Commit#:	Reason for skipping:
 3969		Related to 3968.
 3980		Conflicts with DOSBox-X
 3981		Conflicts with DOSBox-X
+3986		Conflicts with DOSBox-X
+3989		Seems unnecessary, and DOSBox-X's GUI menu uses "Pause"

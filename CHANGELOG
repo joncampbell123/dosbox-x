@@ -171,6 +171,16 @@
     tail at startup.
     - Support writing palette register data to dynamic save area
     if pointer is non-zero on mode changes. Fixes CV 2.2.
+    - Be more compatible by converting tabs to spaces in the DOS
+    console device rather than in the video BIOS teletype function.
+    - Make the internal program for loading ROM images a bit
+    smarter about what it can/will load. Also provide for BASIC
+    in ROM to support IBM BASIC interpreters.
+    - Correct page count/size for CGA graphics modes. Fixes RS-2
+    on the CGA machine type.
+    - Raise lower limit of cycles in autodetermine mode to
+    improve stability.
+    - Fix for 256 color encoding in zmbv.dll codec
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.

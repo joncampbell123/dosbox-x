@@ -3813,17 +3813,10 @@ public:
 		Bit16u oldss	= SegValue(ss);
 		Bit32u oldesp	= reg_esp;
 
-		// Workaround : Allocate Stack Space
-		Bit16u segment;
-		Bit16u size = 0x200 / 0x10;
-		if (DOS_AllocateMemory(&segment,&size)) {
-			SegSet16(ss,segment);
-			reg_sp = 0x200;
-			// Start shell
-			DOS_Shell shell;
-			shell.Execute(filename,args);
-			DOS_FreeMemory(segment);
-		}
+		// Start shell
+		DOS_Shell shell;
+		shell.Execute(filename,args);
+
 		// set old reg values
 		SegSet16(ss,oldss);
 		reg_esp = oldesp;

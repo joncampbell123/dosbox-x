@@ -479,7 +479,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 
 		csip=RealMake(pspseg,0x100);
 		sssp=RealMake(pspseg,stack_sp);
-		mem_writew(PhysMake(pspseg,stack_sp),0);
+		mem_writew(Real2Phys(sssp),0);
 	} else {
 		/* FIXME: I've heard of EXE files with entry points like FFFF:0100 or something (COM images turned EXE if I recall).
 		 *        Does this check validate those too? */
