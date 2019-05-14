@@ -1588,6 +1588,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\include\bios_disk.h" />
     <ClInclude Include="..\include\bitmapinfoheader.h" />
     <ClInclude Include="..\include\bitop.h" />
+    <ClInclude Include="..\include\midi.h" />
     <ClInclude Include="..\include\ptrop.h" />
     <ClInclude Include="..\include\builtin.h" />
     <ClInclude Include="..\include\callback.h" />
