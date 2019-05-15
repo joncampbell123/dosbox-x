@@ -186,6 +186,11 @@
     - Implement mixer /listmidi for coremidi.
     - Increase size of SysEx buffer to support Sierra's Yamaha
     FB-01 driver.
+    - Add improved breakpoint handling to the debugger
+    - Rewrite the order of the debug help list so the keys come
+    last
+    - Clip to boundaries when there are no suggeted values for
+    Prop_int
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
