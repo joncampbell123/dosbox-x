@@ -2281,7 +2281,7 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 					if(!printed_cycles_auto_info) {
 						printed_cycles_auto_info = true;
-						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
+						LOG_MSG("DOSBox has switched to max cycles, because of the setting: cycles=auto.\nIf the game runs too fast, try a fixed cycles amount in DOSBox's options.");
 					}
                     menu_update_autocycle();
 				} else {
