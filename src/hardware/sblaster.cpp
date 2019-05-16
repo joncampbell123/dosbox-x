@@ -2488,6 +2488,9 @@ static void CTMIXER_Write(Bit8u val) {
                 else if (val & 0x2) sb.hw.irq=10;
                 else if (val & 0x4) sb.hw.irq=12;
                 else if (val & 0x8) sb.hw.irq=5;
+
+                // NTS: Real hardware stores only the low 4 bits. The upper 4 bits will always read back 1111.
+                //      The value read back will always be Fxh where x contains the 4 bits checked here.
             }
             else {
                 if (val & 0x1) sb.hw.irq=2;
