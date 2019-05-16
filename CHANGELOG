@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - VGA BIOS size changed to 0x4000 (16KB), because 0x3800
+    is not liked by Windows 3.0.
   - Font vector is now INT 44h for PCjr and Tandy emulation,
     INT 43h otherwise as documented in the RBIL.
   - Graph key (PC-98 mode) no longer registers as keyboard
