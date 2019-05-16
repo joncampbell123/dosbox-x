@@ -740,7 +740,7 @@ void Init_VGABIOS() {
         if (svgaCard == SVGA_S3Trio)
             VGA_BIOS_Size = 0x4000;
         else
-            VGA_BIOS_Size = 0x3800;
+            VGA_BIOS_Size = 0x4000; // FIXME: Why does 0x3800 cause Windows 3.0 386 enhanced mode to hang?
     }
     else if (machine == MCH_EGA) {
         if (VIDEO_BIOS_always_carry_16_high_font)
