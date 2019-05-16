@@ -2504,7 +2504,44 @@ static void CTMIXER_Write(Bit8u val) {
             if (IS_PC98_ARCH) {
                 if (val & 0x1) sb.hw.dma8=0;
                 else if (val & 0x2) sb.hw.dma8=3;
-                // FIXME: Any other DMA channels available for SB16? DOOM only allows selecting 0 and 3.
+
+                // NTS: On real hardware, only bits 0 and 1 are writeable. bits 2 and 4 seem to act oddly in response to
+                //      bytes written:
+                //
+                //      write 0x00          read 0x14
+                //      write 0x01          read 0x15
+                //      write 0x02          read 0x16
+                //      write 0x03          read 0x17
+                //      write 0x04          read 0x10
+                //      write 0x05          read 0x11
+                //      write 0x06          read 0x12
+                //      write 0x07          read 0x13
+                //      write 0x08          read 0x1C
+                //      write 0x09          read 0x1D
+                //      write 0x0A          read 0x1E
+                //      write 0x0B          read 0x1F
+                //      write 0x0C          read 0x18
+                //      write 0x0D          read 0x19
+                //      write 0x0E          read 0x1A
+                //      write 0x0F          read 0x1B
+                //      write 0x10          read 0x04
+                //      write 0x11          read 0x05
+                //      write 0x12          read 0x06
+                //      write 0x13          read 0x07
+                //      write 0x14          read 0x00
+                //      write 0x15          read 0x01
+                //      write 0x16          read 0x02
+                //      write 0x17          read 0x03
+                //      write 0x18          read 0x0C
+                //      write 0x19          read 0x0D
+                //      write 0x1A          read 0x0E
+                //      write 0x1B          read 0x0F
+                //      write 0x1C          read 0x08
+                //      write 0x1D          read 0x09
+                //      write 0x1E          read 0x0A
+                //      write 0x1F          read 0x0B
+                //
+                //      This pattern repeats for any 5 bit value in bits [4:0] i.e. 0x20 will read back 0x34.
             }
             else {
                 if (val & 0x1) sb.hw.dma8=0;
@@ -2635,6 +2672,9 @@ static Bit8u CTMIXER_Read(void) {
             switch (sb.hw.dma8) {
                 case 0:ret|=0x1;break;
                 case 3:ret|=0x2;break;
+
+                // FIXME: There's some strange behavior with bits [5:2] and this register on the PC-98 version of the card.
+                //        See the register write case for more information.
             }
         }
         else {
