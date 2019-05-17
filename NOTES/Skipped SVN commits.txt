@@ -24,3 +24,11 @@ Commit#:	Reason for skipping:
 3986		Conflicts with DOSBox-X
 3989		Seems unnecessary, and DOSBox-X's GUI uses "Pause"
 3999		Formatting cleanup.
+4001		Conflicts with DOSBox-X
+4002		Conflicts with DOSBox-X
+4003		Conflicts with DOSBox-X
+4004		Conflicts with DOSBox-X
+4007		Conflicts with DOSBox-X
+4008		Conflicts with DOSBox-X
+4009		Conflicts with DOSBox-X
+4013		Conflicts with DOSBox-X

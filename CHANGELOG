@@ -193,6 +193,14 @@
     last
     - Clip to boundaries when there are no suggeted values for
     Prop_int
+    - Implement an obscure behavior of the VGA DAC. Fixes wrong
+    colors in Planet Soccer/Football.
+    - Use default attribute behavior of ANSI.SYS in the console
+    device. Fixes scrolling issues. Anything that wants non-ANSI
+    behavior may not display as intended with the internal DOS,
+    same as real DOS when ANSI.SYS is loaded.
+    - Lower default adlib volume with 2.5dB, based on
+    measurements
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
