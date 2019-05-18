@@ -3064,8 +3064,8 @@ Bit32u DEBUG_CheckKeys(void) {
 
 					// ensure all breakpoints are activated
 					CBreakpoint::ActivateBreakpoints();
-
-					return 0;
+					skipDraw = true;
+					break;
 				}
 				// If we aren't stepping over something, do a normal step.
 				// NB: Fall-through
