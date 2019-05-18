@@ -805,7 +805,9 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
 
 	mixerChan = mixerObject.Install(OPL_CallBack,rate,"FM");
-	mixerChan->SetScale( 2.0 );
+	//Used to be 2.0, which was measured to be too high. Exact value depends on card/clone.
+	mixerChan->SetScale( 1.5f );  
+
 	if (oplemu == "fast") {
 		handler = new DBOPL::Handler();
 	}

@@ -778,6 +778,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         }
 
         if (!ansi.esc){
+            auto defattr = DefaultANSIAttr();
             if(data[count]=='\033') {
                 /*clear the datastructure */
                 ClearAnsi();
@@ -789,8 +790,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 /* expand tab if not direct output */
                 page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
                 do {
-                    if(ansi.enabled) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
-                    else INT10_TeletypeOutput(' ',7);
+                    Real_INT10_TeletypeOutputAttr(' ',ansi.enabled?ansi.attr:defattr,true);
                     col=CURSOR_POS_COL(page);
                 } while(col%8);
                 lastwrite = data[count++];
@@ -809,14 +809,11 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
                 /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-                auto defattr = DefaultANSIAttr();
                 if((data[count] == '\n') && (lastwrite != '\r')) {
-		            if(ansi.enabled) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,true);
-                    else Real_INT10_TeletypeOutput('\r',defattr);
+                    Real_INT10_TeletypeOutputAttr('\r',ansi.enabled?ansi.attr:defattr,true);
                 }
                 /* ansi attribute will be set to the default if ansi is disabled */
-                if(ansi.enabled) Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,true);
-                else Real_INT10_TeletypeOutput(data[count],defattr);
+                Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:defattr,true);
                 lastwrite = data[count++];
                 continue;
             }
