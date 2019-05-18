@@ -426,14 +426,13 @@ increaseticks:
                                  * for very low ratios. High ratio might result because of timing resolution */
                                 if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480)
                                     ratio = 20480;
-                                Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
-                                /* The auto cycle code seems reliable enough to disable the fast cut back code.
-                                 * This should improve the fluency of complex games.
-                                 if (ratio <= 1024)
-                                 new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
-                                 else
-                                 */
-                                new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                                if (ratio <= 1024) {
+                                    double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
+                                    new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
+                                } else {
+                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+                                    new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                                }
                             }
                         }
 
