@@ -1975,7 +1975,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(blocksizes);
     Pint->Set_help("Mixer block size, larger blocks might help sound stuttering but sound will also be more lagged.");
 
-    Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,20);
+    Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
     Pint->SetMinMax(0,100);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
