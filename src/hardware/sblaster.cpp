@@ -2189,24 +2189,36 @@ static Bit8u DSP_ReadData(void) {
 }
 
 //The soundblaster manual says 2.0 Db steps but we'll go for a bit less
-#define CALCVOL(_VAL) (float)pow(10.0f,((float)(31-_VAL)*-1.3f)/20)
+static float calc_vol(Bit8u amount) {
+    Bit8u count = 31 - amount;
+    float db = static_cast<float>(count);
+    if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
+        if (count) {
+            if (count < 16) db -= 1.0f;
+            else if (count > 16) db += 1.0f;
+            if (count == 24) db += 2.0f;
+            if (count > 27) return 0.0f; //turn it off.
+        }
+    } else { //Give the rest, the SB16 scale, as we don't have data.
+        db *= 2.0f;
+        if (count > 20) db -= 1.0f;
+    }
+    return (float) pow (10.0f,-0.05f * db);
+}
 static void CTMIXER_UpdateVolumes(void) {
     if (!sb.mixer.enabled) return;
 
     sb.chan->FillUp();
 
     MixerChannel * chan;
-
-    //adjust to get linear master volume slider in trackers
-    chan=MIXER_FindChannel("SB");
-    if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.dac[0]),
-                              float(sb.mixer.master[1])/31.0f*CALCVOL(sb.mixer.dac[1]));
-    chan=MIXER_FindChannel("FM");
-    if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.fm[0]),
-                              float(sb.mixer.master[1])/31.0f*CALCVOL(sb.mixer.fm[1]));
-    chan=MIXER_FindChannel("CDAUDIO");
-    if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.cda[0]),
-                              float(sb.mixer.master[1])/31.0f*CALCVOL(sb.mixer.cda[1]));
+    float m0 = calc_vol(sb.mixer.master[0]);
+    float m1 = calc_vol(sb.mixer.master[1]);
+    chan = MIXER_FindChannel("SB");
+    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.dac[0]), m1 * calc_vol(sb.mixer.dac[1]));
+    chan = MIXER_FindChannel("FM");
+    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.fm[0]) , m1 * calc_vol(sb.mixer.fm[1]) );
+    chan = MIXER_FindChannel("CDAUDIO");
+    if (chan) chan->SetVolume(m0 * calc_vol(sb.mixer.cda[0]), m1 * calc_vol(sb.mixer.cda[1]));
 }
 
 static void CTMIXER_Reset(void) {

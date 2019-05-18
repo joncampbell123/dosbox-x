@@ -201,6 +201,14 @@
     same as real DOS when ANSI.SYS is loaded.
     - Lower default adlib volume with 2.5dB, based on
     measurements
+    - Add experimental name support to configmidi for coremidi
+    - Add support for selectig midi devices by name to win32
+    midi
+    - Make IRQ generation in Write_MCR consistent with
+    ComputeInterrupts when op2 changes.
+    - Update mixer volume calculations for the SBPRO 1 and 2 and
+    the SB16, based on measurements.
+    - Repair a logic error in cycle max calculation
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.

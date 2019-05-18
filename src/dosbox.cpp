@@ -424,16 +424,15 @@ increaseticks:
                                 ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
                                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                                  * for very low ratios. High ratio might result because of timing resolution */
-                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480)
                                     ratio = 20480;
-                                Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
-                                /* The auto cycle code seems reliable enough to disable the fast cut back code.
-                                 * This should improve the fluency of complex games.
-                                 if (ratio <= 1024) 
-                                 new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
-                                 else 
-                                 */
-                                new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                                if (ratio <= 1024) {
+                                    double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
+                                    new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
+                                } else {
+                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+                                    new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                                }
                             }
                         }
 
@@ -447,7 +446,7 @@ increaseticks:
                            ratio,
                            ticksDone,
                            ticksScheduled);
-                           */  
+                           */
                         /* ratios below 1% are considered to be dropouts due to
                            temporary load imbalance, the cycles adjusting is skipped */
                         if (ratio>10) {
@@ -832,7 +831,7 @@ void DOSBOX_RealInit() {
     //       base video of it's own, and then to specify an ISA or PCI card attached to the bus that
     //       provides video.
     std::string mtype(section->Get_string("machine"));
-    svgaCard = SVGA_None; 
+    svgaCard = SVGA_None;
     machine = MCH_VGA;
     int10.vesa_nolfb = false;
     int10.vesa_oldvbe = false;
@@ -1871,7 +1870,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(cyclest);
 
     Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
-    
+
     Pint = secprop->Add_int("cycleup",Property::Changeable::Always,10);
     Pint->SetMinMax(1,1000000);
     Pint->Set_help("Amount of cycles to decrease/increase with keycombos.(CTRL-F11/CTRL-F12)");
@@ -1976,7 +1975,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(blocksizes);
     Pint->Set_help("Mixer block size, larger blocks might help sound stuttering but sound will also be more lagged.");
 
-    Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,20);
+    Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,25);
     Pint->SetMinMax(0,100);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
@@ -2000,8 +1999,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Device that will receive the MIDI data from MPU-401.");
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Special configuration options for the device driver. This is usually the id of the device you want to use.\n"
-                      "  or in the case of coreaudio or synth, you can specify a soundfont here.\n"
+    Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
+                      "  Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
                       "  When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
                       "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
                       "  See the README/Manual for more details.");
@@ -2405,11 +2404,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("tandy",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(tandys);
     Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
-    
+
     Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the Tandy 3-Voice generation.");
-    
+
     Pbool = secprop->Add_bool("disney",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable Disney Sound Source emulation. (Covox Voice Master and Speech Thing compatible).");
     Pstring = secprop->Add_string("ps1audio",Property::Changeable::WhenIdle,"off");
@@ -2437,7 +2436,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("autofire",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("continuously fires as long as you keep the button pressed.");
-    
+
     Pbool = secprop->Add_bool("swap34",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("swap the 3rd and the 4th axis. can be useful for certain joysticks.");
 
@@ -2519,7 +2518,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 
     secprop=control->AddSection_prop("serial",&Null_Init,true);
-   
+
     Pmulti_remain = secprop->Add_multiremain("serial1",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
     Pmulti_remain->SetValue("dummy",/*init*/true);

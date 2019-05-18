@@ -732,82 +732,86 @@ Bitu CSerial::Read_MCR () {
 
 void CSerial::Write_MCR (Bit8u data) {
 	// WARNING: At the time setRTSDTR is called rts and dsr members are still wrong.
-	if(data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
-	bool temp_dtr = data & MCR_DTR_MASK? true:false;
-	bool temp_rts = data & MCR_RTS_MASK? true:false;
-	bool temp_op1 = data & MCR_OP1_MASK? true:false;
-	bool temp_op2 = data & MCR_OP2_MASK? true:false;
-	bool temp_loopback = data & MCR_LOOPBACK_Enable_MASK? true:false;
-	if(loopback!=temp_loopback) {
-		if(temp_loopback) setRTSDTR(false,false);
-		else setRTSDTR(temp_rts,temp_dtr);
+	if (data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
+	bool new_dtr = data & MCR_DTR_MASK? true:false;
+	bool new_rts = data & MCR_RTS_MASK? true:false;
+	bool new_op1 = data & MCR_OP1_MASK? true:false;
+	bool new_op2 = data & MCR_OP2_MASK? true:false;
+	bool new_loopback = data & MCR_LOOPBACK_Enable_MASK? true:false;
+	if (loopback != new_loopback) {
+		if (new_loopback) setRTSDTR(false,false);
+		else setRTSDTR(new_rts,new_dtr);
 	}
 
-	if (temp_loopback) {	// is on:
+	if (new_loopback) {	// is on:
 		// DTR->DSR
 		// RTS->CTS
 		// OP1->RI
 		// OP2->CD
-		if(temp_dtr!=dtr && !d_dsr) {
-			d_dsr=true;
+		if (new_dtr != dtr && !d_dsr) {
+			d_dsr = true;
 			rise (MSR_PRIORITY);
 		}
-		if(temp_rts!=rts && !d_cts) {
-			d_cts=true;
+		if (new_dtr != dtr && !d_dsr) {
+			d_dsr = true;
 			rise (MSR_PRIORITY);
 		}
-		if(temp_op1!=op1 && !d_ri) {
+		if (new_op1 != op1 && !d_ri) {
 			// interrupt only at trailing edge
-			if(!temp_op1) {
-				d_ri=true;
+			if (!new_op1) {
+				d_ri = true;
 				rise (MSR_PRIORITY);
 			}
 		}
-		if(temp_op2!=op2 && !d_cd) {
-			d_cd=true;
+		if (new_op2 != op2 && !d_cd) {
+			d_cd = true;
 			rise (MSR_PRIORITY);
 		}
 	} else {
 		// loopback is off
-		if(temp_rts!=rts) {
+		if (new_rts != rts) {
 			// RTS difference
-			if(temp_dtr!=dtr) {
+			if (new_dtr != dtr) {
 				// both difference
 
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"RTS %x.",temp_rts);
-				log_ser(dbg_modemcontrol,"DTR %x.",temp_dtr);
+				log_ser(dbg_modemcontrol,"RTS %x.",new_rts);
+				log_ser(dbg_modemcontrol,"DTR %x.",new_dtr);
 #endif
-				setRTSDTR(temp_rts, temp_dtr);
+				setRTSDTR(new_rts, new_dtr);
 			} else {
 				// only RTS
 
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"RTS %x.",temp_rts);
+				log_ser(dbg_modemcontrol,"RTS %x.",new_rts);
 #endif
-				setRTS(temp_rts);
+				setRTS(new_rts);
 			}
-		} else if(temp_dtr!=dtr) {
+		} else if (new_dtr != dtr) {
 			// only DTR
 #if SERIAL_DEBUG
-				log_ser(dbg_modemcontrol,"%DTR %x.",temp_dtr);
+				log_ser(dbg_modemcontrol,"%DTR %x.",new_dtr);
 #endif
-			setDTR(temp_dtr);
+			setDTR(new_dtr);
 		}
 	}
-	// interrupt logic: if OP2 is 0, the IRQ line is tristated (pulled high)
-	if((!op2) && temp_op2) {
+	// interrupt logic: if new_OP2 is 0, the IRQ line is tristated (pulled high)
+	// which turns off the IRQ generation.
+	if ((!op2) && new_op2) {
 		// irq has been enabled (tristate high -> irq level)
-		if(!irq_active) PIC_DeActivateIRQ(irq);
-	} else if(op2 && (!temp_op2)) {
-		if(!irq_active) PIC_ActivateIRQ(irq); 
+		// Generate one if ComputeInterrupts has set irq_active to true
+		if (irq_active) PIC_ActivateIRQ(irq);
+	} else if (op2 && (!new_op2)) {
+		// irq has been disabled (irq level -> tristate) 
+		// Remove the IRQ signal if the irq was being generated before
+		if (irq_active) PIC_DeActivateIRQ(irq); 
 	}
 
-	dtr=temp_dtr;
-	rts=temp_rts;
-	op1=temp_op1;
-	op2=temp_op2;
-	loopback=temp_loopback;
+	dtr=new_dtr;
+	rts=new_rts;
+	op1=new_op1;
+	op2=new_op2;
+	loopback=new_loopback;
 }
 
 /*****************************************************************************/
