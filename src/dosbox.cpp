@@ -296,7 +296,13 @@ extern bool DOSBox_Paused();
 
 //#define DEBUG_CYCLE_OVERRUN_CALLBACK
 
+//For trying other delays
+#define wrap_delay(a) SDL_Delay(a)
+
 static Bitu Normal_Loop(void) {
+    static Bit32s lastsleepDone = -1;
+    static Bitu sleep1count = 0;
+    
     bool saved_allow = dosbox_allow_nonrecursive_page_fault;
     Bit32u ticksNew;
     Bits ret;
@@ -460,9 +466,13 @@ increaseticks:
                                 }
                             }
                         }
+
+                        //Reset cycleguessing parameters.
                         CPU_IODelayRemoved = 0;
                         ticksDone = 0;
                         ticksScheduled = 0;
+                        lastsleepDone = -1;
+                        sleep1count = 0;
                     } else if (ticksAdded > 15) {
                         /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
                            but do not reset the scheduled/done ticks to take them into
@@ -474,8 +484,28 @@ increaseticks:
                 }
             } else {
                 ticksAdded = 0;
-                SDL_Delay(1);
-                ticksDone -= (Bit32s)((Bit32u)(GetTicks() - ticksNew));
+
+                if (!CPU_CycleAutoAdjust || CPU_SkipCycleAutoAdjust || sleep1count < 3) {
+                    wrap_delay(1);
+                } else {
+                    /* Certain configurations always give an exact sleepingtime of 1, this causes problems due to the fact that
+                       dosbox keeps track of full blocks.
+                       This code introduces some randomness to the time slept, which improves stability on those configurations
+                     */
+                  static const Bit32u sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2};
+                  static Bit32u sleepindex = 0;
+                  if (ticksDone != lastsleepDone) sleepindex = 0;
+                  wrap_delay(sleeppattern[sleepindex++]);
+                  sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);
+                }
+                Bit32s timeslept = GetTicks() - ticksNew;
+                // Count how many times in the current block (of 250 ms) the time slept was 1 ms
+                if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust && timeslept == 1) sleep1count++;
+                lastsleepDone = ticksDone;
+
+                // Update ticksDone with the time spent sleeping
+                ticksDone -= timeslept;
+
                 if (ticksDone < 0)
                     ticksDone = 0;
             }
