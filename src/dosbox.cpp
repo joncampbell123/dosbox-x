@@ -422,10 +422,11 @@ increaseticks:
                         Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
                         Bit32s new_cmax = CPU_CycleMax;
                         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
+                        double ratioremoved = 0.0; //increase scope for logging
                         if (cproc > 0) {
                             /* ignore the cycles added due to the IO delay code in order
                                to have smoother auto cycle adjustments */
-                            double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
+                            ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
                             if (ratioremoved < 1.0) {
                                 double ratio_not_removed = 1 - ratioremoved;
                                 ratio = (Bit32s)((double)ratio * ratio_not_removed);
@@ -476,7 +477,7 @@ increaseticks:
                                 CPU_CycleMax = new_cmax;
                                 if (CPU_CycleLimit > 0) {
                                     if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
-                                }
+                                } else if (CPU_CycleMax > 2000000) CPU_CycleMax = 2000000; //Hardcoded limit, if no limit was specified.
                             }
                         }
 
