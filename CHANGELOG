@@ -209,6 +209,13 @@
     - Update mixer volume calculations for the SBPRO 1 and 2 and
     the SB16, based on measurements.
     - Repair a logic error in cycle max calculation
+    - Introduce a random sleep period, which activates after 3
+    short sleeps in one frame.
+    - Adjustments to cycle ratio computation.
+    - Process repeated reset commands without delay. Fixes MPU
+    detection in several games. Correct ACK for reset: entirely
+    absent with dumb setting (mpu401=uart), and also absent when
+    returning to intelligent mode from UART mode.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
