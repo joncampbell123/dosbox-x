@@ -131,7 +131,15 @@ static Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
 static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	if (mpu.state.reset) {mpu.state.cmd_pending=val+1;return;}
+    if (mpu.mode==M_UART && val!=0xff) return;
+    if (mpu.state.reset) {
+        if (mpu.state.cmd_pending || (val!=0x3f && val!=0xff)) {
+            mpu.state.cmd_pending=val+1;
+            return;
+        }
+        PIC_RemoveEvents(MPU401_ResetDone);
+        mpu.state.reset=false;
+    }
 	if (val<=0x2f) {
 		switch (val&3) { /* MIDI stop, start, continue */
 			case 1: {MIDI_RawOutByte(0xfc);break;}
@@ -256,8 +264,11 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Reset %X",(int)val);
 			PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
 			mpu.state.reset=true;
+			if (mpu.mode==M_UART) {
+				MPU401_Reset();
+				return;	//do not send ack in UART mode
+			}
 			MPU401_Reset();
-			if (mpu.mode==M_UART) return;//do not send ack in UART mode
 			break;
 		case 0x3f:	/* UART mode */
 			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Set UART mode %X",(int)val);
@@ -556,7 +567,6 @@ static void MPU401_Event(Bitu val) {
 	}
 	if (!mpu.state.irq_pending && mpu.state.req_mask) MPU401_EOIHandler();
 next_event:
-	PIC_RemoveEvents(MPU401_Event);
 	Bitu new_time;
 	if ((new_time=(Bitu)((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) return;
 	PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
