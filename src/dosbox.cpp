@@ -438,6 +438,10 @@ increaseticks:
                                 if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 5120 && CPU_CycleMax > 50000)
                                     ratio = 5120;
 
+                                // When downscaling multiple times in a row, ensure a minimum amount of downscaling
+                                if (ticksAdded > 15 && ticksScheduled >= 5 && ticksScheduled <= 20 && ratio > 800)
+                                    ratio = 800;
+
                                 if (ratio <= 1024) {
                                     double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
                                     new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
