@@ -427,7 +427,8 @@ increaseticks:
                                to have smoother auto cycle adjustments */
                             double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
                             if (ratioremoved < 1.0) {
-                                ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
+                                double ratio_not_removed = 1 - ratioremoved;
+                                ratio = (Bit32s)((double)ratio * ratio_not_removed);
 
                                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                                  * for very low ratios. High ratio might result because of timing resolution */
@@ -443,10 +444,12 @@ increaseticks:
                                     ratio = 800;
 
                                 if (ratio <= 1024) {
-                                    double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
+                                    // ratio_not_removed = 1.0; //enabling this restores the old formula
+                                    double r = (1.0 + ratio_not_removed) /(ratio_not_removed + 1024.0/(static_cast<double>(ratio)));
                                     new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
                                 } else {
-                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+                                    Bit64s ratio_with_removed = (Bit64s) ((((double)ratio - 1024.0) * ratio_not_removed) + 1024.0);
+                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * ratio_with_removed;
                                     new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
                                 }
                             }
