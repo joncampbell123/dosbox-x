@@ -428,10 +428,16 @@ increaseticks:
                             double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
                             if (ratioremoved < 1.0) {
                                 ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
+
                                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                                  * for very low ratios. High ratio might result because of timing resolution */
-                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480)
-                                    ratio = 20480;
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 16384)
+                                    ratio = 16384;
+
+                                // Limit the ratio even more when the cycles are already way above the realmode default.
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 5120 && CPU_CycleMax > 50000)
+                                    ratio = 5120;
+
                                 if (ratio <= 1024) {
                                     double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
                                     new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
