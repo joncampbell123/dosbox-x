@@ -296,7 +296,13 @@ extern bool DOSBox_Paused();
 
 //#define DEBUG_CYCLE_OVERRUN_CALLBACK
 
+//For trying other delays
+#define wrap_delay(a) SDL_Delay(a)
+
 static Bitu Normal_Loop(void) {
+    static Bit32s lastsleepDone = -1;
+    static Bitu sleep1count = 0;
+    
     bool saved_allow = dosbox_allow_nonrecursive_page_fault;
     Bit32u ticksNew;
     Bits ret;
@@ -416,21 +422,35 @@ increaseticks:
                         Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
                         Bit32s new_cmax = CPU_CycleMax;
                         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
+                        double ratioremoved = 0.0; //increase scope for logging
                         if (cproc > 0) {
                             /* ignore the cycles added due to the IO delay code in order
                                to have smoother auto cycle adjustments */
-                            double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
+                            ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
                             if (ratioremoved < 1.0) {
-                                ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
+                                double ratio_not_removed = 1 - ratioremoved;
+                                ratio = (Bit32s)((double)ratio * ratio_not_removed);
+
                                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                                  * for very low ratios. High ratio might result because of timing resolution */
-                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480)
-                                    ratio = 20480;
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 16384)
+                                    ratio = 16384;
+
+                                // Limit the ratio even more when the cycles are already way above the realmode default.
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 5120 && CPU_CycleMax > 50000)
+                                    ratio = 5120;
+
+                                // When downscaling multiple times in a row, ensure a minimum amount of downscaling
+                                if (ticksAdded > 15 && ticksScheduled >= 5 && ticksScheduled <= 20 && ratio > 800)
+                                    ratio = 800;
+
                                 if (ratio <= 1024) {
-                                    double r = 2.0 /(1.0 + 1024.0/(static_cast<double>(ratio)));
+                                    // ratio_not_removed = 1.0; //enabling this restores the old formula
+                                    double r = (1.0 + ratio_not_removed) /(ratio_not_removed + 1024.0/(static_cast<double>(ratio)));
                                     new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
                                 } else {
-                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+                                    Bit64s ratio_with_removed = (Bit64s) ((((double)ratio - 1024.0) * ratio_not_removed) + 1024.0);
+                                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * ratio_with_removed;
                                     new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
                                 }
                             }
@@ -457,12 +477,16 @@ increaseticks:
                                 CPU_CycleMax = new_cmax;
                                 if (CPU_CycleLimit > 0) {
                                     if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
-                                }
+                                } else if (CPU_CycleMax > 2000000) CPU_CycleMax = 2000000; //Hardcoded limit, if no limit was specified.
                             }
                         }
+
+                        //Reset cycleguessing parameters.
                         CPU_IODelayRemoved = 0;
                         ticksDone = 0;
                         ticksScheduled = 0;
+                        lastsleepDone = -1;
+                        sleep1count = 0;
                     } else if (ticksAdded > 15) {
                         /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
                            but do not reset the scheduled/done ticks to take them into
@@ -474,8 +498,28 @@ increaseticks:
                 }
             } else {
                 ticksAdded = 0;
-                SDL_Delay(1);
-                ticksDone -= (Bit32s)((Bit32u)(GetTicks() - ticksNew));
+
+                if (!CPU_CycleAutoAdjust || CPU_SkipCycleAutoAdjust || sleep1count < 3) {
+                    wrap_delay(1);
+                } else {
+                    /* Certain configurations always give an exact sleepingtime of 1, this causes problems due to the fact that
+                       dosbox keeps track of full blocks.
+                       This code introduces some randomness to the time slept, which improves stability on those configurations
+                     */
+                  static const Bit32u sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2};
+                  static Bit32u sleepindex = 0;
+                  if (ticksDone != lastsleepDone) sleepindex = 0;
+                  wrap_delay(sleeppattern[sleepindex++]);
+                  sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);
+                }
+                Bit32s timeslept = GetTicks() - ticksNew;
+                // Count how many times in the current block (of 250 ms) the time slept was 1 ms
+                if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust && timeslept == 1) sleep1count++;
+                lastsleepDone = ticksDone;
+
+                // Update ticksDone with the time spent sleeping
+                ticksDone -= timeslept;
+
                 if (ticksDone < 0)
                     ticksDone = 0;
             }
