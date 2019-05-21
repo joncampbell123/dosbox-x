@@ -190,8 +190,8 @@ static struct {
     Bit16u  dspeed_val;
     float   senv_x;
     float   senv_y;
-    Bit16u  updateRegion_x[2];
-    Bit16u  updateRegion_y[2];
+    Bit16s  updateRegion_x[2];
+    Bit16s  updateRegion_y[2];
     Bit16u  doubleSpeedThreshold;
     Bit16u  language;
     Bit16u  cursorType;
@@ -370,6 +370,11 @@ void DrawCursorText() {
     // Restore Background
     RestoreCursorBackgroundText();
 
+    // Check if cursor in update region
+    if ((POS_Y <= mouse.updateRegion_y[1]) && (POS_Y >= mouse.updateRegion_y[0]) &&
+        (POS_X <= mouse.updateRegion_x[1]) && (POS_X >= mouse.updateRegion_x[0])) {
+        return;
+    }
 
     // Save Background
     mouse.backposx      = POS_X>>3;
@@ -970,10 +975,7 @@ void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.language   = 0;
     mouse.page               = 0;
     mouse.doubleSpeedThreshold = 64;
-    mouse.updateRegion_x[0] = 1;
-    mouse.updateRegion_y[0] = 1;
-    mouse.updateRegion_x[1] = 1;
-    mouse.updateRegion_y[1] = 1;
+    mouse.updateRegion_y[1] = -1; //offscreen
     mouse.cursorType = 0;
     mouse.enabled=true;
 
@@ -1015,6 +1017,7 @@ static Bitu INT33_Handler(void) {
         break;
     case 0x01:  /* Show Mouse */
         if(mouse.hidden) mouse.hidden--;
+        mouse.updateRegion_y[1] = -1; //offscreen
         Mouse_AutoLock(true);
         DrawCursor();
         break;
@@ -1184,11 +1187,12 @@ static Bitu INT33_Handler(void) {
     case 0x0f:  /* Define mickey/pixel rate */
         Mouse_SetMickeyPixelRate((Bit16s)reg_cx,(Bit16s)reg_dx);
         break;
-    case 0x10:      /* Define screen region for updating */
-        mouse.updateRegion_x[0]=reg_cx;
-        mouse.updateRegion_y[0]=reg_dx;
-        mouse.updateRegion_x[1]=reg_si;
-        mouse.updateRegion_y[1]=reg_di;
+    case 0x10:  /* Define screen region for updating */
+        mouse.updateRegion_x[0]=(Bit16s)reg_cx;
+        mouse.updateRegion_y[0]=(Bit16s)reg_dx;
+        mouse.updateRegion_x[1]=(Bit16s)reg_si;
+        mouse.updateRegion_y[1]=(Bit16s)reg_di;
+        DrawCursor();
         break;
     case 0x11:      /* Get number of buttons */
         reg_ax=0xffff;

@@ -612,11 +612,10 @@ CX	640x480	800x600	  1024x768/1280x1024
 			break;
 		case 0x07:
 			switch (reg_bl) {
-			case 0x80:						/* Set Display Start during retrace ?? */
-				LOG(LOG_INT10,LOG_ERROR)("Unhandled VESA Function %X Subfunction %X",reg_al,reg_bh);
+			case 0x80:						/* Set Display Start during retrace */
 			case 0x00:						/* Set display Start */
 				reg_al=0x4f;
-				reg_ah=VESA_SetDisplayStart(reg_cx,reg_dx);
+				reg_ah=VESA_SetDisplayStart(reg_cx,reg_dx,reg_bl==0x80);
 				break;
 			case 0x01:
 				reg_al=0x4f;
@@ -668,9 +667,8 @@ CX	640x480	800x600	  1024x768/1280x1024
 		case 0x09:
 			switch (reg_bl) {
 			case 0x80:						/* Set Palette during retrace */
-				//TODO
 			case 0x00:						/* Set Palette */
-				reg_ah=VESA_SetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx);
+				reg_ah=VESA_SetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx,reg_bl==0x80);
 				reg_al=0x4f;
 				break;
 			case 0x01:						/* Get Palette */
@@ -690,27 +688,27 @@ CX	640x480	800x600	  1024x768/1280x1024
 			}
 			switch (reg_bl) {
 			case 0x00:
-				reg_edi=RealOff(int10.rom.pmode_interface);
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
+				reg_di=RealOff(int10.rom.pmode_interface);
 				reg_cx=int10.rom.pmode_interface_size;
 				reg_ax=0x004f;
 				break;
 			case 0x01:						/* Get code for "set window" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_cx=0x10;		//0x10 should be enough for the callbacks
+				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
+				reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_cx=0x10;		//0x10 should be enough for the callbacks
+				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
+				reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_cx=0x10;		//0x10 should be enough for the callbacks
+				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
+				reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
 				reg_ax=0x004f;
 				break;
 			default:
