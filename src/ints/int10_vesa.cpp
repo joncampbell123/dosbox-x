@@ -53,7 +53,7 @@ extern bool vga_8bit_dac;
 #define VESA_UNIMPLEMENTED    0xFF
 
 static struct {
-	Bitu setwindow;
+	Bitu rmWindow;
 	Bitu pmStart;
 	Bitu pmWindow;
 	Bitu pmPalette;
@@ -109,9 +109,9 @@ struct MODE_INFO{
 #endif
 
 void VESA_OnReset_Clear_Callbacks(void) {
-    if (callback.setwindow != 0) {
-        CALLBACK_DeAllocate(callback.setwindow);
-        callback.setwindow = 0;
+    if (callback.rmWindow != 0) {
+        CALLBACK_DeAllocate(callback.rmWindow);
+        callback.rmWindow = 0;
     }
     if (callback.pmPalette != 0) {
         CALLBACK_DeAllocate(callback.pmPalette);
@@ -382,7 +382,7 @@ foundit:
 		var_write(&minfo.XResolution,mblock->swidth);
 		var_write(&minfo.YResolution,mblock->sheight);
 	}
-	var_write(&minfo.WinFuncPtr,CALLBACK_RealPointer(callback.setwindow));
+	var_write(&minfo.WinFuncPtr,int10.rom.set_window);
 	var_write(&minfo.NumberOfBanks,0x1);
 	var_write(&minfo.Reserved_page,0x1);
 	var_write(&minfo.XCharSize,mblock->cwidth);
@@ -425,11 +425,15 @@ Bit8u VESA_GetCPUWindow(Bit8u window,Bit16u & address) {
 }
 
 
-Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count) {
+Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait) {
 //Structure is (vesa 3.0 doc): blue,green,red,alignment
 	Bit8u r,g,b;
 	if (index>255) return VESA_FAIL;
 	if (index+count>256) return VESA_FAIL;
+	
+	// Wait for retrace if requested
+	if (wait) CALLBACK_RunRealFar(RealSeg(int10.rom.wait_retrace),RealOff(int10.rom.wait_retrace));
+	
 	IO_Write(0x3c8,(Bit8u)index);
 	while (count) {
 		b = mem_readb(data++);
@@ -551,8 +555,7 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	return VESA_SUCCESS;
 }
 
-Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y) {
-	// TODO wait for retrace in case bl==0x80
+Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
 
@@ -596,6 +599,9 @@ Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y) {
 	IO_Read(0x3da);              // reset attribute flipflop
 	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
 	IO_Write(0x3c0,new_panning);
+	
+	// Wait for retrace if requested
+	if (wait) CALLBACK_RunRealFar(RealSeg(int10.rom.wait_retrace),RealOff(int10.rom.wait_retrace));
 
 	return VESA_SUCCESS;
 }
@@ -645,25 +651,30 @@ static Bitu VESA_SetWindow(void) {
 	if (reg_bh) reg_ah=VESA_GetCPUWindow(reg_bl,reg_dx);
 	else reg_ah=VESA_SetCPUWindow(reg_bl,(Bit8u)reg_dx);
 	reg_al=0x4f;
-	return 0;
+	return CBRET_NONE;
 }
 
 static Bitu VESA_PMSetWindow(void) {
-	VESA_SetCPUWindow(0,(Bit8u)reg_dx);
-	return 0;
+	IO_Write(0x3d4,0x6a);
+	IO_Write(0x3d5,reg_dl);
+	return CBRET_NONE;
 }
 static Bitu VESA_PMSetPalette(void) {
-	VESA_SetPalette(SegPhys(es) +  reg_edi, reg_dx, reg_cx );
-	return 0;
+	PhysPt data=SegPhys(es)+reg_edi;
+	Bit32u count=reg_cx;
+	IO_Write(0x3c8,reg_dl);
+	do {
+		IO_Write(0x3c9,mem_readb(data+2));
+		IO_Write(0x3c9,mem_readb(data+1));
+		IO_Write(0x3c9,mem_readb(data));
+		data+=4;
+	} while (--count);
+	return CBRET_NONE;
 }
 static Bitu VESA_PMSetStart(void) {
-	// This function is from VBE2 and directly sets the VGA
-	// display start address.
-
-	// TODO wait for retrace in case bl==0x80
 	Bit32u start = (Bit32u)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
 	vga.config.display_start = start;
-	return 0;
+	return CBRET_NONE;
 }
 
 
@@ -776,8 +787,12 @@ void INT10_SetupVESA(void) {
 	for (i=0;i<len;i++) {
 		phys_writeb(0xc0000u+(int10.rom.used++),(Bit8u)string_oem[i]);
 	}
-	callback.setwindow=CALLBACK_Allocate();
-	CALLBACK_Setup(callback.setwindow,VESA_SetWindow,CB_RETF, "VESA Real Set Window");
+	/* Prepare the real mode interface */
+	int10.rom.wait_retrace=RealMake(0xc000,int10.rom.used);
+	int10.rom.used += (Bit16u)CALLBACK_Setup(0, NULL, CB_VESA_WAIT, PhysMake(0xc000,int10.rom.used), "");
+	callback.rmWindow=CALLBACK_Allocate();
+	int10.rom.set_window=RealMake(0xc000,int10.rom.used);
+	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.rmWindow, VESA_SetWindow, CB_RETF, PhysMake(0xc000,int10.rom.used), "VESA Real Set Window");
 	/* Prepare the pmode interface */
 	int10.rom.pmode_interface=RealMake(0xc000,int10.rom.used);
 	int10.rom.used += 8;		//Skip the byte later used for offsets
@@ -790,11 +805,12 @@ void INT10_SetupVESA(void) {
 	int10.rom.pmode_interface_start = int10.rom.used - RealOff( int10.rom.pmode_interface );
 	phys_writew( Real2Phys(int10.rom.pmode_interface) + 2, int10.rom.pmode_interface_start);
 	callback.pmStart=CALLBACK_Allocate();
-	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_VESA_START, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
+	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
 	/* PM Set Palette call */
 	int10.rom.pmode_interface_palette = int10.rom.used - RealOff( int10.rom.pmode_interface );
 	phys_writew( Real2Phys(int10.rom.pmode_interface) + 4, int10.rom.pmode_interface_palette);
 	callback.pmPalette=CALLBACK_Allocate();
+	int10.rom.used += (Bit16u)CALLBACK_Setup(0, NULL, CB_VESA_PM, PhysMake(0xc000,int10.rom.used), "");
 	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.pmPalette, VESA_PMSetPalette, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Palette");
 	/* Finalize the size and clear the required ports pointer */
 	phys_writew( Real2Phys(int10.rom.pmode_interface) + 6, 0);
