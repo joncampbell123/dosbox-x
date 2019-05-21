@@ -600,6 +600,9 @@ void CBreakpoint::ActivateBreakpointsExceptAt(PhysPt adr)
 bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 // Checks if breakpoint is valid and should stop execution
 {
+	// Quick exit if there are no breakpoints
+	if (BPoints.empty()) return false;
+
 	// Search matching breakpoint
 	std::list<CBreakpoint*>::iterator i;
 	CBreakpoint* bp;
@@ -658,6 +661,8 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bit16u alValue)
 // Checks if interrupt breakpoint is valid and should stop execution
 {
+	if (BPoints.empty()) return false;
+	
 	// Search matching breakpoint
 	std::list<CBreakpoint*>::iterator i;
 	CBreakpoint* bp;
