@@ -136,6 +136,27 @@ private:
 	Bitu devnum;
 };
 
+class localFile : public DOS_File {
+public:
+	localFile(const char* name, FILE * handle);
+	bool Read(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
+	bool Seek(Bit32u * pos,Bit32u type);
+	bool Close();
+#ifdef WIN32
+	bool LockFile(Bit8u mode, Bit32u pos, Bit16u size);
+#endif
+	Bit16u GetInformation(void);
+	bool UpdateDateTimeFromHost(void);   
+	void FlagReadOnlyMedium(void);
+	void Flush(void);
+	Bit32u GetSeekPos(void);
+private:
+	FILE * fhandle;
+	bool read_only_medium;
+	enum { NONE,READ,WRITE } last_action;
+};
+
 /* The following variable can be lowered to free up some memory.
  * The negative side effect: The stored searches will be turned over faster.
  * Should not have impact on systems with few directory entries. */
