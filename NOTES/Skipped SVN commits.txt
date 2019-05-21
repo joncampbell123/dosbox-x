@@ -36,3 +36,6 @@ Commit#:	Reason for skipping:
 4023		Conflicts with DOSBox-X
 4028		Conflicts with DOSBox-X
 4038		Conflicts with DOSBox-X
+4049		Conflicts with DOSBox-X
+4055		Conflicts with DOSBox-X
+4056		Not sure if needed
