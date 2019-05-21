@@ -21,7 +21,6 @@
 #include "mem.h"
 #include "bios.h"
 #include "dos_inc.h"
-#include "callback.h"
 
 // uncomment for alloc/free debug messages
 #define DEBUG_ALLOC
@@ -512,18 +511,12 @@ bool DOS_LinkUMBsToMemChain(Bit16u linkstate) {
 }
 
 
-static Bitu DOS_default_handler(void) {
-	LOG(LOG_CPU,LOG_ERROR)("DOS rerouted Interrupt Called %X",lastint);
-	return CBRET_NONE;
-}
-
 #include <assert.h>
 
 extern Bit16u DOS_IHSEG;
 
 extern bool enable_dummy_device_mcb;
 
-static	CALLBACK_HandlerObject callbackhandler;
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;
@@ -536,7 +529,6 @@ void DOS_SetupMemory(void) {
 	/* Let dos claim a few bios interrupts. Makes DOSBox more compatible with 
 	 * buggy games, which compare against the interrupt table. (probably a 
 	 * broken linked list implementation) */
-	callbackhandler.Allocate(&DOS_default_handler,"DOS default int");
 	Bit16u ihseg;
 	Bit16u ihofs;
 
@@ -622,8 +614,3 @@ void DOS_SetupMemory(void) {
 	dos.firstMCB=DOS_MEM_START;
 	dos_infoblock.SetFirstMCB(DOS_MEM_START);
 }
-
-void DOS_UnsetupMemory() {
-    callbackhandler.Uninstall();
-}
-

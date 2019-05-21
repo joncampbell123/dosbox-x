@@ -1633,7 +1633,7 @@ att_text16:
 				att_data[ct]=ct;
 				att_data[ct+8]=ct+0x38;
 			}
-			if (IS_EGAVGA_ARCH) att_data[0x06]=0x14;		//Odd Color 6 yellow/brown.
+			att_data[0x06]=0x14;		//Odd Color 6 yellow/brown.
 		}
 		break;
 	case M_CGA2:
