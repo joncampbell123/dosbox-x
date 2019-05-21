@@ -76,7 +76,7 @@ static void TANDY16_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysP
     PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/banks)+cleft)*4;
     PhysPt src=base+((CurMode->twidth*rold)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=(Bitu)CurMode->twidth*4u;
-    for (Bitu i=0;i<cheight/banks;i++) {
+    for (Bitu i=0;i<static_cast<Bitu>(cheight/banks);i++) {
 		for (Bitu b=0;b<banks;b++) MEM_BlockCopy(dest+b*8*1024,src+b*8*1024,copy);
         dest+=nextline;src+=nextline;
     }
@@ -184,7 +184,7 @@ static void TANDY16_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u
     PhysPt dest=base+((CurMode->twidth*row)*(cheight/banks)+cleft)*4;
     Bitu copy=(Bitu)(cright-cleft)*4u;Bitu nextline=CurMode->twidth*4;
     attr=(attr & 0xf) | (attr & 0xf) << 4;
-    for (Bitu i=0;i<cheight/banks;i++) {
+    for (Bitu i=0;i<static_cast<Bitu>(cheight/banks);i++) {	
         for (Bitu x=0;x<copy;x++) {
             for (Bitu b=0;b<banks;b++) mem_writeb(dest+b*8*1024+x,attr);
         }
