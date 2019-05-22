@@ -1958,11 +1958,11 @@ static struct pc98_8251_keyboard_uart {
         nidx = (recv_in + 1) % 32;
         if (nidx == recv_out) {
             LOG_MSG("8251 device send recv overrun");
-            return;
         }
-
-        recv_buffer[recv_in] = b;
-        recv_in = nidx;
+        else {
+            recv_buffer[recv_in] = b;
+            recv_in = nidx;
+        }
 
         if (!rx_busy) {
             rx_busy = true;
