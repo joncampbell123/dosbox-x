@@ -716,7 +716,7 @@ void Channel::WriteB0( const Chip* chip, Bit8u val ) {
 	}
 }
 
-vvoid Channel::WriteC0(const Chip* chip, Bit8u val) {
+void Channel::WriteC0(const Chip* chip, Bit8u val) {
 	Bit8u change = val ^ regC0;
 	if (!change)
 		return;
