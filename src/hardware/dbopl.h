@@ -176,10 +176,10 @@ struct Channel {
 	void SetChanData( const Chip* chip, Bit32u data );
 	//Change in the chandata, check for new values and if we have to forward to operators
 	void UpdateFrequency( const Chip* chip, Bit8u fourOp );
+	void UpdateSynth(const Chip* chip);
 	void WriteA0( const Chip* chip, Bit8u val );
 	void WriteB0( const Chip* chip, Bit8u val );
 	void WriteC0( const Chip* chip, Bit8u val );
-	void ResetC0( const Chip* chip );
 
 	//call this for the first channel
 	template< bool opl3Mode >
@@ -239,6 +239,8 @@ struct Chip {
 	void GenerateBlock2( Bitu samples, Bit32s* output );
 	void GenerateBlock3( Bitu samples, Bit32s* output );
 
+	//Update the synth handlers in all channels
+	void UpdateSynths();
 	void Generate( Bit32u samples );
 	void Setup( Bit32u r );
 
