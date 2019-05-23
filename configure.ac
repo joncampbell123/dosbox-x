@@ -714,12 +714,14 @@ AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
 
 dnl FEATURE: Whether to use inline functions for memory access
 AH_TEMPLATE(C_CORE_INLINE,[Define to 1 to use inlined memory functions in cpu core])
-AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined memory handling in CPU Core]),[
-  if test x$enable_core_inline = xyes ; then 
-    AC_MSG_RESULT([enabling inlined memory handling in CPU Core])
+AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--disable-core-inline],[Disable inlined memory handling in CPU Core]),,enable_core_inline=yes)
+AC_MSG_CHECKING(whether memory handling in the CPU Core will be inlined)
+if test x$enable_core_inline = xyes ; then
+    AC_MSG_RESULT(yes)
     AC_DEFINE(C_CORE_INLINE,1)
-  fi
-],)
+else
+    AC_MSG_RESULT(no)
+fi
 
 dnl automake 1.14 and upwards rewrite the host to have always 64 bit unless i386 as host is passed
 dnl this can make building a 32 bit executable a bit tricky, as dosbox relies on the host to select the
