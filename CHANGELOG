@@ -220,6 +220,10 @@
     detection in several games. Correct ACK for reset: entirely
     absent with dumb setting (mpu401=uart), and also absent when
     returning to intelligent mode from UART mode.
+    - Allow for direct changing of 4op chaining without having
+    to rewrite the algorithm mode.
+    - Enable core inlining by default on configure/make build
+    system
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
