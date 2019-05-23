@@ -716,7 +716,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 		do {
 			entryLength = mem_readb(defBuffer+index);
 			if (entryLength==0) break;
-			if (mem_readb(defBuffer+index+iso ? 0x19:0x18) & 4) {
+			if (mem_readb(defBuffer + index + (iso?0x19:0x18) ) & 4) {
 				// skip associated files
 				index += entryLength;
 				continue;

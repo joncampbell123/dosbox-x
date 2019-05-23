@@ -55,7 +55,6 @@ public:
 	Hex():_hex(0) { };
 	bool operator==(Hex const& other) {return _hex == other._hex;}
 	operator int () const { return _hex; }
-   
 };
 
 class Value {
@@ -75,7 +74,7 @@ private:
 public:
 	class WrongType { }; // Conversion error class
 	enum Etype { V_NONE, V_HEX, V_BOOL, V_INT, V_STRING, V_DOUBLE,V_CURRENT} type;
-	
+
 	/* Constructors */
 	Value()                      :_string(0),   type(V_NONE)                  { };
 	Value(Hex in)                :_hex(in),     type(V_HEX)                   { };
@@ -133,7 +132,7 @@ public:
 	//Type specific properties are encouraged to override this and check for type
 	//specific features.
 	virtual bool CheckValue(Value const& in, bool warn);
-	virtual ~Property(){ } 
+	virtual ~Property(){ }
 	virtual const std::vector<Value>& GetValues() const;
 	Value::Etype Get_type(){return default_value.type;}
 	Changeable::Value getChange() {return change;}
@@ -143,9 +142,9 @@ protected:
 	//Set interval value to in or default if in is invalid. force always sets the value.
 	//Can be overriden to set a different value if invalid.
 	virtual bool SetVal(Value const& in, bool forced,bool warn=true,bool init=false) {
-		if(forced || CheckValue(in,warn)) { 
+		if(forced || CheckValue(in,warn)) {
 			value = in; is_modified = !init; return true;
-		} else { 
+		} else {
 			value = default_value; is_modified = false; return false;
 		}
 	}
@@ -162,12 +161,12 @@ protected:
 class Prop_int:public Property {
 public:
 	Prop_int(std::string const& _propname,Changeable::Value when, int _value)
-		:Property(_propname,when) { 
+		:Property(_propname,when) {
 		default_value = value = _value;
 		min = max = -1;
 	}
 	Prop_int(std::string const&  _propname,Changeable::Value when, int _min,int _max,int _value)
-		:Property(_propname,when) { 
+		:Property(_propname,when) {
 		default_value = value = _value;
 		min = _min;
 		max = _max;
@@ -180,7 +179,7 @@ public:
 	virtual bool CheckValue(Value const& in, bool warn);
 	// Override SetVal, so it takes min,max in account when there are no suggested values
 	virtual bool SetVal(Value const& in, bool forced,bool warn=true,bool init=false);
-	
+
 private:
 	Value min,max;
 };
@@ -212,7 +211,7 @@ private:
 class Prop_bool:public Property {
 public:
 	Prop_bool(std::string const& _propname, Changeable::Value when, bool _value)
-		:Property(_propname,when) { 
+		:Property(_propname,when) {
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& in);
@@ -222,7 +221,7 @@ public:
 class Prop_string:public Property{
 public:
 	Prop_string(std::string const& _propname, Changeable::Value when, char const * const _value)
-		:Property(_propname,when) { 
+		:Property(_propname,when) {
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& in);
@@ -233,7 +232,7 @@ class Prop_path:public Prop_string{
 public:
 	std::string realpath;
 	Prop_path(std::string const& _propname, Changeable::Value when, char const * const _value)
-		:Prop_string(_propname,when,_value) { 
+		:Prop_string(_propname,when,_value) {
 		default_value = value = _value;
 		realpath = _value;
 	}
@@ -244,7 +243,7 @@ public:
 class Prop_hex:public Property {
 public:
 	Prop_hex(std::string const& _propname, Changeable::Value when, Hex _value)
-		:Property(_propname,when) { 
+		:Property(_propname,when) {
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& in);
@@ -414,7 +413,7 @@ public:
 	virtual bool SetValue(std::string const& input) { return SetValue(input,/*init*/false); };
 };
 
-   
+
 class Section_line: public Section{
 public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}

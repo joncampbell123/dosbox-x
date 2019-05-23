@@ -4179,6 +4179,8 @@ void MAPPER_StartUp() {
         sdlkey_map[0x41]=SDLK_KP6;
 #elif !defined (WIN32) /* => Linux & BSDs */
         bool evdev_input = false;
+#ifdef SDL_VIDEO_DRIVER_X11
+//SDL needs to be compiled to use it, else the next makes no sense.
 #ifdef C_X11_XKB
         SDL_SysWMinfo info;
         SDL_VERSION(&info.version);
@@ -4197,6 +4199,7 @@ void MAPPER_StartUp() {
             XkbFreeClientMap(desc,0,True);
             }
         }
+#endif
 #endif
         if (evdev_input) {
             sdlkey_map[0x67]=SDLK_UP;

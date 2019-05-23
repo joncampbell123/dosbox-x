@@ -39,3 +39,14 @@ Commit#:	Reason for skipping:
 4049		Conflicts with DOSBox-X
 4055		Conflicts with DOSBox-X
 4056		Not sure if needed
+4065		Might conflict
+4066		Conflicts
+4067		Conflicts
+4074		Conflicts
+4075		MAME sound, skipping for now
+4076		Unknown if needed
+4077		Conflicts
+4082		MAME sound
+4083		MAME sound
+4084		MAME sound
+4085		MAME sound
