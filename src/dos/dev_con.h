@@ -61,11 +61,12 @@ public:
 	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
-	void ClearAnsi(void);
 	Bit16u GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 private:
+	void ClearAnsi(void);
+	void Output(Bit8u chr);
 	Bit8u readcache;
 	Bit8u lastwrite;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
@@ -778,7 +779,6 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         }
 
         if (!ansi.esc){
-            auto defattr = DefaultANSIAttr();
             if(data[count]=='\033') {
                 /*clear the datastructure */
                 ClearAnsi();
@@ -790,7 +790,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 /* expand tab if not direct output */
                 page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
                 do {
-                    Real_INT10_TeletypeOutputAttr(' ',ansi.enabled?ansi.attr:defattr,true);
+                    Output(' ');
                     col=CURSOR_POS_COL(page);
                 } while(col%8);
                 lastwrite = data[count++];
@@ -809,11 +809,8 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
                 /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-                if((data[count] == '\n') && (lastwrite != '\r')) {
-                    Real_INT10_TeletypeOutputAttr('\r',ansi.enabled?ansi.attr:defattr,true);
-                }
-                /* ansi attribute will be set to the default if ansi is disabled */
-                Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:defattr,true);
+                if((data[count] == '\n') && (lastwrite != '\r')) Output('\r');
+                Output(data[count]);
                 lastwrite = data[count++];
                 continue;
             }
@@ -865,6 +862,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
             continue;
         }
         /*ansi.esc and ansi.sci are true */
+        if (!dos.internal_output) ansi.enabled=true;
         page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
         if (ansi.equcurp) { /* proprietary ESC = Y X command */
             ansi.data[ansi.numberofarg++] = data[count];
@@ -938,7 +936,6 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                             }
                         }
 
-                        ansi.enabled=true;
                         switch(ansi.data[i]){
                             case 0: /* normal */
                                 //Real ansi does this as well. (should do current defaults)
@@ -1233,3 +1230,18 @@ void device_CON::ClearAnsi(void){
 	ansi.numberofarg=0;
 }
 
+void device_CON::Output(Bit8u chr) {
+	if (dos.internal_output || ansi.enabled) {
+		if (CurMode->type==M_TEXT) {
+			Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+			Bit8u col=CURSOR_POS_COL(page);
+			Bit8u row=CURSOR_POS_ROW(page);
+			BIOS_NCOLS;BIOS_NROWS;
+			if (nrows==row+1 && (chr=='\n' || (ncols==col+1 && chr!='\r' && chr!=8 && chr!=7))) {
+				INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,ansi.attr,page);
+				INT10_SetCursorPos(row-1,col,page);
+			}
+		}
+		Real_INT10_TeletypeOutputAttr(chr,ansi.attr,true);
+	} else Real_INT10_TeletypeOutput(chr,DefaultANSIAttr());
+ }

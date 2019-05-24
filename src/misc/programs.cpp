@@ -197,6 +197,7 @@ void Program::WriteOut(const char * format,...) {
 	va_end(msg);
 
 	Bit16u size = (Bit16u)strlen(buf);
+	dos.internal_output=true;
 	for(Bit16u i = 0; i < size;i++) {
 		Bit8u out;Bit16u s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
@@ -205,6 +206,7 @@ void Program::WriteOut(const char * format,...) {
 		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
+	dos.internal_output=false;
 	
 //	DOS_WriteFile(STDOUT,(Bit8u *)buf,&size);
 }
@@ -212,6 +214,7 @@ void Program::WriteOut(const char * format,...) {
 void Program::WriteOut_NoParsing(const char * format) {
 	Bit16u size = (Bit16u)strlen(format);
 	char const* buf = format;
+	dos.internal_output=true;
 	for(Bit16u i = 0; i < size;i++) {
 		Bit8u out;Bit16u s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
@@ -220,6 +223,7 @@ void Program::WriteOut_NoParsing(const char * format) {
 		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
+	dos.internal_output=false;
 
 //	DOS_WriteFile(STDOUT,(Bit8u *)format,&size);
 }

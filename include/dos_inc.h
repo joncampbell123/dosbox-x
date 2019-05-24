@@ -704,6 +704,7 @@ struct DOS_Block {
 	bool breakcheck;
 	bool echo;          // if set to true dev_con::read will echo input
 	bool direct_output;
+	bool internal_output;
 	struct  {
 		RealPt mediaid;
 		RealPt tempdta;
