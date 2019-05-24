@@ -4692,16 +4692,34 @@ void GFX_EventsMouse()
 
 bool gfx_in_mapper = false;
 
+#if defined(MACOSX)
+#define DB_POLLSKIP 3
+#else
+//Not used yet, see comment below
+#define DB_POLLSKIP 1
+#endif
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
+    //Don't poll too often. This can be heavy on the OS, especially Macs.
+    //In idle mode 3000-4000 polls are done per second without this check.
+    //Macs, with this code,  max 250 polls per second. (non-macs unused default max 500)
+    //Currently not implemented for all platforms, given the ALT-TAB stuff for WIN32.
+#if defined (MACOSX)
+    static int last_check = 0;
+    int current_check = GetTicks();
+    if (current_check - last_check <=  DB_POLLSKIP) return;
+    last_check = current_check;
+#endif
+
     SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)
-    static int poll_delay=0;
-    int time=GetTicks();
-    if (time-poll_delay>20) {
-        poll_delay=time;
-        if (sdl.num_joysticks>0)
+    static int poll_delay = 0;
+    int time = GetTicks();
+    if (time - poll_delay > 20) {
+        poll_delay = time;
+        if (sdl.num_joysticks > 0)
         {
             SDL_JoystickUpdate();
             MAPPER_UpdateJoysticks();
