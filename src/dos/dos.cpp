@@ -2317,6 +2317,7 @@ public:
 		dos.version.major=5;
 		dos.version.minor=0;
 		dos.direct_output=false;
+		dos.internal_output=false;
 
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {

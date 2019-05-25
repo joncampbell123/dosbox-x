@@ -94,6 +94,10 @@ public:
 			snd_seq_ev_set_noteon(&ev, chanID, msg[1], msg[2]);
 			send_event(1);
 			break;
+		case 0xA0:
+			snd_seq_ev_set_keypress(&ev, chanID, msg[1], msg[2]);
+			send_event(1);
+			break;
 		case 0xB0:
 			snd_seq_ev_set_controller(&ev, chanID, msg[1], msg[2]);
 			send_event(1);
@@ -113,7 +117,8 @@ public:
 			}
 			break;
 		default:
-			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %08lx", (long)msg);
+			//Maybe filter out FC as it leads for at least one user to crash, but the entire midi stream has not yet been checked.
+			LOG(LOG_MISC,LOG_DEBUG)("ALSA:Unknown Command: %02X %02X %02X", msg[0],msg[1],msg[2]);
 			send_event(1);
 			break;
 		}
