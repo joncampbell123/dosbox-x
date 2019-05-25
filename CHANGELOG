@@ -224,6 +224,20 @@
     to rewrite the algorithm mode.
     - Enable core inlining by default on configure/make build
     system
+    - Limit amount of polls per second a bit on MAC OS X, as it
+    was quite high otherwise.
+    - Add basic support for INT 13 call 15. Used by Korean
+    Powerdolls to detect harddrive.
+    - Add ALSA MIDI 0xA0 and improve unhandled message
+    reporting a bit.
+    - Support rarely used FCB feature: open file with search
+    mask. Fixes Buckaroo Banzai.
+    - ANSI emulation is activated for the session when an
+    escape sequence is encountered other than those used by
+    internal messages. Fixes LucasArts setup programs provided
+    that ANSI emulation is not activated.
+    - Flag handling for normal core: zero and sign flags for
+    integer multiply instructions.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
