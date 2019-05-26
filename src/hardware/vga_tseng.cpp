@@ -381,11 +381,11 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
 
     // Select SVGA clock to get close to 60Hz (not particularly clean implementation)
     if (modeData->modeNo > 0x13) {
-        Bitu target = modeData->vtotal*8*modeData->htotal*60;
+        Bits target = static_cast<Bits>(modeData->vtotal * 8 * modeData->htotal * 60);
         Bitu best = 1;
-        Bits dist = 100000000;
-        for (Bitu i=0; i<16; i++) {
-            Bits cdiff=abs((Bits)(target-et4k.clockFreq[i]));
+        int dist = 100000000;
+        for (Bitu i = 0; i < 16; i++) {
+            int cdiff = abs( static_cast<int>(target - static_cast<Bits>(et4k.clockFreq[i])) );
             if (cdiff < dist) {
                 best = i;
                 dist = cdiff;
@@ -900,11 +900,11 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
 
     // Select SVGA clock to get close to 60Hz (not particularly clean implementation)
     if (modeData->modeNo > 0x13) {
-        Bitu target = modeData->vtotal*8*modeData->htotal*60;
+        Bits target = static_cast<Bits>(modeData->vtotal * 8 * modeData->htotal * 60);
         Bitu best = 1;
-        Bits dist = 100000000;
-        for (Bitu i=0; i<8; i++) {
-            Bits cdiff = abs((Bits)(target-et3k.clockFreq[i]));
+        int dist = 100000000;
+        for (Bitu i = 0; i < 8; i++) {
+            int cdiff = abs( static_cast<Bit32s>(target - static_cast<Bits>(et3k.clockFreq[i])) );
             if (cdiff < dist) {
                 best = i;
                 dist = cdiff;
