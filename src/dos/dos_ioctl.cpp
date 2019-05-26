@@ -159,22 +159,20 @@ bool DOS_IOCTL(void) {
 				DOS_SetError(DOSERR_ACCESS_DENIED);
 				return false;
 			}
-			if (Drives[drive]->isRemovable()) {
+			if (reg_ch != 0x08 || Drives[drive]->isRemovable()) {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
 			PhysPt ptr	= SegPhys(ds)+reg_dx;
 			switch (reg_cl) {
 			case 0x60:		/* Get Device parameters */
-				mem_writeb(ptr  ,0x03);					// special function
-				mem_writeb(ptr+1,(drive>=2)?0x05:0x14);	// fixed disc(5), 1.44 floppy(14)
-				mem_writew(ptr+2,drive>=2);				// nonremovable ?
+				//mem_writeb(ptr+0,0);					// special functions (call value)
+				mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
+				mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
 				mem_writew(ptr+4,0x0000);				// num of cylinders
 				mem_writeb(ptr+6,0x00);					// media type (00=other type)
-				// drive parameter block following
-				mem_writeb(ptr+7,drive);				// drive
-				mem_writeb(ptr+8,0x00);					// unit number
-				mem_writed(ptr+0x1f,0xffffffff);		// next parameter block
+				// bios parameter block following
+				mem_writew(ptr+7,0x0200);				// bytes per sector (Win3 File Mgr. uses it)
 				break;
 			case 0x46:	/* Set volume serial number */
 				break;
@@ -208,6 +206,7 @@ bool DOS_IOCTL(void) {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
+			reg_ax=0;
 			return true;
 		}
 	case 0x0E:			/* Get Logical Drive Map */

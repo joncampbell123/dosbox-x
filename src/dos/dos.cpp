@@ -1770,13 +1770,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 reg_ch=0x08;    // IOCTL category: disk drive
                 reg_ax=0x440d;  // Generic block device request
-                if (DOS_IOCTL()) {
-                    reg_ax=0;   // AX destroyed
-                    CALLBACK_SCF(false);
-                } else {
-                    reg_ax=dos.errorcode;
-                    CALLBACK_SCF(true);
-                }
+                DOS_21Handler();
                 reg_cx=old_cx;
                 break;
             } 
