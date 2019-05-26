@@ -27,6 +27,14 @@
 #include "setup.h"
 #include "control.h"
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
 bool has_pcibus_enable(void);
 
 DmaController *DmaControllers[2]={NULL};
@@ -411,6 +419,62 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 		return 0;
 	}
 
+    /* WARNING: "want" is expressed in DMA transfer units.
+     *          For 8-bit DMA, want is in bytes.
+     *          For 16-bit DMA, want is in 16-bit WORDs.
+     *          Keep that in mind when writing code to call this function!
+     *          Perhaps a future modification could provide an alternate
+     *          Read function that expresses the count in bytes so the caller
+     *          cannot accidentally cause buffer overrun issues that cause
+     *          mystery crashes. */
+
+#if 1
+    /* New implementation. Old implementation is in #else block if it is needed */
+    /* Assume DMA16_ADDRMASK is either 0xFFFF or 0x1FFFF, use that mask if 16-bit DMA. */
+    /* dma_wrapping is set elsewhere by EMM386.EXE emulation because EMM386.EXE apparently
+     * emulates a full 4GB wraparound for DMA (?) */
+    while (want > 0) {
+        const Bitu wrapdo = /* how far until the wraparound */
+            increment ?
+                /*inc*/((dma_wrapping + (Bitu)1ul) - (Bitu)curraddr) :/* start from curraddr, increment, wrap when curraddr == dma_wrapping */
+                /*dec*/(curraddr + (Bitu)1ul);                        /* start from curraddr, decrement, wrap when curraddr == -1, 0 means one more byte */
+        const Bitu cando = /* DMA terminal count at currcnt = 0xFFFF, so 0x0000 means one more byte */
+            MIN(MIN(want,currcnt+1ul),wrapdo);
+        assert(wrapdo != (Bitu)0);
+        assert(cando != (Bitu)0);
+        assert(cando <= want);
+
+        if (increment) {
+            assert((curraddr + cando) <= dma_wrapping); // check our work (DEBUG)
+            DMA_BlockRead(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            curraddr += cando;
+        }
+        else {
+            assert(cando <= (curraddr + 1ul)); // check our work (DEBUG)
+            DMA_BlockReadBackwards(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            curraddr -= cando;
+        }
+
+        curraddr &= dma_wrapping;
+        buffer += cando << DMA16;
+        currcnt -= cando;
+        want -= cando;
+        done += cando;
+
+        if (currcnt == 0xFFFF) {
+            ReachedTC();
+            if (autoinit) {
+                currcnt = basecnt;
+                curraddr = baseaddr;
+                UpdateEMSMapping();
+            } else {
+                masked = true;
+                UpdateEMSMapping();
+                DoCallBack(DMA_TRANSFEREND);
+            }
+        }
+    }
+#else
 again:
 	Bitu left=(currcnt+1UL);
 	if (want<left) {
@@ -449,6 +513,8 @@ again:
 			DoCallBack(DMA_TRANSFEREND);
 		}
 	}
+#endif
+
 	return done;
 }
 
