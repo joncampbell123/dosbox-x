@@ -228,11 +228,11 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
 	dta.GetSearchParams(attr,pattern);
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+		dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 		return true;
 	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
-		if (WildFileCmp("DOSBOX",pattern)) {
-			dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+		if (WildFileCmp(GetLabel(),pattern)) {
+			dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -296,3 +296,6 @@ Bits Virtual_Drive::UnMount(void) {
 	return 1;
 }
 
+char const* Virtual_Drive::GetLabel(void) {
+	return "DOSBOX";
+}

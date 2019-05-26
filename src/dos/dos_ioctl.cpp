@@ -155,28 +155,31 @@ bool DOS_IOCTL(void) {
 		return true;
 	case 0x0D:		/* Generic block device request */
 		{
-			if ((drive < 2) || Drives[drive]->isRemovable()) {
+			if (drive < 2 && !Drives[drive]) {
+				DOS_SetError(DOSERR_ACCESS_DENIED);
+				return false;
+			}
+			if (reg_ch != 0x08 || Drives[drive]->isRemovable()) {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
 			PhysPt ptr	= SegPhys(ds)+reg_dx;
 			switch (reg_cl) {
 			case 0x60:		/* Get Device parameters */
-				mem_writeb(ptr  ,0x03);					// special function
-				mem_writeb(ptr+1,(drive>=2)?0x05:0x14);	// fixed disc(5), 1.44 floppy(14)
-				mem_writew(ptr+2,drive>=2);				// nonremovable ?
+				//mem_writeb(ptr+0,0);					// special functions (call value)
+				mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
+				mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
 				mem_writew(ptr+4,0x0000);				// num of cylinders
 				mem_writeb(ptr+6,0x00);					// media type (00=other type)
-				// drive parameter block following
-				mem_writeb(ptr+7,drive);				// drive
-				mem_writeb(ptr+8,0x00);					// unit number
-				mem_writed(ptr+0x1f,0xffffffff);		// next parameter block
+				// bios parameter block following
+				mem_writew(ptr+7,0x0200);				// bytes per sector (Win3 File Mgr. uses it)
 				break;
-			case 0x46:
-			case 0x66:	/* Volume label */
+			case 0x46:	/* Set volume serial number */
+				break;
+			case 0x66:	/* Get volume serial number */
 				{			
 					char const* bufin=Drives[drive]->GetLabel();
-					char buffer[11] ={' '};
+					char buffer[11];memset(buffer,' ',11);
 
 					char const* find_ext=strchr(bufin,'.');
 					if (find_ext) {
@@ -184,7 +187,7 @@ bool DOS_IOCTL(void) {
 						if (size>8) size=8;
 						memcpy(buffer,bufin,size);
 						find_ext++;
-						memcpy(buffer+size,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext)); 
+						memcpy(buffer+8,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext)); 
 					} else {
 						memcpy(buffer,bufin,(strlen(bufin) > 8) ? 8 : strlen(bufin));
 					}
@@ -192,10 +195,10 @@ bool DOS_IOCTL(void) {
 					char buf2[8]={ 'F','A','T','1','6',' ',' ',' '};
 					if(drive<2) buf2[4] = '2'; //FAT12 for floppies
 
-					mem_writew(ptr+0,0);			// 0
+					//mem_writew(ptr+0,0);			//Info level (call value)
 					mem_writed(ptr+2,0x1234);		//Serial number
 					MEM_BlockWrite(ptr+6,buffer,11);//volumename
-					if(reg_cl == 0x66) MEM_BlockWrite(ptr+0x11, buf2,8);//filesystem
+					MEM_BlockWrite(ptr+0x11,buf2,8);//filesystem
 				}
 				break;
 			default	:	
@@ -203,6 +206,7 @@ bool DOS_IOCTL(void) {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
+			reg_ax=0;
 			return true;
 		}
 	case 0x0E:			/* Get Logical Drive Map */

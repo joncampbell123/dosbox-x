@@ -1026,10 +1026,10 @@ static Bitu DOS_21Handler(void) {
                 Bit8u drive=reg_dl;
                 if (!drive || reg_ah==0x1f) drive = DOS_GetDefaultDrive();
                 else drive--;
-                if (Drives[drive]) {
+                if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable()) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
-                    reg_bx = drive;//Faking only the first entry (that is the driveletter)
+                    reg_bx = drive*5;//Faking the first entry (drive number) and media id
                     LOG(LOG_DOSMISC,LOG_ERROR)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;
@@ -1426,6 +1426,9 @@ static Bitu DOS_21Handler(void) {
             reg_bx=dos.psp();
             break;
         case 0x52: {                /* Get list of lists */
+            Bit8u count=2; // floppy drives always counted
+            while (count<DOS_DRIVES && Drives[count] && !Drives[count]->isRemovable()) count++;
+            dos_infoblock.SetBlockDevices(count);
             RealPt addr=dos_infoblock.GetPointer();
             SegSet16(es,RealSeg(addr));
             reg_bx=RealOff(addr);
@@ -1755,16 +1758,23 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x69:                  /* Get/Set disk serial number */
             {
+                Bit16u old_cx=reg_cx;
                 switch(reg_al)      {
                     case 0x00:              /* Get */
-                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Get Disk serial number");
-                        CALLBACK_SCF(true);
+                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Get Disk serial number");
+                        reg_cl=0x66;// IOCTL function
                         break;
-                    case 0x01:
-                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Set Disk serial number");
+                    case 0x01:              /* Set */
+                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Set Disk serial number");
+                        reg_cl=0x46;// IOCTL function
+                        break;
                     default:
                         E_Exit("DOS:Illegal Get Serial Number call %2X",reg_al);
-                }   
+                }
+                reg_ch=0x08;    // IOCTL category: disk drive
+                reg_ax=0x440d;  // Generic block device request
+                DOS_21Handler();
+                reg_cx=old_cx;
                 break;
             } 
         case 0x6c:                  /* Extended Open/Create */
@@ -1859,22 +1869,28 @@ static Bitu DOS_27Handler(void) {
 }
 
 static Bitu DOS_25Handler(void) {
-	if (Drives[reg_al] == 0){
+	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
 	} else {
+		if (reg_cx == 1 && reg_dx == 0) {
+			if (reg_al >= 2) {
+				PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
+				// write some BPB data into buffer for MicroProse installers
+				mem_writew(ptr+0x1c,0x3f); // hidden sectors
+			}
+		} else {
+			LOG(LOG_DOSMISC,LOG_NORMAL)("int 25 called but not as disk detection drive %u",reg_al);
+			}
 		SETFLAGBIT(CF,false);
-		if ((reg_cx != 1) ||(reg_dx != 1))
-			LOG(LOG_DOSMISC,LOG_NORMAL)("int 25 called but not as diskdetection drive %X",reg_al);
-
-	   reg_ax = 0;
+		reg_ax = 0;
 	}
 	SETFLAGBIT(IF,true);
     return CBRET_NONE;
 }
 static Bitu DOS_26Handler(void) {
 	LOG(LOG_DOSMISC,LOG_NORMAL)("int 26 called: hope for the best!");
-	if (Drives[reg_al] == 0){
+	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
 	} else {

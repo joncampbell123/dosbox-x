@@ -417,10 +417,27 @@ static INLINE void DSP_FlushData(void) {
     sb.dsp.out.pos=0;
 }
 
+static double last_dma_callback = 0.0f;
+
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
     if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
     else if (event==DMA_MASKED) {
         if (sb.mode==MODE_DMA) {
+            //Catch up to current time, but don't generate an IRQ!
+            //Fixes problems with later sci games.
+            double t = PIC_FullIndex() - last_dma_callback;
+            Bitu s = static_cast<Bitu>(sb.dma.rate * t / 1000.0f);
+            if (s > sb.dma.min) {
+                LOG(LOG_SB,LOG_NORMAL)("limiting amount masked to sb.dma.min");
+                s = sb.dma.min;
+            }
+            Bitu min_size = sb.dma.mul >> SB_SH;
+            if (!min_size) min_size = 1;
+            min_size *= 2;
+            if (sb.dma.left > min_size) {
+                if (s > (sb.dma.left-min_size)) s = sb.dma.left - min_size;
+                GenerateDMASound(s);
+            }
             sb.mode=MODE_DMA_MASKED;
             LOG(LOG_SB,LOG_NORMAL)("DMA masked,stopping output, left %d",chan->currcnt);
         }
@@ -581,7 +598,10 @@ static void GenerateDMASound(Bitu size) {
 
     if(sb.dma.autoinit) {
         if (sb.dma.left <= size) size = sb.dma.left;
-    } else if (sb.dma.left <= sb.dma.min) size = sb.dma.left;
+    } else {
+        if (sb.dma.left <= sb.dma.min) 
+            size = sb.dma.left;
+    }
 
     if (size > DMA_BUFSIZE) {
         /* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */

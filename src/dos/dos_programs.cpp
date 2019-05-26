@@ -198,6 +198,7 @@ public:
                     switch (DriveManager::UnmountDrive(i_drive)) {
                     case 0:
                         Drives[i_drive] = 0;
+                        mem_writeb(Real2Phys(dos.tables.mediaid)+i_drive*5,0);
                         if(i_drive == DOS_GetDefaultDrive()) 
                             DOS_SetDrive(ZDRIVE_NUM);
                         if (!quiet)
@@ -522,7 +523,7 @@ public:
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
         /* Set the correct media byte in the table */
-        mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*2u,newdrive->GetMediaByte());
+        mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*5u,newdrive->GetMediaByte());
         if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
         /* check if volume label is given and don't allow it to updated in the future */
         if (cmd->FindString("-label",label,true)) newdrive->SetLabel(label.c_str(),iscdrom,false);
@@ -535,7 +536,7 @@ public:
                 // automatic mount
             } else {
                 label = drive; label += "_DRIVE";
-                newdrive->SetLabel(label.c_str(),iscdrom,true);
+                newdrive->SetLabel(label.c_str(),iscdrom,false);
             }
 #endif
         } else if(type == "floppy") {
@@ -1588,7 +1589,7 @@ public:
             /* try to identify ROM type */
             PhysPt rom_base = 0;
             if (data_read >= 0x4000 && rom_buffer[0] == 0x55 && rom_buffer[1] == 0xaa &&
-                rom_buffer[3] == 0xeb && strncmp((char*)(&rom_buffer[0x1e]), "IBM", 3) == 0) {
+                (rom_buffer[3] & 0xfc) == 0xe8 && strncmp((char*)(&rom_buffer[0x1e]), "IBM", 3) == 0) {
 
                 if (!IS_EGAVGA_ARCH) {
                     WriteOut(MSG_Get("PROGRAM_LOADROM_INCOMPATIBLE"));
@@ -3693,7 +3694,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 2u, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 5u, mediaid);
 
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -3867,7 +3868,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 2u, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 5u, mediaid);
 
         // If instructed, attach to IDE controller as ATAPI CD-ROM device
         if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');

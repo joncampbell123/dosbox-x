@@ -490,6 +490,7 @@ public:
 	bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
+	virtual char const* GetLabel(void);
 private:
 	VFILE_Block * search_file;
 };

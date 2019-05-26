@@ -464,6 +464,7 @@ public:
 	void SetDiskBufferHeadPt(Bit32u _dbheadpt);
 	void SetStartOfUMBChain(Bit16u _umbstartseg);
 	void SetUMBChainState(Bit8u _umbchaining);
+	void SetBlockDevices(Bit8u _count);
 	Bit16u	GetStartOfUMBChain(void);
 	Bit8u	GetUMBChainState(void);
 	RealPt	GetPointer(void);

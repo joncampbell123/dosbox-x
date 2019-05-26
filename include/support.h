@@ -53,6 +53,7 @@ bool IsHexWord(char * word);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
 
+void trim(std::string& str);
 void upcase(std::string &str);
 void lowcase(std::string &str);
 

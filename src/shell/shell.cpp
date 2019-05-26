@@ -101,14 +101,28 @@ void AutoexecObject::CreateAutoexec(void) {
 	//Create a new autoexec.bat
 	autoexec_data[0] = 0;
 	size_t auto_len;
-	for(auto_it it=  autoexec_strings.begin(); it != autoexec_strings.end(); it++) {
+	for(auto_it it = autoexec_strings.begin(); it != autoexec_strings.end(); it++) {
+
+		std::string linecopy = (*it);
+		std::string::size_type offset = 0;
+		//Lets have \r\n as line ends in autoexec.bat.
+		while(offset < linecopy.length()) {
+			std::string::size_type  n = linecopy.find("\n",offset);
+			if ( n == std::string::npos ) break;
+			std::string::size_type rn = linecopy.find("\r\n",offset);
+			if ( rn != std::string::npos && rn + 1 == n) {offset = n + 1; continue;}
+			// \n found without matching \r
+			linecopy.replace(n,1,"\r\n");
+			offset = n + 2;
+		}
+
 		auto_len = strlen(autoexec_data);
-		if ((auto_len+(*it).length()+3)>AUTOEXEC_SIZE) {
+		if ((auto_len+linecopy.length() + 3) > AUTOEXEC_SIZE) {
 			E_Exit("SYSTEM:Autoexec.bat file overflow");
 		}
-		sprintf((autoexec_data+auto_len),"%s\r\n",(*it).c_str());
+		sprintf((autoexec_data + auto_len),"%s\r\n",linecopy.c_str());
 	}
-	if(first_shell) VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
+	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
 }
 
 void AutoexecObject::Uninstall() {
@@ -431,14 +445,25 @@ public:
 		char * extra = const_cast<char*>(section->data.c_str());
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
+			size_t firstline_length = strcspn(extra,"\r\n");
 			bool echo_off  = !strncasecmp(extra,"echo off",8);
-			if (!echo_off) echo_off = !strncasecmp(extra,"@echo off",9);
+			if (echo_off && firstline_length == 8) extra += 8;
+			else {
+				echo_off = !strncasecmp(extra,"@echo off",9);
+				if (echo_off && firstline_length == 9) extra += 9;
+				else echo_off = false;
+			}
 
-			/* if "echo off" add it to the front of autoexec.bat */
-			if(echo_off) autoexec_echo.InstallBefore("@echo off");
+			/* if "echo off" move it to the front of autoexec.bat */
+			if (echo_off)  { 
+				autoexec_echo.InstallBefore("@echo off");
+				if (*extra == '\r') extra++; //It can point to \0
+				if (*extra == '\n') extra++; //same
+			}
 
-			/* Install the stuff from the configfile */
-			autoexec[0].Install(section->data);
+			/* Install the stuff from the configfile if anything left after moving echo off */
+
+			if (*extra) autoexec[0].Install(std::string(extra));
 		}
 
 		/* Check to see for extra command line options to be added (before the command specified on commandline) */

@@ -796,8 +796,19 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
         if (!any_images) {
-            // Inherit the Earth cdrom (uses it as disk test)
+            if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
+                reg_ah = 0x01;
+                CALLBACK_SCF(true);
+                return CBRET_NONE;
+            }
+            // Inherit the Earth cdrom and Amberstar use it as a disk test
             if (((reg_dl&0x80)==0x80) && (reg_dh==0) && ((reg_cl&0x3f)==1)) {
+                if (reg_ch==0) {
+                    PhysPt ptr = PhysMake(SegValue(es),reg_bx);
+                    // write some MBR data into buffer for Amberstar installer
+                    mem_writeb(ptr+0x1be,0x80); // first partition is active
+                    mem_writeb(ptr+0x1c2,0x06); // first partition is FAT16B
+                }
                 reg_ah = 0;
                 CALLBACK_SCF(false);
                 return CBRET_NONE;
@@ -1003,17 +1014,19 @@ static Bitu INT13_DiskHandler(void) {
             Bit64u largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
             largesize/=512;
             Bit32u ts = static_cast<Bit32u>(largesize);
-            reg_ah = (drivenum <2)?2:3;
-            reg_cx = static_cast<Bit16u>(ts >>16);
-            reg_dx = static_cast<Bit16u>(ts & 0xffff);
+            reg_ah = (drivenum <2)?1:3; //With 2 for floppy MSDOS starts calling int 13 ah 16
+            if(reg_ah == 3) {
+                reg_cx = static_cast<Bit16u>(ts >>16);
+                reg_dx = static_cast<Bit16u>(ts & 0xffff);
+            }
             CALLBACK_SCF(false);
         } else {
             if (drivenum <DOS_DRIVES && (Drives[drivenum] != 0 || drivenum <2)) {
                 if (drivenum <2) {
                     //TODO use actual size (using 1.44 for now).
-                    reg_ah = 0x2; // type
-                    reg_cx = 0;
-                    reg_dx = 0x2880;
+                    reg_ah = 0x1; // type
+//                  reg_cx = 0;
+//                  reg_dx = 2880; //Only set size for harddrives.
                 } else {
                     //TODO use actual size (using 105 mb for now).
                     reg_ah = 0x3; // type
