@@ -447,7 +447,7 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = 0;    // prevent multiple adds of the same line
                 break;
             case 0x0d:				/* Don't care, and return */
-                if(!echo) outc('\n');
+                if(!echo) { outc('\r'); outc('\n'); }
                 size=0;			//Kill the while loop
                 break;
             case'\t':

@@ -68,7 +68,6 @@ private:
 	void ClearAnsi(void);
 	void Output(Bit8u chr);
 	Bit8u readcache;
-	Bit8u lastwrite;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
 		bool esc;
 		bool sci;
@@ -793,7 +792,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     Output(' ');
                     col=CURSOR_POS_COL(page);
                 } while(col%8);
-                lastwrite = data[count++];
+                count++;
                 continue;
             } else if (data[count] == 0x1A && IS_PC98_ARCH) {
                 Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -808,10 +807,8 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
 
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
-                /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-                if((data[count] == '\n') && (lastwrite != '\r')) Output('\r');
                 Output(data[count]);
-                lastwrite = data[count++];
+                count++;
                 continue;
             }
         }
@@ -1205,7 +1202,6 @@ Bit16u device_CON::GetInformation(void) {
 device_CON::device_CON() {
 	SetName("CON");
 	readcache=0;
-	lastwrite=0;
 	ansi.Disable();
     if (IS_PC98_ARCH) {
         // NTS: On real hardware, the BIOS does NOT manage the console at all.
