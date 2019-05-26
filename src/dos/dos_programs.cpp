@@ -535,7 +535,7 @@ public:
                 // automatic mount
             } else {
                 label = drive; label += "_DRIVE";
-                newdrive->SetLabel(label.c_str(),iscdrom,true);
+                newdrive->SetLabel(label.c_str(),iscdrom,false);
             }
 #endif
         } else if(type == "floppy") {
