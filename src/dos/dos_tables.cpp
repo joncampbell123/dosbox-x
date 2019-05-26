@@ -200,10 +200,8 @@ extern bool enable_collating_uppercase;
 
 void DOS_SetupTables(void) {
 	Bit16u seg;Bitu i;
-	dos.tables.mediaid=RealMake(DOS_GetMemory(4,"dos.tables.mediaid"),0);
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
 	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4,"dos.tables.fcbdelete"),0);
-	for (i=0;i<DOS_DRIVES;i++) mem_writew(Real2Phys(dos.tables.mediaid)+i*2,0);
 	/* Create the DOS Info Block */
 	dos_infoblock.SetLocation(DOS_INFOBLOCK_SEG); //c2woody
    
@@ -304,8 +302,12 @@ void DOS_SetupTables(void) {
 	dos_infoblock.SetFCBTable(RealMake(seg,0));
 
 	/* Create a fake DPB */
-	dos.tables.dpb=DOS_GetMemory(2,"dos.tables.dpb");
-	for(Bitu d=0;d<26;d++) real_writeb(dos.tables.dpb,d,d);
+	dos.tables.dpb=DOS_GetMemory(10,"dos.tables.dpb");
+	dos.tables.mediaid=RealMake(dos.tables.dpb,0x17);	//Media ID offset in DPB
+	for (i=0;i<DOS_DRIVES;i++) {
+		real_writeb(dos.tables.dpb,i*5,i);
+		mem_writew(Real2Phys(dos.tables.mediaid)+i*5,0);
+	}
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
