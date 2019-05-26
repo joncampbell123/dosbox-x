@@ -678,13 +678,6 @@ Hex Section_prop::Get_hex(string const& _propname) const {
     return 0;
 }
 
-void trim(string& in) {
-    string::size_type loc = in.find_first_not_of(" \r\t\f\n");
-    if (loc != string::npos) in.erase(0,loc);
-    loc = in.find_last_not_of(" \r\t\f\n");
-    if (loc != string::npos) in.erase(loc+1);
-}
-
 bool Section_prop::HandleInputline(string const& gegevens) {
     string str1 = gegevens;
     string::size_type loc = str1.find('=');
