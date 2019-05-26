@@ -731,8 +731,8 @@ string Section_prop::GetPropValue(string const& _property) const {
  *      It SHOULD be freed, because Section_line is derived from Section, the constructors are
  *      virtual, and therefore std::string should get a chance to free it's memory. */
 bool Section_line::HandleInputline(string const& line) {
-    data+=line;
-    data+="\n";
+    if (!data.empty()) data += "\n"; //Add return to previous line in buffer
+    data += line;
     return true;
 }
 
