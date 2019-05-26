@@ -1755,16 +1755,29 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x69:                  /* Get/Set disk serial number */
             {
+                Bit16u old_cx=reg_cx;
                 switch(reg_al)      {
                     case 0x00:              /* Get */
-                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Get Disk serial number");
-                        CALLBACK_SCF(true);
+                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Get Disk serial number");
+                        reg_cl=0x66;// IOCTL function
                         break;
-                    case 0x01:
-                        LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Set Disk serial number");
+                    case 0x01:              /* Set */
+                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Set Disk serial number");
+                        reg_cl=0x46;// IOCTL function
+                        break;
                     default:
                         E_Exit("DOS:Illegal Get Serial Number call %2X",reg_al);
-                }   
+                }
+                reg_ch=0x08;    // IOCTL category: disk drive
+                reg_ax=0x440d;  // Generic block device request
+                if (DOS_IOCTL()) {
+                    reg_ax=0;   // AX destroyed
+                    CALLBACK_SCF(false);
+                } else {
+                    reg_ax=dos.errorcode;
+                    CALLBACK_SCF(true);
+                }
+                reg_cx=old_cx;
                 break;
             } 
         case 0x6c:                  /* Extended Open/Create */
