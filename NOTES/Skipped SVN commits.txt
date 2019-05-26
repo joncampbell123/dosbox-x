@@ -53,3 +53,5 @@ Commit#:	Reason for skipping:
 4093		Conflict
 4094		Conflict
 4095		Conflict
+4099		MAME sound
+4111		Conflict

@@ -238,6 +238,33 @@
     that ANSI emulation is not activated.
     - Flag handling for normal core: zero and sign flags for
     integer multiply instructions.
+    - Strip spaces properly.
+    - Improve disk serial number DOS functions.
+    - Only add return to buffer if it already contains data,
+    which fixes extra return in generated autoexec.bat.
+    - Lock default label of HDD local drive mounts. Fixeslabel
+    changing to the host drive label when resetting cache on
+    the Windows platform.
+    - Fix echo off being written twice. Attempt to make the
+    line endings in the generated autoexec.bat all DOS-style.
+    - Take length in consideration before moving the echo off
+    upwards.
+    - Fix ExpandDot not caring about the size of the buffer.
+    (vogons topic 59658)
+    - Be less specific about the jump instruction when
+    identifying a video BIOS.
+    - Return an error for generic block device request on
+    unmounted floppy drives.
+    - No Sound Blaster IRQ generating when masking the IRQ
+    channel.
+    - Improvements for IOCTL generic block device request
+    - Make Media ID table relative to DPB table. Fixes
+    Hattrick by Ikarion.
+    - Support some installer disk detection methods: block
+    device count, and specific MBR/boot sector contents.
+    Fixes (original) SimCity, Amberstar, and later MicroProse
+    installers.
+    - Fix GetLabel() for the virtual drive.
   - Integrated a commit from mainline:
      #3860 "Use PCJr specific method to clear the video RAM.
             Also don't scroll at unspecified video page.
