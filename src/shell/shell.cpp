@@ -445,11 +445,13 @@ public:
 		char * extra = const_cast<char*>(section->data.c_str());
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
+			size_t firstline_length = strcspn(extra,"\r\n");
 			bool echo_off  = !strncasecmp(extra,"echo off",8);
-			if (echo_off) extra += 8;
+			if (echo_off && firstline_length == 8) extra += 8;
 			else {
 				echo_off = !strncasecmp(extra,"@echo off",9);
-				if (echo_off) extra += 9;
+				if (echo_off && firstline_length == 9) extra += 9;
+				else echo_off = false;
 			}
 
 			/* if "echo off" move it to the front of autoexec.bat */
