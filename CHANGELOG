@@ -1,4 +1,7 @@
 0.82.19 (next)
+  - 8237 DMA block transfer cleanup, de-duplication.
+  - 8237 DMA block cleanup allows implementation of 8/16-bit DMA,
+    forwards and backwards.
   - PC-98 keyboard corrections (not yet verified to be accurate
     to hardware though) to solve problems where holding a key
     while running a program that is slow to respond to input
