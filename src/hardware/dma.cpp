@@ -60,8 +60,13 @@ static void UpdateEMSMapping(void) {
 	}
 }
 
+enum {
+    DMA_INCREMENT,
+    DMA_DECREMENT
+};
+
 /* DMA block anti-copypasta common code */
-static inline void DMA_BlockReadCommonSetup(
+template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSetup(
     /*output*/PhysPt &o_xfer,unsigned int &o_size,
      /*input*/PhysPt const spage,PhysPt offset,Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
     assert(size != 0u);
@@ -77,8 +82,12 @@ static inline void DMA_BlockReadCommonSetup(
     if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
     else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
     else if (page < LINK_START) page = paging.firstmb[page];
-    /* check our work, should not cross 4KB, then transfer linearly */
-    assert((offset + size - 1u) < 4096);
+    /* check our work, should not cross 4KB, then transfer linearly. Do not remove {} curly braces, assert() may compile to nothing. */
+    if (dma_mode == DMA_INCREMENT)
+        { assert((offset + size - 1u) < 4096); } /* should stop with offset at or before first byte of next page */
+    else if (dma_mode == DMA_DECREMENT)
+        { assert(offset >= (size + 1u)); } /* should stop with offset at or after the last byte of the previous page */
+    /* result */
     o_xfer = (page * 4096u) + offset;
     o_size = (unsigned int)size;
 }
@@ -91,7 +100,7 @@ static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<DMA_INCREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
         for ( ; o_size ; o_size--, xfer++ ) *write++ = phys_readb(xfer);
     }
@@ -113,7 +122,7 @@ static void DMA_BlockRead4KBBackwards(const PhysPt spage,const PhysPt offset,voi
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<DMA_DECREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
         for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
     }
@@ -131,7 +140,7 @@ static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu 
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<DMA_INCREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
         for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
     }
@@ -150,7 +159,7 @@ static void DMA_BlockWrite4KBBackwards(PhysPt spage,PhysPt offset,const void * d
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<DMA_DECREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
         for ( ; o_size ; o_size--, xfer-- ) phys_writeb(xfer,*read++);
     }
