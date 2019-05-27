@@ -84,9 +84,9 @@ template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSet
     else if (page < LINK_START) page = paging.firstmb[page];
     /* check our work, should not cross 4KB, then transfer linearly. Do not remove {} curly braces, assert() may compile to nothing. */
     if (dma_mode == DMA_INCREMENT)
-        { assert((offset + size - 1u) < 4096); } /* should stop with offset at or before first byte of next page */
+        { assert((offset + size - (1u << dma16)) < 4096); } /* should stop with offset at or before first byte of next page */
     else if (dma_mode == DMA_DECREMENT)
-        { assert(offset >= (size - 1u)); } /* should stop with offset at or after the last byte of the previous page */
+        { assert(offset >= (size - (1u << dma16))); } /* should stop with offset at or after the last byte of the previous page */
     /* result */
     o_xfer = (page * 4096u) + offset;
     o_size = (unsigned int)size;
