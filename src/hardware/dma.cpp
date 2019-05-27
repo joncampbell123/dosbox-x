@@ -414,20 +414,6 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-    /* ISA-style 16-bit DMA ignores bit 0 of the page, 16-bit addr covers 128KB. DMA16_PAGESHIFT == 1.
-     * PCI-style 16-bit DMA ignores bit 15 of the addr, 16-bit addr covers 64KB. DMA16_PAGESHIFT == 0.
-     * For 16-bit DMA, curraddr is a count of 16-bit WORDs from the page start, not bytes. Therefore
-     * the ISA-style 16-bit DMA should not mask curraddr and the PCI-style 16-bit DMA should mask it
-     * by 0x7FFF (mask out bit 15).
-     * To further simplify this code, addr masking is set to transfer whole linear pages 4KB at a time
-     * because DMA_BlockRead/Write also takes EMS pages into consideration. Transferring 4KB at a time
-     * would also allow DMA_BlockRead/Write to compute EMS page remapping ONCE instead of doing it for
-     * every single byte. */
-    /* Reminder: currcnt == 0xFFFF is terminal count. currcnt == 0 means there is one more unit to
-     *           transfer before decrementing to 0xFFFF. That is why currcnt+1 is used to represent
-     *           the number of transfers before terminal count. */
-    /* dma_wrapping is set elsewhere by EMM386.EXE emulation because EMM386.EXE apparently
-     * emulates a full 4GB wraparound for DMA (?) */
     const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
         const Bit32u addr =
@@ -498,11 +484,6 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-#if 1
-    /* New implementation. Old implementation is in #else block if it is needed */
-    /* Assume DMA16_ADDRMASK is either 0xFFFF or 0x1FFFF, use that mask if 16-bit DMA. */
-    /* dma_wrapping is set elsewhere by EMM386.EXE emulation because EMM386.EXE apparently
-     * emulates a full 4GB wraparound for DMA (?) */
     while (want > 0) {
         const Bitu wrapdo = /* how far until the wraparound */
             increment ?
@@ -544,41 +525,6 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
             }
         }
     }
-#else
-	/* TODO: Implement DMA_BlockWriteBackwards() if you find a DOS program, any program, that
-	 *       transfers data backwards into system memory */
-	if (!increment) {
-		LOG(LOG_DMACONTROL,LOG_WARN)("DMA decrement mode (writing) not implemented");
-		return 0;
-	}
-
-again:
-	Bitu left=(currcnt+1UL);
-	if (want<left) {
-		DMA_BlockWrite(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
-		done+=want;
-		curraddr+=want;
-		currcnt-=want;
-	} else {
-		DMA_BlockWrite(pagebase,curraddr,buffer,left,DMA16,DMA16_ADDRMASK);
-		buffer+=left << DMA16;
-		want-=left;
-		done+=left;
-		ReachedTC();
-		if (autoinit) {
-			currcnt=basecnt;
-			curraddr=baseaddr;
-			if (want) goto again;
-			UpdateEMSMapping();
-		} else {
-			curraddr+=left;
-			currcnt=0xffff;
-			masked=true;
-			UpdateEMSMapping();
-			DoCallBack(DMA_TRANSFEREND);
-		}
-	}
-#endif
 
 	return done;
 }
