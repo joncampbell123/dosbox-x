@@ -95,78 +95,37 @@ template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSet
 /* read a block from physical memory.
  * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
  * to compute the page and offset once and transfer in a tight loop. */
-static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
 	Bit8u *write = (Bit8u*)data;
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup<DMA_INCREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<dma_mode>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
-        for ( ; o_size ; o_size--, xfer++ ) *write++ = phys_readb(xfer);
+        for ( ; o_size ; o_size--, (dma_mode == DMA_DECREMENT ? (xfer--) : (xfer++)) ) *write++ = phys_readb(xfer);
     }
     else { // 16-bit
         assert((o_size & 1u) == 0);
         assert((xfer   & 1u) == 0);
-        for ( ; o_size ; o_size -= 2, xfer += 2, write += 2 ) host_writew(write,phys_readw(xfer));
-    }
-}
-
-/* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
- * audio data backwards to the sound card.
- *
- * NTS: Don't forget, from 8237 datasheet: The DMA chip transfers a byte (or word if 16-bit) of data,
- *      and THEN increments or decrements the address. So in decrement mode, "address" is still the
- *      first byte before decrementing. */
-static void DMA_BlockRead4KBBackwards(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-	Bit8u *write = (Bit8u*)data;
-    unsigned int o_size;
-    PhysPt xfer;
-
-    DMA_BlockReadCommonSetup<DMA_DECREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    if (!dma16) { // 8-bit
-        for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
-    }
-    else { // 16-bit
-        assert((o_size & 1u) == 0);
-        assert((xfer   & 1u) == 0);
-        for ( ; o_size ; o_size -= 2, xfer -= 2, write += 2 ) host_writew(write,phys_readw(xfer));
+        for ( ; o_size ; o_size -= 2, (dma_mode == DMA_DECREMENT ? (xfer -= 2) : (xfer += 2)), write += 2 ) host_writew(write,phys_readw(xfer));
     }
 }
 
 /* write a block into physical memory.
  * assume caller has already clipped the transfer to stay within a 4KB page. */
-static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
     const Bit8u *read = (const Bit8u*)data;
     unsigned int o_size;
     PhysPt xfer;
 
-    DMA_BlockReadCommonSetup<DMA_INCREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    DMA_BlockReadCommonSetup<dma_mode>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
     if (!dma16) { // 8-bit
-        for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
+        for ( ; o_size ; o_size--, (dma_mode == DMA_DECREMENT ? (xfer--) : (xfer++)) ) phys_writeb(xfer,*read++);
     }
     else { // 16-bit
         assert((o_size & 1u) == 0);
         assert((xfer   & 1u) == 0);
-        for ( ; o_size ; o_size -= 2, xfer += 2, read += 2 ) phys_writew(xfer,host_readw(read));
-    }
-}
-
-/* write a block into physical memory backwards.
- * WARNING: UNTESTED (nobody does this)
- * assume caller has already clipped the transfer to stay within a 4KB page. */
-static void DMA_BlockWrite4KBBackwards(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-    const Bit8u *read = (const Bit8u*)data;
-    unsigned int o_size;
-    PhysPt xfer;
-
-    DMA_BlockReadCommonSetup<DMA_DECREMENT>(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    if (!dma16) { // 8-bit
-        for ( ; o_size ; o_size--, xfer-- ) phys_writeb(xfer,*read++);
-    }
-    else { // 16-bit
-        assert((o_size & 1u) == 0);
-        assert((xfer   & 1u) == 0);
-        for ( ; o_size ; o_size -= 2, xfer -= 2, read += 2 ) phys_writew(xfer,host_readw(read));
+        for ( ; o_size ; o_size -= 2, (dma_mode == DMA_DECREMENT ? (xfer -= 2) : (xfer += 2)), read += 2 ) phys_writew(xfer,host_readw(read));
     }
 }
 
@@ -486,12 +445,12 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 
         if (increment) {
             assert((curraddr & (~addrmask)) == ((curraddr + (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
-            DMA_BlockRead4KB(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockRead4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += cando;
         }
         else {
             assert((curraddr & (~addrmask)) == ((curraddr - (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
-            DMA_BlockRead4KBBackwards(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockRead4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr -= cando;
         }
 
@@ -557,12 +516,12 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 
         if (increment) {
             assert((curraddr + cando) <= dma_wrapping); // check our work (DEBUG)
-            DMA_BlockWrite4KB(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += cando;
         }
         else {
             assert(cando <= (curraddr + 1ul)); // check our work (DEBUG)
-            DMA_BlockWrite4KBBackwards(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr -= cando;
         }
 
