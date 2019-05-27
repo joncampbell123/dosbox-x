@@ -1,4 +1,8 @@
 0.82.19 (next)
+  - 8237 DMA emulation now enforces read/write mode provided by
+    guest. If the DMA is configured for reading from system
+    memory, then attempts to WRITE to memory via DMA must fail.
+    Just like real hardware.
   - 8237 DMA block transfer cleanup, de-duplication.
   - 8237 DMA block cleanup allows implementation of 8/16-bit DMA,
     forwards and backwards.
