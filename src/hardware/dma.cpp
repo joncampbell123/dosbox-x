@@ -419,6 +419,8 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 		return 0;
 	}
 
+    /* TODO: Reject Read() if DMA mode byte was programmed in any mode other than read */
+
     /* WARNING: "want" is expressed in DMA transfer units.
      *          For 8-bit DMA, want is in bytes.
      *          For 16-bit DMA, want is in 16-bit WORDs.
@@ -527,6 +529,8 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write while channel masked");
 		return 0;
 	}
+
+    /* TODO: Reject Write() if DMA mode byte was programmed in any mode other than write */
 
     /* WARNING: "want" is expressed in DMA transfer units.
      *          For 8-bit DMA, want is in bytes.
