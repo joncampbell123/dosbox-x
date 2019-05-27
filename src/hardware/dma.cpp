@@ -297,6 +297,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		chan=GetChannel(val & 3);
 		chan->autoinit=(val & 0x10) > 0;
 		chan->increment=(!allow_decrement_mode) || ((val & 0x20) == 0); /* 0=increment 1=decrement */
+        chan->transfer_mode=((val >> 2) & 3);
 		//TODO Maybe other bits? Like bits 6-7 to select demand/single/block/cascade mode? */
 		break;
 	case 0xc:		/* Clear Flip/Flip */
@@ -402,8 +403,11 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read while channel masked");
 		return 0;
 	}
-
-    /* TODO: Reject Read() if DMA mode byte was programmed in any mode other than read */
+    /* You cannot read a DMA channel configured for writing (to memory) */
+    if (transfer_mode != DMAT_READ) {
+        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)");
+        return 0;
+    }
 
     /* WARNING: "want" is expressed in DMA transfer units.
      *          For 8-bit DMA, want is in bytes.
@@ -473,8 +477,11 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write while channel masked");
 		return 0;
 	}
-
-    /* TODO: Reject Write() if DMA mode byte was programmed in any mode other than write */
+    /* You cannot write a DMA channel configured for reading (from memory) */
+    if (transfer_mode != DMAT_WRITE) {
+        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)");
+        return 0;
+    }
 
     /* WARNING: "want" is expressed in DMA transfer units.
      *          For 8-bit DMA, want is in bytes.

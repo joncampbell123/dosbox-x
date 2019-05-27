@@ -28,6 +28,12 @@ enum DMAEvent {
 	DMA_TRANSFEREND
 };
 
+enum DMATransfer {
+    DMAT_VERIFY=0,
+    DMAT_WRITE=1,
+    DMAT_READ=2
+};
+
 class DmaChannel;
 typedef void (* DMA_CallBack)(DmaChannel * chan,DMAEvent event);
 
@@ -43,6 +49,7 @@ public:
     Bit8u DMA16_PAGESHIFT;
     Bit32u DMA16_ADDRMASK;
 	Bit8u DMA16;
+    Bit8u transfer_mode;
 	bool increment;
 	bool autoinit;
 	bool masked;
