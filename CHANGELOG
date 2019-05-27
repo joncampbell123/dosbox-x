@@ -1,4 +1,8 @@
 0.82.19 (next)
+  - 8237 DMA emulation now supports PC-98 "auto bank increment"
+    functions, which automatically increments the DMA page number
+    on DMA wraparound. Sim City 2000 needs this to play it's
+    digitized sound effects properly.
   - 8237 DMA emulation now enforces read/write mode provided by
     guest. If the DMA is configured for reading from system
     memory, then attempts to WRITE to memory via DMA must fail.
