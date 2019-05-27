@@ -456,6 +456,7 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
                 masked = true;
                 UpdateEMSMapping();
                 DoCallBack(DMA_TRANSFEREND);
+                break;
             }
         }
     }
@@ -526,6 +527,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
                 masked = true;
                 UpdateEMSMapping();
                 DoCallBack(DMA_TRANSFEREND);
+                break;
             }
         }
     }
