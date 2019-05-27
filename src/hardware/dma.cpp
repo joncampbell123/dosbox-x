@@ -78,10 +78,11 @@ static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bi
     if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
     else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
     else if (page < LINK_START) page = paging.firstmb[page];
-    /* check our work, should not cross 4KB */
+    /* check our work, should not cross 4KB, then transfer linearly */
     assert((offset + size - 1u) < 4096);
+    PhysPt xfer = (page * 4096u) + offset;
     /* transfer */
-    for ( ; size ; size--, offset++) *write++ = phys_readb(page*4096 + offset);
+    for ( ; size ; size--, xfer++) *write++ = phys_readb(xfer);
 }
 
 /* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
@@ -105,21 +106,22 @@ static void DMA_BlockRead4KBBackwards(PhysPt spage,PhysPt offset,void * data,Bit
     if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
     else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
     else if (page < LINK_START) page = paging.firstmb[page];
-    /* check our work, should not cross 4KB */
+    /* check our work, should not cross 4KB, then transfer linearly */
     assert(offset >= (size - 1u)); /* offset should stop after size or at -1 after loop */
+    PhysPt xfer = (page * 4096u) + offset;
     /* transfer */
     if (!dma16) {
-        for ( ; size ; size--, offset--) *write++ = phys_readb(page*4096 + offset);
+        for ( ; size ; size--, xfer--) *write++ = phys_readb(xfer);
     }
     else {
         assert((size & 1u) == 0u); // must be even
-        assert((offset & 1u) == 0u); // must be even
+        assert((xfer & 1u) == 0u); // must be even
         // WARNING: UNTESTED.
         //
         // size must be even, which it is because of the size <<= dma16 code above and nothing
         // changes "size" from there to here. THE LOOP WILL NEVER TERMINATE IF THAT IS FALSE!
         //
-        // offset must also be even, which it is because of the offset <<= dma16 code. EMS
+        // xfer must also be even, which it is because of the offset <<= dma16 code. EMS
         // page translation does not affect that.
         //
         // The idea is that, theoretically since the ISA BUS transfers 16 bits at a time
@@ -128,9 +130,9 @@ static void DMA_BlockRead4KBBackwards(PhysPt spage,PhysPt offset,void * data,Bit
         //
         // It's possible PCI chipset implementations might even get this wrong, because
         // nobody actually does this.
-        for ( ; size ; size -= 2, offset -= 2) {
-            host_writew(write, phys_readw(page*4096 + offset));
-            write += 2;
+        for ( ; size ; size -= 2, xfer -= 2) {
+            host_writew(write, phys_readw(xfer));
+            xfer += 2;
         }
     }
 }
