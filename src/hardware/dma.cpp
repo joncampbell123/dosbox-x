@@ -484,24 +484,28 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
+    const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
-        const Bitu wrapdo = /* how far until the wraparound */
+        const Bit32u addr =
+            curraddr & addrmask;
+        const Bitu wrapdo =
             increment ?
-                /*inc*/((dma_wrapping + (Bitu)1ul) - (Bitu)curraddr) :/* start from curraddr, increment, wrap when curraddr == dma_wrapping */
-                /*dec*/(curraddr + (Bitu)1ul);                        /* start from curraddr, decrement, wrap when curraddr == -1, 0 means one more byte */
-        const Bitu cando = /* DMA terminal count at currcnt = 0xFFFF, so 0x0000 means one more byte */
-            MIN(MIN(want,currcnt+1ul),wrapdo);
+                /*inc*/((addrmask + 1u) - addr) :   /* how many transfer units until (end of 4KB page) + 1 */
+                /*dec*/(addr + 1u);                 /* how many transfer units until (start of 4KB page) - 1 */
+        const Bitu cando =
+            MIN(MIN(want,Bitu(currcnt+1u)),wrapdo);
         assert(wrapdo != (Bitu)0);
         assert(cando != (Bitu)0);
         assert(cando <= want);
+        assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr + cando) <= dma_wrapping); // check our work (DEBUG)
+            assert((curraddr & (~addrmask)) == ((curraddr + (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += cando;
         }
         else {
-            assert(cando <= (curraddr + 1ul)); // check our work (DEBUG)
+            assert((curraddr & (~addrmask)) == ((curraddr - (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr -= cando;
         }
