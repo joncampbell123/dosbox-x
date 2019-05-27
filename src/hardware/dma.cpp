@@ -430,8 +430,6 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-#if 1
-    /* New implementation. Old implementation is in #else block if it is needed */
     /* ISA-style 16-bit DMA ignores bit 0 of the page, 16-bit addr covers 128KB. DMA16_PAGESHIFT == 1.
      * PCI-style 16-bit DMA ignores bit 15 of the addr, 16-bit addr covers 64KB. DMA16_PAGESHIFT == 0.
      * For 16-bit DMA, curraddr is a count of 16-bit WORDs from the page start, not bytes. Therefore
@@ -491,46 +489,6 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
             }
         }
     }
-#else
-again:
-	Bitu left=(currcnt+1UL);
-	if (want<left) {
-		if (increment) {
-			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
-			curraddr+=want;
-		}
-		else {
-			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
-			curraddr-=want;
-		}
-
-		currcnt-=want;
-		done+=want;
-	} else {
-		if (increment)
-			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
-		else
-			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
-
-		buffer+=left << DMA16;
-		want-=left;
-		done+=left;
-		ReachedTC();
-		if (autoinit) {
-			currcnt=basecnt;
-			curraddr=baseaddr;
-			if (want) goto again;
-			UpdateEMSMapping();
-		} else {
-			if (increment) curraddr+=left;
-			else curraddr-=left;
-			currcnt=0xffff;
-			masked=true;
-			UpdateEMSMapping();
-			DoCallBack(DMA_TRANSFEREND);
-		}
-	}
-#endif
 
 	return done;
 }
