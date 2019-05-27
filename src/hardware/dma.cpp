@@ -121,6 +121,18 @@ static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu 
     for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
 }
 
+/* write a block into physical memory backwards.
+ * WARNING: UNTESTED (nobody does this)
+ * assume caller has already clipped the transfer to stay within a 4KB page. */
+static void DMA_BlockWrite4KBBackwards(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+    const Bit8u *read = (const Bit8u*)data;
+    unsigned int o_size;
+    PhysPt xfer;
+
+    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    for ( ; o_size ; o_size--, xfer-- ) phys_writeb(xfer,*read++);
+}
+
 DmaChannel * GetDMAChannel(Bit8u chan) {
 	if (chan<4) {
 		/* channel on first DMA controller */
@@ -513,8 +525,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
         }
         else {
             assert(cando <= (curraddr + 1ul)); // check our work (DEBUG)
-		    LOG(LOG_DMACONTROL,LOG_WARN)("DMA decrement mode (writing) not implemented");
-//            DMA_BlockWriteBackwards(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockWrite4KBBackwards(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr -= cando;
         }
 
