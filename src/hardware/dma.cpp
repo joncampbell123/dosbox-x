@@ -60,13 +60,12 @@ static void UpdateEMSMapping(void) {
 	}
 }
 
-/* read a block from physical memory.
- * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
- * to compute the page and offset once and transfer in a tight loop. */
-static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+/* DMA block anti-copypasta common code */
+static inline void DMA_BlockReadCommonSetup(
+    /*output*/PhysPt &o_xfer,unsigned int &o_size,
+     /*input*/PhysPt const spage,PhysPt offset,Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
     assert(size != 0u);
 
-	Bit8u * write=(Bit8u *) data;
 	const Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
@@ -80,9 +79,20 @@ static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bi
     else if (page < LINK_START) page = paging.firstmb[page];
     /* check our work, should not cross 4KB, then transfer linearly */
     assert((offset + size - 1u) < 4096);
-    PhysPt xfer = (page * 4096u) + offset;
-    /* transfer */
-    for ( ; size ; size--, xfer++) *write++ = phys_readb(xfer);
+    o_xfer = (page * 4096u) + offset;
+    o_size = (unsigned int)size;
+}
+
+/* read a block from physical memory.
+ * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
+ * to compute the page and offset once and transfer in a tight loop. */
+static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+	Bit8u *write = (Bit8u*)data;
+    unsigned int o_size;
+    PhysPt xfer;
+
+    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    for ( ; o_size ; o_size--, xfer++ ) *write++ = phys_readb(xfer);
 }
 
 /* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
@@ -91,50 +101,13 @@ static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bi
  * NTS: Don't forget, from 8237 datasheet: The DMA chip transfers a byte (or word if 16-bit) of data,
  *      and THEN increments or decrements the address. So in decrement mode, "address" is still the
  *      first byte before decrementing. */
-static void DMA_BlockRead4KBBackwards(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-    assert(size != 0u);
+static void DMA_BlockRead4KBBackwards(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+	Bit8u *write = (Bit8u*)data;
+    unsigned int o_size;
+    PhysPt xfer;
 
-	Bit8u * write=(Bit8u *) data;
-	const Bitu highpart_addr_page = spage>>12;
-	size <<= dma16;
-	offset <<= dma16;
-	const Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
-    offset &= dma_wrap;
-    Bitu page = highpart_addr_page+(offset >> 12); /* page */
-    offset &= 0xFFFu; /* 4KB offset in page */
-    /* care for EMS pageframe etc. */
-    if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
-    else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
-    else if (page < LINK_START) page = paging.firstmb[page];
-    /* check our work, should not cross 4KB, then transfer linearly */
-    assert(offset >= (size - 1u)); /* offset should stop after size or at -1 after loop */
-    PhysPt xfer = (page * 4096u) + offset;
-    /* transfer */
-    if (!dma16) {
-        for ( ; size ; size--, xfer--) *write++ = phys_readb(xfer);
-    }
-    else {
-        assert((size & 1u) == 0u); // must be even
-        assert((xfer & 1u) == 0u); // must be even
-        // WARNING: UNTESTED.
-        //
-        // size must be even, which it is because of the size <<= dma16 code above and nothing
-        // changes "size" from there to here. THE LOOP WILL NEVER TERMINATE IF THAT IS FALSE!
-        //
-        // xfer must also be even, which it is because of the offset <<= dma16 code. EMS
-        // page translation does not affect that.
-        //
-        // The idea is that, theoretically since the ISA BUS transfers 16 bits at a time
-        // for 16-bit DMA, transferring 16-bit DMA backwards should copy 16 bits at a time
-        // as well which is not simple BYTE reversal.
-        //
-        // It's possible PCI chipset implementations might even get this wrong, because
-        // nobody actually does this.
-        for ( ; size ; size -= 2, xfer -= 2) {
-            host_writew(write, phys_readw(xfer));
-            xfer += 2;
-        }
-    }
+    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
 }
 
 /* write a block into physical memory */
