@@ -60,22 +60,28 @@ static void UpdateEMSMapping(void) {
 	}
 }
 
-/* read a block from physical memory */
-static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+/* read a block from physical memory.
+ * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
+ * to compute the page and offset once and transfer in a tight loop. */
+static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+    assert(size != 0u);
+
 	Bit8u * write=(Bit8u *) data;
 	Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
 	Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
-	for ( ; size ; size--, offset++) {
-		offset &= dma_wrap;
-		Bitu page = highpart_addr_page+(offset >> 12);
-		/* care for EMS pageframe etc. */
-		if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
-		else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
-		else if (page < LINK_START) page = paging.firstmb[page];
-		*write++=phys_readb(page*4096 + (offset & 4095));
-	}
+    offset &= dma_wrap;
+    Bitu page = highpart_addr_page+(offset >> 12); /* page */
+    offset &= 0xFFFu; /* 4KB offset in page */
+    /* care for EMS pageframe etc. */
+    if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
+    else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
+    else if (page < LINK_START) page = paging.firstmb[page];
+    /* check our work, should not cross 4KB */
+    assert((offset + size - 1u) < 4096);
+    /* transfer */
+    for ( ; size ; size--, offset++) *write++ = phys_readb(page*4096 + offset);
 }
 
 /* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
@@ -461,7 +467,7 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 
         if (increment) {
             assert((curraddr & (~addrmask)) == ((curraddr + (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
-            DMA_BlockRead(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockRead4KB(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += cando;
         }
         else {
