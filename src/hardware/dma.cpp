@@ -67,10 +67,10 @@ static void DMA_BlockRead4KB(PhysPt spage,PhysPt offset,void * data,Bitu size,Bi
     assert(size != 0u);
 
 	Bit8u * write=(Bit8u *) data;
-	Bitu highpart_addr_page = spage>>12;
+	const Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	const Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
     offset &= dma_wrap;
     Bitu page = highpart_addr_page+(offset >> 12); /* page */
     offset &= 0xFFFu; /* 4KB offset in page */
