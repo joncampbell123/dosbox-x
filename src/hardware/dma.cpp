@@ -92,7 +92,14 @@ static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,
     PhysPt xfer;
 
     DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    for ( ; o_size ; o_size--, xfer++ ) *write++ = phys_readb(xfer);
+    if (!dma16) { // 8-bit
+        for ( ; o_size ; o_size--, xfer++ ) *write++ = phys_readb(xfer);
+    }
+    else { // 16-bit
+        assert((o_size & 1u) == 0);
+        assert((xfer   & 1u) == 0);
+        for ( ; o_size ; o_size -= 2, xfer += 2, write += 2 ) host_writew(write,phys_readw(xfer));
+    }
 }
 
 /* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
@@ -107,7 +114,14 @@ static void DMA_BlockRead4KBBackwards(const PhysPt spage,const PhysPt offset,voi
     PhysPt xfer;
 
     DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
+    if (!dma16) { // 8-bit
+        for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
+    }
+    else { // 16-bit
+        assert((o_size & 1u) == 0);
+        assert((xfer   & 1u) == 0);
+        for ( ; o_size ; o_size -= 2, xfer -= 2, write += 2 ) host_writew(write,phys_readw(xfer));
+    }
 }
 
 /* write a block into physical memory.
@@ -118,7 +132,14 @@ static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu 
     PhysPt xfer;
 
     DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
+    if (!dma16) { // 8-bit
+        for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
+    }
+    else { // 16-bit
+        assert((o_size & 1u) == 0);
+        assert((xfer   & 1u) == 0);
+        for ( ; o_size ; o_size -= 2, xfer += 2, read += 2 ) phys_writew(xfer,host_readw(read));
+    }
 }
 
 /* write a block into physical memory backwards.
@@ -130,7 +151,14 @@ static void DMA_BlockWrite4KBBackwards(PhysPt spage,PhysPt offset,const void * d
     PhysPt xfer;
 
     DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
-    for ( ; o_size ; o_size--, xfer-- ) phys_writeb(xfer,*read++);
+    if (!dma16) { // 8-bit
+        for ( ; o_size ; o_size--, xfer-- ) phys_writeb(xfer,*read++);
+    }
+    else { // 16-bit
+        assert((o_size & 1u) == 0);
+        assert((xfer   & 1u) == 0);
+        for ( ; o_size ; o_size -= 2, xfer -= 2, read += 2 ) phys_writew(xfer,host_readw(read));
+    }
 }
 
 DmaChannel * GetDMAChannel(Bit8u chan) {
