@@ -432,7 +432,8 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 
 #if 1
     /* New implementation. Old implementation is in #else block if it is needed */
-    /* Assume DMA16_ADDRMASK is either 0xFFFF or 0x1FFFF, use that mask if 16-bit DMA. */
+    /* ISA-style 16-bit DMA ignores bit 0 of the page, 16-bit addr covers 128KB.
+     * PCI-style 16-bit DMA ignores bit 15 of the addr, 16-bit addr covers 64KB. */
     /* dma_wrapping is set elsewhere by EMM386.EXE emulation because EMM386.EXE apparently
      * emulates a full 4GB wraparound for DMA (?) */
     while (want > 0) {
