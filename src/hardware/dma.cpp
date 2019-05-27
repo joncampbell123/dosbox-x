@@ -154,6 +154,8 @@ bool SecondDMAControllerAvailable(void) {
 	else return false;
 }
 
+static Bit8u pc98_port_29h = 0;
+
 static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
     if (IS_PC98_ARCH) {
         // I/O port translation
@@ -167,6 +169,17 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
                 case 3:/* 27h DMA channel 0 */  port=0x87; break;
                 default: abort(); break;
             }
+        }
+        else if (port == 0x29) { /* auto bank increment */
+            pc98_port_29h = (Bit8u)val;
+            DmaControllers[0]->GetChannel(val & 3)->page_bank_increment_wraparound =
+                (val & 0x08 ? 0xF0 : 0x00) +
+                (val & 0x04 ? 0x0F : 0x00);
+#if 0
+            LOG_MSG("DMA channel %u page auto increment mask %x",
+                (unsigned int)(val&3u),
+                DmaControllers[0]->GetChannel(val & 3)->page_bank_increment_wraparound);
+#endif
         }
         else {
             abort();
@@ -213,6 +226,9 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
                 case 3:/* 27h DMA channel 0 */  port=0x87; break;
                 default: abort(); break;
             }
+        }
+        else if (port == 0x29) { /* auto bank increment */
+            return pc98_port_29h;
         }
         else {
             abort();
@@ -632,8 +648,8 @@ void DMA_Reset(Section* /*sec*/) {
 
 	if (enable_1st_dma) {
         if (IS_PC98_ARCH) {
-            /* install handlers for ports 0x21-0x27 odd */
-            for (unsigned int i=0;i < 4;i++) {
+            /* install handlers for ports 0x21-0x29 odd */
+            for (unsigned int i=0;i < 5;i++) {
                 DmaControllers[0]->DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
                 DmaControllers[0]->DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
             }
