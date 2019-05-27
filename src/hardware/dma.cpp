@@ -110,25 +110,15 @@ static void DMA_BlockRead4KBBackwards(const PhysPt spage,const PhysPt offset,voi
     for ( ; o_size ; o_size--, xfer-- ) *write++ = phys_readb(xfer);
 }
 
-/* write a block into physical memory */
-static void DMA_BlockWrite(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-	Bit8u * read=(Bit8u *) data;
-	Bitu highpart_addr_page = spage>>12;
-	size <<= dma16;
-	offset <<= dma16;
-	Bit32u dma_wrap = (((0xfffful << dma16) + dma16) & DMA16_ADDRMASK) | dma_wrapping;
-	for ( ; size ; size--, offset++) {
-		if (offset>(dma_wrapping<<dma16)) {
-			LOG_MSG("DMA segbound wrapping (write): %x:%x size %x [%x] wrap %x",(int)spage,(int)offset,(int)size,dma16,(int)dma_wrapping);
-		}
-		offset &= dma_wrap;
-		Bitu page = highpart_addr_page+(offset >> 12);
-		/* care for EMS pageframe etc. */
-		if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
-		else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
-		else if (page < LINK_START) page = paging.firstmb[page];
-		phys_writeb(page*4096 + (offset & 4095), *read++);
-	}
+/* write a block into physical memory.
+ * assume caller has already clipped the transfer to stay within a 4KB page. */
+static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+    const Bit8u *read = (const Bit8u*)data;
+    unsigned int o_size;
+    PhysPt xfer;
+
+    DMA_BlockReadCommonSetup(/*&*/xfer,/*&*/o_size,spage,offset,size,dma16,DMA16_ADDRMASK);
+    for ( ; o_size ; o_size--, xfer++ ) phys_writeb(xfer,*read++);
 }
 
 DmaChannel * GetDMAChannel(Bit8u chan) {
@@ -518,7 +508,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 
         if (increment) {
             assert((curraddr + cando) <= dma_wrapping); // check our work (DEBUG)
-            DMA_BlockWrite(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+            DMA_BlockWrite4KB(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
             curraddr += cando;
         }
         else {
