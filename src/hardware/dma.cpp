@@ -552,6 +552,18 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
         want -= cando;
         done += cando;
 
+        if (IS_PC98_ARCH) {
+            /* check wraparound, to emulate auto bank increment.
+             * do not check DMA16 because PC-98 does not have 16-bit DMA channels.
+             *
+             * The PC-98 port of Sim City 2000 needs this to properly play digitized speech,
+             * especially "reticulating splines". */
+            if ((( increment) && (curraddr & 0xFFFFu) == 0u) ||
+                ((!increment) && (curraddr & 0xFFFFu) == 0xFFFFu)) {
+                page_bank_increment();
+            }
+        }
+
         if (currcnt == 0xFFFF) {
             ReachedTC();
             if (autoinit) {
