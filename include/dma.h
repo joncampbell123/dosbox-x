@@ -82,9 +82,11 @@ public:
             // Currently this code assumes that the auto increment in PC-98 modifies the
             // register value (and therefore visible to the guest). Change this code if
             // that model is wrong.
+            const Bit8u add =
+                increment ? 0x01u : 0xFFu;
             const Bit8u nv =
-                ( pagenum       & (~page_bank_increment_wraparound)) +
-                ((pagenum + 1u) & ( page_bank_increment_wraparound));
+                ( pagenum        & (~page_bank_increment_wraparound)) +
+                ((pagenum + add) & ( page_bank_increment_wraparound));
             SetPage(nv);
         }
     }
