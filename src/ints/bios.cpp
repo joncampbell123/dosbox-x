@@ -8245,6 +8245,9 @@ public:
 
             enable_pc98_copyright_string = section->Get_bool("pc-98 BIOS copyright string");
 
+            // NTS: This setting is also valid in PC-98 mode. According to Undocumented PC-98 by Webtech,
+            //      there's nothing at I/O port E9h. I will move the I/O port in PC-98 mode if there is in
+            //      fact a conflict. --J.C.
             bochs_port_e9 = section->Get_bool("bochs debug port e9");
 
             // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
