@@ -1,4 +1,6 @@
 
+#define PREFETCH_CORE
+
 /* WARNING: This code needs MORE TESTING. So far, it seems to work fine. */
 
 template <class T> static inline bool prefetch_hit(const Bitu w) {
@@ -58,10 +60,12 @@ static inline void prefetch_lazyflush(const Bitu w) {
         pq_start += prefetch_unit;
 
         prefetch_filldword();
-#ifdef PREFETCH_DEBUG
-        assert(pq_start+pq_limit == pq_fill);
-#endif
     }
+
+#ifdef PREFETCH_DEBUG
+    assert(pq_fill >= pq_start);
+    assert((pq_fill - pq_start) <= pq_limit);
+#endif
 }
 
 /* this implementation follows what I think the Intel 80386/80486 is more likely
@@ -71,9 +75,12 @@ template <class T> static inline T Fetch(void) {
 
     if (prefetch_hit<T>(core.cseip)) {
         /* as long as prefetch hits are occurring, keep loading more! */
-        if ((pq_fill - pq_start) < pq_limit) {
+        prefetch_lazyflush(core.cseip+sizeof(T));
+        if ((pq_fill - pq_start) < pq_limit)
             prefetch_filldword();
-            if (sizeof(T) >= prefetch_unit && (pq_fill - pq_start) < pq_limit)
+
+        if (sizeof(T) >= prefetch_unit) {
+            if ((pq_fill - pq_start) < pq_limit)
                 prefetch_filldword();
         }
 

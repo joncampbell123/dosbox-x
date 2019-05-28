@@ -65,6 +65,33 @@ void DoString(STRING_OP type) {
 		}
 	}
 
+#if defined(PREFETCH_CORE)
+    if (pq_valid && pq_limit >= (2 * prefetch_unit)) {
+        // a REP MOVSB might be a good time for the prefetch queue to empty out old code.
+        // Hack for self-erasing exit code in demoscene program [mirrors/hornet/demos/1993/s/stereo.zip]
+        // which erases itself with:
+        //
+        //      REP STOSW       ; blows away own code segment, CX = 0xE000+ or some large value, AL = 0x00
+        //      MOV AH,4C       ; remains in prefetch queue
+        //      INT 21h         ; remains in prefetch queue
+        //                      ; anything past this point doesn't matter
+        //
+        // While the REP STOSW + MOV AH,4C + INT 21h is small enough to easily fit into the prefetch queue,
+        // this fix ensures that it will be in the prefetch queue so the demo part can blow itself away and
+        // terminate from prefetch properly without crashing.
+        //
+        // Another possible fix of course is to NOP out the REP STOSW in the executable.
+        Bitu stopat = /*LOADIP without setting core.cseip*/(SegBase(cs)+reg_eip) & (~(prefetch_unit-1ul))/*round down*/;
+        for (unsigned int i=0;pq_start < stopat/* do NOT flush out the REP in REP STOSW*/ && i < ((count/4u)+4u);i++) {
+            prefetch_lazyflush(core.cseip+pq_limit);
+            if ((pq_fill - pq_start) < pq_limit)
+                prefetch_filldword();
+            else
+                break;
+        }
+    }
+#endif
+
 	if (count != 0) {
 		try {
 			switch (type) {
