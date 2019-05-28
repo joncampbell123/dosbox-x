@@ -411,12 +411,12 @@ void dosbox_integration_trigger_write() {
                 /* bits  [7:0]  = data byte if 8-bit DNA
                  * bits [15:0]  = data word if 16-bit DMA
                  * bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_regsel>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
-                    tmp[0] = (unsigned char)( dosbox_int_regsel         & 0xFFu);
-                    tmp[1] = (unsigned char)((dosbox_int_regsel >>  8u) & 0xFFu);
+                    tmp[0] = (unsigned char)( dosbox_int_register         & 0xFFu);
+                    tmp[1] = (unsigned char)((dosbox_int_register >>  8u) & 0xFFu);
 
                     /* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
                     if (ch->Write(1/*one unit of transfer*/,tmp) == 1) {
@@ -440,7 +440,7 @@ void dosbox_integration_trigger_write() {
                 dosbox_int_register_shf = 0;
                 dosbox_int_regsel_shf = 0;
                 /* bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_regsel>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
