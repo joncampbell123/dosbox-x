@@ -300,6 +300,9 @@ void dosbox_integration_trigger_read() {
             dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
             break;
 
+        case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
+            break;
+
 //      case 0x804200: /* keyboard input injection -- not supposed to read */
 //          break;
 
