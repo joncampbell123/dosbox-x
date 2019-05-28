@@ -1,4 +1,6 @@
 0.82.19 (next)
+  - DOSBox Integration device now allows ISA DMA read/write
+    injection.
   - 8237 DMA emulation now supports PC-98 "auto bank increment"
     functions, which automatically increments the DMA page number
     on DMA wraparound. Sim City 2000 needs this to play it's
