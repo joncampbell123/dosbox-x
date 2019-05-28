@@ -43,6 +43,7 @@
 #include "build_timestamp.h"
 extern bool PS1AudioCard;
 #include "parport.h"
+#include "dma.h"
 #include <time.h>
 
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
@@ -401,6 +402,64 @@ void dosbox_integration_trigger_write() {
         case 0x52434D: /* release mouse capture 'MCR' */
             void GFX_ReleaseMouse(void);
             GFX_ReleaseMouse();
+            break;
+
+        case 0x823700: /* ISA DMA injection, single byte/word (write to memory) */
+            {
+                dosbox_int_register_shf = 0;
+                dosbox_int_regsel_shf = 0;
+                /* bits  [7:0]  = data byte if 8-bit DNA
+                 * bits [15:0]  = data word if 16-bit DMA
+                 * bits [18:16] = DMA channel to send to */
+                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_regsel>>16u)&7u);
+                if (ch != NULL) {
+                    unsigned char tmp[2];
+
+                    tmp[0] = (unsigned char)( dosbox_int_regsel         & 0xFFu);
+                    tmp[1] = (unsigned char)((dosbox_int_regsel >>  8u) & 0xFFu);
+
+                    /* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
+                    if (ch->Write(1/*one unit of transfer*/,tmp) == 1) {
+                        dosbox_int_register = 0;
+                        dosbox_int_error = false;
+                    }
+                    else {
+                        dosbox_int_register = 0x823700;
+                        dosbox_int_error = true;
+                    }
+                }
+                else {
+                    dosbox_int_register = 0x8237FF;
+                    dosbox_int_error = true;
+                }
+            }
+            break;
+
+        case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
+            {
+                dosbox_int_register_shf = 0;
+                dosbox_int_regsel_shf = 0;
+                /* bits [18:16] = DMA channel to send to */
+                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_regsel>>16u)&7u);
+                if (ch != NULL) {
+                    unsigned char tmp[2];
+
+                    /* NTS: DMA channel write will write tmp[0] if 8-bit, tmp[0]/tmp[1] if 16-bit */
+                    tmp[0] = tmp[1] = 0;
+                    if (ch->Read(1/*one unit of transfer*/,tmp) == 1) {
+                        dosbox_int_register = ((unsigned int)tmp[1] << 8u) + (unsigned int)tmp[0];
+                        dosbox_int_error = false;
+                    }
+                    else {
+                        dosbox_int_register = 0x823700;
+                        dosbox_int_error = true;
+                    }
+                }
+                else {
+                    dosbox_int_register = 0x8237FF;
+                    dosbox_int_error = true;
+                }
+            }
             break;
 
         case 0x804200: /* keyboard input injection */
