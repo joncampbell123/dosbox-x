@@ -1,4 +1,7 @@
 0.82.19 (next)
+  - Prefetch core fixed up, made more aggressive, and string
+    instructions (REP MOVSW) cause more prefetch. "Stereotype"
+    demoscene production can run again.
   - DOSBox Integration device now allows ISA DMA read/write
     injection.
   - 8237 DMA emulation now supports PC-98 "auto bank increment"
