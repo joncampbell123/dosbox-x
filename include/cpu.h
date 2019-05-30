@@ -147,7 +147,7 @@ void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bitu oldeip);
 void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip);
 void CPU_RET(bool use32,Bitu bytes,Bitu oldeip);
 void CPU_IRET(bool use32,Bitu oldeip);
-void CPU_HLT(Bitu oldeip);
+void CPU_HLT(Bit32u oldeip);
 
 bool CPU_POPF(Bitu use32);
 bool CPU_PUSHF(Bitu use32);
@@ -171,7 +171,7 @@ extern bool CPU_NMI_pending;
 
 extern bool do_seg_limits;
 
-void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip);
+void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip);
 void CPU_Check_NMI();
 void CPU_Raise_NMI();
 void CPU_NMI_Interrupt();
@@ -188,14 +188,14 @@ static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,Bitu oldeip) {
 bool CPU_PrepareException(Bitu which,Bitu error);
 void CPU_Exception(Bitu which,Bitu error=0);
 
-bool CPU_SetSegGeneral(SegNames seg,Bitu value);
+bool CPU_SetSegGeneral(SegNames seg,Bit16u value);
 bool CPU_PopSeg(SegNames seg,bool use32);
 
 bool CPU_CPUID(void);
-Bitu CPU_Pop16(void);
-Bitu CPU_Pop32(void);
-void CPU_Push16(Bitu value);
-void CPU_Push32(Bitu value);
+Bit16u CPU_Pop16(void);
+Bit32u CPU_Pop32(void);
+void CPU_Push16(Bit16u value);
+void CPU_Push32(Bit32u value);
 
 void CPU_SetFlags(Bitu word,Bitu mask);
 
@@ -526,7 +526,7 @@ struct CPUBlock {
 		Bitu eflags;
 	} masks;
 	struct {
-		Bitu mask,notmask;
+		Bit32u mask,notmask;
 		bool big;
 	} stack;
 	struct {

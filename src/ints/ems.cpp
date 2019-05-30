@@ -1306,12 +1306,12 @@ static Bitu V86_Monitor() {
 				break;
 			case 0xe4:		// IN AL,Ib
 				if (!VCPI_trapio_r(mem_readb((unsigned int)(v86_cs<<4u)+(unsigned int)v86_ip+1u),1))
-					reg_al=(Bit8u)(IO_ReadB(mem_readb((unsigned int)(v86_cs<<4)+(unsigned int)v86_ip+1))&0xff);
+					reg_al=IO_ReadB(mem_readb((unsigned int)(v86_cs<<4)+(unsigned int)v86_ip+1))&0xff;
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2u);
 				break;
 			case 0xe5:		// IN AX,Ib
 				if (!VCPI_trapio_r(mem_readb((unsigned int)(v86_cs<<4u)+(unsigned int)v86_ip+1u),2))
-					reg_ax=(Bit16u)(IO_ReadW(mem_readb((unsigned int)(v86_cs<<4)+(unsigned int)v86_ip+1))&0xffff);
+					reg_ax=IO_ReadW(mem_readb((unsigned int)(v86_cs<<4)+(unsigned int)v86_ip+1))&0xffff;
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2u);
 				break;
 			case 0xe6:		// OUT Ib,AL
@@ -1326,12 +1326,12 @@ static Bitu V86_Monitor() {
 				break;
 			case 0xec:		// IN AL,DX
 				if (!VCPI_trapio_r(reg_dx,1))
-					reg_al=(Bit8u)(IO_ReadB(reg_dx)&0xff);
+					reg_al=IO_ReadB(reg_dx)&0xff;
 				mem_writew(SegPhys(ss)+((reg_esp+0) & (unsigned int)cpu.stack.mask),(unsigned int)v86_ip+1u);
 				break;
 			case 0xed:		// IN AX,DX
 				if (!VCPI_trapio_r(reg_dx,2))
-					reg_ax=(Bit16u)(IO_ReadW(reg_dx)&0xffff);
+					reg_ax=IO_ReadW(reg_dx)&0xffff;
 				mem_writew(SegPhys(ss)+((reg_esp+0) & (unsigned int)cpu.stack.mask),(unsigned int)v86_ip+1u);
 				break;
 			case 0xee:		// OUT DX,AL

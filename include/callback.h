@@ -59,7 +59,7 @@ static inline PhysPt CALLBACK_GetBase(void) {
 	return (PhysPt)(((PhysPt)CB_SEG << (PhysPt)4U) + (PhysPt)CB_SOFFSET);
 }
 
-Bitu CALLBACK_Allocate();
+Bit8u CALLBACK_Allocate();
 
 void CALLBACK_Idle(void);
 

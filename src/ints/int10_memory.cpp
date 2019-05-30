@@ -53,7 +53,7 @@ static Bit16u map_offset[8]={
 	0x2000,0x6000,0xa000,0xe000
 };
 
-void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu height) {
+void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bit8u height) {
     unsigned char m64k;
 
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
@@ -73,7 +73,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu
 	IO_Write(0x3ce,0x06);IO_Write(0x3cf,0x04); // CPU memory window A0000-AFFFF
 	
 	//Load character patterns
-	for (Bitu i=0;i<count;i++) {
+	for (Bit16u i=0;i<count;i++) {
 		MEM_BlockCopy(ftwhere+i*32,font,height);
 		font+=height;
 	}

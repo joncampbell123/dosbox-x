@@ -342,7 +342,7 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 
 		// Create Callback Strategy
 		Bit16u off = sizeof(DOS_DeviceHeader::sDeviceHeader);
-		Bit16u call_strategy=(Bit16u)CALLBACK_Allocate();
+		Bit16u call_strategy=CALLBACK_Allocate();
 		CallBack_Handlers[call_strategy]=MSCDEX_Strategy_Handler;
 		real_writeb(seg,off+0,(Bit8u)0xFE);		//GRP 4
 		real_writeb(seg,off+1,(Bit8u)0x38);		//Extra Callback instruction
@@ -352,7 +352,7 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 		
 		// Create Callback Interrupt
 		off += 5;
-		Bit16u call_interrupt=(Bit16u)CALLBACK_Allocate();
+		Bit16u call_interrupt=CALLBACK_Allocate();
 		CallBack_Handlers[call_interrupt]=MSCDEX_Interrupt_Handler;
 		real_writeb(seg,off+0,(Bit8u)0xFE);		//GRP 4
 		real_writeb(seg,off+1,(Bit8u)0x38);		//Extra Callback instruction

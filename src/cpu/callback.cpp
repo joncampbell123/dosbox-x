@@ -45,7 +45,8 @@ unsigned int last_callback = 0;
 CallBack_Handler CallBack_Handlers[CB_MAX] = {NULL};
 char* CallBack_Description[CB_MAX] = {NULL};
 
-Bitu call_stop,call_idle,call_default,call_default2;
+Bitu call_stop,call_default,call_default2;
+Bit8u call_idle;
 Bitu call_priv_io;
 
 static Bitu illegal_handler(void) {
@@ -88,8 +89,8 @@ void CALLBACK_Shutdown(void) {
 	}
 }
 
-Bitu CALLBACK_Allocate(void) {
-	for (Bitu i=1;(i<CB_MAX);i++) {
+Bit8u CALLBACK_Allocate(void) {
+	for (Bit8u i=1;(i<CB_MAX);i++) {
 		if (CallBack_Handlers[i]==&illegal_handler) {
 			if (CallBack_Description[i] != NULL) LOG_MSG("CALLBACK_Allocate() warning: empty slot still has description string!\n");
 			CallBack_Handlers[i]=0;
@@ -147,7 +148,7 @@ void CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off) {
 	reg_sp-=6;
 	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
 	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
-	mem_writew(SegPhys(ss)+reg_sp+4,reg_flags);
+	mem_writew(SegPhys(ss)+reg_sp+4,(Bit16u)reg_flags);
 	Bit32u oldeip=reg_eip;
 	Bit16u oldcs=SegValue(cs);
 	reg_eip=off;
@@ -193,7 +194,7 @@ void CALLBACK_RunRealInt(Bit8u intnum) {
 }
 
 void CALLBACK_SZF(bool val) {
-    Bitu tempf;
+    Bit32u tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
@@ -206,11 +207,11 @@ void CALLBACK_SZF(bool val) {
     if (cpu.stack.big)
         mem_writed(SegPhys(ss)+reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+        mem_writew(SegPhys(ss)+reg_sp+4,(Bit16u)tempf);
 }
 
 void CALLBACK_SCF(bool val) {
-    Bitu tempf;
+    Bit32u tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
@@ -223,11 +224,11 @@ void CALLBACK_SCF(bool val) {
     if (cpu.stack.big)
         mem_writed(SegPhys(ss)+reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+        mem_writew(SegPhys(ss)+reg_sp+4,(Bit16u)tempf);
 }
 
 void CALLBACK_SIF(bool val) {
-    Bitu tempf;
+    Bit32u tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
@@ -240,7 +241,7 @@ void CALLBACK_SIF(bool val) {
     if (cpu.stack.big)
         mem_writed(SegPhys(ss)+reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+        mem_writew(SegPhys(ss)+reg_sp+4,(Bit16u)tempf);
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
@@ -555,7 +556,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 			physAddress+=4;
 		}
 		phys_writeb(physAddress+0x01,(Bit8u)0xCF);		//An IRET Instruction
-		for (Bitu i=0;i<=0x0b;i++) phys_writeb(physAddress+0x02+i,0x90);
+		for (Bit8u i=0;i<=0x0b;i++) phys_writeb(physAddress+0x02+i,0x90);
 		phys_writew(physAddress+0x0e,(Bit16u)0xedeb);	//jmp callback
 		return (use_cb?0x10:0x0c);
 	/*case CB_INT28:	// DOS idle
@@ -758,7 +759,7 @@ void CALLBACK_RemoveSetup(Bitu callback) {
 		return;
 	}
 
-	for (Bitu i = 0;i < CB_SIZE;i++) {
+	for (Bit8u i = 0;i < CB_SIZE;i++) {
 		phys_writeb(CALLBACK_PhysPointer(callback)+i ,(Bit8u) 0x00);
 	}
 }
@@ -851,7 +852,7 @@ void CALLBACK_Init() {
 
 	LOG(LOG_CPU,LOG_DEBUG)("Callback area starts at %04x:%04x",CB_SEG,CB_SOFFSET);
 
-	Bitu i;
+	Bit16u i;
 	for (i=0;i<CB_MAX;i++) {
 		CallBack_Handlers[i]=&illegal_handler;
 		CallBack_Description[i]=NULL;

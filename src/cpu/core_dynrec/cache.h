@@ -117,7 +117,7 @@ public:
 		bool is_current_block=false;	// if the current block is modified, it has to be exited as soon as possible
 
 		Bit32u ip_point=SegPhys(cs)+reg_eip;
-		ip_point=(PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff);
+		ip_point=(Bit32u)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
 		while (index>=0) {
 			Bitu map=0;
 			// see if there is still some code in the range
@@ -140,9 +140,9 @@ public:
 	}
 
 	// the following functions will clean all cache blocks that are invalid now due to the write
-	void writeb(PhysPt addr,Bitu val){
+	void writeb(PhysPt addr,Bit8u val){
 		addr&=4095;
-		if (host_readb(hostmem+addr)==(Bit8u)val) return;
+		if (host_readb(hostmem+addr)==val) return;
 		host_writeb(hostmem+addr,val);
 		// see if there's code where we are writing to
 		if (!host_readb(&write_map[addr])) {
@@ -157,9 +157,9 @@ public:
 		invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
-	void writew(PhysPt addr,Bitu val){
+	void writew(PhysPt addr,Bit16u val){
 		addr&=4095;
-		if (host_readw(hostmem+addr)==(Bit16u)val) return;
+		if (host_readw(hostmem+addr)==val) return;
 		host_writew(hostmem+addr,val);
 		// see if there's code where we are writing to
 		if (!host_readw(&write_map[addr])) {
@@ -179,9 +179,9 @@ public:
 #endif
 		InvalidateRange(addr,addr+1);
 	}
-	void writed(PhysPt addr,Bitu val){
+	void writed(PhysPt addr,Bit32u val){
 		addr&=4095;
-		if (host_readd(hostmem+addr)==(Bit32u)val) return;
+		if (host_readd(hostmem+addr)==val) return;
 		host_writed(hostmem+addr,val);
 		// see if there's code where we are writing to
 		if (!host_readd(&write_map[addr])) {
@@ -201,9 +201,9 @@ public:
 #endif
 		InvalidateRange(addr,addr+3);
 	}
-	bool writeb_checked(PhysPt addr,Bitu val) {
+	bool writeb_checked(PhysPt addr,Bit8u val) {
 		addr&=4095;
-		if (host_readb(hostmem+addr)==(Bit8u)val) return false;
+		if (host_readb(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
 		if (!host_readb(&write_map[addr])) {
 			if (!active_blocks) {
@@ -225,9 +225,9 @@ public:
 		host_writeb(hostmem+addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,Bitu val) {
+	bool writew_checked(PhysPt addr,Bit16u val) {
 		addr&=4095;
-		if (host_readw(hostmem+addr)==(Bit16u)val) return false;
+		if (host_readw(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
 		if (!host_readw(&write_map[addr])) {
 			if (!active_blocks) {
@@ -254,9 +254,9 @@ public:
 		host_writew(hostmem+addr,val);
 		return false;
 	}
-	bool writed_checked(PhysPt addr,Bitu val) {
+	bool writed_checked(PhysPt addr,Bit32u val) {
 		addr&=4095;
-		if (host_readd(hostmem+addr)==(Bit32u)val) return false;
+		if (host_readd(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
 		if (!host_readd(&write_map[addr])) {
 			if (!active_blocks) {

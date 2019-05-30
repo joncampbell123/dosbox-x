@@ -34,7 +34,7 @@
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
 
-Bitu shell_psp = 0;
+Bit16u shell_psp = 0;
 
 void CALLBACK_DeAllocate(Bitu in);
 

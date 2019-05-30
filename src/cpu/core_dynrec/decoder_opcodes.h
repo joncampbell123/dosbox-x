@@ -1395,7 +1395,7 @@ static void dyn_enter(void) {
 static void dynrec_leave_word(void) {
 	reg_esp&=cpu.stack.notmask;
 	reg_esp|=(reg_ebp&cpu.stack.mask);
-	reg_bp=(Bit16u)CPU_Pop16();
+	reg_bp=CPU_Pop16();
 }
 
 static void dynrec_leave_dword(void) {
@@ -1423,10 +1423,10 @@ static void dynrec_pusha_dword(void) {
 }
 
 static void dynrec_popa_word(void) {
-	reg_di=(Bit16u)CPU_Pop16();reg_si=(Bit16u)CPU_Pop16();
-	reg_bp=(Bit16u)CPU_Pop16();CPU_Pop16();		//Don't save SP
-	reg_bx=(Bit16u)CPU_Pop16();reg_dx=(Bit16u)CPU_Pop16();
-	reg_cx=(Bit16u)CPU_Pop16();reg_ax=(Bit16u)CPU_Pop16();
+	reg_di=CPU_Pop16();reg_si=CPU_Pop16();
+	reg_bp=CPU_Pop16();CPU_Pop16();		//Don't save SP
+	reg_bx=CPU_Pop16();reg_dx=CPU_Pop16();
+	reg_cx=CPU_Pop16();reg_ax=CPU_Pop16();
 }
 
 static void dynrec_popa_dword(void) {

@@ -90,20 +90,20 @@ class PageHandler {
 public:
 	PageHandler(Bitu flg) : flags(flg) {}
 	virtual ~PageHandler(void) { }
-	virtual Bitu readb(PhysPt addr);
-	virtual Bitu readw(PhysPt addr);
-	virtual Bitu readd(PhysPt addr);
-	virtual void writeb(PhysPt addr,Bitu val);
-	virtual void writew(PhysPt addr,Bitu val);
-	virtual void writed(PhysPt addr,Bitu val);
+	virtual Bit8u readb(PhysPt addr);
+	virtual Bit16u readw(PhysPt addr);
+	virtual Bit32u readd(PhysPt addr);
+	virtual void writeb(PhysPt addr,Bit8u val);
+	virtual void writew(PhysPt addr,Bit16u val);
+	virtual void writed(PhysPt addr,Bit32u val);
 	virtual HostPt GetHostReadPt(Bitu phys_page);
 	virtual HostPt GetHostWritePt(Bitu phys_page);
 	virtual bool readb_checked(PhysPt addr,Bit8u * val);
 	virtual bool readw_checked(PhysPt addr,Bit16u * val);
 	virtual bool readd_checked(PhysPt addr,Bit32u * val);
-	virtual bool writeb_checked(PhysPt addr,Bitu val);
-	virtual bool writew_checked(PhysPt addr,Bitu val);
-	virtual bool writed_checked(PhysPt addr,Bitu val);
+	virtual bool writeb_checked(PhysPt addr,Bit8u val);
+	virtual bool writew_checked(PhysPt addr,Bit16u val);
+	virtual bool writed_checked(PhysPt addr,Bit32u val);
    PageHandler (void) { }
 	Bitu flags; 
 	Bitu getFlags() const {
@@ -405,7 +405,7 @@ static INLINE Bit32u mem_readd_inline(const PhysPt address) {
 	if ((address & 0xfff)<0xffd) {
 		const HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) return host_readd(tlb_addr+address);
-		else return (get_tlb_readhandler(address))->readd(address);
+		else return (Bit32u)(get_tlb_readhandler(address))->readd(address);
 	} else return mem_unalignedreadd(address);
 }
 

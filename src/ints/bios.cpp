@@ -1979,7 +1979,7 @@ static bool Tandy_TransferInProgress(void) {
     else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
 
     IO_Write(0x0c,0x00);
-    Bit16u datalen=(Bit8u)(IO_ReadB(tandy_dma*2u+1u)&0xffu);
+    Bit16u datalen=IO_ReadB(tandy_dma*2u+1u)&0xffu;
     datalen|=(IO_ReadB(tandy_dma*2u+1u)<<8u);
     if (datalen==0xffff) return false;  /* no DMA transfer */
     else if ((datalen<0x10) && (real_readb(0x40,0xd4)==0x0f) && (real_readw(0x40,0xd2)==0x1c)) {
@@ -5320,8 +5320,8 @@ static Bitu INT14_Handler(void) {
         IO_WriteB(port+1u, 0u); // IER
 
         // get result
-        reg_ah=(Bit8u)(IO_ReadB(port+5u)&0xffu);
-        reg_al=(Bit8u)(IO_ReadB(port+6u)&0xffu);
+        reg_ah=IO_ReadB(port+5u)&0xffu;
+        reg_al=IO_ReadB(port+6u)&0xffu;
         CALLBACK_SCF(false);
         break;
     }
@@ -5374,8 +5374,8 @@ static Bitu INT14_Handler(void) {
         CALLBACK_SCF(false);
         break;
     case 0x03: // get status
-        reg_ah=(Bit8u)(IO_ReadB(port+5u)&0xffu);
-        reg_al=(Bit8u)(IO_ReadB(port+6u)&0xffu);
+        reg_ah=IO_ReadB(port+5u)&0xffu;
+        reg_al=IO_ReadB(port+6u)&0xffu;
         CALLBACK_SCF(false);
         break;
 

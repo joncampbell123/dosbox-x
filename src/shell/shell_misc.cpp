@@ -120,7 +120,7 @@ void MoveCaretBackwards()
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
 	Bit8u c;Bit16u n=1;
-	Bitu str_len=0;Bitu str_index=0;
+	Bit16u str_len=0;Bit16u str_index=0;
 	Bit16u len=0;
 	bool current_hist=false; // current command stored in history?
     Bit16u cr;

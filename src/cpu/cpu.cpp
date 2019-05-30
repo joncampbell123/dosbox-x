@@ -494,26 +494,26 @@ void Descriptor:: Save(PhysPt address) {
 }
 
 
-void CPU_Push16(Bitu value) {
+void CPU_Push16(Bit16u value) {
 	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
 	mem_writew(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
 }
 
-void CPU_Push32(Bitu value) {
+void CPU_Push32(Bit32u value) {
 	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-4)&cpu.stack.mask);
 	mem_writed(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
 }
 
-Bitu CPU_Pop16(void) {
-	Bitu val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+Bit16u CPU_Pop16(void) {
+	Bit16u val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
 	return val;
 }
 
-Bitu CPU_Pop32(void) {
-	Bitu val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+Bit32u CPU_Pop32(void) {
+	Bit32u val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
 	return val;
 }
@@ -524,7 +524,7 @@ PhysPt SelBase(Bitu sel) {
 		cpu.gdt.GetDescriptor(sel,desc);
 		return desc.GetBase();
 	} else {
-		return sel<<4;
+		return (PhysPt)(sel<<4);
 	}
 }
 
@@ -741,9 +741,10 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 			E_Exit("TSS busy for JMP/CALL/INT");
 	}
 	Bitu new_cr3=0;
-	Bitu new_eax,new_ebx,new_ecx,new_edx,new_esp,new_ebp,new_esi,new_edi;
+	Bit32u new_eax,new_ebx,new_ecx,new_edx,new_esp,new_ebp,new_esi,new_edi;
 	Bitu new_es,new_cs,new_ss,new_ds,new_fs,new_gs;
-	Bitu new_ldt,new_eip,new_eflags;
+	Bitu new_ldt,new_eflags;
+    Bit32u new_eip;
 	/* Read new context from new TSS */
 	if (new_tss.is386) {
 		new_cr3=mem_readd(new_tss.base+offsetof(TSS_32,cr3));
@@ -812,9 +813,9 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	/* Setup a back link to the old TSS in new TSS */
 	if (tstype==TSwitch_CALL_INT) {
 		if (new_tss.is386) {
-			mem_writed(new_tss.base+offsetof(TSS_32,back),cpu_tss.selector);
+			mem_writed(new_tss.base+offsetof(TSS_32,back),(Bit32u)cpu_tss.selector);
 		} else {
-			mem_writew(new_tss.base+offsetof(TSS_16,back),cpu_tss.selector);
+			mem_writew(new_tss.base+offsetof(TSS_16,back),(Bit16u)cpu_tss.selector);
 		}
 		/* And make the new task's eflag have the nested task bit */
 		new_eflags|=FLAG_NT;
@@ -1008,7 +1009,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 }
 
 Bit8u lastint;
-void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
+void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 	lastint=num;
 	FillFlags();
 #if C_DEBUG
@@ -2638,8 +2639,7 @@ void CPU_VERW(Bitu selector) {
 	SETFLAGBIT(ZF,true);
 }
 
-bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
-	value &= 0xffff;
+bool CPU_SetSegGeneral(SegNames seg,Bit16u value) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		Segs.val[seg]=value;
 		Segs.phys[seg]=value << 4;
@@ -2734,7 +2734,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
+			Segs.limit[seg]=do_seg_limits?(PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
 		}
 
@@ -2745,7 +2745,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 bool CPU_PopSeg(SegNames seg,bool use32) {
 	Bitu val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	if (CPU_SetSegGeneral(seg,val)) return true;
-	Bitu addsp=use32?0x04:0x02;
+	Bit8u addsp=use32?0x04:0x02;
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+addsp)&cpu.stack.mask);
 	return false;
 }
@@ -2813,7 +2813,7 @@ Bits HLT_Decode(void) {
 	return 0;
 }
 
-void CPU_HLT(Bitu oldeip) {
+void CPU_HLT(Bit32u oldeip) {
 	/* Since cpu.hlt.old_decoder assigns the current decoder to old, and relies on restoring
 	 * it back when finished, setting cpudecoder to HLT_Decode while already HLT_Decode effectively
 	 * hangs DOSBox and makes it complete unresponsive. Don't want that! */
@@ -2830,8 +2830,8 @@ void CPU_HLT(Bitu oldeip) {
 
 void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 	level&=0x1f;
-	Bitu sp_index=reg_esp&cpu.stack.mask;
-	Bitu bp_index=reg_ebp&cpu.stack.mask;
+	Bit32u sp_index=reg_esp&cpu.stack.mask;
+	Bit32u bp_index=reg_ebp&cpu.stack.mask;
 	if (!use32) {
 		sp_index-=2;
 		mem_writew(SegPhys(ss)+sp_index,reg_bp);
@@ -3036,37 +3036,37 @@ public:
 	~Weitek_PageHandler() {
 	}
 
-	Bitu readb(PhysPt addr);
-	void writeb(PhysPt addr,Bitu val);
-	Bitu readw(PhysPt addr);
-	void writew(PhysPt addr,Bitu val);
-	Bitu readd(PhysPt addr);
-	void writed(PhysPt addr,Bitu val);
+	Bit8u readb(PhysPt addr);
+	void writeb(PhysPt addr,Bit8u val);
+	Bit16u readw(PhysPt addr);
+	void writew(PhysPt addr,Bit16u val);
+	Bit32u readd(PhysPt addr);
+	void writed(PhysPt addr,Bit32u val);
 };
 
-Bitu Weitek_PageHandler::readb(PhysPt addr) {
+Bit8u Weitek_PageHandler::readb(PhysPt addr) {
     LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+	return (Bit8u)-1;
 }
-void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
+void Weitek_PageHandler::writeb(PhysPt addr,Bit8u val) {
     LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Bitu Weitek_PageHandler::readw(PhysPt addr) {
+Bit16u Weitek_PageHandler::readw(PhysPt addr) {
     LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+	return (Bit16u)-1;
 }
 
-void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
+void Weitek_PageHandler::writew(PhysPt addr,Bit16u val) {
     LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Bitu Weitek_PageHandler::readd(PhysPt addr) {
+Bit32u Weitek_PageHandler::readd(PhysPt addr) {
     LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
-	return (Bitu)-1;
+	return (Bit32u)-1;
 }
 
-void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
+void Weitek_PageHandler::writed(PhysPt addr,Bit32u val) {
     LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 

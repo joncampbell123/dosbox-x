@@ -223,17 +223,17 @@ void SkipSpace(char*& hex);
 #if 0
 class DebugPageHandler : public PageHandler {
 public:
-	Bitu readb(PhysPt /*addr*/) {
+	Bit8u readb(PhysPt /*addr*/) {
 	}
-	Bitu readw(PhysPt /*addr*/) {
+	Bit16u readw(PhysPt /*addr*/) {
 	}
-	Bitu readd(PhysPt /*addr*/) {
+	Bit32u readd(PhysPt /*addr*/) {
 	}
-	void writeb(PhysPt /*addr*/,Bitu /*val*/) {
+	void writeb(PhysPt /*addr*/,Bit8u /*val*/) {
 	}
-	void writew(PhysPt /*addr*/,Bitu /*val*/) {
+	void writew(PhysPt /*addr*/,Bit16u /*val*/) {
 	}
-	void writed(PhysPt /*addr*/,Bitu /*val*/) {
+	void writed(PhysPt /*addr*/,Bit32u /*val*/) {
 	}
 };
 #endif

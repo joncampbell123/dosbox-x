@@ -129,7 +129,7 @@ static INLINE void gen_reg_memaddr(HostReg reg,void* data,Bit8u op,Bit8u prefix=
 }
 
 // Same as above, but with immediate addressing and a memory location
-static INLINE void gen_memaddr(Bitu modreg,void* data,Bitu off,Bitu imm,Bit8u op,Bit8u prefix=0) {
+static INLINE void gen_memaddr(Bit8u modreg,void* data,Bitu off,Bitu imm,Bit8u op,Bit8u prefix=0) {
 	Bit64s diff = (Bit64s)data-((Bit64s)cache.pos+off+(prefix?7:6));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) {
 	if ( (diff>>63) == (diff>>31) ) {
@@ -337,7 +337,7 @@ static INLINE void gen_lea(HostReg dest_reg,HostReg scale_reg,Bitu scale,Bits im
 	cache_addb(0x48);
 	cache_addb(0x8d);			//LEA
 	cache_addb(0x04+(dest_reg << 3)+rm_base);	//The sib indicator
-	cache_addb(dest_reg+(scale_reg<<3)+(scale<<6));
+	cache_addb((Bit8u)(dest_reg+(scale_reg<<3)+(scale<<6)));
 
 	switch (imm_size) {
 	case 0:	break;
