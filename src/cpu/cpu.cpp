@@ -424,6 +424,8 @@ void CPU_Raise_NMI() {
     CPU_Check_NMI();
 }
 
+extern Bitu PIC_IRQCheck;
+
 void CPU_Check_NMI() {
 	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) {
         /* STOP THE CPU CORE.
@@ -432,6 +434,8 @@ void CPU_Check_NMI() {
             CPU_CycleLeft += CPU_Cycles;
             CPU_Cycles = 1;
         }
+
+        PIC_IRQCheck = true;
     }
 }
 
