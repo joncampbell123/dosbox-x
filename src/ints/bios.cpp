@@ -407,6 +407,14 @@ void dosbox_integration_trigger_write() {
             GFX_ReleaseMouse();
             break;
 
+        case 0x808602: /* NMI (INT 02h) interrupt injection */
+            {
+                dosbox_int_register_shf = 0;
+                dosbox_int_regsel_shf = 0;
+                CPU_Raise_NMI();
+            }
+            break;
+
         case 0x825900: /* PIC interrupt injection */
             {
                 dosbox_int_register_shf = 0;
