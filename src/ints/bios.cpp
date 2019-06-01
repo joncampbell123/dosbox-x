@@ -407,6 +407,24 @@ void dosbox_integration_trigger_write() {
             GFX_ReleaseMouse();
             break;
 
+        case 0x825900: /* PIC interrupt injection */
+            {
+                dosbox_int_register_shf = 0;
+                dosbox_int_regsel_shf = 0;
+                /* bits  [7:0]  = IRQ to signal (must be 0-15)
+                 * bit   [8:8]  = 1=raise 0=lower IRQ */
+                uint8_t IRQ = dosbox_int_register&0xFFu;
+                bool raise = (dosbox_int_register>>8u)&1u;
+
+                if (IRQ < 16) {
+                    if (raise)
+                        PIC_ActivateIRQ(IRQ);
+                    else
+                        PIC_DeActivateIRQ(IRQ);
+                }
+            }
+            break;
+
         case 0x823700: /* ISA DMA injection, single byte/word (write to memory) */
             {
                 dosbox_int_register_shf = 0;
