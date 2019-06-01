@@ -1,5 +1,9 @@
 0.82.20 (next)
-  - 
+  - NMI interrupt handling fixes to resolve instruction pointer
+    corruption if NMI interrupt triggered while a CPU core is
+    executing instructions (i.e. triggered by I/O handler).
+  - DOSBox-X integration device now provides an interface to
+    trigger IRQs and NMI signals.
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"
