@@ -412,19 +412,27 @@ void menu_update_autocycle(void) {
  * is no mention whatsoever to the NMI that I can find.
  */
 void CPU_NMI_Interrupt() {
+    /* WARNING: Do not call while running inside a CPU core loop */
 	if (CPU_NMI_active) E_Exit("CPU_NMI_Interrupt() called while NMI already active");
 	CPU_NMI_active = true;
 	CPU_NMI_pending = false;
-	CPU_Interrupt(2/*INT 2 = NMI*/,0,reg_eip);
+    CPU_Interrupt(2/*INT 2 = NMI*/,0,reg_eip);
 }
 
 void CPU_Raise_NMI() {
-	CPU_NMI_pending = true;
-	if (!CPU_NMI_active && CPU_NMI_gate) CPU_NMI_Interrupt();
+    CPU_NMI_pending = true;
+    CPU_Check_NMI();
 }
 
 void CPU_Check_NMI() {
-	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) CPU_NMI_Interrupt();
+	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) {
+        /* STOP THE CPU CORE.
+         * reg_eip is not valid until the CPU core has left the runtime loop. */
+        if (CPU_Cycles > 1) {
+            CPU_CycleLeft += CPU_Cycles;
+            CPU_Cycles = 1;
+        }
+    }
 }
 
 /* In debug mode exceptions are tested and dosbox exits when 
