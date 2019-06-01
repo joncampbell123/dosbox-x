@@ -1,4 +1,4 @@
-0.82.19 (next)
+0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"
     demoscene production can run again.
