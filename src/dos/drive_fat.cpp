@@ -1105,12 +1105,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
             return;
         }
 	}
-	
-	if (bytesector != 512) {
-		/* Non-standard sector sizes not implemented */
-		created_successfully = false;
-		return;
-	}
 
 	loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
@@ -1235,8 +1229,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	}
 
 	/* Sanity checks */
-	if ((bootbuffer.bytespersector != 512) || // non-standard sector sizes not implemented
-		(bootbuffer.sectorspercluster == 0) ||
+	if ((bootbuffer.sectorspercluster == 0) ||
 		(bootbuffer.rootdirentries == 0) ||
 		(bootbuffer.fatcopies == 0) ||
 		(bootbuffer.headcount == 0) ||
