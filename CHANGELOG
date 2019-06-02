@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Gravis Ultrasound emulation fixed not to run or compute
+    voices and ramps if the DAC enable bit is not set.
   - Gravis Ultrasound emulation now offers a hack to ignore
     writes to the Active Channel register if the DAC is active
     and rendering audio (Ice Fever demoscene hack).
