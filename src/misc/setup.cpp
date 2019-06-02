@@ -719,7 +719,7 @@ void Section_prop::PrintData(FILE* outfile,bool everything) {
     for(const_it tel = properties.begin();tel != properties.end();tel++) {
         if (!everything && !(*tel)->modified()) continue;
 
-        fprintf(outfile,"%-*s = %s\n", len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
+        fprintf(outfile,"%-*s = %s\n", (unsigned int)len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
     }
 }
 
