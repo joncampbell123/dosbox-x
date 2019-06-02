@@ -453,10 +453,10 @@ public:
 					if (Lc&2) sp[1] += L;
 					if (Rc&1) sp[0] += R;
 					if (Rc&2) sp[1] += R;
-				}
 
-				WaveUpdate();
-				RampUpdate();
+                    WaveUpdate();
+                    RampUpdate();
+                }
 			}
 		}
 		else {
@@ -469,10 +469,10 @@ public:
 				if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
 					stream[i<<1]+= tmpsamp * VolLeft;
 					stream[(i<<1)+1]+= tmpsamp * VolRight;
-				}
 
-				WaveUpdate();
-				RampUpdate();
+                    WaveUpdate();
+                    RampUpdate();
+                }
 			}
 		}
 	}
