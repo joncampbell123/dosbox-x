@@ -3701,7 +3701,7 @@ private:
         dos.dta(dos.tables.tempdta);
 
         for (ct = 0; ct < imgDisks.size(); ct++) {
-            DriveManager::CycleAllDisks();
+            DriveManager::CycleDisks(drive - 'A', (ct == (imgDisks.size() - 1)));
 
             char root[7] = { drive, ':', '\\', '*', '.', '*', 0 };
             DOS_FindFirst(root, DOS_ATTR_VOLUME); // force obtaining the label and saving it in dirCache
