@@ -242,7 +242,7 @@ void DOS_Shell::InputCommand(char * line) {
                         line[str_index ++] = (char)c;
                         DOS_WriteFile(STDOUT,&c,&n);
                     }
-                    str_len = str_index = (Bitu)it_history->length();
+                    str_len = str_index = (Bit16u)it_history->length();
                     size = CMD_MAXLINE - str_index - 2;
                     line[str_len] = 0;
                 }

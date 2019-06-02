@@ -2715,7 +2715,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bit16u value) {
 			case DESC_DATA_ED_RO_NA:		case DESC_DATA_ED_RO_A:
 			case DESC_DATA_ED_RW_NA:		case DESC_DATA_ED_RW_A:
 			case DESC_CODE_R_NC_A:			case DESC_CODE_R_NC_NA:
-				if (((value & 3)>desc.DPL()) || (cpu.cpl>desc.DPL())) {
+				if (((value & 3u)>desc.DPL()) || (cpu.cpl>desc.DPL())) {
 					// extreme pinball
 					return CPU_PrepareException(EXCEPTION_GP,value & 0xfffc);
 				}
@@ -3657,32 +3657,32 @@ void CPU_LoadState(Section *sec) {
             reg_eip =       nv.get_ulong("eip");
             reg_flags =     nv.get_ulong("eflags");
 
-            Segs.val[es] =          nv.get_ulong("es.val");
+            Segs.val[es] =          (Bit16u)nv.get_ulong("es.val");
             Segs.phys[es] =         nv.get_ulong("es.phys");
             Segs.limit[es] =        nv.get_ulong("es.limit");
             Segs.expanddown[es] =   nv.get_bool("es.expanddown");
 
-            Segs.val[cs] =          nv.get_ulong("cs.val");
+            Segs.val[cs] =          (Bit16u)nv.get_ulong("cs.val");
             Segs.phys[cs] =         nv.get_ulong("cs.phys");
             Segs.limit[cs] =        nv.get_ulong("cs.limit");
             Segs.expanddown[cs] =   nv.get_bool("cs.expanddown");
 
-            Segs.val[ss] =          nv.get_ulong("ss.val");
+            Segs.val[ss] =          (Bit16u)nv.get_ulong("ss.val");
             Segs.phys[ss] =         nv.get_ulong("ss.phys");
             Segs.limit[ss] =        nv.get_ulong("ss.limit");
             Segs.expanddown[ss] =   nv.get_bool("ss.expanddown");
 
-            Segs.val[ds] =          nv.get_ulong("ds.val");
+            Segs.val[ds] =          (Bit16u)nv.get_ulong("ds.val");
             Segs.phys[ds] =         nv.get_ulong("ds.phys");
             Segs.limit[ds] =        nv.get_ulong("ds.limit");
             Segs.expanddown[ds] =   nv.get_bool("ds.expanddown");
 
-            Segs.val[fs] =          nv.get_ulong("fs.val");
+            Segs.val[fs] =          (Bit16u)nv.get_ulong("fs.val");
             Segs.phys[fs] =         nv.get_ulong("fs.phys");
             Segs.limit[fs] =        nv.get_ulong("fs.limit");
             Segs.expanddown[fs] =   nv.get_bool("fs.expanddown");
 
-            Segs.val[gs] =          nv.get_ulong("gs.val");
+            Segs.val[gs] =          (Bit16u)nv.get_ulong("gs.val");
             Segs.phys[gs] =         nv.get_ulong("gs.phys");
             Segs.limit[gs] =        nv.get_ulong("gs.limit");
             Segs.expanddown[gs] =   nv.get_bool("gs.expanddown");
