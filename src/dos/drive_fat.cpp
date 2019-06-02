@@ -1236,6 +1236,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		(bootbuffer.headcount > headscyl) ||
 		(bootbuffer.sectorspertrack == 0) ||
 		(bootbuffer.sectorspertrack > cylsector)) {
+		LOG_MSG("Sanity checks failed");
 		created_successfully = false;
 		return;
 	}
