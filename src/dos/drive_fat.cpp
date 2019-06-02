@@ -1229,6 +1229,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	}
 
 	/* Sanity checks */
+    /* NTS: DOSBox-X *does* support non-standard sector sizes, though not in IBM PC mode and not through INT 13h.
+     *      In DOSBox-X INT 13h emulation will enforce the standard (512 byte) sector size.
+     *      In PC-98 mode mounting disk images requires "non-standard" sector sizes because PC-98 floppies (other
+     *      than ones formatted 1.44MB) generally use 1024 bytes/sector and MAY use 128 or 256 bytes per sector. */
 	if ((bootbuffer.sectorspercluster == 0) ||
 		(bootbuffer.rootdirentries == 0) ||
 		(bootbuffer.fatcopies == 0) ||
