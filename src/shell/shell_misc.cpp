@@ -386,8 +386,8 @@ void DOS_Shell::InputCommand(char * line) {
                     Bit8u* text=reinterpret_cast<Bit8u*>(&line[str_index+1]);
                     DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
                     outc(' ');outc(8);
-                    for(Bitu i=str_index;i<str_len-1;i++) {
-                        line[i]=line[i+1];
+                    for(Bitu i=str_index;i<(str_len-1u);i++) {
+                        line[i]=line[i+1u];
                         outc(8);
                     }
                     line[--str_len]=0;
