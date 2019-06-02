@@ -136,7 +136,7 @@ void DriveManager::InitializeDrive(int drive) {
 		driveInfo.currentDisk = 0;
 		DOS_Drive* disk = driveInfo.disks[driveInfo.currentDisk];
 		Drives[currentDrive] = disk;
-		disk->Activate();
+		if (driveInfo.disks.size() > 1) disk->Activate();
 	}
 }
 
