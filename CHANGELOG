@@ -1,4 +1,7 @@
 0.82.20 (next)
+  - SDL drawn menus fixed not to interact or draw while 3Dfx
+    emulation is using OpenGL, to prevent it from disturbing
+    the OpenGL context for 3Dfx emulation.
   - NMI interrupt handling fixes to resolve instruction pointer
     corruption if NMI interrupt triggered while a CPU core is
     executing instructions (i.e. triggered by I/O handler).
