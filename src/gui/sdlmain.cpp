@@ -3750,7 +3750,10 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
+    if (GFX_GetPreventFullscreen()) {
+        /* do NOT draw SDL menu in OpenGL mode when 3Dfx emulation is using OpenGL */
+    }
+    else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
         SDL_ShowCursor(SDL_ENABLE);
 
@@ -3912,7 +3915,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     bool inMenu = false;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
+    if (GFX_GetPreventFullscreen()) {
+        /* do NOT draw SDL menu in OpenGL mode when 3Dfx emulation is using OpenGL */
+        mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
+    }
+    else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,button->x,button->y));
         inMenu = true;
     }
