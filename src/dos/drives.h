@@ -35,6 +35,7 @@ public:
 	static int UnmountDrive(int drive);
 //	static void CycleDrive(bool pressed);
 //	static void CycleDisk(bool pressed);
+	static void CycleDisks(int drive, bool notify);
 	static void CycleAllDisks(void);
 	static void CycleAllCDs(void);
 	static void Init(Section* sec);
@@ -226,12 +227,15 @@ public:
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
 public:
+	Bit8u readSector(Bit32u sectnum, void * data);
+	Bit8u writeSector(Bit32u sectnum, void * data);
 	Bit32u getAbsoluteSectFromBytePos(Bit32u startClustNum, Bit32u bytePos);
 	Bit32u getSectorSize(void);
+	Bit32u getClusterSize(void);
 	Bit32u getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSector);
 	bool allocateCluster(Bit32u useCluster, Bit32u prevCluster);
 	Bit32u appendCluster(Bit32u startCluster);
-	void deleteClustChain(Bit32u startCluster);
+	void deleteClustChain(Bit32u startCluster, Bit32u bytePos);
 	Bit32u getFirstFreeClust(void);
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
 	bool directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum);
@@ -261,6 +265,7 @@ private:
 	} allocation;
 	
 	bootstrap bootbuffer;
+	bool absolute;
 	Bit8u fattype;
 	Bit32u CountOfClusters;
 	Bit32u partSectOff;

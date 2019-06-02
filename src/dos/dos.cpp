@@ -1029,7 +1029,7 @@ static Bitu DOS_21Handler(void) {
                 if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable()) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
-                    reg_bx = drive*5;//Faking the first entry (drive number) and media id
+                    reg_bx = drive*9;
                     LOG(LOG_DOSMISC,LOG_ERROR)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;

@@ -689,14 +689,14 @@ AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to e
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
    if test x$enable_debug = xno; then
      AC_MSG_RESULT([Debugger not enabled])
-   elif test x$have_curses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lcurses"
+   elif test x$have_ncurses_lib = xyes -a x$have_curses_h = xyes ; then
+     LIBS="$LIBS -lncurses"
      AC_DEFINE(C_DEBUG,1)
      if test x$enable_debug = xheavy ; then 
        AC_DEFINE(C_HEAVY_DEBUG,1)
      fi
-   elif test x$have_ncurses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lncurses"
+   elif test x$have_curses_lib = xyes -a x$have_curses_h = xyes ; then
+     LIBS="$LIBS -lcurses"
      AC_DEFINE(C_DEBUG,1)
      if test x$enable_debug = xheavy ; then 
        AC_DEFINE(C_HEAVY_DEBUG,1)
@@ -842,12 +842,19 @@ fi
 dnl FEATURE: Whether to support libpng, and enable snapshots
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
-if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
-  LIBS="$LIBS -lpng -lz"
-  AC_DEFINE(C_LIBPNG,1)
-  AC_DEFINE(C_SSHOT,1)
+AC_ARG_ENABLE(screenshots,AC_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
+AC_MSG_CHECKING([whether screenshots will be enabled])
+if test x$enable_screenshots = xyes; then 
+    if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
+    LIBS="$LIBS -lpng -lz"
+    AC_DEFINE(C_LIBPNG,1)
+    AC_DEFINE(C_SSHOT,1)
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no, can't find libpng.])
+  fi
 else
-  AC_MSG_WARN([Can't find libpng, screenshot support disabled])
+  AC_MSG_RESULT([no])
 fi
 
 dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation

@@ -101,14 +101,7 @@ void DOS_FreeProcessMemory(Bit16u pspseg) {
 		if (mcb.GetPSPSeg()==pspseg) {
 			mcb.SetPSPSeg(MCB_FREE);
 		}
-		if (mcb.GetType()==0x5a) {
-			/* check if currently last block reaches up to the PCJr graphics memory */
-			if ((machine==MCH_PCJR) && (mcb_segment+mcb.GetSize()==0x17fe) &&
-			   (real_readb(0x17ff,0)==0x4d) && (real_readw(0x17ff,1)==8)) {
-				/* re-enable the memory past segment 0x2000 */
-				mcb.SetType(0x4d);
-			} else break;
-		}
+		if (mcb.GetType()==0x5a) break;
 		if (GCC_UNLIKELY(mcb.GetType()!=0x4d)) DOS_Mem_E_Exit("Corrupt MCB chain");
 		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);

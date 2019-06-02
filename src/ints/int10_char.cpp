@@ -764,6 +764,11 @@ void INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr
             cur_row++;
         }
     }
+
+    if (CurMode->type==M_EGA) {
+        // Reset write ops for EGA graphics modes
+        IO_Write(0x3ce,0x3);IO_Write(0x3cf,0x0);
+    }
 }
 
 static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u page) {

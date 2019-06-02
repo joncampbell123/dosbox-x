@@ -7,6 +7,38 @@
     executing instructions (i.e. triggered by I/O handler).
   - DOSBox-X integration device now provides an interface to
     trigger IRQ and NMI signals.
+  - Integrated commits from mainline (Allofich)
+    - Improve disk image mounting: cycle disks only for the
+    drive being mounted.
+    - FAT drive fixes and improvements. Identify floppy format,
+    and support filesystems that use only part of the disk.
+    Fixes Make Your Own Murder Party and Music/Pinball
+    Construction Set.
+    - Return correct error code for verify sectors function
+    when an invalid drive is specified. Fixes Hugo Troll game
+    installers.
+    - Prefer ncurses above curses (on some systems, these are
+    still different packages)
+    - Give a warning at startup if dpi scaling is detected.
+    - Show segment override on XLAT instruction.
+    - Change scan3x to be LINE LINE DARK instead of LINE DARK
+    DARK. This matches pictures of scanlines better and doubles
+    the brightness as the old implementation was rather dark.
+    - Make it possible to compile without PNG support.
+    - Report when a -conf file can not be loaded.
+    - When searching CD-ROM directory entries, strip trailing
+    period of extension-less filenames after stripping file
+    version number and separator. Fixes disc check in Air Power.
+    - Add Unit Number and Bytes Per Sector fields for DPB
+    entries. Fixes Air Power installer and Windows 3 Virtual
+    Memory dialog.
+    - Reset write ops after drawing text in EGA graphics modes,
+    consistent with EGA/VGA BIOS. Fixes Fun School 3.
+    - Make Allocation Info work for CD-ROM drives. Fixes Bureau
+    13 installer.
+    - Prevent double-loading of CD-ROM images.
+    - Don't generate sound after DMA is masked at end of single
+    -cycle transfer. Prevents issues with some games.
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"

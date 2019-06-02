@@ -302,11 +302,13 @@ void DOS_SetupTables(void) {
 	dos_infoblock.SetFCBTable(RealMake(seg,0));
 
 	/* Create a fake DPB */
-	dos.tables.dpb=DOS_GetMemory(10,"dos.tables.dpb");
+	dos.tables.dpb=DOS_GetMemory(16,"dos.tables.dpb");
 	dos.tables.mediaid=RealMake(dos.tables.dpb,0x17);	//Media ID offset in DPB
 	for (i=0;i<DOS_DRIVES;i++) {
-		real_writeb(dos.tables.dpb,i*5,i);
-		mem_writew(Real2Phys(dos.tables.mediaid)+i*5,0);
+		real_writeb(dos.tables.dpb,i*9,i);				// drive number
+		real_writeb(dos.tables.dpb,i*9+1,i);			// unit number
+		real_writew(dos.tables.dpb,i*9+2,0x0200);		// bytes per sector
+		mem_writew(Real2Phys(dos.tables.mediaid)+i*9,0);
 	}
 
 	/* Create a fake disk buffer head */

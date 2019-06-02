@@ -3162,8 +3162,21 @@ static void GUI_StartUp() {
 #endif
 #if !defined(C_SDL2)
   #if SDL_VERSION_ATLEAST(1, 2, 10)
+  #ifdef WIN32
+    const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
+    if (vidinfo) {
+        int sdl_w = vidinfo->current_w;
+        int sdl_h = vidinfo->current_h;
+        int win_w = GetSystemMetrics(SM_CXSCREEN);
+        int win_h = GetSystemMetrics(SM_CYSCREEN);
+        if (sdl_w != win_w && sdl_h != win_h) 
+            LOG_MSG("Windows dpi/blurry apps scaling detected! The screen might be too large or not show properly,\n"
+                "please see the DOSBox Manual/README for details.\n");
+        }
+  #else
     if (!sdl.desktop.full.width || !sdl.desktop.full.height){
         //Can only be done on the very first call! Not restartable.
+        //On windows don't use it as SDL returns the values without taking in account the dpi scaling
         const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
         if (vidinfo) {
             if (sdl.desktop.full.width == 0) {
@@ -3180,6 +3193,7 @@ static void GUI_StartUp() {
                 (unsigned int)sdl.desktop.full.height);
         }
     }
+  #endif
   #endif
 #endif
 
@@ -7256,6 +7270,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if (!control->ParseConfigFile(cfg.c_str())) {
                 // try to load it from the user directory
                 control->ParseConfigFile((config_path + cfg).c_str());
+                if (!control->ParseConfigFile((config_path + cfg).c_str())) {
+                LOG_MSG("CONFIG: Can't open specified config file: %s",cfg.c_str());
+                }
             }
         }
 

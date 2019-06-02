@@ -136,7 +136,7 @@ void DriveManager::InitializeDrive(int drive) {
 		driveInfo.currentDisk = 0;
 		DOS_Drive* disk = driveInfo.disks[driveInfo.currentDisk];
 		Drives[currentDrive] = disk;
-		disk->Activate();
+		if (driveInfo.disks.size() > 1) disk->Activate();
 	}
 }
 
@@ -173,24 +173,26 @@ void DriveManager::CycleDisk(bool pressed) {
 }
 */
 
-void DriveManager::CycleAllDisks(void) {
-	for (unsigned int idrive=0; idrive<2; idrive++) { /* Cycle all DISKS meaning A: and B: */
-		unsigned int numDisks = (unsigned int)driveInfos[idrive].disks.size();
-		if (numDisks > 1) {
-			// cycle disk
-			unsigned int currentDisk = (unsigned int)driveInfos[idrive].currentDisk;
-			DOS_Drive* oldDisk = driveInfos[idrive].disks[(unsigned int)currentDisk];
-			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
-			DOS_Drive* newDisk = driveInfos[idrive].disks[(unsigned int)currentDisk];
-			driveInfos[idrive].currentDisk = currentDisk;
-			
-			// copy working directory, acquire system resources and finally switch to next drive		
-			strcpy(newDisk->curdir, oldDisk->curdir);
-			newDisk->Activate();
-			Drives[idrive] = newDisk;
-			LOG_MSG("Drive %c: disk %d of %d now active", 'A'+idrive, currentDisk+1, numDisks);
-		}
+void DriveManager::CycleDisks(int drive, bool notify) {
+	unsigned int numDisks = (unsigned int)driveInfos[drive].disks.size();
+	if (numDisks > 1) {
+		// cycle disk
+		unsigned int currentDisk = (unsigned int)driveInfos[drive].currentDisk;
+		DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
+		currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
+		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
+		driveInfos[drive].currentDisk = currentDisk;
+		
+		// copy working directory, acquire system resources and finally switch to next drive		
+		strcpy(newDisk->curdir, oldDisk->curdir);
+		newDisk->Activate();
+		Drives[drive] = newDisk;
+		if (notify) LOG_MSG("Drive %c: disk %d of %d now active", 'A'+drive, currentDisk+1, numDisks);
 	}
+}
+
+void DriveManager::CycleAllDisks(void) {
+	for (int idrive=0; idrive<2; idrive++) CycleDisks(idrive, true); /* Cycle all DISKS meaning A: and B: */
 }
 
 void DriveManager::CycleAllCDs(void) {

@@ -1350,20 +1350,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(1,511);
     Pint->Set_help(
         "Amount of memory DOSBox has in megabytes.\n"
-        "  This value is best left at its default to avoid problems with some games,\n"
-        "  though few games might require a higher value.\n"
-        "  There is generally no speed advantage when raising this value.\n"
-        "  Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
+        "This value is best left at its default to avoid problems with some games,\n"
+        "though few games might require a higher value.\n"
+        "There is generally no speed advantage when raising this value.n"
+        "Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
 
     Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,524288);
     Pint->Set_help(
         "Amount of memory DOSBox has in kilobytes.\n"
-        "  This value should normally be set to 0.\n"
-        "  If nonzero, it is added to the memsize parameter.\n"
-        "  Finer grained control of total memory may be useful in\n"
-        "  emulating ancient DOS machines with less than 640KB of\n"
-        "  RAM or early 386 systems with odd extended memory sizes.");
+        "This value should normally be set to 0.\n"
+        "If nonzero, it is added to the memsize parameter.\n"
+        "Finer grained control of total memory may be useful in\n"
+        "emulating ancient DOS machines with less than 640KB of\n"
+        "RAM or early 386 systems with odd extended memory sizes.");
 
     Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1023);
@@ -1382,11 +1382,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,32);
     Pint->Set_help(
         "Memory aliasing emulation, in number of valid address bits.\n"
-        ". Many 386/486 class motherboards and processors prior to 1995\n"
-        "  suffered from memory aliasing for various technical reasons. If the software you are\n"
-        "  trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
-        "  enabling this option can help. Note that enabling this option can cause slight performance degredation. Set to 0 to disable.\n"
-        "  Recommended values when enabled:\n"
+        "Many 386/486 class motherboards and processors prior to 1995\n"
+        "suffered from memory aliasing for various technical reasons. If the software you are\n"
+        "trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
+        "enabling this option can help. Note that enabling this option can cause slight performance degredation. Set to 0 to disable.\n"
+        "Recommended values when enabled:\n"
         "    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
@@ -1785,7 +1785,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
     Pmulti->SetValue("normal2x",/*init*/true);
     Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
-                     "then the scaler will be used even if the result might not be desired.");
+                     "then the scaler will be used even if the result might not be desired.\n"
+                     "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
+                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.");
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);
 
@@ -2044,10 +2046,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
-                      "  Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
-                      "  When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
-                      "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
-                      "  See the README/Manual for more details.");
+                      "Or in the case of coreaudio or synth, you can specify a soundfont here.\n"
+                      "When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
+                      "In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
+                      "See the README/Manual for more details.");
 
     Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(rates);

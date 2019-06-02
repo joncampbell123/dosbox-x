@@ -55,3 +55,12 @@ Commit#:	Reason for skipping:
 4095		Conflict
 4099		MAME sound
 4111		Conflict
+4129		Partial conflict
+4132		Conflict
+4140		MAME sound
+4141		MAME sound
+4142		MAME sound
+4147		Conflict
+4158		MAME sound
+4165		Not sure if needed
+4174		Conflict
