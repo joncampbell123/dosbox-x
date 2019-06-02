@@ -2491,9 +2491,9 @@ void GFX_SwitchFullScreen(void)
 
         if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
             if (sdl.desktop.full.width_auto)
-                sdl.desktop.full.width = screen_size_info.screen_dimensions_pixels.width;
+                sdl.desktop.full.width = (unsigned int)screen_size_info.screen_dimensions_pixels.width;
             if (sdl.desktop.full.height_auto)
-                sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
+                sdl.desktop.full.height = (unsigned int)screen_size_info.screen_dimensions_pixels.height;
 
 #if !defined(C_SDL2) && defined(MACOSX)
             /* Mac OS X has this annoying problem with their API where the System Preferences app, display settings panel
@@ -2556,8 +2556,8 @@ void GFX_SwitchFullScreen(void)
 
 #if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
             SDL_hax_SetFSWindowPosition(
-                screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
-                screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
+                (int)screen_size_info.screen_position_pixels.x, (int)screen_size_info.screen_position_pixels.y,
+                (int)screen_size_info.screen_dimensions_pixels.width, (int)screen_size_info.screen_dimensions_pixels.height);
 #endif
         }
         else {
