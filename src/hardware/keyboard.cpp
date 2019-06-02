@@ -533,7 +533,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
             KEYBOARD_AddBuffer(0xfa);   /* Acknowledge */
             break;
         case 0xee:  /* Echo */
-            KEYBOARD_AddBuffer(0xee);   /* JC: The correct response is 0xEE, not 0xFA */
+            KEYBOARD_AddBuffer(0xee);   /* Echo */
             break;
         case 0xf0:  /* set scancode set */
             keyb.command=CMD_SETSCANSET;
