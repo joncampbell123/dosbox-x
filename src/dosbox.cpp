@@ -2334,6 +2334,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
             "Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
 
+    Pbool = secprop->Add_bool("ignore channel count while active",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Ignore writes to the active channel count register when the DAC is enabled (bit 1 of GUS reset)\n"
+                    "This is a HACK for demoscene prod 'Ice Fever' without which the music sounds wrong.\n"
+                    "According to current testing real hardware does not behave this way.");
+
     Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.");
 
