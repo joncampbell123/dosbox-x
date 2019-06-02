@@ -709,10 +709,17 @@ bool Section_prop::HandleInputline(string const& gegevens) {
 
 void Section_prop::PrintData(FILE* outfile,bool everything) {
     /* Now print out the individual section entries */
-    for(const_it tel=properties.begin();tel!=properties.end();tel++) {
+    size_t len = 0;
+    // Determine maximum length of the props in this section
+    for(const_it tel = properties.begin();tel != properties.end();tel++) {
+        if ((*tel)->propname.length() > len)
+            len = (*tel)->propname.length();
+    }
+
+    for(const_it tel = properties.begin();tel != properties.end();tel++) {
         if (!everything && !(*tel)->modified()) continue;
 
-        fprintf(outfile,"%s=%s\n",(*tel)->propname.c_str(),(*tel)->GetValue().ToString().c_str());
+        fprintf(outfile,"%-*s = %s\n", len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
     }
 }
 
@@ -780,7 +787,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 
             i=0;
             char prefix[80];
-            snprintf(prefix,80, "\n# %*s  ", (int)maxwidth, "");
+            snprintf(prefix,80, "\n# %*s    ", (int)maxwidth, "");
             while ((p = sec->Get_prop(i++))) {
                 if (!everything && !p->modified()) continue;
 
