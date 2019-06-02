@@ -967,8 +967,8 @@ static void DrawData(void) {
             mvwprintw (dbg.win_data,y,0,"              ");
         }
 
-        if (!mem_readb_checked(address,&ch)) {
-            Bitu naddr = PAGING_GetPhysicalAddress(address);
+        if (!mem_readb_checked((PhysPt)address,&ch)) {
+            Bitu naddr = PAGING_GetPhysicalAddress((PhysPt)address);
             mvwprintw (dbg.win_data,y,14,"PHY=%08X ",(unsigned int)naddr);
         }
         else {
@@ -3550,6 +3550,7 @@ static void LogMCBS(void)
                 LogMCBChain(guest_msdos_mcb_chain);
             }
             catch (GuestPageFaultException &pf) {
+                (void)pf;//unused
                 LOG(LOG_MISC,LOG_ERROR)("(Enumeration caused page fault within the guest)");
             }
 
