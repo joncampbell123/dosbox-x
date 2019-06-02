@@ -1,4 +1,7 @@
 0.82.20 (next)
+  - Gravis Ultrasound emulation now offers a hack to ignore
+    writes to the Active Channel register if the DAC is active
+    and rendering audio (Ice Fever demoscene hack).
   - SDL drawn menus fixed not to interact or draw while 3Dfx
     emulation is using OpenGL, to prevent it from disturbing
     the OpenGL context for 3Dfx emulation.
