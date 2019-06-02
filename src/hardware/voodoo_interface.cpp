@@ -56,12 +56,13 @@ Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
         return (Bit16u)-1;
     }
 
-	Bit16u retval=voodoo_r((addr>>2)&0x3FFFFF);
+	Bit32u retval = voodoo_r((addr>>2)&0x3FFFFF);
 	if (addr&3)
 		retval >>= 16;
 	else
 		retval &= 0xffff;
-	return retval;
+
+	return (Bit16u)retval;
 }
 
 void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
