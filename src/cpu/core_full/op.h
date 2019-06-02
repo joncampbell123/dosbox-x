@@ -54,14 +54,14 @@ switch (inst.code.op) {
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=lf_var1d + lf_var2d + lflags.oldcf;
+		inst_op1_d=lf_resd=(Bit32u)(lf_var1d + lf_var2d + lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_SBBb:	case t_SBBw:	case t_SBBd:
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=lf_var1d - lf_var2d - lflags.oldcf;
+		inst_op1_d=lf_resd=(Bit32u)(lf_var1d - lf_var2d - lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_INCb:	case t_INCw:	case t_INCd:
@@ -425,12 +425,12 @@ switch (inst.code.op) {
 	case O_GRP7d:
 		switch (inst.rm_index) {
 		case 0:		/* SGDT */
-			SaveMw(inst.rm_eaa,CPU_SGDT_limit());
-			SaveMd(inst.rm_eaa+2,CPU_SGDT_base());
+			SaveMw(inst.rm_eaa,(Bit16u)CPU_SGDT_limit());
+			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SGDT_base());
 			goto nextopcode;
 		case 1:		/* SIDT */
-			SaveMw(inst.rm_eaa,CPU_SIDT_limit());
-			SaveMd(inst.rm_eaa+2,CPU_SIDT_base());
+			SaveMw(inst.rm_eaa,(Bit16u)CPU_SIDT_limit());
+			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SIDT_base());
 			goto nextopcode;
 		case 2:		/* LGDT */
 			if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -441,7 +441,7 @@ switch (inst.code.op) {
 			CPU_LIDT(LoadMw(inst.rm_eaa),LoadMd(inst.rm_eaa+2)&((inst.code.op == O_GRP7w) ? 0xFFFFFF : 0xFFFFFFFF));
 			goto nextopcode;
 		case 4:		/* SMSW */
-			inst_op1_d=CPU_SMSW();
+			inst_op1_d=(Bit32u)CPU_SMSW();
 			break;
 		case 6:		/* LMSW */
 			FillFlags();
@@ -503,7 +503,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=0;
+				Bit8u count=0;
 				while (1) {
 					if (inst_op1_w & 0x1) break;
 					count++;inst_op1_w>>=1;
@@ -520,7 +520,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=0;
+				Bit8u count=0;
 				while (1) {
 					if (inst_op1_d & 0x1) break;
 					count++;inst_op1_d>>=1;
@@ -537,7 +537,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=15;
+				Bit8u count=15;
 				while (1) {
 					if (inst_op1_w & 0x8000) break;
 					count--;inst_op1_w<<=1;
@@ -554,7 +554,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bitu count=31;
+				Bit8u count=31;
 				while (1) {
 					if (inst_op1_d & 0x80000000) break;
 					count--;inst_op1_d<<=1;

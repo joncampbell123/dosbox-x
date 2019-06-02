@@ -124,7 +124,7 @@ Bit32u DOS_HMA_GET_FREE_SPACE() {
 	return (DOS_HMA_LIMIT() - start);
 }
 
-void DOS_HMA_CLAIMED(Bitu bytes) {
+void DOS_HMA_CLAIMED(Bit16u bytes) {
 	Bit32u limit = DOS_HMA_LIMIT();
 
 	if (limit == 0) E_Exit("HMA allocatiom bug: Claim function called when HMA allocation is not enabled");
@@ -210,7 +210,7 @@ const Bit8u DOS_DATE_months[] = {
 	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-static void DOS_AddDays(Bitu days) {
+static void DOS_AddDays(Bit8u days) {
 	dos.date.day += days;
 	Bit8u monthlimit = DOS_DATE_months[dos.date.month];
 
@@ -1994,7 +1994,7 @@ public:
         }
     }
 
-    Bitu DOS_Get_CPM_entry_direct(void) {
+    Bit32u DOS_Get_CPM_entry_direct(void) {
         return callback[8].Get_RealPointer();
     }
 
@@ -2387,7 +2387,7 @@ void DOS_Write_HMA_CPM_jmp(void) {
     test->DOS_Write_HMA_CPM_jmp();
 }
 
-Bitu DOS_Get_CPM_entry_direct(void) {
+Bit32u DOS_Get_CPM_entry_direct(void) {
     assert(test != NULL);
     return test->DOS_Get_CPM_entry_direct();
 }

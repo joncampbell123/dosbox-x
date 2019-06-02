@@ -201,7 +201,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color);
 void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color);
 
 /* Font Stuff */
-void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu height);
+void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bit8u height);
 void INT10_ReloadFont(void);
 
 /* Palette Group */

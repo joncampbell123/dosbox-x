@@ -106,11 +106,11 @@ HostPt MemBase = NULL;
 class UnmappedPageHandler : public PageHandler {
 public:
     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bitu readb(PhysPt addr) {
+    Bit8u readb(PhysPt addr) {
         (void)addr;//UNUSED
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bitu val) {
+    void writeb(PhysPt addr,Bit8u val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
     }
@@ -119,7 +119,7 @@ public:
 class IllegalPageHandler : public PageHandler {
 public:
     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bitu readb(PhysPt addr) {
+    Bit8u readb(PhysPt addr) {
         (void)addr;
 #if C_DEBUG
         LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
@@ -132,7 +132,7 @@ public:
 #endif
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bitu val) {
+    void writeb(PhysPt addr,Bit8u val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG
@@ -1189,7 +1189,7 @@ unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
 void CPU_Snap_Back_Forget();
-Bitu CPU_Pop16(void);
+Bit16u CPU_Pop16(void);
 
 static bool cmos_reset_type_9_sarcastic_win31_comments=true;
 

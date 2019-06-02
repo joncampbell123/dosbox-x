@@ -131,9 +131,9 @@ static struct DynDecode {
 static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 	Bit8u rdval;
 	//Ensure page contains memory:
-	if (GCC_UNLIKELY(mem_readb_checked(lin_addr,&rdval))) return true;
+	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
 
-	PageHandler * handler=get_tlb_readhandler(lin_addr);
+	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
 		// this is a codepage handler, and the one that we're looking for
 		cph=(CodePageHandlerDynRec *)handler;
@@ -141,7 +141,7 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (false) { // PAGING_ForcePageInit(lin_addr)) {
-			handler=get_tlb_readhandler(lin_addr);
+			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=(CodePageHandlerDynRec *)handler;
 				return false;
@@ -198,7 +198,7 @@ static void decode_advancepage(void) {
 	// trigger possible page fault here
 	decode.page.first++;
 	Bitu faddr=decode.page.first << 12;
-	mem_readb(faddr);
+	mem_readb((PhysPt)faddr);
 	MakeCodePage(faddr,decode.page.code);
 	CacheBlockDynRec * newblock=cache_getblock();
 	decode.active_block->crossblock=newblock;
@@ -258,7 +258,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 		// no mask memory yet allocated, start with a small buffer
 		activecb->cache.wmapmask=(Bit8u*)malloc(START_WMMEM);
 		memset(activecb->cache.wmapmask,0,START_WMMEM);
-		activecb->cache.maskstart=decode.page.index;	// start of buffer is current code position
+		activecb->cache.maskstart=(Bit16u)decode.page.index;	// start of buffer is current code position
 		activecb->cache.masklen=START_WMMEM;
 		mapidx=0;
 	} else {
@@ -272,7 +272,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 			memcpy(tempmem,activecb->cache.wmapmask,activecb->cache.masklen);
 			free(activecb->cache.wmapmask);
 			activecb->cache.wmapmask=tempmem;
-			activecb->cache.masklen=newmasklen;
+			activecb->cache.masklen=(Bit16u)newmasklen;
 		}
 	}
 	// update mask entries
@@ -466,7 +466,7 @@ static void INLINE dyn_get_modrm(void) {
 // adjust CPU_Cycles value
 static void dyn_reduce_cycles(void) {
 	if (!decode.cycles) decode.cycles++;
-	gen_sub_direct_word(&CPU_Cycles,decode.cycles,true);
+	gen_sub_direct_word(&CPU_Cycles,(Bit32u)decode.cycles,true);
 }
 
 

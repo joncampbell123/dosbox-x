@@ -55,8 +55,8 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	seg = segment;
 	pt=PhysMake(seg,0);
 	/* Clear the initial Block */
-	for(Bitu i=0;i<sizeof(sDIB);i++) mem_writeb(pt+i,0xff);
-	for(Bitu i=0;i<14;i++) mem_writeb(pt+i,0);
+	for(Bit8u i=0;i<sizeof(sDIB);i++) mem_writeb(pt+i,0xff);
+	for(Bit8u i=0;i<14;i++) mem_writeb(pt+i,0);
 
 	sSave(sDIB,regCXfrom5e,(Bit16u)0);
 	sSave(sDIB,countLRUcache,(Bit16u)0);
@@ -183,7 +183,7 @@ void DOS_PSP::MakeNew(Bit16u mem_size) {
 	/* get previous */
 //	DOS_PSP prevpsp(dos.psp());
 	/* Clear it first */
-	Bitu i;
+	Bit16u i;
 	for (i=0;i<sizeof(sPSP);i++) mem_writeb(pt+i,0);
 	// Set size
 	sSave(sPSP,next_seg,(unsigned int)seg+mem_size);
@@ -213,7 +213,7 @@ void DOS_PSP::MakeNew(Bit16u mem_size) {
          * which is probably why Microsoft never did this in the DOS kernel. Choosing this method
          * removes the need for the copy of INT 30h in the HMA area, and therefore opens up all 64KB of
          * HMA if you want. */
-        Bitu DOS_Get_CPM_entry_direct(void);
+        Bit32u DOS_Get_CPM_entry_direct(void);
 
 	    /* far call opcode */
         sSave(sPSP,far_call,0x9a);

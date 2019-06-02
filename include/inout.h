@@ -49,13 +49,13 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1);
 
 void IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 
-void IO_WriteB(Bitu port,Bitu val);
-void IO_WriteW(Bitu port,Bitu val);
-void IO_WriteD(Bitu port,Bitu val);
+void IO_WriteB(Bitu port,Bit8u val);
+void IO_WriteW(Bitu port,Bit16u val);
+void IO_WriteD(Bitu port,Bit32u val);
 
-Bitu IO_ReadB(Bitu port);
-Bitu IO_ReadW(Bitu port);
-Bitu IO_ReadD(Bitu port);
+Bit8u IO_ReadB(Bitu port);
+Bit16u IO_ReadW(Bitu port);
+Bit32u IO_ReadD(Bitu port);
 
 static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
 static const Bitu IOMASK_ISA_12BIT = 0xFFFU; /* ISA 12-bit decode */
@@ -151,7 +151,7 @@ static INLINE void IO_Write(Bitu port,Bit8u val) {
 	IO_WriteB(port,val);
 }
 static INLINE Bit8u IO_Read(Bitu port){
-	return (Bit8u)IO_ReadB(port);
+	return IO_ReadB(port);
 }
 
 enum IO_Type_t {

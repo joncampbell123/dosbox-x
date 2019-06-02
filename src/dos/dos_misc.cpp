@@ -27,7 +27,7 @@
 Bit32u DOS_HMA_LIMIT();
 Bit32u DOS_HMA_FREE_START();
 Bit32u DOS_HMA_GET_FREE_SPACE();
-void DOS_HMA_CLAIMED(Bitu bytes);
+void DOS_HMA_CLAIMED(Bit16u bytes);
 
 extern bool enable_share_exe_fake;
 
