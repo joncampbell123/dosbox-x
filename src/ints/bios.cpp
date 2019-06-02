@@ -269,6 +269,8 @@ bool dosbox_int_discard_save_state(void) {
 extern bool user_cursor_locked;
 extern int user_cursor_x,user_cursor_y;
 extern int user_cursor_sw,user_cursor_sh;
+extern int master_cascade_irq;
+extern bool enable_slave_pic;
 
 static std::string dosbox_int_debug_out;
 
@@ -298,6 +300,19 @@ void dosbox_integration_trigger_read() {
             break;
         case 3: /* version number */
             dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
+            break;
+
+        case 0x825901: /* PIC configuration */
+            /* bits [7:0] = cascade interrupt or 0xFF if none
+             * bit  [8:8] = primary PIC present
+             * bit  [9:9] = secondary PIC present */
+            if (master_cascade_irq >= 0)
+                dosbox_int_register = (master_cascade_irq & 0xFFu);
+            else
+                dosbox_int_register = 0xFFu;
+
+            dosbox_int_register |= 0x100; // primary always present
+            if (enable_slave_pic) dosbox_int_register |= 0x200;
             break;
 
         case 0x823780: /* ISA DMA injection, single byte/word (read from memory) */
