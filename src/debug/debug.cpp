@@ -668,7 +668,10 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bi
 // Checks if interrupt breakpoint is valid and should stop execution
 {
 	if (BPoints.empty()) return false;
-	
+
+    // unused
+    (void)adr;
+
 	// Search matching breakpoint
 	std::list<CBreakpoint*>::iterator i;
 	CBreakpoint* bp;
@@ -808,7 +811,7 @@ bool DEBUG_Breakpoint(void)
 	/* First get the physical address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
-	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
+//	PhysPt where=(PhysPt)GetAddress(SegValue(cs),reg_eip);
 	CBreakpoint::DeactivateBreakpoints();	// Deactivate all breakpoints
 	return true;
 }
@@ -2812,7 +2815,7 @@ Bit32u DEBUG_CheckKeys(void) {
 
 		// Don't redraw the screen if it's going to get redrawn immediately
 		// afterwards, to avoid resetting oldregs.
-		if (ret == debugCallback)
+		if (ret == (Bits)debugCallback)
 			skipDraw = true;
 		key = -1;
 	}
