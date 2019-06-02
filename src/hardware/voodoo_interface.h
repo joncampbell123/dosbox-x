@@ -45,12 +45,12 @@ public:
 	~Voodoo_PageHandler() {
 	}
 
-	Bit8u readb(PhysPt addr);
-	void writeb(PhysPt addr,Bit8u val);
-	Bit16u readw(PhysPt addr);
-	void writew(PhysPt addr,Bit16u val);
-	Bit32u readd(PhysPt addr);
-	void writed(PhysPt addr,Bit32u val);
+	Bitu readb(PhysPt addr);
+	void writeb(PhysPt addr,Bitu val);
+	Bitu readw(PhysPt addr);
+	void writew(PhysPt addr,Bitu val);
+	Bitu readd(PhysPt addr);
+	void writed(PhysPt addr,Bitu val);
 };
 
 

@@ -106,11 +106,11 @@ HostPt MemBase = NULL;
 class UnmappedPageHandler : public PageHandler {
 public:
     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bit8u readb(PhysPt addr) {
+    Bitu readb(PhysPt addr) {
         (void)addr;//UNUSED
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,Bitu val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
     }
@@ -119,7 +119,7 @@ public:
 class IllegalPageHandler : public PageHandler {
 public:
     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bit8u readb(PhysPt addr) {
+    Bitu readb(PhysPt addr) {
         (void)addr;
 #if C_DEBUG
         LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
@@ -132,7 +132,7 @@ public:
 #endif
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,Bitu val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG

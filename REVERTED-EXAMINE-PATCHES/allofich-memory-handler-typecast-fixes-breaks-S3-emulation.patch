@@ -1,0 +1,964 @@
+diff --git a/include/paging.h b/include/paging.h
+index 4329fdb..bf287a2 100644
+--- a/include/paging.h
++++ b/include/paging.h
+@@ -90,20 +90,20 @@ class PageHandler {
+ public:
+ 	PageHandler(Bitu flg) : flags(flg) {}
+ 	virtual ~PageHandler(void) { }
+-	virtual Bit8u readb(PhysPt addr);
+-	virtual Bit16u readw(PhysPt addr);
+-	virtual Bit32u readd(PhysPt addr);
+-	virtual void writeb(PhysPt addr,Bit8u val);
+-	virtual void writew(PhysPt addr,Bit16u val);
+-	virtual void writed(PhysPt addr,Bit32u val);
++	virtual Bitu readb(PhysPt addr);
++	virtual Bitu readw(PhysPt addr);
++	virtual Bitu readd(PhysPt addr);
++	virtual void writeb(PhysPt addr,Bitu val);
++	virtual void writew(PhysPt addr,Bitu val);
++	virtual void writed(PhysPt addr,Bitu val);
+ 	virtual HostPt GetHostReadPt(Bitu phys_page);
+ 	virtual HostPt GetHostWritePt(Bitu phys_page);
+ 	virtual bool readb_checked(PhysPt addr,Bit8u * val);
+ 	virtual bool readw_checked(PhysPt addr,Bit16u * val);
+ 	virtual bool readd_checked(PhysPt addr,Bit32u * val);
+-	virtual bool writeb_checked(PhysPt addr,Bit8u val);
+-	virtual bool writew_checked(PhysPt addr,Bit16u val);
+-	virtual bool writed_checked(PhysPt addr,Bit32u val);
++	virtual bool writeb_checked(PhysPt addr,Bitu val);
++	virtual bool writew_checked(PhysPt addr,Bitu val);
++	virtual bool writed_checked(PhysPt addr,Bitu val);
+    PageHandler (void) { }
+ 	Bitu flags; 
+ 	Bitu getFlags() const {
+@@ -405,7 +405,7 @@ static INLINE Bit32u mem_readd_inline(const PhysPt address) {
+ 	if ((address & 0xfff)<0xffd) {
+ 		const HostPt tlb_addr=get_tlb_read(address);
+ 		if (tlb_addr) return host_readd(tlb_addr+address);
+-		else return (Bit32u)(get_tlb_readhandler(address))->readd(address);
++		else return (get_tlb_readhandler(address))->readd(address);
+ 	} else return mem_unalignedreadd(address);
+ }
+ 
+diff --git a/src/cpu/cpu.cpp b/src/cpu/cpu.cpp
+index 942745d..7e0b53e 100644
+--- a/src/cpu/cpu.cpp
++++ b/src/cpu/cpu.cpp
+@@ -3036,37 +3036,37 @@ public:
+ 	~Weitek_PageHandler() {
+ 	}
+ 
+-	Bit8u readb(PhysPt addr);
+-	void writeb(PhysPt addr,Bit8u val);
+-	Bit16u readw(PhysPt addr);
+-	void writew(PhysPt addr,Bit16u val);
+-	Bit32u readd(PhysPt addr);
+-	void writed(PhysPt addr,Bit32u val);
++	Bitu readb(PhysPt addr);
++	void writeb(PhysPt addr,Bitu val);
++	Bitu readw(PhysPt addr);
++	void writew(PhysPt addr,Bitu val);
++	Bitu readd(PhysPt addr);
++	void writed(PhysPt addr,Bitu val);
+ };
+ 
+-Bit8u Weitek_PageHandler::readb(PhysPt addr) {
++Bitu Weitek_PageHandler::readb(PhysPt addr) {
+     LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
+ 	return (Bit8u)-1;
+ }
+-void Weitek_PageHandler::writeb(PhysPt addr,Bit8u val) {
++void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
+     LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+ }
+ 
+-Bit16u Weitek_PageHandler::readw(PhysPt addr) {
++Bitu Weitek_PageHandler::readw(PhysPt addr) {
+     LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
+ 	return (Bit16u)-1;
+ }
+ 
+-void Weitek_PageHandler::writew(PhysPt addr,Bit16u val) {
++void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
+     LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+ }
+ 
+-Bit32u Weitek_PageHandler::readd(PhysPt addr) {
++Bitu Weitek_PageHandler::readd(PhysPt addr) {
+     LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
+ 	return (Bit32u)-1;
+ }
+ 
+-void Weitek_PageHandler::writed(PhysPt addr,Bit32u val) {
++void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
+     LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+ }
+ 
+diff --git a/src/cpu/paging.cpp b/src/cpu/paging.cpp
+index 009d7a0..705fb1c 100644
+--- a/src/cpu/paging.cpp
++++ b/src/cpu/paging.cpp
+@@ -33,32 +33,32 @@
+ PagingBlock paging;
+ 
+ // Pagehandler implementation
+-Bit8u PageHandler::readb(PhysPt addr) {
++Bitu PageHandler::readb(PhysPt addr) {
+ 	E_Exit("No byte handler for read from %x",addr);	
+ 	return 0;
+ }
+-Bit16u PageHandler::readw(PhysPt addr) {
+-	Bit16u ret = (readb(addr+0) << 0);
++Bitu PageHandler::readw(PhysPt addr) {
++	Bitu ret = (readb(addr+0) << 0);
+ 	ret     |= (readb(addr+1) << 8);
+ 	return ret;
+ }
+-Bit32u PageHandler::readd(PhysPt addr) {
+-	Bit32u ret = (readb(addr+0) << 0);
++Bitu PageHandler::readd(PhysPt addr) {
++	Bitu ret = (readb(addr+0) << 0);
+ 	ret     |= (readb(addr+1) << 8);
+ 	ret     |= (readb(addr+2) << 16);
+ 	ret     |= (readb(addr+3) << 24);
+ 	return ret;
+ }
+ 
+-void PageHandler::writeb(PhysPt addr,Bit8u /*val*/) {
++void PageHandler::writeb(PhysPt addr,Bitu /*val*/) {
+ 	E_Exit("No byte handler for write to %x",addr);	
+ }
+ 
+-void PageHandler::writew(PhysPt addr,Bit16u val) {
++void PageHandler::writew(PhysPt addr,Bitu val) {
+ 	writeb(addr+0,(Bit8u) (val >> 0));
+ 	writeb(addr+1,(Bit8u) (val >> 8));
+ }
+-void PageHandler::writed(PhysPt addr,Bit32u val) {
++void PageHandler::writed(PhysPt addr,Bitu val) {
+ 	writeb(addr+0,(Bit8u) (val >> 0));
+ 	writeb(addr+1,(Bit8u) (val >> 8));
+ 	writeb(addr+2,(Bit8u) (val >> 16));
+@@ -74,21 +74,21 @@ HostPt PageHandler::GetHostWritePt(Bitu /*phys_page*/) {
+ }
+ 
+ bool PageHandler::readb_checked(PhysPt addr, Bit8u * val) {
+-	*val=readb(addr);	return false;
++	*val=(Bit8u)readb(addr);	return false;
+ }
+ bool PageHandler::readw_checked(PhysPt addr, Bit16u * val) {
+-	*val=readw(addr);	return false;
++	*val=(Bit16u)readw(addr);	return false;
+ }
+ bool PageHandler::readd_checked(PhysPt addr, Bit32u * val) {
+-	*val=readd(addr);	return false;
++	*val=(Bit32u)readd(addr);	return false;
+ }
+-bool PageHandler::writeb_checked(PhysPt addr,Bit8u val) {
++bool PageHandler::writeb_checked(PhysPt addr,Bitu val) {
+ 	writeb(addr,val);	return false;
+ }
+-bool PageHandler::writew_checked(PhysPt addr,Bit16u val) {
++bool PageHandler::writew_checked(PhysPt addr,Bitu val) {
+ 	writew(addr,val);	return false;
+ }
+-bool PageHandler::writed_checked(PhysPt addr,Bit32u val) {
++bool PageHandler::writed_checked(PhysPt addr,Bitu val) {
+ 	writed(addr,val);	return false;
+ }
+ 
+@@ -362,22 +362,22 @@ private:
+ 	}
+ public:
+ 	PageFoilHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {(void)addr;read();return 0;}
+-	Bit16u readw(PhysPt addr) {(void)addr;read();return 0;}
+-	Bit32u readd(PhysPt addr) {(void)addr;read();return 0;}
++	Bitu readb(PhysPt addr) {(void)addr;read();return 0;}
++	Bitu readw(PhysPt addr) {(void)addr;read();return 0;}
++	Bitu readd(PhysPt addr) {(void)addr;read();return 0;}
+ 
+-    void writeb(PhysPt addr,Bit8u val) {
++    void writeb(PhysPt addr,Bitu val) {
+         work(addr);
+         // execute the write:
+         // no need to care about mpl because we won't be entered
+         // if write isn't allowed
+         mem_writeb(addr,val);
+     }
+-    void writew(PhysPt addr,Bit16u val) {
++    void writew(PhysPt addr,Bitu val) {
+         work(addr);
+         mem_writew(addr,val);
+     }
+-    void writed(PhysPt addr,Bit32u val) {
++    void writed(PhysPt addr,Bitu val) {
+         work(addr);
+         mem_writed(addr,val);
+     }
+@@ -386,17 +386,17 @@ public:
+     bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
+     bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
+ 
+-    bool writeb_checked(PhysPt addr,Bit8u val) {
++    bool writeb_checked(PhysPt addr,Bitu val) {
+         work(addr);
+         mem_writeb(addr,val);
+         return false;
+     }
+-    bool writew_checked(PhysPt addr,Bit16u val) {
++    bool writew_checked(PhysPt addr,Bitu val) {
+         work(addr);
+         mem_writew(addr,val);
+         return false;
+     }
+-    bool writed_checked(PhysPt addr,Bit32u val) {
++    bool writed_checked(PhysPt addr,Bitu val) {
+         work(addr);
+         mem_writed(addr,val);
+         return false;
+@@ -453,7 +453,7 @@ private:
+ 		PAGING_ClearTLB(); // TODO got a better idea?
+ 	}
+ 
+-	Bit8u readb_through(PhysPt addr) {
++	Bitu readb_through(PhysPt addr) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+@@ -462,7 +462,7 @@ private:
+ 			}
+ 		else return handler->readb(addr);
+ 					}
+-	Bit16u readw_through(PhysPt addr) {
++	Bitu readw_through(PhysPt addr) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+@@ -471,7 +471,7 @@ private:
+ 				}
+ 		else return handler->readw(addr);
+ 			}
+-	Bit32u readd_through(PhysPt addr) {
++	Bitu readd_through(PhysPt addr) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+@@ -481,27 +481,27 @@ private:
+ 		else return handler->readd(addr);
+ 			}
+ 
+-	void writeb_through(PhysPt addr, Bit8u val) {
++	void writeb_through(PhysPt addr, Bitu val) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+ 		if (handler->getFlags() & PFLAG_WRITEABLE) {
+-			return host_writeb(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
++			return host_writeb(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit8u)val);
+ 		}
+ 		else return handler->writeb(addr, val);
+ 			}
+ 
+-	void writew_through(PhysPt addr, Bit16u val) {
++	void writew_through(PhysPt addr, Bitu val) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+ 		if (handler->getFlags() & PFLAG_WRITEABLE) {
+-			return host_writew(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
++			return host_writew(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit16u)val);
+ 		}
+ 		else return handler->writew(addr, val);
+ 	}
+ 
+-	void writed_through(PhysPt addr, Bit32u val) {
++	void writed_through(PhysPt addr, Bitu val) {
+ 		Bitu lin_page = addr >> 12;
+ 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+ 		PageHandler* handler = MEM_GetPageHandler(phys_page);
+@@ -513,13 +513,13 @@ private:
+ 
+ public:
+ 	ExceptionPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		if (!cpu.mpl) return readb_through(addr);
+ 			
+ 		Exception(addr, false, false);
+ 		return mem_readb(addr); // read the updated page (unlikely to happen?)
+ 				}
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+ 		// access type is supervisor mode (temporary)
+ 		// we are always allowed to read in superuser mode
+ 		// so get the handler and address and read it
+@@ -528,13 +528,13 @@ public:
+ 		Exception(addr, false, false);
+ 		return mem_readw(addr);
+ 			}
+-	Bit32u readd(PhysPt addr) {
++	Bitu readd(PhysPt addr) {
+ 		if (!cpu.mpl) return readd_through(addr);
+ 
+ 		Exception(addr, false, false);
+ 		return mem_readd(addr);
+ 		}
+-	void writeb(PhysPt addr,Bit8u val) {
++	void writeb(PhysPt addr,Bitu val) {
+ 		if (!cpu.mpl) {
+ 			writeb_through(addr, val);
+ 			return;
+@@ -542,7 +542,7 @@ public:
+ 		Exception(addr, true, false);
+ 		mem_writeb(addr, val);
+ 			}
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+ 		if (!cpu.mpl) {
+ 			// TODO Exception on a KR-page?
+ 			writew_through(addr, val);
+@@ -558,7 +558,7 @@ public:
+ 		Exception(addr, true, false);
+ 		mem_writew(addr, val);
+ 	}
+-	void writed(PhysPt addr,Bit32u val) {
++	void writed(PhysPt addr,Bitu val) {
+ 		if (!cpu.mpl) {
+ 			writed_through(addr, val);
+ 			return;
+@@ -582,12 +582,12 @@ public:
+ 		Exception(addr, false, true);
+ 		return true;
+ 		}
+-	bool writeb_checked(PhysPt addr,Bit8u val) {
++	bool writeb_checked(PhysPt addr,Bitu val) {
+         (void)val;//UNUSED
+ 		Exception(addr, true, true);
+ 		return true;
+ 	}
+-	bool writew_checked(PhysPt addr,Bit16u val) {
++	bool writew_checked(PhysPt addr,Bitu val) {
+ 		if (hack_check(addr)) {
+ 			LOG_MSG("Page attributes modified without clear");
+ 			PAGING_ClearTLB();
+@@ -597,7 +597,7 @@ public:
+ 		Exception(addr, true, true);
+ 		return true;
+ 	}
+-	bool writed_checked(PhysPt addr,Bit32u val) {
++	bool writed_checked(PhysPt addr,Bitu val) {
+         (void)val;//UNUSED
+ 		Exception(addr, true, true);
+ 		return true;
+@@ -609,27 +609,27 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
+ class NewInitPageHandler : public PageHandler {
+ public:
+ 	NewInitPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		InitPage(addr, false, false);
+ 		return mem_readb(addr);
+ 	}
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+ 		InitPage(addr, false, false);
+ 		return mem_readw(addr);
+ 	}
+-	Bit32u readd(PhysPt addr) {
++	Bitu readd(PhysPt addr) {
+ 		InitPage(addr, false, false);
+ 		return mem_readd(addr);
+ 	}
+-	void writeb(PhysPt addr,Bit8u val) {
++	void writeb(PhysPt addr,Bitu val) {
+ 		InitPage(addr, true, false);
+ 		mem_writeb(addr,val);
+ 	}
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+ 		InitPage(addr, true, false);
+ 		mem_writew(addr,val);
+ 	}
+-	void writed(PhysPt addr,Bit32u val) {
++	void writed(PhysPt addr,Bitu val) {
+ 		InitPage(addr, true, false);
+ 		mem_writed(addr,val);
+ 	}
+@@ -649,17 +649,17 @@ public:
+ 		*val=mem_readd(addr);
+ 			return false;
+ 		}
+-	bool writeb_checked(PhysPt addr,Bit8u val) {
++	bool writeb_checked(PhysPt addr,Bitu val) {
+ 		if (InitPage(addr, true, true)) return true;
+ 		mem_writeb(addr,val);
+ 		return false;
+ 	}
+-	bool writew_checked(PhysPt addr,Bit16u val) {
++	bool writew_checked(PhysPt addr,Bitu val) {
+ 		if (InitPage(addr, true, true)) return true;
+ 		mem_writew(addr,val);
+ 			return false;
+ 		}
+-	bool writed_checked(PhysPt addr,Bit32u val) {
++	bool writed_checked(PhysPt addr,Bitu val) {
+ 		if (InitPage(addr, true, true)) return true;
+ 		mem_writed(addr,val);
+ 		return false;
+diff --git a/src/hardware/memory.cpp b/src/hardware/memory.cpp
+index 33d7b68..bc54d3e 100644
+--- a/src/hardware/memory.cpp
++++ b/src/hardware/memory.cpp
+@@ -106,11 +106,11 @@ HostPt MemBase = NULL;
+ class UnmappedPageHandler : public PageHandler {
+ public:
+     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+-    Bit8u readb(PhysPt addr) {
++    Bitu readb(PhysPt addr) {
+         (void)addr;//UNUSED
+         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
+     } 
+-    void writeb(PhysPt addr,Bit8u val) {
++    void writeb(PhysPt addr,Bitu val) {
+         (void)addr;//UNUSED
+         (void)val;//UNUSED
+     }
+@@ -119,7 +119,7 @@ public:
+ class IllegalPageHandler : public PageHandler {
+ public:
+     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+-    Bit8u readb(PhysPt addr) {
++    Bitu readb(PhysPt addr) {
+         (void)addr;
+ #if C_DEBUG
+         LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+@@ -132,7 +132,7 @@ public:
+ #endif
+         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
+     } 
+-    void writeb(PhysPt addr,Bit8u val) {
++    void writeb(PhysPt addr,Bitu val) {
+         (void)addr;//UNUSED
+         (void)val;//UNUSED
+ #if C_DEBUG
+diff --git a/src/hardware/vga_memory.cpp b/src/hardware/vga_memory.cpp
+index 9dfb203..7f13582 100644
+--- a/src/hardware/vga_memory.cpp
++++ b/src/hardware/vga_memory.cpp
+@@ -371,41 +371,41 @@ public:
+         // planer index = addr & 3u             (use low 2 bits as plane index)
+         return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, val);
+ 	}
+-	Bit8u readb(PhysPt addr ) {
++	Bitu readb(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		return (Bit8u)readHandler8( addr );
++		return readHandler8( addr );
+ 	}
+-	Bit16u readw(PhysPt addr ) {
++	Bitu readw(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		Bit16u ret = (readHandler8( addr+0 ) << 0 );
++		Bitu ret = (readHandler8( addr+0 ) << 0 );
+ 		ret     |= (readHandler8( addr+1 ) << 8 );
+ 		return ret;
+ 	}
+-	Bit32u readd(PhysPt addr ) {
++	Bitu readd(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		Bit32u ret = (readHandler8( addr+0 ) << 0 );
++		Bitu ret = (readHandler8( addr+0 ) << 0 );
+ 		ret     |= (readHandler8( addr+1 ) << 8 );
+ 		ret     |= (readHandler8( addr+2 ) << 16 );
+ 		ret     |= (readHandler8( addr+3 ) << 24 );
+ 		return ret;
+ 	}
+-	void writeb(PhysPt addr, Bit8u val ) {
++	void writeb(PhysPt addr, Bitu val ) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+ //		addr = CHECKED(addr);
+ 		writeHandler8( addr, val );
+ 	}
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -413,7 +413,7 @@ public:
+ 		writeHandler8( addr+0, val >> 0 );
+ 		writeHandler8( addr+1, val >> 8 );
+ 	}
+-	void writed(PhysPt addr,Bit32u val) {
++	void writed(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -438,41 +438,41 @@ public:
+         // planer index = addr & 3u             (use low 2 bits as plane index)
+         return VGA_Generic_Write_Handler<true/*chained*/>(addr>>2u, addr, val);
+ 	}
+-	Bit8u readb(PhysPt addr ) {
++	Bitu readb(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		return (Bit8u)readHandler8( addr );
++		return readHandler8( addr );
+ 	}
+-	Bit16u readw(PhysPt addr ) {
++	Bitu readw(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		Bit16u ret = (Bit16u)(readHandler8( addr+0 ) << 0 );
++		Bitu ret = (readHandler8( addr+0 ) << 0 );
+ 		ret     |= (readHandler8( addr+1 ) << 8 );
+ 		return ret;
+ 	}
+-	Bit32u readd(PhysPt addr ) {
++	Bitu readd(PhysPt addr ) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED(addr);
+-		Bit32u ret = (Bit32u)(readHandler8( addr+0 ) << 0 );
++		Bitu ret = (readHandler8( addr+0 ) << 0 );
+ 		ret     |= (readHandler8( addr+1 ) << 8 );
+ 		ret     |= (readHandler8( addr+2 ) << 16 );
+ 		ret     |= (readHandler8( addr+3 ) << 24 );
+ 		return ret;
+ 	}
+-	void writeb(PhysPt addr, Bit8u val ) {
++	void writeb(PhysPt addr, Bitu val ) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+ //		addr = CHECKED(addr);
+ 		writeHandler8( addr, val );
+ 	}
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -480,7 +480,7 @@ public:
+ 		writeHandler8( addr+0, val >> 0 );
+ 		writeHandler8( addr+1, val >> 8 );
+ 	}
+-	void writed(PhysPt addr,Bit32u val) {
++	void writed(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -498,28 +498,28 @@ public:
+         return VGA_Generic_Read_Handler(start, start, vga.config.read_map_select);
+ 	}
+ public:
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED2(addr);
+-		return (Bit8u)readHandler(addr);
++		return readHandler(addr);
+ 	}
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED2(addr);
+-		Bit16u ret = (readHandler(addr+0) << 0);
++		Bitu ret = (readHandler(addr+0) << 0);
+ 		ret     |= (readHandler(addr+1) << 8);
+ 		return  ret;
+ 	}
+-	Bit32u readd(PhysPt addr) {
++	Bitu readd(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_read_full;
+ //		addr = CHECKED2(addr);
+-		Bit32u ret = (readHandler(addr+0) << 0);
++		Bitu ret = (readHandler(addr+0) << 0);
+ 		ret     |= (readHandler(addr+1) << 8);
+ 		ret     |= (readHandler(addr+2) << 16);
+ 		ret     |= (readHandler(addr+3) << 24);
+@@ -531,14 +531,14 @@ public:
+ 	}
+ public:
+ 	VGA_UnchainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
+-	void writeb(PhysPt addr,Bit8u val) {
++	void writeb(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+ //		addr = CHECKED2(addr);
+ 		writeHandler(addr+0,(Bit8u)(val >> 0));
+ 	}
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -546,7 +546,7 @@ public:
+ 		writeHandler(addr+0,(Bit8u)(val >> 0));
+ 		writeHandler(addr+1,(Bit8u)(val >> 8));
+ 	}
+-	void writed(PhysPt addr,Bit32u val) {
++	void writed(PhysPt addr,Bitu val) {
+ 		VGAMEM_USEC_write_delay();
+ 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+ 		addr += vga.svga.bank_write_full;
+@@ -565,12 +565,12 @@ public:
+ 	VGA_CGATEXT_PageHandler() {
+ 		flags=PFLAG_NOCODE;
+ 	}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		addr = PAGING_GetPhysicalAddress(addr) & 0x3FFF;
+ 		VGAMEM_USEC_read_delay();
+ 		return vga.tandy.mem_base[addr];
+ 	}
+-	void writeb(PhysPt addr,Bit8u val){
++	void writeb(PhysPt addr,Bitu val){
+ 		VGAMEM_USEC_write_delay();
+ 
+ 		if (enableCGASnow) {
+@@ -595,12 +595,12 @@ public:
+ 	VGA_MCGATEXT_PageHandler() {
+ 		flags=PFLAG_NOCODE;
+ 	}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
+ 		VGAMEM_USEC_read_delay();
+ 		return vga.tandy.mem_base[addr];
+ 	}
+-	void writeb(PhysPt addr,Bit8u val){
++	void writeb(PhysPt addr,Bitu val){
+ 		VGAMEM_USEC_write_delay();
+ 
+ 		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
+@@ -1362,17 +1362,17 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
+ class VGA_PC98_TEXT_PageHandler : public PageHandler {
+ public:
+ 	VGA_PC98_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         addr &= 0x3FFFu;
+ 
+         if (addr >= 0x3FE0u)
+             return pc98_mem_msw((addr >> 2) & 7);
+         else if ((addr & 0x2001) == 0x2001)
+-            return ~((Bit8u)0); /* Odd bytes of attribute RAM do not exist, apparently */
++            return ~((Bitu)0); /* Odd bytes of attribute RAM do not exist, apparently */
+ 
+         return VRAM98_TEXT[addr];
+     }
+-	void writeb(PhysPt addr,Bit8u val) {
++	void writeb(PhysPt addr,Bitu val) {
+         addr &= 0x3FFFu;
+ 
+         if (addr >= 0x3FE0u)
+@@ -1406,11 +1406,11 @@ extern uint16_t a1_font_load_addr;
+ class VGA_PC98_CG_PageHandler : public PageHandler {
+ public:
+ 	VGA_PC98_CG_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
+     }
+-	void writeb(PhysPt addr,Bit8u val) {
+-        pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
++	void writeb(PhysPt addr,Bitu val) {
++        pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,(uint8_t)val);
+     }
+ };
+ 
+@@ -1418,11 +1418,11 @@ public:
+ class VGA_PC98_256MMIO_PageHandler : public PageHandler {
+ public:
+ 	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         return pc98_pegc_mmio_read(addr & 0x7FFFu);
+     }
+-    void writeb(PhysPt addr,Bit8u val) {
+-        pc98_pegc_mmio_write(addr & 0x7FFFu,val);
++    void writeb(PhysPt addr,Bitu val) {
++        pc98_pegc_mmio_write(addr & 0x7FFFu,(Bit8u)val);
+     }
+ };
+ 
+@@ -1434,25 +1434,25 @@ public:
+ class VGA_PC98_256Planar_PageHandler : public PageHandler {
+ public:
+ 	VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         (void)addr;
+ 
+ //        LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
+-        return ~((Bit8u)0);
++        return ~((Bitu)0);
+     }
+-	void writeb(PhysPt addr,Bit8u val) {
++	void writeb(PhysPt addr,Bitu val) {
+         (void)addr;
+         (void)val;
+ 
+ //        LOG_MSG("PEGC 256-color planar warning: Writeb to %lxh val %02xh",(unsigned long)addr,(unsigned int)val);
+     }
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+         (void)addr;
+ 
+ //        LOG_MSG("PEGC 256-color planar warning: Readw from %lxh",(unsigned long)addr);
+-        return ~((Bit16u)0);
++        return ~((Bitu)0);
+     }
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+         (void)addr;
+         (void)val;
+ 
+@@ -1465,11 +1465,11 @@ public:
+ template <const unsigned int bank> class VGA_PC98_256BANK_PageHandler : public PageHandler {
+ public:
+ 	VGA_PC98_256BANK_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         return pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu];
+     }
+-	void writeb(PhysPt addr,Bit8u val) {
+-        pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu] = val;
++	void writeb(PhysPt addr,Bitu val) {
++        pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu] = (unsigned char)val;
+     }
+ };
+ 
+@@ -1773,16 +1773,16 @@ public:
+ 	}
+ 
+     /* byte-wise */
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+         return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
+     }
+-	void writeb(PhysPt addr,Bit8u val) {
+-        writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
++	void writeb(PhysPt addr,Bitu val) {
++        writec<uint8_t>( PAGING_GetPhysicalAddress(addr), (uint8_t)val );
+     }
+ 
+     /* word-wise.
+      * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+         addr = PAGING_GetPhysicalAddress(addr);
+         if (!(addr & 1)) /* if WORD aligned */
+             return readc<uint16_t>(addr);
+@@ -1791,10 +1791,10 @@ public:
+                     ((unsigned int)readc<uint8_t>(addr+1U) << 8u);
+         }
+     }
+-	void writew(PhysPt addr,Bit16u val) {
++	void writew(PhysPt addr,Bitu val) {
+         addr = PAGING_GetPhysicalAddress(addr);
+         if (!(addr & 1)) /* if WORD aligned */
+-            writec<uint16_t>(addr,val);
++            writec<uint16_t>(addr,(uint16_t)val);
+         else {
+             writec<uint8_t>(addr+0,(uint8_t)val);
+             writec<uint8_t>(addr+1,(uint8_t)(val >> 8U));
+@@ -1836,13 +1836,13 @@ public:
+ 		CPU_IODelayRemoved += delaycyc;
+ 	}
+ 
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		delay();
+ 		return vga.tandy.mem_base[addr - 0xb8000];
+ 	}
+-	void writeb(PhysPt addr,Bit8u val){
++	void writeb(PhysPt addr,Bitu val){
+ 		delay();
+-		vga.tandy.mem_base[addr - 0xb8000] = val;
++		vga.tandy.mem_base[addr - 0xb8000] = (Bit8u) val;
+ 	}
+ 	
+ };
+@@ -1882,20 +1882,20 @@ public:
+ 		XGA_Write(port, val, 4);
+ 	}
+ 
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
+-		return (Bit8u)XGA_Read(port, 1);
++		return XGA_Read(port, 1);
+ 	}
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
+-		return (Bit16u)XGA_Read(port, 2);
++		return XGA_Read(port, 2);
+ 	}
+-	Bit32u readd(PhysPt addr) {
++	Bitu readd(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
+-		return (Bit32u)XGA_Read(port, 4);
++		return XGA_Read(port, 4);
+ 	}
+ };
+ 
+@@ -2066,29 +2066,29 @@ public:
+ 		}
+ 
+ 	}
+-	Bit8u readb(PhysPt addr) {
++	Bitu readb(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+ 		addr &= (64u*1024u-1u);
+ 		return readHandler(addr);
+ 	}
+-	Bit16u readw(PhysPt addr) {
++	Bitu readw(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+ 		addr &= (64u*1024u-1u);
+ 		return 
+-			(readHandler(addr+0) << 0u) |
+-			(readHandler(addr+1) << 8u);
++			((Bitu)readHandler(addr+0) << 0u) |
++			((Bitu)readHandler(addr+1) << 8u);
+ 	}
+-	Bit32u readd(PhysPt addr) {
++	Bitu readd(PhysPt addr) {
+ 		VGAMEM_USEC_read_delay();
+ 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+ 		addr &= (64u*1024u-1u);
+ 		return 
+-			(readHandler(addr+0) << 0u)  |
+-			(readHandler(addr+1) << 8u)  |
+-			(readHandler(addr+2) << 16u) |
+-			(readHandler(addr+3) << 24u);
++			((Bitu)readHandler(addr+0) << 0u)  |
++			((Bitu)readHandler(addr+1) << 8u)  |
++			((Bitu)readHandler(addr+2) << 16u) |
++			((Bitu)readHandler(addr+3) << 24u);
+ 	}
+ 
+ /*
+@@ -2131,11 +2131,11 @@ public:
+ class VGA_Empty_Handler : public PageHandler {
+ public:
+ 	VGA_Empty_Handler() : PageHandler(PFLAG_NOCODE) {}
+-	Bit8u readb(PhysPt /*addr*/) {
++	Bitu readb(PhysPt /*addr*/) {
+ //		LOG(LOG_VGA, LOG_NORMAL ) ( "Read from empty memory space at %x", addr );
+ 		return 0xff;
+ 	} 
+-	void writeb(PhysPt /*addr*/,Bit8u /*val*/) {
++	void writeb(PhysPt /*addr*/,Bitu /*val*/) {
+ //		LOG(LOG_VGA, LOG_NORMAL ) ( "Write %x to empty memory space at %x", val, addr );
+ 	}
+ };
+diff --git a/src/hardware/voodoo_interface.cpp b/src/hardware/voodoo_interface.cpp
+index 23c4253..fe4f876 100644
+--- a/src/hardware/voodoo_interface.cpp
++++ b/src/hardware/voodoo_interface.cpp
+@@ -38,18 +38,18 @@ static voodoo_draw vdraw;
+ Voodoo_PageHandler * voodoo_pagehandler;
+ 
+ 
+-Bit8u Voodoo_PageHandler::readb(PhysPt addr) {
++Bitu Voodoo_PageHandler::readb(PhysPt addr) {
+     (void)addr;//UNUSED
+ //	LOG_MSG("voodoo readb at %x",addr);
+-	return (Bit8u)-1;
++	return (Bitu)-1;
+ }
+-void Voodoo_PageHandler::writeb(PhysPt addr,Bit8u val) {
++void Voodoo_PageHandler::writeb(PhysPt addr,Bitu val) {
+     (void)addr;//UNUSED
+     (void)val;//UNUSED
+ //	LOG_MSG("voodoo writeb at %x",addr);
+ }
+ 
+-Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
++Bitu Voodoo_PageHandler::readw(PhysPt addr) {
+ 	addr = PAGING_GetPhysicalAddress(addr);
+     if (addr&1) {
+         LOG_MSG("voodoo readw unaligned");
+@@ -65,7 +65,7 @@ Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
+ 	return (Bit16u)retval;
+ }
+ 
+-void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
++void Voodoo_PageHandler::writew(PhysPt addr,Bitu val) {
+ 	addr = PAGING_GetPhysicalAddress(addr);
+ 	if (addr&1) {
+         LOG_MSG("voodoo writew unaligned");
+@@ -78,7 +78,7 @@ void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
+ 		voodoo_w((addr>>2)&0x3FFFFF,val,0x0000ffff);
+ }
+ 
+-Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
++Bitu Voodoo_PageHandler::readd(PhysPt addr) {
+ 	addr = PAGING_GetPhysicalAddress(addr);
+ 	if (!(addr&3)) {
+ 		return voodoo_r((addr>>2)&0x3FFFFF);
+@@ -94,7 +94,7 @@ Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
+ 	return 0xffffffff;
+ }
+ 
+-void Voodoo_PageHandler::writed(PhysPt addr,Bit32u val) {
++void Voodoo_PageHandler::writed(PhysPt addr,Bitu val) {
+ 	addr = PAGING_GetPhysicalAddress(addr);
+ 	if (!(addr&3)) {
+ 		voodoo_w((addr>>2)&0x3FFFFF,val,0xffffffff);
+diff --git a/src/hardware/voodoo_interface.h b/src/hardware/voodoo_interface.h
+index 18b0434..8b43db7 100644
+--- a/src/hardware/voodoo_interface.h
++++ b/src/hardware/voodoo_interface.h
+@@ -45,12 +45,12 @@ public:
+ 	~Voodoo_PageHandler() {
+ 	}
+ 
+-	Bit8u readb(PhysPt addr);
+-	void writeb(PhysPt addr,Bit8u val);
+-	Bit16u readw(PhysPt addr);
+-	void writew(PhysPt addr,Bit16u val);
+-	Bit32u readd(PhysPt addr);
+-	void writed(PhysPt addr,Bit32u val);
++	Bitu readb(PhysPt addr);
++	void writeb(PhysPt addr,Bitu val);
++	Bitu readw(PhysPt addr);
++	void writew(PhysPt addr,Bitu val);
++	Bitu readd(PhysPt addr);
++	void writed(PhysPt addr,Bitu val);
+ };
+ 
+ 

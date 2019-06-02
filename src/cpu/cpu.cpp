@@ -3036,37 +3036,37 @@ public:
 	~Weitek_PageHandler() {
 	}
 
-	Bit8u readb(PhysPt addr);
-	void writeb(PhysPt addr,Bit8u val);
-	Bit16u readw(PhysPt addr);
-	void writew(PhysPt addr,Bit16u val);
-	Bit32u readd(PhysPt addr);
-	void writed(PhysPt addr,Bit32u val);
+	Bitu readb(PhysPt addr);
+	void writeb(PhysPt addr,Bitu val);
+	Bitu readw(PhysPt addr);
+	void writew(PhysPt addr,Bitu val);
+	Bitu readd(PhysPt addr);
+	void writed(PhysPt addr,Bitu val);
 };
 
-Bit8u Weitek_PageHandler::readb(PhysPt addr) {
+Bitu Weitek_PageHandler::readb(PhysPt addr) {
     LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
 	return (Bit8u)-1;
 }
-void Weitek_PageHandler::writeb(PhysPt addr,Bit8u val) {
+void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
     LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Bit16u Weitek_PageHandler::readw(PhysPt addr) {
+Bitu Weitek_PageHandler::readw(PhysPt addr) {
     LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
 	return (Bit16u)-1;
 }
 
-void Weitek_PageHandler::writew(PhysPt addr,Bit16u val) {
+void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
     LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Bit32u Weitek_PageHandler::readd(PhysPt addr) {
+Bitu Weitek_PageHandler::readd(PhysPt addr) {
     LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
 	return (Bit32u)-1;
 }
 
-void Weitek_PageHandler::writed(PhysPt addr,Bit32u val) {
+void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
     LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
