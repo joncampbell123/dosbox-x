@@ -3149,7 +3149,7 @@ Bit32u DEBUG_CheckKeys(void) {
 		}
 		if (ret<0) return ret;
 		if (ret>0) {
-			if (GCC_UNLIKELY(ret >= CB_MAX)) 
+			if (GCC_UNLIKELY(ret >= (Bits)CB_MAX)) 
 				ret = 0;
 			else
 				ret = (Bits)(*CallBack_Handlers[ret])();
