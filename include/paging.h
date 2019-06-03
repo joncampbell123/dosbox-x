@@ -363,7 +363,7 @@ void PAGING_InitTLBBank(tlb_entry **bank);
 
 static INLINE tlb_entry *get_tlb_entry(const PhysPt address) {
 	const Bitu index=(address >> 12U);
-	if (TLB_BANKS && (index > TLB_SIZE)) {
+	if (TLB_BANKS && (index >= TLB_SIZE)) {
 		const Bitu bank=(address >> BANK_SHIFT) - 1U;
 		if (!paging.tlbh_banks[bank])
 			PAGING_InitTLBBank(&paging.tlbh_banks[bank]);

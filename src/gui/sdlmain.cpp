@@ -647,7 +647,7 @@ static unsigned char logo[32*32*4]= {
 static void DOSBox_SetOriginalIcon(void) {
     SDL_Surface *logos;
 
-#if WORDS_BIGENDIAN
+#ifdef WORDS_BIGENDIAN
         logos = SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0xff000000,0x00ff0000,0x0000ff00,0);
 #else
         logos = SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0x000000ff,0x0000ff00,0x00ff0000,0);
