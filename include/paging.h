@@ -104,6 +104,16 @@ public:
 	virtual bool writeb_checked(PhysPt addr,Bit8u val);
 	virtual bool writew_checked(PhysPt addr,Bit16u val);
 	virtual bool writed_checked(PhysPt addr,Bit32u val);
+
+    // DEPRECATED. THIS IS HERE TO MAKE ANY DERIVED CLASS NOT YET UPDATED BLOW UP WITH A COMPILER ERROR.
+    // FIXME: DOES VISUAL STUDIO 2017 HAVE ANY PROBLEMS WITH THIS? CLANG/LLVM?
+	virtual void writeb(PhysPt addr,Bitu val) final = delete;
+	virtual void writew(PhysPt addr,Bitu val) final = delete;
+	virtual void writed(PhysPt addr,Bitu val) final = delete;
+	virtual void writeb_checked(PhysPt addr,Bitu val) final = delete;
+	virtual void writew_checked(PhysPt addr,Bitu val) final = delete;
+	virtual void writed_checked(PhysPt addr,Bitu val) final = delete;
+
    PageHandler (void) { }
 	Bitu flags; 
 	Bitu getFlags() const {
