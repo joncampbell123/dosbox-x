@@ -43,7 +43,13 @@
     13 installer.
     - Prevent double-loading of CD-ROM images.
     - Don't generate sound after DMA is masked at end of single
-    -cycle transfer. Prevents issues with some games.
+    cycle transfer. Prevents issues with some games.
+    - Use right field when dealing with joysticks.
+    - Check for both read-only modes when writing files to drive
+    - Correct one-off error in paging table size compare for
+    when not using USE_FULL_TLB
+    - Make CMOS equipment list startup display mode bits differ
+    from BIOS on EGA/VGA. Fixes Sauro.
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"
