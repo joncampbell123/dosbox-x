@@ -610,13 +610,13 @@ public:
     HostPt GetHostWritePt(Bitu phys_page) {
         return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
     }
-    void writeb(PhysPt addr,Bitu val){
+    void writeb(PhysPt addr,Bit8u val){
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writew(PhysPt addr,Bitu val){
+    void writew(PhysPt addr,Bit16u val){
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writed(PhysPt addr,Bitu val){
+    void writed(PhysPt addr,Bit32u val){
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
 };
