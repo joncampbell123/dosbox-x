@@ -23,7 +23,6 @@ mapper.h \
 mem.h \
 midi.h \
 mixer.h \
-modules.h \
 mouse.h \
 parport.h \
 paging.h \
