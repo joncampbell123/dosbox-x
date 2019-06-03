@@ -105,6 +105,7 @@ public:
 	virtual bool writew_checked(PhysPt addr,Bit16u val);
 	virtual bool writed_checked(PhysPt addr,Bit32u val);
 
+#if 0//ENABLE IF PORTING ADDITIONAL CODE WRITTEN AGAINST THE OLDER PAGE HANDLER readb/writeb PROTYPE.
     // DEPRECATED. THIS IS HERE TO MAKE ANY DERIVED CLASS NOT YET UPDATED BLOW UP WITH A COMPILER ERROR.
     // FIXME: DOES VISUAL STUDIO 2017 HAVE ANY PROBLEMS WITH THIS? CLANG/LLVM?
 	virtual void writeb(PhysPt addr,Bitu val) final = delete;
@@ -113,6 +114,7 @@ public:
 	virtual void writeb_checked(PhysPt addr,Bitu val) final = delete;
 	virtual void writew_checked(PhysPt addr,Bitu val) final = delete;
 	virtual void writed_checked(PhysPt addr,Bitu val) final = delete;
+#endif
 
    PageHandler (void) { }
 	Bitu flags; 
