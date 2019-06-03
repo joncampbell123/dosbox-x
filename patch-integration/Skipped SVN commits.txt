@@ -64,3 +64,5 @@ Commit#:	Reason for skipping:
 4158		MAME sound
 4165		Not sure if needed
 4174		Conflict
+4178		Conflict
+4187		Conflict

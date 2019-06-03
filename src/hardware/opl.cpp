@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2015  The DOSBox Team
+ *  Copyright (C) 2002-2019  The DOSBox Team
  *  OPL2/OPL3 emulation library
  *
  *  This library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 
 #include <math.h>
 #include <stdlib.h> // rand()
+#include <string.h> // memset()
 #include "dosbox.h"
 #include "opl.h"
 #include <string.h>
