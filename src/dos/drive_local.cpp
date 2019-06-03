@@ -1056,7 +1056,8 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 }
 
 bool localFile::Write(const Bit8u * data,Bit16u * size) {
-	if ((this->flags & 0xf) == OPEN_READ) {	// check if file opened in read-only mode
+	Bit32u lastflags = this->flags & 0xf;
+	if (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
