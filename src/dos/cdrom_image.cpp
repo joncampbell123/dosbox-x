@@ -155,7 +155,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	attr = tracks[track - 1u].attr;
 	index = 1;
 	FRAMES_TO_MSF((unsigned int)player.currFrame + 150u, &absPos.min, &absPos.sec, &absPos.fr);
-	FRAMES_TO_MSF((unsigned int)player.currFrame - (unsigned int)tracks[track - 1u].start + 150u, &relPos.min, &relPos.sec, &relPos.fr);
+	FRAMES_TO_MSF((unsigned int)player.currFrame - (unsigned int)tracks[track - 1u].start, &relPos.min, &relPos.sec, &relPos.fr);
 	return true;
 }
 
