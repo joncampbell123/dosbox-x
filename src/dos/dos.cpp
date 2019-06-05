@@ -1885,7 +1885,6 @@ static Bitu DOS_25Handler(void) {
 		SETFLAGBIT(CF,false);
 		reg_ax = 0;
 	}
-	SETFLAGBIT(IF,true);
     return CBRET_NONE;
 }
 static Bitu DOS_26Handler(void) {
@@ -1897,7 +1896,6 @@ static Bitu DOS_26Handler(void) {
 		SETFLAGBIT(CF,false);
 		reg_ax = 0;
 	}
-	SETFLAGBIT(IF,true);
     return CBRET_NONE;
 }
 
@@ -2163,10 +2161,10 @@ public:
 	// iret
 	// retf  <- int 21 4c jumps here to mimic a retf Cyber
 
-		callback[2].Install(DOS_25Handler,CB_RETF,"DOS Int 25");
+		callback[2].Install(DOS_25Handler,CB_RETF_STI,"DOS Int 25");
 		callback[2].Set_RealVec(0x25);
 
-		callback[3].Install(DOS_26Handler,CB_RETF,"DOS Int 26");
+		callback[3].Install(DOS_26Handler,CB_RETF_STI,"DOS Int 26");
 		callback[3].Set_RealVec(0x26);
 
 		callback[4].Install(DOS_27Handler,CB_IRET,"DOS Int 27");
