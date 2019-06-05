@@ -50,6 +50,35 @@
     when not using USE_FULL_TLB
     - Make CMOS equipment list startup display mode bits differ
     from BIOS on EGA/VGA. Fixes Sauro.
+    - Implement port 62h with timer 2 output for CGA and
+    Hercules machine types; fixes Frank Bruno's Boxing and Math
+    Maze.
+    - Acknowledge mouse interrupt before entering user routine;
+    fixes sound stutter during mouse movement in Eye of the
+    Beholder III and Casino Tournament of Champions. Clear
+    button counters in the mouse driver reset function;
+    prevents unintended skipping of intro in MechWarrior and
+    others.
+    - Correct relative track length in subchannel data for
+    CD-ROM images; fixes speech audio cutting off too soon in
+    Casino Tournament of Champions.
+    - Reset followed by switch to UART mode should take some
+    time; fixes MPU detection in F29 Retaliator and Hover Force.
+    - Ignore unrequested data in intelligent mode; fixes Roland
+    sound in Krusty's Fun House.
+    - Repair double slash in configfile location on Macs. Add
+    some protection against a NULL dirp.
+    - Fix loading of configfiles specified with -conf but
+    present in the userdir with -userconf present.
+    - Fix up DOS_Drive_Cache::GetShortName.
+    - Change multi-remain to repeat last parsed value for
+    non-string types if the next value is empty and of the same
+    type as the last. Use this to add an optional parameter to
+    sensitivity which controls the y axis. When optional
+    parameter is missing, x and y axis have the same value.
+    Change limits on sensitivity to allow for negative values
+    so the Mouse Y-axis can be inversed.
+    - Correct bug related to signedness.
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"

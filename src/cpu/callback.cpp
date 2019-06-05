@@ -449,6 +449,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		return (use_cb?0x0e:0x0a);
 	case CB_IRQ12:	// ps2 mouse int74
 		if (!use_cb) E_Exit("int74 callback must implement a callback handler!");
+		phys_writeb(physAddress++,(Bit8u)0xfb);		// sti
 		phys_writeb(physAddress++,(Bit8u)0x1e);		// push ds
 		phys_writeb(physAddress++,(Bit8u)0x06);		// push es
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386) {
@@ -468,20 +469,22 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 			phys_writeb(physAddress++,(Bit8u)0x56);	// push si
 			phys_writeb(physAddress++,(Bit8u)0x57);	// push di
 		}
-		phys_writeb(physAddress++,(Bit8u)0xfc);		// cld
-		phys_writeb(physAddress++,(Bit8u)0xfb);		// sti
 		phys_writeb(physAddress++,(Bit8u)0xFE);		//GRP 4
 		phys_writeb(physAddress++,(Bit8u)0x38);		//Extra Callback instruction
 		phys_writew(physAddress,(Bit16u)callback);			//The immediate word
 		physAddress += 2;
-		return 0x0a;
+		phys_writeb(physAddress++,(Bit8u)0x50);		// push ax
+		phys_writew(physAddress,(Bit16u)0x20b0);	// mov al, 0x20
+		physAddress += 2;
+		phys_writew(physAddress,(Bit16u)0xa0e6);	// out 0xa0, al
+		physAddress += 2;
+		phys_writew(physAddress,(Bit16u)0x20e6);	// out 0x20, al
+		physAddress += 2;
+		phys_writeb(physAddress++,(Bit8u)0x58);		// pop ax
+		phys_writeb(physAddress++,(Bit8u)0xfc);		// cld
+		phys_writeb(physAddress++,(Bit8u)0xCB);		//A RETF Instruction
+		return 0x13;
 	case CB_IRQ12_RET:	// ps2 mouse int74 return
-		if (use_cb) {
-			phys_writeb(physAddress++,(Bit8u)0xFE);	//GRP 4
-			phys_writeb(physAddress++,(Bit8u)0x38);	//Extra Callback instruction
-			phys_writew(physAddress,(Bit16u)callback);		//The immediate word
-			physAddress+=2;
-		}
 		phys_writeb(physAddress++,(Bit8u)0xfa);		// cli
 		phys_writew(physAddress,(Bit16u)0x20b0);	// mov al, 0x20
 		physAddress += 2;
@@ -489,6 +492,12 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		physAddress += 2;
 		phys_writew(physAddress,(Bit16u)0x20e6);	// out 0x20, al
 		physAddress += 2;
+		if (use_cb) {
+			phys_writeb(physAddress++,(Bit8u)0xFE);	//GRP 4
+			phys_writeb(physAddress++,(Bit8u)0x38);	//Extra Callback instruction
+			phys_writew(physAddress,(Bit16u)callback);		//The immediate word
+			physAddress+=2;
+		}
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386) {
 			phys_writew(physAddress,(Bit16u)0x6166);// popad
 			physAddress += 2;

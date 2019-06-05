@@ -156,7 +156,8 @@ struct SDL_Block {
         bool autoenable;
         bool requestlock;
         bool locked;
-        Bitu sensitivity;
+        int xsensitivity;
+        int ysensitivity;
         MOUSE_EMULATION emulation;
     } mouse;
     SDL_Rect updateRects[1024];

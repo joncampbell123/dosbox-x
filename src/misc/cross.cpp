@@ -111,7 +111,7 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in += "\\DOSBox";
 	_mkdir(in.c_str());
 #elif defined(MACOSX)
-	in = "~/Library/Preferences/";
+	in = "~/Library/Preferences";
 	ResolveHomedir(in);
 	//Don't create it. Assume it exists
 #elif defined(HAIKU)
@@ -242,6 +242,7 @@ bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_d
 }
 
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+    if (!dirp) return false;
     if (dirp->wide) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
@@ -260,6 +261,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 }
 
 bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+    if (!dirp) return false;
     if (dirp->wide) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
@@ -276,7 +278,7 @@ bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_direc
 }
 
 void close_directory(dir_information* dirp) {
-	if (dirp->handle != INVALID_HANDLE_VALUE) {
+	if (dirp && dirp->handle != INVALID_HANDLE_VALUE) {
 		FindClose(dirp->handle);
 		dirp->handle = INVALID_HANDLE_VALUE;
 	}
@@ -292,6 +294,7 @@ dir_information* open_directory(const char* dirname) {
 }
 
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+	if (!dirp) return false;
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -323,6 +326,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 }
 
 bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+	if (!dirp) return false;
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -355,7 +359,7 @@ bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_direc
 }
 
 void close_directory(dir_information* dirp) {
-	closedir(dirp->dir);
+	if (dirp) closedir(dirp->dir);
 }
 
 #endif
