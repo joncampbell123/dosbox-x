@@ -7185,7 +7185,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     {
-        std::string tmp,config_path;
+        std::string tmp,config_path,config_combined;
 
         /* -- parse command line arguments */
         if (!DOSBOX_parse_argv()) return 1;
@@ -7244,22 +7244,22 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             tmp.clear();
             Cross::GetPlatformConfigDir(config_path);
             Cross::GetPlatformConfigName(tmp);
-            config_path += tmp;
+            config_combined = config_path + tmp;
 
-            LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_path.c_str());
-            control->ParseConfigFile(config_path.c_str());
+            LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_combined.c_str());
+            control->ParseConfigFile(config_combined.c_str());
             if (!control->configfiles.size()) {
                 //Try to create the userlevel configfile.
                 tmp.clear();
                 Cross::CreatePlatformConfigDir(config_path);
                 Cross::GetPlatformConfigName(tmp);
-                config_path += tmp;
+                config_combined = config_path + tmp;
 
-                LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_path.c_str());
-                if (control->PrintConfig(config_path.c_str())) {
-                    LOG(LOG_MISC,LOG_NORMAL)("Generating default configuration. Writing it to %s",config_path.c_str());
+                LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_combined.c_str());
+                if (control->PrintConfig(config_combined.c_str())) {
+                    LOG(LOG_MISC,LOG_NORMAL)("Generating default configuration. Writing it to %s",config_combined.c_str());
                     //Load them as well. Makes relative paths much easier
-                    control->ParseConfigFile(config_path.c_str());
+                    control->ParseConfigFile(config_combined.c_str());
                 }
             }
         }
