@@ -3219,7 +3219,9 @@ static void GUI_StartUp() {
     else if (feedback == "flash")
         sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
 
-    sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
+    Prop_multival* p3 = section->Get_multival("sensitivity");
+    sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
+    sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
     std::string output=section->Get_string("output");
 
     const std::string emulation = section->Get_string("mouse_emulation");
@@ -3823,10 +3825,10 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_sw     = sdl.clip.w;
     user_cursor_sh     = sdl.clip.h;
 
-    auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.sensitivity / 100.0f;
-    auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.sensitivity / 100.0f;
-    auto x    = static_cast<float>(motion->x - sdl.clip.x) / (sdl.clip.w - 1) * sdl.mouse.sensitivity / 100.0f;
-    auto y    = static_cast<float>(motion->y - sdl.clip.y) / (sdl.clip.h - 1) * sdl.mouse.sensitivity / 100.0f;
+    auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.xsensitivity / 100.0f;
+    auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.ysensitivity / 100.0f;
+    auto x    = static_cast<float>(motion->x - sdl.clip.x) / (sdl.clip.w - 1) * sdl.mouse.xsensitivity / 100.0f;
+    auto y    = static_cast<float>(motion->y - sdl.clip.y) / (sdl.clip.h - 1) * sdl.mouse.ysensitivity / 100.0f;
     auto emu  = sdl.mouse.locked;
 
     const auto inside =
@@ -4418,7 +4420,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
             CaptureMouseNotify();
             GFX_CaptureMouse();
-            // Dont pass klick to mouse handler
+            // Don't pass click to mouse handler
             break;
         }
         if (!sdl.mouse.autoenable && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
@@ -5511,9 +5513,13 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
 
-    Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
-    Pint->SetMinMax(1,1000);
-    Pint->Set_help("Mouse sensitivity.");
+    Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
+    Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
+    Pmulti->SetValue("100");
+    Pint = Pmulti->GetSection()->Add_int("xsens",Property::Changeable::Always,100);
+    Pint->SetMinMax(-1000,1000);
+    Pint = Pmulti->GetSection()->Add_int("ysens",Property::Changeable::Always,100);
+    Pint->SetMinMax(-1000,1000);
 
     const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
     Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
