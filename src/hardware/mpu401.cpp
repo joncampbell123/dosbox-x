@@ -133,7 +133,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     if (mpu.mode==M_UART && val!=0xff) return;
     if (mpu.state.reset) {
-        if (mpu.state.cmd_pending || (val!=0x3f && val!=0xff)) {
+        if (mpu.state.cmd_pending || val!=0xff) {
             mpu.state.cmd_pending=val+1;
             return;
         }
