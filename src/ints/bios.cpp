@@ -274,6 +274,8 @@ extern bool enable_slave_pic;
 
 static std::string dosbox_int_debug_out;
 
+uint32_t Mixer_MIXQ(void);
+
 /* read triggered, update the regsel */
 void dosbox_integration_trigger_read() {
     dosbox_int_error = false;
@@ -300,6 +302,15 @@ void dosbox_integration_trigger_read() {
             break;
         case 3: /* version number */
             dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
+            break;
+
+        case 0x5158494D: /* query mixer output 'MIXQ' */
+            /* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
+             * bits [23:20] = number of channels (at this time, always 2 aka stereo)
+             * bits [29:29] = 1=swap stereo  0=normal
+             * bits [30:30] = 1=muted  0=not muted
+             * bits [31:31] = 1=sound  0=nosound */
+            dosbox_int_register = Mixer_MIXQ();
             break;
 
         case 0x825901: /* PIC configuration */
@@ -420,6 +431,9 @@ void dosbox_integration_trigger_write() {
         case 0x52434D: /* release mouse capture 'MCR' */
             void GFX_ReleaseMouse(void);
             GFX_ReleaseMouse();
+            break;
+
+        case 0x5158494D: /* query mixer output 'MIXQ' */
             break;
 
         case 0x808602: /* NMI (INT 02h) interrupt injection */
