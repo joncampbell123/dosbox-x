@@ -130,21 +130,30 @@ static struct DynDecode {
 
 static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 	Bit8u rdval;
+	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
 	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
 
 	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
-		// this is a codepage handler, and the one that we're looking for
+		// this is a codepage handler, make sure it matches current code size
 		cph=(CodePageHandlerDynRec *)handler;
-		return false;
+		if (handler->flags & cflag) return false;
+		// wrong code size/stale dynamic code, drop it
+		cph->ClearRelease();
+		cph=0;
+		// handler was changed, refresh
+		handler=get_tlb_readhandler(lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (false) { // PAGING_ForcePageInit(lin_addr)) {
 			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=(CodePageHandlerDynRec *)handler;
-				return false;
+				if (handler->flags & cflag) return false;
+				cph->ClearRelease();
+				cph=0;
+				handler=get_tlb_readhandler(lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {

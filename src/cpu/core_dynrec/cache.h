@@ -96,7 +96,7 @@ public:
 		old_pagehandler=_old_pagehandler;
 
 		// adjust flags
-		flags=old_pagehandler->flags|PFLAG_HASCODE;
+		flags=old_pagehandler->flags|(cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16);
 		flags&=~PFLAG_WRITEABLE;
 
 		active_blocks=0;
