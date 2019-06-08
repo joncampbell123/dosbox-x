@@ -79,6 +79,21 @@
     Change limits on sensitivity to allow for negative values
     so the Mouse Y-axis can be inversed.
     - Correct bug related to signedness.
+    - Improve prefetch and simple cores to not switch to normal
+    core on trap execution. Fixes the demo version of
+    Prehistorik 2 and similar cases that use the trap flag and
+    prefetch tricks.
+    - Check lengths before adding C-style strings together.
+    - Fix unmounting of complex drives where parts were left and
+    file pointers were kept open.
+    - Store whether generated code is 16- or 32-bit, so this
+    information can be used when checking for self-modifying
+    code. Some code is identical except for being 32- or 16-bit.
+    Fixes some hard to reproduce problems with small codeblocks.
+    - Stop storing raw modrm value. Should save an instruction
+    on each get_modrm call.
+    - Strip leading = from value. Can happen if you execute
+    "irq =5".
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"
