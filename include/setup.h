@@ -43,7 +43,7 @@
 
 #ifndef CH_CSTDIO
 #define CH_CSTDIO
-#include <cstdio>
+#include <stdio.h>
 #endif
 
 
