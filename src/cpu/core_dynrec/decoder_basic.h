@@ -120,7 +120,7 @@ static struct DynDecode {
 
 	// modrm state of the current instruction (if used)
 	struct {
-		Bitu val;
+//		Bitu val;
 		Bitu mod;
 		Bitu rm;
 		Bitu reg;
@@ -381,10 +381,10 @@ static bool decode_fetchd_imm(Bitu & val) {
 
 // modrm decoding helper
 static void INLINE dyn_get_modrm(void) {
-	decode.modrm.val=decode_fetchb();
-	decode.modrm.mod=(decode.modrm.val >> 6) & 3;
-	decode.modrm.reg=(decode.modrm.val >> 3) & 7;
-	decode.modrm.rm=(decode.modrm.val & 7);
+	Bitu val=decode_fetchb();
+	decode.modrm.mod=(val >> 6) & 3;
+	decode.modrm.reg=(val >> 3) & 7;
+	decode.modrm.rm=(val & 7);
 }
 
 
