@@ -476,17 +476,21 @@ void DOS_Shell::InputCommand(char * line) {
                         if ((path = strrchr(line+completion_index,'/'))) completion_index = (Bit16u)(path-line+1);
 
                         // build the completion list
-                        char mask[DOS_PATHLENGTH];
+                        char mask[DOS_PATHLENGTH] = {0};
+                        if (strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
+                            //Beep;
+                            break;
+                        }
                         if (p_completion_start) {
-                            strcpy(mask, p_completion_start);
+                            safe_strncpy(mask, p_completion_start,DOS_PATHLENGTH);
                             char* dot_pos=strrchr(mask,'.');
                             char* bs_pos=strrchr(mask,'\\');
                             char* fs_pos=strrchr(mask,'/');
                             char* cl_pos=strrchr(mask,':');
                             // not perfect when line already contains wildcards, but works
                             if ((dot_pos-bs_pos>0) && (dot_pos-fs_pos>0) && (dot_pos-cl_pos>0))
-                                strcat(mask, "*");
-                            else strcat(mask, "*.*");
+                                strncat(mask, "*",DOS_PATHLENGTH - 1);
+                            else strncat(mask, "*.*",DOS_PATHLENGTH - 1);
                         } else {
                             strcpy(mask, "*.*");
                         }
