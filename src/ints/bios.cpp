@@ -275,6 +275,12 @@ extern bool enable_slave_pic;
 static std::string dosbox_int_debug_out;
 
 uint32_t Mixer_MIXQ(void);
+uint32_t Mixer_MIXC(void);
+void Mixer_MIXC_Write(uint32_t v);
+PhysPt Mixer_MIXWritePos(void);
+void Mixer_MIXWritePos_Write(PhysPt np);
+void Mixer_MIXWriteBegin_Write(PhysPt np);
+void Mixer_MIXWriteEnd_Write(PhysPt np);
 
 /* read triggered, update the regsel */
 void dosbox_integration_trigger_read() {
@@ -311,6 +317,20 @@ void dosbox_integration_trigger_read() {
              * bits [30:30] = 1=muted  0=not muted
              * bits [31:31] = 1=sound  0=nosound */
             dosbox_int_register = Mixer_MIXQ();
+            break;
+
+        case 0x4358494D: /* query mixer output 'MIXC' */
+            dosbox_int_register = Mixer_MIXC();
+            break;
+
+        case 0x5058494D: /* query mixer output 'MIXP' */
+            dosbox_int_register = Mixer_MIXWritePos();
+            break;
+
+        case 0x4258494D: /* query mixer output 'MIXB' */
+            break;
+
+        case 0x4558494D: /* query mixer output 'MIXE' */
             break;
 
         case 0x825901: /* PIC configuration */
@@ -434,6 +454,22 @@ void dosbox_integration_trigger_write() {
             break;
 
         case 0x5158494D: /* query mixer output 'MIXQ' */
+            break;
+
+        case 0x4358494D: /* query mixer output 'MIXC' */
+            Mixer_MIXC_Write(dosbox_int_register);
+            break;
+
+        case 0x5058494D: /* query mixer output 'MIXP' */
+            Mixer_MIXWritePos_Write(dosbox_int_register);
+            break;
+
+        case 0x4258494D: /* query mixer output 'MIXB' */
+            Mixer_MIXWriteBegin_Write(dosbox_int_register);
+            break;
+
+        case 0x4558494D: /* query mixer output 'MIXE' */
+            Mixer_MIXWriteEnd_Write(dosbox_int_register);
             break;
 
         case 0x808602: /* NMI (INT 02h) interrupt injection */
