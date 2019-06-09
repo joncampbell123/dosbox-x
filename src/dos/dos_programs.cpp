@@ -1808,8 +1808,8 @@ restart_int:
 
                         if(retries) goto restart_int;
                         const Bit8u badfood[]="IMGMAKE BAD FLOPPY SECTOR \xBA\xAD\xF0\x0D";
-                        for(Bitu z = 0; z < 512/32; z++)
-                            memcpy(&data[512*k+z*32],badfood,32);
+                        for(Bit8u z = 0; z < 512/32; z++)
+                            memcpy(&data[512*k+z*32],badfood,31);
                         WriteOut("\b\b");
                         break;
                     }

@@ -751,7 +751,7 @@ void DOS_Drive_Cache::CopyEntry(CFileInfo* dir, CFileInfo* from) {
 
 bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result) {
     // shouldnt happen...
-    if (id>MAX_OPENDIRS) return false;
+    if (id>=MAX_OPENDIRS) return false;
 
     if (!IsCachedIn(dirSearch[id])) {
         // Try to open directory
