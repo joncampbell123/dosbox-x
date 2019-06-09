@@ -126,6 +126,37 @@ static void MOUSE_ProgramStart(Program * * make) {
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 Bitu ZDRIVE_NUM = 25;
 
+static const char* UnmountHelper(char umount) {
+    int i_drive;
+    if (umount < '0' || umount > 3+'0')
+        i_drive = toupper(umount) - 'A';
+    else
+        i_drive = umount - '0';
+
+    if (i_drive >= DOS_DRIVES || i_drive < 0 || (Drives[i_drive] == NULL && imageDiskList[i_drive] == NULL))
+        return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
+
+    if (Drives[i_drive]) {
+        switch (DriveManager::UnmountDrive(i_drive)) {
+            case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
+            case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
+        }
+        Drives[i_drive] = 0;
+        mem_writeb(Real2Phys(dos.tables.mediaid)+i_drive*9,0);
+        if (i_drive == DOS_GetDefaultDrive()) {
+            DOS_SetDrive(ZDRIVE_NUM);
+        }
+
+    }
+
+    if (imageDiskList[i_drive]) {
+        delete imageDiskList[i_drive];
+        imageDiskList[i_drive] = NULL;
+    }
+
+    return MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
+}
+
 class MOUNT : public Program {
 public:
     void ListMounts(void) {
@@ -192,28 +223,7 @@ public:
 
         /* Check for unmounting */
         if (cmd->FindString("-u",umount,false)) {
-            umount[0] = toupper(umount[0]);
-            int i_drive = umount[0]-'A';
-                if (i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) {
-                    switch (DriveManager::UnmountDrive(i_drive)) {
-                    case 0:
-                        Drives[i_drive] = 0;
-                        mem_writeb(Real2Phys(dos.tables.mediaid)+i_drive*9,0);
-                        if(i_drive == DOS_GetDefaultDrive()) 
-                            DOS_SetDrive(ZDRIVE_NUM);
-                        if (!quiet)
-                            WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"),umount[0]);
-                        break;
-                    case 1:
-                        WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL"));
-                        break;
-                    case 2:
-                        WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));
-                        break;
-                    }
-                } else {
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"),umount[0]);
-                }
+            WriteOut(UnmountHelper(umount[0]), toupper(umount[0]));
             return;
         }
         

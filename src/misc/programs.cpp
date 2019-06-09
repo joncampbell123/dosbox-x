@@ -121,7 +121,7 @@ static Bitu PROGRAMS_Handler(void) {
 	HostPt writer=(HostPt)&index;
 	for (;size>0;size--) *writer++=mem_readb(reader++);
 	Program * new_program = NULL;
-	if (index > internal_progs.size()) E_Exit("something is messing with the memory");
+	if (index >= internal_progs.size()) E_Exit("something is messing with the memory");
 	InternalProgramEntry *ipe = internal_progs[index];
 	if (ipe == NULL) E_Exit("Attempt to run internal program slot with nothing allocated");
 	if (ipe->main == NULL) return CBRET_NONE;
@@ -967,9 +967,14 @@ void CONFIG::Run(void) {
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
 			// now execute
 			Section* tsec = control->GetSection(pvars[0]);
-			std::string value;
-			value += pvars[2];
+			std::string value(pvars[2]);
+			//Due to parsing there can be a = at the start of value.
+			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
+			if (value.empty() ) {
+				WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
+				return;
+			}
 			std::string inputline = pvars[1] + "=" + value;
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());

@@ -58,6 +58,8 @@ extern Bitu cycle_count;
 #define CPU_PIC_CHECK 1u
 #define CPU_TRAP_CHECK 1u
 
+#define CPU_TRAP_DECODER	CPU_Core_Simple_Trap_Run
+
 #define OPCODE_NONE         0x000u
 #define OPCODE_0F           0x100u
 #define OPCODE_SIZE         0x200u
@@ -205,13 +207,12 @@ decode_end:
     return CBRET_NONE;
 }
 
-// not really used
 Bits CPU_Core_Simple_Trap_Run(void) {
     Bits oldCycles = CPU_Cycles;
     CPU_Cycles = 1;
     cpu.trap_skip = false;
 
-    Bits ret=CPU_Core_Normal_Run();
+    Bits ret=CPU_Core_Simple_Run();
     if (!cpu.trap_skip) CPU_HW_Interrupt(1);
     CPU_Cycles = oldCycles-1;
     cpudecoder = &CPU_Core_Simple_Run;

@@ -120,7 +120,7 @@ static struct DynDecode {
 
 	// modrm state of the current instruction (if used)
 	struct {
-		Bitu val;
+//		Bitu val;
 		Bitu mod;
 		Bitu rm;
 		Bitu reg;
@@ -130,21 +130,30 @@ static struct DynDecode {
 
 static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 	Bit8u rdval;
+	const Bitu cflag = cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16;
 	//Ensure page contains memory:
 	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
 
 	PageHandler * handler=get_tlb_readhandler((PhysPt)lin_addr);
 	if (handler->flags & PFLAG_HASCODE) {
-		// this is a codepage handler, and the one that we're looking for
+		// this is a codepage handler, make sure it matches current code size
 		cph=(CodePageHandlerDynRec *)handler;
-		return false;
+		if (handler->flags & cflag) return false;
+		// wrong code size/stale dynamic code, drop it
+		cph->ClearRelease();
+		cph=0;
+		// handler was changed, refresh
+		handler=get_tlb_readhandler(lin_addr);
 	}
 	if (handler->flags & PFLAG_NOCODE) {
 		if (false) { // PAGING_ForcePageInit(lin_addr)) {
 			handler=get_tlb_readhandler((PhysPt)lin_addr);
 			if (handler->flags & PFLAG_HASCODE) {
 				cph=(CodePageHandlerDynRec *)handler;
-				return false;
+				if (handler->flags & cflag) return false;
+				cph->ClearRelease();
+				cph=0;
+				handler=get_tlb_readhandler(lin_addr);
 			}
 		}
 		if (handler->flags & PFLAG_NOCODE) {
@@ -372,10 +381,10 @@ static bool decode_fetchd_imm(Bitu & val) {
 
 // modrm decoding helper
 static void INLINE dyn_get_modrm(void) {
-	decode.modrm.val=decode_fetchb();
-	decode.modrm.mod=(decode.modrm.val >> 6) & 3;
-	decode.modrm.reg=(decode.modrm.val >> 3) & 7;
-	decode.modrm.rm=(decode.modrm.val & 7);
+	Bitu val=decode_fetchb();
+	decode.modrm.mod=(val >> 6) & 3;
+	decode.modrm.reg=(val >> 3) & 7;
+	decode.modrm.rm=(val & 7);
 }
 
 
