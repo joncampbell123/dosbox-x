@@ -667,7 +667,7 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
 }
 
 Bitu mem_strlen(PhysPt pt) {
-    Bitu x=0;
+    Bit16u x=0;
     while (x<1024) {
         if (!mem_readb_inline(pt+x)) return x;
         x++;
@@ -719,7 +719,7 @@ void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
         const Bitu current = (((pt>>12)+1)<<12) - pt;
         Bitu remainder = size - current;
         MEM_BlockWrite(pt, data, current);
-        MEM_BlockWrite(pt+current, reinterpret_cast<Bit8u const * const>(data)+current, remainder);
+        MEM_BlockWrite((PhysPt)(pt+current), reinterpret_cast<Bit8u const * const>(data)+current, remainder);
     }
 }
 
@@ -796,11 +796,11 @@ Bitu MEM_AllocatedPages(MemHandle handle)
 
 //TODO Maybe some protection for this whole allocation scheme
 
-INLINE Bitu BestMatch(Bitu size) {
-    Bitu index=XMS_START;   
-    Bitu first=0;
-    Bitu best=0xfffffff;
-    Bitu best_first=0;
+INLINE Bit32u BestMatch(Bitu size) {
+    Bit32u index=XMS_START;   
+    Bit32u first=0;
+    Bit32u best=0xfffffff;
+    Bit32u best_first=0;
     while (index<memory.reported_pages) {
         /* Check if we are searching for first free page */
         if (!first) {
@@ -811,7 +811,7 @@ INLINE Bitu BestMatch(Bitu size) {
         } else {
             /* Check if this still is used page */
             if (memory.mhandles[index]) {
-                Bitu pages=index-first;
+                Bit32u pages=index-first;
                 if (pages==size) {
                     return first;
                 } else if (pages>size) {
@@ -835,11 +835,11 @@ INLINE Bitu BestMatch(Bitu size) {
 /* alternate copy, that will only allocate memory on addresses
  * where the 20th address bit is zero. memory allocated in this
  * way will always be accessible no matter the state of the A20 gate */
-INLINE Bitu BestMatch_A20_friendly(Bitu size) {
-    Bitu index=XMS_START;
-    Bitu first=0;
-    Bitu best=0xfffffff;
-    Bitu best_first=0;
+INLINE Bit32u BestMatch_A20_friendly(Bitu size) {
+    Bit32u index=XMS_START;
+    Bit32u first=0;
+    Bit32u best=0xfffffff;
+    Bit32u best_first=0;
 
     /* if the memory to allocate is more than 1MB this function will never work. give up now. */
     if (size > 0x100)
@@ -866,7 +866,7 @@ INLINE Bitu BestMatch_A20_friendly(Bitu size) {
         } else {
             /* Check if this still is used page or on odd megabyte */
             if (memory.mhandles[index] || (index & 0x100)) {
-                Bitu pages=index-first;
+                Bit32u pages=index-first;
                 if (pages==size) {
                     return first;
                 } else if (pages>size) {
@@ -891,7 +891,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
     MemHandle ret;
     if (!pages) return 0;
     if (sequence) {
-        Bitu index=BestMatch(pages);
+        Bit32u index=BestMatch(pages);
         if (!index) return 0;
         MemHandle * next=&ret;
         while (pages) {
@@ -904,7 +904,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
         if (MEM_FreeTotal()<pages) return 0;
         MemHandle * next=&ret;
         while (pages) {
-            Bitu index=BestMatch(1);
+            Bit32u index=BestMatch(1);
             if (!index) E_Exit("MEM:corruption during allocate");
             while (pages && (!memory.mhandles[index])) {
                 *next=index;
@@ -924,7 +924,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
     MemHandle ret;
     if (!pages) return 0;
     if (sequence) {
-        Bitu index=BestMatch_A20_friendly(pages);
+        Bit32u index=BestMatch_A20_friendly(pages);
         if (!index) return 0;
 #if C_DEBUG
         if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
@@ -941,7 +941,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
         if (MEM_FreeTotal()<pages) return 0;
         MemHandle * next=&ret;
         while (pages) {
-            Bitu index=BestMatch_A20_friendly(1);
+            Bit32u index=BestMatch_A20_friendly(1);
             if (!index) E_Exit("MEM:corruption during allocate");
 #if C_DEBUG
             if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
@@ -958,7 +958,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
 }
 
 MemHandle MEM_GetNextFreePage(void) {
-    return (MemHandle)BestMatch(1);
+    return BestMatch(1);
 }
 
 void MEM_ReleasePages(MemHandle handle) {

@@ -124,7 +124,7 @@ static void MOUSE_ProgramStart(Program * * make) {
 }
 
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
-Bitu ZDRIVE_NUM = 25;
+Bit8u ZDRIVE_NUM = 25;
 
 static const char* UnmountHelper(char umount) {
     int i_drive;
@@ -231,9 +231,9 @@ public:
         /* Only allowing moving it once. It is merely a convenience added for the wine team */
         if (ZDRIVE_NUM == 25 && cmd->FindString("-z", newz,false)) {
             newz[0] = toupper(newz[0]);
-            int i_newz = newz[0] - 'A';
+            Bit8u i_newz = newz[0] - 'A';
             if (i_newz >= 0 && i_newz < DOS_DRIVES-1 && !Drives[i_newz]) {
-                ZDRIVE_NUM = (unsigned int)i_newz;
+                ZDRIVE_NUM = i_newz;
                 /* remap drives */
                 Drives[i_newz] = Drives[25];
                 Drives[25] = 0;
@@ -1818,8 +1818,8 @@ restart_int:
 
                         if(retries) goto restart_int;
                         const Bit8u badfood[]="IMGMAKE BAD FLOPPY SECTOR \xBA\xAD\xF0\x0D";
-                        for(Bitu z = 0; z < 512/32; z++)
-                            memcpy(&data[512*k+z*32],badfood,32);
+                        for(Bit8u z = 0; z < 512/32; z++)
+                            memcpy(&data[512*k+z*32],badfood,31);
                         WriteOut("\b\b");
                         break;
                     }
@@ -1933,7 +1933,7 @@ restart_int:
         }
 
         Bit8u mediadesc = 0xF8; // media descriptor byte; also used to differ fd and hd
-        Bitu root_ent = 512; // FAT root directory entries: 512 is for harddisks
+        Bit16u root_ent = 512; // FAT root directory entries: 512 is for harddisks
         if(disktype=="fd_160") {
             c = 40; h = 1; s = 8; mediadesc = 0xFE; root_ent = 56; // root_ent?
         } else if(disktype=="fd_180") {

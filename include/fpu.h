@@ -207,7 +207,7 @@ static INLINE void FPU_SetCW(Bitu word){
 }
 
 
-static INLINE Bitu FPU_GET_TOP(void) {
+static INLINE Bit8u FPU_GET_TOP(void) {
 	return (fpu.sw & 0x3800U) >> 11U;
 }
 
