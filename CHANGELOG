@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Debugger INTHAND command now works properly in protected
+    mode.
   - DOSBox Integration Device now provides an interface for
     code within to listen to the mixer output (to hear
     itself) for automated testing purposes.
