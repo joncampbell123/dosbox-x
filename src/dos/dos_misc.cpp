@@ -109,9 +109,9 @@ static bool DOS_MultiplexFunctions(void) {
 		if (reg_bx<16) {
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			Bitu sftofs=0x06u+reg_bx*0x3bu;
+			Bit32u sftofs=0x06u+reg_bx*0x3bu;
 
-			if (Files[reg_bx]) mem_writeb(sftptr+sftofs,Files[reg_bx]->refCtr);
+			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (Bit8u)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
 
 			if (!Files[reg_bx]) return true;

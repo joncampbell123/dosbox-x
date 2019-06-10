@@ -367,7 +367,7 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	sSave(sDTA,sdrive,_sdrive);
 	sSave(sDTA,sattr,_sattr);
 	/* Fill with spaces */
-	Bitu i;
+	Bit8u i;
 	for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,sname)+i,' ');
 	char * find_ext;
 	find_ext=strchr(pattern,'.');
@@ -431,10 +431,10 @@ bool DOS_FCB::Extended(void) {
 }
 
 void DOS_FCB::Create(bool _extended) {
-	Bitu fill;
+	Bit8u fill;
 	if (_extended) fill=33+7;
 	else fill=33;
-	Bitu i;
+	Bit8u i;
 	for (i=0;i<fill;i++) mem_writeb(real_pt+i,0);
 	pt=real_pt;
 	if (_extended) {
@@ -554,6 +554,6 @@ void DOS_FCB::SetResult(Bit32u size,Bit16u date,Bit16u time,Bit8u attr) {
 
 void DOS_SDA::Init() {
 	/* Clear */
-	for(Bitu i=0;i<sizeof(sSDA);i++) mem_writeb(pt+i,0x00);
+	for(Bit8u i=0;i<sizeof(sSDA);i++) mem_writeb(pt+i,0x00);
 	sSave(sSDA,drive_crit_error,0xff);   
 }

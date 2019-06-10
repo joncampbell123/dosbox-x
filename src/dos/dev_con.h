@@ -1138,7 +1138,7 @@ Bit16u device_CON::GetInformation(void) {
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
 		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
 
-		Bitu saved_ax = reg_ax;
+		Bit16u saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
 

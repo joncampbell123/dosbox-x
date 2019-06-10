@@ -784,7 +784,7 @@ static Bitu DOS_21Handler(void) {
                         SegSet16(es,SegValue(ss));
                         CALLBACK_RunRealInt(0x1c);
 
-                        Bitu memaddr = ((Bitu)SegValue(es) << 4u) + reg_bx;
+                        Bit32u memaddr = ((Bit32u)SegValue(es) << 4u) + reg_bx;
 
                         reg_sp += 6;
                         SegSet16(es,CPU_Pop16());
@@ -893,7 +893,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(es,SegValue(ss));
                     CALLBACK_RunRealInt(0x1c);
 
-                    Bitu memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
+                    Bit32u memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
 
                     reg_sp += 6;
                     SegSet16(es,CPU_Pop16());
@@ -2122,7 +2122,7 @@ public:
             if (MEM_TotalPages() > 0x9C)
                 DOS_PRIVATE_SEGMENT_END = 0x9C00;
             else
-                DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+                DOS_PRIVATE_SEGMENT_END = (Bit16u)((MEM_TotalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
         }
 
         LOG(LOG_MISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
