@@ -295,7 +295,6 @@ size_t KEYBOARD_BufferSpaceAvail()   // emendelson from dbDOS
 }                                   // end emendelson from dbDOS
 
 static void KEYBOARD_Add8042Response(Bit8u data) {
-    if(!keyb.enable_aux) return;
     if (keyb.buf8042_pos >= keyb.buf8042_len)
         keyb.buf8042_pos = keyb.buf8042_len = 0;
     else if (keyb.buf8042_len == 0)
