@@ -2450,8 +2450,20 @@ bool ParseCommand(char* str) {
 		if (found[0] != 0) {
 			Bit8u intNr = (Bit8u)GetHexValue(found,found);
 			DEBUG_ShowMsg("DEBUG: Set code overview to interrupt handler %X\n",intNr);
-			codeViewData.useCS	= mem_readw(intNr*4u+2u);
-			codeViewData.useEIP = mem_readw(intNr*4u);
+            if (cpu.pmode) {
+                Descriptor gate;
+                if (cpu.idt.GetDescriptor(intNr<<3u,gate)) {
+                    codeViewData.useCS	= gate.GetSelector();
+                    codeViewData.useEIP = gate.GetOffset();
+                }
+                else {
+                    DEBUG_ShowMsg("INTHAND unable to retrieve vector");
+                }
+            }
+            else {
+                codeViewData.useCS	= mem_readw(intNr*4u+2u);
+                codeViewData.useEIP = mem_readw(intNr*4u);
+            }
 			codeViewData.cursorPos = 0;
 			return true;
 		}
