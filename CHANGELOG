@@ -99,6 +99,25 @@
     on each get_modrm call.
     - Strip leading = from value. Can happen if you execute
     "irq =5".
+    - Don't remove bytes from autoexec.bat when changing
+    settings from autoexec.bat, but replace them instead. This
+    way the location stays valid.
+    - Let dynamic core recompile interrupt instructions in
+    non-debug builds. Can help software with many INTs, such as
+    compiled BASIC, run faster.
+    - Add logic in mouse driver to ignore button events that
+    are out of sequence. Fixes International Rugby Challenge
+    when clicking to lock the mouse.
+    - Use a more compatible offset for DOS redirected interrupt
+    vector. Works around a null pointer bug in the notes dropdown
+    list of Jack the Ripper.
+    - Reqrite pop_ev so it can trigger pagefaults again. Fixes
+    Win 3.11.
+    - Fix uninitialized access to some isoDrive fields. Pause audio
+    before switching. Use right subunit with multiple CDs on one
+    drive letter.
+    - Move all stack alignment operations into one place and
+    some optimalisations to RISC x64 dynamic core.
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"
