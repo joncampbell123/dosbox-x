@@ -41,13 +41,18 @@ void CALLBACK_DeAllocate(Bitu in);
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
-Program * first_shell = 0; 
+DOS_Shell * first_shell = 0; 
 
 static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
 }
 
 static void SHELL_ProgramStart(Program * * make) {
+	*make = new DOS_Shell;
+}
+//Repeat it with the correct type, could do it in the function below, but this way it should be 
+//clear that if the above function is changed, this function might need a change as well.
+static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
 }
 
@@ -1130,7 +1135,7 @@ void SHELL_Run() {
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
-	SHELL_ProgramStart(&first_shell);
+	SHELL_ProgramStart_First_shell(&first_shell);
 
 	try {
 		first_shell->Run();

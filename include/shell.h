@@ -42,11 +42,12 @@
 #define CMD_MAXCMDS 20
 #define CMD_OLDSIZE 4096
 extern Bitu call_shellstop;
+class DOS_Shell;
+
 /* first_shell is used to add and delete stuff from the shell env 
  * by "external" programs. (config) */
-extern Program * first_shell;
+extern DOS_Shell * first_shell;
 
-class DOS_Shell;
 
 class BatchFile {
 public:

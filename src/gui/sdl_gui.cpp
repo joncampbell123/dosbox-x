@@ -57,7 +57,6 @@ protected:
 };
 
 extern Bit8u                int10_font_14[256 * 14];
-extern Program*             first_shell;
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -867,10 +866,9 @@ public:
         if (arg == "OK") section->data = *(std::string*)content->getText();
         if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
         else if (arg == "Append History") {
-            DOS_Shell *s = static_cast<DOS_Shell *>(first_shell);
-            std::list<std::string>::reverse_iterator i = s->l_history.rbegin();
+            std::list<std::string>::reverse_iterator i = first_shell->l_history.rbegin();
             std::string lines = *(std::string*)content->getText();
-            while (i != s->l_history.rend()) {
+            while (i != first_shell->l_history.rend()) {
                 lines += "\n";
                 lines += *i;
                 ++i;
