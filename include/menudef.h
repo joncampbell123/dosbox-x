@@ -39,7 +39,7 @@ struct MENU_Block {
 	bool resizeusing; // check if resizable window can be used
 	bool compatible;  // compatible mode for win9x/2000 (if enabled, GUI system will be disabled)
 	bool maxwindow; // check window state
-	MENU_Block():toggle(false),startup(false),hidecycles(false),boot(false),gui(true),resizeusing(false),compatible(false),maxwindow(false){ }
+	MENU_Block():toggle(false),startup(false),hidecycles(false),showrt(false),boot(false),gui(true),resizeusing(false),compatible(false),maxwindow(false){ }
 };
 extern MENU_Block menu;
 

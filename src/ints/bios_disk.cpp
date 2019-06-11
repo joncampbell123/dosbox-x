@@ -327,6 +327,8 @@ imageDisk::imageDisk(IMAGE_TYPE class_id) {
     this->class_id = class_id;
     active = false;
     hardDrive = false;
+    diskSizeK = 0;
+    floppytype = 0;
 }
 
 imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive) {
@@ -344,6 +346,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit3
     class_id = ID_BASE;
     active = true;
     this->hardDrive = hardDrive;
+    floppytype = 0;
 }
 
 /* .HDI and .FDI header (NP2) */
@@ -433,6 +436,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
     diskimg = imgFile;
     class_id = ID_BASE;
     diskSizeK = imgSizeK;
+    floppytype = 0;
 
     if (imgName != NULL)
         diskname = (const char*)imgName;

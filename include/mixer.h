@@ -125,7 +125,7 @@ void MIXER_DelChannel(MixerChannel* delchan);
 class MixerObject{
 private:
 	bool installed;
-	char m_name[32];
+    char m_name[32] = {};
 public:
 	MixerObject():installed(false){};
 	MixerChannel* Install(MIXER_Handler handler,Bitu freq,const char * name);

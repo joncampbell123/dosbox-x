@@ -448,13 +448,13 @@ public:
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif
-	sExec exec;
-	sOverlay overlay;
+    sExec exec = {};
+    sOverlay overlay = {};
 };
 
 class DOS_InfoBlock:public MemStruct {
 public:
-	DOS_InfoBlock			() {};
+    DOS_InfoBlock() : seg(0) {};
 	void SetLocation(Bit16u  seg);
 	void SetFirstMCB(Bit16u _first_mcb);
 	void SetBuffers(Bit16u x,Bit16u y);

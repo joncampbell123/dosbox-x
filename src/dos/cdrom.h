@@ -313,7 +313,6 @@ static	int	refCount;
 	std::vector<Track>	tracks;
 typedef	std::vector<Track>::iterator	track_it;
 	std::string	mcn;
-	Bit8u	subUnit;
 };
 
 #if defined (WIN32)	/* Win 32 */

@@ -717,7 +717,7 @@ typedef struct {
 
 typedef union CGA_Latch {
 	Bit16u d;
-	Bit8u b[2];
+    Bit8u b[2] = {};
 
     CGA_Latch() { }
     CGA_Latch(const Bit16u raw) : d(raw) { }
@@ -725,7 +725,7 @@ typedef union CGA_Latch {
 
 typedef union VGA_Latch {
 	Bit32u d;
-	Bit8u b[4];
+    Bit8u b[4] = {};
 
     VGA_Latch() { }
     VGA_Latch(const Bit32u raw) : d(raw) { }

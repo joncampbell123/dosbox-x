@@ -43,10 +43,10 @@ struct DB_Midi {
 	Bitu status;
 	Bitu cmd_len;
 	Bitu cmd_pos;
-	Bit8u cmd_buf[8];
-	Bit8u rt_buf[8];
+    Bit8u cmd_buf[8] = {};
+    Bit8u rt_buf[8] = {};
 	struct midi_state_sysex_t {
-		Bit8u buf[SYSEX_SIZE];
+        Bit8u buf[SYSEX_SIZE] = {};
 		Bitu used;
 		Bitu delay;
 		Bit32u start;
