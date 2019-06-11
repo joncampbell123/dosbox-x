@@ -446,14 +446,23 @@ static void dyn_push_word_imm(Bitu imm) {
 static void dyn_pop_ev(void) {
 	dyn_get_modrm();
 	if (decode.modrm.mod<3) {
-/*		dyn_fill_ea(FC_ADDR);
-		gen_protect_addr_reg();
-		dyn_read_word(FC_ADDR,FC_OP1,decode.big_op);	// dummy read to trigger possible page faults */
+		// save original ESP
+		MOV_REG_WORD32_TO_HOST_REG(FC_OP2,DRC_REG_ESP);
+		gen_protect_reg(FC_OP2);
 		if (decode.big_op) gen_call_function_raw((void*)&dynrec_pop_dword);
 		else gen_call_function_raw((void*)&dynrec_pop_word);
 		dyn_fill_ea(FC_ADDR);
-//		gen_restore_addr_reg();
-		dyn_write_word(FC_ADDR,FC_RETOP,decode.big_op);
+		gen_mov_regs(FC_OP2,FC_RETOP);
+		gen_mov_regs(FC_OP1,FC_ADDR);
+		if (decode.big_op) gen_call_function_raw((void *)&mem_writed_checked_drc);
+		else gen_call_function_raw((void *)&mem_writew_checked_drc);
+		gen_extend_byte(false,FC_RETOP); // bool -> dword
+		DRC_PTR_SIZE_IM no_fault = gen_create_branch_on_zero(FC_RETOP, true);
+		// restore original ESP
+		gen_restore_reg(FC_OP2);
+		MOV_REG_WORD32_FROM_HOST_REG(FC_OP2,DRC_REG_ESP);
+		dyn_check_exception(FC_RETOP);
+		gen_fill_branch(no_fault);
 	} else {
 		if (decode.big_op) gen_call_function_raw((void*)&dynrec_pop_dword);
 		else gen_call_function_raw((void*)&dynrec_pop_word);
