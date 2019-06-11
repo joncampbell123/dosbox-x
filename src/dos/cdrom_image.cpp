@@ -51,6 +51,7 @@ CDROM_Interface_Image::BinaryFile::BinaryFile(const char *filename, bool &error)
 CDROM_Interface_Image::BinaryFile::~BinaryFile()
 {
 	delete file;
+	file = NULL;
 }
 
 bool CDROM_Interface_Image::BinaryFile::read(Bit8u *buffer, int seek, int count)
@@ -76,6 +77,7 @@ CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player = {
 
 	
 CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
+                      :subUnit(subUnit)
 {
 	images[subUnit] = this;
 	if (refCount == 0) {
@@ -357,6 +359,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 	track.file = new BinaryFile(filename, error);
 	if (error) {
 		delete track.file;
+		track.file = NULL;
 		return false;
 	}
 	track.number = 1;
@@ -511,6 +514,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 			}
 			if (error) {
 				delete track.file;
+				track.file = NULL;
 				success = false;
 			}
 		}
