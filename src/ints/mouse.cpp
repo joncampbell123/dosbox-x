@@ -737,18 +737,21 @@ void Mouse_ButtonPressed(Bit8u button) {
     switch (button) {
 #if (MOUSE_BUTTONS >= 1)
     case 0:
+        if (mouse.buttons&1) return;
         mouse.buttons|=1;
         Mouse_AddEvent(MOUSE_LEFT_PRESSED);
         break;
 #endif
 #if (MOUSE_BUTTONS >= 2)
     case 1:
+        if (mouse.buttons&2) return;
         mouse.buttons|=2;
         Mouse_AddEvent(MOUSE_RIGHT_PRESSED);
         break;
 #endif
 #if (MOUSE_BUTTONS >= 3)
     case 2:
+        if (mouse.buttons&4) return;
         mouse.buttons|=4;
         Mouse_AddEvent(MOUSE_MIDDLE_PRESSED);
         break;
@@ -797,18 +800,21 @@ void Mouse_ButtonReleased(Bit8u button) {
     switch (button) {
 #if (MOUSE_BUTTONS >= 1)
     case 0:
+        if (!(mouse.buttons&1)) return;
         mouse.buttons&=~1;
         Mouse_AddEvent(MOUSE_LEFT_RELEASED);
         break;
 #endif
 #if (MOUSE_BUTTONS >= 2)
     case 1:
+        if (!(mouse.buttons&2)) return;
         mouse.buttons&=~2;
         Mouse_AddEvent(MOUSE_RIGHT_RELEASED);
         break;
 #endif
 #if (MOUSE_BUTTONS >= 3)
     case 2:
+        if (!(mouse.buttons&4)) return;
         mouse.buttons&=~4;
         Mouse_AddEvent(MOUSE_MIDDLE_RELEASED);
         break;
@@ -991,6 +997,8 @@ static void Mouse_Reset(void) {
 
     mouse.mickey_x = 0;
     mouse.mickey_y = 0;
+
+    mouse.buttons = 0;
 
     for (Bit16u but=0; but<MOUSE_BUTTONS; but++) {
         mouse.times_pressed[but] = 0;
