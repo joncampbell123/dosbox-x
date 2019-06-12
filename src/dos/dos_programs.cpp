@@ -149,7 +149,7 @@ static const char* UnmountHelper(char umount) {
 
     }
 
-    if (imageDiskList[i_drive]) {
+    if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
         delete imageDiskList[i_drive];
         imageDiskList[i_drive] = NULL;
     }
