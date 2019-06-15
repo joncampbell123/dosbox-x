@@ -48,8 +48,6 @@ char * lowcase(char * str);
 bool ScanCMDBool(char * cmd,char const * const check);
 char * ScanCMDRemain(char * cmd);
 char * StripWord(char *&cmd);
-bool IsDecWord(char * word);
-bool IsHexWord(char * word);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
 

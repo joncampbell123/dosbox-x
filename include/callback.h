@@ -73,7 +73,6 @@ Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr);
 const char* CALLBACK_GetDescription(Bitu callback);
-bool CALLBACK_Free(Bitu callback);
 
 void CALLBACK_SCF(bool val);
 void CALLBACK_SZF(bool val);

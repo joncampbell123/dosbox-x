@@ -174,19 +174,11 @@ extern RegionAllocTracking rombios_alloc;
 //#define MAX_SWAPPABLE_DISKS 20
 
 void BIOS_ZeroExtendedSize(bool in);
-void char_out(Bit8u chr,Bit32u att,Bit8u page);
-void INT10_StartUp(void);
-void INT16_StartUp(void);
-void INT2A_StartUp(void);
-void INT2F_StartUp(void);
-void INT33_StartUp(void);
-void INT13_StartUp(void);
 
 bool BIOS_AddKeyToBuffer(Bit16u code);
 
 void INT10_ReloadRomFonts();
 
-void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
 // \brief Synchronizes emulator num lock state with host.

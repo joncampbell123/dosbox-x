@@ -807,7 +807,6 @@ void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m);
 void VGA_SetupAttr(void);
 void VGA_SetupMemory(void);
 void VGA_SetupDAC(void);
-void VGA_SetupCRTC(void);
 void VGA_SetupMisc(void);
 void VGA_SetupGFX(void);
 void VGA_SetupSEQ(void);
@@ -816,8 +815,6 @@ void VGA_SetupXGA(void);
 
 /* Some Support Functions */
 void VGA_SetClock(Bitu which,Bitu target);
-void VGA_DACSetEntirePalette(void);
-void VGA_StartRetrace(void);
 void VGA_StartUpdateLFB(void);
 void VGA_SetBlinking(Bitu enabled);
 void VGA_SetCGA2Table(Bit8u val0,Bit8u val1);

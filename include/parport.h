@@ -89,10 +89,7 @@ public:
 	virtual void Write_CON(Bitu)=0;
 	virtual void Write_IOSEL(Bitu)=0;
 
-	void Write_reserved(Bit8u data, Bit8u address);
-
 	virtual bool Putchar(Bit8u)=0;
-	bool Putchar_default(Bit8u);
 	Bit8u getPrinterStatus();
 	void initialize();
 
@@ -100,7 +97,6 @@ public:
 };
 
 extern CParallel* parallelPortObjects[];
-void PARALLEL_Init (Section * sec);
 
 const Bit16u parallel_baseaddr[3] = {0x378,0x278,0x3bc};
 

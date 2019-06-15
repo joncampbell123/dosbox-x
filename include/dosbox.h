@@ -140,7 +140,6 @@ const char*				MSG_Get(char const *);     //get messages from the internal langu
 void					DOSBOX_RunMachine();
 void					DOSBOX_SetLoop(LoopHandler * handler);
 void					DOSBOX_SetNormalLoop();
-void					DOSBOX_Init(void);
 
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
@@ -169,9 +168,6 @@ extern ClockDomain			clockdom_ISA_BCLK;
 
 signed long long time_to_clockdom(ClockDomain &src,double t);
 unsigned long long update_clockdom_from_now(ClockDomain &dst);
-unsigned long long update_ISA_OSC_clock();
-unsigned long long update_ISA_BCLK_clock();
-unsigned long long update_PCI_BCLK_clock();
 
 extern bool enable_pc98_jump;
 
