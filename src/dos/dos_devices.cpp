@@ -134,6 +134,8 @@ DOS_File::DOS_File(const DOS_File& orig) {
 	refCtr=orig.refCtr;
 	open=orig.open;
 	hdrive=orig.hdrive;
+    drive = 0;
+    newtime = false;
 	name=0;
 	if(orig.name) {
 		name=new char [strlen(orig.name) + 1];strcpy(name,orig.name);

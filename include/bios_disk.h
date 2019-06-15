@@ -338,25 +338,25 @@ private:
 		bool IsValid();
 	};
 
-	imageDiskVHD() : imageDisk(ID_VHD), parentDisk(NULL), copiedFooter(false), currentBlock(0xFFFFFFFF), currentBlockAllocated(false), currentBlockDirtyMap(NULL) { }
+	imageDiskVHD() : imageDisk(ID_VHD) { }
 	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength);
 
-	imageDisk* parentDisk;// = 0;
-	Bit64u footerPosition;
-	VHDFooter footer;
-	VHDFooter originalFooter;
-	bool copiedFooter;// = false;
-	DynamicHeader dynamicHeader;
-	Bit32u sectorsPerBlock;
-	Bit32u blockMapSectors;
-	Bit32u blockMapSize;
-	Bit32u currentBlock;// = 0xFFFFFFFF;
-	bool currentBlockAllocated;// = false;
-	Bit32u currentBlockSectorOffset;
-	Bit8u* currentBlockDirtyMap;// = 0;
+    imageDisk* parentDisk = NULL;
+	Bit64u footerPosition = 0;
+    VHDFooter footer = {};
+    VHDFooter originalFooter = {};
+    bool copiedFooter = false;
+    DynamicHeader dynamicHeader = {};
+	Bit32u sectorsPerBlock = 0;
+	Bit32u blockMapSectors = 0;
+	Bit32u blockMapSize = 0;
+	Bit32u currentBlock = 0xFFFFFFFF;
+    bool currentBlockAllocated = false;
+	Bit32u currentBlockSectorOffset = 0;
+	Bit8u* currentBlockDirtyMap = 0;
 };
 
 void updateDPT(void);

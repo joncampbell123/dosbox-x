@@ -1049,7 +1049,7 @@ public:
                 delete well;
             }
         }
-        LOG_MSG("GUI: Current Vertical Sync Rate: %s Hz", sec->Get_string("vsyncrate"));
+        if (sec) LOG_MSG("GUI: Current Vertical Sync Rate: %s Hz", sec->Get_string("vsyncrate"));
         close();
         if(shortcut) running=false;
     }

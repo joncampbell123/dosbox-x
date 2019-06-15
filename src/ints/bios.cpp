@@ -6265,7 +6265,7 @@ static Bitu INT15_Handler(void) {
                          *    1) 0x0C0000-0x0FFFFF       Reserved
                          *    2) 0x100000-...            Free memory (no ACPI tables) */
                         if (reg_ebx < 3) {
-                            uint32_t base,len,type;
+                            uint32_t base = 0,len = 0,type = 0;
                             Bitu seg = SegValue(es);
 
                             assert((MEM_TotalPages()*4096) >= 0x100000);

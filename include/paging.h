@@ -118,7 +118,7 @@ public:
 	virtual void writed_checked(PhysPt addr,Bitu val) final = delete;
 #endif
 
-   PageHandler (void) { }
+    PageHandler(void) : flags(0) { }
 	Bitu flags; 
 	Bitu getFlags() const {
 		return flags;

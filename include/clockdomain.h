@@ -27,16 +27,19 @@ public:
 	ClockDomain() {
 		freq = 0;
 		freq_div = 1;
+        counter = 0;
 	}
 	ClockDomain(unsigned long long freq_new) {
 		freq = freq_new;
 		freq_div = 1;
+        counter = 0;
 	}
 	/* we allow non-integer frequencies as integer fractions.
 	 * example: 33.3333333...MHz as 100,000,000Hz / 3 */
 	ClockDomain(unsigned long long freq_new,unsigned long long div) {
 		freq = freq_new;
 		freq_div = div;
+        counter = 0;
 	}
 public:
 	void set_name(const char *s) {

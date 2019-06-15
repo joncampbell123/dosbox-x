@@ -67,25 +67,25 @@ class Value {
  */
 private:
 	Hex _hex;
-	bool _bool;
-	int _int;
-	std::string* _string;
-	double _double;
+	bool _bool = false;
+	int _int = 0;
+	std::string* _string = NULL;
+	double _double = 0;
 public:
 	class WrongType { }; // Conversion error class
-	enum Etype { V_NONE, V_HEX, V_BOOL, V_INT, V_STRING, V_DOUBLE,V_CURRENT} type;
+	enum Etype { V_NONE, V_HEX, V_BOOL, V_INT, V_STRING, V_DOUBLE,V_CURRENT} type = V_NONE;
 
 	/* Constructors */
-	Value()                      :_string(0),   type(V_NONE)                  { };
+    Value() { };
 	Value(Hex in)                :_hex(in),     type(V_HEX)                   { };
 	Value(int in)                :_int(in),     type(V_INT)                   { };
 	Value(bool in)               :_bool(in),    type(V_BOOL)                  { };
 	Value(double in)             :_double(in),  type(V_DOUBLE)                { };
 	Value(std::string const& in) :_string(new std::string(in)),type(V_STRING) { };
 	Value(char const * const in) :_string(new std::string(in)),type(V_STRING) { };
-	Value(Value const& in):_string(0) {plaincopy(in);}
+	Value(Value const& in) {plaincopy(in);}
 	~Value() { destroy();};
-	Value(std::string const& in,Etype _t) :_hex(0),_bool(false),_int(0),_string(0),_double(0),type(V_NONE) {SetValue(in,_t);}
+    Value(std::string const& in, Etype _t) { SetValue(in, _t); }
 
 	/* Assigment operators */
 	Value& operator= (Hex in)                { return copy(Value(in));}

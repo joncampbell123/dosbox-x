@@ -1527,6 +1527,8 @@ private:
 public:
 	EMS(Section* configuration):Module_base(configuration) {
 		emm_device=NULL;
+        old67_pointer = NULL;
+        oshandle_memsize_16kb = 0;
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
