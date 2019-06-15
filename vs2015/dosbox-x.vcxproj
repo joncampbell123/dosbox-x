@@ -1622,7 +1622,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\include\menudef.h" />
     <ClInclude Include="..\include\mixer.h" />
     <ClInclude Include="..\include\mmx.h" />
-    <ClInclude Include="..\include\modules.h" />
     <ClInclude Include="..\include\mouse.h" />
     <ClInclude Include="..\include\mztools.h" />
     <ClInclude Include="..\include\ne2000.h" />

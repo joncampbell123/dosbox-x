@@ -1337,9 +1337,6 @@
     <ClInclude Include="..\include\mmx.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\modules.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\mouse.h">
       <Filter>Includes</Filter>
     </ClInclude>
