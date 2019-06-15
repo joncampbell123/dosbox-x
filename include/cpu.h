@@ -96,10 +96,8 @@ Bits CPU_Core8086_Normal_Run(void);
 Bits CPU_Core8086_Normal_Trap_Run(void);
 
 Bits CPU_Core286_Prefetch_Run(void);
-Bits CPU_Core286_Prefetch_Trap_Run(void);
 
 Bits CPU_Core8086_Prefetch_Run(void);
-Bits CPU_Core8086_Prefetch_Trap_Run(void);
 
 void CPU_Enable_SkipAutoAdjust(void);
 void CPU_Disable_SkipAutoAdjust(void);
@@ -156,7 +154,6 @@ bool CPU_CLI(void);
 bool CPU_STI(void);
 
 bool CPU_IO_Exception(Bitu port,Bitu size);
-void CPU_RunException(void);
 
 void CPU_ENTER(bool use32,Bitu bytes,Bitu level);
 void init_vm86_fake_io();

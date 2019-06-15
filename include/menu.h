@@ -37,7 +37,6 @@ void DOSBox_SetMenu(void);
 void DOSBox_NoMenu(void);
 void DOSBox_RefreshMenu(void);
 void ToggleMenu(bool pressed);
-void D3D_PS(void);
 void DOSBox_CheckOS(int &id, int &major, int &minor);
 void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type);
@@ -45,10 +44,6 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 bool MENU_SetBool(std::string secname, std::string value);
 void MENU_swapstereo(bool enabled);
 void* GetSetSDLValue(int isget, std::string target, void* setval);
-void Go_Boot(const char boot_drive[_MAX_DRIVE]);
-void Go_Boot2(const char boot_drive[_MAX_DRIVE]);
-void OpenFileDialog(char * path_arg);
-void OpenFileDialog_Img(char drive);
 void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 void change_output(int output);
 void res_input(bool type, const char * res);

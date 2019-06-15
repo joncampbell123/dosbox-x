@@ -131,9 +131,6 @@ public:
 	}
 	Bitu Read(Bitu size, Bit8u * buffer);
 	Bitu Write(Bitu size, Bit8u * buffer);
-
-	void SaveState( std::ostream& stream );
-	void LoadState( std::istream& stream );
 };
 
 class DmaController {
@@ -162,9 +159,6 @@ public:
 	}
 	void WriteControllerReg(Bitu reg,Bitu val,Bitu len);
 	Bitu ReadControllerReg(Bitu reg,Bitu len);
-
-	void SaveState( std::ostream& stream );
-	void LoadState( std::istream& stream );
 };
 
 DmaChannel * GetDMAChannel(Bit8u chan);

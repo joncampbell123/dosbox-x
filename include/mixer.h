@@ -86,9 +86,6 @@ public:
 	void FillUp(void);
 	void Enable(bool _yesno);
 
-	void SaveState( std::ostream& stream );
-	void LoadState( std::istream& stream );
-
 	MIXER_Handler handler;
 	float volmain[2];
 	float scale;

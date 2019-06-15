@@ -224,9 +224,6 @@ public:
 	void receiveByte(Bit8u data);
 	void receiveByteEx(Bit8u data, Bit8u error);
 
-	// If an error was received, put it here (in LSR register format)
-	void receiveError(Bit8u errorword);
-
 	// depratched
 	// connected device checks, if port can receive data:
 	bool CanReceiveByte();
