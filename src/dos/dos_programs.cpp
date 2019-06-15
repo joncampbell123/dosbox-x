@@ -237,12 +237,12 @@ public:
                 /* remap drives */
                 Drives[i_newz] = Drives[25];
                 Drives[25] = 0;
-                DOS_Shell *fs = static_cast<DOS_Shell *>(first_shell); //dynamic ?              
+                if (!first_shell) return; //Should not be possible
                 /* Update environment */
                 std::string line = "";
                 char ppp[2] = {newz[0],0};
                 std::string tempenv = ppp; tempenv += ":\\";
-                if (fs->GetEnvStr("PATH",line)){
+                if (first_shell->GetEnvStr("PATH",line)){
                     std::string::size_type idx = line.find('=');
                     std::string value = line.substr(idx +1 , std::string::npos);
                     while ( (idx = value.find("Z:\\")) != std::string::npos ||
@@ -251,13 +251,13 @@ public:
                     line = value;
                 }
                 if (!line.size()) line = tempenv;
-                fs->SetEnv("PATH",line.c_str());
+                first_shell->SetEnv("PATH",line.c_str());
                 tempenv += "COMMAND.COM";
-                fs->SetEnv("COMSPEC",tempenv.c_str());
+                first_shell->SetEnv("COMSPEC",tempenv.c_str());
 
                 /* Update batch file if running from Z: (very likely: autoexec) */
-                if(fs->bf) {
-                    std::string &name = fs->bf->filename;
+                if(first_shell->bf) {
+                    std::string &name = first_shell->bf->filename;
                     if(name.length() >2 &&  name[0] == 'Z' && name[1] == ':') name[0] = newz[0];
                 }
                 /* Change the active drive */

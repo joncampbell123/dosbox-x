@@ -139,15 +139,22 @@ Bit32u isoFile::GetSeekPos() {
 }
 
 
-int  MSCDEX_RemoveDrive(char driveLetter);
-int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit);
-void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit);
-bool MSCDEX_HasDrive(char driveLetter);
-bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
+int   MSCDEX_RemoveDrive(char driveLetter);
+int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit);
+void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit);
+bool  MSCDEX_HasDrive(char driveLetter);
+bool  MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
+Bit8u MSCDEX_GetSubUnit(char driveLetter);
 
 bool CDROM_Interface_Image::images_init = false;
 
-isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error) {
+isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error)
+         :iso(false),
+          dataCD(false),
+          mediaid(0),
+          subUnit(0),
+          driveLetter('\0')
+ {
 	size_t i;
 
     if (!CDROM_Interface_Image::images_init) {
@@ -156,6 +163,8 @@ isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &e
             CDROM_Interface_Image::images[i] = NULL;
     }
 
+	this->fileName[0]  = '\0';
+	this->discLabel[0] = '\0';
 	subUnit = 0;
 	nextFreeDirIterator = 0;
 	memset(dirIterators, 0, sizeof(dirIterators));
@@ -191,6 +200,7 @@ isoDrive::~isoDrive() { }
 
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, Bit8u& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
+		subUnit = MSCDEX_GetSubUnit(driveLetter);
 		CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
 		CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit);
 		char pathCopy[CROSS_LEN];

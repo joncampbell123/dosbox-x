@@ -41,13 +41,18 @@ void CALLBACK_DeAllocate(Bitu in);
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
-Program * first_shell = 0; 
+DOS_Shell * first_shell = 0; 
 
 static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
 }
 
 static void SHELL_ProgramStart(Program * * make) {
+	*make = new DOS_Shell;
+}
+//Repeat it with the correct type, could do it in the function below, but this way it should be 
+//clear that if the above function is changed, this function might need a change as well.
+static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
 }
 
@@ -130,21 +135,29 @@ void AutoexecObject::Uninstall() {
 
 	// Remove the line from the autoexecbuffer and update environment
 	for(auto_it it = autoexec_strings.begin(); it != autoexec_strings.end(); ) {
-		if((*it) == buf) {
-			it = autoexec_strings.erase(it);
+		if ((*it) == buf) {
 			std::string::size_type n = buf.size();
 			char* buf2 = new char[n + 1];
 			safe_strncpy(buf2, buf.c_str(), n + 1);
+			bool stringset = false;
 			// If it's a environment variable remove it from there as well
-			if((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
+			if ((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
 				char* after_set = buf2 + 4;//move to variable that is being set
 				char* test = strpbrk(after_set,"=");
-				if(!test) continue;
+				if (!test) continue;
 				*test = 0;
+				stringset = true;
 				//If the shell is running/exists update the environment
-				if(first_shell) first_shell->SetEnv(after_set,"");
+				if (first_shell) first_shell->SetEnv(after_set,"");
 			}
 			delete [] buf2;
+			if (stringset && first_shell && first_shell->bf && first_shell->bf->filename.find("AUTOEXEC.BAT") != std::string::npos) {
+				//Replace entry with spaces if it is a set and from autoexec.bat, as else the location counter will be off.
+				*it = buf.assign(buf.size(),' ');
+				it++;
+			} else {
+				it = autoexec_strings.erase(it);
+			}
 		} else it++;
 	}
 	installed=false;
@@ -1130,7 +1143,7 @@ void SHELL_Run() {
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
-	SHELL_ProgramStart(&first_shell);
+	SHELL_ProgramStart_First_shell(&first_shell);
 
 	try {
 		first_shell->Run();

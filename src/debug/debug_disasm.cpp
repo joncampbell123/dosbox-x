@@ -496,6 +496,7 @@ static void uprintf(char const *s, ...)
 	va_list	arg_ptr;
 	va_start (arg_ptr, s);
 	vsprintf(ubufp, s, arg_ptr);
+	va_end(arg_ptr);
 	while (*ubufp)
 		ubufp++;
 }

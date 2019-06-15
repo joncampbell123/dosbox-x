@@ -408,9 +408,11 @@ bool CMscdex::HasDrive(Bit16u drive) {
 }
 
 void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, Bit8u subUnit) {
-	delete cdrom[subUnit];
+	if (cdrom[subUnit] != NULL) {
+		StopAudio(subUnit);
+		delete cdrom[subUnit];
+	}
 	cdrom[subUnit] = newCdrom;
-	StopAudio(subUnit);
 }
 
 PhysPt CMscdex::GetDefaultBuffer(void) {
@@ -1316,6 +1318,11 @@ bool MSCDEX_HasDrive(char driveLetter)
 void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit)
 {
 	mscdex->ReplaceDrive(cdrom, subUnit);
+}
+
+Bit8u MSCDEX_GetSubUnit(char driveLetter)
+{
+	return mscdex->GetSubUnit(driveLetter-'A');
 }
 
 bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name)

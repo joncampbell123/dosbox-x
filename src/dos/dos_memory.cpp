@@ -527,7 +527,7 @@ void DOS_SetupMemory(void) {
 
 	assert(DOS_IHSEG != 0);
 	ihseg = DOS_IHSEG;
-	ihofs = 0x08;
+	ihofs = 0xF4;
 
 	real_writeb(ihseg,ihofs,(Bit8u)0xCF);		//An IRET Instruction
 	RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
