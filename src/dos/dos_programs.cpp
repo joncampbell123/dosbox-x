@@ -231,7 +231,7 @@ public:
         /* Only allowing moving it once. It is merely a convenience added for the wine team */
         if (ZDRIVE_NUM == 25 && cmd->FindString("-z", newz,false)) {
             newz[0] = toupper(newz[0]);
-            Bit8u i_newz = newz[0] - 'A';
+            int i_newz = (int)newz[0] - (int)'A';
             if (i_newz >= 0 && i_newz < DOS_DRIVES-1 && !Drives[i_newz]) {
                 ZDRIVE_NUM = i_newz;
                 /* remap drives */

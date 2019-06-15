@@ -92,7 +92,7 @@ private:
 		bool installed;
 	} vectorhandler;
 public:
-	CALLBACK_HandlerObject():installed(false),m_callback(NULL),m_type(NONE) {
+	CALLBACK_HandlerObject():installed(false),m_callback(0/*NULL*/),m_type(NONE) {
 		vectorhandler.installed=false;
 	}
 	~CALLBACK_HandlerObject();

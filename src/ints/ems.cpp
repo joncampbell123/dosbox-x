@@ -1527,7 +1527,7 @@ private:
 public:
 	EMS(Section* configuration):Module_base(configuration) {
 		emm_device=NULL;
-        old67_pointer = NULL;
+        old67_pointer = 0/*NULL*/;
         oshandle_memsize_16kb = 0;
 
 		/* Virtual DMA interrupt callback */
