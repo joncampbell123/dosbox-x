@@ -1394,9 +1394,6 @@
     <ClInclude Include="..\include\resource.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\selftest.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\serialport.h">
       <Filter>Includes</Filter>
     </ClInclude>

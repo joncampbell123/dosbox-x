@@ -1642,7 +1642,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\include\render.h" />
     <ClInclude Include="..\include\resource.h" />
     <ClInclude Include="..\include\sdlmain.h" />
-    <ClInclude Include="..\include\selftest.h" />
     <ClInclude Include="..\include\serialport.h" />
     <ClInclude Include="..\include\setup.h" />
     <ClInclude Include="..\include\shell.h" />
