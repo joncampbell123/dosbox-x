@@ -77,7 +77,7 @@ CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player = {
 
 	
 CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
-                      :subUnit(subUnit)
+//                      :subUnit(subUnit)
 {
 	images[subUnit] = this;
 	if (refCount == 0) {
