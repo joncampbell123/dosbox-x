@@ -653,6 +653,10 @@ class TaskStateSegment {
 public:
 	TaskStateSegment() {
 		valid=false;
+        base = 0;
+        is386 = 0;
+        limit = 0;
+        selector = 0;
 	}
 	bool IsValid(void) {
 		return valid;
