@@ -2653,9 +2653,9 @@ template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel
      * Also the 32bpp case shows how hacky this codebase is with regard to 32bpp color order support */
     if (bpp == 32) {
         if (GFX_bpp >= 24) {
-            r = ((uint32_t)raw >> (uint32_t)GFX_Rshift) & (uint32_t)GFX_Rmask;
-            g = ((uint32_t)raw >> (uint32_t)GFX_Gshift) & (uint32_t)GFX_Gmask;
-            b = ((uint32_t)raw >> (uint32_t)GFX_Bshift) & (uint32_t)GFX_Bmask;
+            r = ((uint32_t)raw & (uint32_t)GFX_Rmask) >> (uint32_t)GFX_Rshift;
+            g = ((uint32_t)raw & (uint32_t)GFX_Gmask) >> (uint32_t)GFX_Gshift;
+            b = ((uint32_t)raw & (uint32_t)GFX_Bmask) >> (uint32_t)GFX_Bshift;
         }
         else {
             // hack alt, see vga_dac.cpp
@@ -2664,9 +2664,9 @@ template <const unsigned int bpp,typename BPPT> uint32_t VGA_CaptureConvertPixel
     }
     else if (bpp == 16) {
         /* 5:5:5 or 5:6:5 */
-        r = ((uint16_t)raw >> (uint16_t)GFX_Rshift) & (uint16_t)GFX_Rmask;
-        g = ((uint16_t)raw >> (uint16_t)GFX_Gshift) & (uint16_t)GFX_Gmask;
-        b = ((uint16_t)raw >> (uint16_t)GFX_Bshift) & (uint16_t)GFX_Bmask;
+        r = ((uint16_t)raw & (uint16_t)GFX_Rmask) >> (uint16_t)GFX_Rshift;
+        g = ((uint16_t)raw & (uint16_t)GFX_Gmask) >> (uint16_t)GFX_Gshift;
+        b = ((uint16_t)raw & (uint16_t)GFX_Bmask) >> (uint16_t)GFX_Bshift;
 
         r <<= 3;
         g <<= (GFX_Gmask == 0x3F ? 2/*5:6:5*/ : 3/*5:5:5*/);
