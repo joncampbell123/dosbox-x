@@ -309,6 +309,9 @@ void dosbox_integration_trigger_read() {
         case 3: /* version number */
             dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
             break;
+        case 4: /* current emulator time as 16.16 fixed point */
+            dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
+            break;
 
         case 0x5158494D: /* query mixer output 'MIXQ' */
             /* bits [19:0] = sample rate in Hz or 0 if mixer is not mixing AT ALL
