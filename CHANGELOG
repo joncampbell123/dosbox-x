@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - DOSBox Integration device now offers the program inside
+    to capture the VGA output, for automated testing.
   - DOSBox Integration device now offers reading emulator
     time (PIC_FullIndex()) and setting a watchdog timer
     that triggers an NMI unless reset. Intended for use
