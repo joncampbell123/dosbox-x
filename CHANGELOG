@@ -1,4 +1,9 @@
 0.82.20 (next)
+  - Mixer and VGA capture code fixed to signal error if the
+    memory address exceeds the amount of system memory.
+    The general design of DOSBox-X memory I/O means that if
+    physical memory writes are made beyond system memory,
+    DOSBox-X will write out of bounds and segfault.
   - DOSBox Integration device now offers the program inside
     to capture the VGA output, for automated testing.
   - DOSBox Integration device now offers reading emulator
