@@ -274,6 +274,13 @@ extern bool enable_slave_pic;
 
 static std::string dosbox_int_debug_out;
 
+void VGA_SetCaptureStride(uint32_t v);
+void VGA_SetCaptureAddress(uint32_t v);
+void VGA_SetCaptureState(uint32_t v);
+SDL_Rect &VGA_CaptureRectCurrent(void);
+SDL_Rect &VGA_CaptureRectFromGuest(void);
+uint32_t VGA_QueryCaptureAddress(void);
+uint32_t VGA_QueryCaptureState(void);
 uint32_t VGA_QuerySizeIG(void);
 
 uint32_t Mixer_MIXQ(void);
@@ -340,6 +347,28 @@ void dosbox_integration_trigger_read() {
 
         case 0x6845C0: /* query VGA display size */
             dosbox_int_register = VGA_QuerySizeIG();
+            break;
+
+        case 0x6845C1: /* query VGA capture state */
+            dosbox_int_register = VGA_QueryCaptureState();
+            break;
+
+        case 0x6845C2: /* query VGA capture address (what is being captured to NOW) */
+            dosbox_int_register = VGA_QueryCaptureAddress();
+            break;
+
+        case 0x6845C3: /* query VGA capture current crop rectangle (position) will not reflect new rectangle until VGA capture finishes capture. */
+            {
+                SDL_Rect &r = VGA_CaptureRectCurrent();
+                dosbox_int_register = ((uint32_t)r.y << (uint32_t)16ul) + (uint32_t)r.x;
+            }
+            break;
+
+        case 0x6845C4: /* query VGA capture current crop rectangle (size). will not reflect new rectangle until VGA capture finishes capture. */
+            {
+                SDL_Rect &r = VGA_CaptureRectCurrent();
+                dosbox_int_register = ((uint32_t)r.h << (uint32_t)16ul) + (uint32_t)r.w;
+            }
             break;
 
         case 0x825901: /* PIC configuration */
@@ -478,6 +507,34 @@ void dosbox_integration_trigger_write() {
 
         case 0xDEB1: /* debug output clear */
             dosbox_int_debug_out.clear();
+            break;
+
+        case 0x6845C1: /* query VGA capture state */
+            VGA_SetCaptureState(dosbox_int_register);
+            break;
+
+        case 0x6845C2: /* set VGA capture address, will be applied to next capture */
+            VGA_SetCaptureAddress(dosbox_int_register);
+            break;
+
+        case 0x6845C3: /* set VGA capture crop rectangle (position), will be applied to next capture */
+            {
+                SDL_Rect &r = VGA_CaptureRectFromGuest();
+                r.x = (int)(dosbox_int_register & 0xFFFF);
+                r.y = (int)(dosbox_int_register >> 16ul);
+            }
+            break;
+
+        case 0x6845C4: /* set VGA capture crop rectangle (size), will be applied to next capture */
+            {
+                SDL_Rect &r = VGA_CaptureRectFromGuest();
+                r.w = (int)(dosbox_int_register & 0xFFFF);
+                r.h = (int)(dosbox_int_register >> 16ul);
+            }
+            break;
+
+        case 0x6845C5: /* set VGA capture stride (bytes per scan line) */
+            VGA_SetCaptureStride(dosbox_int_register);
             break;
 
         case 0x52434D: /* release mouse capture 'MCR' */

@@ -155,6 +155,13 @@ using namespace std;
 Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
 void pc98_write_9a8(Bitu port,Bitu val,Bitu iolen);
 
+bool VGA_IsCaptureEnabled(void);
+void VGA_UpdateCapturePending(void);
+bool VGA_CaptureHasNextFrame(void);
+void VGA_CaptureStartNextFrame(void);
+void VGA_CaptureMarkError(void);
+bool VGA_CaptureValidateCurrentFrame(void);
+
 /* current dosplay page (controlled by A4h) */
 unsigned char*                      pc98_pgraph_current_display_page;
 /* current CPU page (controlled by A6h) */
@@ -192,6 +199,22 @@ extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.m
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
 bool                                enable_pci_vga = true;
+
+SDL_Rect                            vga_capture_rect = {0,0,0,0};
+SDL_Rect                            vga_capture_current_rect = {0,0,0,0};
+uint32_t                            vga_capture_current_address = 0;
+uint32_t                            vga_capture_write_address = 0; // literally the address written
+uint32_t                            vga_capture_address = 0;
+uint32_t                            vga_capture_stride = 0;
+uint32_t                            vga_capture_state = 0;
+
+SDL_Rect &VGA_CaptureRectCurrent(void) {
+    return vga_capture_current_rect;
+}
+
+SDL_Rect &VGA_CaptureRectFromGuest(void) {
+    return vga_capture_rect;
+}
 
 VGA_Type vga;
 SVGA_Driver svga;
@@ -1531,3 +1554,127 @@ void SVGA_Setup_Driver(void) {
         break;
     }
 }
+
+void VGA_CaptureStartNextFrame(void) {
+    vga_capture_current_rect = vga_capture_rect;
+    vga_capture_current_address = vga_capture_address;
+    vga_capture_write_address = vga_capture_address;
+
+    vga_capture_address = 0;
+
+    VGA_UpdateCapturePending();
+}
+
+bool VGA_CaptureValidateCurrentFrame(void) {
+    if (VGA_IsCaptureEnabled()) {
+        if (vga_capture_rect.x >= 0 && vga_capture_rect.y >= 0 &&       // crop rect is within frame
+            (unsigned int)vga_capture_rect.y < vga.draw.height &&
+            (unsigned int)vga_capture_rect.x < vga.draw.width &&
+            vga_capture_rect.w > 0 && vga_capture_rect.h > 0 &&         // crop rect size is within frame
+            vga_capture_rect.h <= vga.draw.height &&
+            vga_capture_rect.w <= vga.draw.width &&
+            ((unsigned int)vga_capture_rect.x+vga_capture_rect.w) <= vga.draw.width && // crop rect pos+size within frame
+            ((unsigned int)vga_capture_rect.y+vga_capture_rect.h) <= vga.draw.height) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool VGA_CaptureHasNextFrame(void) {
+    return !!(vga_capture_address != (uint32_t)0);
+}
+
+void VGA_MarkCaptureAcquired(void) {
+    if (vga_capture_state & ((uint32_t)(1ul << 1ul))) // if already acquired and guest has not cleared the bit
+        vga_capture_state |= (uint32_t)(1ul << 6ul); // mark overrun
+
+    vga_capture_state |= (uint32_t)(1ul << 1ul); // mark acquired
+}
+
+void VGA_MarkCaptureRetrace(void) {
+    vga_capture_state |=   (uint32_t)(1ul << 5ul); // mark retrace
+}
+
+void VGA_MarkCaptureInProgress(bool en) {
+    const uint32_t f = (uint32_t)(1ul << 3ul);
+
+    if (en)
+        vga_capture_state |= f;
+    else
+        vga_capture_state &= ~f;
+}
+
+bool VGA_IsCaptureEnabled(void) {
+    return !!(vga_capture_state & ((uint32_t)(1ul << 4ul)));
+}
+
+bool VGA_IsCaptureInProgress(void) {
+    return !!(vga_capture_state & ((uint32_t)(1ul << 3ul)));
+}
+
+void VGA_CaptureMarkError(void) {
+    vga_capture_state |=   (uint32_t)(1ul << 2ul);  // set error
+    vga_capture_state &= ~((uint32_t)(1ul << 4ul)); // clear enable
+}
+
+void VGA_UpdateCapturePending(void) {
+    bool en = false;
+
+    if (VGA_IsCaptureEnabled()) {
+        if (vga_capture_address != (uint32_t)0)
+            en = true;
+    }
+
+    if (en)
+        vga_capture_state |=   (uint32_t)(1ul << 0ul); // set bit 0 capture pending
+    else
+        vga_capture_state &= ~((uint32_t)(1ul << 0ul)); // clear bit 0 capture pending
+}
+
+uint32_t VGA_QueryCaptureState(void) {
+    /* bits[0:0] = if set, capture pending
+     * bits[1:1] = if set, capture acquired
+     * bits[2:2] = if set, capture state error (such as crop rectangle out of bounds)
+     * bits[3:3] = if set, capture in progress
+     * bits[4:4] = if set, capture enabled
+     * bits[5:5] = if set, vertical retrace occurred. capture must be enabled for this to occur
+     * bits[6:6] = if set, capture was acquired and acquired bit was already set (overrun)
+     *
+     * both bits 0 and 1 can be set if one capture has finished and the "next" capture address has been loaded.
+     */
+    return vga_capture_state;
+}
+
+void VGA_SetCaptureState(uint32_t v) {
+    /* bits[1:1] = if set, clear capture acquired bit
+     * bits[2:2] = if set, clear capture state error
+       bits[4:4] = if set, enable capture
+       bits[5:5] = if set, clear vertical retrace occurrence flag
+       bits[6:6] = if set, clear overrun (acquired) bit */
+    vga_capture_state ^= (vga_capture_state & v & 0x66/*x110 0110*/);
+
+    vga_capture_state &=    ~0x10;
+    vga_capture_state |= v & 0x10;
+
+    if (!VGA_IsCaptureEnabled())
+        vga_capture_state = 0;
+
+    VGA_UpdateCapturePending();
+}
+
+uint32_t VGA_QueryCaptureAddress(void) {
+    return vga_capture_current_address;
+}
+
+void VGA_SetCaptureAddress(uint32_t v) {
+    vga_capture_address = v;
+    VGA_UpdateCapturePending();
+}
+
+void VGA_SetCaptureStride(uint32_t v) {
+    vga_capture_stride = v;
+    VGA_UpdateCapturePending();
+}
+
