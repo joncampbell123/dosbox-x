@@ -1,4 +1,8 @@
 0.82.20 (next)
+  - DOSBox Integration device now offers reading emulator
+    time (PIC_FullIndex()) and setting a watchdog timer
+    that triggers an NMI unless reset. Intended for use
+    with automated testing.
   - Debugger INTHAND command now works properly in protected
     mode.
   - DOSBox Integration Device now provides an interface for
