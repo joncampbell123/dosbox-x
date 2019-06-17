@@ -2721,6 +2721,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     }
 
     if (VGA_IsCaptureEnabled()) {
+        if (VGA_IsCaptureInProgress()) {
+            VGA_MarkCaptureInProgress(false);
+            VGA_MarkCaptureAcquired();
+        }
+
         VGA_MarkCaptureRetrace();
         VGA_CaptureStartNextFrame();
         if (!VGA_CaptureValidateCurrentFrame())
