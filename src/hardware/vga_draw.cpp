@@ -4236,3 +4236,8 @@ void VGA_SetOverride(bool vga_override) {
     }
 }
 
+uint32_t VGA_QuerySizeIG(void) {
+    return  ((uint32_t)vga.draw.height << (uint32_t)16ul) |
+             (uint32_t)vga.draw.width;
+}
+

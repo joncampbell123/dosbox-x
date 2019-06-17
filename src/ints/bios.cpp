@@ -274,6 +274,8 @@ extern bool enable_slave_pic;
 
 static std::string dosbox_int_debug_out;
 
+uint32_t VGA_QuerySizeIG(void);
+
 uint32_t Mixer_MIXQ(void);
 uint32_t Mixer_MIXC(void);
 void Mixer_MIXC_Write(uint32_t v);
@@ -334,6 +336,10 @@ void dosbox_integration_trigger_read() {
             break;
 
         case 0x4558494D: /* query mixer output 'MIXE' */
+            break;
+
+        case 0x6845C0: /* query VGA display size */
+            dosbox_int_register = VGA_QuerySizeIG();
             break;
 
         case 0x825901: /* PIC configuration */
