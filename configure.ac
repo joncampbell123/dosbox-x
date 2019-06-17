@@ -1026,6 +1026,7 @@ src/fpu/Makefile
 src/gui/Makefile
 src/mt32/Makefile
 src/hardware/Makefile
+src/hardware/mame/Makefile
 src/hardware/serialport/Makefile
 src/hardware/reSID/Makefile
 src/hardware/parport/Makefile
