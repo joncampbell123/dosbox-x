@@ -410,6 +410,29 @@ void dosbox_integration_trigger_read() {
         dosbox_int_error?1:0);
 }
 
+bool watchdog_set = false;
+
+void Watchdog_Timeout_Event(Bitu /*val*/) {
+    LOG_MSG("Watchdog timeout occurred");
+    CPU_Raise_NMI();
+}
+
+void Watchdog_Timer_Clear(void) {
+    if (watchdog_set) {
+        PIC_RemoveEvents(Watchdog_Timeout_Event);
+        watchdog_set = false;
+    }
+}
+
+void Watchdog_Timer_Set(uint32_t timeout_ms) {
+    Watchdog_Timer_Clear();
+
+    if (timeout_ms != 0) {
+        watchdog_set = true;
+        PIC_AddEvent(Watchdog_Timeout_Event,(double)timeout_ms);
+    }
+}
+
 unsigned int mouse_notify_mode = 0;
 // 0 = off
 // 1 = trigger as PS/2 mouse interrupt
@@ -473,6 +496,10 @@ void dosbox_integration_trigger_write() {
 
         case 0x4558494D: /* query mixer output 'MIXE' */
             Mixer_MIXWriteEnd_Write(dosbox_int_register);
+            break;
+
+        case 0x57415444: /* Set/clear watchdog timer 'WATD' */
+            Watchdog_Timer_Set(dosbox_int_register);
             break;
 
         case 0x808602: /* NMI (INT 02h) interrupt injection */
