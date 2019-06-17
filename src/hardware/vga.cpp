@@ -1567,14 +1567,14 @@ void VGA_CaptureStartNextFrame(void) {
 
 bool VGA_CaptureValidateCurrentFrame(void) {
     if (VGA_IsCaptureEnabled()) {
-        if (vga_capture_rect.x >= 0 && vga_capture_rect.y >= 0 &&       // crop rect is within frame
-            (unsigned int)vga_capture_rect.y < vga.draw.height &&
-            (unsigned int)vga_capture_rect.x < vga.draw.width &&
-            vga_capture_rect.w > 0 && vga_capture_rect.h > 0 &&         // crop rect size is within frame
-            vga_capture_rect.h <= vga.draw.height &&
-            vga_capture_rect.w <= vga.draw.width &&
-            ((unsigned int)vga_capture_rect.x+vga_capture_rect.w) <= vga.draw.width && // crop rect pos+size within frame
-            ((unsigned int)vga_capture_rect.y+vga_capture_rect.h) <= vga.draw.height) {
+        if (vga_capture_current_rect.x >= 0 && vga_capture_current_rect.y >= 0 &&       // crop rect is within frame
+            (unsigned int)vga_capture_current_rect.y < vga.draw.height &&
+            (unsigned int)vga_capture_current_rect.x < vga.draw.width &&
+            vga_capture_current_rect.w > 0 && vga_capture_current_rect.h > 0 &&         // crop rect size is within frame
+            vga_capture_current_rect.h <= vga.draw.height &&
+            vga_capture_current_rect.w <= vga.draw.width &&
+            ((unsigned int)vga_capture_current_rect.x+vga_capture_current_rect.w) <= vga.draw.width && // crop rect pos+size within frame
+            ((unsigned int)vga_capture_current_rect.y+vga_capture_current_rect.h) <= vga.draw.height) {
             return true;
         }
     }
