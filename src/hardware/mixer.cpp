@@ -171,12 +171,19 @@ void Mixer_MIXWriteEnd_Write(PhysPt np) {
 
 void Mixer_MIXC_Validate(void) {
     if (Mixer_MIXC_Active()) {
+        // NTS: phys_writew() will cause a segfault if the address is beyond the end of memory,
+        //      because it computes MemBase+addr
+        PhysPt MemMax = (PhysPt)MEM_TotalPages() * (PhysPt)4096ul;
+
         if (Mixer_MIXC_Error() ||
             Mixer_MIXC_Source() != 0x00 ||
             mixer_capture_write == 0 || mixer_capture_write_begin == 0 || mixer_capture_write_end == 0 ||
             mixer_capture_write < mixer_capture_write_begin ||
             mixer_capture_write > mixer_capture_write_end ||
-            mixer_capture_write_begin > mixer_capture_write_end)
+            mixer_capture_write_begin > mixer_capture_write_end ||
+            mixer_capture_write >= MemMax ||
+            mixer_capture_write_end >= MemMax ||
+            mixer_capture_write_begin >= MemMax)
             Mixer_MIXC_MarkError();
     }
 }

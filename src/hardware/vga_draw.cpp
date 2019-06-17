@@ -2699,7 +2699,13 @@ template <const unsigned int bpp,typename BPPT> void VGA_CaptureWriteScanlineChe
 }
 
 void VGA_CaptureWriteScanline(const uint8_t *raw) {
-    if (vga_capture_write_address != (uint32_t)0) {
+    // NTS: phys_writew() will cause a segfault if the address is beyond the end of memory,
+    //      because it computes MemBase+addr
+    PhysPt MemMax = (PhysPt)MEM_TotalPages() * (PhysPt)4096ul;
+
+    if (vga_capture_write_address != (uint32_t)0 &&
+        vga_capture_write_address < 0xFFFF0000ul &&
+        (vga_capture_write_address + (vga_capture_current_rect.w*4)) <= MemMax) {
         switch (vga.draw.bpp) {
             case 32:    VGA_CaptureWriteScanlineChecked<32>((uint32_t*)raw); break;
             case 16:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
