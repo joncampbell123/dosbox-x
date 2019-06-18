@@ -1803,10 +1803,15 @@ void Init_RAM() {
         memsizekb = (memory.mem_alias_pagemask+1) * 4;
     }
 
-    /* cap at just under 4GB */
-    if ((memsizekb/4) > ((1 << (32 - 10)) - 4)) {
-        LOG_MSG("Maximum memory size is %dKB",(1 << (32 - 10)) - 4);
-        memsizekb = (1 << (32 - 10)) - 4;
+    /* cap at 3.5GB */
+    {
+        const Bitu maxsz = (Bitu)(3584ul * 1024ul); // 3.5GB
+        LOG_MSG("Max %lu sz %lu\n",(unsigned long)maxsz,(unsigned long)memsizekb);
+        if (memsizekb > maxsz) {
+            LOG_MSG("Maximum memory size is %luKB",(unsigned long)maxsz);
+            memsizekb = maxsz;
+        }
+        LOG_MSG("Final %lu\n",(unsigned long)memsizekb);
     }
     memory.reported_pages = memory.pages = memsizekb/4;
 
