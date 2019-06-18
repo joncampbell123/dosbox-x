@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Memory limit is now 3.5GB for 64-bit builds and 1GB for
+    32-bit builds.
   - Maximum memory limit is now 3.5GB, code fixed to better
     enforce the limit.
   - Mixer and VGA capture code fixed to signal error if the
