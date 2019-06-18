@@ -174,14 +174,16 @@ CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
 	// the last instruction was a control flow modifying instruction
 	Bitu temp_ip=SegPhys(cs)+reg_eip;
 	CodePageHandlerDynRec * temp_handler=(CodePageHandlerDynRec *)get_tlb_readhandler(temp_ip);
-	if (temp_handler->flags & (cpu.code.big ? PFLAG_HASCODE32:PFLAG_HASCODE16)) {
+	if (temp_handler->flags & PFLAG_HASCODE) {
 		// see if the target is an already translated block
 		block=temp_handler->FindCacheBlock(temp_ip & 4095);
-		if (block) { // found it, link the current block to
-			cache.block.running->LinkTo(ret==BR_Link2,block);
-		}
+		if (!block) return NULL;
+
+		// found it, link the current block to
+		cache.block.running->LinkTo(ret==BR_Link2,block);
+		return block;
 	}
-	return block;
+	return NULL;
 }
 
 /*
