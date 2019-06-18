@@ -1606,6 +1606,10 @@ void VGA_MarkCaptureInProgress(bool en) {
         vga_capture_state &= ~f;
 }
 
+bool VGA_IsCapturePending(void) {
+    return !!(vga_capture_state & ((uint32_t)(1ul << 0ul)));
+}
+
 bool VGA_IsCaptureEnabled(void) {
     return !!(vga_capture_state & ((uint32_t)(1ul << 4ul)));
 }

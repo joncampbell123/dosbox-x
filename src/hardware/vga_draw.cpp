@@ -136,6 +136,7 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_MarkCaptureRetrace(void);
 void VGA_CaptureMarkError(void);
 bool VGA_IsCaptureEnabled(void);
+bool VGA_IsCapturePending(void);
 void VGA_CaptureWriteScanline(const uint8_t *raw);
 void VGA_ProcessScanline(const uint8_t *raw);
 bool VGA_IsCaptureInProgress(void);
@@ -2462,6 +2463,7 @@ again:
         PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
+        VGA_ProcessScanline(NULL);
         RENDER_EndUpdate(false);
     }
 
@@ -2546,6 +2548,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
         PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
+        VGA_ProcessScanline(NULL);
         RENDER_EndUpdate(false);
     }
 }
@@ -2617,6 +2620,15 @@ extern uint32_t                            vga_capture_current_address;
 extern uint32_t                            vga_capture_write_address;
 
 void VGA_ProcessScanline(const uint8_t *raw) {
+    if (raw == NULL) { // end of the frame
+        if (VGA_IsCaptureInProgress()) {
+            VGA_MarkCaptureInProgress(false);
+            VGA_MarkCaptureAcquired();
+        }
+
+        return;
+    }
+
     // assume VGA_IsCaptureEnabled()
     if (!VGA_IsCaptureInProgress()) {
         if ((unsigned int)vga.draw.lines_done == (unsigned int)vga_capture_current_rect.y) { // start
@@ -3131,6 +3143,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
             else PIC_RemoveEvents(VGA_DrawSingleLine);
             vga_mode_frames_since_time_base++;
+            VGA_ProcessScanline(NULL);
             RENDER_EndUpdate(true);
         }
         vga.draw.lines_done = 0;
