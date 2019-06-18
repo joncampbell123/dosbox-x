@@ -3163,6 +3163,13 @@ static void GUI_StartUp() {
 #if !defined(C_SDL2)
   #if SDL_VERSION_ATLEAST(1, 2, 10)
   #ifdef WIN32
+    /* NTS: This should not print any warning whatsoever because Windows builds by default will use
+     *      the Windows API to disable DPI scaling of the main window, unless the user modifies the
+     *      setting through dosbox.conf or the command line. */
+    /* NTS: Mac OS X has high DPI scaling too, though Apple is wise to enable it by default only for
+     *      Macbooks with "Retina" displays. On Mac OS X, unless otherwise wanted by the user, it is
+     *      wise to let Mac OS X scale up the DOSBox-X window by 2x so that the DOS prompt is not
+     *      a teeny tiny window on the screen. */
     const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
     if (vidinfo) {
         int sdl_w = vidinfo->current_w;
