@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Maximum memory limit is now 3.5GB, code fixed to better
+    enforce the limit.
   - Mixer and VGA capture code fixed to signal error if the
     memory address exceeds the amount of system memory.
     The general design of DOSBox-X memory I/O means that if
