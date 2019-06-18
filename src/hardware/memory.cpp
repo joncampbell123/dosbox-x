@@ -1805,7 +1805,13 @@ void Init_RAM() {
 
     /* cap at 3.5GB */
     {
-        const Bitu maxsz = (Bitu)(3584ul * 1024ul); // 3.5GB
+        Bitu maxsz;
+
+        if (sizeof(void*) > 4) // 64-bit address space
+            maxsz = (Bitu)(3584ul * 1024ul); // 3.5GB
+        else
+            maxsz = (Bitu)(1024ul * 1024ul); // 1.0GB
+
         LOG_MSG("Max %lu sz %lu\n",(unsigned long)maxsz,(unsigned long)memsizekb);
         if (memsizekb > maxsz) {
             LOG_MSG("Maximum memory size is %luKB",(unsigned long)maxsz);
