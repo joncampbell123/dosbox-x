@@ -2641,7 +2641,7 @@ void VGA_ProcessScanline(const uint8_t *raw) {
 
     // assume VGA_IsCaptureEnabled()
     if (!VGA_IsCaptureInProgress()) {
-        if ((unsigned int)vga.draw.lines_done == (unsigned int)vga_capture_current_rect.y) { // start
+        if (vga_capture_current_address != (uint32_t)0 && (unsigned int)vga.draw.lines_done == (unsigned int)vga_capture_current_rect.y) { // start
             VGA_MarkCaptureInProgress(true);
             VGA_CaptureWriteScanline(raw);
         }
