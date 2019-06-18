@@ -133,6 +133,7 @@
     drive letter.
     - Move all stack alignment operations into one place and
     some optimalisations to RISC x64 dynamic core.
+    - Merged in MAME sound from mainline, except for Tandy sound. 
 0.82.19
   - Prefetch core fixed up, made more aggressive, and string
     instructions (REP MOVSW) cause more prefetch. "Stereotype"

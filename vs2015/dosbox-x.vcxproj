@@ -1387,6 +1387,11 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\gui\zipcrc.c" />
     <ClCompile Include="..\src\gui\zipfile.cpp" />
     <ClCompile Include="..\src\hardware\8255.cpp" />
+    <ClCompile Include="..\src\hardware\mame\fmopl.cpp" />
+    <ClCompile Include="..\src\hardware\mame\saa1099.cpp" />
+    <ClCompile Include="..\src\hardware\mame\sn76496.cpp" />
+    <ClCompile Include="..\src\hardware\mame\ymdeltat.cpp" />
+    <ClCompile Include="..\src\hardware\mame\ymf262.cpp" />
     <ClCompile Include="..\src\hardware\parport\printer_redir.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
@@ -1701,6 +1706,12 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\gui\render_templates_sai.h" />
     <ClInclude Include="..\src\hardware\adlib.h" />
     <ClInclude Include="..\src\hardware\dbopl.h" />
+    <ClInclude Include="..\src\hardware\mame\emu.h" />
+    <ClInclude Include="..\src\hardware\mame\fmopl.h" />
+    <ClInclude Include="..\src\hardware\mame\saa1099.h" />
+    <ClInclude Include="..\src\hardware\mame\sn76496.h" />
+    <ClInclude Include="..\src\hardware\mame\ymdeltat.h" />
+    <ClInclude Include="..\src\hardware\mame\ymf262.h" />
     <ClInclude Include="..\src\hardware\nukedopl.h" />
     <ClInclude Include="..\src\hardware\opl.h" />
     <ClInclude Include="..\src\hardware\parport\directlpt_win32.h" />

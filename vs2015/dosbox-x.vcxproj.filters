@@ -112,6 +112,9 @@
     <Filter Include="Sources\cpu\core_dynrec">
       <UniqueIdentifier>{8d1a73c6-be58-4d9f-aa03-b9f57516bedb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\hardware\mame">
+      <UniqueIdentifier>{31feddeb-9587-415e-9cd8-a8bc0bed318c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -903,6 +906,21 @@
     <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\fmopl.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\saa1099.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\sn76496.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\ymdeltat.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\mame\ymf262.cpp">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1555,6 +1573,24 @@
     </ClInclude>
     <ClInclude Include="..\include\midi.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\fmopl.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\saa1099.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\sn76496.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\ymdeltat.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\ymf262.h">
+      <Filter>Sources\hardware\mame</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\mame\emu.h">
+      <Filter>Sources\hardware\mame</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

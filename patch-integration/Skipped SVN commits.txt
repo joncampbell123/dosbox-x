@@ -1,67 +1,59 @@
 Commit#:	Reason for skipping:
 
 3847		Conflicts with https://github.com/joncampbell123/dosbox-x/commit/ac70b5599fb2fb824be7ed627ec4e70aa8b6bc79
-3857		Conflicts with DOSBox-X
-3859		Conflicts with DOSBox-X. Masking/wrapping is implemented in DOSBox-X by masking the array access per pixel.
-3863		Conflicts with DOSBox-X
-3865		Conflicts with DOSBox-X
-3867		Conflicts with DOSBox-X
+3857		Conflict
+3859		Conflict. Masking/wrapping is implemented in DOSBox-X by masking the array access per pixel.
+3863		Conflict
+3865		Conflict
+3867		Conflict
 3869		Not sure if this is needed for DOSBox-X
-3870		Conflicts with DOSBox-X
-3871		Conflicts with DOSBox-X
-3873		Conflicts with DOSBox-X
-3891		Conflicts with DOSBox-X
-3922		Conflicts with DOSBox-X. "Use safe_strncpy for resolution lines" part is already in DOSBox-X.
-3930		Conflicts with DOSBox-X
+3870		Conflict
+3871		Conflict
+3873		Conflict
+3891		Conflict
+3922		Conflict. "Use safe_strncpy for resolution lines" part is already in DOSBox-X.
+3930		Conflict
 3931		May not have effect or be wanted
 3939		A commented-out log message.
 3960		Thought to be unneeded.
-3967		Conflicts with DOSBox-X and may be unnecessary.
-3968		Conflicts with DOSBox-X and may be unnecessary.
+3967		Conflict and may be unnecessary.
+3968		Conflict and may be unnecessary.
 3969		Related to 3968.
-3980		Conflicts with DOSBox-X
-3981		Conflicts with DOSBox-X
-3986		Conflicts with DOSBox-X
+3980		Conflict
+3981		Conflict
+3986		Conflict
 3989		Seems unnecessary, and DOSBox-X's GUI uses "Pause"
 3999		Formatting cleanup.
-4001		Conflicts with DOSBox-X
-4002		Conflicts with DOSBox-X
-4003		Conflicts with DOSBox-X
-4004		Conflicts with DOSBox-X
-4007		Conflicts with DOSBox-X
-4008		Conflicts with DOSBox-X
-4009		Conflicts with DOSBox-X
-4013		Conflicts with DOSBox-X
-4019		Conflicts with DOSBox-X
-4023		Conflicts with DOSBox-X
-4028		Conflicts with DOSBox-X
-4038		Conflicts with DOSBox-X
-4049		Conflicts with DOSBox-X
-4055		Conflicts with DOSBox-X
+4001		Conflict
+4002		Conflict
+4003		Conflict
+4004		Conflict
+4007		Conflict
+4008		Conflict
+4009		Conflict
+4013		Conflict
+4019		Conflict
+4023		Conflict
+4028		Conflict
+4038		Conflict
+4049		Conflict
+4055		Conflict
 4056		Not sure if needed
 4065		Might conflict
-4066		Conflicts
-4067		Conflicts
-4074		Conflicts
-4075		MAME sound, skipping for now
+4066		Conflict
+4067		Conflict
+4074		Conflict
+4075		MAME sound. Merged into DOSBox-X except for Tandy sound, due to conflicts.
 4076		Unknown if needed
-4077		Conflicts
-4082		MAME sound
-4083		MAME sound
-4084		MAME sound
-4085		MAME sound
+4077		Conflict
 4093		Conflict
 4094		Conflict
 4095		Conflict
-4099		MAME sound
 4111		Conflict
 4129		Partial conflict
 4132		Conflict
-4140		MAME sound
-4141		MAME sound
-4142		MAME sound
+4141		MAME sound. Merged into DOSBox-X except for Tandy sound, due to conflicts.
 4147		Conflict
-4158		MAME sound
 4165		Not sure if needed
 4174		Conflict
 4178		Conflict

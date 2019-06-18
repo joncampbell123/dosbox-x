@@ -29,6 +29,13 @@
 #include "dbopl.h"
 #include "nukedopl.h"
 
+#include "mame/emu.h"
+#include "mame/fmopl.h"
+#include "mame/ymf262.h"
+
+#define OPL2_INTERNAL_FREQ    3600000   // The OPL2 operates at 3.6MHz
+#define OPL3_INTERNAL_FREQ    14400000  // The OPL3 operates at 14.4MHz
+
 bool adlib_force_timer_overflow_on_polling = false;
 
 namespace OPL2 {
@@ -124,6 +131,77 @@ namespace NukedOPL {
 	};
 }
 
+namespace MAMEOPL2 {
+
+struct Handler : public Adlib::Handler {
+	void* chip;
+
+	virtual void WriteReg(Bit32u reg, Bit8u val) {
+		ym3812_write(chip, 0, reg);
+		ym3812_write(chip, 1, val);
+	}
+	virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+		return val;
+	}
+	virtual void Generate(MixerChannel* chan, Bitu samples) {
+		Bit16s buf[1024 * 2];
+		while (samples > 0) {
+			Bitu todo = samples > 1024 ? 1024 : samples;
+			samples -= todo;
+			ym3812_update_one(chip, buf, todo);
+			chan->AddSamples_m16(todo, buf);
+		}
+	}
+	virtual void Init(Bitu rate) {
+		chip = ym3812_init(0, OPL2_INTERNAL_FREQ, rate);
+	}
+	~Handler() {
+		ym3812_shutdown(chip);
+	}
+};
+
+}
+
+
+namespace MAMEOPL3 {
+
+struct Handler : public Adlib::Handler {
+	void* chip;
+
+	virtual void WriteReg(Bit32u reg, Bit8u val) {
+		ymf262_write(chip, 0, reg);
+		ymf262_write(chip, 1, val);
+	}
+	virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+		return val;
+	}
+	virtual void Generate(MixerChannel* chan, Bitu samples) {
+		//We generate data for 4 channels, but only the first 2 are connected on a pc
+		Bit16s buf[4][1024];
+		Bit16s result[1024][2];
+		Bit16s* buffers[4] = { buf[0], buf[1], buf[2], buf[3] };
+
+		while (samples > 0) {
+			Bitu todo = samples > 1024 ? 1024 : samples;
+			samples -= todo;
+			ymf262_update_one(chip, buffers, todo);
+			//Interleave the samples before mixing
+			for (Bitu i = 0; i < todo; i++) {
+				result[i][0] = buf[0][i];
+				result[i][1] = buf[1][i];
+			}
+			chan->AddSamples_s16(todo, result[0]);
+		}
+	}
+	virtual void Init(Bitu rate) {
+		chip = ymf262_init(0, OPL3_INTERNAL_FREQ, rate);
+	}
+	~Handler() {
+		ymf262_shutdown(chip);
+	}
+};
+
+}
 
 #define RAW_SIZE 1024
 
@@ -820,6 +898,14 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		}
 	} else if (oplemu == "nuked") {
 		handler = new NukedOPL::Handler();
+	}
+	else if (oplemu == "mame") {
+		if (oplmode == OPL_opl2) {
+			handler = new MAMEOPL2::Handler();
+		}
+		else {
+			handler = new MAMEOPL3::Handler();
+		}
 	} else {
 		handler = new DBOPL::Handler();
 	}
