@@ -1,7 +1,7 @@
 dnl Init.
 AC_INIT(dosbox-x,0.82.20,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
-AC_CONFIG_SRCDIR(README)
+AC_CONFIG_SRCDIR(README.md)
 
 dnl Utility function ============================
 
