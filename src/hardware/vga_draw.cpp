@@ -2431,8 +2431,10 @@ again:
                     memxor_greendotted_16bpp((uint16_t*)data,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
                 vga_3da_polled = false;
             }
+
             if (VGA_IsCaptureEnabled())
                 VGA_ProcessScanline(data);
+
             RENDER_DrawLine(data);
         }
     }
@@ -2463,7 +2465,10 @@ again:
         PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
-        VGA_ProcessScanline(NULL);
+
+        if (VGA_IsCaptureEnabled())
+            VGA_ProcessScanline(NULL);
+
         RENDER_EndUpdate(false);
     }
 
@@ -2523,8 +2528,10 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                 }
             }
             Bit8u * data=VGA_DrawLine(address, vga.draw.address_line ); 
+
             if (VGA_IsCaptureEnabled())
                 VGA_ProcessScanline(data);
+
             RENDER_DrawLine(data);
         }
     }
@@ -2548,7 +2555,10 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
         PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
-        VGA_ProcessScanline(NULL);
+
+        if (VGA_IsCaptureEnabled())
+            VGA_ProcessScanline(NULL);
+
         RENDER_EndUpdate(false);
     }
 }
@@ -3143,7 +3153,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
             else PIC_RemoveEvents(VGA_DrawSingleLine);
             vga_mode_frames_since_time_base++;
-            VGA_ProcessScanline(NULL);
+
+            if (VGA_IsCaptureEnabled())
+                VGA_ProcessScanline(NULL);
+
             RENDER_EndUpdate(true);
         }
         vga.draw.lines_done = 0;
