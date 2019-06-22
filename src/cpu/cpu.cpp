@@ -710,9 +710,6 @@ public:
 		return true;
 	}
 
-	void SaveState( std::ostream& stream );
-	void LoadState( std::istream& stream );
-
 	TSS_Descriptor desc;
 	Bitu selector;
 	PhysPt base;
