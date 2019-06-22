@@ -3445,7 +3445,7 @@ static void LogEMS(void) {
         }
     }
 
-    bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page);
+    bool EMS_GetMapping(Bitu &handle,Bit16u &log_page,Bitu ems_page);
     Bitu GetEMSPageFrameSegment(void);
     Bitu GetEMSPageFrameSize(void);
 
@@ -3455,7 +3455,8 @@ static void LogEMS(void) {
     LOG(LOG_MISC,LOG_ERROR)("Handle Page(p/l) Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
-        Bitu log_page,handle;
+        Bit16u log_page;
+        Bitu handle;
 
         if (EMS_GetMapping(handle,log_page,p)) {
             char tmp[192] = {0};
@@ -3467,8 +3468,8 @@ static void LogEMS(void) {
 
             if (xh_addr != 0)
                 sprintf(tmp," virt -> %08lx-%08lx phys",
-                    (unsigned long)xh_addr + (log_page << 14UL),
-                    (unsigned long)xh_addr + (log_page << 14UL) + (1 << 14UL) - 1);
+                    xh_addr + (log_page << 14),
+                    xh_addr + (log_page << 14) + (1 << 14) - 1);
 
             LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,

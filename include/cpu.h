@@ -176,10 +176,10 @@ void CPU_NMI_Interrupt();
 static INLINE void CPU_HW_Interrupt(Bitu num) {
 	CPU_Interrupt(num,0,reg_eip);
 }
-static INLINE void CPU_SW_Interrupt(Bitu num,Bitu oldeip) {
+static INLINE void CPU_SW_Interrupt(Bitu num,Bit32u oldeip) {
 	CPU_Interrupt(num,CPU_INT_SOFTWARE,oldeip);
 }
-static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,Bitu oldeip) {
+static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,Bit32u oldeip) {
 	CPU_Interrupt(num,CPU_INT_SOFTWARE|CPU_INT_NOIOPLCHECK,oldeip);
 }
 

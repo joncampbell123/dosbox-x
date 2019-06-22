@@ -97,7 +97,7 @@ Bits CPU_Core_Full_Run(void) {
 #endif
 
 		LoadIP();
-		inst.entry=cpu.code.big*0x200u;
+		inst.entry=cpu.code.big*(Bitu)0x200u;
 		inst.prefix=cpu.code.big;
 restartopcode:
 		inst.entry=(inst.entry & 0xffffff00u) | Fetchb();
