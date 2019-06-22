@@ -211,7 +211,7 @@ void DOS_AddDevice(DOS_Device * adddev) {
 void DOS_DelDevice(DOS_Device * dev) {
 // We will destroy the device if we find it in our list.
 // TODO:The file table is not checked to see the device is opened somewhere!
-	if (dev == NULL) E_Exit("DOS_DelDevice with null ptr");
+	if (dev == NULL) return E_Exit("DOS_DelDevice with null ptr");
 	for (Bitu i = 0; i <DOS_DEVICES;i++) {
 		if (Devices[i] == dev) { /* NTS: The mainline code deleted by matching names??? Why? */
 //			LOG_MSG("DOS_DelDevice %s (%p)\n",dev->name,(void*)dev);
