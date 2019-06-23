@@ -136,6 +136,10 @@ public:
         (void)_clock;
 	}
 
+    virtual ~device_t() {
+        // silence GCC warning about deleting polymorphic classes
+    }
+
 };
 
 
