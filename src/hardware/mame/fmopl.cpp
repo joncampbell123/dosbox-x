@@ -928,6 +928,8 @@ struct FM_OPL
 	/* lock/unlock for common table */
 	static int LockTable(device_t *device)
 	{
+        (void)device;
+
 		num_lock++;
 		if(num_lock>1) return 0;
 
