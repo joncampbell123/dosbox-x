@@ -191,7 +191,6 @@ extern double           rtdelta;
 static LoopHandler*     loop;
 
 /* The whole load of startups for all the subfunctions */
-void                LOG_StartUp(void);
 void                MEM_Init(Section *);
 void                ISAPNP_Cfg_Init(Section *);
 void                ROMBIOS_Init(Section *);
@@ -240,7 +239,6 @@ void                DONGLE_Init(Section*);
 #if C_IPX
 void                IPX_Init(Section*);
 #endif
-void                SID_Init(Section* sec);
 void                PIC_Init(Section*);
 void                TIMER_Init(Section*);
 void                BIOS_Init(Section*);
@@ -254,9 +252,6 @@ void                XMS_Init(Section*);
 void                DOS_KeyboardLayout_Init(Section*);
 void                AUTOEXEC_Init(Section*);
 void                INT10_Init(Section*);
-#if C_NE2000
-void                NE2K_Init(Section* sec);
-#endif
 #if C_PRINTER
 void                PRINTER_Init(Section*);
 #endif
@@ -717,8 +712,6 @@ void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 }
 
 unsigned int dosbox_shell_env_size = 0;
-
-void clocktree_build_conversion_list();
 
 void Null_Init(Section *sec) {
 	(void)sec;

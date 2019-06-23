@@ -653,6 +653,10 @@ class TaskStateSegment {
 public:
 	TaskStateSegment() {
 		valid=false;
+        base = 0;
+        is386 = 0;
+        limit = 0;
+        selector = 0;
 	}
 	bool IsValid(void) {
 		return valid;
@@ -705,9 +709,6 @@ public:
 		is386=desc.Is386();
 		return true;
 	}
-
-	void SaveState( std::ostream& stream );
-	void LoadState( std::istream& stream );
 
 	TSS_Descriptor desc;
 	Bitu selector;

@@ -922,8 +922,8 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
 	PageHandler * handler=MEM_GetPageHandler(phys_page);
 	Bitu lin_base=lin_page << 12;
-	if (lin_page>=TLB_SIZE || phys_page>=TLB_SIZE) 
-		E_Exit("Illegal page");
+	if (lin_page>=TLB_SIZE || phys_page>=TLB_SIZE)
+		return E_Exit("Illegal page");
 
 	if (paging.links.used>=PAGING_LINKS) {
 		LOG(LOG_PAGING,LOG_NORMAL)("Not enough paging links, resetting cache");

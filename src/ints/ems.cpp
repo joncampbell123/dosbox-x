@@ -140,7 +140,7 @@ static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
 
-bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page) {
+bool EMS_GetMapping(Bitu &handle,Bit16u &log_page,Bitu ems_page) {
     if (ems_page < EMM_MAX_PHYS) {
         auto &x = emm_mappings[ems_page];
 

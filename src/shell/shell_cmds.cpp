@@ -1027,7 +1027,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			return;
 		}
 
-		Bit16u sourceHandle,targetHandle;
+		Bit16u sourceHandle,targetHandle = 0;
 		char nameTarget[DOS_PATHLENGTH];
 		char nameSource[DOS_PATHLENGTH];
 		

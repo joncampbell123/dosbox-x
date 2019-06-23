@@ -179,6 +179,7 @@ DOS_Shell::DOS_Shell():Program(){
 	bf=0;
 	call=false;
     input_eof=false;
+    completion_index = 0;
 }
 
 Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {

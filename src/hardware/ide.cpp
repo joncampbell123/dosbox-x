@@ -3551,6 +3551,7 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     select = 0;
     alt_io = 0;
     IRQ = -1;
+    drivehead = 0;
 
     i = section->Get_int("irq");
     if (i > 0 && i <= 15) IRQ = i;

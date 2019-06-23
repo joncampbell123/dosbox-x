@@ -160,7 +160,7 @@ Bits CPU_Core_Normal_Run(void) {
 
 	while (CPU_Cycles-->0) {
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200u;
+		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
 		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
