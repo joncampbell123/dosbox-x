@@ -219,6 +219,8 @@ void saa1099_device::device_start()
 
 void saa1099_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
 {
+    (void)stream;
+    (void)inputs;
 	int j, ch;
 	/* if the channels are disabled we're done */
 	if (!m_all_ch_enable)
@@ -360,6 +362,9 @@ void saa1099_device::envelope_w(int ch)
 
 WRITE8_MEMBER( saa1099_device::control_w )
 {
+    (void)offset;
+    (void)space;
+
 	if ((data & 0xff) > 0x1c)
 	{
 		/* Error! */
@@ -382,6 +387,9 @@ WRITE8_MEMBER( saa1099_device::data_w )
 {
 	int reg = m_selected_reg;
 	int ch;
+
+    (void)offset;
+    (void)space;
 
 	/* first update the stream to this point in time */
 	m_stream->update();
