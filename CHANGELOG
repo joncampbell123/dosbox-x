@@ -1,4 +1,8 @@
 0.82.20 (next)
+  - Running a build that draws it's own menus, setting
+    output=opengl, and hiding the menus no longer causes
+    lag redrawing the screen every time the mouse cursor
+    moves.
   - Memory limit is now 3.5GB for 64-bit builds and 1GB for
     32-bit builds.
   - Maximum memory limit is now 3.5GB, code fixed to better
