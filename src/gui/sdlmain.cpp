@@ -4782,6 +4782,17 @@ void GFX_Events() {
             case SDL_WINDOWEVENT_EXPOSED:
                 if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
                 continue;
+            case SDL_WINDOWEVENT_LEAVE:
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+
+                GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+                GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
+                break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 if (IsFullscreen() && !sdl.mouse.locked)
                     GFX_CaptureMouse();
@@ -4793,6 +4804,15 @@ void GFX_Events() {
                     CaptureMouseNotify();
                     GFX_CaptureMouse();
                 }
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+
+                GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+                GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
                 SetPriority(sdl.priority.nofocus);
                 GFX_LosingFocus();
                 CPU_Enable_SkipAutoAdjust();
