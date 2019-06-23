@@ -5037,50 +5037,50 @@ void GFX_Events() {
 #endif
         case SDL_ACTIVEEVENT:
                 if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
-                if (event.active.gain) {
+                    if (event.active.gain) {
 #ifdef WIN32
-                    if (!sdl.desktop.fullscreen) sdl.focus_ticks = GetTicks();
+                        if (!sdl.desktop.fullscreen) sdl.focus_ticks = GetTicks();
 #endif
-                    if (sdl.desktop.fullscreen && !sdl.mouse.locked)
-                        GFX_CaptureMouse();
-                    SetPriority(sdl.priority.focus);
-                    CPU_Disable_SkipAutoAdjust();
-                    BIOS_SynchronizeNumLock();
-                    BIOS_SynchronizeCapsLock();
-                    BIOS_SynchronizeScrollLock();
-                } else {
-                    if (sdl.mouse.locked)
-                    {
-                        CaptureMouseNotify();
-                        GFX_CaptureMouse();
-                    }
+                        if (sdl.desktop.fullscreen && !sdl.mouse.locked)
+                            GFX_CaptureMouse();
+                        SetPriority(sdl.priority.focus);
+                        CPU_Disable_SkipAutoAdjust();
+                        BIOS_SynchronizeNumLock();
+                        BIOS_SynchronizeCapsLock();
+                        BIOS_SynchronizeScrollLock();
+                    } else {
+                        if (sdl.mouse.locked)
+                        {
+                            CaptureMouseNotify();
+                            GFX_CaptureMouse();
+                        }
 
 #if defined(WIN32)
-                    if (sdl.desktop.fullscreen)
-                        GFX_ForceFullscreenExit();
+                        if (sdl.desktop.fullscreen)
+                            GFX_ForceFullscreenExit();
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                    void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
-                    void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                        void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                        void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
 
-                    GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
-                    GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                        GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                        GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
 
-                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+                        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
 
-                    SetPriority(sdl.priority.nofocus);
-                    GFX_LosingFocus();
-                    CPU_Enable_SkipAutoAdjust();
+                        SetPriority(sdl.priority.nofocus);
+                        GFX_LosingFocus();
+                        CPU_Enable_SkipAutoAdjust();
+                    }
                 }
-            }
 
-            /* Non-focus priority is set to pause; check to see if we've lost window or input focus
-             * i.e. has the window been minimised or made inactive?
-             */
-            if (sdl.priority.nofocus == PRIORITY_LEVEL_PAUSE) {
-                if ((event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) && (!event.active.gain)) {
+                /* Non-focus priority is set to pause; check to see if we've lost window or input focus
+                 * i.e. has the window been minimised or made inactive?
+                 */
+                if (sdl.priority.nofocus == PRIORITY_LEVEL_PAUSE) {
+                    if ((event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) && (!event.active.gain)) {
                     /* Window has lost focus, pause the emulator.
                      * This is similar to what PauseDOSBox() does, but the exit criteria is different.
                      * Instead of waiting for the user to hit Alt-Break, we wait for the window to
