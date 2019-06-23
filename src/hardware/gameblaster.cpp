@@ -145,7 +145,9 @@ public:
 	
 		lastWriteTicks = PIC_Ticks;
 
+#if 0 // unused?
 		Bit32u freq = 7159000;		//14318180 isa clock / 2
+#endif
 
 		machine_config config;
 		device[0] = new saa1099_device(config, "", 0, 7159090);
