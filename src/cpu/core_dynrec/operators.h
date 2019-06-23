@@ -1676,8 +1676,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsb_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count-CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1713,8 +1713,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsw_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count-CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1751,8 +1751,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsd_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1788,8 +1788,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsb_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1823,8 +1823,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsw_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1859,8 +1859,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsd_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1895,8 +1895,8 @@ static Bit32u DRC_CALL_CONV dynrec_stosb_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count= (Bit32u)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1930,8 +1930,8 @@ static Bit32u DRC_CALL_CONV dynrec_stosw_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count=(Bit32u) CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1966,8 +1966,8 @@ static Bit32u DRC_CALL_CONV dynrec_stosd_dword(Bit32u count,Bit32s add_index,Phy
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=count-CPU_Cycles;
-		count=CPU_Cycles;
+		count_left= (Bit32u)(count - CPU_Cycles);
+		count=(Bit32u) CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
