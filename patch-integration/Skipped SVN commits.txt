@@ -60,6 +60,7 @@ Commit#:	Reason for skipping:
 4196		New overlay drive, skipping for now
 4199		Conflict
 4200		Conflict
+4206		Caused unexpected "DYNREC:Can't run code in this page" error
 4215		Conflict
 4216		Overlay
 4217		Overlay

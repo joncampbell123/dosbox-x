@@ -110,10 +110,6 @@
     - Check lengths before adding C-style strings together.
     - Fix unmounting of complex drives where parts were left and
     file pointers were kept open.
-    - Store whether generated code is 16- or 32-bit, so this
-    information can be used when checking for self-modifying
-    code. Some code is identical except for being 32- or 16-bit.
-    Fixes some hard to reproduce problems with small codeblocks.
     - Stop storing raw modrm value. Should save an instruction
     on each get_modrm call.
     - Strip leading = from value. Can happen if you execute
