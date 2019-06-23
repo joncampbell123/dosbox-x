@@ -3467,8 +3467,8 @@ static void LogEMS(void) {
 
             if (xh_addr != 0)
                 sprintf(tmp," virt -> %08lx-%08lx phys",
-                    xh_addr + (log_page << 14),
-                    xh_addr + (log_page << 14) + (1 << 14) - 1);
+                    (unsigned long)(xh_addr + (log_page << 14)),
+                    (unsigned long)(xh_addr + (log_page << 14) + (1 << 14) - 1));
 
             LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
