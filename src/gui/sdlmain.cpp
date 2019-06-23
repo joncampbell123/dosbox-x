@@ -5060,6 +5060,16 @@ void GFX_Events() {
                         GFX_ForceFullscreenExit();
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                    void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                    void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+
+                    GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                    GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
+
                     SetPriority(sdl.priority.nofocus);
                     GFX_LosingFocus();
                     CPU_Enable_SkipAutoAdjust();
