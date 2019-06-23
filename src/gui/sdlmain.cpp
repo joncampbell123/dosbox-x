@@ -5066,8 +5066,6 @@ void GFX_Events() {
 
                         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
                         GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
-
-                        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
 
                         SetPriority(sdl.priority.nofocus);
@@ -5075,6 +5073,22 @@ void GFX_Events() {
                         CPU_Enable_SkipAutoAdjust();
                     }
                 }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                if (event.active.state & SDL_APPMOUSEFOCUS) {
+                    if (!(event.active.gain & SDL_APPMOUSEFOCUS)) {
+                        /* losing focus or moving the mouse outside the window should un-hilight the currently selected menu item */
+                        void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+                        void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+
+                        GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                        GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+                    }
+                }
+
+                GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
 
                 /* Non-focus priority is set to pause; check to see if we've lost window or input focus
                  * i.e. has the window been minimised or made inactive?
