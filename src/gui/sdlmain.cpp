@@ -1755,44 +1755,45 @@ void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen
 
 bool DOSBox_isMenuVisible(void);
 
-void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) 
-{
-    if (menu.needsRedraw() && (!sdl.updating || OpenGL_using())) {
-        if (DOSBox_isMenuVisible() && !sdl.desktop.fullscreen) {
-            if (!OpenGL_using()) {
-                if (SDL_MUSTLOCK(sdl.surface))
-                    SDL_LockSurface(sdl.surface);
-            }
+void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
+    if (!menu.needsRedraw() || (sdl.updating && !OpenGL_using())) {
+        return;
+    }
+    if (!DOSBox_isMenuVisible() || sdl.desktop.fullscreen) {
+        // BUGFIX: If the menu is hidden then silently clear "needs redraw" to avoid excess redraw of nothing
+        menu.clearRedraw();
+        return;
+    }
 
-            if (&dl == &menu.display_list) { /* top level menu, draw background */
-                MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
-                MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
-            }
+    bool mustLock = !OpenGL_using() && SDL_MUSTLOCK(sdl.surface);
 
-            if (!OpenGL_using()) {
-                if (SDL_MUSTLOCK(sdl.surface))
-                    SDL_UnlockSurface(sdl.surface);
-            }
+    if (mustLock) {
+        SDL_LockSurface(sdl.surface);
+    }
+
+    if (&dl == &menu.display_list) { /* top level menu, draw background */
+        MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
+        MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1,
+                     GFX_GetRGB(31, 31, 31));
+    }
+
+    if (mustLock) {
+        SDL_UnlockSurface(sdl.surface);
+    }
 
 #if 0
-            LOG_MSG("menudraw %u",(unsigned int)SDL_GetTicks());
+    LOG_MSG("menudraw %u",(unsigned int)SDL_GetTicks());
 #endif
 
-            menu.clearRedraw();
-            menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
+    menu.clearRedraw();
+    menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
 
-            if (!OpenGL_using()) {
+    if (!OpenGL_using()) {
 #if defined(C_SDL2)
-                SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
+        SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
 #else
-                SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
+        SDL_UpdateRects(sdl.surface, 1, &menu.menuBox);
 #endif
-            }
-        }
-        else {
-            // BUGFIX: If the menu is hidden then silently clear "needs redraw" to avoid excess redraw of nothing
-            menu.clearRedraw();
-        }
     }
 }
 #endif
