@@ -34,8 +34,8 @@ extern int cpu_rep_max;
 
 void DoString(STRING_OP type) {
 	static PhysPt  si_base,di_base;
-	static Bitu	si_index,di_index;
-	static Bitu	add_mask;
+	static Bit32u	si_index,di_index;
+	static Bit32u	add_mask;
 	static Bitu	count,count_left;
 	static Bits	add_index;
 

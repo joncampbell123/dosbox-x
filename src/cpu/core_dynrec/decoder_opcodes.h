@@ -313,14 +313,14 @@ static void dyn_sop_word(SingleOps op,Bit8u reg) {
 }
 
 
-static void dyn_mov_byte_al_direct(Bitu imm) {
+static void dyn_mov_byte_al_direct(Bit32u imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	dyn_read_byte(FC_ADDR,FC_TMP_BA1);
 	MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,DRC_REG_EAX,0);
 }
 
-static void dyn_mov_byte_ax_direct(Bitu imm) {
+static void dyn_mov_byte_ax_direct(Bit32u imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	dyn_read_word(FC_ADDR,FC_OP1,decode.big_op);
@@ -343,7 +343,7 @@ static void dyn_mov_byte_direct_al() {
 	dyn_write_byte(FC_ADDR,FC_TMP_BA1);
 }
 
-static void dyn_mov_byte_direct_ax(Bitu imm) {
+static void dyn_mov_byte_direct_ax(Bit32u imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_EAX,decode.big_op);
@@ -433,7 +433,7 @@ static void dyn_push_byte_imm(Bit8s imm) {
 	else gen_call_function_raw((void*)&dynrec_push_word);
 }
 
-static void dyn_push_word_imm(Bitu imm) {
+static void dyn_push_word_imm(Bit32u imm) {
 	if (decode.big_op) {
 		gen_mov_dword_to_reg_imm(FC_OP1,imm);
 		gen_call_function_raw((void*)&dynrec_push_dword);
@@ -1096,7 +1096,7 @@ static void dyn_sahf(void) {
 }
 
 
-static void dyn_exit_link(Bits eip_change) {
+static void dyn_exit_link(Bit32s eip_change) {
 	gen_add_direct_word(&reg_eip,(decode.code-decode.code_start)+eip_change,decode.big_op);
 	dyn_reduce_cycles();
 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
@@ -1105,7 +1105,7 @@ static void dyn_exit_link(Bits eip_change) {
 
 
 static void dyn_branched_exit(BranchTypes btype,Bit32s eip_add) {
-	Bitu eip_base=decode.code-decode.code_start;
+	Bit32u eip_base=decode.code-decode.code_start;
 	dyn_reduce_cycles();
 
 	dyn_branchflag_to_reg(btype);
@@ -1138,8 +1138,8 @@ static void dyn_set_byte_on_condition(BranchTypes btype) {
 
 static void dyn_loop(LoopTypes type) {
 	dyn_reduce_cycles();
-	Bits eip_add=(Bit8s)decode_fetchb();
-	Bitu eip_base=decode.code-decode.code_start;
+	Bit8s eip_add=(Bit8s)decode_fetchb();
+	Bit32u eip_base=decode.code-decode.code_start;
 	DRC_PTR_SIZE_IM branch1=0;
 	DRC_PTR_SIZE_IM branch2=0;
 	switch (type) {
@@ -1186,7 +1186,7 @@ static void dyn_loop(LoopTypes type) {
 }
 
 
-static void dyn_ret_near(Bitu bytes) {
+static void dyn_ret_near(Bit16u bytes) {
 	dyn_reduce_cycles();
 
 	if (decode.big_op) gen_call_function_raw((void*)&dynrec_pop_dword);
@@ -1202,7 +1202,7 @@ static void dyn_ret_near(Bitu bytes) {
 }
 
 static void dyn_call_near_imm(void) {
-	Bits imm;
+	Bit32s imm;
 	if (decode.big_op) imm=(Bit32s)decode_fetchd();
 	else imm=(Bit16s)decode_fetchw();
 	dyn_set_eip_end(FC_OP1);
@@ -1426,7 +1426,7 @@ static void dynrec_pusha_word(void) {
 }
 
 static void dynrec_pusha_dword(void) {
-	Bitu tmpesp = reg_esp;
+	Bit32u tmpesp = reg_esp;
 	CPU_Push32(reg_eax);CPU_Push32(reg_ecx);CPU_Push32(reg_edx);CPU_Push32(reg_ebx);
 	CPU_Push32(tmpesp);CPU_Push32(reg_ebp);CPU_Push32(reg_esi);CPU_Push32(reg_edi);
 }

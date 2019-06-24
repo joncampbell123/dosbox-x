@@ -172,7 +172,7 @@ static struct {
 CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
 	CacheBlockDynRec * block=NULL;
 	// the last instruction was a control flow modifying instruction
-	Bitu temp_ip=SegPhys(cs)+reg_eip;
+	Bit32u temp_ip=SegPhys(cs)+reg_eip;
 	CodePageHandlerDynRec * temp_handler=(CodePageHandlerDynRec *)get_tlb_readhandler(temp_ip);
 	if (temp_handler->flags & PFLAG_HASCODE) {
 		// see if the target is an already translated block

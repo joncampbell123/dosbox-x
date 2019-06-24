@@ -39,7 +39,7 @@ struct LazyFlags {
     GenReg32 var1,var2,res;
 	Bitu type;
 	Bitu prev_type;
-	Bitu oldcf;
+	Bit8u oldcf;
 };
 
 extern LazyFlags lfags;

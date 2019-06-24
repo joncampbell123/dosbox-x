@@ -122,7 +122,7 @@ static struct DynDecode {
 	struct {
 //		Bitu val;
 		Bitu mod;
-		Bitu rm;
+		Bit8u rm;
 		Bitu reg;
 	} modrm;
 } decode;

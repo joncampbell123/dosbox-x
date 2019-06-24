@@ -352,8 +352,8 @@ static INLINE void gen_lea(HostReg dest_reg,HostReg scale_reg,Bitu scale,Bits im
 
 	switch (imm_size) {
 	case 0:	break;
-	case 1:cache_addb(imm);break;
-	case 4:cache_addd(imm);break;
+	case 1:cache_addb((Bit8u)imm);break;
+	case 4:cache_addd((Bit32u)imm);break;
 	}
 }
 
@@ -366,9 +366,9 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 	cache_addb(0x48);
 	cache_addb(0x8d);			//LEA
 	cache_addb(0x04+(dest_reg<<3));
-	cache_addb(0x05+(dest_reg<<3)+(scale<<6));
+	cache_addb((Bit8u)(0x05+(dest_reg<<3)+(scale<<6)));
 
-	cache_addd(imm);		// always add dword immediate
+	cache_addd((Bit32u)imm);		// always add dword immediate
 }
 
 
@@ -535,10 +535,10 @@ static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 		cache_addb(0x20);
     } else if ((imm>=-128 && imm<=127)) {
 		cache_addb(0x60);
-		cache_addb(imm);
+		cache_addb((Bit8u)imm);
 	} else {
 		cache_addb(0xa0);
-		cache_addd(imm);
+		cache_addd((Bit32u)imm);
 	}
 }
 
