@@ -118,7 +118,7 @@ Bits PageFaultCore(void) {
 	if (!pf_queue.used) E_Exit("PF Core without PF");
 	PF_Entry * entry=&pf_queue.entries[pf_queue.used-1];
 	X86PageEntry pentry;
-	pentry.load=phys_readd(entry->page_addr);
+	pentry.load=phys_readd((PhysPt)entry->page_addr);
 	if (pentry.block.p && entry->cs == SegValue(cs) && entry->eip==reg_eip) {
 		cpu.mpl=entry->mpl;
 		return -1;
@@ -764,12 +764,12 @@ bool PAGING_MakePhysPage(Bitu & page) {
 	if (paging.enabled) {
 		// check the page directory entry for this address
 		X86PageEntry dir_entry;
-		dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(page<<12));
+		dir_entry.load = phys_readd(GetPageDirectoryEntryAddr((PhysPt)(page<<12)));
 		if (!dir_entry.block.p) return false;
 		
 		// check the page table entry
 		X86PageEntry tbl_entry;
-		tbl_entry.load = phys_readd(GetPageTableEntryAddr(page<<12, dir_entry));
+		tbl_entry.load = phys_readd(GetPageTableEntryAddr((PhysPt)(page<<12), dir_entry));
 		if (!tbl_entry.block.p) return false;
 
 		// return it
@@ -833,7 +833,7 @@ void PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
 
 void PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
 	if (lin_page<LINK_START) {
-		paging.firstmb[lin_page]=phys_page;
+		paging.firstmb[lin_page]=(Bit32u)phys_page;
 		paging.tlb.read[lin_page]=0;
 		paging.tlb.write[lin_page]=0;
 		paging.tlb.readhandler[lin_page]=&init_page_handler;
@@ -864,7 +864,7 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 	// bit31-30 ACMAP_
 	// bit29	dirty
 	// these bits are shifted off at the places paging.tlb.phys_page is read
-	paging.tlb.phys_page[lin_page]= phys_page | (linkmode<< 30) | (dirty? PHYSPAGE_DITRY:0);
+	paging.tlb.phys_page[lin_page]= (Bit32u)(phys_page | (linkmode<< 30) | (dirty? PHYSPAGE_DITRY:0));
 	switch(outcome) {
 	case ACMAP_RW:
 		// read
@@ -904,19 +904,19 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 
 	switch(linkmode) {
 	case ACCESS_KR:
-		paging.kr_links.entries[paging.kr_links.used++]=lin_page;
+		paging.kr_links.entries[paging.kr_links.used++]=(Bit32u)lin_page;
 		break;
 	case ACCESS_KRW:
-		paging.krw_links.entries[paging.krw_links.used++]=lin_page;
+		paging.krw_links.entries[paging.krw_links.used++]= (Bit32u)lin_page;
 		break;
 	case ACCESS_UR:
-		paging.ur_links.entries[paging.ur_links.used++]=lin_page;
+		paging.ur_links.entries[paging.ur_links.used++]= (Bit32u)lin_page;
 		break;
 	case ACCESS_URW:	// with this access right everything is possible
 						// thus no need to modify it on a us <-> sv switch
 		break;
 	}
-	paging.links.entries[paging.links.used++]=lin_page; // "master table"
+	paging.links.entries[paging.links.used++]= (Bit32u)lin_page; // "master table"
 }
 
 void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
@@ -930,13 +930,13 @@ void PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
 		PAGING_ClearTLB();
 	}
 
-	paging.tlb.phys_page[lin_page]=phys_page;
+	paging.tlb.phys_page[lin_page]= (Bit32u)phys_page;
 	if (handler->getFlags() & PFLAG_READABLE) paging.tlb.read[lin_page]=handler->GetHostReadPt(phys_page)-lin_base;
 	else paging.tlb.read[lin_page]=0;
 	if (handler->getFlags() & PFLAG_WRITEABLE) paging.tlb.write[lin_page]=handler->GetHostWritePt(phys_page)-lin_base;
 	else paging.tlb.write[lin_page]=0;
 
-	paging.links.entries[paging.links.used++]=lin_page;
+	paging.links.entries[paging.links.used++]= (Bit32u)lin_page;
 	paging.tlb.readhandler[lin_page]=handler;
 	paging.tlb.writehandler[lin_page]=handler;
 }
@@ -1184,7 +1184,7 @@ bool PAGING_Enabled(void) {
 }
 
 void PAGING_Init() {
-	Bitu i;
+	Bit16u i;
 
 	// log
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing paging system (CPU linear -> physical mapping system)");

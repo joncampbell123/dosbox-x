@@ -180,7 +180,7 @@ struct FullData {
 	Bitu entry;
 	Bitu rm;
 	EAPoint rm_eaa;
-	Bitu rm_off;
+	Bit16u rm_off;
 	Bitu rm_eai;
 	Bitu rm_index;
 	Bitu rm_mod;

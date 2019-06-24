@@ -1237,7 +1237,8 @@ static void dyn_call_far_imm(void) {
 }
 
 static void dyn_jmp_far_imm(void) {
-	Bitu sel,off;
+    Bit16u sel;
+    Bit32u off;
 	off=decode.big_op ? decode_fetchd() : decode_fetchw();
 	sel=decode_fetchw();
 	dyn_reduce_cycles();

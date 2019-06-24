@@ -40,7 +40,7 @@ static inline void prefetch_init(const Bitu start) {
 }
 
 static inline void prefetch_filldword(void) {
-    host_writed(&prefetch_buffer[pq_fill - pq_start],LoadMd(pq_fill));
+    host_writed(&prefetch_buffer[pq_fill - pq_start],LoadMd((PhysPt)pq_fill));
     pq_fill += prefetch_unit;
 }
 

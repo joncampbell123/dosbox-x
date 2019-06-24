@@ -142,10 +142,10 @@ bool CPU_LMSW(Bitu word);
 void CPU_VERR(Bitu selector);
 void CPU_VERW(Bitu selector);
 
-void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bitu oldeip);
-void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip);
-void CPU_RET(bool use32,Bitu bytes,Bitu oldeip);
-void CPU_IRET(bool use32,Bitu oldeip);
+void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bit32u oldeip);
+void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bit32u oldeip);
+void CPU_RET(bool use32,Bitu bytes,Bit32u oldeip);
+void CPU_IRET(bool use32,Bit32u oldeip);
 void CPU_HLT(Bit32u oldeip);
 
 bool CPU_POPF(Bitu use32);
