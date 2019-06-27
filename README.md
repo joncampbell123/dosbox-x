@@ -14,11 +14,9 @@ I am rewriting this README, and new information will be added over time --J.C.
 How to compile DOSBox-X in Ubuntu (kapper1224)
 ----------------------------------------------
 
-sudo apt install libavformat-* libswscale-* libavcodec-*
-./autogen.sh
-./configure
-make
-sudo make install
+    sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
+    ./build
+    sudo make install
 
 
 
