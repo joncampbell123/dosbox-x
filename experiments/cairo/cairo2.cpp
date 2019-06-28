@@ -84,7 +84,6 @@ int main() {
             }
 
             cairo_close_path(cactx);
-            ang += angv;
         }
 
         cairo_set_source_rgba(cactx,0,0,0,0.5);
@@ -104,7 +103,6 @@ int main() {
             }
 
             cairo_close_path(cactx);
-            ang += angv;
         }
 
         cairo_set_source_rgb(cactx,1.0,1.0,1.0);
@@ -137,6 +135,8 @@ int main() {
             SDL_UnlockSurface(surface);
             SDL_UpdateWindowSurface(window);
         }
+
+        ang += angv;
 
         SDL_Delay(1000 / 30);
     }

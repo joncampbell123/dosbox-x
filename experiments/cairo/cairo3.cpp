@@ -98,7 +98,6 @@ int main() {
             }
 
             cairo_close_path(cactx);
-            ang += angv;
         }
 
         cairo_set_source_rgba(cactx,0,0,0,0.5);
@@ -118,7 +117,6 @@ int main() {
             }
 
             cairo_close_path(cactx);
-            ang += angv;
         }
 
         cairo_set_source_rgb(cactx,1.0,1.0,1.0);
@@ -126,6 +124,8 @@ int main() {
 
         cairo_set_source_rgb(cactx,0.0,0.0,1.0);
         cairo_stroke(cactx);
+
+        ang += angv;
 
         // copy Cairo output to display
         cairo_surface_flush(csurf);
