@@ -190,7 +190,7 @@ public:
     bool LockTexture(Bit8u * & pixels,Bitu & pitch);
     bool UnlockTexture(const Bit16u *changed);
 
-    CDirect3D(Bitu width = 640, Bitu height = 400):dwWidth(width),dwHeight(height) {
+    CDirect3D(Bit32u width = 640, Bit32u height = 400):dwWidth(width),dwHeight(height) {
 	mhmodDX9 = NULL;
 	pD3D9 = NULL;
 	pD3DDevice9 = NULL;

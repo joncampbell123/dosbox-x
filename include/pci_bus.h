@@ -65,7 +65,7 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_write() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++) {
-				config_write(regnum+i,1,value&0xFF);
+				config_write((Bit8u)(regnum+i),1,value&0xFF);
 				value >>= 8U;
 			}
 		}
@@ -84,7 +84,7 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_read() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++)
-				v += ((config_read(regnum+i,1)&0xFF) << ((iolen-i-1)*8));
+				v += ((config_read((Bit8u)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
 		}
 
 		return v;

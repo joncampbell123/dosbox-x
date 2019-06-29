@@ -627,7 +627,7 @@ bool CMscdex::GetFileName(Bit16u drive, Bit16u pos, PhysPt data) {
 	PhysPt ptoc = GetTempBuffer();
 	success = ReadVTOC(drive,0x00,ptoc,offset,error);
 	if (success) {
-		Bitu len;
+		Bit8u len;
 		for (len=0;len<37;len++) {
 			Bit8u c=mem_readb(ptoc+offset+pos+len);
 			if (c==0 || c==0x20) break;
@@ -674,7 +674,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	bool	foundName;
 	bool	nextPart = true;
 	char*	useName = 0;
-	Bitu	entryLength,nameLength;
+    Bit8u   entryLength, nameLength;
 	// clear error
 	error = 0;
 	MEM_StrCopy(pathname+1,searchName,mem_readb(pathname));
@@ -698,9 +698,9 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	}
 	Bit16u offset = iso ? 156:180;
 	// get directory position
-	Bitu dirEntrySector	= mem_readd(defBuffer+offset+2);
+	Bit32u dirEntrySector	= mem_readd(defBuffer+offset+2);
 	Bits dirSize		= mem_readd(defBuffer+offset+10);
-	Bitu index;
+	Bit16u index;
 	while (dirSize>0) {
 		index = 0;
 		if (!ReadSectors(GetSubUnit(drive),false,dirEntrySector,1,defBuffer)) return false;
@@ -746,8 +746,6 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 					LOG(LOG_MISC,LOG_WARN)("MSCDEX: GetDirEntry: Copyflag structure not entirely accurate maybe");
 					Bit8u readBuf[256];
 					Bit8u writeBuf[256];
-					if (entryLength > 256)
-						return false;
 					MEM_BlockRead( defBuffer+index, readBuf, entryLength );
 					writeBuf[0] = readBuf[1];						// 00h	BYTE	length of XAR in Logical Block Numbers
 					memcpy( &writeBuf[1], &readBuf[0x2], 4);		// 01h	DWORD	Logical Block Number of file start

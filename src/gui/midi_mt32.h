@@ -218,7 +218,7 @@ public:
 
 	void PlaySysex(Bit8u *sysex, Bitu len) {
 		if (renderInThread) SDL_LockMutex(synthMutex);
-		synth->playSysex(sysex, len);
+		synth->playSysex(sysex, (Bit32u)len);
 		if (renderInThread) SDL_UnlockMutex(synthMutex);
 	}
 
@@ -236,7 +236,7 @@ private:
 	void render(Bitu len, Bit16s *buf) {
 		Bit32u msg = midiBuffer.get();
 		if (msg != 0) synth->playMsg(msg);
-		synth->render(buf, len);
+		synth->render(buf, (Bit32u)len);
 		if (reverseStereo) {
 			Bit16s *revBuf = buf;
 			for(Bitu i = 0; i < len; i++) {

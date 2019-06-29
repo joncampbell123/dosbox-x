@@ -964,12 +964,12 @@ public:
             return;
         }
         while(i<cmd->GetCount()) {
-            if(cmd->FindCommand(i+1, temp_line)) {
+            if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
                 if((temp_line == "-l") || (temp_line == "-L")) {
                     /* Specifying drive... next argument then is the drive */
                     bootbyDrive = true;
                     i++;
-                    if(cmd->FindCommand(i+1, temp_line)) {
+                    if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
                         drive=toupper(temp_line[0]);
                         if ((drive != 'A') && (drive != 'C') && (drive != 'D')) {
                             printError();
@@ -987,7 +987,7 @@ public:
                 if((temp_line == "-e") || (temp_line == "-E")) {
                     /* Command mode for PCJr cartridges */
                     i++;
-                    if(cmd->FindCommand(i + 1, temp_line)) {
+                    if(cmd->FindCommand((unsigned int)(i + 1), temp_line)) {
                         for(size_t ct = 0;ct < temp_line.size();ct++) temp_line[ct] = toupper(temp_line[ct]);
                         cart_cmd = temp_line;
                     } else {
@@ -1276,7 +1276,7 @@ public:
                     fseek(tfile, 0x3000L, SEEK_SET);
                     Bit32u drd=(Bit32u)fread(rombuf, 1, 0xb000, tfile);
                     if (drd==0xb000) {
-                        for(i=0;i<0xb000;i++) phys_writeb(0xf3000+i,rombuf[i]);
+                        for(i=0;i<0xb000;i++) phys_writeb((PhysPt)(0xf3000+i),rombuf[i]);
                     }
                     fclose(tfile);
                 }
@@ -1298,7 +1298,7 @@ public:
                     //fclose(usefile_2); //usefile_2 is in diskSwap structure which should be deleted to close the file
 
                     /* write cartridge data into ROM */
-                    for(i=0;i<rombytesize_2-pcjr_hdr_length;i++) phys_writeb((romseg_pt<<4)+i,rombuf[i]);
+                    for(i=0;i<rombytesize_2-pcjr_hdr_length;i++) phys_writeb((PhysPt)((romseg_pt<<4)+i),rombuf[i]);
                 }
 
                 unsigned int romseg=0;
@@ -1316,7 +1316,7 @@ public:
                 fread(rombuf, 1, rombytesize_1-pcjr_hdr_length, usefile_1);
                 //fclose(usefile_1); //usefile_1 is in diskSwap structure which should be deleted to close the file
                 /* write cartridge data into ROM */
-                for(i=0;i<rombytesize_1-pcjr_hdr_length;i++) phys_writeb((romseg<<4)+i,rombuf[i]);
+                for(i=0;i<rombytesize_1-pcjr_hdr_length;i++) phys_writeb((PhysPt)((romseg<<4)+i),rombuf[i]);
 
                 //Close cardridges
                 for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
@@ -1347,7 +1347,7 @@ public:
                         /* run cartridge setup */
                         SegSet16(ds,dos.psp());
                         SegSet16(es,dos.psp());
-                        CALLBACK_RunRealFar(romseg,cfound_at);
+                        CALLBACK_RunRealFar((Bit16u)romseg,(Bit16u)cfound_at);
                     }
                 }
             }
@@ -1385,10 +1385,10 @@ public:
             WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
 
             if (IS_PC98_ARCH) {
-                for(i=0;i<bootsize;i++) real_writeb(load_seg, i, bootarea.rawdata[i]);
+                for(i=0;i<bootsize;i++) real_writeb((Bit16u)load_seg, (Bit16u)i, bootarea.rawdata[i]);
             }
             else {
-                for(i=0;i<bootsize;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
+                for(i=0;i<bootsize;i++) real_writeb(0, (Bit16u)((load_seg<<4) + i), bootarea.rawdata[i]);
             }
 
             /* debug */
@@ -1417,15 +1417,15 @@ public:
                  * load_seg at 0x1FE0 which on the original 128KB PC-98 puts it at the top of memory
                  *
                  */
-                SegSet16(cs, load_seg);
+                SegSet16(cs, (Bit16u)load_seg);
                 SegSet16(ds, 0x0000);
-                SegSet16(es, load_seg);
+                SegSet16(es, (Bit16u)load_seg);
                 reg_ip = 0;
                 reg_ebx = 0x200;
                 reg_esp = 0xD8;
                 /* set up stack at a safe place */
-                SegSet16(ss, stack_seg);
-                reg_esi = load_seg;
+                SegSet16(ss, (Bit16u)stack_seg);
+                reg_esi = (Bit32u)load_seg;
                 reg_ecx = 0x200;
                 reg_ebp = 0;
                 reg_eax = 0x30;
@@ -1442,7 +1442,7 @@ public:
 
                 /* PC-98 MS-DOS boot sector behavior suggests that the BIOS does a CALL FAR
                  * to the boot sector, and the boot sector can RETF back to the BIOS on failure. */
-                CPU_Push16(BIOS_bootfail_code_offset >> 4); /* segment */
+                CPU_Push16((Bit16u)(BIOS_bootfail_code_offset >> 4)); /* segment */
                 CPU_Push16(BIOS_bootfail_code_offset & 0xF); /* offset */
 
                 /* clear the text layer */
@@ -1474,7 +1474,8 @@ public:
                 Bit8u F2DD_MODE = 0; /* 5CAh (ref. PC-9800 Series Technical Data Book - BIOS 1992 page 233 */
                 /* bits [7:4] = 640KB FD drives 3:0 ??
                  * bits [3:0] = 1MB FD drives 3:0 ?? */
-                Bitu disk_equip = 0,disk_equip_144 = 0,scsi_equip = 0;
+                Bit16u disk_equip = 0, disk_equip_144 = 0;
+                Bit8u scsi_equip = 0;
 
                 /* FIXME: MS-DOS appears to be able to see disk image B: but only
                  *        if the disk format is the same, for some reason.
@@ -1495,7 +1496,7 @@ public:
                     if (imageDiskList[i+2] != NULL) {
                         scsi_equip |= (1u << i);
 
-                        Bitu m = 0x460u + (i * 4u);
+                        Bit16u m = 0x460u + (i * 4u);
 
                         mem_writeb(m+0,sects);
                         mem_writeb(m+1,heads);
@@ -1532,11 +1533,11 @@ public:
                 SegSet16(cs, 0);
                 SegSet16(ds, 0);
                 SegSet16(es, 0);
-                reg_ip = load_seg<<4;
-                reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
+                reg_ip = (Bit16u)(load_seg<<4);
+                reg_ebx = (Bit32u)(load_seg<<4); //Real code probably uses bx to load the image
                 reg_esp = 0x100;
                 /* set up stack at a safe place */
-                SegSet16(ss, stack_seg);
+                SegSet16(ss, (Bit16u)stack_seg);
                 reg_esi = 0;
                 reg_ecx = 1;
                 reg_ebp = 0;
@@ -1615,7 +1616,7 @@ public:
 
             if (rom_base) {
                 /* write buffer into ROM */
-                for (Bitu i=0; i<data_read; i++) phys_writeb(rom_base + i, rom_buffer[i]);
+                for (Bitu i=0; i<data_read; i++) phys_writeb((PhysPt)(rom_base + i), rom_buffer[i]);
 
                 if (rom_base == 0xc0000) {
                     /* initialize video BIOS */
@@ -1710,8 +1711,8 @@ public:
     }
 
     bool StartReadDisk(HANDLE f, OVERLAPPED* o, Bit8u* buffer, Bitu offset, Bitu size) { 
-        o->Offset = offset;
-        if (!ReadFile(f, buffer, size, NULL, o) && 
+        o->Offset = (DWORD)offset;
+        if (!ReadFile(f, buffer, (DWORD)size, NULL, o) &&
             (GetLastError()==ERROR_IO_PENDING)) return true;
         return false;
     }
@@ -2008,7 +2009,7 @@ restart_int:
                     printHelp();
                     return;
                 }
-                sectors = (Bitu)(size / 512);
+                sectors = (unsigned int)(size / 512);
 
                 // Now that we finally have the proper size, figure out good CHS values
                 h=2;
@@ -2056,7 +2057,7 @@ restart_int:
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
 
         // do it again for fixed chs values
-        sectors = (Bitu)(size / 512);
+        sectors = (unsigned int)(size / 512);
 
         // create the image file
         f = fopen64(temp_line.c_str(),"wb+");
@@ -2119,7 +2120,7 @@ restart_int:
             if(mediadesc == 0xF8) {
                 Bitu cval = 1;
                 while((sectors/cval) >= 65525) cval <<= 1;
-                sbuf[0x0d]=cval;
+                sbuf[0x0d]=(Bit8u)cval;
             } else sbuf[0x0d]=sectors/0x1000 + 1; // FAT12 can hold 0x1000 entries TODO
             // TODO small floppys have 2 sectors per cluster?
             // reserverd sectors: 1 ( the boot sector)
@@ -2138,13 +2139,13 @@ restart_int:
             Bitu clusters = (sectors-1)/sbuf[0x0d]; // TODO subtract root dir too maybe
             if(mediadesc == 0xF8) sect_per_fat = (clusters*2)/512+1;
             else sect_per_fat = ((clusters*3)/2)/512+1;
-            host_writew(&sbuf[0x16],sect_per_fat);
+            host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
             // sectors per track
             host_writew(&sbuf[0x18],s);
             // heads
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
-            host_writed(&sbuf[0x1c],bootsect_pos);
+            host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
             // sectors (large disk) - this is the same as partition length in MBR
             if(mediadesc == 0xF8) host_writed(&sbuf[0x20],sectors-s);
             // BIOS drive
@@ -2316,7 +2317,7 @@ void LOADFIX::Run(void)
     }
     else {
         Bit16u segment;
-        Bit16u blocks = kb*1024/16;
+        Bit16u blocks = (Bit16u)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
             DOS_MCB mcb((Bit16u)(segment-1));
             mcb.SetPSPSeg(0x40);            // use fake segment
@@ -3460,7 +3461,7 @@ private:
                     vhdImage = NULL;
                 }
                 else {
-                    newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3], options);
+                    newDrive = new fatDrive(paths[i].c_str(), (Bit32u)sizes[0], (Bit32u)sizes[1], (Bit32u)sizes[2], (Bit32u)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
                 if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
@@ -3495,7 +3496,7 @@ private:
         imageDiskMemory* dsk = NULL;
         //if chs not specified
         if (sizes[1] == 0) {
-            Bit32u imgSizeK = sizes[0];
+            Bit32u imgSizeK = (Bit32u)sizes[0];
             //default to 1.44mb floppy
             if (forceFloppy && imgSizeK == 0) imgSizeK = 1440;
             //search for floppy geometry that matches specified size in KB
@@ -3544,7 +3545,7 @@ private:
                     WriteOut("Floppy size not recognized\n");
                     return NULL;
                 }
-                dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+                dsk = new imageDiskMemory((Bit16u)sizes[3], (Bit16u)sizes[2], (Bit16u)sizes[1], (Bit16u)sizes[0]);
             }
         }
         if (!dsk->active) {
@@ -3945,7 +3946,7 @@ private:
             sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];
             imagesize = (Bit32u)(qcow2_header.size / 1024L);
             setbuf(newDisk, NULL);
-            newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)fileName, imagesize, sizes[0], (imagesize > 2880));
+            newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)fileName, imagesize, (Bit32u)sizes[0], (imagesize > 2880));
         }
         else {
             char tmp[256];
@@ -4031,7 +4032,7 @@ private:
         LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
             (unsigned int)sizes[3], (unsigned int)sizes[2], (unsigned int)sizes[1], (unsigned int)sizes[0]);
 
-        if (imagesize > 2880) newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]);
+        if (imagesize > 2880) newImage->Set_Geometry((Bit32u)sizes[2], (Bit32u)sizes[3], (Bit32u)sizes[1], (Bit32u)sizes[0]);
         if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
 
         return newImage;

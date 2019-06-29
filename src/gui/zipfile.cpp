@@ -69,10 +69,10 @@ int ZIPFileEntry::read(void *buffer,size_t count) {
     if (mread > 0) {
         if (seek_file(position) != position) return -1;
         mread = file->read(buffer,mread);
-        if (mread > 0) position += mread;
+        if (mread > 0) position += (off_t)mread;
     }
 
-    return mread;
+    return (int)mread;
 }
 
 int ZIPFileEntry::write(const void *buffer,size_t count) {
@@ -84,13 +84,13 @@ int ZIPFileEntry::write(const void *buffer,size_t count) {
     if (count > 0) {
         count = file->write(buffer,count);
         if (count > 0) {
-            position += count;
+            position += (off_t)count;
             write_crc = zipcrc_update(write_crc, buffer, count);
             file_length = position;
         }
     }
 
-    return count;
+    return (int)count;
 }
 
 ZIPFile::ZIPFile() {
@@ -145,7 +145,7 @@ ZIPFileEntry *ZIPFile::new_entry(const char *name) {
     ent->name = name;
     ent->can_write = true;
     ent->file_header_offset = write_pos;
-    write_pos += sizeof(ZIPLocalFileHeader) + ent->name.length();
+    write_pos += (off_t)(sizeof(ZIPLocalFileHeader) + ent->name.length());
     ent->write_crc = zipcrc_init();
     ent->file_offset = write_pos;
     ent->file = this;
@@ -310,12 +310,12 @@ off_t ZIPFile::seek_file(off_t pos) {
 
 int ZIPFile::read(void *buffer,size_t count) {
     if (file_fd < 0) return -1;
-    return ::read(file_fd,buffer,count);
+    return ::read(file_fd,buffer,(unsigned int)count);
 }
 
 int ZIPFile::write(const void *buffer,size_t count) {
     if (file_fd < 0) return -1;
-    return ::write(file_fd,buffer,count);
+    return ::write(file_fd,buffer,(unsigned int)count);
 }
 
 void ZIPFile::writeZIPFooter(void) {
@@ -356,7 +356,7 @@ void ZIPFile::writeZIPFooter(void) {
 
         assert(ent.name.length() != 0);
         if ((size_t)write(ent.name.c_str(),ent.name.length()) != ent.name.length()) break;
-        cdirbytes += ent.name.length();
+        cdirbytes += (uint32_t)ent.name.length();
     }
 
     memset(&ehdr,0,sizeof(ehdr));

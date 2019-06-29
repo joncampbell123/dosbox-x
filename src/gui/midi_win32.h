@@ -192,8 +192,8 @@ public:
 		midiOutUnprepareHeader (m_out, &m_hdr, sizeof (m_hdr));
 
 		m_hdr.lpData = (char *) sysex;
-		m_hdr.dwBufferLength = len ;
-		m_hdr.dwBytesRecorded = len ;
+		m_hdr.dwBufferLength = (DWORD)len;
+		m_hdr.dwBytesRecorded = (DWORD)len;
 		m_hdr.dwUser = 0;
 
 		MMRESULT result = midiOutPrepareHeader (m_out, &m_hdr, sizeof (m_hdr));

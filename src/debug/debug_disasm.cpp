@@ -1080,7 +1080,7 @@ static void ua_str(char const *str)
 }
 
 
-Bitu DasmI386(char* buffer, PhysPt pc, Bitu cur_ip, bool bit32)
+Bitu DasmI386(char* buffer, PhysPt pc, Bit32u cur_ip, bool bit32)
 {
   	Bitu c;
 

@@ -258,7 +258,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
 
 		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
 		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1u;
-        row_height = vga.draw.address_line_total;
+        row_height = (uint8_t)vga.draw.address_line_total;
         if (!master_sync) doublescan = (row_height > 1);
     }
 
@@ -672,11 +672,11 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
 
     switch (port&0xE) {
         case 0x00:      /* 0x60/0xA0 param write fifo */
-            if (!gdc->write_fifo_param(val))
+            if (!gdc->write_fifo_param((unsigned char)val))
                 LOG_MSG("GDC warning: FIFO param overrun");
             break;
         case 0x02:      /* 0x62/0xA2 command write fifo */
-            if (!gdc->write_fifo_command(val))
+            if (!gdc->write_fifo_command((unsigned char)val))
                 LOG_MSG("GDC warning: FIFO command overrun");
             break;
         case 0x04:      /* 0x64: set trigger to signal vsync interrupt (IRQ 2) */
@@ -715,14 +715,14 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                         /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
             if (port == 0xA8) {
                 if (gdc_analog) { /* 16/256-color mode */
-                    pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
+                    pc98_16col_analog_rgb_palette_index = (uint8_t)val; /* it takes all 8 bits I assume because of 256-color mode */
                 }
                 else {
-                    pc98_set_digpal_pair(3,val);
+                    pc98_set_digpal_pair(3,(unsigned char)val);
                 }
             }
             else {
-                pc98_port68_command_write(val);
+                pc98_port68_command_write((unsigned char)val);
             }
             break;
         case 0x0A:      /* 0xAA:
@@ -732,8 +732,8 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0] = val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = val;
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0] = (uint8_t)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = (Bit8u)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {
@@ -743,11 +743,11 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                 }
                 else {
-                    pc98_set_digpal_pair(1,val);
+                    pc98_set_digpal_pair(1,(unsigned char)val);
                 }
             }
             else {
-                pc98_port6A_command_write(val);
+                pc98_port6A_command_write((unsigned char)val);
             }
             break;
         case 0x0C:      /* 0xAC:
@@ -757,8 +757,8 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1] = val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = val;
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1] = (uint8_t)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = (Bit8u)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {
@@ -768,7 +768,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                 }
                 else {
-                    pc98_set_digpal_pair(2,val);
+                    pc98_set_digpal_pair(2,(unsigned char)val);
                 }
             }
             else {
@@ -782,8 +782,8 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2] = val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = val;
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2] = (uint8_t)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = (Bit8u)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {
@@ -793,7 +793,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                     }
                 }
                 else {
-                    pc98_set_digpal_pair(0,val);
+                    pc98_set_digpal_pair(0,(unsigned char)val);
                 }
             }
             else {

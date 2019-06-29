@@ -319,7 +319,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 			player.bufLen += RAW_SECTOR_SIZE;
 		} else {
 			memset(&player.buffer[player.bufLen], 0, (size_t)(len - (Bitu)player.bufLen));
-			player.bufLen = len;
+			player.bufLen = (int)len;
 			player.isPlaying = false;
 		}
 	}

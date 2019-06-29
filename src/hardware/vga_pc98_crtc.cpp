@@ -110,7 +110,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
             if (enable_pc98_grcg) {
                 pc98_gdc_tile_counter = 0;
-                pc98_gdc_modereg = val;
+                pc98_gdc_modereg = (uint8_t)val;
                 /* bit 7: 1=GRGC active  0=GRGC invalid
                  * bit 6: 1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write */
                 pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
@@ -119,8 +119,8 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
             break;
         case 0x0E:      // 0x7E: tile data
             if (enable_pc98_grcg) {
-                pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = val;
-                pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = val;
+                pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = (uint8_t)val;
+                pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = (uint8_t)val;
                 pc98_gdc_tile_counter = (pc98_gdc_tile_counter + 1) & 3;
             }
             break;

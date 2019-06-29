@@ -66,7 +66,7 @@ static void Check_Palette(void) {
                 Bit8u r=render.pal.rgb[i].red;
                 Bit8u g=render.pal.rgb[i].green;
                 Bit8u b=render.pal.rgb[i].blue;
-                Bit16u newPal = GFX_GetRGB(r,g,b);
+                Bit16u newPal = (Bit16u)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b16[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -80,7 +80,7 @@ static void Check_Palette(void) {
                 Bit8u r=render.pal.rgb[i].red;
                 Bit8u g=render.pal.rgb[i].green;
                 Bit8u b=render.pal.rgb[i].blue;
-                Bit32u newPal = GFX_GetRGB(r,g,b);
+                Bit32u newPal = (Bit32u)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b32[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -385,7 +385,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
             Bitu templines = (Bitu)lines;
             lines -= templines;
             linesadded += templines;
-            Scaler_Aspect[i] = templines;
+            Scaler_Aspect[i] = (Bit8u)templines;
         } else {
             Scaler_Aspect[i] = 0;
         }
@@ -633,7 +633,7 @@ forcenormal:
             } else if(dblw)
             gfx_scalew *= 4;
         }
-        height = MakeAspectTable(skip, render.src.height, yscale, yscale );
+        height = MakeAspectTable(skip, render.src.height, (double)yscale, yscale );
     } else {
         // Print a warning when hardware scalers are selected, hopefully the first
         // video mode will not have dblh or dblw or AR will be wrong
@@ -646,11 +646,11 @@ forcenormal:
             height = MakeAspectTable( skip, render.src.height, gfx_scaleh, yscale );
         } else {
             gfx_flags &= ~GFX_CAN_RANDOM;       //Hardware surface when possible
-            height = MakeAspectTable( skip, render.src.height, yscale, yscale);
+            height = MakeAspectTable( skip, render.src.height, (double)yscale, yscale);
         }
     }
 /* update the aspect ratio */
-    sdl.srcAspect.x = render.src.width * (render.src.dblw ? 2 : 1);
+    sdl.srcAspect.x = (int)(render.src.width * (render.src.dblw ? 2 : 1));
     sdl.srcAspect.y = (int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
@@ -921,7 +921,7 @@ void RENDER_UpdateFromScalerSetting(void) {
 #endif
 
     bool p_forced = render.scale.forced;
-    unsigned int p_size = render.scale.size;
+    unsigned int p_size = (unsigned int)(render.scale.size);
     bool p_hardware = render.scale.hardware;
     unsigned int p_op = render.scale.op;
 

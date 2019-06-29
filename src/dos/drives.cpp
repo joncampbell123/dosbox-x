@@ -219,11 +219,11 @@ int DriveManager::UnmountDrive(int drive) {
 	int result = 0;
 	// unmanaged drive
 	if (driveInfos[drive].disks.size() == 0) {
-		result = Drives[drive]->UnMount();
+		result = (int)Drives[drive]->UnMount();
 	} else {
 		// managed drive
 		unsigned int currentDisk = driveInfos[drive].currentDisk;
-		result = driveInfos[drive].disks[currentDisk]->UnMount();
+		result = (int)driveInfos[drive].disks[currentDisk]->UnMount();
 		// only delete on success, current disk set to NULL because of UnMount
 		if (result == 0) {
 			driveInfos[drive].disks[currentDisk] = NULL;

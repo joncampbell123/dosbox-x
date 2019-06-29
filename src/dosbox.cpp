@@ -317,7 +317,7 @@ static Bitu Normal_Loop(void) {
             ticksLastFramecounter = Ticks;
             Ticks = ticksNew + 500;     // next update in 500ms
             frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
-            GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+            GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
             frames = 0;
         }
     }
@@ -342,7 +342,7 @@ static Bitu Normal_Loop(void) {
 
                     extern unsigned int last_callback;
                     unsigned int p_last_callback = last_callback;
-                    last_callback = ret;
+                    last_callback = (unsigned int)ret;
 
                     dosbox_allow_nonrecursive_page_fault = false;
                     Bitu blah = (*CallBack_Handlers[ret])();
@@ -414,8 +414,8 @@ increaseticks:
                     if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
                         if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
                         /* ratio we are aiming for is around 90% usage*/
-                        Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
-                        Bit32s new_cmax = CPU_CycleMax;
+                        Bit32s ratio = (Bit32s)((ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone);
+                        Bit32s new_cmax = (Bit32s)CPU_CycleMax;
                         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
                         double ratioremoved = 0.0; //increase scope for logging
                         if (cproc > 0) {

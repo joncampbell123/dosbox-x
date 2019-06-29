@@ -2238,7 +2238,7 @@ public:
 				unsigned int segend;
 
 				seg = DOS_MEM_START;
-				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
+				DOS_MEM_START += (Bit16u)DOS_PRIVATE_SEGMENT_Size;
 				segend = DOS_MEM_START;
 
 				if (segend >= (MEM_TotalPages() << (12 - 4)))
