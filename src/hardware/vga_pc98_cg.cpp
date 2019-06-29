@@ -88,7 +88,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
              *    bit [3:0] = C3-C0
              *
              * This so far is consistent with real hardware behavior */
-            a1_font_char_offset = val;
+            a1_font_char_offset = (uint8_t)val;
             break;
         case 0xA7:
             /* TODO: Various controls for the text layer */
@@ -117,7 +117,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // by the hardware (since that conflicts with single-wide chars) but you can
                    // write to that cell if you write to 0x8056 instead.
             if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
-                pc98_font_char_write(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
+                pc98_font_char_write(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,(uint8_t)val);
             else
                 LOG_MSG("A1 port attempt to write FONT ROM char 0x%x",a1_font_load_addr);
             break;

@@ -149,7 +149,7 @@ void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 		CPU_CycleMax=CPU_OldCycleMax;
-		GFX_SetTitle(CPU_OldCycleMax,-1,-1,false);
+		GFX_SetTitle((Bit32s)CPU_OldCycleMax,-1,-1,false);
 	} else {
 		GFX_SetTitle(-1,-1,-1,false);
 	}
@@ -287,7 +287,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	Bit16u minsize,maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-	Bitu headersize=0,imagesize=0;
+    Bit32u headersize, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
 
 	block.LoadData();

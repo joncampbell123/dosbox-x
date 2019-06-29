@@ -509,7 +509,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry,bool fcb)
 	DOS_PSP psp(dos.psp());
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	/* Check for a free file handle */
-	Bit8u handle=DOS_FILES;Bit8u i;
+	Bit8u handle=(Bit8u)DOS_FILES;Bit8u i;
 	for (i=0;i<DOS_FILES;i++) {
 		if (!Files[i]) {
 			handle=i;

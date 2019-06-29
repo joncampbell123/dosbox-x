@@ -88,8 +88,8 @@ void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
         /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
         /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-        DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
-        DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
+        DOS_PRIVATE_SEGMENT=(Bit16u)VGA_BIOS_SEG_END;
+        DOS_PRIVATE_SEGMENT_END= (Bit16u)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
 
         if (IS_PC98_ARCH) {
             bool PC98_FM_SoundBios_Enabled(void);
@@ -199,7 +199,7 @@ extern bool enable_filenamechar;
 extern bool enable_collating_uppercase;
 
 void DOS_SetupTables(void) {
-	Bit16u seg;Bitu i;
+	Bit16u seg;Bit16u i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
 	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4,"dos.tables.fcbdelete"),0);
 	/* Create the DOS Info Block */
@@ -285,10 +285,10 @@ void DOS_SetupTables(void) {
 	if (enable_collating_uppercase) {
 		dos.tables.collatingseq=RealMake(DOS_GetMemory(25,"dos.tables.collatingseq"),0);
 		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
-		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,i);
+		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,(Bit8u)i);
 		dos.tables.upcase=dos.tables.collatingseq+258;
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
-		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,0x80+i);
+		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(Bit8u)0x80+i);
 	}
 	else {
 		dos.tables.collatingseq = 0;
@@ -305,15 +305,15 @@ void DOS_SetupTables(void) {
 	dos.tables.dpb=DOS_GetMemory(16,"dos.tables.dpb");
 	dos.tables.mediaid=RealMake(dos.tables.dpb,0x17);	//Media ID offset in DPB
 	for (i=0;i<DOS_DRIVES;i++) {
-		real_writeb(dos.tables.dpb,i*9,i);				// drive number
-		real_writeb(dos.tables.dpb,i*9+1,i);			// unit number
+		real_writeb(dos.tables.dpb,i*9,(Bit8u)i);				// drive number
+		real_writeb(dos.tables.dpb,i*9+1,(Bit8u)i);			// unit number
 		real_writew(dos.tables.dpb,i*9+2,0x0200);		// bytes per sector
 		mem_writew(Real2Phys(dos.tables.mediaid)+i*9,0);
 	}
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
-	for (Bitu ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
+	for (Bit8u ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
 	real_writew(seg,0x00,0xffff);		// forward ptr
 	real_writew(seg,0x02,0xffff);		// backward ptr
 	real_writeb(seg,0x04,0xff);			// not in use

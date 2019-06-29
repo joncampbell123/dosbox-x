@@ -180,7 +180,7 @@ struct FullData {
 	Bitu entry;
 	Bitu rm;
 	EAPoint rm_eaa;
-	Bitu rm_off; // WARNING: This must remain Bitu or else Windows 3.1 will crash along with this emulator when you type 'WIN'
+	Bit32u rm_off;
 	Bitu rm_eai;
 	Bitu rm_index;
 	Bitu rm_mod;

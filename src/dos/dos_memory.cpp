@@ -406,7 +406,7 @@ bool DOS_FreeMemory(Bit16u segment) {
 Bitu GetEMSPageFrameSegment(void);
 
 void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
-	unsigned int seg_limit = MEM_TotalPages()*256;
+	unsigned int seg_limit = (unsigned int)(MEM_TotalPages()*256);
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
 	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1) && first_umb_seg < GetEMSPageFrameSegment()) {
@@ -424,7 +424,7 @@ void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 		}
 #endif
 
-		dos_infoblock.SetStartOfUMBChain(UMB_START_SEG);
+		dos_infoblock.SetStartOfUMBChain((Bit16u)UMB_START_SEG);
 		dos_infoblock.SetUMBChainState(0);		// UMBs not linked yet
 
 		DOS_MCB umb_mcb(first_umb_seg);
@@ -515,7 +515,7 @@ void DOS_SetupMemory(void) {
 	unsigned int seg_limit;
 
 	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
-	seg_limit = MEM_TotalPages()*256;
+	seg_limit = (unsigned int)(MEM_TotalPages()*256);
 	if (seg_limit > max_conv) seg_limit = max_conv;
 	UMB_START_SEG = max_conv - 1;
 
