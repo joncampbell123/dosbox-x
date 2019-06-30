@@ -424,7 +424,7 @@ static int SocketReady(SOCKET sock)
 		tv.tv_usec = 0;
 
 		/* Look! */
-		retval = select(sock+1, &mask, NULL, NULL, &tv);
+		retval = select((int)(sock+1), &mask, NULL, NULL, &tv);
 	} while ( SDLNet_GetLastError() == EINTR );
 
 	return(retval == 1);

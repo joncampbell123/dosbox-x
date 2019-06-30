@@ -138,7 +138,7 @@ int SDLNet_CheckSockets(SDLNet_SocketSet set, Uint32 timeout)
 		tv.tv_usec = (timeout%1000)*1000;
 
 		/* Look! */
-		retval = select(maxfd+1, &mask, NULL, NULL, &tv);
+		retval = select((int)(maxfd+1), &mask, NULL, NULL, &tv);
 	} while ( SDLNet_GetLastError() == EINTR );
 
 	/* Mark all file descriptors ready that have data available */

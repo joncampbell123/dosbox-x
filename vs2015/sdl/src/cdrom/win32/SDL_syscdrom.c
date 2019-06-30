@@ -171,7 +171,7 @@ static int SDL_SYS_CDGetTOC(SDL_CD *cdrom)
 	mci_status.dwItem = MCI_STATUS_NUMBER_OF_TRACKS;
 	flags = MCI_STATUS_ITEM | MCI_WAIT;
 	if ( SDL_SYS_CDioctl(cdrom->id, MCI_STATUS, flags, &mci_status) == 0 ) {
-		cdrom->numtracks = mci_status.dwReturn;
+		cdrom->numtracks = (int)mci_status.dwReturn;
 		if ( cdrom->numtracks > SDL_MAX_TRACKS ) {
 			cdrom->numtracks = SDL_MAX_TRACKS;
 		}
@@ -339,7 +339,7 @@ static int SDL_SYS_CDResume(SDL_CD *cdrom)
 
 		flags = MCI_FROM | MCI_TO | MCI_NOTIFY;
 		mci_play.dwCallback = 0;
-		mci_play.dwFrom = mci_status.dwReturn;
+		mci_play.dwFrom = (DWORD)mci_status.dwReturn;
 		mci_play.dwTo = SDL_CD_end_position;
 		if (SDL_SYS_CDioctl(cdrom->id,MCI_PLAY,flags,&mci_play) == 0) {
 			okay = 1;

@@ -352,7 +352,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     if (screen) screen->setSurface(sdlscreen);
     else screen = new GUI::ScreenSDL(sdlscreen);
 
-    saved_bpp = render.src.bpp;
+    saved_bpp = (int)render.src.bpp;
     render.src.bpp = 0;
     running = true;
 

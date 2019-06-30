@@ -478,7 +478,8 @@ void disable_operator(op_type* op_pt, Bit32u act_type) {
 }
 
 void adlib_init(Bit32u samplerate) {
-	Bits i, j, oct;
+    Bit16s i;
+	Bits j, oct;
 
 	int_samplerate = samplerate;
 

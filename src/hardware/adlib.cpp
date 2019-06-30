@@ -61,7 +61,7 @@ namespace OPL2 {
 		}
 
 		virtual void Init( Bitu rate ) {
-			adlib_init(rate);
+			adlib_init((Bit32u)rate);
 		}
 
 		~Handler() {
@@ -92,7 +92,7 @@ namespace OPL3 {
 		}
 
 		virtual void Init( Bitu rate ) {
-			adlib_init(rate);
+			adlib_init((Bit32u)rate);
 		}
 
 		~Handler() {
@@ -119,12 +119,12 @@ namespace NukedOPL {
 			while( samples > 0 ) {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
-				OPL3_GenerateStream(&chip, buf, todo);
+				OPL3_GenerateStream(&chip, buf, (Bit32u)todo);
 				chan->AddSamples_s16( todo, buf );
 			}
 		}
 		virtual void Init( Bitu rate ) {
-			OPL3_Reset(&chip, rate);
+			OPL3_Reset(&chip, (Bit32u)rate);
 		}
 		~Handler() {
 		}
@@ -148,7 +148,7 @@ struct Handler : public Adlib::Handler {
 		while (samples > 0) {
 			Bitu todo = samples > 1024 ? 1024 : samples;
 			samples -= todo;
-			ym3812_update_one(chip, buf, todo);
+			ym3812_update_one(chip, buf, (int)todo);
 			chan->AddSamples_m16(todo, buf);
 		}
 	}

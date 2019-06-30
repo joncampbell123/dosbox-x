@@ -227,7 +227,7 @@ void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 	Uint16 *lpsz = SDL_iconv_utf8_ucs2(title);
 	size_t len = WideCharToMultiByte(CP_ACP, 0, lpsz, -1, NULL, 0, NULL, NULL);
 	char *cvt = SDL_stack_alloc(char, len + 1);
-	WideCharToMultiByte(CP_ACP, 0, lpsz, -1, cvt, len, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, lpsz, -1, cvt, (int)len, NULL, NULL);
 	SetWindowText(ParentWindowHWND, cvt);
 	SDL_stack_free(cvt);
 	SDL_free(lpsz);
