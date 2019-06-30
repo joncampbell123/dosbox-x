@@ -751,7 +751,7 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed)
 {
 	/* Set the keysym information */
-	keysym->win32_vk = vkey;
+	keysym->win32_vk = (Uint32)vkey;
 	keysym->scancode = (unsigned char) scancode;
 	keysym->mod = KMOD_NONE;
 	keysym->unicode = 0;
@@ -761,7 +761,7 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 		keysym->sym = SDLK_KP_ENTER;
 	}
 	else {
-		keysym->sym = VK_keymap[SDL_MapVirtualKey(scancode, vkey)];
+		keysym->sym = VK_keymap[SDL_MapVirtualKey(scancode, (int)vkey)];
 	}
 
 	if ( pressed && SDL_TranslateUNICODE ) {
@@ -778,7 +778,7 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 		 * so we handle it as a special case here */
 		if ((keystate[VK_NUMLOCK] & 1) && vkey >= VK_NUMPAD0 && vkey <= VK_NUMPAD9)
 		{
-			keysym->unicode = vkey - VK_NUMPAD0 + '0';
+			keysym->unicode = (Uint16)(vkey - VK_NUMPAD0 + '0');
 		}
 		else if (SDL_ToUnicode((UINT)vkey, scancode, keystate, wchars, sizeof(wchars)/sizeof(wchars[0]), 0) > 0)
 		{

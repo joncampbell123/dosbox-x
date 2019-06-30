@@ -1091,7 +1091,7 @@ public:
         const auto joystick = this->GetJoystick();
         const auto axis = this->GetAxis();
         const auto positive = this->GetPositive();
-        const auto deadzone = GetJoystickDeadzone(joystick, axis, positive);
+        const auto deadzone = GetJoystickDeadzone((int)joystick, (int)axis, positive);
         
         if (_value > deadzone && event->IsTrigger()) 
             _value = 25000 + 1;
@@ -1192,7 +1192,7 @@ public:
         emulated_hats=0;
         JOYSTICK_Enable(emustick,true);
 
-        sdl_joystick=SDL_JoystickOpen(_stick);
+        sdl_joystick=SDL_JoystickOpen((int)_stick);
         if (sdl_joystick==NULL) {
             button_wrap=emulated_buttons;
             return;
@@ -1220,7 +1220,7 @@ public:
 #if defined(C_SDL2)
         LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickNameForIndex(stick),(int)axes,(int)buttons,(int)hats);
 #else
-        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),(int)axes,(int)buttons,(int)hats);
+        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName((int)stick),(int)axes,(int)buttons,(int)hats);
 #endif
 
         // fetching these at every call simply freezes DOSBox at times so we do it once
@@ -1331,7 +1331,7 @@ public:
                 JOYSTICK_Button(emustick,i,button_pressed[i]);
         }
 
-        auto v = GetJoystickVector(emustick, 0, 0, 1);
+        auto v = GetJoystickVector((int)emustick, 0, 0, 1);
         JOYSTICK_Move_X(emustick, v.X);
         JOYSTICK_Move_Y(emustick, v.Y);
     }
@@ -1345,7 +1345,7 @@ public:
         for (i=0; i<MAXBUTTON; i++) button_pressed[i]=false;
         /* read button states */
         for (i=0; i<button_cap; i++) {
-            if (SDL_JoystickGetButton(sdl_joystick,i))
+            if (SDL_JoystickGetButton(sdl_joystick,(int)i))
                 button_pressed[i % button_wrap]=true;
         }
         for (i=0; i<button_wrap; i++) {
@@ -1359,7 +1359,7 @@ public:
         
         int* axis_map = stick == 0 ? &joy1axes[0] : &joy2axes[0];
         for (i=0; i<axes; i++) {
-            Bitu i1 = axis_map[i];
+            int i1 = axis_map[i];
             Sint16 caxis_pos=SDL_JoystickGetAxis(sdl_joystick,i1);
             /* activate bindings for joystick position */
             if (caxis_pos>1) {
@@ -1392,7 +1392,7 @@ public:
         }
 
         for (i=0; i<hats; i++) {
-            Uint8 chat_state=SDL_JoystickGetHat(sdl_joystick,i);
+            Uint8 chat_state=SDL_JoystickGetHat(sdl_joystick,(int)i);
 
             /* activate binding if hat state has changed */
             if ((chat_state & SDL_HAT_UP) != (old_hat_state[i] & SDL_HAT_UP)) {
@@ -1445,7 +1445,7 @@ private:
 #if defined(C_SDL2)
         if (sdl_joystick!=NULL) return SDL_JoystickNameForIndex(stick);
 #else
-        if (sdl_joystick!=NULL) return SDL_JoystickName(stick);
+        if (sdl_joystick!=NULL) return SDL_JoystickName((int)stick);
 #endif
         else return "[missing joystick]";
     }
@@ -2353,8 +2353,8 @@ public:
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
 
-        if (yesno) mapper.mods|=(1u << (wmod-1u));
-        else mapper.mods&=~(1u << (wmod-1u));
+        if (yesno) mapper.mods|=((Bitu)1u << (wmod-1u));
+        else mapper.mods&=~((Bitu)1u << (wmod-1u));
     };
 
     //! \brief Associate this object with a text button in the mapper UI
@@ -2373,7 +2373,7 @@ std::string CBind::GetModifierText(void) {
     std::string r,t;
 
     for (size_t m=4u/*Host key first*/;m >= 1u;m--) {
-        if ((mods & (1u << (m - 1u))) && mod_event[m] != NULL) {
+        if ((mods & ((Bitu)1u << (m - 1u))) && mod_event[m] != NULL) {
             t = mod_event[m]->GetBindMenuText();
             if (!r.empty()) r += "+";
             r += t;

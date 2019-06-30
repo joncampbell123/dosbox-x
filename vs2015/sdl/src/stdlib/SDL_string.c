@@ -1243,6 +1243,6 @@ int SDL_vsnprintf(char *text, size_t maxlen, const char *fmt, va_list ap)
     }
     *text = '\0';
 
-    return (text - textstart);
+    return (int)(text - textstart);
 }
 #endif

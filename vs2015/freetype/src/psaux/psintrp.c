@@ -999,7 +999,7 @@
 
 
             if ( val )
-              subrNum = *val;
+              subrNum = (FT_Fast)*val;
             else
               subrNum = -1;
           }

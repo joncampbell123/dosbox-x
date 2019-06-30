@@ -127,7 +127,7 @@ static int SDLCALL win32_file_open(SDL_RWops *context, const char *filename, con
 
 	if (unicode_support) {  /* everything but Win95/98/ME. */
 		wchar_t *filenameW = SDL_stack_alloc(wchar_t, size);
-		if ( MultiByteToWideChar(CP_UTF8, 0, filename, -1, filenameW, size) == 0 ) {
+		if ( MultiByteToWideChar(CP_UTF8, 0, filename, -1, filenameW, (int)size) == 0 ) {
 			SDL_stack_free(filenameW);
 			SDL_free(context->hidden.win32io.buffer.data);
 			context->hidden.win32io.buffer.data = NULL;
@@ -152,7 +152,7 @@ static int SDLCALL win32_file_open(SDL_RWops *context, const char *filename, con
 
 		/* Dither down to a codepage and hope for the best. */
 		if (!utf16 ||
-			!WideCharToMultiByte(CP_ACP, 0, (LPCWSTR)utf16, -1, filenameA, size*6, 0, &bDefCharUsed) ||
+			!WideCharToMultiByte(CP_ACP, 0, (LPCWSTR)utf16, -1, filenameA, (int)(size*6), 0, &bDefCharUsed) ||
 			bDefCharUsed) {
 			SDL_stack_free(filenameA);
 			SDL_free(utf16);
@@ -341,7 +341,7 @@ static int SDLCALL stdio_read(SDL_RWops *context, void *ptr, int size, int maxnu
 	if ( nread == 0 && ferror(context->hidden.stdio.fp) ) {
 		SDL_Error(SDL_EFREAD);
 	}
-	return(nread);
+	return (int)nread;
 }
 static int SDLCALL stdio_write(SDL_RWops *context, const void *ptr, int size, int num)
 {
@@ -351,7 +351,7 @@ static int SDLCALL stdio_write(SDL_RWops *context, const void *ptr, int size, in
 	if ( nwrote == 0 && ferror(context->hidden.stdio.fp) ) {
 		SDL_Error(SDL_EFWRITE);
 	}
-	return(nwrote);
+	return (int)nwrote;
 }
 static int SDLCALL stdio_close(SDL_RWops *context)
 {
@@ -393,7 +393,7 @@ static int SDLCALL mem_seek(SDL_RWops *context, int offset, int whence)
 		newpos = context->hidden.mem.stop;
 	}
 	context->hidden.mem.here = newpos;
-	return(context->hidden.mem.here-context->hidden.mem.base);
+	return (int)(context->hidden.mem.here-context->hidden.mem.base);
 }
 static int SDLCALL mem_read(SDL_RWops *context, void *ptr, int size, int maxnum)
 {
@@ -413,12 +413,12 @@ static int SDLCALL mem_read(SDL_RWops *context, void *ptr, int size, int maxnum)
 	SDL_memcpy(ptr, context->hidden.mem.here, total_bytes);
 	context->hidden.mem.here += total_bytes;
 
-	return (total_bytes / size);
+	return (int)(total_bytes / size);
 }
 static int SDLCALL mem_write(SDL_RWops *context, const void *ptr, int size, int num)
 {
 	if ( (context->hidden.mem.here + (num*size)) > context->hidden.mem.stop ) {
-		num = (context->hidden.mem.stop-context->hidden.mem.here)/size;
+		num = (int)((context->hidden.mem.stop-context->hidden.mem.here)/size);
 	}
 	SDL_memcpy(context->hidden.mem.here, ptr, num*size);
 	context->hidden.mem.here += num*size;

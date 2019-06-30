@@ -1770,7 +1770,7 @@ typedef ptrdiff_t  FT_PtrDist;
     for ( y = yMin; y < yMax; )
     {
       ras.min_ey = y;
-      y         += height;
+      y         += (TCoord)height;
       ras.max_ey = FT_MIN( y, yMax );
 
       band    = bands;

@@ -810,7 +810,7 @@ void GFX_SDL_Overscan(void) {
                 }
             } else {
                 for (Bitu i=0; i<4; i++)
-                    SDL_FillRect(sdl.surface, &sdl.updateRects[i], border_color);
+                    SDL_FillRect(sdl.surface, &sdl.updateRects[i], (Uint32)border_color);
 
 #if defined(C_SDL2)
                 SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
@@ -1812,8 +1812,8 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     sdl.must_redraw_all = true;
 
-    sdl.draw.width = width;
-    sdl.draw.height = height;
+    sdl.draw.width = (Bit32u)width;
+    sdl.draw.height = (Bit32u)height;
     sdl.draw.flags = flags;
     sdl.draw.callback = callback;
     sdl.draw.scalex = scalex;
@@ -2477,7 +2477,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+    GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -2845,11 +2845,11 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 #if !defined(C_SDL2)
     /* I should probably not change the GFX_PalEntry :) */
     if (sdl.surface->flags & SDL_HWPALETTE) {
-        if (!SDL_SetPalette(sdl.surface,SDL_PHYSPAL,(SDL_Color *)entries,start,count)) {
+        if (!SDL_SetPalette(sdl.surface,SDL_PHYSPAL,(SDL_Color *)entries,(int)start,(int)count)) {
             E_Exit("SDL:Can't set palette");
         }
     } else {
-        if (!SDL_SetPalette(sdl.surface,SDL_LOGPAL,(SDL_Color *)entries,start,count)) {
+        if (!SDL_SetPalette(sdl.surface,SDL_LOGPAL,(SDL_Color *)entries,(int)start,(int)count)) {
             E_Exit("SDL:Can't set palette");
         }
     }
@@ -6969,7 +6969,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle(CPU_CycleMax, -1, -1, false);
+    GFX_SetTitle((Bit32s)CPU_CycleMax, -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }
@@ -8221,8 +8221,8 @@ fresh_boot:
 
             /* revector some dos-allocated interrupts */
             if (!reboot_machine) {
-                real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
-                real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x01*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
             /* shutdown DOSBox's virtual drive Z */
