@@ -540,6 +540,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ClCompile>
       <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
