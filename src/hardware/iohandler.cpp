@@ -107,7 +107,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_r_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
+        if (!obj.MatchPort((Bit16u)port)) continue;
 
         t_f = obj.m_r_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -138,7 +138,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_Wri
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_w_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
+        if (!obj.MatchPort((Bit16u)port)) continue;
 
         t_f = obj.m_w_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -230,7 +230,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
      * if one device responded, assign it's handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
     LOG(LOG_MISC,LOG_DEBUG)("IO read slow path port=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) ret = f(port,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_readhandlers[porti][port] = f;
@@ -290,7 +290,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
      * if one device responded, assign it's handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
     LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_writehandlers[porti][port] = f;
@@ -525,11 +525,11 @@ void IO_WriteD(Bitu port,Bit32u val) {
 Bit8u IO_ReadB(Bitu port) {
 	Bit8u retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,1)))) {
-		return CPU_ForceV86FakeIO_In(port,1);
+		return (Bit8u)CPU_ForceV86FakeIO_In(port,1);
 	}
 	else {
 		IO_USEC_read_delay(0);
-		retval = io_readhandlers[0][port](port,1);
+		retval = (Bit8u)io_readhandlers[0][port](port,1);
 	}
 	log_io(0, false, port, retval);
 	return retval;
@@ -538,11 +538,11 @@ Bit8u IO_ReadB(Bitu port) {
 Bit16u IO_ReadW(Bitu port) {
 	Bit16u retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,2)))) {
-		return CPU_ForceV86FakeIO_In(port,2);
+		return (Bit16u)CPU_ForceV86FakeIO_In(port,2);
 	}
 	else {
 		IO_USEC_read_delay(1);
-		retval = io_readhandlers[1][port](port,2);
+		retval = (Bit16u)io_readhandlers[1][port](port,2);
 	}
 	log_io(1, false, port, retval);
 	return retval;
@@ -551,11 +551,11 @@ Bit16u IO_ReadW(Bitu port) {
 Bit32u IO_ReadD(Bitu port) {
 	Bit32u retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,4)))) {
-		return CPU_ForceV86FakeIO_In(port,4);
+		return (Bit32u)CPU_ForceV86FakeIO_In(port,4);
 	}
 	else {
 		IO_USEC_read_delay(2);
-		retval = io_readhandlers[2][port](port,4);
+		retval = (Bit32u)io_readhandlers[2][port](port,4);
 	}
 	log_io(2, false, port, retval);
 	return retval;
@@ -645,7 +645,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             range_mask = 0;
             test = portmask ^ 0xFFFFU;
             while ((test & m) == m) {
-                range_mask = m;
+                range_mask = (Bit16u)m;
                 m = (m << 1) + 1;
             }
 
@@ -663,7 +663,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             alias_mask = range_mask;
             test = portmask + range_mask; /* will break if portmask & range_mask != 0 */
             while ((test & m) == m) {
-                alias_mask = m;
+                alias_mask = (Bit16u)m;
                 m = (m << 1) + 1;
             }
 
@@ -708,7 +708,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
 		m_port=port;
 		m_mask=0; /* not used */
 		m_range=0; /* not used */
-        io_mask=portmask;
+        io_mask=(Bit16u)portmask;
         m_r_handler=r_handler;
         m_w_handler=w_handler;
 

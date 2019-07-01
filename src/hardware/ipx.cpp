@@ -138,11 +138,11 @@ bool ECBClass::writeData() {
 	Bit8u* buffer = databuffer;
 	fragmentDescriptor tmpFrag;
 	setInUseFlag(USEFLAG_AVAILABLE);
-	Bitu fragCount = getFragCount(); 
+	Bit16u fragCount = getFragCount(); 
 	Bitu bufoffset = 0;
-	for(Bitu i = 0;i < fragCount;i++) {
+	for(Bit16u i = 0;i < fragCount;i++) {
 		getFragDesc(i,&tmpFrag);
-		for(Bitu t = 0;t < tmpFrag.size;t++) {
+		for(Bit16u t = 0;t < tmpFrag.size;t++) {
 			real_writeb(tmpFrag.segment, tmpFrag.offset + t, buffer[bufoffset]);
 			bufoffset++;
 			if(bufoffset >= length) {
@@ -231,12 +231,12 @@ void ECBClass::NotifyESR(void) {
 }
 
 void ECBClass::setImmAddress(Bit8u *immAddr) {
-	for(Bitu i=0;i<6;i++)
+	for(Bit8u i=0;i<6;i++)
 		real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i, immAddr[i]);
 }
 
 void ECBClass::getImmAddress(Bit8u* immAddr) {
-	for(Bitu i=0;i<6;i++)
+	for(Bit8u i=0;i<6;i++)
 		immAddr[i] = real_readb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i);
 }
 
@@ -381,7 +381,7 @@ static void handleIpxRequest(void) {
 						// es:si
 						// Currently no support for multiple networks
 
-			for(Bitu i = 0; i < 6; i++) 
+			for(Bit8u i = 0; i < 6; i++) 
 				real_writeb(SegValue(es),reg_di+i,real_readb(SegValue(es),reg_si+i+4));
 
 			reg_cx=1;		// time ticks expected
@@ -1184,7 +1184,7 @@ public:
 		IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
    
 		PhysPt phyDospage = PhysMake(dospage,0);
-		for(Bitu i = 0;i < 32;i++)
+		for(Bit8u i = 0;i < 32;i++)
 			phys_writeb(phyDospage+i,(Bit8u)0x00);
 
 		VFILE_Remove("IPXNET.COM");

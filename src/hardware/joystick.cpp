@@ -122,7 +122,7 @@ static void write_p201(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
 	/* Store writetime index */
 	write_active = true;
-	last_write = PIC_Ticks;
+	last_write = (Bit32u)PIC_Ticks;
 	if (stick[0].enabled) {
 		stick[0].xcount=(Bitu)((stick[0].xpos*RANGE)+RANGE);
 		stick[0].ycount=(Bitu)((stick[0].ypos*RANGE)+RANGE);

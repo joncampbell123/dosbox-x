@@ -196,7 +196,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
 	{
-		disney.data=val;
+		disney.data=(Bit8u)val;
 		// if data is written here too often without using the stereo
 		// mechanism we use the simple DAC machanism. 
         if(disney.state != DS_RUNNING) {
@@ -263,7 +263,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 
 //		LOG_WARN("DISNEY:Control write %x",val);
 		if (val&0x10) LOG(LOG_MISC,LOG_ERROR)("DISNEY:Parallel IRQ Enabled");
-		disney.control=val;
+		disney.control=(Bit8u)val;
 		break;
 	}
 }

@@ -41,19 +41,19 @@ static saa1099_device* device[2];
 
 static void write_cms(Bitu port, Bitu val, Bitu /* iolen */) {
 	if(cms_chan && (!cms_chan->enabled)) cms_chan->Enable(true);
-	lastWriteTicks = PIC_Ticks;
+	lastWriteTicks = (Bit32u)PIC_Ticks;
 	switch ( port - cmsBase ) {
 	case 1:
-		device[0]->control_w(0, 0, val);
+		device[0]->control_w(0, 0, (u8)val);
 		break;
 	case 0:
-		device[0]->data_w(0, 0, val);
+		device[0]->data_w(0, 0, (u8)val);
 		break;
 	case 3:
-		device[1]->control_w(0, 0, val);
+		device[1]->control_w(0, 0, (u8)val);
 		break;
 	case 2:
-		device[1]->data_w(0, 0, val);
+		device[1]->data_w(0, 0, (u8)val);
 		break;
 	}
 }
@@ -77,12 +77,12 @@ static void CMS_CallBack(Bitu len) {
 		Bit16s work[2][BUFFER_SIZE];
 		Bit16s* buffers[2] = { work[0], work[1] };
 		device_sound_interface::sound_stream stream;
-		device[0]->sound_stream_update(stream, 0, buffers, len);
+		device[0]->sound_stream_update(stream, 0, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {
 			result[i][0] = work[0][i];
 			result[i][1] = work[1][i];
 		}
-		device[1]->sound_stream_update(stream, 0, buffers, len);
+		device[1]->sound_stream_update(stream, 0, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {
 			result[i][0] += work[0][i];
 			result[i][1] += work[1][i];
@@ -98,7 +98,7 @@ static void write_cms_detect(Bitu port, Bitu val, Bitu /* iolen */) {
 	switch ( port - cmsBase ) {
 	case 0x6:
 	case 0x7:
-		cms_detect_register = val;
+		cms_detect_register = (Bit8u)val;
 		break;
 	}
 }
@@ -143,7 +143,7 @@ public:
 		/* Register the Mixer CallBack */
 		cms_chan = MixerChan.Install(CMS_CallBack,sampleRate,"CMS");
 	
-		lastWriteTicks = PIC_Ticks;
+		lastWriteTicks = (Bit32u)PIC_Ticks;
 
 #if 0 // unused?
 		Bit32u freq = 7159000;		//14318180 isa clock / 2

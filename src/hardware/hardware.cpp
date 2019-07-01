@@ -594,7 +594,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 
 		if (capture.video.writer != NULL) {
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0x10, 1);
+				CAPTURE_AddAviChunk( "01wb", (Bit32u)(capture.video.audioused * 4), capture.video.audiobuf, 0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -730,7 +730,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_set_compression_buffer_size(png_ptr, 8192);
 	
 		if (bpp==8) {
-			png_set_IHDR(png_ptr, info_ptr, width, height,
+			png_set_IHDR(png_ptr, info_ptr, (png_uint_32)width, (png_uint_32)height,
 				8, PNG_COLOR_TYPE_PALETTE, PNG_INTERLACE_NONE,
 				PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 			for (i=0;i<256;i++) {
@@ -741,7 +741,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 			png_set_PLTE(png_ptr, info_ptr, palette,256);
 		} else {
 			png_set_bgr( png_ptr );
-			png_set_IHDR(png_ptr, info_ptr, width, height,
+			png_set_IHDR(png_ptr, info_ptr, (png_uint_32)width, (png_uint_32)height,
 				8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
 				PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 		}
@@ -784,14 +784,14 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 					for (Bitu x=0;x<countWidth;x++) {
 						Bitu pixel = ((Bit16u *)srcLine)[x];
 						doubleRow[x*6+0] = doubleRow[x*6+3] = ((pixel& 0x001f) * 0x21) >>  2;
-						doubleRow[x*6+1] = doubleRow[x*6+4] = ((pixel& 0x03e0) * 0x21) >>  7;
+						doubleRow[x*6+1] = doubleRow[x*6+4] = (Bit8u)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*6+2] = doubleRow[x*6+5] = ((pixel& 0x7c00) * 0x21) >>  12;
 					}
 				} else {
 					for (Bitu x=0;x<countWidth;x++) {
 						Bitu pixel = ((Bit16u *)srcLine)[x];
 						doubleRow[x*3+0] = ((pixel& 0x001f) * 0x21) >>  2;
-						doubleRow[x*3+1] = ((pixel& 0x03e0) * 0x21) >>  7;
+						doubleRow[x*3+1] = (Bit8u)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*3+2] = ((pixel& 0x7c00) * 0x21) >>  12;
 					}
 				}
@@ -898,9 +898,9 @@ skip_shot:
 			capture.video.codec = new VideoCodec();
 			if (!capture.video.codec)
 				goto skip_video;
-			if (!capture.video.codec->SetupCompress( width, height)) 
+			if (!capture.video.codec->SetupCompress( (int)width, (int)height)) 
 				goto skip_video;
-			capture.video.bufSize = capture.video.codec->NeededSize(width, height, format);
+			capture.video.bufSize = capture.video.codec->NeededSize((int)width, (int)height, format);
 			capture.video.buf = malloc( (size_t)capture.video.bufSize );
 			if (!capture.video.buf)
 				goto skip_video;
@@ -927,8 +927,8 @@ skip_shot:
 			__w_le_u32(&mheader->dwInitialFrames,0);
 			__w_le_u32(&mheader->dwStreams,2);			/* audio+video */
 			__w_le_u32(&mheader->dwSuggestedBufferSize,0);
-			__w_le_u32(&mheader->dwWidth,capture.video.width);
-			__w_le_u32(&mheader->dwHeight,capture.video.height);
+			__w_le_u32(&mheader->dwWidth,(uint32_t)capture.video.width);
+			__w_le_u32(&mheader->dwHeight,(uint32_t)capture.video.height);
 
 
 
@@ -956,19 +956,19 @@ skip_shot:
 			__w_le_u32(&vsheader->dwSampleSize,0u);
 			__w_le_u16(&vsheader->rcFrame.left,0);
 			__w_le_u16(&vsheader->rcFrame.top,0);
-			__w_le_u16(&vsheader->rcFrame.right,capture.video.width);
-			__w_le_u16(&vsheader->rcFrame.bottom,capture.video.height);
+			__w_le_u16(&vsheader->rcFrame.right,(uint16_t)capture.video.width);
+			__w_le_u16(&vsheader->rcFrame.bottom,(uint16_t)capture.video.height);
 
 			windows_BITMAPINFOHEADER vbmp;
 
 			memset(&vbmp,0,sizeof(vbmp));
 			__w_le_u32(&vbmp.biSize,sizeof(vbmp)); /* 40 */
-			__w_le_u32(&vbmp.biWidth,capture.video.width);
-			__w_le_u32(&vbmp.biHeight,capture.video.height);
+			__w_le_u32(&vbmp.biWidth,(uint32_t)capture.video.width);
+			__w_le_u32(&vbmp.biHeight,(uint32_t)capture.video.height);
 			__w_le_u16(&vbmp.biPlanes,0);		/* FIXME: Only repeating what the original DOSBox code did */
 			__w_le_u16(&vbmp.biBitCount,0);		/* FIXME: Only repeating what the original DOSBox code did */
 			__w_le_u32(&vbmp.biCompression,avi_fourcc_const('Z','M','B','V'));
-			__w_le_u32(&vbmp.biSizeImage,capture.video.width * capture.video.height * 4);
+			__w_le_u32(&vbmp.biSizeImage,(uint32_t)(capture.video.width * capture.video.height * 4));
 
 			if (!avi_writer_stream_set_format(vstream,&vbmp,sizeof(vbmp)))
 				goto skip_video;
@@ -990,7 +990,7 @@ skip_shot:
 			__w_le_u16(&asheader->wLanguage,0);
 			__w_le_u32(&asheader->dwInitialFrames,0);
 			__w_le_u32(&asheader->dwScale,1);
-			__w_le_u32(&asheader->dwRate,capture.video.audiorate);
+			__w_le_u32(&asheader->dwRate,(uint32_t)capture.video.audiorate);
 			__w_le_u32(&asheader->dwStart,0);
 			__w_le_u32(&asheader->dwLength,0);			/* AVI writer updates this automatically */
 			__w_le_u32(&asheader->dwSuggestedBufferSize,0);
@@ -1006,10 +1006,10 @@ skip_shot:
 			memset(&fmt,0,sizeof(fmt));
 			__w_le_u16(&fmt.wFormatTag,windows_WAVE_FORMAT_PCM);
 			__w_le_u16(&fmt.nChannels,2);			/* stereo */
-			__w_le_u32(&fmt.nSamplesPerSec,capture.video.audiorate);
+			__w_le_u32(&fmt.nSamplesPerSec,(uint32_t)capture.video.audiorate);
 			__w_le_u16(&fmt.wBitsPerSample,16);		/* 16-bit/sample */
 			__w_le_u16(&fmt.nBlockAlign,2*2);
-			__w_le_u32(&fmt.nAvgBytesPerSec,capture.video.audiorate*2*2);
+			__w_le_u32(&fmt.nAvgBytesPerSec,(uint32_t)(capture.video.audiorate*2*2));
 
 			if (!avi_writer_stream_set_format(astream,&fmt,sizeof(fmt)))
 				goto skip_video;
@@ -1496,7 +1496,7 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
                     __w_le_u16(&asheader->wLanguage,0);
                     __w_le_u32(&asheader->dwInitialFrames,0);
                     __w_le_u32(&asheader->dwScale,1);
-                    __w_le_u32(&asheader->dwRate,capture.multitrack_wave.audiorate);
+                    __w_le_u32(&asheader->dwRate,(uint32_t)capture.multitrack_wave.audiorate);
                     __w_le_u32(&asheader->dwStart,0);
                     __w_le_u32(&asheader->dwLength,0);			/* AVI writer updates this automatically */
                     __w_le_u32(&asheader->dwSuggestedBufferSize,0);
@@ -1512,10 +1512,10 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
                     memset(&fmt,0,sizeof(fmt));
                     __w_le_u16(&fmt.wFormatTag,windows_WAVE_FORMAT_PCM);
                     __w_le_u16(&fmt.nChannels,2);			/* stereo */
-                    __w_le_u32(&fmt.nSamplesPerSec,capture.multitrack_wave.audiorate);
+                    __w_le_u32(&fmt.nSamplesPerSec,(uint32_t)capture.multitrack_wave.audiorate);
                     __w_le_u16(&fmt.wBitsPerSample,16);		/* 16-bit/sample */
                     __w_le_u16(&fmt.nBlockAlign,2*2);
-                    __w_le_u32(&fmt.nAvgBytesPerSec,capture.multitrack_wave.audiorate*2*2);
+                    __w_le_u32(&fmt.nAvgBytesPerSec,(uint32_t)(capture.multitrack_wave.audiorate*2*2));
 
                     if (!avi_writer_stream_set_format(astream,&fmt,sizeof(fmt)))
                         goto skip_mt_wav;
@@ -1630,7 +1630,7 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 			memcpy( &capture.wave.buf[capture.wave.used], read, left*4);
 			capture.wave.used += left;
 			read += left*2;
-			len -= left;
+			len -= (Bit32u)left;
 		}
 	}
 #endif
@@ -1671,7 +1671,7 @@ void CAPTURE_WaveEvent(bool pressed) {
             LOG_MSG("Stopped capturing wave output.");
             /* Write last piece of audio in buffer */
             riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*capture.wave.used);
-            capture.wave.length+=capture.wave.used*4;
+            capture.wave.length+=(Bit32u)(capture.wave.used*4);
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
@@ -1722,14 +1722,14 @@ void CAPTURE_AddMidi(bool sysex, Bitu len, Bit8u * data) {
 			return;
 		}
 		fwrite(midi_header,1,sizeof(midi_header),capture.midi.handle);
-		capture.midi.last=PIC_Ticks;
+		capture.midi.last=(Bit32u)PIC_Ticks;
 	}
-	Bit32u delta=PIC_Ticks-capture.midi.last;
-	capture.midi.last=PIC_Ticks;
+	Bit32u delta=(Bit32u)(PIC_Ticks-capture.midi.last);
+	capture.midi.last=(Bit32u)PIC_Ticks;
 	RawMidiAddNumber(delta);
 	if (sysex) {
 		RawMidiAdd( 0xf0 );
-		RawMidiAddNumber( len );
+		RawMidiAddNumber((Bit32u)len);
 	}
 	for (Bitu i=0;i<len;i++) 
 		RawMidiAdd(data[i]);

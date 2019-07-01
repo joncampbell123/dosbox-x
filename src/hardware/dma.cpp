@@ -84,11 +84,11 @@ template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSet
     else if (page < LINK_START) page = paging.firstmb[page];
     /* check our work, should not cross 4KB, then transfer linearly. Do not remove {} curly braces, assert() may compile to nothing. */
     if (dma_mode == DMA_INCREMENT)
-        { assert((offset + size - (1u << dma16)) < 4096); } /* should stop with offset at or before first byte of next page */
+        { assert((offset + size - ((Bitu)1u << dma16)) < 4096); } /* should stop with offset at or before first byte of next page */
     else if (dma_mode == DMA_DECREMENT)
-        { assert(offset >= (size - (1u << dma16))); } /* should stop with offset at or after the last byte of the previous page */
+        { assert(offset >= (size - ((Bitu)1u << dma16))); } /* should stop with offset at or after the last byte of the previous page */
     /* result */
-    o_xfer = (page * 4096u) + offset;
+    o_xfer = (PhysPt)((page * 4096u) + offset);
     o_size = (unsigned int)size;
 }
 
@@ -194,7 +194,7 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 		DmaControllers[1]->WriteControllerReg((port-0xc0) >> 1,val,1);
 	} else {
 		UpdateEMSMapping();
-		dma_extra_page_registers[port&0xF] = val;
+		dma_extra_page_registers[port&0xF] = (unsigned char)val;
 		switch (port) {
 			/* write DMA page register */
 			case 0x81:GetDMAChannel(2)->SetPage((Bit8u)val);break;
@@ -278,11 +278,11 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		chan=GetChannel((Bit8u)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->baseaddr=(chan->baseaddr&0xff00)|val;
-			chan->curraddr=(chan->curraddr&0xff00)|val;
+			chan->baseaddr=(Bit16u)((chan->baseaddr&0xff00)|val);
+			chan->curraddr=(Bit32u)((chan->curraddr&0xff00)|val);
 		} else {
-			chan->baseaddr=(chan->baseaddr&0x00ff)|(val << 8);
-			chan->curraddr=(chan->curraddr&0x00ff)|(val << 8);
+			chan->baseaddr=(Bit16u)((chan->baseaddr&0x00ff)|(val << 8));
+			chan->curraddr=(Bit32u)((chan->curraddr&0x00ff)|(val << 8));
 		}
 		break;
 	/* set DMA transfer count (1st byte low part, 2nd byte high part) */
@@ -291,11 +291,11 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		chan=GetChannel((Bit8u)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->basecnt=(chan->basecnt&0xff00)|val;
-			chan->currcnt=(chan->currcnt&0xff00)|val;
+			chan->basecnt=(Bit16u)((chan->basecnt&0xff00)|val);
+			chan->currcnt=(Bit16u)((chan->currcnt&0xff00)|val);
 		} else {
-			chan->basecnt=(chan->basecnt&0x00ff)|(val << 8);
-			chan->currcnt=(chan->currcnt&0x00ff)|(val << 8);
+			chan->basecnt=(Bit16u)((chan->basecnt&0x00ff)|(val << 8));
+			chan->currcnt=(Bit16u)((chan->currcnt&0x00ff)|(val << 8));
 		}
 		break;
 	case 0x8:		/* Comand reg not used */
@@ -370,9 +370,9 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		ret=0;
 		for (Bit8u ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
-			if (chan->tcount) ret |= 1U << ct;
+			if (chan->tcount) ret |= (Bitu)1U << ct;
 			chan->tcount=false;
-			if (chan->request) ret |= 1U << (4U + ct);
+			if (chan->request) ret |= (Bitu)1U << (4U + ct);
 		}
 		return ret;
 	case 0xc:		/* Clear Flip/Flip (apparently most motherboards will treat read OR write as reset) */
@@ -450,19 +450,19 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += cando;
+            curraddr += (Bit32u)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= cando;
+            curraddr -= (Bit32u)cando;
         }
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= cando;
+        currcnt -= (Bit16u)cando;
         want -= cando;
         done += cando;
 
@@ -536,19 +536,19 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += cando;
+            curraddr += (Bit32u)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - (cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= cando;
+            curraddr -= (Bit32u)cando;
         }
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= cando;
+        currcnt -= (Bit16u)cando;
         want -= cando;
         done += cando;
 
@@ -582,7 +582,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	return done;
 }
 
-void DMA_SetWrapping(Bitu wrap) {
+void DMA_SetWrapping(Bit32u wrap) {
 	dma_wrapping = wrap;
 }
 
@@ -602,7 +602,7 @@ void DMA_Destroy(Section* /*sec*/) {
 }
 
 void DMA_Reset(Section* /*sec*/) {
-	Bitu i;
+	Bit16u i;
 
 	DMA_FreeControllers();
 

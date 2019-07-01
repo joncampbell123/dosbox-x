@@ -153,7 +153,7 @@ struct Handler : public Adlib::Handler {
 		}
 	}
 	virtual void Init(Bitu rate) {
-		chip = ym3812_init(0, OPL2_INTERNAL_FREQ, rate);
+		chip = ym3812_init(0, OPL2_INTERNAL_FREQ, (uint32_t)rate);
 	}
 	~Handler() {
 		ym3812_shutdown(chip);
@@ -184,7 +184,7 @@ struct Handler : public Adlib::Handler {
 		while (samples > 0) {
 			Bitu todo = samples > 1024 ? 1024 : samples;
 			samples -= todo;
-			ymf262_update_one(chip, buffers, todo);
+			ymf262_update_one(chip, buffers, (int)todo);
 			//Interleave the samples before mixing
 			for (Bitu i = 0; i < todo; i++) {
 				result[i][0] = buf[0][i];
@@ -194,7 +194,7 @@ struct Handler : public Adlib::Handler {
 		}
 	}
 	virtual void Init(Bitu rate) {
-		chip = ymf262_init(0, OPL3_INTERNAL_FREQ, rate);
+		chip = ymf262_init(0, OPL3_INTERNAL_FREQ, (int)rate);
 	}
 	~Handler() {
 		ymf262_shutdown(chip);
@@ -343,7 +343,8 @@ class Capture {
 		AddBuf( raw, val );
 	}
 	void WriteCache( void  ) {
-		Bitu i, val;
+		Bit16u i;
+        Bit8u val;
 		/* Check the registers to add */
 		for (i=0;i<256;i++) {
 			//Skip the note on entries
@@ -401,8 +402,8 @@ public:
 				return true;
 			/* Check how much time has passed */
 			Bitu passed = PIC_Ticks - lastTicks;
-			lastTicks = PIC_Ticks;
-			header.milliseconds += passed;
+			lastTicks = (Bit32u)PIC_Ticks;
+			header.milliseconds += (Bit32u)passed;
 
 			//if ( passed > 0 ) LOG_MSG( "Delay %d", passed ) ;
 			
@@ -413,12 +414,12 @@ public:
 			}
 			while (passed > 0) {
 				if (passed < 257) {			//1-256 millisecond delay
-					AddBuf( delay256, passed - 1 );
+					AddBuf( delay256, (Bit8u)(passed - 1));
 					passed = 0;
 				} else {
 					Bitu shift = (passed >> 8);
 					passed -= shift << 8;
-					AddBuf( delayShift8, shift - 1 );
+					AddBuf( delayShift8, (Bit8u)(shift - 1));
 				}
 			}
 			AddWrite( regFull, val );
@@ -448,8 +449,8 @@ skipWrite:
 		/* Write the command that triggered this */
 		AddWrite( regFull, val );
 		//Init the timing information for the next commands
-		lastTicks = PIC_Ticks;	
-		startTicks = PIC_Ticks;
+		lastTicks = (Bit32u)PIC_Ticks;	
+		startTicks = (Bit32u)PIC_Ticks;
 		return true;
 	}
 	Capture( RegisterCache* _cache ) {
@@ -623,7 +624,7 @@ Bitu Module::CtrlRead( void ) {
 void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
     (void)iolen;//UNUSED
 	//Keep track of last write time
-	lastUsed = PIC_Ticks;
+	lastUsed = (Bit32u)PIC_Ticks;
 	//Maybe only enable with a keyon?
 	if ( !mixerChan->enabled ) {
 		mixerChan->Enable(true);
@@ -633,27 +634,27 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 		case MODE_OPL3GOLD:
 			if ( port == 0x38b ) {
 				if ( ctrl.active ) {
-					CtrlWrite( val );
+					CtrlWrite( (Bit8u)val );
 					break;
 				}
 			}
 			//Fall-through if not handled by control chip
 		case MODE_OPL2:
 		case MODE_OPL3:
-			if ( !chip[0].Write( reg.normal, val ) ) {
-				handler->WriteReg( reg.normal, val );
-				CacheWrite( reg.normal, val );
+			if ( !chip[0].Write( reg.normal, (Bit8u)val ) ) {
+				handler->WriteReg( reg.normal, (Bit8u)val );
+				CacheWrite( reg.normal, (Bit8u)val );
 			}
 			break;
 		case MODE_DUALOPL2:
 			//Not a 0x??8 port, then write to a specific port
 			if ( !(port & 0x8) ) {
-				Bit8u index = ( port & 2 ) >> 1;
-				DualWrite( index, reg.dual[index], val );
+				Bit8u index = (Bit8u)(( port & 2 ) >> 1);
+				DualWrite( index, reg.dual[index], (Bit8u)val );
 			} else {
 				//Write to both ports
-				DualWrite( 0, reg.dual[0], val );
-				DualWrite( 1, reg.dual[1], val );
+				DualWrite( 0, reg.dual[0], (Bit8u)val );
+				DualWrite( 1, reg.dual[1], (Bit8u)val );
 			}
 			break;
 		}
@@ -662,7 +663,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 		//Make sure to clip them in the right range
 		switch ( mode ) {
 		case MODE_OPL2:
-			reg.normal = handler->WriteAddr( port, val ) & 0xff;
+			reg.normal = handler->WriteAddr( (Bit32u)port, (Bit8u)val ) & 0xff;
 			break;
 		case MODE_OPL3GOLD:
 			if ( port == 0x38a ) {
@@ -679,7 +680,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 			}
 			//Fall-through if not handled by control chip
 		case MODE_OPL3:
-			reg.normal = handler->WriteAddr( port, val ) & 0x1ff;
+			reg.normal = handler->WriteAddr( (Bit32u)port, (Bit8u)val ) & 0x1ff;
 			break;
 		case MODE_DUALOPL2:
 			//Not a 0x?88 port, when write to a specific side
@@ -764,7 +765,7 @@ static void OPL_CallBack(Bitu len) {
 		Bitu i;
 		for (i=0xb0;i<0xb9;i++) if (module->cache[i]&0x20||module->cache[i+0x100]&0x20) break;
 		if (i==0xb9) module->mixerChan->Enable(false);
-		else module->lastUsed = PIC_Ticks;
+		else module->lastUsed = (Bit32u)PIC_Ticks;
 	}
 }
 
