@@ -565,7 +565,8 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 }
 
 Bit8u fatDrive::readSector(Bit32u sectnum, void * data) {
-	if (absolute) return loadedDisk->Read_AbsoluteSector(sectnum, data);
+	if (absolute) return Read_AbsoluteSector(sectnum, data);
+    assert(!IS_PC98_ARCH);
 	Bit32u cylindersize = bootbuffer.headcount * bootbuffer.sectorspertrack;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
@@ -575,7 +576,8 @@ Bit8u fatDrive::readSector(Bit32u sectnum, void * data) {
 }	
 
 Bit8u fatDrive::writeSector(Bit32u sectnum, void * data) {
-	if (absolute) return loadedDisk->Write_AbsoluteSector(sectnum, data);
+	if (absolute) return Write_AbsoluteSector(sectnum, data);
+    assert(!IS_PC98_ARCH);
 	Bit32u cylindersize = bootbuffer.headcount * bootbuffer.sectorspertrack;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
@@ -1236,10 +1238,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	if ((bootbuffer.sectorspercluster == 0) ||
 		(bootbuffer.rootdirentries == 0) ||
 		(bootbuffer.fatcopies == 0) ||
-		(bootbuffer.headcount == 0) ||
-		(bootbuffer.headcount > headscyl) ||
-		(bootbuffer.sectorspertrack == 0) ||
-		(bootbuffer.sectorspertrack > cylsector)) {
+		(bootbuffer.headcount == 0 && !IS_PC98_ARCH) ||
+		(bootbuffer.headcount > headscyl && !IS_PC98_ARCH) ||
+		(bootbuffer.sectorspertrack == 0 && !IS_PC98_ARCH) ||
+		(bootbuffer.sectorspertrack > cylsector && !IS_PC98_ARCH)) {
 		LOG_MSG("Sanity checks failed");
 		created_successfully = false;
 		return;
@@ -1278,7 +1280,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     }
 
 	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used */
-	absolute = ((bootbuffer.headcount == headscyl) && (bootbuffer.sectorspertrack == cylsector));
+	absolute = IS_PC98_ARCH || ((bootbuffer.headcount == headscyl) && (bootbuffer.sectorspertrack == cylsector));
 
 	/* Determine FAT format, 12, 16 or 32 */
 
