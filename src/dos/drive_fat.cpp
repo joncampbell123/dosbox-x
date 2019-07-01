@@ -1235,6 +1235,14 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
      *      In DOSBox-X INT 13h emulation will enforce the standard (512 byte) sector size.
      *      In PC-98 mode mounting disk images requires "non-standard" sector sizes because PC-98 floppies (other
      *      than ones formatted 1.44MB) generally use 1024 bytes/sector and MAY use 128 or 256 bytes per sector. */
+    /* NTS: Loosen geometry checks for PC-98 mode, for two reasons. One, is that the geometry check will fail
+     *      when logical vs physical sector translation is involved, since it is apparently common for PC-98 HDI
+     *      images to be formatted with 256, 512, 1024, or in rare cases even 2048 bytes per sector, yet the FAT
+     *      file format will report a sector size that is a power of 2 multiple of the disk sector size. The
+     *      most common appears to be 512 byte/sector HDI images formatted with 1024 byte/sector FAT filesystems.
+     *
+     *      Second, there are some HDI images that are valid yet the FAT filesystem reports a head count of 0
+     *      for some reason (Touhou Project) */
 	if ((bootbuffer.sectorspercluster == 0) ||
 		(bootbuffer.rootdirentries == 0) ||
 		(bootbuffer.fatcopies == 0) ||
