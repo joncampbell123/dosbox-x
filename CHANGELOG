@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - IDE emulation now minimally emulates PC-98 I/O port
+    arrangement in PC-98 mode.
   - Running a build that draws it's own menus, setting
     output=opengl, and hiding the menus no longer causes
     lag redrawing the screen every time the mouse cursor
