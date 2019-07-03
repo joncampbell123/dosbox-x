@@ -1571,8 +1571,8 @@ bool VGA_CaptureValidateCurrentFrame(void) {
             (unsigned int)vga_capture_current_rect.y < vga.draw.height &&
             (unsigned int)vga_capture_current_rect.x < vga.draw.width &&
             vga_capture_current_rect.w > 0 && vga_capture_current_rect.h > 0 &&         // crop rect size is within frame
-            vga_capture_current_rect.h <= vga.draw.height &&
-            vga_capture_current_rect.w <= vga.draw.width &&
+            (unsigned int)vga_capture_current_rect.h <= vga.draw.height &&
+            (unsigned int)vga_capture_current_rect.w <= vga.draw.width &&
             ((unsigned int)vga_capture_current_rect.x+vga_capture_current_rect.w) <= vga.draw.width && // crop rect pos+size within frame
             ((unsigned int)vga_capture_current_rect.y+vga_capture_current_rect.h) <= vga.draw.height) {
             return true;
