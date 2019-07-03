@@ -150,6 +150,7 @@ retry:
 #endif
 
 #if defined(C_SDL2)
+    (void)bpp; // unused param
     sdl.surface = NULL;
     sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, (sdl_flags & SDL_WINDOW_OPENGL) ? SCREEN_OPENGL : SCREEN_SURFACE);
     if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
