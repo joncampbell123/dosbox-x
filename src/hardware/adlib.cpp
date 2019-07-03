@@ -140,7 +140,7 @@ struct Handler : public Adlib::Handler {
 		ym3812_write(chip, 0, reg);
 		ym3812_write(chip, 1, val);
 	}
-	virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+	virtual Bit32u WriteAddr(Bit32u /*port*/, Bit8u val) {
 		return val;
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
@@ -172,7 +172,7 @@ struct Handler : public Adlib::Handler {
 		ymf262_write(chip, 0, reg);
 		ymf262_write(chip, 1, val);
 	}
-	virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+	virtual Bit32u WriteAddr(Bit32u /*port*/, Bit8u val) {
 		return val;
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
