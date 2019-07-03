@@ -465,6 +465,8 @@ void YM_DELTAT::savestate(device_t *device)
 	device->save_item(NAME(DELTAT->prev_acc));
 	device->save_item(NAME(DELTAT->adpcmd));
 	device->save_item(NAME(DELTAT->adpcml));
+#else
+    (void)device;
 #endif
 }
 
