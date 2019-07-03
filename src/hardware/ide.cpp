@@ -4122,8 +4122,15 @@ void IDE_OnReset(Section *sec) {
 
     if (IS_PC98_ARCH) {//TODO: Only if any IDE interfaces are enabled
         for (size_t i=0;i < 8;i++) {
+            PC98_WriteHandler[i].Uninstall();
+            PC98_ReadHandler[i].Uninstall();
             PC98_WriteHandler[i].Install(0x640+(i*2),ide_baseio_w,IO_MA);
             PC98_ReadHandler[i].Install(0x640+(i*2),ide_baseio_r,IO_MA);
+        }
+
+        for (size_t i=0;i < 2;i++) {
+            PC98_WriteHandlerAlt[i].Uninstall();
+            PC98_ReadHandlerAlt[i].Uninstall();
         }
 
         PC98_WriteHandlerAlt[0].Install(0x74C,ide_altio_w,IO_MA);
@@ -4131,6 +4138,11 @@ void IDE_OnReset(Section *sec) {
 
         PC98_WriteHandlerAlt[1].Install(0x74E,ide_altio_w,IO_MA);
         PC98_ReadHandlerAlt[1].Install(0x74E,ide_altio_r,IO_MA);
+
+        for (size_t i=0;i < 3;i++) {
+            PC98_WriteHandlerSel[i].Uninstall();
+            PC98_ReadHandlerSel[i].Uninstall();
+        }
 
         PC98_WriteHandlerSel[0].Install(0x430,ide_pc98ctlio_w,IO_MA);
         PC98_ReadHandlerSel[0].Install(0x430,ide_pc98ctlio_r,IO_MA);
