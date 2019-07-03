@@ -1657,7 +1657,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 	OPL3_CH *CH;
 	unsigned int ch_offset = 0;
 	int slot;
-	int block_fnum;
+	unsigned int block_fnum;
 
 	if(r&0x100)
 	{
