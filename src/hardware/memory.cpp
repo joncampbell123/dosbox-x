@@ -1402,7 +1402,7 @@ bool allow_port_92_reset = true;
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-    memory.a20.controlport = val & ~2u;
+    memory.a20.controlport = (Bit8u)(val & ~2u);
     MEM_A20_Enable((val & 2u)>0);
 
     // Bit 0 = system reset (switch back to real mode)

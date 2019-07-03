@@ -155,12 +155,12 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         {
         case 0x00:      /* Seconds */
             if (val > 59) return;       // invalid seconds value
-            loctime->tm_sec = val;
+            loctime->tm_sec = (int)val;
             break;
 
         case 0x02:      /* Minutes */
             if (val > 59) return;       // invalid minutes value
-            loctime->tm_min = val;
+            loctime->tm_min = (int)val;
             break;
 
         case 0x04:      /* Hours */
@@ -174,7 +174,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
                 if (val > 23) return;                               // invalid hour value
             }
 
-            loctime->tm_hour = val;         
+            loctime->tm_hour = (int)val;         
             break;
 
         case 0x06:      /* Day of week */
@@ -183,16 +183,16 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
         case 0x07:      /* Date of month */
             if (val > 31) return;               // invalid date value (mktime() should catch the rest)
-            loctime->tm_mday = val;
+            loctime->tm_mday = (int)val;
             break;
 
         case 0x08:      /* Month */
             if (val > 12) return;               // invalid month value
-            loctime->tm_mon = val;
+            loctime->tm_mon = (int)val;
             break;
 
         case 0x09:      /* Year */
-            loctime->tm_year = val;
+            loctime->tm_year = (int)val;
             break;
 
         case 0x32:      /* Century */
@@ -204,7 +204,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x03:      /* Minutes Alarm */
         case 0x05:      /* Hours Alarm */
             LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
-            cmos.regs[cmos.reg] = val;
+            cmos.regs[cmos.reg] = (Bit8u)val;
             return;     // done
         }
 
@@ -242,7 +242,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x05:      /* Hours Alarm */
         if(!date_host_forced) {
             LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
-            cmos.regs[cmos.reg]=val;
+            cmos.regs[cmos.reg]=(Bit8u)val;
             break;
         }
     case 0x0a:      /* Status reg A */
@@ -276,7 +276,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
                 cmos.time_diff = cmos.locktime.tv_sec - time(NULL);
             }
 
-            cmos.regs[cmos.reg] = val;
+            cmos.regs[cmos.reg] = (Bit8u)val;
             cmos_checktimer();
         } else {
             cmos.bcd=!(val & 0x4);
