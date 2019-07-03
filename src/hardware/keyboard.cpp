@@ -685,7 +685,7 @@ static void write_p61(Bitu, Bitu val, Bitu) {
     port_61_data = val;
 }
 
-static Bitu read_p62(Bitu port,Bitu iolen) {
+static Bitu read_p62(Bitu /*port*/,Bitu /*iolen*/) {
     Bit8u ret=~0x20;
     if (TIMER_GetOutput2()) ret|=0x20;
     return ret;
