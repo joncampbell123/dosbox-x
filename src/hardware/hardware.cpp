@@ -51,6 +51,12 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 }
+
+/* This code now requires FFMPEG 4.0.2 or higher */
+# if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58,18,100)
+#  error Your libavcodec is too old. Update FFMPEG.
+# endif
+
 #endif
 
 #if (C_AVCODEC)
