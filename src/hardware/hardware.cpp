@@ -1044,7 +1044,6 @@ skip_shot:
 			if (!ffmpeg_init) {
 				LOG_MSG("Attempting to initialize FFMPEG library");
 				ffmpeg_init = true;
-				avcodec_register_all();
 			}
 
 			ffmpeg_aud_codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
