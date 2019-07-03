@@ -1044,7 +1044,6 @@ skip_shot:
 			if (!ffmpeg_init) {
 				LOG_MSG("Attempting to initialize FFMPEG library");
 				ffmpeg_init = true;
-				av_register_all();
 				avcodec_register_all();
 			}
 
