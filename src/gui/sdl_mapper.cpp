@@ -1267,7 +1267,7 @@ public:
             if (abs(event->jaxis.value)<25000) return 0;
             return CreateAxisBind(event->jaxis.axis,event->jaxis.value>0);
         } else if (event->type==SDL_JOYBUTTONDOWN) {
-            if (event->jbutton.which!=stick) return 0;
+            if ((unsigned int)event->jbutton.which!=(unsigned int)stick) return 0;
 #if defined (REDUCE_JOYSTICK_POLLING)
             return CreateButtonBind(event->jbutton.button%button_wrap);
 #else
