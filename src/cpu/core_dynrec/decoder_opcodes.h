@@ -1256,6 +1256,7 @@ static void dyn_iret(void) {
 	dyn_closeblock();
 }
 
+#if !(C_DEBUG)
 static void dyn_interrupt(Bit8u num) {
 	dyn_reduce_cycles();
 	dyn_set_eip_last_end(FC_RETOP);
@@ -1263,7 +1264,7 @@ static void dyn_interrupt(Bit8u num) {
 	dyn_return(BR_Normal);
 	dyn_closeblock();
 }
-
+#endif
 
 
 static void dyn_string(StringOps op) {
