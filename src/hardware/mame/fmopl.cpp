@@ -1487,7 +1487,7 @@ void FM_OPL::WriteReg(int r, int v)
 {
 	OPL_CH *CH;
 	int slot;
-	int block_fnum;
+	unsigned int block_fnum;
 
 
 	/* adjust bus to 8 bits */
@@ -1765,15 +1765,15 @@ void FM_OPL::ResetChip()
 	WriteReg(0x02,0); /* Timer1 */
 	WriteReg(0x03,0); /* Timer2 */
 	WriteReg(0x04,0); /* IRQ mask clear */
-	for(int i = 0xff ; i >= 0x20 ; i-- ) WriteReg(i,0);
+	for(unsigned int i = 0xff ; i >= 0x20 ; i-- ) WriteReg(i,0);
 
 	/* reset operator parameters */
 //	for(OPL_CH &CH : P_CH)
-	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
 	{
 		OPL_CH &CH = P_CH[ch];
 //		for(OPL_SLOT &SLOT : CH.SLOT)
-		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
 		{
 		    
 			OPL_SLOT &SLOT = CH.SLOT[slot];
@@ -1800,7 +1800,7 @@ void FM_OPL::ResetChip()
 
 void FM_OPL::postload()
 {
-	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
 	{
 		OPL_CH &CH = P_CH[ch];
 		/* Look up key scale level */
@@ -1808,7 +1808,7 @@ void FM_OPL::postload()
 		CH.ksl_base = static_cast<uint32_t>(ksl_tab[block_fnum >> 6]);
 		CH.fc       = fn_tab[block_fnum & 0x03ff] >> (7 - (block_fnum >> 10));
 
-		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
 		{
 			OPL_SLOT &SLOT = CH.SLOT[slot];
 			/* Calculate key scale rate */
