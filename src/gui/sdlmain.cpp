@@ -4149,6 +4149,18 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 runloop = false;
                             }
                             break;
+#if defined(C_SDL2)
+                        case SDL_WINDOWEVENT:
+                            switch (event.window.event) {
+                                case SDL_WINDOWEVENT_RESIZED:
+                                    GFX_HandleVideoResize(event.window.data1, event.window.data2);
+                                    runloop = false;
+                                    resized = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+#endif
 #if !defined(C_SDL2)
                         case SDL_VIDEORESIZE:
                             UpdateWindowDimensions(); // FIXME: Use SDL window dimensions, except that on Windows, SDL won't tell us our actual dimensions
