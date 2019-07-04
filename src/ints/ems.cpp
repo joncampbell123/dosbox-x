@@ -227,7 +227,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 			mem_writed(GEMMIS_addr+0x06,0);					// reserved
 
 			/* build non-EMS frames (0-0xe000) */
-			for (Bitu frct=0; frct<(unsigned int)EMM_PAGEFRAME4K/4U; frct++) {
+			for (PhysPt frct=0; frct<(unsigned int)EMM_PAGEFRAME4K/4U; frct++) {
 				mem_writeb(GEMMIS_addr+0x0a+frct*6,0x00);	// frame type: NONE
 				mem_writeb(GEMMIS_addr+0x0b+frct*6,0xff);	// owner: NONE
 				mem_writew(GEMMIS_addr+0x0c+frct*6,0xffff);	// non-EMS frame
@@ -235,8 +235,8 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 				mem_writeb(GEMMIS_addr+0x0f+frct*6,0xaa);	// flags: direct mapping
 			}
 			/* build EMS page frame (0xe000-0xf000) */
-			for (Bitu frct=0; frct<0x10U/4U; frct++) {
-				Bitu frnr=(frct+EMM_PAGEFRAME4K/4u)*6u;
+			for (PhysPt frct=0; frct<0x10U/4U; frct++) {
+				PhysPt frnr=(frct+EMM_PAGEFRAME4K/4u)*6u;
 				mem_writeb(GEMMIS_addr+0x0a+frnr,0x03);		// frame type: EMS frame in 64k page
 				mem_writeb(GEMMIS_addr+0x0b+frnr,0xff);		// owner: NONE
 				mem_writew(GEMMIS_addr+0x0c+frnr,0x7fff);	// no logical page number
@@ -244,7 +244,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 				mem_writeb(GEMMIS_addr+0x0f+frnr,0x00);		// EMS frame
 			}
 			/* build non-EMS ROM frames (0xf000-0x10000) */
-			for (Bitu frct=(EMM_PAGEFRAME4K+0x10u)/4u; frct<0xf0u/4u; frct++) {
+			for (PhysPt frct=(EMM_PAGEFRAME4K+0x10u)/4u; frct<0xf0u/4u; frct++) {
 				mem_writeb(GEMMIS_addr+0x0a+frct*6u,0x00);	// frame type: NONE
 				mem_writeb(GEMMIS_addr+0x0b+frct*6u,0xff);	// owner: NONE
 				mem_writew(GEMMIS_addr+0x0c+frct*6u,0xffff);	// non-EMS frame
@@ -750,14 +750,15 @@ static Bit8u MemoryRegion(void) {
 	/* Parse the region for information */
 	PhysPt src_mem = 0,dest_mem = 0;
 	MemHandle src_handle = 0,dest_handle = 0;
-	Bitu src_off = 0,dest_off = 0 ;Bitu src_remain = 0,dest_remain = 0;
+	PhysPt src_off = 0,dest_off = 0;
+    PhysPt src_remain = 0,dest_remain = 0;
 	if (!region.src_type) {
 		src_mem=region.src_page_seg*16u+region.src_offset;
 	} else {
 		if (!ValidHandle(region.src_handle)) return EMM_INVALID_HANDLE;
 		if ((emm_handles[region.src_handle].pages*EMM_PAGE_SIZE) < ((region.src_page_seg*EMM_PAGE_SIZE)+region.src_offset+region.bytes)) return EMM_LOG_OUT_RANGE;
 		src_handle=emm_handles[region.src_handle].mem;
-		Bitu pages=region.src_page_seg*4u+(region.src_offset/MEM_PAGE_SIZE);
+        PhysPt pages=region.src_page_seg*4u+(region.src_offset/MEM_PAGE_SIZE);
 		for (;pages>0;pages--) src_handle=MEM_NextHandle(src_handle);
 		src_off=region.src_offset&(MEM_PAGE_SIZE-1);
 		src_remain=MEM_PAGE_SIZE-src_off;
@@ -768,12 +769,12 @@ static Bit8u MemoryRegion(void) {
 		if (!ValidHandle(region.dest_handle)) return EMM_INVALID_HANDLE;
 		if (emm_handles[region.dest_handle].pages*EMM_PAGE_SIZE < (region.dest_page_seg*EMM_PAGE_SIZE)+region.dest_offset+region.bytes) return EMM_LOG_OUT_RANGE;
 		dest_handle=emm_handles[region.dest_handle].mem;
-		Bitu pages=region.dest_page_seg*4u+(region.dest_offset/MEM_PAGE_SIZE);
+        PhysPt pages=region.dest_page_seg*4u+(region.dest_offset/MEM_PAGE_SIZE);
 		for (;pages>0;pages--) dest_handle=MEM_NextHandle(dest_handle);
 		dest_off=region.dest_offset&(MEM_PAGE_SIZE-1);
 		dest_remain=MEM_PAGE_SIZE-dest_off;
 	}
-    Bitu toread;
+    PhysPt toread;
     bool a20_was_enabled = XMS_GetEnabledA20();
 
     XMS_EnableA20(true);
@@ -828,11 +829,11 @@ static Bit8u MemoryRegion(void) {
 			}
 		}
 		/* Advance the pointers */
-		if (!region.src_type) src_mem+=toread;
+		if (!region.src_type) src_mem+=(PhysPt)toread;
 		else src_handle=MEM_NextHandle(src_handle);
-		if (!region.dest_type) dest_mem+=toread;
+		if (!region.dest_type) dest_mem+=(PhysPt)toread;
 		else dest_handle=MEM_NextHandle(dest_handle);
-		region.bytes-=toread;
+		region.bytes-=(Bit32u)toread;
 	}
 
     if (!a20_was_enabled) XMS_EnableA20(false);
@@ -1040,7 +1041,7 @@ static Bitu INT67_Handler(void) {
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x03:		/* VCPI Get Number of Free Pages */
-				reg_edx=MEM_FreeTotal();
+				reg_edx=(Bit32u)MEM_FreeTotal();
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x04: {	/* VCPI Allocate one Page */
@@ -1087,7 +1088,7 @@ static Bitu INT67_Handler(void) {
 				break;
 			case 0x07:		/* VCPI Read CR0 */
 				reg_ah=EMM_NO_ERROR;
-				reg_ebx=CPU_GET_CRX(0);
+				reg_ebx=(Bit32u)CPU_GET_CRX(0);
 				break;
 			case 0x0a:		/* VCPI Get PIC Vector Mappings */
 				reg_bx=vcpi.pic1_remapping;		// master PIC
@@ -1120,7 +1121,7 @@ static Bitu INT67_Handler(void) {
 				Bit32u new_idt_base=mem_readd(new_idt_addr+2);
 
 				/* Switch to protected mode, paging enabled if necessary */
-				Bit32u new_cr0=CPU_GET_CRX(0)|1;
+				Bit32u new_cr0=(Bit32u)(CPU_GET_CRX(0)|1u);
 				if (new_cr3!=0) new_cr0|=0x80000000;
 				CPU_SET_CRX(0, new_cr0);
 				CPU_SET_CRX(3, new_cr3);
@@ -1163,7 +1164,7 @@ static Bitu VCPI_PM_Handler() {
 //	LOG_MSG("VCPI PMODE handler, function %x",reg_ax);
 	switch (reg_ax) {
 	case 0xDE03:		/* VCPI Get Number of Free Pages */
-		reg_edx=MEM_FreeTotal();
+		reg_edx=(Bit32u)MEM_FreeTotal();
 		reg_ah=EMM_NO_ERROR;
 		break;
 	case 0xDE04: {		/* VCPI Allocate one Page */
@@ -1265,7 +1266,7 @@ static Bitu V86_Monitor() {
 						Bitu which=(unsigned int)(rm_val >> 3u) & 7u;
 						if ((rm_val<0xc0) || (rm_val>=0xe8))
 							E_Exit("Invalid opcode 0x0f 0x20 %x caused a protection fault!",static_cast<unsigned int>(rm_val));
-						Bit32u crx=CPU_GET_CRX(which);
+						Bit32u crx=(Bit32u)CPU_GET_CRX(which);
 						switch (rm_val&7) {
 							case 0:	reg_eax=crx;	break;
 							case 1:	reg_ecx=crx;	break;
@@ -1359,8 +1360,8 @@ static Bitu V86_Monitor() {
 	}
 
 	/* Get address to interrupt handler */
-	Bit16u vint_vector_seg=mem_readw(SegValue(ds)+int_num+2u);
-	Bit16u vint_vector_ofs=mem_readw(int_num);
+	Bit16u vint_vector_seg=mem_readw((PhysPt)(SegValue(ds)+int_num+2u));
+	Bit16u vint_vector_ofs=mem_readw((PhysPt)int_num);
 	if (reg_sp!=0x1fdau) reg_esp+=(2u+3u*4u);	// Interrupt from within protected mode
 	else reg_esp+=2;
 
