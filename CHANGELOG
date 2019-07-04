@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Bringing up the SDL drawn menus and then resizing the
+    window no longer "freezes" the display in SDL2 builds.
   - IDE emulation now minimally emulates PC-98 I/O port
     arrangement in PC-98 mode.
   - Running a build that draws it's own menus, setting
