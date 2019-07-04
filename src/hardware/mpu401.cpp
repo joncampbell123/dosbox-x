@@ -151,7 +151,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			case  0x4:	/* Stop */
 				PIC_RemoveEvents(MPU401_Event);
 				mpu.state.playing=false;
-				for (Bitu i=0xb0;i<0xbf;i++) {	/* All notes off */
+				for (Bit8u i=0xb0;i<0xbf;i++) {	/* All notes off */
 					MIDI_RawOutByte(i);
 					MIDI_RawOutByte(0x7b);
 					MIDI_RawOutByte(0);
@@ -167,7 +167,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 		}
 	}
 	else if (val>=0xa0 && val<=0xa7) {	/* Request play counter */
-		if (mpu.state.cmask&(1<<(val&7))) QueueByte(mpu.playbuf[val&7].counter);
+		if (mpu.state.cmask&(1<<(val&7))) QueueByte((Bit8u)mpu.playbuf[val&7].counter);
 	}
 	else if (val>=0xd0 && val<=0xd7) {	/* Send data */
 		mpu.state.old_chan=mpu.state.channel;
@@ -244,7 +244,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		case 0xb9:	/* Clear play map */
 		case 0xb8:	/* Clear play counters */
-			for (Bitu i=0xb0;i<0xbf;i++) {	/* All notes off */
+			for (Bit8u i=0xb0;i<0xbf;i++) {	/* All notes off */
 				MIDI_RawOutByte(i);
 				MIDI_RawOutByte(0x7b);
 				MIDI_RawOutByte(0);
@@ -318,31 +318,31 @@ static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
 static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	if (mpu.mode==M_UART) {MIDI_RawOutByte(val);return;}
+	if (mpu.mode==M_UART) {MIDI_RawOutByte((Bit8u)val);return;}
 	switch (mpu.state.command_byte) {	/* 0xe# command data */
 		case 0x00:
 			break;
 		case 0xe0:	/* Set tempo */
 			mpu.state.command_byte=0;
-			mpu.clock.tempo=val;
+			mpu.clock.tempo=(Bit8u)val;
 			return;
 		case 0xe1:	/* Set relative tempo */
 			mpu.state.command_byte=0;
             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
-            mpu.clock.tempo_rel=val;
+            mpu.clock.tempo_rel=(Bit8u)val;
             if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",(unsigned int)val,(double)val / 0x40);
 			return;
 		case 0xe7:	/* Set internal clock to host interval */
 			mpu.state.command_byte=0;
-			mpu.clock.cth_rate=val>>2;
+			mpu.clock.cth_rate=(Bit8u)(val>>2);
 			return;
 		case 0xec:	/* Set active track mask */
 			mpu.state.command_byte=0;
-			mpu.state.tmask=val;
+			mpu.state.tmask=(Bit8u)val;
 			return;
 		case 0xed: /* Set play counter mask */
 			mpu.state.command_byte=0;
-			mpu.state.cmask=val;
+			mpu.state.cmask=(Bit8u)val;
 			return;
 		case 0xee: /* Set 1-8 MIDI channel mask */
 			mpu.state.command_byte=0;
@@ -368,11 +368,11 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			cnt=0;
 				switch (val&0xf0) {
 					case 0xc0:case 0xd0:
-						mpu.playbuf[mpu.state.channel].value[0]=val;
+						mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
 						length=2;
 						break;
 					case 0x80:case 0x90:case 0xa0:case 0xb0:case 0xe0:
-						mpu.playbuf[mpu.state.channel].value[0]=val;
+						mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
 						length=3;
 						break;
 					case 0xf0:
@@ -385,7 +385,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 						MIDI_RawOutByte(mpu.playbuf[mpu.state.channel].value[0]);
 				}
 		}
-		if (cnt<length) {MIDI_RawOutByte(val);cnt++;}
+		if (cnt<length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
 		if (cnt==length) {
 			mpu.state.wsd=0;
 			mpu.state.channel=mpu.state.old_chan;
@@ -406,7 +406,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 					length=0;
 			}
 		}
-		if (!length || cnt<length) {MIDI_RawOutByte(val);cnt++;}
+		if (!length || cnt<length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
 		if (cnt==length) mpu.state.wsm=0;
 		return;
 	}
@@ -429,13 +429,13 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			case  1: /* Command byte #1 */
 				mpu.condbuf.type=T_COMMAND;
 				if (val==0xf8 || val==0xf9) mpu.condbuf.type=T_OVERFLOW;
-				mpu.condbuf.value[mpu.condbuf.vlength]=val;
+				mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
 				mpu.condbuf.vlength++;
 				if ((val&0xf0)!=0xe0) MPU401_EOIHandlerDispatch();
 				else mpu.state.data_onoff++;
 				break;
 			case  2:/* Command byte #2 */
-				mpu.condbuf.value[mpu.condbuf.vlength]=val;
+				mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
 				mpu.condbuf.vlength++;
 				MPU401_EOIHandlerDispatch();
 				break;
@@ -464,12 +464,12 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 					case 0xf0: /* System message or mark */
 						if (val>0xf7) {
 							mpu.playbuf[mpu.state.channel].type=T_MARK;
-							mpu.playbuf[mpu.state.channel].sys_val=val;
+							mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
 							length=1;
 						} else {
 							LOG(LOG_MISC,LOG_ERROR)("MPU-401:Illegal message");
 							mpu.playbuf[mpu.state.channel].type=T_MIDI_SYS;
-							mpu.playbuf[mpu.state.channel].sys_val=val;
+							mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
 							length=1;
 						}
 						break;
@@ -489,7 +489,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 						break;
 				}
 			}
-			if (!(posd==1 && val>=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=val;
+			if (!(posd==1 && val>=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=(Bit8u)val;
 			if (posd==length) MPU401_EOIHandlerDispatch();
 	}
 }
@@ -502,7 +502,7 @@ static void MPU401_IntelligentOut(Bit8u chan) {
 		case T_MARK:
 			val=mpu.playbuf[chan].sys_val;
 			if (val==0xfc) {
-				MIDI_RawOutByte(val);
+				MIDI_RawOutByte((Bit8u)val);
 				mpu.state.amask&=~(1<<chan);
 				mpu.state.req_mask&=~(1<<chan);
 			}
@@ -548,7 +548,7 @@ static void MPU401_Event(Bitu val) {
     (void)val;//UNUSED
 	if (mpu.mode==M_UART) return;
 	if (mpu.state.irq_pending) goto next_event;
-	for (Bitu i=0;i<8;i++) { /* Decrease counters */
+	for (Bit8u i=0;i<8;i++) { /* Decrease counters */
 		if (mpu.state.amask&(1<<i)) {
 			mpu.playbuf[i].counter--;
 			if (mpu.playbuf[i].counter<=0) UpdateTrack(i);
@@ -592,7 +592,7 @@ static void MPU401_EOIHandler(Bitu val) {
 	}
 	mpu.state.irq_pending=false;
 	if (!mpu.state.playing || !mpu.state.req_mask) return;
-	Bitu i=0;
+	Bit8u i=0;
 	do {
 		if (mpu.state.req_mask&(1<<i)) {
 			QueueByte(0xf0+i);
