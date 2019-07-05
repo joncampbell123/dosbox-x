@@ -74,13 +74,13 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 	
 	//Load character patterns
 	for (Bit16u i=0;i<count;i++) {
-		MEM_BlockCopy(ftwhere+i*32,font,height);
+		MEM_BlockCopy(ftwhere+i*32u,font,height);
 		font+=height;
 	}
 	//Load alternate character patterns
 	if (map & 0x80) {
 		while (Bitu chr=(Bitu)mem_readb(font++)) {
-			MEM_BlockCopy(ftwhere+chr*32,font,height);
+			MEM_BlockCopy(ftwhere+chr*32u,font,height);
 			font+=height;
 		}
 	}
@@ -101,11 +101,11 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 		Bitu rows=CurMode->sheight/height;
 		Bitu vdend=rows*height*((CurMode->sheight==200)?2:1)-1;
 		IO_Write(base,0x12);
-		IO_Write(base+1,(Bit8u)vdend);
+		IO_Write(base+1u,(Bit8u)vdend);
 		//Underline location
 		if (CurMode->mode==7) {
 			IO_Write(base,0x14);
-			IO_Write(base+1,(IO_Read(base+1) & ~0x1f)|(height-1));
+			IO_Write(base+1u,(IO_Read(base+1u) & ~0x1fu)|(height-1u));
 		}
 		//Rows setting in bios segment
 		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,rows-1);
