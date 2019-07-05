@@ -48,7 +48,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 			// a 32k mode: PCJr special case (see M_TANDY16)
 			Bit16u seg;
 			if (machine==MCH_PCJR) {
-				Bitu cpupage =
+				Bit8u cpupage =
 					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 				seg = cpupage << 10; // A14-16 to addr bits 14-16
 			} else
@@ -105,7 +105,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		Bit16u segment, offset;
 		if (is_32k) {
 			if (machine==MCH_PCJR) {
-				Bitu cpupage =
+				Bit8u cpupage =
 					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 				segment = cpupage << 10; // A14-16 to addr bits 14-16
 			} else
@@ -218,7 +218,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 			Bit16u segment, offset;
 			if (is_32k) {
 				if (machine==MCH_PCJR) {
-					Bitu cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
+					Bit8u cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 					segment = cpupage << 10;
 				} else segment = 0xb800;
 				offset = ((unsigned int)y >> 2u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
