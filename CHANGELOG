@@ -1,4 +1,9 @@
 0.82.20 (next)
+  - Re-added a20=fast by popular demand, though a20=mask
+    is still the default. a20=fast emulates the A20 gate
+    the way a virtual 8086 mode monitor does where only
+    the first 64KB past 1MB is remapped rather than
+    gating bit 20 of all addresses.
   - Bringing up the SDL drawn menus and then resizing the
     window no longer "freezes" the display in SDL2 builds.
   - IDE emulation now minimally emulates PC-98 I/O port

@@ -1198,8 +1198,7 @@ void DOSBOX_SetupConfigSections(void) {
             "  \n"
             "  4low behavior is default for ET4000 emulation.");
 
-    // TODO: At some point, I would like to make "mask" the default instead of "fast"
-    Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"fast");
+    Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"mask");
     Pstring->Set_help("A20 gate emulation mode.\n"
               "The on/off/on_fake/off_fake options are intended for testing and debugging DOS development,\n"
               "or to emulate obscure hardware, or to work around potential extended memory problems with DOS programs.\n"
