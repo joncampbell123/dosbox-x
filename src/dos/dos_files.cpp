@@ -905,7 +905,7 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
 		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
-                fcb_name.part.name[index]=nc;
+                fcb_name.part.name[index]=(char)nc;
                 string++;
                 index++;
                 if (index >= 8) break;
@@ -913,7 +913,7 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
                 /* should be trailing byte of Shift-JIS */
                 if (nc < 32 || nc >= 127) continue;
 
-                fcb_name.part.name[index]=nc;
+                fcb_name.part.name[index]=(char)nc;
             }
 		else
 		{
@@ -925,11 +925,11 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 			if (ncs == '?' && !ret && index < 8) ret = 1; //Don't override bad drive
 			if (!isvalid(ncs)) { //Fill up the name.
 				while(index < 8) 
-					fcb_name.part.name[index++] = fill; 
+					fcb_name.part.name[index++] = (char)fill;
 				break;
 			}
 			if (index < 8) { 
-				fcb_name.part.name[index++] = (fill == '?')?fill:ncs; 
+				fcb_name.part.name[index++] = (char)((fill == '?')?fill:ncs);
 			}
 		}
 		string++;
@@ -943,7 +943,7 @@ checkext:
 		unsigned char nc = *reinterpret_cast<unsigned char*>(&string[0]);
 		if (IS_PC98_ARCH && shiftjis_lead_byte(nc)) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
-                fcb_name.part.ext[index]=nc;
+                fcb_name.part.ext[index]=(char)nc;
                 string++;
                 index++;
                 if (index >= 3) break;
@@ -951,7 +951,7 @@ checkext:
                 /* should be trailing byte of Shift-JIS */
                 if (nc < 32u || nc >= 127u) continue;
 
-                fcb_name.part.ext[index]=nc;
+                fcb_name.part.ext[index]=(char)nc;
             }
 		else
 		{
@@ -963,11 +963,11 @@ checkext:
 			if (ncs == '?' && !ret && index < 3) ret = 1;
 			if (!isvalid(ncs)) { //Fill up the name.
 				while(index < 3) 
-					fcb_name.part.ext[index++] = fill; 
+					fcb_name.part.ext[index++] = (char)fill;
 				break;
 			}
 			if (index < 3) { 
-				fcb_name.part.ext[index++] = (fill=='?')?fill:ncs; 
+				fcb_name.part.ext[index++] = (char)((fill=='?')?fill:ncs);
 			}
 		}
 		string++;
