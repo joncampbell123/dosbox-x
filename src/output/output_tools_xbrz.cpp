@@ -133,14 +133,14 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
 
                 int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
                 yLast = min(srcHeight, sliceLast + 2);  // (and make sure to not overlap with last slice!)
-                xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), yFirst, yLast);
+                xbrz::scale((size_t)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), yFirst, yLast);
             }
             index++;
         }
     }
     else // process complete input image
     {
-        xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), 0, srcHeight);
+        xbrz::scale((size_t)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), 0, srcHeight);
     }
 #endif /*XBRZ_PPL*/
 }
