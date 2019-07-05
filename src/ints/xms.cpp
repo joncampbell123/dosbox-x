@@ -632,7 +632,7 @@ public:
 
 		if (!section->Get_bool("xms")) return;
 
-        XMS_HANDLES = section->Get_int("xms handles");
+        XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
         if (XMS_HANDLES == 0)
             XMS_HANDLES = XMS_HANDLES_DEFAULT;
         else if (XMS_HANDLES < XMS_HANDLES_MIN)
