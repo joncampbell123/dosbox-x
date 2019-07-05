@@ -329,7 +329,7 @@ retry:
         if (sdl_xbrz.enable)
         {
             bool old_scale_on = sdl_xbrz.scale_on;
-            xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
+            xBRZ_SetScaleParameters((int)sdl.draw.width, (int)sdl.draw.height, sdl.clip.w, sdl.clip.h);
             if (sdl_xbrz.scale_on != old_scale_on) {
                 // when we are scaling, we ask render code not to do any aspect correction
                 // when we are not scaling, render code is allowed to do aspect correction at will

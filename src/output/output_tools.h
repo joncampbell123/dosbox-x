@@ -48,8 +48,8 @@ inline void aspectCorrectFitClip(volatile WH &clipW, volatile WH &clipH, volatil
         sw = fullW;
     }
 
-    ax = (WH)floor((fullW - sw) / 2);
-    ay = (WH)floor((fullH - sh) / 2);
+    ax = (XY)floor((fullW - sw) / 2);
+    ay = (XY)floor((fullH - sh) / 2);
     if (ax < 0) ax = 0;
     if (ay < 0) ay = 0;
 
