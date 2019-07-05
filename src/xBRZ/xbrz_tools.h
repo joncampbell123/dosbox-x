@@ -221,7 +221,7 @@ void bilinearScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitc
         double xx1 = 0;
         double x2x = 0;
     };
-    std::vector<CoeffsX> buf(trgWidth);
+    std::vector<CoeffsX> buf((size_t)trgWidth);
     for (int x = 0; x < trgWidth; ++x)
     {
         const int x1 = srcWidth * x / trgWidth;
@@ -231,10 +231,10 @@ void bilinearScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitc
         const double xx1 = x / scaleX - x1;
         const double x2x = 1 - xx1;
 
-        buf[x].x1 = x1;
-        buf[x].x2 = x2;
-        buf[x].xx1 = xx1;
-        buf[x].x2x = x2x;
+        buf[(unsigned int)x].x1 = x1;
+        buf[(unsigned int)x].x2 = x2;
+        buf[(unsigned int)x].xx1 = xx1;
+        buf[(unsigned int)x].x2x = x2x;
     }
 
     for (int y = yFirst; y < yLast; ++y)
@@ -253,10 +253,10 @@ void bilinearScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitc
         for (int x = 0; x < trgWidth; ++x)
         {
             //perf: do NOT "simplify" the variable layout without measurement!
-            const int     x1 = buf[x].x1;
-            const int     x2 = buf[x].x2;
-            const double xx1 = buf[x].xx1;
-            const double x2x = buf[x].x2x;
+            const int     x1 = buf[(unsigned int)x].x1;
+            const int     x2 = buf[(unsigned int)x].x2;
+            const double xx1 = buf[(unsigned int)x].xx1;
+            const double x2x = buf[(unsigned int)x].x2x;
 
             const double x2xy2y = x2x * y2y;
             const double xx1y2y = xx1 * y2y;
@@ -291,7 +291,7 @@ void bilinearScale(const uint32_t* src, int srcWidth, int srcHeight, int srcPitc
 
             const uint32_t trgPix = (a << 24) | (r << 16) | (g << 8) | b;
 
-            trgLine[x] = pixCvrt(trgPix);
+            trgLine[(unsigned int)x] = pixCvrt(trgPix);
         }
     }
 }
