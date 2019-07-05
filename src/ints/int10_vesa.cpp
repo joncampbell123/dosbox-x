@@ -775,7 +775,7 @@ void INT10_SetupVESA(void) {
 	if (svgaCard == SVGA_None) return;
 
 	/* Put the mode list somewhere in memory */
-    int10.rom.vesa_alloc_modes = ~0;
+    int10.rom.vesa_alloc_modes = (Bit16u)(~0u);
     int10.rom.vesa_modes = RealMake(0xc000,int10.rom.used);
     modecount = INT10_WriteVESAModeList(0xFFFF/*max mode count*/);
     int10.rom.vesa_alloc_modes = (Bit16u)modecount;
