@@ -3,7 +3,8 @@
     is still the default. a20=fast emulates the A20 gate
     the way a virtual 8086 mode monitor does where only
     the first 64KB past 1MB is remapped rather than
-    gating bit 20 of all addresses.
+    gating bit 20 of all addresses. Note that a20=fast
+    also matches the A20 gate behavior in DOSBox SVN.
   - Bringing up the SDL drawn menus and then resizing the
     window no longer "freezes" the display in SDL2 builds.
   - IDE emulation now minimally emulates PC-98 I/O port
