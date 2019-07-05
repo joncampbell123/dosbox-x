@@ -308,7 +308,7 @@ void DOS_SetupTables(void) {
 		real_writeb(dos.tables.dpb,i*9,(Bit8u)i);				// drive number
 		real_writeb(dos.tables.dpb,i*9+1,(Bit8u)i);			// unit number
 		real_writew(dos.tables.dpb,i*9+2,0x0200);		// bytes per sector
-		mem_writew(Real2Phys(dos.tables.mediaid)+i*9,0);
+		mem_writew(Real2Phys(dos.tables.mediaid)+i*9u,0u);
 	}
 
 	/* Create a fake disk buffer head */
