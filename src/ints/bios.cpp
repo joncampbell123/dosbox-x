@@ -376,7 +376,7 @@ void dosbox_integration_trigger_read() {
              * bit  [8:8] = primary PIC present
              * bit  [9:9] = secondary PIC present */
             if (master_cascade_irq >= 0)
-                dosbox_int_register = (master_cascade_irq & 0xFFu);
+                dosbox_int_register = ((unsigned int)master_cascade_irq & 0xFFu);
             else
                 dosbox_int_register = 0xFFu;
 
@@ -2733,7 +2733,7 @@ struct pc98_func_key_shortcut_def {
         unsigned int i=0;
         char c;
 
-        while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = c;
+        while (i < 0x0E && (c = *str++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
 
         while (i < 0x0E) shortcut[i++] = 0;
@@ -2750,10 +2750,10 @@ struct pc98_func_key_shortcut_def {
         // are text to display. The 0xFE is copied as-is to the display when rendered.
         // 0xFE in the CG ROM is a blank space.
         shortcut[0] = 0xFE;
-        while (i < 6 && (c = *text++) != 0) shortcut[i++] = c;
+        while (i < 6 && (c = *text++) != 0) shortcut[i++] = (unsigned char)c;
         while (i < 6) shortcut[i++] = ' ';
 
-        while (i < 0x0E && (c = *escape++) != 0) shortcut[i++] = c;
+        while (i < 0x0E && (c = *escape++) != 0) shortcut[i++] = (unsigned char)c;
         length = i;
         while (i < 0x0E) shortcut[i++] = 0;
     }
@@ -3473,7 +3473,7 @@ static Bitu INT18_PC98_Handler(void) {
                         pc98_gdc[GDC_SLAVE].doublescan = false;
                         pc98_gdc[GDC_SLAVE].row_height = 1;
 
-                        b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
+                        b597 = (b597 & ~3u) + ((Bit8u)(reg_bh >> 4u) & 3u);
 
                         pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
                         pc98_update_cpu_page_ptr();
@@ -3564,7 +3564,7 @@ static Bitu INT18_PC98_Handler(void) {
                         pc98_gdc[GDC_SLAVE].row_height = 1;
                     }
 
-                    b597 = (b597 & ~3u) + ((reg_bh >> 4u) & 3u);
+                    b597 = (b597 & ~3u) + ((Bit8u)(reg_bh >> 4u) & 3u);
 
                     pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
                     pc98_update_cpu_page_ptr();
@@ -4057,8 +4057,8 @@ void FDC_WAIT_TIMER_HACK(void) {
 
         pv = v;
 
-        v  = IO_ReadB(0x71);
-        v |= IO_ReadB(0x71) << 8;
+        v  = (unsigned int)IO_ReadB(0x71);
+        v |= (unsigned int)IO_ReadB(0x71) << 8u;
 
         if (v > pv) {
             /* if the timer rolled around, we might have missed the narrow window we're watching for */
@@ -5245,9 +5245,9 @@ static void BIOS_HostTimeSync() {
     dos.date.year=(Bit16u)loctime->tm_year+1900;
 
     Bit32u ticks=(Bit32u)(((double)(
-        loctime->tm_hour*3600*1000+
-        loctime->tm_min*60*1000+
-        loctime->tm_sec*1000+
+        (unsigned int)loctime->tm_hour*3600u*1000u+
+        (unsigned int)loctime->tm_min*60u*1000u+
+        (unsigned int)loctime->tm_sec*1000u+
         milli))*(((double)PIT_TICK_RATE/65536.0)/1000.0));
     mem_writed(BIOS_TIMER,ticks);
 }
@@ -8686,12 +8686,12 @@ public:
                 size_t i=0;
 
                 for (;i < pc98_copyright_str.length();i++)
-                    phys_writeb(0xE8000 + 0x0DD8 + i,pc98_copyright_str[i]);
+                    phys_writeb(0xE8000 + 0x0DD8 + i,(Bit8u)pc98_copyright_str[i]);
 
                 phys_writeb(0xE8000 + 0x0DD8 + i,0);
 
                 for (size_t i=0;i < sizeof(pc98_epson_check_2);i++)
-                    phys_writeb(0xF5200 + 0x018E + i,pc98_epson_check_2[i]);
+                    phys_writeb(0xF5200 + 0x018E + i,(Bit8u)pc98_epson_check_2[i]);
             }
         }
     }
