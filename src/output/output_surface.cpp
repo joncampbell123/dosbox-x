@@ -199,7 +199,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
 #if defined(C_SDL2)
                 SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, rectCount);
 #else
-                SDL_UpdateRects(sdl.surface, rectCount, sdl.updateRects);
+                SDL_UpdateRects(sdl.surface, (int)rectCount, sdl.updateRects);
 #endif
             }
         }
