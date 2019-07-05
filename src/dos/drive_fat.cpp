@@ -79,8 +79,8 @@ void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
      *      tm->tm_mon = months since January therefore January == 0
      *      tm->tm_mday = day of the month, starting with 1 */
 
-    t = (tm->tm_hour << 11u) + (tm->tm_min << 5u) + (tm->tm_sec >> 1u);
-    d = ((tm->tm_year - 80u) << 9u) + ((tm->tm_mon + 1u) << 5) + tm->tm_mday;
+    t = ((unsigned int)tm->tm_hour << 11u) + ((unsigned int)tm->tm_min << 5u) + ((unsigned int)tm->tm_sec >> 1u);
+    d = (((unsigned int)tm->tm_year - 80u) << 9u) + (((unsigned int)tm->tm_mon + 1u) << 5u) + (unsigned int)tm->tm_mday;
 }
 
 /* IN - char * filename: Name in regular filename format, e.g. bob.txt */
@@ -567,7 +567,7 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 Bit8u fatDrive::readSector(Bit32u sectnum, void * data) {
 	if (absolute) return Read_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
-	Bit32u cylindersize = bootbuffer.headcount * bootbuffer.sectorspertrack;
+	Bit32u cylindersize = (unsigned int)bootbuffer.headcount * (unsigned int)bootbuffer.sectorspertrack;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
 	Bit32u head = sectnum / bootbuffer.sectorspertrack;
@@ -578,7 +578,7 @@ Bit8u fatDrive::readSector(Bit32u sectnum, void * data) {
 Bit8u fatDrive::writeSector(Bit32u sectnum, void * data) {
 	if (absolute) return Write_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
-	Bit32u cylindersize = bootbuffer.headcount * bootbuffer.sectorspertrack;
+	Bit32u cylindersize = (unsigned int)bootbuffer.headcount * (unsigned int)bootbuffer.sectorspertrack;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
 	Bit32u head = sectnum / bootbuffer.sectorspertrack;
@@ -591,7 +591,7 @@ Bit32u fatDrive::getSectorSize(void) {
 }
 
 Bit32u fatDrive::getClusterSize(void) {
-	return bootbuffer.sectorspercluster * bootbuffer.bytespersector;
+	return (unsigned int)bootbuffer.sectorspercluster * (unsigned int)bootbuffer.bytespersector;
 }
 
 Bit32u fatDrive::getAbsoluteSectFromBytePos(Bit32u startClustNum, Bit32u bytePos) {
@@ -993,7 +993,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                     return;
                 }
 
-                i = opt_partition_index;
+                i = (unsigned int)opt_partition_index;
                 _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
                 /* unfortunately start and end are in C/H/S geometry, so we have to translate.
