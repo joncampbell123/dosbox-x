@@ -2174,9 +2174,9 @@ public:
         }
 
         if (enable == 0)
-            ModeList_VGA[array_i].special |= _USER_DISABLED;
+            ModeList_VGA[array_i].special |= (Bit16u)  _USER_DISABLED;
         else if (enable == 1)
-            ModeList_VGA[array_i].special &= ~_USER_DISABLED;
+            ModeList_VGA[array_i].special &= (Bit16u)(~_USER_DISABLED);
 
         if (doDelete) {
             if (ModeList_VGA[array_i].type != M_ERROR)
@@ -2210,11 +2210,11 @@ public:
                     unsigned int aln = 8;
 
                     if (ModeList_VGA[array_i].type == M_LIN4)
-                        aln = 16;
+                        aln = 16u;
 
-                    w += aln / 2;
-                    w -= w % aln;
-                    if (w == 0) w = aln;
+                    w += (int)(aln / 2u);
+                    w -= (int)((unsigned int)w % aln);
+                    if (w == 0u) w = (int)aln;
                 }
 
                 ModeList_VGA[array_i].swidth = (Bitu)w;
@@ -2231,12 +2231,12 @@ public:
                 ModeList_VGA[array_i].sheight = (Bitu)h;
 
                 if (h >= 340)
-                    ModeList_VGA[array_i].special &= ~_REPEAT1;
+                    ModeList_VGA[array_i].special &= (Bit16u)(~_REPEAT1);
                 else
-                    ModeList_VGA[array_i].special |= _REPEAT1;
+                    ModeList_VGA[array_i].special |= (Bit16u)  _REPEAT1;
 
                 if (ModeList_VGA[array_i].special & _REPEAT1)
-                    ModeList_VGA[array_i].vdispend = (Bitu)h * 2;
+                    ModeList_VGA[array_i].vdispend = (Bitu)h * 2u;
                 else
                     ModeList_VGA[array_i].vdispend = (Bitu)h;
 
