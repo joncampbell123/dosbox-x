@@ -243,7 +243,7 @@ void DOS_Shell::InputCommand(char * line) {
                         DOS_WriteFile(STDOUT,&c,&n);
                     }
                     str_len = str_index = (Bit16u)it_history->length();
-                    size = CMD_MAXLINE - str_index - 2;
+                    size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                     line[str_len] = 0;
                 }
                 break;
@@ -345,7 +345,7 @@ void DOS_Shell::InputCommand(char * line) {
                 strcpy(line, it_history->c_str());
                 len = (Bit16u)it_history->length();
                 str_len = str_index = len;
-                size = CMD_MAXLINE - str_index - 2;
+                size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (Bit8u *)line, &len);
                 it_history ++;
                 break;
@@ -374,7 +374,7 @@ void DOS_Shell::InputCommand(char * line) {
                 strcpy(line, it_history->c_str());
                 len = (Bit16u)it_history->length();
                 str_len = str_index = len;
-                size = CMD_MAXLINE - str_index - 2;
+                size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (Bit8u *)line, &len);
                 it_history ++;
 
@@ -408,7 +408,7 @@ void DOS_Shell::InputCommand(char * line) {
                         strcpy(&line[completion_index], it_completion->c_str());
                         len = (Bit16u)it_completion->length();
                         str_len = str_index = (Bitu)(completion_index + len);
-                        size = CMD_MAXLINE - str_index - 2;
+                        size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                         DOS_WriteFile(STDOUT, (Bit8u *)it_completion->c_str(), &len);
                     }
                 }
@@ -416,7 +416,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 if (str_index) {
                     outc(8);
-                    Bit32u str_remain=str_len - str_index;
+                    Bit32u str_remain=(Bit32u)(str_len - str_index);
                     size++;
                     if (str_remain) {
                         memmove(&line[str_index-1],&line[str_index],str_remain);
@@ -542,7 +542,7 @@ void DOS_Shell::InputCommand(char * line) {
                         strcpy(&line[completion_index], it_completion->c_str());
                         len = (Bit16u)it_completion->length();
                         str_len = str_index = (Bitu)(completion_index + len);
-                        size = CMD_MAXLINE - str_index - 2;
+                        size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                         DOS_WriteFile(STDOUT, (Bit8u *)it_completion->c_str(), &len);
                     }
                 }
@@ -956,7 +956,7 @@ continue_1:
 				while ( *p == 0 && (p-parseline) < 250) p++; //Skip empty fields
 				if ((p-parseline) < 250) { //Found something. Lets get the first letter and break it up
 					p++;
-					memmove(static_cast<void*>(p + 1),static_cast<void*>(p),(250-(p-parseline)));
+					memmove(static_cast<void*>(p + 1),static_cast<void*>(p),(250u-(unsigned int)(p-parseline)));
 					if ((p-parseline) < 250) *p = 0;
 				}
 			}
