@@ -704,7 +704,7 @@ static void FinishSetMode(bool clearmem) {
             }
 			break;
 		case M_TEXT: {
-			Bit16u max = (CurMode->ptotal*CurMode->plength)>>1;
+			Bit16u max = (Bit16u)(CurMode->ptotal*CurMode->plength)>>1;
 			if (CurMode->mode == 7) {
 				for (Bit16u ct=0;ct<max;ct++) real_writew(0xB000,ct*2,0x0720);
 			}
@@ -803,13 +803,13 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	LOG(LOG_INT10,LOG_NORMAL)("Set Video Mode %X",mode);
 
 	/* Setup the CRTC */
-	Bitu crtc_base=(machine==MCH_HERC || machine==MCH_MDA) ? 0x3b4 : 0x3d4;
+	Bit16u crtc_base=(machine==MCH_HERC || machine==MCH_MDA) ? 0x3b4 : 0x3d4;
 	//Horizontal total
-	IO_WriteW(crtc_base,0x00 | (CurMode->htotal) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x00 | (CurMode->htotal) << 8));
 	//Horizontal displayed
-	IO_WriteW(crtc_base,0x01 | (CurMode->hdispend) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend) << 8));
 	//Horizontal sync position
-	IO_WriteW(crtc_base,0x02 | (CurMode->hdispend+1) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend+1) << 8));
 	//Horizontal sync width, seems to be fixed to 0xa, for cga at least, hercules has 0xf
 	// PCjr doubles sync width in high resolution modes, good for aspect correction
 	// newer "compatible" CGA BIOS does the same
@@ -819,15 +819,15 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	else if(CurMode->hdispend==80) syncwidth = 0xc;
 	else syncwidth = 0x6;
 	
-	IO_WriteW(crtc_base,0x03 | (syncwidth) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x03 | (syncwidth) << 8));
 	////Vertical total
-	IO_WriteW(crtc_base,0x04 | (CurMode->vtotal) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x04 | (CurMode->vtotal) << 8));
 	//Vertical total adjust, 6 for cga,hercules,tandy
-	IO_WriteW(crtc_base,0x05 | (6) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x05 | (6) << 8));
 	//Vertical displayed
-	IO_WriteW(crtc_base,0x06 | (CurMode->vdispend) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x06 | (CurMode->vdispend) << 8));
 	//Vertical sync position
-	IO_WriteW(crtc_base,0x07 | (CurMode->vdispend + ((CurMode->vtotal - CurMode->vdispend)/2)-1) << 8);
+	IO_WriteW(crtc_base,(Bit16u)(0x07 | (CurMode->vdispend + ((CurMode->vtotal - CurMode->vdispend)/2)-1) << 8));
 	//Maximum scanline
 	Bit8u scanline,crtpage;
 	scanline=8;
@@ -958,7 +958,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 			IO_WriteB(0x3de,0x0);break;
 		}
 		// write palette
-		for(Bitu i = 0; i < 16; i++) {
+		for(Bit8u i = 0; i < 16; i++) {
 			IO_WriteB(0x3da,i+0x10);
 			IO_WriteB(0x3de,i);
 		}
@@ -1370,7 +1370,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 				break;
 			}
 		} else max_scanline |= CurMode->cheight-1;
-		underline=mono_mode ? CurMode->cheight-1 : 0x1f; // mode 7 uses underline position
+		underline=(Bit8u)(mono_mode ? CurMode->cheight-1 : 0x1f); // mode 7 uses underline position
 		break;
 	case M_VGA:
 		underline=0x40;
@@ -1855,7 +1855,7 @@ dac_text16:
 			case 1600: reg_50|=S3_XGA_1600; break;
 			default: break;
 		}
-		IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,reg_50);
+		IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,(Bit8u)reg_50);
 
 		Bit8u reg_31, reg_3a;
 		switch (CurMode->type) {
@@ -2202,7 +2202,7 @@ public:
             if (fmt >= 0) {
                 ModeList_VGA[array_i].type = (VGAModes)fmt;
                 /* will require reprogramming width in some cases! */
-                if (w < 0) w = ModeList_VGA[array_i].swidth;
+                if (w < 0) w = (int)ModeList_VGA[array_i].swidth;
             }
             if (w > 0) {
                 /* enforce alignment to avoid problems with modesetting code */
@@ -2252,7 +2252,7 @@ public:
 
         if (newmode >= 0x40) {
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
-            ModeList_VGA[array_i].mode = (Bitu)newmode;
+            ModeList_VGA[array_i].mode = (Bit16u)newmode;
             INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
         }
 
@@ -2263,20 +2263,20 @@ public:
             switch (ModeList_VGA[array_i].type) {
                 case M_LIN4:
                 case M_PACKED4:
-                    pitch = (ModeList_VGA[array_i].swidth / 8) * 4; /* not totally accurate but close enough */
+                    pitch = (unsigned int)(ModeList_VGA[array_i].swidth / 8) * 4u; /* not totally accurate but close enough */
                     break;
                 case M_LIN8:
-                    pitch = ModeList_VGA[array_i].swidth;
+                    pitch = (unsigned int)ModeList_VGA[array_i].swidth;
                     break;
                 case M_LIN15:
                 case M_LIN16:
-                    pitch = ModeList_VGA[array_i].swidth * 2;
+                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 2u;
                     break;
                 case M_LIN24:
-                    pitch = ModeList_VGA[array_i].swidth * 3;
+                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 3u;
                     break;
                 case M_LIN32:
-                    pitch = ModeList_VGA[array_i].swidth * 4;
+                    pitch = (unsigned int)ModeList_VGA[array_i].swidth * 4u;
                     break;
                 default:
                     break;
