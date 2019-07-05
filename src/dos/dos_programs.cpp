@@ -142,7 +142,7 @@ static const char* UnmountHelper(char umount) {
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
         Drives[i_drive] = 0;
-        mem_writeb(Real2Phys(dos.tables.mediaid)+i_drive*9,0);
+        mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*9u,0);
         if (i_drive == DOS_GetDefaultDrive()) {
             DOS_SetDrive(ZDRIVE_NUM);
         }
@@ -1498,9 +1498,9 @@ public:
 
                         Bit16u m = 0x460u + (i * 4u);
 
-                        mem_writeb(m+0,sects);
-                        mem_writeb(m+1,heads);
-                        mem_writew(m+2,(cyls & 0xFFFu) + (ssize == 512u ? 0x1000u : 0u) + (ssize == 1024u ? 0x2000u : 0) + 0x8000u/*NP2:hwsec*/);
+                        mem_writeb(m+0u,sects);
+                        mem_writeb(m+1u,heads);
+                        mem_writew(m+2u,(cyls & 0xFFFu) + (ssize == 512u ? 0x1000u : 0u) + (ssize == 1024u ? 0x2000u : 0) + 0x8000u/*NP2:hwsec*/);
                     }
                 }
 
@@ -2065,7 +2065,7 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
-        if(fseeko64(f,static_cast<unsigned long long>(size - 1ull),SEEK_SET)) {
+        if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             return;
         }
