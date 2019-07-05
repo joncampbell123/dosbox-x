@@ -276,8 +276,8 @@ Bitu OUTPUT_OPENGL_SetSize()
     // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
     if (sdl_xbrz.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
     {
-        adjTexWidth = adjTexWidth * sdl_xbrz.scale_factor;
-        adjTexHeight = adjTexHeight * sdl_xbrz.scale_factor;
+        adjTexWidth = adjTexWidth * (unsigned int)sdl_xbrz.scale_factor;
+        adjTexHeight = adjTexHeight * (unsigned int)sdl_xbrz.scale_factor;
     }
 #endif
 
@@ -293,7 +293,7 @@ Bitu OUTPUT_OPENGL_SetSize()
     {
         glGenBuffersARB(1, &sdl_opengl.buffer);
         glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl_opengl.buffer);
-        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, adjTexWidth*adjTexHeight * 4, NULL, GL_STREAM_DRAW_ARB);
+        glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, (int)(adjTexWidth*adjTexHeight * 4), NULL, GL_STREAM_DRAW_ARB);
         glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
     }
     else
@@ -417,7 +417,7 @@ Bitu OUTPUT_OPENGL_SetSize()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int)SDLDrawGenFontTextureWidth, (int)SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
         /* load the font */
         {
@@ -512,8 +512,8 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {
             // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
-            const int srcWidth = sdl.draw.width;
-            const int srcHeight = sdl.draw.height;
+            const Bit32u srcWidth = sdl.draw.width;
+            const Bit32u srcHeight = sdl.draw.height;
 
             if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
             {
@@ -531,7 +531,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 }
 
                 if (trgTex)
-                    xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
+                    xBRZ_Render(renderBuf, trgTex, changedLines, (int)srcWidth, (int)srcHeight, sdl_xbrz.scale_factor);
             }
 
             // and here we go repeating some stuff with xBRZ related modifications
@@ -540,7 +540,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
+                    (int)(sdl.draw.width * (unsigned int)sdl_xbrz.scale_factor), (int)(sdl.draw.height * (unsigned int)sdl_xbrz.scale_factor), GL_BGRA_EXT,
 #if defined (MACOSX) && !defined(C_SDL2)
                     // needed for proper looking graphics on macOS 10.12, 10.13
                     GL_UNSIGNED_INT_8_8_8_8,
@@ -554,7 +554,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
             {
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
+                    (int)(sdl.draw.width * (unsigned int)sdl_xbrz.scale_factor), (int)(sdl.draw.height * (unsigned int)sdl_xbrz.scale_factor), GL_BGRA_EXT,
 #if defined (MACOSX) && !defined(C_SDL2)
                     // needed for proper looking graphics on macOS 10.12, 10.13
                     GL_UNSIGNED_INT_8_8_8_8,
