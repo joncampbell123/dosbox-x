@@ -224,7 +224,7 @@ Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 		Bitu pages=(size/4) + ((size & 3) ? 1 : 0);
 		mem=MEM_AllocatePages(pages,true);
 		if (!mem) return XMS_OUT_OF_SPACE;
-		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,pages);
+		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,(unsigned int)pages);
 	} else {
 		mem=MEM_GetNextFreePage();
 		if (mem==0) LOG(LOG_MISC,LOG_DEBUG)("XMS:Allocate zero pages with no memory left"); // Windows 3.1 triggers this surprisingly often!
@@ -467,11 +467,11 @@ Bitu XMS_Handler(void) {
         SET_RESULT(XMS_LocalDisableA20());
 		break;
 	case XMS_QUERY_A20:											/* 07 */
-		reg_ax = XMS_GetEnabledA20();
+		reg_ax = (Bit16u)XMS_GetEnabledA20();
 		reg_bl = 0;
 		break;
 	case XMS_QUERY_FREE_EXTENDED_MEMORY:						/* 08 */
-		reg_bl = XMS_QueryFreeMemory(reg_eax,reg_edx);
+		reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
 		if (reg_eax > 65535) reg_eax = 65535; /* cap sizes for older DOS programs. newer ones use function 0x88 */
 		if (reg_edx > 65535) reg_edx = 65535;
 		break;
@@ -571,13 +571,13 @@ Bitu XMS_Handler(void) {
 		reg_bl=UMB_NO_BLOCKS_AVAILABLE;
 		break;
 	case XMS_QUERY_ANY_FREE_MEMORY:								/* 88 */
-		reg_bl = XMS_QueryFreeMemory(reg_eax,reg_edx);
-		reg_ecx = (MEM_TotalPages()*MEM_PAGESIZE)-1;			// highest known physical memory address
+		reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
+		reg_ecx = (Bit32u)((MEM_TotalPages()*MEM_PAGESIZE)-1);			// highest known physical memory address
 		break;
 	case XMS_GET_EMB_HANDLE_INFORMATION_EXT: {					/* 8e */
 		Bit8u free_handles;
 		Bitu result = XMS_GetHandleInformation(reg_dx,reg_bh,free_handles,reg_edx);
-		if (result != 0) reg_bl = result;
+		if (result != 0) reg_bl = (Bit8u)result;
 		else reg_cx = free_handles;
 		reg_ax = (result==0);
 		} break;
@@ -716,10 +716,10 @@ public:
 
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
-			if (first_umb_seg < VGA_BIOS_SEG_END)
-				first_umb_seg = VGA_BIOS_SEG_END;
+			if (first_umb_seg < (Bit16u)VGA_BIOS_SEG_END)
+				first_umb_seg = (Bit16u)VGA_BIOS_SEG_END;
 		}
-		if (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;
+		if (first_umb_size == 0) first_umb_size = (Bit16u)(ROMBIOS_MinAllocatedLoc()>>4);
 
 		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
 			LOG(LOG_MISC,LOG_WARN)("UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)",
@@ -771,7 +771,7 @@ public:
         if (ems_available && first_umb_size >= GetEMSPageFrameSegment()) {
             assert(GetEMSPageFrameSegment() >= 0xA000);
             LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
-            first_umb_size = GetEMSPageFrameSegment() - 1;
+            first_umb_size = (Bit16u)(GetEMSPageFrameSegment() - 1);
         }
         /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
         /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
