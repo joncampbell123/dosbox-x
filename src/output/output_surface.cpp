@@ -77,8 +77,8 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
-        const int srcWidth = sdl.draw.width;
-        const int srcHeight = sdl.draw.height;
+        const Bit32u srcWidth = sdl.draw.width;
+        const Bit32u srcHeight = sdl.draw.height;
         if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
         {
             // please use sdl.clip to keep screen positioning consistent with the rest of the emulator
@@ -88,24 +88,24 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             int clipY = sdl.clip.y;
 
             // 1. xBRZ-scale render buffer into xbrz pixel buffer
-            int xbrzWidth = 0;
-            int xbrzHeight = 0;
+            unsigned int xbrzWidth = 0;
+            unsigned int xbrzHeight = 0;
             uint32_t* xbrzBuf;
-            xbrzWidth = srcWidth * sdl_xbrz.scale_factor;
-            xbrzHeight = srcHeight * sdl_xbrz.scale_factor;
+            xbrzWidth = srcWidth * (unsigned int)sdl_xbrz.scale_factor;
+            xbrzHeight = srcHeight * (unsigned int)sdl_xbrz.scale_factor;
             sdl_xbrz.pixbuf.resize(xbrzWidth * xbrzHeight);
 
             const uint32_t* renderBuf = &sdl_xbrz.renderbuf[0]; // help VS compiler a little + support capture by value
             xbrzBuf = &sdl_xbrz.pixbuf[0];
-            xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
+            xBRZ_Render(renderBuf, xbrzBuf, changedLines, (int)srcWidth, (int)srcHeight, sdl_xbrz.scale_factor);
 
             // 2. nearest neighbor/bilinear scale xbrz buffer into output surface clipping area
             const bool mustLock = SDL_MUSTLOCK(sdl.surface);
             if (mustLock) SDL_LockSurface(sdl.surface);
             if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
             {
-                uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
-                xBRZ_PostScale(&xbrzBuf[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), 
+                uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + (unsigned int)clipX * sizeof(uint32_t));
+                xBRZ_PostScale(&xbrzBuf[0], (int)xbrzWidth, (int)xbrzHeight, xbrzWidth * sizeof(uint32_t), 
                     &clipTrg[0], clipWidth, clipHeight, sdl.surface->pitch, 
                     sdl_xbrz.postscale_bilinear, sdl_xbrz.task_granularity);
             }
@@ -187,7 +187,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
                 else {
                     SDL_Rect *rect = &sdl.updateRects[rectCount++];
                     rect->x = sdl.clip.x;
-                    rect->y = sdl.clip.y + y;
+                    rect->y = sdl.clip.y + (int)y;
                     rect->w = (Bit16u)sdl.draw.width;
                     rect->h = changedLines[index];
                     y += changedLines[index];
