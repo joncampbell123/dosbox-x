@@ -2865,10 +2865,10 @@ Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
         case SCREEN_OPENGL:
 # if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
             //USE BGRA
-            return ((blue << 24) | (green << 16) | (red << 8)) | (255 << 0);
+            return (((unsigned long)blue << 24ul) | ((unsigned long)green << 16ul) | ((unsigned long)red <<  8ul)) | (255ul <<  0ul);
 # else
             //USE ARGB
-            return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
+            return (((unsigned long)blue <<  0ul) | ((unsigned long)green <<  8ul) | ((unsigned long)red << 16ul)) | (255ul << 24ul);
 # endif
 #endif
 
@@ -8131,7 +8131,7 @@ fresh_boot:
         wait_debugger = false;
         reboot_machine = false;
         dos_kernel_shutdown = false;
-        guest_msdos_mcb_chain = -1;
+        guest_msdos_mcb_chain = (Bit16u)(~0u);
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
