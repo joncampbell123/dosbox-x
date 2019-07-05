@@ -83,8 +83,8 @@ retry:
     {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
         Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
-        int final_height = max(consider_height, userResizeWindowHeight);
-        int final_width = max(consider_width, userResizeWindowWidth);
+        int final_height = (int)max(consider_height, userResizeWindowHeight);
+        int final_width = (int)max(consider_width, userResizeWindowWidth);
 
         fixedWidth = final_width;
         fixedHeight = final_height;
@@ -274,14 +274,14 @@ Bitu OUTPUT_OPENGL_SetSize()
     Bitu adjTexHeight = sdl.draw.height;
 #if C_XBRZ
     // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
-    if (sdl_xbrz.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
+    if (sdl_xbrz.enable && xBRZ_SetScaleParameters((int)adjTexWidth, (int)adjTexHeight, (int)sdl.clip.w, (int)sdl.clip.h))
     {
         adjTexWidth = adjTexWidth * (unsigned int)sdl_xbrz.scale_factor;
         adjTexHeight = adjTexHeight * (unsigned int)sdl_xbrz.scale_factor;
     }
 #endif
 
-    int texsize = 2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
+    int texsize = 2 << int_log2((int)(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight));
     if (texsize > sdl_opengl.max_texsize) 
     {
         LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface", texsize, sdl_opengl.max_texsize);
@@ -369,10 +369,10 @@ Bitu OUTPUT_OPENGL_SetSize()
 
     glBegin(GL_QUADS);
 
-    glTexCoord2i(0, 0); glVertex2i(sdl.clip.x, sdl.clip.y); // lower left
-    glTexCoord2i(adjTexWidth, 0); glVertex2i(sdl.clip.x + sdl.clip.w, sdl.clip.y); // lower right
-    glTexCoord2i(adjTexWidth, adjTexHeight); glVertex2i(sdl.clip.x + sdl.clip.w, sdl.clip.y + sdl.clip.h); // upper right
-    glTexCoord2i(0, adjTexHeight); glVertex2i(sdl.clip.x, sdl.clip.y + sdl.clip.h); // upper left
+    glTexCoord2i(0, 0); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y); // lower left
+    glTexCoord2i((GLint)adjTexWidth, 0); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y); // lower right
+    glTexCoord2i((GLint)adjTexWidth, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper right
+    glTexCoord2i(0, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper left
 
     glEnd();
     glEndList();
