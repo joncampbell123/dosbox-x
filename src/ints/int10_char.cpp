@@ -544,7 +544,7 @@ void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
         break;
     }
 
-    Bitu x=col*8,y=row*cheight*(cols/CurMode->twidth);
+    Bitu x=col*8u,y=(unsigned int)row*cheight*(cols/CurMode->twidth);
 
     for (Bit16u chr=0;chr<256;chr++) {
 
@@ -568,7 +568,7 @@ void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
             ty++;
             if(bitline != vidline){
                 /* It's not character 'chr', move on to the next */
-                fontdata+=(cheight-h-1);
+                fontdata+=(unsigned int)(cheight-(unsigned int)h-1u);
                 error = true;
                 break;
             }
@@ -663,7 +663,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
         fontdata=Real2Phys(RealGetVec(0x43));
         break;
     }
-    fontdata+=chr*cheight;
+    fontdata+=(unsigned int)chr*(unsigned int)cheight;
 
     if(GCC_UNLIKELY(!useattr)) { //Set attribute(color) to a sensible value
         static bool warned_use = false;
@@ -708,7 +708,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
         break;
     }
 
-    Bitu x=col*8,y=row*cheight*(cols/CurMode->twidth);
+    Bitu x=col*8u,y=(unsigned int)(row*(unsigned int)cheight*(cols/CurMode->twidth));
 
     Bit16u ty=(Bit16u)y;
     for (Bit8u h=0;h<cheight;h++) {
