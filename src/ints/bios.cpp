@@ -8686,12 +8686,12 @@ public:
                 size_t i=0;
 
                 for (;i < pc98_copyright_str.length();i++)
-                    phys_writeb(0xE8000 + 0x0DD8 + i,(Bit8u)pc98_copyright_str[i]);
+                    phys_writeb(0xE8000 + 0x0DD8 + (PhysPt)i,(Bit8u)pc98_copyright_str[i]);
 
-                phys_writeb(0xE8000 + 0x0DD8 + i,0);
+                phys_writeb(0xE8000 + 0x0DD8 + (PhysPt)i,0);
 
                 for (size_t i=0;i < sizeof(pc98_epson_check_2);i++)
-                    phys_writeb(0xF5200 + 0x018E + i,(Bit8u)pc98_epson_check_2[i]);
+                    phys_writeb(0xF5200 + 0x018E + (PhysPt)i,(Bit8u)pc98_epson_check_2[i]);
             }
         }
     }
