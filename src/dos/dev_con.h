@@ -251,7 +251,7 @@ private:
             case 0x54: // VF3
             case 0x55: // VF4
             case 0x56: // VF5
-                PC98_GetVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x52); dev_con_pos=0; dev_con_max=esclen;
+                PC98_GetVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x52u); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
             case 0x62: // F1
             case 0x63: // F2
@@ -263,7 +263,7 @@ private:
             case 0x69: // F8
             case 0x6A: // F9
             case 0x6B: // F10
-                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x62); dev_con_pos=0; dev_con_max=esclen;
+                PC98_GetFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x62u); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
             case 0x82: // Shift+F1
             case 0x83: // Shift+F2
@@ -275,7 +275,7 @@ private:
             case 0x89: // Shift+F8
             case 0x8A: // Shift+F9
             case 0x8B: // Shift+F10
-                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x82); dev_con_pos=0; dev_con_max=esclen;
+                PC98_GetShiftFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x82u); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
             case 0x92: // Control+F1
             case 0x93: // Control+F2
@@ -288,7 +288,7 @@ private:
             case 0x9A: // Control+F9
             case 0x9B: // Control+F10
                 if (inhibited_ControlFn()) {
-                    PC98_GetCtrlFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0x92); dev_con_pos=0; dev_con_max=esclen;
+                    PC98_GetCtrlFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0x92u); dev_con_pos=0; dev_con_max=esclen;
                     return (dev_con_max != 0)?true:false;
                 }
                 else if (code == 0x97) {// CTRL+F6   Toggle 20/25-line text      HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
@@ -337,7 +337,7 @@ private:
             case 0xC4: // VF3
             case 0xC5: // VF4
             case 0xC6: // VF5
-                PC98_GetShiftVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0xC2); dev_con_pos=0; dev_con_max=esclen;
+                PC98_GetShiftVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0xC2u); dev_con_pos=0; dev_con_max=esclen;
                 return (dev_con_max != 0)?true:false;
 
             case 0xD2: // VF1
@@ -346,7 +346,7 @@ private:
             case 0xD5: // VF4
             case 0xD6: // VF5
                 if (inhibited_ControlFn()) {
-                    PC98_GetCtrlVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1-0xD2); dev_con_pos=0; dev_con_max=esclen;
+                    PC98_GetCtrlVFuncKeyEscape(/*&*/esclen,dev_con_readbuf,code+1u-0xD2u); dev_con_pos=0; dev_con_max=esclen;
                     return (dev_con_max != 0)?true:false;
                 }
                 break;
