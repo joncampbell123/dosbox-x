@@ -805,7 +805,7 @@ static void SetupTandyBios(void) {
 		0x64, 0x2e, 0x0d, 0x0a, 0x61, 0x6e, 0x64, 0x20, 0x54, 0x61, 0x6e, 0x64, 0x79
 	};
 	if (machine==MCH_TANDY) {
-		Bitu i;
+		unsigned int i;
 
 		LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy video state (video BIOS init)");
 

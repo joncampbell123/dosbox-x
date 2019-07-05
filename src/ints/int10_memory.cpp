@@ -80,7 +80,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 	//Load alternate character patterns
 	if (map & 0x80) {
 		while (Bitu chr=(Bitu)mem_readb(font++)) {
-			MEM_BlockCopy(ftwhere+chr*32u,font,height);
+			MEM_BlockCopy(ftwhere+(PhysPt)chr*32u,font,height);
 			font+=height;
 		}
 	}
@@ -108,12 +108,12 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 			IO_Write(base+1u,(IO_Read(base+1u) & ~0x1fu)|(height-1u));
 		}
 		//Rows setting in bios segment
-		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,rows-1);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(Bit8u)(rows-1));
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(Bit8u)height);
 		//Page size
 		Bitu pagesize=rows*real_readb(BIOSMEM_SEG,BIOSMEM_NB_COLS)*2;
 		pagesize+=0x100; // bios adds extra on reload
-		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,pagesize);
+		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(Bit16u)pagesize);
 		//Cursor shape
 		if (height>=14) height--; // move up one line on 14+ line fonts
 		INT10_SetCursorShape(height-2,height-1);
@@ -187,9 +187,9 @@ void INT10_SetupRomMemory(void) {
             if (base == 0) E_Exit("Unable to alloc MCGA 16x font");
 
             for (unsigned int i=0;i<256*16;i++)
-                phys_writeb(base+i,int10_font_16[i]);
+                phys_writeb((PhysPt)base+i,int10_font_16[i]);
 
-            int10.rom.font_16 = RealMake(base >> 4,base & 0xF);
+            int10.rom.font_16 = RealMake((Bit16u)(base >> 4u),(Bit16u)(base & 0xF));
         }
 
 		return;
@@ -210,11 +210,11 @@ void INT10_SetupRomMemory(void) {
 
         // ROM signature
 		phys_writew(rom_base+0,0xaa55);
-		phys_writeb(rom_base+2,VGA_BIOS_Size >> 9);
+		phys_writeb(rom_base+2,(Bit8u)(VGA_BIOS_Size >> 9u));
         // entry point
         phys_writeb(rom_base+3,0xFE); // Callback instruction
         phys_writeb(rom_base+4,0x38);
-        phys_writew(rom_base+5,VGA_ROM_BIOS_ENTRY_cb);
+        phys_writew(rom_base+5,(Bit16u)VGA_ROM_BIOS_ENTRY_cb);
         phys_writeb(rom_base+7,0xCB); // RETF
 
         // VGA BIOS copyright
@@ -356,23 +356,23 @@ void INT10_SetupRomMemory(void) {
 void INT10_ReloadRomFonts(void) {
 	// 16x8 font
 	PhysPt font16pt=Real2Phys(int10.rom.font_16);
-	for (Bitu i=0;i<256*16;i++) {
+	for (unsigned int i=0;i<256*16;i++) {
 		phys_writeb(font16pt+i,int10_font_16[i]);
 	}
 	phys_writeb(Real2Phys(int10.rom.font_16_alternate),0x1d);
 	// 14x8 font
 	PhysPt font14pt=Real2Phys(int10.rom.font_14);
-	for (Bitu i=0;i<256*14;i++) {
+	for (unsigned int i=0;i<256*14;i++) {
 		phys_writeb(font14pt+i,int10_font_14[i]);
 	}
 	phys_writeb(Real2Phys(int10.rom.font_14_alternate),0x1d);
 	// 8x8 fonts
 	PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
-	for (Bitu i=0;i<128*8;i++) {
+	for (unsigned int i=0;i<128*8;i++) {
 		phys_writeb(font8pt+i,int10_font_08[i]);
 	}
 	font8pt=Real2Phys(int10.rom.font_8_second);
-	for (Bitu i=0;i<128*8;i++) {
+	for (unsigned int i=0;i<128*8;i++) {
 		phys_writeb(font8pt+i,int10_font_08[i+128*8]);
 	}
 	INT10_SetupRomMemoryChecksum();
@@ -383,8 +383,8 @@ void INT10_SetupRomMemoryChecksum(void) {
 		/* Sum of all bytes in rom module 256 should be 0 */
 		Bit8u sum = 0;
 		PhysPt rom_base = PhysMake(0xc000,0);
-		Bitu last_rombyte = VGA_BIOS_Size - 1;		//32 KB romsize
-		for (Bitu i = 0;i < last_rombyte;i++)
+		unsigned int last_rombyte = (unsigned int)VGA_BIOS_Size - 1;		//32 KB romsize
+		for (unsigned int i = 0;i < last_rombyte;i++)
 			sum += phys_readb(rom_base + i);	//OVERFLOW IS OKAY
 		sum = (Bit8u)((256 - (Bitu)sum)&0xff);
 		phys_writeb(rom_base + last_rombyte,sum);
