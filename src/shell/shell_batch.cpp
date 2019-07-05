@@ -72,7 +72,7 @@ emptyline:
 				//Only add it if room for it (and trailing zero) in the buffer, but do the check here instead at the end
 				//So we continue reading till EOL/EOF
 				if (((cmd_write - temp) + 1) < (CMD_MAXLINE - 1))
-					*cmd_write++ = c;
+					*cmd_write++ = (char)c;
 			}
 		}
 	} while (c!='\n' && n);
@@ -102,7 +102,7 @@ emptyline:
 				const char *file_name = cmd->GetFileName();
 				cmd_read++;
 				size_t name_len = strlen(file_name);
-				if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+				if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
 					strcpy(cmd_write,file_name);
 					cmd_write += name_len;
 				}
@@ -117,7 +117,7 @@ emptyline:
 				std::string word;
 				if (!cmd->FindCommand((unsigned int)next,word)) continue;
 				size_t name_len = strlen(word.c_str());
-				if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+				if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
 					strcpy(cmd_write,word.c_str());
 					cmd_write += name_len;
 				}
@@ -134,7 +134,7 @@ emptyline:
 					if (!equals) continue;
 					equals++;
 					size_t name_len = strlen(equals);
-					if (((cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
+					if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
 						strcpy(cmd_write,equals);
 						cmd_write += name_len;
 					}
@@ -175,7 +175,7 @@ again:
 		if (n>0) {
 			if (c>31) {
 				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
-					*cmd_write++ = c;
+					*cmd_write++ = (char)c;
 			}
 		}
 	} while (c!='\n' && n);
