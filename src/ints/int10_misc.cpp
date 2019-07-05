@@ -160,7 +160,7 @@ void INT10_GetFuncStateInformation(PhysPt save) {
 	/* Colour count */
 	mem_writew(save+0x27,col_count);
 	/* Page count */
-	mem_writeb(save+0x29,CurMode->ptotal);
+	mem_writeb(save+0x29,(Bit8u)CurMode->ptotal);
 	/* scan lines */
 	switch (CurMode->sheight) {
 	case 200:
@@ -269,7 +269,7 @@ void INT10_EGA_RIL_ReadRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt dst) 
 			if ((Bitu)ch+cl>regs) cl=(Bit8u)(regs-ch);
 			for (Bitu i=0; i<cl; i++) {
 				if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
-				IO_Write(port,ch+i);
+				IO_Write(port,(Bit8u)(ch+i));
 				mem_writeb(dst++,IO_Read(port+1u));
 			}
 			if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
@@ -289,12 +289,12 @@ void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src)
 			if(port == 0x3c0) {
 				IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 				for (Bitu i=0; i<cl; i++) {
-					IO_Write(port,ch+i);
+					IO_Write(port,(Bit8u)(ch+i));
 					IO_Write(port,mem_readb(src++));
 				}
 			} else {
 				for (Bitu i=0; i<cl; i++) {
-					IO_Write(port,ch+i);
+					IO_Write(port,(Bit8u)(ch+i));
 					IO_Write(port+1u,mem_readb(src++));
 				}
 			}
