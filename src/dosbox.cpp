@@ -507,7 +507,7 @@ increaseticks:
                   wrap_delay(sleeppattern[sleepindex++]);
                   sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);
                 }
-                Bit32s timeslept = GetTicks() - ticksNew;
+                Bit32s timeslept = (Bit32s)(GetTicks() - ticksNew);
                 // Count how many times in the current block (of 250 ms) the time slept was 1 ms
                 if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust && timeslept == 1) sleep1count++;
                 lastsleepDone = ticksDone;
