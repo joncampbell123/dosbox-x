@@ -147,7 +147,7 @@ Program::Program() {
 	psp = new DOS_PSP(dos.psp());
 	/* Scan environment for filename */
 	PhysPt envscan=PhysMake(psp->GetEnvironment(),0);
-	while (mem_readb(envscan)) envscan+=mem_strlen(envscan)+1;	
+	while (mem_readb(envscan)) envscan+=(PhysPt)(mem_strlen(envscan)+1);	
 	envscan+=3;
 	CommandTail tail;
 	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
@@ -234,8 +234,8 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 		return false;
 	}
 
-	DOS_MCB env_mcb(env_seg-1); /* read the environment block's MCB to determine how large it is */
-	env_base = PhysMake(env_seg,0);
+	DOS_MCB env_mcb((Bit16u)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
+	env_base = PhysMake((Bit16u)env_seg,0);
 	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }
@@ -652,7 +652,7 @@ void CONFIG::Run(void) {
 				if (!strcasecmp("sections",pvars[0].c_str())) {
 					// list the sections
 					WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_SECTLIST"));
-					Bitu i = 0;
+					int i = 0;
 					while(true) {
 						Section* sec = control->GetSection(i++);
 						if (!sec) break;
@@ -810,7 +810,7 @@ void CONFIG::Run(void) {
 				Section* sec = control->GetSection(pvars[0].c_str());
 				if (sec) {
 					// list properties in section
-					Bitu i = 0;
+					int i = 0;
 					Section_prop* psec = dynamic_cast <Section_prop*>(sec);
 					if (psec==NULL) {
 						// autoexec section
