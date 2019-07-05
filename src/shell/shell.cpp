@@ -214,7 +214,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			t = (char*)malloc((size_t)(lr-*ofn+1)); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			safe_strncpy(t,*ofn,lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ofn=t;
 			continue;
@@ -228,7 +228,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			t = (char*)malloc((size_t)(lr-*ifn+1)); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			safe_strncpy(t,*ifn,lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ifn=t;
 			continue;
