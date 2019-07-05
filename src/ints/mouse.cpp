@@ -386,22 +386,22 @@ void DrawCursorText() {
 
     if (mouse.cursorType == 0) {
         Bit16u result;
-        ReadCharAttr(mouse.backposx,mouse.backposy,page,&result);
+        ReadCharAttr((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,&result);
         mouse.backData[0]	= (Bit8u)(result & 0xFF);
         mouse.backData[1]	= (Bit8u)(result>>8);
         mouse.background	= true;
         // Write Cursor
         result = (result & mouse.textAndMask) ^ mouse.textXorMask;
-        WriteChar(mouse.backposx,mouse.backposy,page,(Bit8u)(result&0xFF),(Bit8u)(result>>8),true);
+        WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,(Bit8u)(result&0xFF),(Bit8u)(result>>8),true);
     } else {
         Bit16u address=page * real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
         address += (mouse.backposy * real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) + mouse.backposx) * 2;
         address /= 2;
         Bit16u cr = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
-        IO_Write(cr    , 0xe);
-        IO_Write(cr + 1, (address>>8) & 0xff);
-        IO_Write(cr    , 0xf);
-        IO_Write(cr + 1, address & 0xff);
+        IO_Write(cr     , 0xe);
+        IO_Write(cr + 1u, (address>>8) & 0xff);
+        IO_Write(cr     , 0xf);
+        IO_Write(cr + 1u, address & 0xff);
     }
 }
 
