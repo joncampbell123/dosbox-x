@@ -480,7 +480,7 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
                         std::string oname;
 
                         if (ochk->nameLen > 0 && ochk->name != NULL)
-                            oname = std::string(ochk->name,ochk->nameLen);
+                            oname = std::string(ochk->name,(size_t)ochk->nameLen);
 
                         LOG_MSG("  Goes to output %u: name='%s' size_mm=(%lu x %lu)",
                                 o,oname.c_str(),ochk->mm_width,ochk->mm_height);
