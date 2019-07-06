@@ -317,8 +317,8 @@ static void SN76496_set_gain(struct SN76496 *R, int gain) {
 
 void SN76496Reset(struct SN76496 *R, Bitu Clock, Bitu sample_rate) {
 	Bitu i;
-	R->SampleRate = sample_rate;
-	SN76496_set_clock(R,Clock);
+	R->SampleRate = (int)sample_rate;
+	SN76496_set_clock(R,(int)Clock);
 	for (i = 0;i < 4;i++) R->Volume[i] = 0;
 	R->LastRegister = 0;
 	for (i = 0;i < 8;i+=2)

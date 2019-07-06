@@ -305,7 +305,7 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 		else stopbits = SERIAL_2STOP;
 	} else stopbits = SERIAL_1STOP;
 
-	if(!SERIAL_setCommParameters(comport, baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
+	if(!SERIAL_setCommParameters(comport, (int)baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
 #if SERIAL_DEBUG
 		log_ser(dbg_aux,"Serial port settings not supported by host." );
 #endif
