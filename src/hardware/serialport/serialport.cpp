@@ -180,28 +180,28 @@ static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
 #endif
 	switch (index) {
 		case THR_OFFSET:
-			serialports[i]->Write_THR (val);
+			serialports[i]->Write_THR ((Bit8u)val);
 			return;
 		case IER_OFFSET:
-			serialports[i]->Write_IER (val);
+			serialports[i]->Write_IER ((Bit8u)val);
 			return;
 		case FCR_OFFSET:
-			serialports[i]->Write_FCR (val);
+			serialports[i]->Write_FCR ((Bit8u)val);
 			return;
 		case LCR_OFFSET:
-			serialports[i]->Write_LCR (val);
+			serialports[i]->Write_LCR ((Bit8u)val);
 			return;
 		case MCR_OFFSET:
-			serialports[i]->Write_MCR (val);
+			serialports[i]->Write_MCR ((Bit8u)val);
 			return;
 		case MSR_OFFSET:
-			serialports[i]->Write_MSR (val);
+			serialports[i]->Write_MSR ((Bit8u)val);
 			return;
 		case SPR_OFFSET:
-			serialports[i]->Write_SPR (val);
+			serialports[i]->Write_SPR ((Bit8u)val);
 			return;
 		default:
-			serialports[i]->Write_reserved (val, port & 0x7);
+			serialports[i]->Write_reserved ((Bit8u)val, port & 0x7);
 	}
 }
 #if SERIAL_DEBUG
@@ -245,7 +245,7 @@ void CSerial::changeLineProperties() {
 static void Serial_EventHandler(Bitu val) {
 	Bitu serclassid=val&0x3;
 	if(serialports[serclassid]!=0)
-		serialports[serclassid]->handleEvent(val>>2);
+		serialports[serclassid]->handleEvent((Bit16u)(val>>2));
 }
 
 void CSerial::setEvent(Bit16u type, float duration) {
@@ -1188,7 +1188,7 @@ void CSerial::unregisterDOSDevice() {
 
 CSerial::~CSerial(void) {
 	unregisterDOSDevice();
-	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
+	for(Bit8u i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
 		removeEvent(i);
 
 	if (rxfifo != NULL) {
@@ -1219,7 +1219,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 		}
 	}
 	// wait for a byte to arrive
-	while((!((*lsr=Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
+	while((!((*lsr=(Bit8u)Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
 		CALLBACK_Idle();
 	
 	if(!(starttime>PIC_FullIndex()-timeout)) {
@@ -1228,7 +1228,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 #endif
 		return false;
 	}
-	*data=Read_RHR();
+	*data=(Bit8u)Read_RHR();
 
 #if SERIAL_DEBUG
 	log_ser(dbg_aux,"Getchar read 0x%x",*data);
@@ -1317,7 +1317,7 @@ public:
         if (IS_PC98_ARCH) return;
 
 		char s_property[] = "serialx"; 
-		for(Bitu i = 0; i < 4; i++) {
+		for(Bit8u i = 0; i < 4; i++) {
 			// get the configuration property
 			s_property[6] = '1' + i;
 			Prop_multival* p = section->Get_multival(s_property);
