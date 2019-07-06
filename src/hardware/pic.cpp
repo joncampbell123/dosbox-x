@@ -948,7 +948,7 @@ void PIC_Reset(Section *sec) {
         PIC_SetIRQMask(i,true);
 
     PIC_SetIRQMask(0,false);                    /* Enable system timer */
-    PIC_SetIRQMask(1,false);                    /* Enable system timer */
+    PIC_SetIRQMask(1,false);                    /* Enable keyboard interrupt */
     PIC_SetIRQMask(8,false);                    /* Enable RTC IRQ */
 
     if (master_cascade_irq >= 0) {
