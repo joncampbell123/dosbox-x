@@ -1,4 +1,10 @@
 0.82.20 (next)
+  - Unknown interrupts in PC-98 mode are now routed by
+    the DOS kernel through it's segment (60h) and back
+    to the BIOS through a JMP instruction. It appears
+    some TSRs for PC-98 determine whether or not
+    interrupts are in use by whether or not the segment
+    value is pointing at the DOS kernel (segment 60h).
   - Re-added a20=fast by popular demand, though a20=mask
     is still the default. a20=fast emulates the A20 gate
     the way a virtual 8086 mode monitor does where only
