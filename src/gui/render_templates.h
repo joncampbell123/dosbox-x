@@ -423,7 +423,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERHEIGHT	2
 #define SCALERFUNC									\
 {													\
-	Bitu halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	PTYPE halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
 	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
 	line0[0]=P;							\
 	line0[1]=P;							\
@@ -441,7 +441,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERHEIGHT	2
 #define SCALERFUNC									\
 {													\
-	Bitu halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	PTYPE halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
 	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
 	line0[0]=P;							\
 	line1[0]=halfpixel;						\
@@ -458,7 +458,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
 #define SCALERFUNC							\
 {											\
-	Bitu halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
+	PTYPE halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
 	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)3) & greenMask;			\
 	line0[0]=P;								\
 	line0[1]=P;								\
@@ -475,7 +475,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #else
 #define SCALERFUNC							\
 {											\
-	Bitu halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
+	PTYPE halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
 	halfpixel|=(((P & greenMask) * 5) >> 3) & greenMask;			\
 	line0[0]=P;								\
 	line0[1]=P;								\
@@ -579,9 +579,9 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		1
 #define SCALERHEIGHT	1
 #define SCALERFUNC								\
-	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+	PTYPE _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
   double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
-  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+  PTYPE _value = _gray>255?0xff:(uint8_t)(_gray);  \
 	line0[0] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
 #include "render_simple.h"
 #undef SCALERNAME
@@ -593,9 +593,9 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	1
 #define SCALERFUNC								\
-	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+	PTYPE _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
   double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
-  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+  PTYPE _value = _gray>255?0xff:(uint8_t)(_gray);  \
 	line0[0]=line0[1] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
 #include "render_simple.h"
 #undef SCALERNAME
@@ -607,9 +607,9 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		1
 #define SCALERHEIGHT	2
 #define SCALERFUNC								\
-	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+	PTYPE _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
   double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
-  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+  PTYPE _value = _gray>255?0xff:(uint8_t)(_gray);  \
 	line0[0]=line1[0] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
 #include "render_simple.h"
 #undef SCALERNAME
@@ -621,9 +621,9 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	2
 #define SCALERFUNC								\
-	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+	PTYPE _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
   double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
-  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+  PTYPE _value = _gray>255?0xff:(uint8_t)(_gray);  \
 	line0[0]=line1[0]=line0[1]=line1[1] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
 #include "render_simple.h"
 #undef SCALERNAME
