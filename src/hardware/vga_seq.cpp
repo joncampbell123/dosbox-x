@@ -74,7 +74,7 @@ void write_p3c4(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		val &= 0x0F; // FIXME: reasonable guess
 	}
 
-	seq(index)=val;
+	seq(index)=(Bit8u)val;
 }
 
 void VGA_SequReset(bool reset);
@@ -85,17 +85,17 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 	switch(seq(index)) {
 	case 0:		/* Reset */
 		if((seq(reset)^val)&0x3) VGA_SequReset((val&0x3)!=0x3);
-		seq(reset)=val;
+		seq(reset)=(Bit8u)val;
 		break;
 	case 1:		/* Clocking Mode */
 		if (val!=seq(clocking_mode)) {
 			if((seq(clocking_mode)^val)&0x20) VGA_Screenstate((val&0x20)==0);
 			// don't resize if only the screen off bit was changed
 			if ((val&(~0x20u))!=(seq(clocking_mode)&(~0x20u))) {
-				seq(clocking_mode)=val;
+				seq(clocking_mode)=(Bit8u)val;
 				VGA_StartResize();
 			} else {
-				seq(clocking_mode)=val;
+				seq(clocking_mode)=(Bit8u)val;
 			}
 			if (val & 0x20) vga.attr.disabled |= 0x2u;
 			else vga.attr.disabled &= ~0x2u;
@@ -126,7 +126,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		break;
 	case 3:		/* Character Map Select */
 		{
-			seq(character_map_select)=val;
+			seq(character_map_select)=(Bit8u)val;
 			Bit8u font1=(val & 0x3) << 1;
 			if (IS_VGA_ARCH) font1|=(val & 0x10) >> 4;
 			vga.draw.font_tables[0]=&vga.draw.font[font1*8*1024];
@@ -152,7 +152,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 			3  If set address bit 0-1 selects video memory planes (256 color mode),
 				rather than the Map Mask and Read Map Select Registers.
 		*/
-		seq(memory_mode)=val;
+		seq(memory_mode)=(Bit8u)val;
 		if (IS_VGA_ARCH) {
 			/* Changing this means changing the VGA Memory Read/Write Handler */
 			if (val&0x08) vga.config.chained=true;

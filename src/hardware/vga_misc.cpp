@@ -77,7 +77,7 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
-	vga.misc_output=val;
+	vga.misc_output=(Bit8u)val;
 	Bitu base=(val & 0x1) ? 0x3d0 : 0x3b0;
 	Bitu free=(val & 0x1) ? 0x3b0 : 0x3d0;
 	Bitu first=2, last=2;

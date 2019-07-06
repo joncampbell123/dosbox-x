@@ -28,7 +28,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     switch (reg) {
     case 0x31:  /* CR31 Memory Configuration */
 //TODO Base address
-        vga.s3.reg_31 = val;
+        vga.s3.reg_31 = (Bit8u)val;
         vga.config.compatible_chain4 = !(val&0x08);
 //        if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
 //        else vga.vmemwrap = vga.mem.memsize;
@@ -71,25 +71,25 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
             7   (911/924) Lock HSync Polarity.
         */
     case 0x38:  /* CR38 Register Lock 1 */
-        vga.s3.reg_lock1=val;
+        vga.s3.reg_lock1=(Bit8u)val;
         break;
     case 0x39:  /* CR39 Register Lock 2 */
-        vga.s3.reg_lock2=val;
+        vga.s3.reg_lock2=(Bit8u)val;
         break;
     case 0x3a:
-        vga.s3.reg_3a = val;
+        vga.s3.reg_3a = (Bit8u)val;
         break;
     case 0x40:  /* CR40 System Config */
-        vga.s3.reg_40 = val;
+        vga.s3.reg_40 = (Bit8u)val;
         break;
     case 0x41:  /* CR41 BIOS flags */
-        vga.s3.reg_41 = val;
+        vga.s3.reg_41 = (Bit8u)val;
         break;
     case 0x42:  /* CR42 Mode Control */
         if ((val ^ vga.s3.reg_42) & 0x20) {
-            vga.s3.reg_42=val;
+            vga.s3.reg_42= (Bit8u)val;
             VGA_StartResize();
-        } else vga.s3.reg_42=val;
+        } else vga.s3.reg_42= (Bit8u)val;
         /*
         3d4h index 42h (R/W):  CR42 Mode Control
         bit  0-3  DCLK Select. These bits are effective when the VGA Clock Select
@@ -98,10 +98,10 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
        */
         break;
     case 0x43:  /* CR43 Extended Mode */
-        vga.s3.reg_43=val & ~0x4u;
-        if (((val & 0x4) ^ (vga.config.scan_len >> 6)) & 0x4) {
+        vga.s3.reg_43= (Bit8u)val & ~0x4u;
+        if ((((Bit8u)val & 0x4) ^ (vga.config.scan_len >> 6)) & 0x4) {
             vga.config.scan_len&=0x2ff;
-            vga.config.scan_len|=(val & 0x4) << 6;
+            vga.config.scan_len|=((Bit8u)val & 0x4) << 6;
             VGA_CheckScanLength();
         }
         break;
@@ -111,35 +111,35 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
             are 0
         */
     case 0x45:  /* Hardware cursor mode */
-        vga.s3.hgc.curmode = val;
+        vga.s3.hgc.curmode = (Bit8u)val;
         // Activate hardware cursor code if needed
         VGA_ActivateHardwareCursor();
         break;
     case 0x46:
-        vga.s3.hgc.originx = (vga.s3.hgc.originx & 0x00ff) | (val << 8);
+        vga.s3.hgc.originx = (vga.s3.hgc.originx & 0x00ff) | ((Bit8u)val << 8u);
         break;
     case 0x47:  /*  HGC orgX */
-        vga.s3.hgc.originx = (vga.s3.hgc.originx & 0xff00) | val;
+        vga.s3.hgc.originx = (vga.s3.hgc.originx & 0xff00) | (Bit8u)val;
         break;
     case 0x48:
-        vga.s3.hgc.originy = (vga.s3.hgc.originy & 0x00ff) | (val << 8);
+        vga.s3.hgc.originy = (vga.s3.hgc.originy & 0x00ff) | ((Bit8u)val << 8u);
         break;
     case 0x49:  /*  HGC orgY */
-        vga.s3.hgc.originy = (vga.s3.hgc.originy & 0xff00) | val;
+        vga.s3.hgc.originy = (vga.s3.hgc.originy & 0xff00) | (Bit8u)val;
         break;
     case 0x4A:  /* HGC foreground stack */
         if (vga.s3.hgc.fstackpos > 2) vga.s3.hgc.fstackpos = 0;
-        vga.s3.hgc.forestack[vga.s3.hgc.fstackpos] = val;
+        vga.s3.hgc.forestack[vga.s3.hgc.fstackpos] = (Bit8u)val;
         vga.s3.hgc.fstackpos++;
         break;
     case 0x4B:  /* HGC background stack */
         if (vga.s3.hgc.bstackpos > 2) vga.s3.hgc.bstackpos = 0;
-        vga.s3.hgc.backstack[vga.s3.hgc.bstackpos] = val;
+        vga.s3.hgc.backstack[vga.s3.hgc.bstackpos] = (Bit8u)val;
         vga.s3.hgc.bstackpos++;
         break;
     case 0x4c:  /* HGC start address high byte*/
         vga.s3.hgc.startaddr &=0xff;
-        vga.s3.hgc.startaddr |= ((val & 0xf) << 8);
+        vga.s3.hgc.startaddr |= (((Bit8u)val & 0xf) << 8);
         if ((((Bitu)vga.s3.hgc.startaddr)<<10)+((64*64*2)/8) > vga.mem.memsize) {
             vga.s3.hgc.startaddr &= 0xff;   // put it back to some sane area;
                                             // if read back of this address is ever implemented this needs to change
@@ -148,16 +148,16 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         break;
     case 0x4d:  /* HGC start address low byte*/
         vga.s3.hgc.startaddr &=0xff00;
-        vga.s3.hgc.startaddr |= (val & 0xff);
+        vga.s3.hgc.startaddr |= ((Bit8u)val & 0xff);
         break;
     case 0x4e:  /* HGC pattern start X */
-        vga.s3.hgc.posx = val & 0x3f;   // bits 0-5
+        vga.s3.hgc.posx = (Bit8u)val & 0x3f;   // bits 0-5
         break;
     case 0x4f:  /* HGC pattern start Y */
-        vga.s3.hgc.posy = val & 0x3f;   // bits 0-5
+        vga.s3.hgc.posy = (Bit8u)val & 0x3f;   // bits 0-5
         break;
     case 0x50:  // Extended System Control 1
-        vga.s3.reg_50 = val;
+        vga.s3.reg_50 = (Bit8u)val;
         switch (val & S3_XGA_CMASK) {
             case S3_XGA_32BPP: vga.s3.xga_color_mode = M_LIN32; break;
             case S3_XGA_16BPP: vga.s3.xga_color_mode = M_LIN16; break;
@@ -174,18 +174,18 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         }
         break;
     case 0x51:  /* Extended System Control 2 */
-        vga.s3.reg_51=val & 0xc0;       //Only store bits 6,7
+        vga.s3.reg_51= (Bit8u)val & 0xc0;       //Only store bits 6,7
         vga.config.display_start&=0xF3FFFF;
-        vga.config.display_start|=(val & 3) << 18;
-        if ((vga.svga.bank_read&0x30) ^ ((val&0xc)<<2)) {
+        vga.config.display_start|=((Bit8u)val & 3) << 18;
+        if ((vga.svga.bank_read&0x30) ^ (((Bit8u)val&0xc)<<2)) {
             vga.svga.bank_read&=0xcf; 
-            vga.svga.bank_read|=(val&0xc)<<2;
+            vga.svga.bank_read|=((Bit8u)val&0xc)<<2;
             vga.svga.bank_write = vga.svga.bank_read;
             VGA_SetupHandlers();
         }
         if (((val & 0x30) ^ (vga.config.scan_len >> 4)) & 0x30) {
             vga.config.scan_len&=0xff;
-            vga.config.scan_len|=(val & 0x30) << 4;
+            vga.config.scan_len|=((Bit8u)val & 0x30) << 4;
             VGA_CheckScanLength();
         }
         break;
@@ -210,19 +210,19 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 control to the BIOS ROM address
         */
     case 0x52:  // Extended System Control 1
-        vga.s3.reg_52 = val;
+        vga.s3.reg_52 = (Bit8u)val;
         break;
     case 0x53:
         // Map or unmap MMIO
         // bit 4 = MMIO at A0000
         // bit 3 = MMIO at LFB + 16M (should be fine if its always enabled for now)
-        if(vga.s3.ext_mem_ctrl!=val) {
-            vga.s3.ext_mem_ctrl = val;
+        if(vga.s3.ext_mem_ctrl != (Bit8u)val) {
+            vga.s3.ext_mem_ctrl = (Bit8u)val;
             VGA_SetupHandlers();
         }
         break;
     case 0x55:  /* Extended Video DAC Control */
-        vga.s3.reg_55=val;
+        vga.s3.reg_55=(Bit8u)val;
         break;
         /*
             0-1 DAC Register Select Bits. Passed to the RS2 and RS3 pins on the
@@ -245,7 +245,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 -stated if set
         */
     case 0x58:  /* Linear Address Window Control */
-        vga.s3.reg_58=val;
+        vga.s3.reg_58=(Bit8u)val;
         VGA_StartUpdateLFB();
         break;
         /*
@@ -266,22 +266,22 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 if clear 7MCLKs
         */
     case 0x59:  /* Linear Address Window Position High */
-        if ((vga.s3.la_window&0xff00) ^ (val << 8)) {
-            vga.s3.la_window=(vga.s3.la_window&0x00ff) | (val << 8);
+        if ((vga.s3.la_window&0xff00) ^ ((Bit8u)val << 8)) {
+            vga.s3.la_window=(vga.s3.la_window&0x00ff) | ((Bit8u)val << 8);
             VGA_StartUpdateLFB();
         }
         break;
     case 0x5a:  /* Linear Address Window Position Low */
-        if ((vga.s3.la_window&0x00ff) ^ val) {
-            vga.s3.la_window=(vga.s3.la_window&0xff00) | val;
+        if ((vga.s3.la_window&0x00ff) ^ (Bit8u)val) {
+            vga.s3.la_window=(vga.s3.la_window&0xff00) | (Bit8u)val;
             VGA_StartUpdateLFB();
         }
         break;
     case 0x5D:  /* Extended Horizontal Overflow */
         if ((val ^ vga.s3.ex_hor_overflow) & 3) {
-            vga.s3.ex_hor_overflow=val;
+            vga.s3.ex_hor_overflow=(Bit8u)val;
             VGA_StartResize();
-        } else vga.s3.ex_hor_overflow=val;
+        } else vga.s3.ex_hor_overflow=(Bit8u)val;
         break;
         /*
             0   Horizontal Total bit 8. Bit 8 of the Horizontal Total register (3d4h
@@ -304,11 +304,11 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 Termination register (3d4h index 5Fh).
         */
     case 0x5e:  /* Extended Vertical Overflow */
-        vga.config.line_compare=(vga.config.line_compare & 0x3ff) | (val & 0x40) << 4;
+        vga.config.line_compare=(vga.config.line_compare & 0x3ff) | ((Bit8u)val & 0x40) << 4;
         if ((val ^ vga.s3.ex_ver_overflow) & 0x3) {
-            vga.s3.ex_ver_overflow=val;
+            vga.s3.ex_ver_overflow=(Bit8u)val;
             VGA_StartResize();
-        } else vga.s3.ex_ver_overflow=val;
+        } else vga.s3.ex_ver_overflow=(Bit8u)val;
         break;
         /*
             0   Vertical Total bit 10. Bit 10 of the Vertical Total register (3d4h
@@ -343,17 +343,17 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                     7  Mode 11: 24/32bit (2 VCLKs/pixel)
                     13  (732/764) 32bit (1 pixel/VCLK)
         */
-        vga.s3.misc_control_2=val;
+        vga.s3.misc_control_2=(Bit8u)val;
         VGA_DetermineMode();
         break;
     case 0x69:  /* Extended System Control 3 */
         if (((vga.config.display_start & 0x1f0000)>>16) ^ (val & 0x1f)) {
             vga.config.display_start&=0xffff;
-            vga.config.display_start|=(val & 0x1f) << 16;
+            vga.config.display_start|=((Bit8u)val & 0x1f) << 16;
         }
         break;
     case 0x6a:  /* Extended System Control 4 */
-        vga.svga.bank_read=val & 0x7f;
+        vga.svga.bank_read=(Bit8u)val & 0x7f;
         vga.svga.bank_write = vga.svga.bank_read;
         VGA_SetupHandlers();
         break;
@@ -461,24 +461,24 @@ void SVGA_S3_WriteSEQ(Bitu reg,Bitu val,Bitu iolen) {
     if (reg>0x8 && vga.s3.pll.lock!=0x6) return;
     switch (reg) {
     case 0x08:
-        vga.s3.pll.lock=val;
+        vga.s3.pll.lock=(Bit8u)val;
         break;
     case 0x10:      /* Memory PLL Data Low */
-        vga.s3.mclk.n=val & 0x1f;
-        vga.s3.mclk.r=val >> 5;
+        vga.s3.mclk.n=(Bit8u)val & 0x1f;
+        vga.s3.mclk.r=(Bit8u)val >> 5;
         break;
     case 0x11:      /* Memory PLL Data High */
-        vga.s3.mclk.m=val & 0x7f;
+        vga.s3.mclk.m=(Bit8u)val & 0x7f;
         break;
     case 0x12:      /* Video PLL Data Low */
-        vga.s3.clk[3].n=val & 0x1f;
-        vga.s3.clk[3].r=val >> 5;
+        vga.s3.clk[3].n=(Bit8u)val & 0x1f;
+        vga.s3.clk[3].r=(Bit8u)val >> 5;
         break;
     case 0x13:      /* Video PLL Data High */
-        vga.s3.clk[3].m=val & 0x7f;
+        vga.s3.clk[3].m=(Bit8u)val & 0x7f;
         break;
     case 0x15:
-        vga.s3.pll.cmd=val;
+        vga.s3.pll.cmd=(Bit8u)val;
         VGA_StartResize();
         break;
     default:
@@ -530,7 +530,7 @@ Bitu SVGA_S3_GetClock(void) {
     else if (clock == 1)
         clock = 28322000;
     else 
-        clock=1000*S3_CLOCK(vga.s3.clk[clock].m,vga.s3.clk[clock].n,vga.s3.clk[clock].r);
+        clock=1000ul * S3_CLOCK(vga.s3.clk[clock].m,vga.s3.clk[clock].n,vga.s3.clk[clock].r);
     /* Check for dual transfer, master clock/2 */
     if (vga.s3.pll.cmd & 0x10) clock/=2;
     return clock;

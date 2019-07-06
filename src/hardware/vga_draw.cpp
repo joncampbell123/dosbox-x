@@ -234,8 +234,8 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
 
         /* 4 bitplanes are represented in emulation as 32 bits per planar byte */
         vga.draw_2[0].draw_base = vga.mem.linear;
-        vga.draw_2[0].crtc_mask = new_mask;  // 8KB character clocks (16KB bytes)
-        vga.draw_2[0].crtc_add = new_add;
+        vga.draw_2[0].crtc_mask = (unsigned int)new_mask;  // 8KB character clocks (16KB bytes)
+        vga.draw_2[0].crtc_add = (unsigned int)new_add;
     }
     else if (machine == MCH_HERC) {
         vga.draw_2[0].draw_base = vga.tandy.mem_base;
@@ -310,7 +310,7 @@ static Bit8u * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += 1u<<vga.config.addr_shift;
+        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         /* CGA odd/even mode, first plane */
         val=pixels.b[0];
@@ -333,7 +333,7 @@ static Bit8u * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += 1u<<vga.config.addr_shift;
+        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         /* CGA odd/even mode, first plane */
         val=pixels.b[0];
@@ -356,7 +356,7 @@ static Bit8u * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += 1u<<vga.config.addr_shift;
+        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         val=pixels.b[0];
         for (i=0;i < 8;i++,val <<= 1)
@@ -388,7 +388,7 @@ static Bit8u * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += 1u<<vga.config.addr_shift;
+        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         val=pixels.b[0];
         for (i=0;i < 8;i++,val <<= 1)
@@ -3043,7 +3043,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             break;// don't fall through
         }
         else {
-            vga.draw.address *= 1u<<vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
+            vga.draw.address *= (Bitu)1u << (Bitu)vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
         }
         /* fall through */
     case M_LIN8:

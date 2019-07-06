@@ -54,7 +54,7 @@ static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
-	pci_caddress=val;
+	pci_caddress=(Bit32u)val;
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
@@ -72,7 +72,7 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 		PCI_Device* dev=pci_devices[busnum][devnum];
 		if (dev == NULL) return;
-		dev->config_write(regnum,iolen,val);
+		dev->config_write(regnum,iolen,(Bit32u)val);
 	}
 }
 

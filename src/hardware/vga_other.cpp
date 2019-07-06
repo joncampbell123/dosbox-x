@@ -175,7 +175,7 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
         switch (vga.other.index) {
             case 0x10: /* MCGA Mode Control */
                 {
-                    const Bit8u changed = (vga.other.mcga_mode_control ^ val);
+                    const Bit8u changed = (vga.other.mcga_mode_control ^ (Bit8u)val);
 
                     /* bit 0: 1=select 320x200 256-color mode    0=all else
                      * bit 1: 1=select 640x480 2-color mode      0=all else
@@ -185,7 +185,7 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                      * bit 5: reserved
                      * bit 6: inverse of bit 8 of vertical displayed register 0x06
                      * bit 7: 1=write protect registers 0-7 */
-                    vga.other.mcga_mode_control = val;
+                    vga.other.mcga_mode_control = (Bit8u)val;
                     if (val & 0x80)
                         crtc(read_only) = true;
                     else
@@ -422,9 +422,9 @@ static void update_cga16_color(void) {
 					rgbi = ((bits >> (3-p)) & (even ? 1 : 2)) != 0 ? overscan : 0;
 				else
 					if (even)
-						rgbi = CGApal[(bits >> (2-(p&2)))&3];
+						rgbi = (Bit8u)CGApal[(bits >> (2-(p&2)))&3];
 					else
-						rgbi = CGApal[(bits >> (4-((p+1)&6)))&3];
+						rgbi = (Bit8u)CGApal[(bits >> (4-((p+1)&6)))&3];
 				Bit8u c = rgbi & 7;
 				if (bw && c != 0)
 					c = 7;
@@ -482,7 +482,7 @@ static void DecreaseHue(bool pressed) {
 }
 
 static void write_cga_color_select(Bitu val) {
-	vga.tandy.color_select=val;
+	vga.tandy.color_select=(Bit8u)val;
 
     if (vga.other.mcga_mode_control & 1) /* ignore COMPLETELY in 256-color MCGA mode */
         return;
@@ -506,7 +506,7 @@ static void write_cga_color_select(Bitu val) {
 		vga.attr.overscan_color = 0;
 		break;
 	case M_CGA16:
-		cga16_color_select(val);
+		cga16_color_select((Bit8u)val);
 		break;
 	case M_TEXT:
 		vga.tandy.border_color = val & 0xf;
@@ -774,7 +774,7 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		break;
 	case 0x3d9:
-		vga.tandy.color_select=val;
+		vga.tandy.color_select=(Bit8u)val;
 		tandy_update_palette();
 		break;
 	case 0x3da:
@@ -953,7 +953,7 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 	case 0x3bf:
 		if ( vga.herc.enable_bits ^ val) {
-			vga.herc.enable_bits=val;
+			vga.herc.enable_bits=(Bit8u)val;
 			// Bit 1 enables the upper 32k of video memory,
 			// so update the handlers
 			VGA_SetupHandlers();
