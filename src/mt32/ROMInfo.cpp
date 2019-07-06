@@ -73,7 +73,7 @@ const ROMInfo** ROMInfo::getROMInfoList(unsigned int types, unsigned int pairTyp
 	const ROMInfo **currentROMInList = romInfoList;
 	for(int i = 0; ROM_INFOS[i] != NULL; i++) {
 		const ROMInfo *romInfo = ROM_INFOS[i];
-		if ((types & (1 << romInfo->type)) && (pairTypes & (1 << romInfo->pairType))) {
+		if ((types & (1u << romInfo->type)) && (pairTypes & (1u << romInfo->pairType))) {
 			*currentROMInList++ = romInfo;
 		}
 	}
