@@ -535,7 +535,7 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
             port = ((port - 0x71) >> 1) + 0x40;
     }
 
-	Bit32u counter=port-0x40;
+	Bit32u counter=(Bit32u)(port-0x40);
 	Bit8u ret=0;
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;

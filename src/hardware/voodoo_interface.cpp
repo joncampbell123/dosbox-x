@@ -84,8 +84,8 @@ Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
 		return voodoo_r((addr>>2)&0x3FFFFF);
 	} else {
 		if (!(addr&1)) {
-			Bitu low = voodoo_r((addr>>2)&0x3FFFFF);
-			Bitu high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
+			Bit32u low = voodoo_r((addr>>2)&0x3FFFFF);
+			Bit32u high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			return (low>>16) | (high<<16);
 		} else {
 			LOG_MSG("voodoo readd unaligned");
@@ -310,7 +310,7 @@ void Voodoo_Shut_Down() {
 }
 
 void Voodoo_PCI_InitEnable(Bitu val) {
-	v->pci.init_enable = val;
+	v->pci.init_enable = (UINT32)val;
 }
 
 void Voodoo_PCI_Enable(bool enable) {

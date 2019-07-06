@@ -80,7 +80,7 @@ CPrinter::CPrinter(Bit16u dpi, Bit16u width, Bit16u height, char* output, bool m
 		defaultPageHeight = (Real64)height / (Real64)10;
 
 		// Create page
-		page = SDL_CreateRGBSurface(SDL_SWSURFACE, (Bitu)(defaultPageWidth*dpi), (Bitu)(defaultPageHeight*dpi), 8, 0, 0, 0, 0);
+		page = SDL_CreateRGBSurface(SDL_SWSURFACE, (int)(defaultPageWidth*dpi), (int)(defaultPageHeight*dpi), 8, 0, 0, 0, 0);
 
 		// Set a grey palette
 		SDL_Palette* palette = page->format->palette;
@@ -1255,7 +1255,7 @@ void CPrinter::printChar(Bit8u ch)
 	// Render a high-quality bitmap
 	FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
 
-	Bit16u penX = PIXX + curFont->glyph->bitmap_left;
+	Bit16u penX = (Bit16u)(PIXX + curFont->glyph->bitmap_left);
 	Bit16u penY = (Bit16u)(PIXY - curFont->glyph->bitmap_top + curFont->size->metrics.ascender / 64);
 
 	if (style & STYLE_SUBSCRIPT) penY += curFont->glyph->bitmap.rows / 2;
@@ -1284,7 +1284,7 @@ void CPrinter::printChar(Bit8u ch)
 	SDL_UnlockSurface(page);
 
 	// For line printing
-	Bit16u lineStart = PIXX;
+	Bit16u lineStart = (Bit16u)PIXX;
 
 	// advance the cursor to the right
 	Real64 x_advance;
@@ -1304,15 +1304,15 @@ void CPrinter::printChar(Bit8u ch)
 	if ((score != SCORE_NONE) && (style & (STYLE_UNDERLINE|STYLE_STRIKETHROUGH|STYLE_OVERSCORE)))
 	{
 		// Find out where to put the line
-		Bit16u lineY = PIXY;
+		Bit16u lineY = (Bit16u)PIXY;
 		double height = (curFont->size->metrics.height >> 6); // TODO height is fixed point madness...
 
 		if (style & STYLE_UNDERLINE)
-            lineY = PIXY + (Bit16u)(height * 0.9);
+            lineY = (Bit16u)PIXY + (Bit16u)(height * 0.9);
 		else if (style & STYLE_STRIKETHROUGH)
-            lineY = PIXY + (Bit16u)(height * 0.45);
+            lineY = (Bit16u)PIXY + (Bit16u)(height * 0.45);
 		else if (style & STYLE_OVERSCORE)
-			lineY = PIXY - (((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
+			lineY = (Bit16u)PIXY - (Bit16u)(((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
 
 		drawLine(lineStart, PIXX, lineY, score == SCORE_SINGLEBROKEN || score == SCORE_DOUBLEBROKEN);
 
@@ -1991,7 +1991,7 @@ Bitu PRINTER_readdata(Bitu port,Bitu iolen)
 
 void PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
 {
-	dataregister = val;
+	dataregister = (Bit8u)val;
 }
 Bit8u controlreg = 0x04;
 
@@ -2067,7 +2067,7 @@ void PRINTER_writecontrol(Bitu port,Bitu val, Bitu iolen)
 		}
 	}
 
-	controlreg = val;
+	controlreg = (Bit8u)val;
 	if (defaultPrinter)
 		defaultPrinter->setAutofeed((val & 0x02) > 0);
 }

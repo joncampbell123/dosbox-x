@@ -155,11 +155,11 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 	{
 		case 0x0200:
 			// Data - insert into FIFO.
-			ps1.Data = data;
+			ps1.Data = (Bit8u)data;
 			ps1.Status = PS1SOUND_CalcStatus();
 			if( !( ps1.Status & FIFO_FULL ) )
 			{
-				ps1.FIFO[ ps1.FIFO_WRIndex++ ]=data;
+				ps1.FIFO[ ps1.FIFO_WRIndex++ ]=(Bit8u)data;
 				ps1.FIFO_WRIndex &= FIFOSIZE_MASK;
 				ps1.Pending += ( 1 << FRAC_SHIFT );
 				if( ps1.Pending > ( FIFOSIZE << FRAC_SHIFT ) ) {
@@ -169,7 +169,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 			break;
 		case 0x0202:
 			// Command.
-			ps1.Command = data;
+			ps1.Command = (Bit8u)data;
 			if( data & 3 ) ps1.CanTriggerIRQ = true;
 //			switch( data & 3 )
 //			{
@@ -181,8 +181,8 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 		case 0x0203:
 			{
 				// Clock divisor (maybe trigger first IRQ here).
-				ps1.Divisor = data;
-				ps1.Rate = ( DAC_CLOCK / ( data + 1 ) );
+				ps1.Divisor = (Bit8u)data;
+				ps1.Rate = (Bit32u)( DAC_CLOCK / ( data + 1 ) );
 				// 22050 << FRAC_SHIFT / 22050 = 1 << FRAC_SHIFT
 				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / (unsigned int)ps1.SampleRate;
 				if( ps1.Rate > 22050 )
@@ -206,7 +206,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 			break;
 		case 0x0204:
 			// Reset? (PS1MIC01 sets it to 08 for playback...)
-			ps1.Unknown = data;
+			ps1.Unknown = (Bit8u)data;
 			if( !data )
 				PS1DAC_Reset(true);
 			break;
@@ -310,7 +310,7 @@ static void PS1SOUNDUpdate(Bitu length)
 	// Update positions and see if we can clear the FIFO_FULL flag.
 	ps1.RDIndexHi = pos;
 //	if( ps1.FIFO_RDIndex != ( pos >> FRAC_SHIFT ) ) ps1.Status &= ~FIFO_FULL;
-	ps1.FIFO_RDIndex = pos >> FRAC_SHIFT;
+	ps1.FIFO_RDIndex = (Bit16u)(pos >> FRAC_SHIFT);
 	if( pending < 0 ) pending = 0;
 	ps1.Pending = (Bitu)pending;
 

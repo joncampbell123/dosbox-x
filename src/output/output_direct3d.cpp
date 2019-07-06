@@ -124,8 +124,8 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
         Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
-        int final_height = max(consider_height, userResizeWindowHeight);
-        int final_width = max(consider_width, userResizeWindowWidth);
+        int final_height = (int)max(consider_height, userResizeWindowHeight);
+        int final_width = (int)max(consider_width, userResizeWindowWidth);
 
         fixedWidth = final_width;
         fixedHeight = final_height;
@@ -177,18 +177,18 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     // Calculate texture size
     if ((!d3d->square) && (!d3d->pow2)) 
     {
-        d3d->dwTexWidth = adjTexWidth;
-        d3d->dwTexHeight = adjTexHeight;
+        d3d->dwTexWidth = (DWORD)adjTexWidth;
+        d3d->dwTexHeight = (DWORD)adjTexHeight;
     }
     else if (d3d->square) 
     {
-        int texsize = 2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
+        int texsize = 2 << int_log2((int)(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight));
         d3d->dwTexWidth = d3d->dwTexHeight = texsize;
     }
     else 
     {
-        d3d->dwTexWidth = 2 << int_log2(adjTexWidth);
-        d3d->dwTexHeight = 2 << int_log2(adjTexHeight);
+        d3d->dwTexWidth = 2 << int_log2((int)adjTexWidth);
+        d3d->dwTexHeight = 2 << int_log2((int)adjTexHeight);
     }
 
     LOG(LOG_MISC, LOG_DEBUG)("GFX_SetSize Direct3D texture=%ux%u window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
@@ -317,7 +317,7 @@ void OUTPUT_DIRECT3D_EndUpdate(const Bit16u *changedLines)
                 {
                     tg.run([=] {
                         const int iLast = min(i + sdl_xbrz.task_granularity, xbrzHeight);
-                        xbrz::pitchChange(&xbrzBuf[0], &tgtTex[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), tgtPitch, i, iLast, [](uint32_t pix) { return pix; });
+                        xbrz::pitchChange(&xbrzBuf[0], &tgtTex[0], (int)xbrzWidth, (int)xbrzHeight, (int)(xbrzWidth * sizeof(uint32_t)), (int)tgtPitch, (int)i, (int)iLast, [](uint32_t pix) { return pix; });
                     });
                 }
                 tg.wait();
