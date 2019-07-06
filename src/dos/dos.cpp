@@ -36,6 +36,7 @@
 #include "dos_network.h"
 
 Bitu INT29_HANDLER(void);
+Bit32u BIOS_get_PC98_INT_STUB(void);
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -2208,6 +2209,29 @@ public:
 		// pseudocode for CB_CPM:
 		//	pushf
 		//	... the rest is like int 21
+
+        if (IS_PC98_ARCH) {
+            /* Any interrupt vector pointing to the INT stub in the BIOS must be rewritten to point to a JMP to the stub
+             * residing in the DOS segment (60h) because some PC-98 resident drivers use segment 60h as a check for
+             * installed vs uninstalled (MUSIC.COM, Peret em Heru) */
+            Bit16u sg = DOS_GetMemory(1/*paragraph*/,"INT stub trampoline");
+            PhysPt sgp = (PhysPt)sg << (PhysPt)4u;
+
+            /* Re-base the pointer so the segment is 0x60 */
+            Bit32u veco = sgp - 0x600;
+            if (veco >= 0xFFF0u) E_Exit("INT stub trampoline out of bounds");
+            Bit32u vecp = RealMake(0x60,(Bit16u)veco);
+
+            mem_writeb(sgp+0,0xEA);
+            mem_writed(sgp+1,BIOS_get_PC98_INT_STUB());
+
+            for (unsigned int i=0;i < 0x100;i++) {
+                Bit32u vec = RealGetVec(i);
+
+                if (vec == BIOS_get_PC98_INT_STUB())
+                    mem_writed(i*4,vecp);
+            }
+        }
 
         /* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
         if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&

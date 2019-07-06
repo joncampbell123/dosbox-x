@@ -6860,6 +6860,10 @@ void gdc_16color_enable_update_vars(void) {
     }
 }
 
+Bit32u BIOS_get_PC98_INT_STUB(void) {
+    return callback[18].Get_RealPointer();
+}
+
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     /* PC-98 style IRQ 8-15 handling.
