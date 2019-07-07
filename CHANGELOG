@@ -1,4 +1,8 @@
 0.82.20 (next)
+  - Normal CPU core fixed not to immediately process
+    interrupts on STI but to wait a little bit so that
+    a STI + CLI sequence does not cause interrupt
+    processing, according to real Intel 486 behavior.
   - Unknown interrupts in PC-98 mode are now routed by
     the DOS kernel through it's segment (60h) and back
     to the BIOS through a JMP instruction. It appears
