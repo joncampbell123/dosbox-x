@@ -523,12 +523,12 @@ static Bit8u video_parameter_table_ega[0x40*0x17]={
 
 Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
 	if (IS_VGA_ARCH) {
-		for (Bitu i=0;i<0x40*0x1d;i++) {
+		for (Bit16u i=0;i<0x40*0x1d;i++) {
 			phys_writeb(basepos+i,video_parameter_table_vga[i]);
 		}
 		return 0x40*0x1d;
 	} else {
-		for (Bitu i=0;i<0x40*0x17;i++) {
+		for (Bit16u i=0;i<0x40*0x17;i++) {
 			phys_writeb(basepos+i,video_parameter_table_ega[i]);
 		}
 		return 0x40*0x17;
@@ -536,7 +536,7 @@ Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
 }
 
 Bitu RealToPhys(Bitu x) {
-	return PhysMake(x>>16,x&0xFFFF);
+	return PhysMake((Bit16u)(x>>16),x&0xFFFF);
 }
 
 void INT10_SetupBasicVideoParameterTable(void) {
@@ -564,7 +564,7 @@ void INT10_SetupBasicVideoParameterTable(void) {
 			/* TODO: Free previous block */
 
 			BIOS_VIDEO_TABLE_SIZE = (Bitu)copy_sz;
-            BIOS_VIDEO_TABLE_LOCATION = (Bitu)PhysToReal416(ROMBIOS_GetMemory((Bitu)copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
+            BIOS_VIDEO_TABLE_LOCATION = (Bitu)PhysToReal416((PhysPt)ROMBIOS_GetMemory((Bitu)copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
 
 			/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
 		}
@@ -573,12 +573,12 @@ void INT10_SetupBasicVideoParameterTable(void) {
 		}
 	}
 
-	RealSetVec(0x1d,BIOS_VIDEO_TABLE_LOCATION);
+	RealSetVec(0x1d,(RealPt)BIOS_VIDEO_TABLE_LOCATION);
 	ofs = RealToPhys(BIOS_VIDEO_TABLE_LOCATION);
 	if (ofs != 0) {
 		if (copy && copy_sz <= BIOS_VIDEO_TABLE_SIZE) {
 			for (size_t i=0;i < copy_sz;i++)
-				phys_writeb(ofs+(PhysPt)i,copy[i]);
+				phys_writeb((PhysPt)(ofs+(PhysPt)i),copy[i]);
 		}
 		else {
 			E_Exit("Somehow, INT 10 video param table too large");
