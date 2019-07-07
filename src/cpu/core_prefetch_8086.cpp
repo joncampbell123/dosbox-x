@@ -188,6 +188,14 @@ static unsigned int pq_hit=0,pq_miss=0;
 
 #include "core_prefetch_buf.h"
 
+static INLINE void FetchDiscardb() {
+	FetchDiscard<uint8_t>();
+}
+
+static INLINE Bit8u FetchPeekb() {
+	return FetchPeek<uint8_t>();
+}
+
 static Bit8u Fetchb() {
 	return Fetch<uint8_t>();
 }

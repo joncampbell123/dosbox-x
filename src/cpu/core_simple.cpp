@@ -113,6 +113,15 @@ static struct {
 #define BaseDS      core.base_ds
 #define BaseSS      core.base_ss
 
+static INLINE void FetchDiscardb() {
+	core.cseip+=1;
+}
+
+static INLINE Bit8u FetchPeekb() {
+    Bit8u temp=host_readb(core.cseip);
+    return temp;
+}
+
 static INLINE Bit8u Fetchb() {
     Bit8u temp=host_readb(core.cseip);
     core.cseip+=1;

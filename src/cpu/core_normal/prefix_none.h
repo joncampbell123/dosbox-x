@@ -1222,7 +1222,7 @@
 		SETFLAGBIT(CF,true);
 		break;
 	CASE_B(0xfa)												/* CLI */
-		if (CPU_CLI()) RUNEXCEPTION();
+do_cli:	if (CPU_CLI()) RUNEXCEPTION();
 		break;
 	CASE_B(0xfb)												/* STI */
 		if (CPU_STI()) RUNEXCEPTION();
@@ -1247,8 +1247,19 @@
             //      by stale data and crash.
             //
             //      [https://github.com/joncampbell123/dosbox-x/issues/1162]
-            CPU_CycleLeft += CPU_Cycles - 4;
-            CPU_Cycles = 4;
+            //
+            // NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
+            //      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
+            //      so that isn't a long-term option.
+            {
+                Bit8u b = FetchPeekb();
+                if (b == 0xFAu) {
+                    /* if the next opcode is CLI, then do CLI right here before the normal core
+                     * has any chance to break and handle interrupts */
+                    FetchDiscardb(); // discard opcode we peeked, and then go execute it
+                    goto do_cli;
+                }
+            }
         }
 #endif
 		break;

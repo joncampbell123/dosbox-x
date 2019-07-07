@@ -109,3 +109,45 @@ template <class T> static inline T Fetch(void) {
     return temp;
 }
 
+template <class T> static inline void FetchDiscard(void) {
+    core.cseip += sizeof(T);
+}
+
+template <class T> static inline T FetchPeek(void) {
+    T temp;
+
+    if (prefetch_hit<T>(core.cseip)) {
+        /* as long as prefetch hits are occurring, keep loading more! */
+        prefetch_lazyflush(core.cseip+sizeof(T));
+        if ((pq_fill - pq_start) < pq_limit)
+            prefetch_filldword();
+
+        if (sizeof(T) >= prefetch_unit) {
+            if ((pq_fill - pq_start) < pq_limit)
+                prefetch_filldword();
+        }
+
+        temp = prefetch_read<T>(core.cseip);
+#ifdef PREFETCH_DEBUG
+        pq_hit++;
+#endif
+    }
+    else {
+        prefetch_init(core.cseip & (~(prefetch_unit-1ul))); /* fill prefetch starting on DWORD boundary */
+        prefetch_refill(pq_start + pq_reload); /* perhaps in the time it takes for a prefetch miss the 80486 can load two DWORDs */
+        temp = prefetch_read<T>(core.cseip);
+#ifdef PREFETCH_DEBUG
+        pq_miss++;
+#endif
+    }
+
+#ifdef PREFETCH_DEBUG
+    if (pq_valid) {
+        assert(core.cseip >= pq_start && (core.cseip+sizeof(T)) <= pq_fill);
+        assert(pq_fill >= pq_start && (pq_fill - pq_start) <= pq_limit);
+    }
+#endif
+
+    return temp;
+}
+
