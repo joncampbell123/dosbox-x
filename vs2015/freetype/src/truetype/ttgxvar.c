@@ -1948,7 +1948,7 @@
     FT_Var_Axis*         a;
     FT_Fixed*            c;
     FT_Var_Named_Style*  ns;
-    GX_FVar_Head         fvar_head;
+    GX_FVar_Head         fvar_head = {0};
     FT_Bool              usePsName  = 0;
     FT_UInt              num_instances;
     FT_UInt              num_axes;
