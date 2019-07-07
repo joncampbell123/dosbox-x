@@ -84,9 +84,9 @@ static void SaveMw(Bitu off,Bitu val) {
 
 static inline Bit16u LoadMw(Bitu off) {
 	if (last_ea86_offset == 0xffff)
-		return (mem_readb_inline(off) | (mem_readb_inline(off-0xffff) << 8));
+		return (mem_readb_inline((PhysPt)off) | (mem_readb_inline((PhysPt)(off-0xffff)) << 8));
 
-	return mem_readw_inline(off);	
+	return mem_readw_inline((PhysPt)off);
 }
 
 #define LoadMd(off) mem_readd_inline(off)
@@ -95,11 +95,11 @@ static inline Bit16u LoadMw(Bitu off) {
 
 static void SaveMw(Bitu off,Bitu val) {
 	if (last_ea86_offset == 0xffff) {
-		mem_writeb_inline(off,val);
-		mem_writeb_inline(off-0xffff,val>>8);
+		mem_writeb_inline((PhysPt)off,(Bit8u)val);
+		mem_writeb_inline((PhysPt)(off-0xffff),(Bit8u)(val>>8));
 	}
 	else {
-		mem_writew_inline(off,val);
+		mem_writew_inline((PhysPt)off,(Bit16u)val);
 	}
 }
 
