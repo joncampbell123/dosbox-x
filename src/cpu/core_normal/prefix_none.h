@@ -1260,6 +1260,8 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
                     goto do_cli;
                 }
             }
+            // otherwise, break for interrupt handling as normal
+            goto decode_end;
         }
 #endif
 		break;
