@@ -1257,6 +1257,7 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
                     /* if the next opcode is CLI, then do CLI right here before the normal core
                      * has any chance to break and handle interrupts */
                     FetchDiscardb(); // discard opcode we peeked, and then go execute it
+                    CPU_Cycles--; // we're executing another instruction, which should eat one CPU cycle
                     goto do_cli;
                 }
             }
