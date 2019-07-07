@@ -87,7 +87,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
                 vga.dac.xlat32[index] = (uint32_t)(blue << 16U) | (uint32_t)(green << 8U) | (uint32_t)(red << 0U);
         }
 
-        RENDER_SetPal( index, red, green, blue );
+        RENDER_SetPal( (Bit8u)index, red, green, blue );
     }
     else {
         if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
@@ -111,7 +111,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
                 vga.dac.xlat32[index] = (uint32_t)(blue << 18U) | (uint32_t)(green << 10U) | (uint32_t)(red << 2U);
         }
 
-        RENDER_SetPal( index, (red << 2u) | ( red >> 4u ), (green << 2u) | ( green >> 4u ), (blue << 2u) | ( blue >> 4u ) );
+        RENDER_SetPal( (Bit8u)index, (red << 2u) | ( red >> 4u ), (green << 2u) | ( green >> 4u ), (blue << 2u) | ( blue >> 4u ) );
     }
 }
 
@@ -172,14 +172,14 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     if((IS_VGA_ARCH) && (vga.dac.hidac_counter>3)) {
-        vga.dac.reg02=val;
+        vga.dac.reg02=(Bit8u)val;
         vga.dac.hidac_counter=0;
         VGA_StartResize();
         return;
     }
     if ( vga.dac.pel_mask != val ) {
         LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", (int)val);
-        vga.dac.pel_mask = val;
+        vga.dac.pel_mask = (Bit8u)val;
 
         // TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace
         //       for background/foreground. Does that apply to the PEL mask too?
@@ -205,8 +205,8 @@ void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_READ;
-    vga.dac.read_index=val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
-    vga.dac.write_index=val + 1;
+    vga.dac.read_index=(Bit8u)val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
+    vga.dac.write_index=(Bit8u)(val + 1);
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
@@ -223,9 +223,9 @@ void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_WRITE;
-    vga.dac.write_index=val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
+    vga.dac.write_index=(Bit8u)val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
     if (svgaCard != SVGA_ParadisePVGA1A)
-        vga.dac.read_index = val - 1;
+        vga.dac.read_index = (Bit8u)(val - 1);
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -251,7 +251,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
         val&=0x3f;
 
     if (vga.dac.pel_index < 3) {
-        tmp_dac[vga.dac.pel_index]=val;
+        tmp_dac[vga.dac.pel_index]=(unsigned char)val;
 
         if (!vga_palette_update_on_full_load) {
             /* update palette right away, partial change */
