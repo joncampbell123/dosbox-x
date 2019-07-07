@@ -71,7 +71,7 @@ CSerialModem::~CSerialModem() {
 	delete tqueue;
 
 	// remove events
-	for(Bitu i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
+	for(Bit8u i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
 		removeEvent(i);
 }
 
@@ -133,11 +133,11 @@ void CSerialModem::SendNumber(Bitu val) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 	
-	rqueue->addb(val/100+'0');
+	rqueue->addb((Bit8u)(val/100+'0'));
 	val = val%100;
-	rqueue->addb(val/10+'0');
+	rqueue->addb((Bit8u)(val/10+'0'));
 	val = val%10;
-	rqueue->addb(val+'0');
+	rqueue->addb((Bit8u)(val+'0'));
 
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
@@ -275,7 +275,7 @@ void CSerialModem::EnterIdleState(void){
 			delete waitingclientsocket;
 	} else if (listenport) {
 		
-		serversocket=new TCPServerSocket(listenport);	
+		serversocket=new TCPServerSocket((Bit16u)listenport);	
 		if(!serversocket->isopen) {
 			LOG_MSG("Serial%d: Modem could not open TCP port %d.",(int)COMNUMBER,(int)listenport);
 			delete serversocket;
@@ -500,7 +500,7 @@ void CSerialModem::DoCommand() {
 				scanbuf++;
 				while(scanbuf[0]==' ') scanbuf++;	// skip spaces
 				Bitu val = ScanNumber(scanbuf);
-				reg[index]=val;
+				reg[index]=(Bit8u)val;
 				break;
 			}
 			else if(scanbuf[0]=='?') {	// get register
