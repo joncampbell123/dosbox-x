@@ -420,7 +420,7 @@ void INT10_SetColorSelect(Bit8u val) {
 void INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
 	if (count>0x100) count=0x100;
 	for (Bitu ct=0; ct<count; ct++) {
-		IO_Write(VGAREG_DAC_READ_ADDRESS,start_reg+ct);
+		IO_Write(VGAREG_DAC_READ_ADDRESS,(Bit8u)(start_reg+ct));
 		Bit8u red=IO_Read(VGAREG_DAC_DATA);
 		Bit8u green=IO_Read(VGAREG_DAC_DATA);
 		Bit8u blue=IO_Read(VGAREG_DAC_DATA);
@@ -428,6 +428,6 @@ void INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
 		/* calculate clamped intensity, taken from VGABIOS */
 		Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 		Bit8u ic=(i>0x3f) ? 0x3f : ((Bit8u)(i & 0xff));
-		INT10_SetSingleDACRegister(start_reg+ct,ic,ic,ic);
+		INT10_SetSingleDACRegister((Bit8u)(start_reg+ct),ic,ic,ic);
 	}
 }
