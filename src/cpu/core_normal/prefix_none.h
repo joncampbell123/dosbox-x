@@ -1262,7 +1262,13 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
                 }
             }
             // otherwise, break for interrupt handling as normal
-            goto decode_end;
+            if (CPU_Cycles > 2) {
+                CPU_CycleLeft += CPU_Cycles - 2;
+                CPU_Cycles = 2;
+            }
+            else {
+                goto decode_end;
+            }
         }
 #endif
 		break;
