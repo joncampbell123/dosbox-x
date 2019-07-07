@@ -1227,7 +1227,29 @@
 	CASE_B(0xfb)												/* STI */
 		if (CPU_STI()) RUNEXCEPTION();
 #if CPU_PIC_CHECK
-		if (GETFLAG(IF) && PIC_IRQCheck) goto decode_end;
+		if (GETFLAG(IF) && PIC_IRQCheck) {
+            // NTS: Do not immmediately break execution, but set the cycle count to a minimal
+            //      value so that if a CLI follows immediately the interrupt will be ignored.
+            //
+            //      It turns out on a 486 that STI+CLI (right next to each other) does not
+            //      trigger the CPU to process interrupts. Like this:
+            //
+            //      STI
+            //      CLI
+            //
+            //      The FM music driver for the PC-98 version of Peret em Heru appears to have
+            //      STI+CLI sequences for some reason in certain subroutines within the FM
+            //      music interrupt handler, which should not be trigger points to process
+            //      interrupts because the FM interrupt is non-reentrant and Peret is also
+            //      calling another entry point to the FM driver from IRQ 2 (vsync). If
+            //      IRQ 2 is processed while the FM interrupt is processing at the STI, the
+            //      stack switch will overwrite the first and the FM interrupt will return
+            //      by stale data and crash.
+            //
+            //      [https://github.com/joncampbell123/dosbox-x/issues/1162]
+            CPU_CycleLeft += CPU_Cycles - 4;
+            CPU_Cycles = 4;
+        }
 #endif
 		break;
 	CASE_B(0xfc)												/* CLD */
