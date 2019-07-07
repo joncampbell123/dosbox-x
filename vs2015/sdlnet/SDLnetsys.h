@@ -32,6 +32,7 @@
 
 /* Include system network headers */
 #if defined(__WIN32__) || defined(WIN32)
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define __USE_W32_SOCKETS
 #ifdef _WIN64
 #include <winsock2.h>
