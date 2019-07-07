@@ -148,9 +148,9 @@
 		reg_edi=Pop_32();break;
 	CASE_D(0x60)												/* PUSHAD */
 		{
-			Bitu old_esp = reg_esp;
+			Bit32u old_esp = reg_esp;
 			try {
-				Bitu tmpesp = reg_esp;
+				Bit32u tmpesp = reg_esp;
 				Push_32(reg_eax);Push_32(reg_ecx);Push_32(reg_edx);Push_32(reg_ebx);
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
@@ -163,7 +163,7 @@
 		} break;
 	CASE_D(0x61)												/* POPAD */
 		{
-			Bitu old_esp = reg_esp;
+			Bit32u old_esp = reg_esp;
 			try {
 				reg_edi=Pop_32();reg_esi=Pop_32();reg_ebp=Pop_32();Pop_32();//Don't save ESP
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();

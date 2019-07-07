@@ -28,7 +28,7 @@
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
 					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
-					else {GetEAa;SaveMw(eaa,saveval);}
+					else {GetEAa;SaveMw(eaa,(Bit16u)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:

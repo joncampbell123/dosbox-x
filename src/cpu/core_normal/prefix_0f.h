@@ -28,8 +28,8 @@
 					Bitu saveval;
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
-					if (rm >= 0xc0) {GetEArw;*earw=saveval;}
-					else {GetEAa;SaveMw(eaa,saveval);}
+					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
+					else {GetEAa;SaveMw(eaa,(Bit16u)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:
@@ -72,13 +72,13 @@
 					 *      Some programs, including Microsoft Windows 3.0, execute SGDT and then compare the most
 					 *      significant byte against 0xFF. It does NOT use the standard Intel detection process. */
 				case 0x00:										/* SGDT */
-					SaveMw(eaa,CPU_SGDT_limit());
-					SaveMd(eaa+2,CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0));
+					SaveMw(eaa,(Bit16u)CPU_SGDT_limit());
+					SaveMd(eaa+2,(Bit32u)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 					/* NTS: Same comments for SIDT as SGDT */
 				case 0x01:										/* SIDT */
-					SaveMw(eaa,CPU_SIDT_limit());
-					SaveMd(eaa+2,CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0));
+					SaveMw(eaa,(Bit16u)CPU_SIDT_limit());
+					SaveMd(eaa+2,(Bit32u)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 				case 0x02:										/* LGDT */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -89,7 +89,7 @@
 					CPU_LIDT(LoadMw(eaa),LoadMd(eaa+2) & 0xFFFFFF);
 					break;
 				case 0x04:										/* SMSW */
-					SaveMw(eaa,CPU_SMSW());
+					SaveMw(eaa,(Bit16u)CPU_SMSW());
 					break;
 				case 0x06:										/* LMSW */
 					limit=LoadMw(eaa);
@@ -111,7 +111,7 @@
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					goto illegal_opcode;
 				case 0x04:										/* SMSW */
-					*earw=CPU_SMSW();
+					*earw=(Bit16u)CPU_SMSW();
 					break;
 				case 0x06:										/* LMSW */
 					if (CPU_LMSW(*earw)) RUNEXCEPTION();
