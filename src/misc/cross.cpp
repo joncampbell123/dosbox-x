@@ -21,6 +21,7 @@
 #include "cross.h"
 #include "support.h"
 #include <string>
+#include <limits.h>
 #include <stdlib.h>
 
 #if defined(MACOSX)
@@ -363,3 +364,58 @@ void close_directory(dir_information* dirp) {
 }
 
 #endif
+
+FILE *fopen_wrap(const char *path, const char *mode) {
+#if defined(WIN32) || defined(OS2)
+	;
+#elif defined (MACOSX)
+	;
+#else  
+#if defined (HAVE_REALPATH)
+	char work[CROSS_LEN] = {0};
+	strncpy(work,path,CROSS_LEN-1);
+	char* last = strrchr(work,'/');
+	
+	if (last) {
+		if (last != work) {
+			*last = 0;
+			//If this compare fails, then we are dealing with files in / 
+			//Which is outside the scope, but test anyway. 
+			//However as realpath only works for exising files. The testing is 
+			//in that case not done against new files.
+		}
+		char* check = realpath(work,NULL);
+		if (check) {
+			if ( ( strlen(check) == 5 && strcmp(check,"/proc") == 0) || strncmp(check,"/proc/",6) == 0) {
+//				LOG_MSG("lst hit %s blocking!",path);
+				free(check);
+				return NULL;
+			}
+			free(check);
+		}
+	}
+
+#if 0
+//Lightweight version, but then existing files can still be read, which is not ideal	
+	if (strpbrk(mode,"aw+") != NULL) {
+		LOG_MSG("pbrk ok");
+		char* check = realpath(path,NULL);
+		//Will be null if file doesn't exist.... ENOENT
+		//TODO What about unlink /proc/self/mem and then create it ?
+		//Should be safe for what we want..
+		if (check) {
+			if (strncmp(check,"/proc/",6) == 0) {
+				free(check);
+				return NULL;
+			}
+			free(check);
+		}
+	}
+*/
+#endif //0 
+
+#endif //HAVE_REALPATH
+#endif
+
+	return fopen(path,mode);
+}
