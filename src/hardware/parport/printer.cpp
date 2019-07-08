@@ -1571,7 +1571,7 @@ void CPrinter::formFeed()
 
 static void findNextName(char* front, char* ext, char* fname)
 {
-	Bitu i = 1;
+	int i = 1;
 	Bitu slen = (Bitu)strlen(document_path);
 	if(slen > (200 - 15))
     {
