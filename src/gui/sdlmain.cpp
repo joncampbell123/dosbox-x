@@ -7530,7 +7530,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if !defined(C_SDL2)
-        if (SDL_InitSubSystem(SDL_INIT_CDROM) >= 0) {
+        if (SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
             LOG(LOG_GUI,LOG_WARN)("Failed to init CD-ROM support");
         }
 #endif
