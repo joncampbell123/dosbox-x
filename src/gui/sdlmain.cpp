@@ -5957,7 +5957,7 @@ bool DOSBOX_parse_argv() {
         if (optname == "version") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION,SDL_STRING);
+            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2019 DOSBox Team.\n\n",VERSION,SDL_STRING);
             fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
             fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
@@ -5973,7 +5973,7 @@ bool DOSBOX_parse_argv() {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\ndosbox [options]\n");
-            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION,SDL_STRING);
+            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2019 DOSBox Team.\n\n",VERSION,SDL_STRING);
             fprintf(stderr,"  -h     -help                            Show this help\n");
             fprintf(stderr,"  -editconf                               Launch editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
@@ -7389,7 +7389,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- Welcome to DOSBox-X! */
         LOG_MSG("DOSBox-X version %s",VERSION);
-        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
+        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2019 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
 
 #if defined(MACOSX)
         LOG_MSG("Mac OS X EXE path: %s",MacOSXEXEPath.c_str());
@@ -7530,7 +7530,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if !defined(C_SDL2)
-        if (SDL_InitSubSystem(SDL_INIT_CDROM) >= 0) {
+        if (SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
             LOG(LOG_GUI,LOG_WARN)("Failed to init CD-ROM support");
         }
 #endif
