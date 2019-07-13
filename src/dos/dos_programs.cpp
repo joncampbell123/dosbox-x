@@ -133,7 +133,13 @@ static const char* UnmountHelper(char umount) {
     else
         i_drive = umount - '0';
 
-    if (i_drive >= DOS_DRIVES || i_drive < 0 || (Drives[i_drive] == NULL && imageDiskList[i_drive] == NULL))
+    if (i_drive >= DOS_DRIVES || i_drive < 0)
+        return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
+
+    if (i_drive < MAX_DISK_IMAGES && Drives[i_drive] == NULL && imageDiskList[i_drive] == NULL)
+        return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
+
+    if (i_drive >= MAX_DISK_IMAGES && Drives[i_drive] == NULL)
         return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
 
     if (Drives[i_drive]) {
@@ -334,23 +340,29 @@ public:
             }
            
             cmd->FindString("-size",str_size,true);
-            char number[20];const char * scan=str_size.c_str();
-            Bitu index=0;Bitu count=0;
+            char number[21] = { 0 }; const char* scan = str_size.c_str();
+            Bitu index = 0; Bitu count = 0;
             /* Parse the str_size string */
-            while (*scan) {
+            while (*scan && index < 20 && count < 4) {
                 if (*scan==',') {
-                    number[index]=0;sizes[count++]=atoi(number);
-                    index=0;
-                } else number[index++]=*scan;
+                    number[index] = 0;
+                    sizes[count++] = atoi(number);
+                    index = 0;
+                } else number[index++] = *scan;
                 scan++;
             }
-            number[index]=0;sizes[count++]=atoi(number);
+            if (count < 4) {
+                number[index] = 0; //always goes correct as index is max 20 at this point.
+                sizes[count] = atoi(number);
+            }
         
             // get the drive letter
             cmd->FindCommand(1,temp_line);
             if ((temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':'))) goto showusage;
-            drive=toupper(temp_line[0]);
-            if (!isalpha(drive)) goto showusage;
+            int i_drive = toupper(temp_line[0]);
+            if (!isalpha(i_drive)) goto showusage;
+            if ((i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) goto showusage;
+            drive = static_cast<char>(i_drive);
 
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
@@ -996,6 +1008,10 @@ public:
                     }
                     i++;
                     continue;
+                }
+
+                if (i >= MAX_SWAPPABLE_DISKS) {
+                    return; //TODO give a warning.
                 }
 
                 Bit32u rombytesize=0;
@@ -2838,11 +2854,12 @@ public:
                 WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
                 return;
             }
-            drive=toupper(temp_line[0]);
-            if (!isalpha(drive)) {
+            int i_drive = toupper(temp_line[0]);
+            if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
                 WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
                 return;
             }
+            drive = static_cast<char>(i_drive);
         } else if (fstype=="none") {
             cmd->FindCommand(1,temp_line);
             if ((temp_line.size() > 1) || (!isdigit(temp_line[0]))) {
