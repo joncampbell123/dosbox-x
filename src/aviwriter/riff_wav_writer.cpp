@@ -95,7 +95,7 @@ int riff_wav_writer_set_format_ex(riff_wav_writer *w,windows_WAVEFORMATEX *f,siz
 		return 0;
 
 	w->fmt_len = sizeof(windows_WAVEFORMAT);
-	if (__le_u16(&f->cbSize) != 0u) w->fmt_len += 2u + __le_u16(&f->cbSize);
+	if (__le_u16(&f->cbSize) != 0u) w->fmt_len += (size_t)2u + __le_u16(&f->cbSize);
 	if (w->fmt_len > len)
 		return 0;
 	if ((w->fmt = malloc(w->fmt_len)) == NULL)

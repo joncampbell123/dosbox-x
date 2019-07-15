@@ -145,7 +145,7 @@ bool CDROM_Interface_Image::GetAudioTrackInfo(int track, TMSF& start, unsigned c
 {
 	if (track < 1 || track > (int)tracks.size()) return false;
 	FRAMES_TO_MSF((unsigned int)tracks[(unsigned int)track - 1u].start + 150u, &start.min, &start.sec, &start.fr);
-	attr = tracks[(unsigned int)track - 1u].attr;
+	attr = tracks[(Bitu)track - 1u].attr;
 	return true;
 }
 
@@ -238,7 +238,7 @@ bool CDROM_Interface_Image::ReadSectorsHost(void *buffer, bool raw, unsigned lon
 	unsigned int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 	bool success = true; //Gobliiins reads 0 sectors
 	for(unsigned long i = 0; i < num; i++) {
-		success = ReadSector((Bit8u*)buffer + (i * sectorSize), raw, sector + i);
+		success = ReadSector((Bit8u*)buffer + (i * (Bitu)sectorSize), raw, sector + i);
 		if (!success) break;
 	}
 

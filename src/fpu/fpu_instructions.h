@@ -104,7 +104,7 @@ static Real64 FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 	test.eind.l.upper = (Bit32s)mem_readd(addr+4);
 	test.begin = (Bit16s)mem_readw(addr+8);
    
-	Bit64s exp64 = (((test.begin&0x7fff) - BIAS80));
+	Bit64s exp64 = (((test.begin&0x7fff) - (Bit64s)BIAS80));
 	Bit64s blah = ((exp64 >0)?exp64:-exp64)&0x3ff;
 	Bit64s exp64final = ((exp64 >0)?blah:-blah) +BIAS64;
 

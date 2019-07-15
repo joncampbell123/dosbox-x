@@ -207,7 +207,7 @@ Bits CPU_Core_Prefetch_Run(void) {
 			invalidate_pq=false;
 		}
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200u;
+		core.opcode_index=cpu.code.big*(Bitu)0x200u;
 		core.prefixes=cpu.code.big;
 		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
