@@ -1013,8 +1013,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                     /* FIXME: What if the label contains SHIFT-JIS? */
                     std::string name = std::string(pe->name,sizeof(pe->name));
 
-                    LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
-                        i,name.c_str(),(unsigned long)startSector);
+                    LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
+                        (unsigned long)i,name.c_str(),(unsigned long)startSector);
                 }
             }
             else {
@@ -1051,8 +1051,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                             /* FIXME: What if the label contains SHIFT-JIS? */
                             std::string name = std::string(pe->name,sizeof(pe->name));
 
-                            LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
-                                i,name.c_str(),(unsigned long)startSector);
+                            LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
+                                (unsigned long)i,name.c_str(),(unsigned long)startSector);
                             break;
                         }
                     }
