@@ -325,7 +325,7 @@ Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
     if (cpu.gdt.GetDescriptor(selector,desc)) {
         if (selector >= 8 && desc.Type() != 0) {
             if (offset <= desc.GetLimit())
-                return desc.GetBase()+offset;
+                return desc.GetBase()+(Bit64u)offset;
         }
     }
 
@@ -337,7 +337,7 @@ Bit64u GetAddress(Bit16u seg, Bit32u offset)
 	if (cpu.pmode && !(reg_flags & FLAG_VM))
         return LinMakeProt(seg,offset);
 
-	if (seg==SegValue(cs)) return SegPhys(cs)+offset;
+	if (seg==SegValue(cs)) return SegPhys(cs)+(Bit64u)offset;
 	return ((Bit64u)seg<<4u)+offset;
 }
 
@@ -2451,7 +2451,7 @@ bool ParseCommand(char* str) {
 			DEBUG_ShowMsg("DEBUG: Set code overview to interrupt handler %X\n",intNr);
             if (cpu.pmode) {
                 Descriptor gate;
-                if (cpu.idt.GetDescriptor(intNr<<3u,gate)) {
+                if (cpu.idt.GetDescriptor((Bitu)intNr<<3u,gate)) {
                     codeViewData.useCS	= (Bit16u)gate.GetSelector();
                     codeViewData.useEIP = (Bit32u)gate.GetOffset();
                 }
@@ -3667,13 +3667,13 @@ void LogPages(char* selname) {
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
 			for (unsigned int i=0; i<0xfffff; i++) {
-				Bitu table_addr=((Bitu)paging.base.page<<12u)+(i >> 10u)*4u;
+				Bitu table_addr=((Bitu)paging.base.page<<12u)+(i >> 10u)*(Bitu)4u;
 				X86PageEntry table;
 				table.load=phys_readd((PhysPt)table_addr);
 				if (table.block.p) {
 					X86PageEntry entry;
-					Bitu entry_addr=((Bitu)table.block.base<<12u)+(i & 0x3ffu)*4u;
-					entry.load=phys_readd((PhysPt)entry_addr);
+                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
+					entry.load=phys_readd(entry_addr);
 					if (entry.block.p) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
 							i,entry.block.base,entry.block.us,table.block.us,

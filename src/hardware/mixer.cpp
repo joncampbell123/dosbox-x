@@ -754,8 +754,8 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
     unsigned int whole,frac;
     bool endframe = false;
 
-    if (fracs >= (Bitu)(mixer.samples_this_ms.w * mixer.samples_this_ms.fd)) {
-        fracs = (Bitu)(mixer.samples_this_ms.w * mixer.samples_this_ms.fd);
+    if (fracs >= ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)) {
+        fracs = ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd);
         endframe = true;
     }
 
@@ -823,7 +823,7 @@ static void MIXER_FillUp(void) {
     SDL_LockAudio();
     float index = PIC_TickIndex();
     if (index < 0) index = 0;
-    MIXER_MixData((Bitu)(index * ((Bitu)mixer.samples_this_ms.w * (Bitu)mixer.samples_this_ms.fd)));
+    MIXER_MixData((Bitu)(((double)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd))));
     SDL_UnlockAudio();
 }
 
@@ -1001,7 +1001,7 @@ public:
 private:
     void ShowVolume(const char * name,float vol0,float vol1) {
         WriteOut("%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f \n",name,
-            vol0*100,vol1*100,
+            (double)vol0*100,(double)vol1*100,
             20*log(vol0)/log(10.0f),20*log(vol1)/log(10.0f)
         );
     }
@@ -1053,7 +1053,7 @@ bool MENU_get_swapstereo(void) {
 void MAPPER_VolumeUp(bool pressed) {
     if (!pressed) return;
 
-    double newvol = ((mixer.mastervol[0] + mixer.mastervol[1]) / 0.7) * 0.5;
+    double newvol = (((double)mixer.mastervol[0] + mixer.mastervol[1]) / 0.7) * 0.5;
 
     if (newvol > 1) newvol = 1;
 
@@ -1065,7 +1065,7 @@ void MAPPER_VolumeUp(bool pressed) {
 void MAPPER_VolumeDown(bool pressed) {
     if (!pressed) return;
 
-    double newvol = (mixer.mastervol[0] + mixer.mastervol[1]) * 0.7 * 0.5;
+    double newvol = ((double)mixer.mastervol[0] + mixer.mastervol[1]) * 0.7 * 0.5;
 
     if (fabs(newvol - 1.0) < 0.25)
         newvol = 1;
@@ -1078,7 +1078,7 @@ void MAPPER_VolumeDown(bool pressed) {
 void MAPPER_RecVolumeUp(bool pressed) {
     if (!pressed) return;
 
-    double newvol = ((mixer.recordvol[0] + mixer.recordvol[1]) / 0.7) * 0.5;
+    double newvol = (((double)mixer.recordvol[0] + mixer.recordvol[1]) / 0.7) * 0.5;
 
     if (newvol > 1) newvol = 1;
 
@@ -1090,7 +1090,7 @@ void MAPPER_RecVolumeUp(bool pressed) {
 void MAPPER_RecVolumeDown(bool pressed) {
     if (!pressed) return;
 
-    double newvol = (mixer.recordvol[0] + mixer.recordvol[1]) * 0.7 * 0.5;
+    double newvol = ((double)mixer.recordvol[0] + mixer.recordvol[1]) * 0.7 * 0.5;
 
     if (fabs(newvol - 1.0) < 0.25)
         newvol = 1;

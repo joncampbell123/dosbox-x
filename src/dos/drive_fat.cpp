@@ -368,7 +368,7 @@ Bit32u fatDrive::getClusterValue(Bit32u clustNum) {
 	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.bytespersector) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.bytespersector;
 
-    assert((bootbuffer.bytespersector * 2) <= sizeof(fatSectBuffer));
+    assert((bootbuffer.bytespersector * (Bitu)2) <= sizeof(fatSectBuffer));
 
 	if(curFatSect != fatsectnum) {
 		/* Load two sectors at once for FAT12 */
@@ -417,7 +417,7 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.bytespersector) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.bytespersector;
 
-    assert((bootbuffer.bytespersector * 2) <= sizeof(fatSectBuffer));
+    assert((bootbuffer.bytespersector * (Bitu)2) <= sizeof(fatSectBuffer));
 
 	if(curFatSect != fatsectnum) {
 		/* Load two sectors at once for FAT12 */
@@ -976,7 +976,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         if (!memcmp(mbrData.booter+4,"IPL1",4)) {
             unsigned char ipltable[SECTOR_SIZE_MAX];
             unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
-            unsigned int i;
+            Bitu i;
 
             LOG_MSG("PC-98 IPL1 signature detected");
 

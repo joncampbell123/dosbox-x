@@ -142,7 +142,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
         if (rawofs == 0xFFFF)
             return false;
 
-        assert((size_t)(rawofs+0x40) <= rawtbl_max);
+        assert((size_t)(rawofs+ (Bitu)0x40) <= rawtbl_max);
         wc = rawtbl[rawofs + (ic & 0x3F)];
         if (wc == 0x0000)
             return false;
@@ -177,7 +177,7 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
         MT ofs = hitbl[h];
 
         if (ofs == 0xFFFF) continue;
-        assert((size_t)(ofs+0x40) <= rawtbl_max);
+        assert((size_t)(ofs+ (Bitu)0x40) <= rawtbl_max);
 
         for (size_t l=0;l < 0x40;l++) {
             if ((MT)c == rawtbl[ofs+l])

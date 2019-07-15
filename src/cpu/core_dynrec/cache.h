@@ -177,7 +177,7 @@ public:
 #else
 		(*(Bit16u*)&invalidation_map[addr])+=0x101;
 #endif
-		InvalidateRange(addr,addr+1);
+		InvalidateRange(addr,addr+(Bitu)1);
 	}
 	void writed(PhysPt addr,Bit32u val){
 		addr&=4095;
@@ -199,7 +199,7 @@ public:
 #else
 		(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
 #endif
-		InvalidateRange(addr,addr+3);
+		InvalidateRange(addr,addr+(Bitu)3);
 	}
 	bool writeb_checked(PhysPt addr,Bit8u val) {
 		addr&=4095;
@@ -246,7 +246,7 @@ public:
 #else
 			(*(Bit16u*)&invalidation_map[addr])+=0x101;
 #endif
-			if (InvalidateRange(addr,addr+1)) {
+			if (InvalidateRange(addr,addr+(Bitu)1)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
 				return true;
 			}
@@ -275,7 +275,7 @@ public:
 #else
 			(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
 #endif
-			if (InvalidateRange(addr,addr+3)) {
+			if (InvalidateRange(addr,addr+(Bitu)3)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
 				return true;
 			}
@@ -286,7 +286,7 @@ public:
 
     // add a cache block to this page and note it in the hash map
 	void AddCacheBlock(CacheBlockDynRec * block) {
-		Bitu index=1+(block->page.start>>DYN_HASH_SHIFT);
+		Bitu index=(Bitu)1+(block->page.start>>DYN_HASH_SHIFT);
 		block->hash.next=hash_map[index];	// link to old block at index from the new block
 		block->hash.index=index;
 		hash_map[index]=block;				// put new block at hash position
