@@ -252,7 +252,7 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 
     //LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
-    fseeko64(diskimg,(off_t)bytenum,SEEK_SET);
+    fseeko64(diskimg,(long)bytenum,SEEK_SET);
     res = (Bit64u)ftello64(diskimg);
     if (res != bytenum) {
         LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%llu Got=%llu\n",
@@ -1258,7 +1258,7 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
     if (ent->hasSectorData()) {
-        fseek(diskimg,ent->data_offset,SEEK_SET);
+        fseek(diskimg,(long)ent->data_offset,SEEK_SET);
         if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
         if (fread(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
@@ -1333,7 +1333,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
     if (ent->hasSectorData()) {
-        fseek(diskimg,ent->data_offset,SEEK_SET);
+        fseek(diskimg,(long)ent->data_offset,SEEK_SET);
         if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
         if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
@@ -1362,7 +1362,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
         if (ent->entry_offset == 0) return 0x05;
 
         if (isfill) {
-            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            fseek(diskimg,(long)ent->entry_offset,SEEK_SET);
             if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fread(tmp,12,1,diskimg) != 1) return 0x05;
 
@@ -1370,7 +1370,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
 
             LOG_MSG("VFD write: 'fill' sector changing fill byte to 0x%x",tmp[0x04]);
 
-            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            fseek(diskimg,(long)ent->entry_offset,SEEK_SET);
             if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
         }
@@ -1381,7 +1381,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
             /* we have to change it from a fill sector to an actual sector */
             LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
 
-            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            fseek(diskimg,(long)ent->entry_offset,SEEK_SET);
             if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fread(tmp,12,1,diskimg) != 1) return 0x05;
 
@@ -1397,11 +1397,11 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
             ent->fillbyte = 0xFF;
             ent->data_offset = (uint32_t)new_offset;
 
-            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            fseek(diskimg,(long)ent->entry_offset,SEEK_SET);
             if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
 
-            fseek(diskimg,ent->data_offset,SEEK_SET);
+            fseek(diskimg,(long)ent->data_offset,SEEK_SET);
             if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
             if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         }
@@ -1665,7 +1665,7 @@ Bit8u imageDiskD88::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
-    fseek(diskimg,ent->data_offset,SEEK_SET);
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
     if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
     if (fread(data,req_sector_size,1,diskimg) != 1) return 0x05;
     return 0;
@@ -1719,7 +1719,7 @@ Bit8u imageDiskD88::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
-    fseek(diskimg,ent->data_offset,SEEK_SET);
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
     if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
     if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
     return 0;
@@ -1807,7 +1807,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         uint32_t trackoff = host_readd((ConstHostPt)(&head.trackp[track]));
 
         if (trackoff != 0) {
-            fseek(diskimg, trackoff, SEEK_SET);
+            fseek(diskimg, (long)trackoff, SEEK_SET);
             if ((off_t)ftell(diskimg) != (off_t)trackoff) continue;
 
             D88SEC s;
@@ -1837,7 +1837,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 dents.push_back(vent);
                 if ((++count) >= sector_count) break;
 
-                fseek(diskimg, sector_size, SEEK_CUR);
+                fseek(diskimg, (long)sector_size, SEEK_CUR);
             } while (1);
         }
     }
@@ -1962,7 +1962,7 @@ Bit8u imageDiskNFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
-    fseek(diskimg,ent->data_offset,SEEK_SET);
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
     if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
     if (fread(data,req_sector_size,1,diskimg) != 1) return 0x05;
     return 0;
@@ -2016,7 +2016,7 @@ Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
-    fseek(diskimg,ent->data_offset,SEEK_SET);
+    fseek(diskimg,(long)ent->data_offset,SEEK_SET);
     if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
     if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
     return 0;
@@ -2144,7 +2144,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
             if (trkoff == 0) break;
 
-            fseek(diskimg,trkoff,SEEK_SET);
+            fseek(diskimg,(long)trkoff,SEEK_SET);
             if ((off_t)ftell(diskimg) != (off_t)trkoff) return;
 
             NFDHDR_ENTRY e;
