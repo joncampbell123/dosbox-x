@@ -128,8 +128,8 @@ private:
 public:
 	CMS(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
-		Bitu sampleRate = section->Get_int( "oplrate" );
-		cmsBase = section->Get_hex("sbbase");
+		Bitu sampleRate = (Bitu)section->Get_int( "oplrate" );
+		cmsBase = (Bit32u)section->Get_hex("sbbase");
 		WriteHandler.Install( cmsBase, write_cms, IO_MB, 4 );
 
 		// A standalone Gameblaster has a magic chip on it which is

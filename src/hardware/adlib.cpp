@@ -137,8 +137,8 @@ struct Handler : public Adlib::Handler {
 	void* chip;
 
 	virtual void WriteReg(Bit32u reg, Bit8u val) {
-		ym3812_write(chip, 0, reg);
-		ym3812_write(chip, 1, val);
+		ym3812_write(chip, 0, (int)reg);
+		ym3812_write(chip, 1, (int)val);
 	}
 	virtual Bit32u WriteAddr(Bit32u /*port*/, Bit8u val) {
 		return val;
@@ -169,8 +169,8 @@ struct Handler : public Adlib::Handler {
 	void* chip;
 
 	virtual void WriteReg(Bit32u reg, Bit8u val) {
-		ymf262_write(chip, 0, reg);
-		ymf262_write(chip, 1, val);
+		ymf262_write(chip, 0, (int)reg);
+		ymf262_write(chip, 1, (int)val);
 	}
 	virtual Bit32u WriteAddr(Bit32u /*port*/, Bit8u val) {
 		return val;
@@ -354,9 +354,9 @@ class Capture {
 			if (val) {
 				AddWrite( i, val );
 			}
-			val = (*cache)[ 0x100 + i ];
+			val = (*cache)[ 0x100u + i ];
 			if (val) {
-				AddWrite( 0x100 + i, val );
+				AddWrite( 0x100u + i, val );
 			}
 		}
 	}
