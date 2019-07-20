@@ -215,7 +215,7 @@ Bitu CSerialModem::ScanNumber(char * & scan) {
 	while (char c=*scan) {
 		if (c>='0' && c<='9') {
 			ret*=10;
-			ret+=c-'0';
+			ret+=(Bitu)(c-'0');
 			scan++;
 		} else break;
 	}
@@ -687,7 +687,7 @@ void CSerialModem::Timer2(void) {
 			else if (txval==0xd) DoCommand();				// return
 			else if (txval != '+') {
 				if(cmdpos<99) {
-					cmdbuf[cmdpos] = txval;
+					cmdbuf[cmdpos] = (char)txval;
 					cmdpos++;
 				}
 			}
