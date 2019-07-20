@@ -113,7 +113,7 @@ public:
 
 	// clear out blocks that contain code which has been modified
 	bool InvalidateRange(Bitu start,Bitu end) {
-		Bits index=1+(end>>DYN_HASH_SHIFT);
+		Bits index=1+(Bits)(end>>(Bitu)DYN_HASH_SHIFT);
 		bool is_current_block=false;	// if the current block is modified, it has to be exited as soon as possible
 
 		Bit32u ip_point=SegPhys(cs)+reg_eip;
@@ -286,7 +286,7 @@ public:
 
     // add a cache block to this page and note it in the hash map
 	void AddCacheBlock(CacheBlockDynRec * block) {
-		Bitu index=(Bitu)1+(block->page.start>>DYN_HASH_SHIFT);
+		Bitu index=1u+(Bitu)(block->page.start>>(Bit16u)DYN_HASH_SHIFT);
 		block->hash.next=hash_map[index];	// link to old block at index from the new block
 		block->hash.index=index;
 		hash_map[index]=block;				// put new block at hash position
@@ -596,7 +596,7 @@ static void cache_init(bool enable) {
 			if(!cache_code_start_ptr) E_Exit("Allocating dynamic cache failed");
 
 			// align the cache at a page boundary
-			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1));//Bitu is same size as a pointer.
+			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + (Bitu)(PAGESIZE_TEMP-1)) & ~((Bitu)(PAGESIZE_TEMP-1)));//Bitu is same size as a pointer.
 
 			cache_code_link_blocks=cache_code;
 			cache_code=cache_code+PAGESIZE_TEMP;
