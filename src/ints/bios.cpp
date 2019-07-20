@@ -400,7 +400,7 @@ void dosbox_integration_trigger_read() {
             break;
 
         case 0x434D55: /* read user mouse cursor position */
-            dosbox_int_register = ((user_cursor_y & 0xFFFFUL) << 16UL) | (user_cursor_x & 0xFFFFUL);
+            dosbox_int_register = (Bit32u((Bit16u)user_cursor_y & 0xFFFFUL) << 16UL) | Bit32u((Bit16u)user_cursor_x & 0xFFFFUL);
             break;
 
         case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
@@ -2512,7 +2512,7 @@ static Bitu INT1A_Handler(void) {
                     if (found>=0) {
                         reg_ah=0x00;
                         reg_bh=0x00;    // bus 0
-                        reg_bl=(Bit8u)(found&0xffu);
+                        reg_bl=(Bit8u)found & 0xffu;
                         CALLBACK_SCF(false);
                     } else {
                         reg_ah=0x86;    // device not found
@@ -3247,7 +3247,7 @@ static Bitu INT18_PC98_Handler(void) {
              *
              * This is a guess, but it seems to help animation speed match that of real hardware regardless
              * of cycle count in DOSBox-X. */
-            CPU_Cycles -= (unsigned int)(CPU_CycleMax * 0.006);
+            CPU_Cycles -= (cpu_cycles_count_t)(CPU_CycleMax * 0.006);
             break;
         case 0x05: /* Key input sense (キー入力センス) */
             /* This appears to return a key from the buffer (and remove from
