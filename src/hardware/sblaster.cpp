@@ -3629,7 +3629,7 @@ public:
             s = section->Get_string("irq hack");
             if (!s.empty() && s != "none") {
                 LOG(LOG_SB,LOG_NORMAL)("Sound Blaster emulation: Assigning IRQ hack '%s' as instruced",s.c_str());
-                PIC_Set_IRQ_hack(sb.hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
+                PIC_Set_IRQ_hack((int)sb.hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
             }
         }
 
