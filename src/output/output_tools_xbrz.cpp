@@ -127,8 +127,8 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
                 y += changedLines[index];
             else
             {
-                const int sliceFirst = y;
-                const int sliceLast = y + changedLines[index];
+                const int sliceFirst = int(y);
+                const int sliceLast = int(y + changedLines[index]);
                 y += changedLines[index];
 
                 int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
