@@ -1177,7 +1177,7 @@ bool localFile::Close() {
             extern int errno; 
             LOG_MSG("Set time failed (%s)", strerror(errno));
         }
-#else // Linux (TODO: What about Mac OS X/Darwin?)
+#elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)
         // NTS: Do not attempt futime, Linux doesn't have it.
         //      Do not attempt futimes, Linux man pages LIE about having it. It's even there in the freaking header, but not recognized!
         //      Use futimens. Modern stuff should have it. [https://pubs.opengroup.org/onlinepubs/9699919799/functions/futimens.html]
