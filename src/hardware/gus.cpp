@@ -1684,7 +1684,8 @@ void GUS_Update_DMA_Event_transfer() {
 void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 	Bitu dmaaddr = (Bitu)(myGUS.dmaAddr << 4ul) + (Bitu)myGUS.dmaAddrOffset;
 	Bitu dmalimit = myGUS.memsize;
-	int step = 0,docount = 0;
+    unsigned int docount = 0;
+	unsigned int step = 0;
 	bool dma16xlate;
 	Bitu holdAddr;
 
@@ -1759,10 +1760,10 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 	}
 
 	if (dmaaddr < dmalimit)
-		docount = dmalimit - dmaaddr;
+		docount = (unsigned int)(dmalimit - dmaaddr);
 
-	docount /= (chan->DMA16+1);
-	if (docount > (chan->currcnt+1)) docount = chan->currcnt+1;
+	docount /= (chan->DMA16+1u);
+	if (docount > (chan->currcnt+1u)) docount = chan->currcnt+1u;
 	if ((Bitu)docount > dmawords) docount = dmawords;
 
 	// hack: some programs especially Gravis Ultrasound MIDI playback like to upload by DMA but never clear the DMA TC flag on the DMA controller.
@@ -2327,7 +2328,7 @@ public:
     }
 
     void DOS_Startup() {
-		int portat = 0x200+GUS_BASE;
+		int portat = 0x200 + int(GUS_BASE);
 
         if (!gus_enable) return;
 
