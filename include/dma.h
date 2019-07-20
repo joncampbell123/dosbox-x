@@ -121,7 +121,7 @@ public:
 	}
 	void SetPage(Bit8u val) {
 		pagenum=val;
-		pagebase=(pagenum >> DMA16_PAGESHIFT) << ((Bitu)16u + DMA16_PAGESHIFT);
+		pagebase=(Bit32u)(pagenum >> DMA16_PAGESHIFT) << (Bit32u)((Bit8u)16u + DMA16_PAGESHIFT);
 	}
 	void Raise_Request(void) {
 		request=true;
