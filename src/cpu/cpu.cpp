@@ -1100,7 +1100,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 		PhysPt base=cpu.idt.GetBase();
 		reg_eip=mem_readw((PhysPt)(base+(num << 2)));
 		Segs.val[cs]=mem_readw((PhysPt)(base+(num << 2)+2));
-		Segs.phys[cs]=Segs.val[cs]<<4;
+		Segs.phys[cs]=(PhysPt)Segs.val[cs] << 4u;
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -1810,10 +1810,10 @@ call_code:
 						if (call.saved.gate.paramcount&31) {
 							if (call.Type()==DESC_386_CALL_GATE) {
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									mem_readd(o_stack+i*4);
+									mem_readd(o_stack+(Bit8u)i*4u);
 							} else {
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									mem_readw(o_stack+i*2);
+									mem_readw(o_stack+(Bit8u)i*2u);
 							}
 						}
 
@@ -1855,7 +1855,7 @@ call_code:
 							CPU_Push32(o_esp);
 							if (call.saved.gate.paramcount&31)
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									CPU_Push32(mem_readd(o_stack+i*4));
+									CPU_Push32(mem_readd(o_stack+(Bit8u)i*4u));
 							CPU_Push32(oldcs);
 							CPU_Push32(oldeip);
 						} else {
@@ -1863,7 +1863,7 @@ call_code:
 							CPU_Push16((Bit16u)o_esp);
 							if (call.saved.gate.paramcount&31)
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									CPU_Push16(mem_readw(o_stack+i*2));
+									CPU_Push16(mem_readw(o_stack+(Bit8u)i*2u));
 							CPU_Push16(oldcs);
 							CPU_Push16(oldeip);
 						}
@@ -2649,7 +2649,7 @@ void CPU_VERW(Bitu selector) {
 bool CPU_SetSegGeneral(SegNames seg,Bit16u value) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		Segs.val[seg]=value;
-		Segs.phys[seg]=value << 4;
+		Segs.phys[seg]=(PhysPt)value << 4u;
 		if (seg==ss) {
 			cpu.stack.big=false;
 			cpu.stack.mask=0xffff;
