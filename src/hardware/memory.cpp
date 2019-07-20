@@ -902,7 +902,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
         if (!index) return 0;
         MemHandle * next=&ret;
         while (pages) {
-            *next=index;
+            *next=(MemHandle)index;
             next=&memory.mhandles[index];
             index++;pages--;
         }
@@ -914,7 +914,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
             Bit32u index=BestMatch(1);
             if (!index) E_Exit("MEM:corruption during allocate");
             while (pages && (!memory.mhandles[index])) {
-                *next=index;
+                *next=(MemHandle)index;
                 next=&memory.mhandles[index];
                 index++;pages--;
             }
@@ -939,7 +939,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
 #endif
         MemHandle * next=&ret;
         while (pages) {
-            *next=index;
+            *next=(MemHandle)index;
             next=&memory.mhandles[index];
             index++;pages--;
         }
@@ -954,7 +954,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
             if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
 #endif
             while (pages && (!memory.mhandles[index])) {
-                *next=index;
+                *next=(MemHandle)index;
                 next=&memory.mhandles[index];
                 index++;pages--;
             }
@@ -965,7 +965,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
 }
 
 MemHandle MEM_GetNextFreePage(void) {
-    return BestMatch(1);
+    return (MemHandle)BestMatch(1);
 }
 
 void MEM_ReleasePages(MemHandle handle) {
