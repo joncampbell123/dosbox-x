@@ -410,18 +410,18 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, val >> 0 );
-		writeHandler8( addr+1, val >> 8 );
+		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
+		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
 	}
 	void writed(PhysPt addr,Bit32u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, val >> 0 );
-		writeHandler8( addr+1, val >> 8 );
-		writeHandler8( addr+2, val >> 16 );
-		writeHandler8( addr+3, val >> 24 );
+		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
+		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
+		writeHandler8( addr+2, (Bit8u)(val >> 16u) );
+		writeHandler8( addr+3, (Bit8u)(val >> 24u) );
 	}
 };
 
@@ -477,18 +477,18 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, val >> 0 );
-		writeHandler8( addr+1, val >> 8 );
+		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
+		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
 	}
 	void writed(PhysPt addr,Bit32u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, val >> 0 );
-		writeHandler8( addr+1, val >> 8 );
-		writeHandler8( addr+2, val >> 16 );
-		writeHandler8( addr+3, val >> 24 );
+		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
+		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
+		writeHandler8( addr+2, (Bit8u)(val >> 16u) );
+		writeHandler8( addr+3, (Bit8u)(val >> 24u) );
 	}
 };
 
@@ -949,10 +949,10 @@ static egc_quad &ope_ff(uint8_t ope, const PhysPt vramoff) {
 	(void)vramoff;
 	(void)ope;
 
-	pc98_egc_data[0].w = ~0;
-	pc98_egc_data[1].w = ~0;
-	pc98_egc_data[2].w = ~0;
-	pc98_egc_data[3].w = ~0;
+	pc98_egc_data[0].w = (Bit16u)(~0u);
+	pc98_egc_data[1].w = (Bit16u)(~0u);
+	pc98_egc_data[2].w = (Bit16u)(~0u);
+	pc98_egc_data[3].w = (Bit16u)(~0u);
 
 	return pc98_egc_data;
 }
@@ -1366,9 +1366,9 @@ public:
         addr &= 0x3FFFu;
 
         if (addr >= 0x3FE0u)
-            return pc98_mem_msw((addr >> 2) & 7);
-        else if ((addr & 0x2001) == 0x2001)
-            return ~((Bit8u)0); /* Odd bytes of attribute RAM do not exist, apparently */
+            return pc98_mem_msw((addr >> 2u) & 7u);
+        else if ((addr & 0x2001u) == 0x2001u)
+            return (Bit8u)(~0u); /* Odd bytes of attribute RAM do not exist, apparently */
 
         return VRAM98_TEXT[addr];
     }
@@ -1376,8 +1376,8 @@ public:
         addr &= 0x3FFFu;
 
         if (addr >= 0x3FE0u)
-            return pc98_mem_msw_write((addr >> 2) & 7,(unsigned char)val);
-        else if ((addr & 0x2001) == 0x2001)
+            return pc98_mem_msw_write((addr >> 2u) & 7u,(unsigned char)val);
+        else if ((addr & 0x2001u) == 0x2001u)
             return;             /* Odd bytes of attribute RAM do not exist, apparently */
 
         VRAM98_TEXT[addr] = (unsigned char)val;
@@ -1438,7 +1438,7 @@ public:
         (void)addr;
 
 //        LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
-        return ~((Bit8u)0);
+        return (Bit8u)(~0);
     }
 	void writeb(PhysPt addr,Bit8u val) {
         (void)addr;
@@ -1450,7 +1450,7 @@ public:
         (void)addr;
 
 //        LOG_MSG("PEGC 256-color planar warning: Readw from %lxh",(unsigned long)addr);
-        return ~((Bit16u)0);
+        return (Bit16u)(~0);
     }
 	void writew(PhysPt addr,Bit16u val) {
         (void)addr;
@@ -2085,10 +2085,10 @@ public:
 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
 		addr &= (64u*1024u-1u);
 		return 
-			(readHandler(addr+0) << 0u)  |
-			(readHandler(addr+1) << 8u)  |
-			(readHandler(addr+2) << 16u) |
-			(readHandler(addr+3) << 24u);
+			(Bit32u)(readHandler(addr+0) << 0u)  |
+			(Bit32u)(readHandler(addr+1) << 8u)  |
+			(Bit32u)(readHandler(addr+2) << 16u) |
+			(Bit32u)(readHandler(addr+3) << 24u);
 	}
 
 /*
