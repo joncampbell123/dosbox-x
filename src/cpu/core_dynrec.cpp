@@ -229,7 +229,7 @@ Bits CPU_Core_Dynrec_Run(void) {
 		// Determine the linear address of CS:EIP
 		PhysPt ip_point=SegPhys(cs)+reg_eip;
 		#if C_HEAVY_DEBUG
-			if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
+			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 		#endif
 
 		CodePageHandlerDynRec * chandler=0;
@@ -253,7 +253,7 @@ Bits CPU_Core_Dynrec_Run(void) {
 				block=CreateCacheBlock(chandler,ip_point,32);
 			} else {
 				// let the normal core handle this instruction to avoid zero-sized blocks
-				Bitu old_cycles=CPU_Cycles;
+				cpu_cycles_count_t old_cycles=CPU_Cycles;
 				CPU_Cycles=1;
 				Bits nc_retcode=CPU_Core_Normal_Run();
 				if (!nc_retcode) {
@@ -285,7 +285,7 @@ run_block:
 		case BR_Iret:
 #if C_DEBUG
 #if C_HEAVY_DEBUG
-			if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
+			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 #endif
 #endif
 			if (!GETFLAG(TF)) {
@@ -303,7 +303,7 @@ run_block:
 			// or the maximum number of instructions to translate was reached
 #if C_DEBUG
 #if C_HEAVY_DEBUG
-			if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
+			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 #endif
 #endif
 			break;
@@ -313,7 +313,7 @@ run_block:
 			// external events, schedule the pic...
 #if C_DEBUG
 #if C_HEAVY_DEBUG
-			if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
+			if (DEBUG_HeavyIsBreakpoint()) return (Bits)debugCallback;
 #endif
 #endif
 			return CBRET_NONE;
@@ -321,7 +321,7 @@ run_block:
 		case BR_CallBack:
 			// the callback code is executed in dosbox.conf, return the callback number
 			FillFlags();
-			return core_dynrec.callback;
+			return (Bits)core_dynrec.callback;
 
 		case BR_SMCBlock:
 //			LOG_MSG("selfmodification of running block at %x:%x",SegValue(cs),reg_eip);
