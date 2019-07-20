@@ -265,7 +265,7 @@ int ZIPFile::open(const char *path,int mode) {
             close();
             return -1;
         }
-        if (seek_file(ehdr.offset_of_central_directory_from_start_disk) != (off_t)ehdr.offset_of_central_directory_from_start_disk) {
+        if (seek_file((off_t)ehdr.offset_of_central_directory_from_start_disk) != (off_t)ehdr.offset_of_central_directory_from_start_disk) {
             LOG_MSG("Cannot locate Central Directory #2");
             close();
             return -1;
@@ -292,8 +292,8 @@ int ZIPFile::open(const char *path,int mode) {
 
                 ZIPFileEntry *ent = &entries[(char*)tmp];
                 ent->can_write = false;
-                ent->file_length = htole32(chdr.uncompressed_size);
-                ent->file_header_offset = htole32(chdr.relative_offset_of_local_header);
+                ent->file_length = (off_t)htole32(chdr.uncompressed_size);
+                ent->file_header_offset = (off_t)htole32(chdr.relative_offset_of_local_header);
                 ent->file_offset = ent->file_header_offset + (off_t)sizeof(struct ZIPLocalFileHeader) + (off_t)htole16(chdr.filename_length) + (off_t)htole16(chdr.extra_field_length);
                 ent->position = 0;
                 ent->name = (char*)tmp;
@@ -349,7 +349,7 @@ void ZIPFile::writeZIPFooter(void) {
         chdr.disk_number_start = htole16(1u);
         chdr.internal_file_attributes = 0;
         chdr.external_file_attributes = 0;
-        chdr.relative_offset_of_local_header = htole32(ent.file_header_offset);
+        chdr.relative_offset_of_local_header = (uint32_t)htole32(ent.file_header_offset);
         chdr.crc32 = htole32(zipcrc_finalize(ent.write_crc));
 
         if (write(&chdr,sizeof(chdr)) != sizeof(chdr)) break;
@@ -368,7 +368,7 @@ void ZIPFile::writeZIPFooter(void) {
     ehdr.total_number_of_entries_of_central_dir_on_this_disk = htole16(cdircount);
     ehdr.total_number_of_entries_of_central_dir = htole16(cdircount);
     ehdr.size_of_central_directory = htole32(cdirbytes);
-    ehdr.offset_of_central_directory_from_start_disk = htole32(cdirofs);
+    ehdr.offset_of_central_directory_from_start_disk = (uint32_t)htole32(cdirofs);
     write(&ehdr,sizeof(ehdr));
 
     wrote_trailer = true;

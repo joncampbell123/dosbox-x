@@ -128,7 +128,7 @@ bool CFileLPT::Putchar(Bit8u val)
 
 	if(codepage_ptr!=NULL) {
 		Bit16u extchar = codepage_ptr[val];
-		if(extchar & 0xFF00) fputc((Bitu)(extchar >> 8),file);
+		if(extchar & 0xFF00) fputc((int)((Bit8u)(extchar >> 8)),file);
 		fputc((Bitu)(extchar & 0xFF),file);
 
 	} else fputc((Bitu)val,file);

@@ -171,7 +171,7 @@ void Filter::set_chip_model(chip_model model)
 
     f0 = f0_6581;
     f0_points = f0_points_6581;
-    f0_count = sizeof(f0_points_6581)/sizeof(*f0_points_6581);
+    f0_count = int(sizeof(f0_points_6581)/sizeof(*f0_points_6581));
   }
   else {
     // No DC offsets in the MOS8580.
@@ -179,7 +179,7 @@ void Filter::set_chip_model(chip_model model)
 
     f0 = f0_8580;
     f0_points = f0_points_8580;
-    f0_count = sizeof(f0_points_8580)/sizeof(*f0_points_8580);
+    f0_count = int(sizeof(f0_points_8580)/sizeof(*f0_points_8580));
   }
 
   set_w0();
