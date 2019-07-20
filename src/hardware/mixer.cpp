@@ -796,10 +796,10 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         }
         else if (cando != 0) {
             for (Bitu i=0;i < cando;i++) {
-                phys_writew(mixer_capture_write,MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
-                phys_writew(mixer_capture_write,MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
                 readpos++;

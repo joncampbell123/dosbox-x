@@ -1286,7 +1286,7 @@ void Chip::Setup( Bit32u rate ) {
 			}
 			//Linear correction factor, not exactly perfect but seems to work
 			double correct = (original - diff) / (double)original;
-			guessAdd = (Bit32u)(guessAdd * correct); 
+			guessAdd = (Bit32s)(guessAdd * correct);
 			//Below our target
 			if ( diff < 0 ) {
 				//Always add one here for rounding, an overshoot will get corrected by another pass decreasing
