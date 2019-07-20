@@ -63,13 +63,14 @@ int ZIPFileEntry::read(void *buffer,size_t count) {
     if (file == NULL || file_offset == (off_t)0) return -1;
     if (position >= file_length) return 0;
 
-    size_t mread = file_length - position;
+    size_t mread = size_t(file_length - position);
     if (mread > count) mread = count;
 
     if (mread > 0) {
         if (seek_file(position) != position) return -1;
-        mread = file->read(buffer,mread);
-        if (mread > 0) position += (off_t)mread;
+        int r = file->read(buffer,mread);
+        if (r > 0) position += (off_t)r;
+        return r;
     }
 
     return (int)mread;
@@ -81,13 +82,14 @@ int ZIPFileEntry::write(const void *buffer,size_t count) {
     /* write stream only, no seeking.
      * this code assumes the file pointer will not change anywhere else,
      * and always to the end */
-    if (count > 0) {
-        count = file->write(buffer,count);
-        if (count > 0) {
-            position += (off_t)count;
-            write_crc = zipcrc_update(write_crc, buffer, count);
+    if (count > size_t(0)) {
+        int r = file->write(buffer,count);
+        if (r > 0) {
+            position += (off_t)r;
+            write_crc = zipcrc_update(write_crc, buffer, size_t(r));
             file_length = position;
         }
+        return r;
     }
 
     return (int)count;
@@ -275,7 +277,7 @@ int ZIPFile::open(const char *path,int mode) {
 
             while (remain >= (long)sizeof(struct pkzip_central_directory_header_main)) {
                 if (read(&chdr,sizeof(chdr)) != sizeof(chdr)) break;
-                remain -= sizeof(chdr);
+                remain -= (long)sizeof(chdr);
 
                 if (chdr.sig != PKZIP_CENTRAL_DIRECTORY_HEADER_SIG) break;
                 if (chdr.filename_length >= sizeof(tmp)) break;
@@ -292,7 +294,7 @@ int ZIPFile::open(const char *path,int mode) {
                 ent->can_write = false;
                 ent->file_length = htole32(chdr.uncompressed_size);
                 ent->file_header_offset = htole32(chdr.relative_offset_of_local_header);
-                ent->file_offset = ent->file_header_offset + sizeof(struct ZIPLocalFileHeader) + htole16(chdr.filename_length) + htole16(chdr.extra_field_length);
+                ent->file_offset = ent->file_header_offset + (off_t)sizeof(struct ZIPLocalFileHeader) + (off_t)htole16(chdr.filename_length) + (off_t)htole16(chdr.extra_field_length);
                 ent->position = 0;
                 ent->name = (char*)tmp;
                 ent->file = this;
