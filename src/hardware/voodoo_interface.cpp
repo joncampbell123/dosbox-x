@@ -67,15 +67,15 @@ Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
 
 void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
 	addr = PAGING_GetPhysicalAddress(addr);
-	if (addr&1) {
+	if (addr&1u) {
         LOG_MSG("voodoo writew unaligned");
         return;
     }
 
-	if (addr&3)
-		voodoo_w((addr>>2)&0x3FFFFF,val<<16,0xffff0000);
+	if (addr&3u)
+		voodoo_w((addr>>2u)&0x3FFFFFu,(UINT32)(val<<16u),0xffff0000u);
 	else
-		voodoo_w((addr>>2)&0x3FFFFF,val,0x0000ffff);
+		voodoo_w((addr>>2u)&0x3FFFFFu,val,0x0000ffffu);
 }
 
 Bit32u Voodoo_PageHandler::readd(PhysPt addr) {

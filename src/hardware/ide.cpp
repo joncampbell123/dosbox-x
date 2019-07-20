@@ -3746,9 +3746,9 @@ static Bitu ide_pc98ctlio_r(Bitu port,Bitu iolen) {
             {
                 Bitu bf = ~0ul;
                 if (idecontroller[0] != NULL)
-                    bf &= ~(1 << 0);
+                    bf &= ~(1u << 0u);
                 if (idecontroller[1] != NULL)
-                    bf &= ~(1 << 1);
+                    bf &= ~(1u << 1u);
 
                 return bf;
             }
