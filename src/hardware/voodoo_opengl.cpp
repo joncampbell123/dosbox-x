@@ -123,7 +123,7 @@ static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *dep
 		*depthval = wfloat;
 	else
 	{
-		if ((ITERZ) & 0xf0000000l)
+		if ((unsigned int)(ITERZ) & 0xf0000000l)
 			*depthval = 0x0000;
 		else
 		{

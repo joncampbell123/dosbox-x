@@ -156,6 +156,6 @@ void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
     (void)val;//UNUSED
     unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
 
-    CPU_Cycles -= wait_cycles;
+    CPU_Cycles -= (cpu_cycles_count_t)wait_cycles;
 }
 
