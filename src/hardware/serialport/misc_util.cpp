@@ -227,7 +227,7 @@ bool TCPClientSocket::Putchar(Bit8u data) {
 }
 
 bool TCPClientSocket::SendArray(Bit8u* data, Bitu bufsize) {
-	if((Bitu)SDLNet_TCP_Send(mysock, data, (int)bufsize) != (int)bufsize) {
+	if((Bitu)SDLNet_TCP_Send(mysock, data, (int)bufsize) != bufsize) {
 		isopen=false;
 		return false;
 	}
