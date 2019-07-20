@@ -420,8 +420,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
 	ffmpeg_vid_ctx->time_base.den = (int)(1000000 * fps);
-	ffmpeg_vid_ctx->width = capture.video.width;
-	ffmpeg_vid_ctx->height = capture.video.height;
+	ffmpeg_vid_ctx->width = (int)capture.video.width;
+	ffmpeg_vid_ctx->height = (int)capture.video.height;
 	ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 	ffmpeg_vid_ctx->max_b_frames = 0;
 	ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice);
@@ -434,8 +434,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->rc_buffer_size = (4*1024*1024);
 
 	/* 4:3 aspect ratio. FFMPEG thinks in terms of Pixel Aspect Ratio not Display Aspect Ratio */
-	ffmpeg_vid_ctx->sample_aspect_ratio.num = 4 * capture.video.height;
-	ffmpeg_vid_ctx->sample_aspect_ratio.den = 3 * capture.video.width;
+	ffmpeg_vid_ctx->sample_aspect_ratio.num = 4 * (int)capture.video.height;
+	ffmpeg_vid_ctx->sample_aspect_ratio.den = 3 * (int)capture.video.width;
 
 	{
 		AVDictionary *opts = NULL;
@@ -456,8 +456,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 		E_Exit(" ");
 
 	av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
-	ffmpeg_vidrgb_frame->width = capture.video.width;
-	ffmpeg_vidrgb_frame->height = capture.video.height;
+	ffmpeg_vidrgb_frame->width = (int)capture.video.width;
+	ffmpeg_vidrgb_frame->height = (int)capture.video.height;
 	ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format(bpp);
 	if (av_frame_get_buffer(ffmpeg_vidrgb_frame,64) < 0) {
 		E_Exit(" ");
@@ -465,8 +465,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 
 	av_frame_set_colorspace(ffmpeg_vid_frame,AVCOL_SPC_SMPTE170M);
 	av_frame_set_color_range(ffmpeg_vidrgb_frame,AVCOL_RANGE_MPEG);
-	ffmpeg_vid_frame->width = capture.video.width;
-	ffmpeg_vid_frame->height = capture.video.height;
+	ffmpeg_vid_frame->width = (int)capture.video.width;
+	ffmpeg_vid_frame->height = (int)capture.video.height;
 	ffmpeg_vid_frame->format = ffmpeg_vid_ctx->pix_fmt;
 	if (av_frame_get_buffer(ffmpeg_vid_frame,64) < 0)
 		E_Exit(" ");
@@ -869,7 +869,7 @@ skip_shot:
 				capture.video.fps = fps;
 				capture.video.frames = 0;
 
-				ffmpeg_reopen_video(fps,bpp);
+				ffmpeg_reopen_video(fps,(int)bpp);
 //				CAPTURE_VideoEvent(true);
 			}
 #endif
@@ -1078,8 +1078,8 @@ skip_shot:
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
 			ffmpeg_vid_ctx->time_base.den = (int)(1000000 * fps);
-			ffmpeg_vid_ctx->width = capture.video.width;
-			ffmpeg_vid_ctx->height = capture.video.height;
+			ffmpeg_vid_ctx->width = (int)capture.video.width;
+			ffmpeg_vid_ctx->height = (int)capture.video.height;
 			ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 			ffmpeg_vid_ctx->max_b_frames = 0;
 			ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice); // TODO: auto-choose according to what codec says is supported, and let user choose as well
@@ -1092,8 +1092,8 @@ skip_shot:
 			ffmpeg_vid_ctx->rc_buffer_size = (4*1024*1024);
 
 			/* 4:3 aspect ratio. FFMPEG thinks in terms of Pixel Aspect Ratio not Display Aspect Ratio */
-			ffmpeg_vid_ctx->sample_aspect_ratio.num = 4 * capture.video.height;
-			ffmpeg_vid_ctx->sample_aspect_ratio.den = 3 * capture.video.width;
+			ffmpeg_vid_ctx->sample_aspect_ratio.num = 4 * (int)capture.video.height;
+			ffmpeg_vid_ctx->sample_aspect_ratio.den = 3 * (int)capture.video.width;
 
 			{
 				AVDictionary *opts = NULL;
@@ -1109,7 +1109,7 @@ skip_shot:
 				av_dict_free(&opts);
 			}
 
-			ffmpeg_vid_stream->time_base.num = 1000000;
+			ffmpeg_vid_stream->time_base.num = (int)1000000;
 			ffmpeg_vid_stream->time_base.den = (int)(1000000 * fps);
 
 			ffmpeg_aud_stream = avformat_new_stream(ffmpeg_fmt_ctx,ffmpeg_aud_codec);
@@ -1119,7 +1119,7 @@ skip_shot:
 			}
 			ffmpeg_aud_ctx = ffmpeg_aud_stream->codec;
 			avcodec_get_context_defaults3(ffmpeg_aud_ctx,ffmpeg_aud_codec);
-			ffmpeg_aud_ctx->sample_rate = capture.video.audiorate;
+			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
 			ffmpeg_aud_ctx->bit_rate = 320000;
@@ -1156,7 +1156,7 @@ skip_shot:
 				goto skip_video;
 
 			av_frame_set_channels(ffmpeg_aud_frame,2);
-			av_frame_set_sample_rate(ffmpeg_aud_frame,capture.video.audiorate);
+			av_frame_set_sample_rate(ffmpeg_aud_frame,(int)capture.video.audiorate);
 			av_frame_set_channel_layout(ffmpeg_aud_frame,AV_CH_LAYOUT_STEREO);
 			ffmpeg_aud_frame->nb_samples = ffmpeg_aud_ctx->frame_size;
 			ffmpeg_aud_frame->format = ffmpeg_aud_ctx->sample_fmt;
@@ -1166,9 +1166,9 @@ skip_shot:
 			}
 
 			av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
-			ffmpeg_vidrgb_frame->width = capture.video.width;
-			ffmpeg_vidrgb_frame->height = capture.video.height;
-			ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format(bpp);
+			ffmpeg_vidrgb_frame->width = (int)capture.video.width;
+			ffmpeg_vidrgb_frame->height = (int)capture.video.height;
+			ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format((int)bpp);
 			if (av_frame_get_buffer(ffmpeg_vidrgb_frame,64) < 0) {
 				LOG_MSG("Failed to alloc videorgb frame buffer");
 				goto skip_video;
@@ -1176,8 +1176,8 @@ skip_shot:
 
 			av_frame_set_colorspace(ffmpeg_vid_frame,AVCOL_SPC_SMPTE170M);
 			av_frame_set_color_range(ffmpeg_vidrgb_frame,AVCOL_RANGE_MPEG);
-			ffmpeg_vid_frame->width = capture.video.width;
-			ffmpeg_vid_frame->height = capture.video.height;
+			ffmpeg_vid_frame->width = (int)capture.video.width;
+			ffmpeg_vid_frame->height = (int)capture.video.height;
 			ffmpeg_vid_frame->format = ffmpeg_vid_ctx->pix_fmt;
 			if (av_frame_get_buffer(ffmpeg_vid_frame,64) < 0) {
 				LOG_MSG("Failed to alloc video frame buffer");

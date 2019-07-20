@@ -433,7 +433,7 @@ bool VideoCodec::DecompressFrame(void * framedata, int size) {
 	zstream.avail_out = (unsigned int)bufsize;
 	zstream.total_out = 0;
 	inflate(&zstream, Z_FINISH);
-	workUsed= zstream.total_out;
+	workUsed= (int)zstream.total_out;
 	workPos = 0;
 	if (tag & Mask_KeyFrame) {
 		if (palsize) {
