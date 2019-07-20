@@ -227,8 +227,8 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
                 const unsigned int shift = 13u - vga.config.addr_shift;
                 const unsigned char mask = (vga.crtc.mode_control & 3u) ^ 3u;
 
-                new_mask &= ~(mask << shift);
-                new_add  +=  (vga.draw_2[0].vert.current_char_pixel & mask) << shift;
+                new_mask &= (size_t)(~(size_t(mask) << shift));
+                new_add  += (size_t)(vga.draw_2[0].vert.current_char_pixel & mask) << shift;
             }
         }
 
@@ -1207,13 +1207,13 @@ template <const unsigned int card,typename templine_type_t> static inline void A
 
     /* CGA odd/even mode, first plane */
     val = pixels.b[0];
-    val2 = pixels.b[2] << 2u;
+    val2 = (unsigned int)pixels.b[2] << 2u;
     for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
         *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3) + ((val2>>6)&0xC));
 
     /* CGA odd/even mode, second plane */
     val = pixels.b[1];
-    val2 = pixels.b[3] << 2u;
+    val2 = (unsigned int)pixels.b[3] << 2u;
     for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
         *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3) + ((val2>>6)&0xC));
 }
@@ -1273,7 +1273,7 @@ static Bit8u *Alt_CGA_4color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 }
 
 static inline unsigned int Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
-    return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+    return vga.draw.font_tables[((unsigned int)attr >> 3u) & 1u][((unsigned int)chr << 5u) + line];
 }
 
 static inline bool Alt_CGA_TEXT_In_Cursor_Row(const unsigned int line) {
@@ -1473,7 +1473,7 @@ skip_cursor:
 }
 
 static inline unsigned int Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned int line) {
-    return vga.draw.font_tables[0][(chr<<5)+line];
+    return vga.draw.font_tables[0u][((unsigned int)chr << 5u) + line];
 }
 
 static inline bool Alt_MDA_TEXT_In_Cursor_Row(const unsigned int line) {
@@ -2727,7 +2727,7 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
 
     if (vga_capture_write_address != (uint32_t)0 &&
         vga_capture_write_address < 0xFFFF0000ul &&
-        (vga_capture_write_address + (vga_capture_current_rect.w*4)) <= MemMax) {
+        (vga_capture_write_address + (vga_capture_current_rect.w*4ul)) <= MemMax) {
         switch (vga.draw.bpp) {
             case 32:    VGA_CaptureWriteScanlineChecked<32>((uint32_t*)raw); break;
             case 16:    VGA_CaptureWriteScanlineChecked<16>((uint16_t*)raw); break;
