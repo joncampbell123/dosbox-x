@@ -1208,7 +1208,7 @@ Bit16u localFile::GetInformation(void) {
 	
 
 Bit32u localFile::GetSeekPos() {
-	return ftell( fhandle );
+	return (Bit32u)ftell( fhandle );
 }
 
 

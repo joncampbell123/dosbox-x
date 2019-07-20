@@ -654,9 +654,9 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
        } else
          signchar = '+';
        if (sign)
-		 uprintf("%c%08lX", (char)signchar, delta & 0xFFFFFFFFL);
+		 uprintf("%c%08lX", (char)signchar, (unsigned long)delta & 0xFFFFFFFFL);
        else
-		 uprintf("%08lX", delta & 0xFFFFFFFFL);
+		 uprintf("%08lX", (unsigned long)delta & 0xFFFFFFFFL);
        break;
   }
 }

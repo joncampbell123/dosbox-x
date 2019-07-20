@@ -749,8 +749,8 @@ private:
 
             // get file size
             fseek(tmpfile,0L, SEEK_END);
-            *ksize = (ftell(tmpfile) / 1024);
-            *bsize = ftell(tmpfile);
+            *ksize = Bit32u(ftell(tmpfile) / 1024);
+            *bsize = Bit32u(ftell(tmpfile));
             fclose(tmpfile);
 
             tmpfile = ldp->GetSystemFilePtr(fullname, "rb+");
@@ -789,8 +789,8 @@ private:
 //              if(tryload) error = 2;
                 WriteOut(MSG_Get("PROGRAM_BOOT_WRITE_PROTECTED"));
                 fseek(tmpfile,0L, SEEK_END);
-                *ksize = (ftell(tmpfile) / 1024);
-                *bsize = ftell(tmpfile);
+                *ksize = Bit32u(ftell(tmpfile) / 1024);
+                *bsize = Bit32u(ftell(tmpfile));
                 return tmpfile;
             }
             // Give the delayed errormessages from the mounted variant (or from above)
@@ -799,8 +799,8 @@ private:
             return NULL;
         }
         fseek(tmpfile,0L, SEEK_END);
-        *ksize = (ftell(tmpfile) / 1024);
-        *bsize = ftell(tmpfile);
+        *ksize = Bit32u(ftell(tmpfile) / 1024);
+        *bsize = Bit32u(ftell(tmpfile));
         return tmpfile;
     }
 
@@ -2121,7 +2121,7 @@ restart_int:
                 // write partition table
                 fseeko64(f,0,SEEK_SET);
                 fwrite(&sbuf,512,1,f);
-                bootsect_pos = s;
+                bootsect_pos = (Bits)s;
             }
 
             // set boot sector values
@@ -2208,7 +2208,7 @@ restart_int:
 #if defined (_MSC_VER)
             *(Bit32u*)(footer+0x18) = SDL_SwapBE32((__time32_t)vhdtime);
 #else
-            *(Bit32u*)(footer+0x18) = SDL_SwapBE32((long)vhdtime);
+            *(Bit32u*)(footer+0x18) = Bit32u(SDL_SwapBE32((Uint32)vhdtime));
 #endif
             // size and geometry
             *(Bit64u*)(footer+0x30) = *(Bit64u*)(footer+0x28) = SDL_SwapBE64(size);

@@ -4215,10 +4215,10 @@ static void DrawVariables(void) {
 		}
 
 		if (varchanges) {
-			int y = (int)(i / 3);
-			int x = (i % 3) * 26;
-			mvwprintw(dbg.win_var, y, x, dv->GetName());
-			mvwprintw(dbg.win_var, y,  (x + DEBUG_VAR_BUF_LEN + 1) , buffer);
+			unsigned int y = (i / 3u);
+			unsigned int x = (i % 3u) * 26u;
+			mvwprintw(dbg.win_var, (int)y,  (int)x, dv->GetName());
+			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1) , buffer);
 			windowchanges = true; //Something has changed in this window
 		}
 	}
