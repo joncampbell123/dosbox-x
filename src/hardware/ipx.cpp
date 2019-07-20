@@ -314,7 +314,7 @@ static void CloseSocket(void) {
 	for(i=0;i<socketCount-1;i++) {
 		if (opensockets[i] == sockNum) {
 			// Realign list of open sockets
-			memcpy(&opensockets[i], &opensockets[i+1], SOCKTABLESIZE - (i + 1));
+			memcpy(&opensockets[i], &opensockets[i+1], size_t(SOCKTABLESIZE - (i + 1)));
 			break;
 		}
 	}
@@ -589,7 +589,7 @@ static void receivePacket(Bit8u *buffer, Bit16s bufSize) {
 	{
 		nextECB = useECB->nextECB;
 		if(useECB->iuflag == USEFLAG_LISTENING && useECB->mysocket == useSocket) {
-			useECB->writeDataBuffer(buffer, bufSize);
+			useECB->writeDataBuffer(buffer, (Bit16u)bufSize);
 			useECB->NotifyESR();
 			return;
 		}
@@ -673,12 +673,12 @@ static void sendPacket(ECBClass* sendecb) {
 	// Blank CRC
 	//wordptr[0] = 0xffff;
 	// Length
-	wordptr[1] = swapByte(packetsize);
+	wordptr[1] = swapByte((Bit16u)packetsize);
 	// Source socket
 	//wordptr[14] = swapByte(sendecb->getSocket());
 	
 	sendecb->getFragDesc(0,&tmpFrag);
-	real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte(packetsize));
+	real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte((Bit16u)packetsize));
 	
 
 	Bit8u immedAddr[6];
