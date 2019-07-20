@@ -665,8 +665,8 @@ void DMA_Reset(Section* /*sec*/) {
 		if (enable_2nd_dma) {
             assert(!IS_PC98_ARCH);
 			/* install handler for second DMA controller ports */
-			DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0+i*2,DMA_Write_Port,mask);
-			DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0+i*2,DMA_Read_Port,mask);
+			DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0u+i*2u,DMA_Write_Port,mask);
+			DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0u+i*2u,DMA_Read_Port,mask);
 		}
 	}
 
