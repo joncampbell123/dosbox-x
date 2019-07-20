@@ -646,7 +646,7 @@ bool CMscdex::GetUPC(Bit8u subUnit, Bit8u& attr, char* upc)
 
 bool CMscdex::ReadSectors(Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
-	if ((int)(4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= 4u*num*2048u;
+	if ((cpu_cycles_count_t)(4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= cpu_cycles_count_t(4u*num*2048u);
 	else CPU_Cycles = 5u;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->ReadSectors(data,raw,sector,num);
 	return dinfo[subUnit].lastResult;
@@ -699,7 +699,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	Bit16u offset = iso ? 156:180;
 	// get directory position
 	Bit32u dirEntrySector	= mem_readd(defBuffer+offset+2);
-	Bits dirSize		= mem_readd(defBuffer+offset+10);
+	Bits dirSize		= (Bit32s)mem_readd(defBuffer+offset+10);
 	Bit16u index;
 	while (dirSize>0) {
 		index = 0;
@@ -769,7 +769,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 			}
 			// change directory
 			dirEntrySector = mem_readd(defBuffer+index+2);
-			dirSize	= mem_readd(defBuffer+index+10);
+			dirSize	= (Bit32s)mem_readd(defBuffer+index+10);
 			nextPart = true;
 		} else {
 			// continue search in next sector
