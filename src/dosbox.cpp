@@ -414,7 +414,7 @@ increaseticks:
                     if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
                         if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
                         /* ratio we are aiming for is around 90% usage*/
-                        Bit32s ratio = (Bit32s)((ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone);
+                        Bit32s ratio = (Bit32s)(((Bitu)ticksScheduled * ((Bitu)CPU_CyclePercUsed*90*1024/100/100)) / (Bitu)ticksDone);
                         Bit32s new_cmax = (Bit32s)CPU_CycleMax;
                         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
                         double ratioremoved = 0.0; //increase scope for logging
