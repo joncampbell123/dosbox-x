@@ -174,8 +174,8 @@ saa1099_device::saa1099_device(const machine_config &mconfig, const char *tag, d
 void saa1099_device::device_start()
 {
 	/* copy global parameters */
-	m_master_clock = clock();
-	m_sample_rate = clock() / 256;
+	m_master_clock = (int)clock();
+	m_sample_rate = (int)clock() / 256;
 
 	/* for each chip allocate one stream */
 	m_stream = stream_alloc(0, 2, (int)m_sample_rate);
@@ -226,8 +226,8 @@ void saa1099_device::sound_stream_update(sound_stream &stream, stream_sample_t *
 	if (!m_all_ch_enable)
 	{
 		/* init output data */
-		memset(outputs[LEFT],0,samples*sizeof(*outputs[LEFT]));
-		memset(outputs[RIGHT],0,samples*sizeof(*outputs[RIGHT]));
+		memset(outputs[LEFT],0,(unsigned int)samples*sizeof(*outputs[LEFT]));
+		memset(outputs[RIGHT],0,(unsigned int)samples*sizeof(*outputs[RIGHT]));
 		return;
 	}
 
