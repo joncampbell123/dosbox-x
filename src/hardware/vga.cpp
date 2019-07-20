@@ -612,7 +612,7 @@ void VGA_Reset(Section*) {
 
     enable_pci_vga = section->Get_bool("pci vga");
 
-    S3_LFB_BASE = section->Get_hex("svga lfb base");
+    S3_LFB_BASE = (uint32_t)section->Get_hex("svga lfb base");
     if (S3_LFB_BASE == 0) {
         if (cpu_addr_bits >= 32)
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
@@ -1659,8 +1659,8 @@ void VGA_SetCaptureState(uint32_t v) {
        bits[6:6] = if set, clear overrun (acquired) bit */
     vga_capture_state ^= (vga_capture_state & v & 0x66/*x110 0110*/);
 
-    vga_capture_state &=    ~0x10;
-    vga_capture_state |= v & 0x10;
+    vga_capture_state &=    ~0x10u;
+    vga_capture_state |= v & 0x10u;
 
     if (!VGA_IsCaptureEnabled())
         vga_capture_state = 0;

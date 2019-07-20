@@ -135,10 +135,10 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
                     /* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly.
                      *        Is this what actual ET4000 hardware does in 256-color mode with Color Select? */
-                    if (vga.attr.mode_control & 0x80)
-                        maskIndex += vga.attr.color_select << 4;
+                    if (vga.attr.mode_control & 0x80u)
+                        maskIndex += Bitu(vga.attr.color_select << 4u);
                     else
-                        maskIndex += index & 0xF0;
+                        maskIndex += index & 0xF0u;
 
                     maskIndex &=  vga.dac.pel_mask;
                     break;
@@ -340,7 +340,7 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
                     for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
                         VGA_DAC_UpdateColor( i );
                     for (unsigned int i=0;i < 0x10;i++)
-                        VGA_DAC_UpdateColor( i + (attr<<4u) );
+                        VGA_DAC_UpdateColor( i + ((unsigned int)attr<<4u) );
                     break;
                 case AC_low4:
                     /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
