@@ -43,11 +43,11 @@ Bit16u PageHandler::readw(PhysPt addr) {
 	return ret;
 }
 Bit32u PageHandler::readd(PhysPt addr) {
-	Bit32u ret = (readb(addr+0) << 0);
-	ret     |= (readb(addr+1) << 8);
-	ret     |= (readb(addr+2) << 16);
-	ret     |= (readb(addr+3) << 24);
-	return ret;
+    Bit32u ret       = ((Bit32u)readb(addr+0) << 0u);
+    ret             |= ((Bit32u)readb(addr+1) << 8u);
+    ret             |= ((Bit32u)readb(addr+2) << 16u);
+    ret             |= ((Bit32u)readb(addr+3) << 24u);
+    return ret;
 }
 
 void PageHandler::writeb(PhysPt addr,Bit8u /*val*/) {
