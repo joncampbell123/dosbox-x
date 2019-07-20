@@ -943,7 +943,7 @@ public:
 					if(!cmd->FindCommand(2, temp_line)) {
 						udpPort = 213;
 					} else {
-						udpPort = strtol(temp_line.c_str(), NULL, 10);
+						udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
 					}
 					startsuccess = IPX_StartServer((Bit16u)udpPort);
 					if(startsuccess) {
@@ -985,7 +985,7 @@ public:
 				if(!cmd->FindCommand(3, temp_line)) {
 					udpPort = 213;
 				} else {
-					udpPort = strtol(temp_line.c_str(), NULL, 10);
+					udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
 				}
 
 				if(ConnectToServer(strHost)) {
