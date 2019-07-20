@@ -2126,7 +2126,7 @@ do																				\
 		depthval = wfloat;                                                      \
 	else                                                                        \
 	{                                                                           \
-		if ((ITERZ) & 0xf0000000l)                                               \
+		if ((unsigned int)(ITERZ) & 0xf0000000l)                                               \
 			depthval = 0x0000;                                                  \
 		else                                                                    \
 		{                                                                       \

@@ -3230,7 +3230,7 @@ void fastfill(voodoo_state *v)
 		/* iterate over blocks of extents */
 		for (y = sy; y < ey; y += (int)ARRAY_LENGTH(extents))
 		{
-			int count = MIN(((size_t)(ey - y)), ARRAY_LENGTH(extents));
+			int count = (int)MIN(((size_t)(ey - y)), ARRAY_LENGTH(extents));
 
 			extra->state = v;
 			memcpy(extra->dither, dithermatrix, sizeof(extra->dither));
