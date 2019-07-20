@@ -201,7 +201,7 @@ static Bit32u read_kcl_file(const char* kcl_file_name, const char* layout_id, bo
 				}
 			}
 		}
-		fseek(tempfile, cur_pos+3+len, SEEK_SET);
+		fseek(tempfile, long(cur_pos+3+len), SEEK_SET);
 	}
 
 	fclose(tempfile);
@@ -308,7 +308,7 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, Bit32s 
 			return KEYB_FILENOTFOUND;
 		}
 		if (tempfile) {
-			fseek(tempfile, start_pos+2, SEEK_SET);
+			fseek(tempfile, long(start_pos+2), SEEK_SET);
 			read_buf_size=(Bit32u)fread(read_buf, sizeof(Bit8u), 65535, tempfile);
 			fclose(tempfile);
 		}
@@ -661,7 +661,7 @@ Bit16u keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 			return (IS_PC98_ARCH ? 932 : 437);
 		}
 		if (tempfile) {
-			fseek(tempfile, start_pos+2, SEEK_SET);
+			fseek(tempfile, long(start_pos+2), SEEK_SET);
 			read_buf_size=(Bit32u)fread(read_buf, sizeof(Bit8u), 65535, tempfile);
 			fclose(tempfile);
 		}
