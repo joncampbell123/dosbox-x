@@ -133,8 +133,6 @@ void VGA_DAC_UpdateColor( Bitu index ) {
                     /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
                     maskIndex  =  vga.dac.combine[index&0xF] & 0x0F;
 
-                    /* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly.
-                     *        Is this what actual ET4000 hardware does in 256-color mode with Color Select? */
                     if (vga.attr.mode_control & 0x80u)
                         maskIndex += Bitu(vga.attr.color_select << 4u);
                     else
