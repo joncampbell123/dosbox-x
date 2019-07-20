@@ -192,7 +192,7 @@ bool TCPClientSocket::ReceiveArray(Bit8u* data, Bitu* size) {
 			*size=0;
 			return false;
 		} else {
-			*size=retval;
+			*size=(Bitu)retval;
 			return true;
 		}
 	}
@@ -214,7 +214,7 @@ Bits TCPClientSocket::GetcharNonBlock() {
 		if(SDLNet_TCP_Recv(mysock, &retval, 1)!=1) {
 			isopen=false;
 			return -2;
-		} else return retval;
+		} else return (Bits)retval;
 	}
 	else return -1;
 }
