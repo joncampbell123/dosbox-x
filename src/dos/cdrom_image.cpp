@@ -181,9 +181,9 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start,unsigned long le
 	// We might want to do some more checks. E.g valid start and length
 	SDL_mutexP(player.mutex);
 	player.cd = this;
-	player.currFrame = start;
-	player.targetFrame = start + len;
-	int track = GetTrack(start) - 1;
+	player.currFrame = int(start);
+	player.targetFrame = int(start + len);
+	int track = GetTrack((int)start) - 1;
 	if(track >= 0 && tracks[(unsigned int)track].attr == 0x40) {
 		LOG(LOG_MISC,LOG_WARN)("Game tries to play the data track. Not doing this");
 		player.isPlaying = false;
@@ -267,7 +267,7 @@ int CDROM_Interface_Image::GetTrack(int sector)
 
 bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long sector)
 {
-	int track = GetTrack(sector) - 1;
+	int track = GetTrack((int)sector) - 1;
 	if (track < 0) return false;
 
 	if (tracks[(unsigned int)track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
@@ -295,7 +295,7 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 	if (tracks[(unsigned int)track].sectorSize == RAW_SECTOR_SIZE && !tracks[(unsigned int)track].mode2 && !raw) seek += 16ul;
 	if (tracks[(unsigned int)track].mode2 && !raw) seek += 24ul;
 
-	return tracks[(unsigned int)track].file->read(buffer, seek, (int)length);
+	return tracks[(unsigned int)track].file->read(buffer, (int)seek, (int)length);
 }
 
 void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
