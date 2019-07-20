@@ -92,11 +92,11 @@ void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 
 	if (data & 0x80)
 	{
-		int r = (data & 0x70) >> 4;
+		int r = int((data & 0x70u) >> 4u);
 		int c = r/2;
 
 		R->LastRegister = r;
-		R->Register[r] = (R->Register[r] & 0x3f0) | (data & 0x0f);
+		R->Register[r] = int(((unsigned int)R->Register[r] & 0x3f0u) | (data & 0x0fu));
 		switch (r)
 		{
 			case 0:	/* tone 0 : frequency */
@@ -142,7 +142,7 @@ void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 			case 0:	/* tone 0 : frequency */
 			case 2:	/* tone 1 : frequency */
 			case 4:	/* tone 2 : frequency */
-				R->Register[r] = (R->Register[r] & 0x0f) | ((data & 0x3f) << 4);
+				R->Register[r] = int(((unsigned int)R->Register[r] & 0x0fu) | ((data & 0x3fu) << 4u));
 				R->Period[c] = (int)R->UpdateStep * R->Register[r];
 				if (R->Period[c] == 0) R->Period[c] = 0x3fe;
 				if (r == 4)

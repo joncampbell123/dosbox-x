@@ -329,7 +329,7 @@ void MixerChannel::lowpassUpdate() {
 
         tau = 1.0 / (lowpass_freq * 2 * M_PI);
         talpha = timeInterval / (tau + timeInterval);
-        lowpass_alpha = (Bitu)(talpha * 0x10000); // double -> 16.16 fixed point
+        lowpass_alpha = (Bit32s)(talpha * 0x10000); // double -> 16.16 fixed point
 
 //      LOG_MSG("Lowpass freq_n=%u freq_d=%u timeInterval=%.12f tau=%.12f alpha=%.6f onload=%u onout=%u",
 //          freq_n,freq_d_orig,timeInterval,tau,talpha,lowpass_on_load,lowpass_on_out);
@@ -428,7 +428,7 @@ void MixerChannel::EndFrame(Bitu samples) {
         memmove(&msbuffer[0][0],&msbuffer[samples][0],msbuffer_o*sizeof(Bit32s)*2/*stereo*/);
     }
 
-    last_sample_write -= (unsigned int)samples;
+    last_sample_write -= (int)samples;
 }
 
 void MixerChannel::Mix(Bitu whole,Bitu frac) {
@@ -639,7 +639,7 @@ inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 
 template<class Type,bool stereo,bool signeddata,bool nativeorder>
 inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
-    last_sample_write = mixer.samples_rendered_ms.w;
+    last_sample_write = (Bits)mixer.samples_rendered_ms.w;
 
     if (msbuffer_o >= 2048) {
         fprintf(stderr,"WARNING: addSample overrun (immediate)\n");

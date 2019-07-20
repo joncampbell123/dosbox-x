@@ -823,7 +823,7 @@ void TIMER_AddTick(void) {
     PIC_Ticks++;
     if ((PIC_Ticks&0x3fff) == 0) {
         unsigned long ticks = GetTicks();
-        int delta = (PIC_Ticks-PIC_tickstart)*10000/(ticks-PIC_benchstart)+5;
+        int delta = int((PIC_Ticks-PIC_tickstart)*10000/(ticks-PIC_benchstart)+5);
         GFX_SetTitle(-1,-1,delta,false);
         PIC_benchstart = ticks;
         PIC_tickstart = PIC_Ticks;

@@ -245,20 +245,20 @@ public:
 					if (getDeviceID() >= 2) {
 						oscillator_ctr++;
 						pci_ctr--;
-						return (oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) & 0xffu;
+						return (oscillator_ctr | (((unsigned long)pci_ctr<<16ul) & 0x0fff0000ul)) & 0xffu;
 					}
 					break;
 				case 0x55:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 8ul) & 0xffu;
+						return ((oscillator_ctr | (((unsigned long)pci_ctr<<16ul) & 0x0fff0000ul)) >> 8ul) & 0xffu;
 					break;
 				case 0x56:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 16ul) & 0xffu;
+						return ((oscillator_ctr | (((unsigned long)pci_ctr<<16ul) & 0x0fff0000ul)) >> 16ul) & 0xffu;
 					break;
 				case 0x57:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 24ul) & 0xffu;
+						return ((oscillator_ctr | (((unsigned long)pci_ctr<<16ul) & 0x0fff0000ul)) >> 24ul) & 0xffu;
 					break;
 				default:
 					break;

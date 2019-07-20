@@ -2833,7 +2833,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
         const Bitu persistent_sync_update_interval = 100;
         static Bitu persistent_sync_counter = persistent_sync_update_interval;
-        Bits current_tick = GetTicks();
+        Bitu current_tick = GetTicks();
         static Bitu jolt_tick = 0;
         if( uservsyncjolt > 0.0f ) {
             jolt_tick = (Bitu)current_tick;
