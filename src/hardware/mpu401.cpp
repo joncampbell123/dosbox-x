@@ -664,7 +664,7 @@ public:
 		/*Enabled and there is a Midi */
 		installed = true;
 
-        Bitu baseio = section->Get_hex("mpubase");
+        Bitu baseio = (Bitu)section->Get_hex("mpubase");
         if (baseio == 0) {
             if (IS_PC98_ARCH)
                 baseio = 0xE0D0; // NTS: This is based on MMD.COM I/O probing behavior
