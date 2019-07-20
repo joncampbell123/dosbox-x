@@ -2051,7 +2051,7 @@ public:
                     modefind = true;
                 }
                 else if (isdigit(tmp[0])) {
-                    mode = strtoul(tmp.c_str(),NULL,0);
+                    mode = (int)strtoul(tmp.c_str(),NULL,0);
                 }
                 else {
                     WriteOut("Unknown mode '%s'\n",tmp.c_str());
@@ -2082,21 +2082,21 @@ public:
             }
             else if (arg == "w") {
                 cmd->NextOptArgv(/*&*/tmp);
-                w = strtoul(tmp.c_str(),NULL,0);
+                w = (int)strtoul(tmp.c_str(),NULL,0);
             }
             else if (arg == "h") {
                 cmd->NextOptArgv(/*&*/tmp);
-                h = strtoul(tmp.c_str(),NULL,0);
+                h = (int)strtoul(tmp.c_str(),NULL,0);
             }
             else if (arg == "ch") {
                 cmd->NextOptArgv(/*&*/tmp);
-                ch = strtoul(tmp.c_str(),NULL,0);
+                ch = (int)strtoul(tmp.c_str(),NULL,0);
             }
             else if (arg == "newmode") {
                 cmd->NextOptArgv(/*&*/tmp);
 
                 if (isdigit(tmp[0])) {
-                    newmode = strtoul(tmp.c_str(),NULL,0);
+                    newmode = (int)strtoul(tmp.c_str(),NULL,0);
                 }
                 else {
                     WriteOut("Unknown newmode '%s'\n",tmp.c_str());
