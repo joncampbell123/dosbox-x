@@ -3469,8 +3469,8 @@ static void LogEMS(void) {
 
             if (xh_addr != 0)
                 sprintf(tmp," virt -> %08lx-%08lx phys",
-                    (unsigned long)(xh_addr + (log_page << 14)),
-                    (unsigned long)(xh_addr + (log_page << 14) + (1 << 14) - 1));
+                    (unsigned long)(xh_addr + ((PhysPt)log_page << 14u)),
+                    (unsigned long)(xh_addr + ((PhysPt)log_page << 14u) + (1u << 14u) - 1u));
 
             LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
@@ -3672,7 +3672,7 @@ void LogPages(char* selname) {
 				table.load=phys_readd((PhysPt)table_addr);
 				if (table.block.p) {
 					X86PageEntry entry;
-                    PhysPt entry_addr=(table.block.base<<12u)+(i & 0x3ffu)* 4u;
+                    PhysPt entry_addr=((PhysPt)table.block.base<<12u)+(i & 0x3ffu)* 4u;
 					entry.load=phys_readd(entry_addr);
 					if (entry.block.p) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
