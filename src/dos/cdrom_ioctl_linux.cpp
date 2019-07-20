@@ -65,9 +65,9 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	
 	if (raw) {
 		struct cdrom_read cdrom_read;
-		cdrom_read.cdread_lba = sector;
+		cdrom_read.cdread_lba = (int)sector;
 		cdrom_read.cdread_bufaddr = (char*)buf;
-		cdrom_read.cdread_buflen = buflen;
+		cdrom_read.cdread_buflen = (int)buflen;
 		
 		ret = ioctl(cdrom_fd, CDROMREADRAW, &cdrom_read);		
 	} else {
