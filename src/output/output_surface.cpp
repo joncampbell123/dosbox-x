@@ -105,7 +105,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
             {
                 uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + (unsigned int)clipX * sizeof(uint32_t));
-                xBRZ_PostScale(&xbrzBuf[0], (int)xbrzWidth, (int)xbrzHeight, xbrzWidth * sizeof(uint32_t), 
+                xBRZ_PostScale(&xbrzBuf[0], (int)xbrzWidth, (int)xbrzHeight, (int)(xbrzWidth * sizeof(uint32_t)),
                     &clipTrg[0], clipWidth, clipHeight, sdl.surface->pitch, 
                     sdl_xbrz.postscale_bilinear, sdl_xbrz.task_granularity);
             }
