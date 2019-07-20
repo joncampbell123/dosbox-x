@@ -424,7 +424,7 @@ bool Prop_hex::SetValue(std::string const& input) {
 }
 
 void Prop_multival::make_default_value() {
-    Bitu i = 1;
+    int i = 1;
     Property *p = section->Get_prop(0);
     if (!p) return;
 
@@ -791,7 +791,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
             int mods=0;
             Property *p;
             size_t i = 0, maxwidth = 0;
-            while ((p = sec->Get_prop(i++))) {
+            while ((p = sec->Get_prop(int(i++)))) {
                 if (!everything && !p->modified()) continue;
 
                 size_t w = strlen(p->propname.c_str());
@@ -809,7 +809,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
             i=0;
             char prefix[80];
             snprintf(prefix,80, "\n# %*s    ", (int)maxwidth, "");
-            while ((p = sec->Get_prop(i++))) {
+            while ((p = sec->Get_prop(int(i++)))) {
                 if (!everything && !p->modified()) continue;
 
                 std::string help = p->Get_help();
@@ -1340,7 +1340,7 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
     cmd_it it = cmds.begin();
     while(it!=cmds.end()) {
         bool found = false;
-        for(Bitu i = 0; params[i] != NULL; i++) {
+        for(unsigned int i = 0; params[i] != NULL; i++) {
             if (*params[i] == 0) {
                 LOG_MSG("FIXME: GetParameterFromList: terminating params[] with \"\" is deprecated. Please terminate the param list with NULL");
                 break;
@@ -1351,7 +1351,7 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
                 found = true;
                 switch(parsestate) {
                 case P_START:
-                    retval = i+2;
+                    retval = int(i)+2;
                     parsestate = P_FIRSTMATCH;
                     break;
                 case P_FIRSTMATCH:
