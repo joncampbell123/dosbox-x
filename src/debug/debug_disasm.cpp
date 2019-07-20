@@ -104,7 +104,7 @@ INLINE UINT32 le_uint32(const void* ptr) {
 static UINT8 must_do_size;   /* used with size of operand */
 static int wordop;           /* dealing with word or byte operand */
 
-static int instruction_offset;
+static Bit32u instruction_offset;
 //static UINT16 instruction_segment;
 
 static char* ubufs;           /* start of buffer */
