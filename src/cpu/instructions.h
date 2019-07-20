@@ -821,8 +821,8 @@ extern bool enable_fpu;
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_ax == 0);								\
 	SETFLAGBIT(SF,reg_ax & 0x8000);							\
-	if (((temps & 0xffff8000)==0xffff8000 ||				\
-		(temps & 0xffff8000)==0x0000)) {					\
+	if ((((unsigned int)temps & 0xffff8000)==0xffff8000 ||				\
+		((unsigned int)temps & 0xffff8000)==0x0000)) {					\
 		SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);			\
 	} else {												\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\

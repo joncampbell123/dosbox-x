@@ -391,7 +391,7 @@ switch (inst.code.op) {
 		goto nextopcode;
 	case O_CBACK:
 		FillFlags();SaveIP();
-		return inst_op1_d;
+		return (Bits)inst_op1_d;
 	case O_GRP6w:
 	case O_GRP6d:
 		if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegalopcode;
