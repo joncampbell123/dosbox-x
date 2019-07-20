@@ -99,9 +99,9 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         break;
     case 0x43:  /* CR43 Extended Mode */
         vga.s3.reg_43= (Bit8u)val & ~0x4u;
-        if ((((Bit8u)val & 0x4) ^ (vga.config.scan_len >> 6)) & 0x4) {
-            vga.config.scan_len&=0x2ff;
-            vga.config.scan_len|=((Bit8u)val & 0x4) << 6;
+        if ((((Bit8u)val & 0x4u) ^ (vga.config.scan_len >> 6u)) & 0x4u) {
+            vga.config.scan_len&=0x2ffu;
+            vga.config.scan_len|=((Bit8u)val & 0x4u) << 6u;
             VGA_CheckScanLength();
         }
         break;
@@ -176,16 +176,16 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     case 0x51:  /* Extended System Control 2 */
         vga.s3.reg_51= (Bit8u)val & 0xc0;       //Only store bits 6,7
         vga.config.display_start&=0xF3FFFF;
-        vga.config.display_start|=((Bit8u)val & 3) << 18;
-        if ((vga.svga.bank_read&0x30) ^ (((Bit8u)val&0xc)<<2)) {
-            vga.svga.bank_read&=0xcf; 
-            vga.svga.bank_read|=((Bit8u)val&0xc)<<2;
+        vga.config.display_start|=((Bit8u)val & 3u) << 18u;
+        if ((vga.svga.bank_read&0x30u) ^ (((Bit8u)val&0xcu)<<2u)) {
+            vga.svga.bank_read&=0xcfu;
+            vga.svga.bank_read|=((Bit8u)val&0xcu)<<2u;
             vga.svga.bank_write = vga.svga.bank_read;
             VGA_SetupHandlers();
         }
-        if (((val & 0x30) ^ (vga.config.scan_len >> 4)) & 0x30) {
-            vga.config.scan_len&=0xff;
-            vga.config.scan_len|=((Bit8u)val & 0x30) << 4;
+        if (((val & 0x30u) ^ (vga.config.scan_len >> 4u)) & 0x30u) {
+            vga.config.scan_len&=0xffu;
+            vga.config.scan_len|=((Bit8u)val & 0x30u) << 4u;
             VGA_CheckScanLength();
         }
         break;
@@ -304,8 +304,8 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
                 Termination register (3d4h index 5Fh).
         */
     case 0x5e:  /* Extended Vertical Overflow */
-        vga.config.line_compare=(vga.config.line_compare & 0x3ff) | ((Bit8u)val & 0x40) << 4;
-        if ((val ^ vga.s3.ex_ver_overflow) & 0x3) {
+        vga.config.line_compare=(vga.config.line_compare & 0x3ffu) | ((Bit8u)val & 0x40u) << 4u;
+        if ((val ^ vga.s3.ex_ver_overflow) & 0x3u) {
             vga.s3.ex_ver_overflow=(Bit8u)val;
             VGA_StartResize();
         } else vga.s3.ex_ver_overflow=(Bit8u)val;
@@ -347,9 +347,9 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         VGA_DetermineMode();
         break;
     case 0x69:  /* Extended System Control 3 */
-        if (((vga.config.display_start & 0x1f0000)>>16) ^ (val & 0x1f)) {
-            vga.config.display_start&=0xffff;
-            vga.config.display_start|=((Bit8u)val & 0x1f) << 16;
+        if (((vga.config.display_start & 0x1f0000u)>>16u) ^ (val & 0x1fu)) {
+            vga.config.display_start&=0xffffu;
+            vga.config.display_start|=((Bit8u)val & 0x1fu) << 16u;
         }
         break;
     case 0x6a:  /* Extended System Control 4 */
