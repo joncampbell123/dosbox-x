@@ -207,7 +207,7 @@
 		RMGdEdOp3(DIMULD,Fetchds());
 		break;
 	CASE_D(0x6a)												/* PUSH Ib */
-		Push_32((Bitu)Fetchbs());break;
+		Push_32((Bit32u)Fetchbs());break;
 	CASE_D(0x6b)												/* IMUL Gd,Ed,Ib */
 		RMGdEdOp3(DIMULD,Fetchbs());
 		break;

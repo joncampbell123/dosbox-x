@@ -310,7 +310,7 @@
 		break;
 	CASE_W(0x6a)												/* PUSH Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		Push_16((Bitu)Fetchbs());
+		Push_16((Bit16u)Fetchbs());
 		break;
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
