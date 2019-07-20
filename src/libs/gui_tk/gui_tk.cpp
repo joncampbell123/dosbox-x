@@ -1039,7 +1039,7 @@ bool Input::keyDown(const Key &key)
 			break;
 		}
 		if (start_sel != end_sel) clearSelection();
-		if (insert || pos >= text.size() ) text.insert(text.begin()+pos++,key.character);
+		if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),key.character);
 		else text[pos++] = key.character;
 		break;
 	case Key::Left:
@@ -1066,12 +1066,12 @@ bool Input::keyDown(const Key &key)
 		break;
 	case Key::Backspace:
 		if (!key.shift && start_sel != end_sel) clearSelection();
-		else if (pos > 0) text.erase(text.begin()+ --pos);
+		else if (pos > 0) text.erase(text.begin()+int(--pos));
 		break;
 	case Key::Delete:
 		if (key.shift) cutSelection();
 		else if (start_sel != end_sel) clearSelection();
-		else if (pos < text.size()) text.erase(text.begin()+pos);
+		else if (pos < text.size()) text.erase(text.begin()+int(pos));
 		break;
 	case Key::Insert:
 		if (key.ctrl) copySelection();
@@ -1081,14 +1081,14 @@ bool Input::keyDown(const Key &key)
 	case Key::Enter:
 		if (multi) {
 			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+pos++,f->fromSpecial(Font::LF));
+			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::LF));
 			else text[pos++] = f->fromSpecial(Font::LF);
 		} else executeAction(text);
 		break;
 	case Key::Tab:
 		if (multi && enable_tab_input) {
 			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+pos++,f->fromSpecial(Font::Tab));
+			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::Tab));
 			else text[pos++] = f->fromSpecial(Font::Tab);
 		} else return false;
 		break;

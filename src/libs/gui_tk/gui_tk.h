@@ -1607,18 +1607,18 @@ public:
 
 	/// Clear selected area.
 	void clearSelection() {
-		text.erase(text.begin()+(pos = imin(start_sel,end_sel)),text.begin()+imax(start_sel,end_sel));
+		text.erase(text.begin()+int(pos = imin(start_sel,end_sel)),text.begin()+int(imax(start_sel,end_sel)));
 		start_sel = end_sel = pos;
 	}
 
 	/// Copy selection to clipboard.
 	void copySelection() {
-		setClipboard(String(text.begin()+imin(start_sel,end_sel),text.begin()+imax(start_sel,end_sel)));
+		setClipboard(String(text.begin()+int(imin(start_sel,end_sel)),text.begin()+int(imax(start_sel,end_sel))));
 	}
 
 	/// Cut selection to clipboard.
 	void cutSelection() {
-		setClipboard(String(text.begin()+imin(start_sel,end_sel),text.begin()+imax(start_sel,end_sel)));
+		setClipboard(String(text.begin()+int(imin(start_sel,end_sel)),text.begin()+int(imax(start_sel,end_sel))));
 		clearSelection();
 	}
 
@@ -1626,7 +1626,7 @@ public:
 	void pasteSelection() {
 		String c = getClipboard();
 		clearSelection();
-		text.insert(text.begin()+pos,c.begin(),c.end());
+		text.insert(text.begin()+int(pos),c.begin(),c.end());
 		start_sel = end_sel = pos += (Size)c.size();
 	}
 
