@@ -931,7 +931,7 @@ bool Load_FONT_ROM(void) {
     /* 16x16 double-wide */
     assert(sizeof(tmp) >= (96 * 16 * 2));
     for (lowbyte=0x01;lowbyte < 0x5D;lowbyte++) {
-        fseek(fp,0x1800 + ((lowbyte - 0x01) * 96 * 16 * 2/*16 wide*/),SEEK_SET);
+        fseek(fp,long(0x1800u + ((lowbyte - 0x01u) * 96u * 16u * 2u/*16 wide*/)),SEEK_SET);
         if (fread(tmp,96 * 16 * 2/*16 wide*/,1,fp) != 1) goto fail;
 
         for (hibyte=0;hibyte < 96;hibyte++) {
@@ -1013,7 +1013,7 @@ bool Load_Anex86_Font(void) {
     if (host_readd((HostPt)(tmp+16)) != 0) goto fail; // biCompression == 0 or else
 
     /* first row is 8x16 single width */
-    fseek(fp,bmp_ofs+((2048-16)*(2048/8)),SEEK_SET); /* arrrgh bitmaps are upside-down */
+    fseek(fp,long(bmp_ofs+((2048u-16u)*(2048u/8u))),SEEK_SET); /* arrrgh bitmaps are upside-down */
     if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
     for (lowbyte=0;lowbyte < 256;lowbyte++) {
         for (r=0;r < 16;r++) {
@@ -1023,7 +1023,7 @@ bool Load_Anex86_Font(void) {
     /* everything after is 16x16 fullwidth.
      * note: 2048 / 16 = 128 */
     for (hibyte=1;hibyte < 128;hibyte++) {
-        fseek(fp,bmp_ofs+((2048-(16*hibyte)-16)*(2048/8)),SEEK_SET); /* arrrgh bitmaps are upside-down */
+        fseek(fp,long(bmp_ofs+((2048u-(16u*hibyte)-16u)*(2048u/8u))),SEEK_SET); /* arrrgh bitmaps are upside-down */
         if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
 
         for (lowbyte=0;lowbyte < 128;lowbyte++) {
