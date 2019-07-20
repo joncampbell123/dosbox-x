@@ -610,7 +610,7 @@ void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight,
             }
 
             //fill block of size scale * scale with the given color
-            fillBlock(out, trgWidth * sizeof(uint32_t), ker4.f, Scaler::scale, Scaler::scale);
+            fillBlock(out, trgWidth * (int)sizeof(uint32_t), ker4.f, Scaler::scale, Scaler::scale);
             //place *after* preprocessing step, to not overwrite the results while processing the the last pixel!
 
             //blend four corners of current pixel
