@@ -1830,7 +1830,7 @@ class VGA_Slow_CGA_Handler : public PageHandler {
 public:
 	VGA_Slow_CGA_Handler() : PageHandler(PFLAG_NOCODE) {}
 	void delay() {
-		Bits delaycyc = CPU_CycleMax/((Bit32u)(1024/2.80)); 
+		Bits delaycyc = (Bits)(CPU_CycleMax/((cpu_cycles_count_t)(1024/2.80)));
 		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc=0;
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
