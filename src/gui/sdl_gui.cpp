@@ -217,7 +217,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         // create screenshot for fade effect
         for (unsigned int y = 0; (int)y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
+            Bit32u *bg = (Bit32u*)((y+(unsigned int)sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + (unsigned int)sx;
             for (unsigned int x = 0; (int)x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
@@ -232,7 +232,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
         SDL_FillRect(background,0,0);
         for (int y = 0; y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
+            Bit32u *bg = (Bit32u*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
             for (int x = 0; x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
