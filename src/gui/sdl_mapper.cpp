@@ -1218,7 +1218,7 @@ public:
         if (button_wrap > MAXBUTTON) button_wrap = MAXBUTTON;
 
 #if defined(C_SDL2)
-        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickNameForIndex(stick),(int)axes,(int)buttons,(int)hats);
+        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickNameForIndex((int)stick),(int)axes,(int)buttons,(int)hats);
 #else
         LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName((int)stick),(int)axes,(int)buttons,(int)hats);
 #endif
@@ -1443,7 +1443,7 @@ private:
     }
     const char * BindStart(void) {
 #if defined(C_SDL2)
-        if (sdl_joystick!=NULL) return SDL_JoystickNameForIndex(stick);
+        if (sdl_joystick!=NULL) return SDL_JoystickNameForIndex((int)stick);
 #else
         if (sdl_joystick!=NULL) return SDL_JoystickName((int)stick);
 #endif
