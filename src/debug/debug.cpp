@@ -4215,7 +4215,7 @@ static void DrawVariables(void) {
 		}
 
 		if (varchanges) {
-			unsigned int y = (i / 3u);
+			unsigned int y = (unsigned int)(i / 3u);
 			unsigned int x = (i % 3u) * 26u;
 			mvwprintw(dbg.win_var, (int)y,  (int)x, dv->GetName());
 			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1) , buffer);
