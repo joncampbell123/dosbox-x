@@ -2713,7 +2713,7 @@ template <const unsigned int bpp,typename BPPT> void VGA_CaptureWriteScanlineChe
     raw += vga_capture_current_rect.x;
 
     /* output is ALWAYS 32-bit XRGB */
-    for (unsigned int i=0;i < vga_capture_current_rect.w;i++)
+    for (unsigned int i=0;(int)i < vga_capture_current_rect.w;i++)
         phys_writed(vga_capture_write_address+(i*4),
             VGA_CaptureConvertPixel<bpp,BPPT>(raw[i]));
 

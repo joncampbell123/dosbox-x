@@ -3533,8 +3533,8 @@ void GFX_HandleVideoResize(int width, int height) {
 
     /* TODO: Only if FULLSCREEN_DESKTOP */
     if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
-        sdl.desktop.full.width = screen_size_info.screen_dimensions_pixels.width;
-        sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
+        sdl.desktop.full.width = (Bit16u)screen_size_info.screen_dimensions_pixels.width;
+        sdl.desktop.full.height = (Bit16u)screen_size_info.screen_dimensions_pixels.height;
     }
     else {
         SDL_DisplayMode dm;
