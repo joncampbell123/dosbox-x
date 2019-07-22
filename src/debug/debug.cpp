@@ -486,7 +486,9 @@ private:
 	EBreakpoint	type;
 	// Physical
 	PhysPt		location;
+#if !C_HEAVY_DEBUG
 	Bit8u		oldData;
+#endif
 	Bit16u		segment;
 	Bit32u		offset;
 	// Int
@@ -500,7 +502,11 @@ private:
 	static std::list<CBreakpoint*>	BPoints;
 };
 
-CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),oldData(0xCC),segment(0),offset(0),intNr(0),ahValue(0),alValue(0),active(false),once(false) { }
+CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),
+#if !C_HEAVY_DEBUG
+oldData(0xCC),
+#endif
+segment(0),offset(0),intNr(0),ahValue(0),alValue(0),active(false),once(false) { }
 
 void CBreakpoint::Activate(bool _active)
 {
