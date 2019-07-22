@@ -117,7 +117,7 @@ public:
 		// Optionally load a soundfont 
 		if (conf && conf[0]) {
 			soundfont = conf;
-			OSErr err;
+			OSErr err = 0;
 #if USE_DEPRECATED_COREAUDIO_API
 			FSRef soundfontRef;
 			err = FSPathMakeRef((const UInt8*)soundfont, &soundfontRef, NULL);
