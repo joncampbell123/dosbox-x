@@ -3640,7 +3640,7 @@ private:
     bool AttachToBiosAndIdeByIndex(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
         if (!AttachToBiosByIndex(image, bios_drive_index)) return false;
         //if hard drive image, and if ide controller is specified
-        if (bios_drive_index >= 2 || bios_drive_index < MAX_DISK_IMAGES) {
+        if (bios_drive_index >= 2 && bios_drive_index < MAX_DISK_IMAGES) {
             IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, bios_drive_index);
             updateDPT();
         }

@@ -240,7 +240,7 @@ int MidiHandler_timidity::timidity_ctl_command(char * buff, const char *fmt, ...
 		va_start(ap, fmt);
 		len = vsnprintf(buff, BUFSIZ-1, fmt, ap); /* leave one byte for \n */
 		va_end(ap);
-		if (len <= 0 && len >= BUFSIZ-1) {
+		if (len <= 0 || len >= BUFSIZ-1) {
 			LOG_MSG("timidity_ctl_command: vsnprintf returned %d!\n", len);
 			return 0;
 		}

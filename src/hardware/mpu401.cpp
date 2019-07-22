@@ -679,7 +679,7 @@ public:
         if (IS_PC98_ARCH) {
             if (baseio >= 0x80D2 && baseio <= 0x80DE)
                 { /* OK */ }
-            else if (baseio >= 0xC000u || baseio <= 0xF8D0u)
+            else if (baseio >= 0xC000u && baseio <= 0xF8D0u)
                 { /* OK */ }
             else
                 baseio = 0xE0D0u;
