@@ -680,6 +680,7 @@ static inline void OPL3_STATUS_RESET(OPL3 *chip,int flag)
 	}
 }
 
+#if 0
 /* IRQ mask set */
 static inline void OPL3_STATUSMASK_SET(OPL3 *chip,int flag)
 {
@@ -688,7 +689,7 @@ static inline void OPL3_STATUSMASK_SET(OPL3 *chip,int flag)
 	OPL3_STATUS_SET(chip,0);
 	OPL3_STATUS_RESET(chip,0);
 }
-
+#endif
 
 /* advance LFO to next sample */
 static inline void advance_lfo(OPL3 *chip)
