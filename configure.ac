@@ -327,6 +327,7 @@ AC_CHECK_CXXFLAGS([ -Wunused ])
 AC_CHECK_CXXFLAGS([ -pedantic ])
 #AC_CHECK_CXXFLAGS([ -Wconversion ])      DO NOT ENABLE. THIS WARNING IS WAY TOO PEDANTIC TO BE USEFUL, EXCEPT FOR SPECIFIC CASES
 #AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
+AC_CHECK_CXXFLAGS([ -Wlogical-op ])
 AC_CHECK_CXXFLAGS([ -Wconversion-null ])
 AC_CHECK_CXXFLAGS([ -Wno-deprecated-declarations ])
 
