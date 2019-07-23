@@ -1223,14 +1223,14 @@ static void InvalidateFlags(void) {
 // replace all queued functions with their simpler variants
 // because the current instruction destroys all condition flags and
 // the flags are not required before
-static void InvalidateFlags(void* current_simple_function,Bitu flags_type) {
+template <typename T> static void InvalidateFlags(const T current_simple_function,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION
 	for (Bitu ct=0; ct<mf_functions_num; ct++) {
 		gen_fill_function_ptr(mf_functions[ct].pos,mf_functions[ct].fct_ptr,mf_functions[ct].ftype);
 	}
 	mf_functions_num=1;
 	mf_functions[0].pos=cache.pos;
-	mf_functions[0].fct_ptr=current_simple_function;
+	mf_functions[0].fct_ptr=reinterpret_cast<void*>((uintptr_t)current_simple_function);
 	mf_functions[0].ftype=flags_type;
 #endif
 }
@@ -1238,10 +1238,10 @@ static void InvalidateFlags(void* current_simple_function,Bitu flags_type) {
 // enqueue this instruction, if later an instruction is encountered that
 // destroys all condition flags and the flags weren't needed in-between
 // this function can be replaced by a simpler one as well
-static void InvalidateFlagsPartially(void* current_simple_function,Bitu flags_type) {
+template <typename T> static void InvalidateFlagsPartially(const T current_simple_function,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION
 	mf_functions[mf_functions_num].pos=cache.pos;
-	mf_functions[mf_functions_num].fct_ptr=current_simple_function;
+	mf_functions[mf_functions_num].fct_ptr=reinterpret_cast<void*>((uintptr_t)current_simple_function);
 	mf_functions[mf_functions_num].ftype=flags_type;
 	mf_functions_num++;
 #endif
@@ -1250,10 +1250,10 @@ static void InvalidateFlagsPartially(void* current_simple_function,Bitu flags_ty
 // enqueue this instruction, if later an instruction is encountered that
 // destroys all condition flags and the flags weren't needed in-between
 // this function can be replaced by a simpler one as well
-static void InvalidateFlagsPartially(void* current_simple_function,DRC_PTR_SIZE_IM cpos,Bitu flags_type) {
+template <typename T> static void InvalidateFlagsPartially(const T current_simple_function,DRC_PTR_SIZE_IM cpos,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION
 	mf_functions[mf_functions_num].pos=(Bit8u*)cpos;
-	mf_functions[mf_functions_num].fct_ptr=current_simple_function;
+	mf_functions[mf_functions_num].fct_ptr=reinterpret_cast<void*>((uintptr_t)current_simple_function);
 	mf_functions[mf_functions_num].ftype=flags_type;
 	mf_functions_num++;
 #endif
