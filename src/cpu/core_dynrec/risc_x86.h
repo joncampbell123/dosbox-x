@@ -297,16 +297,16 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
-	cache_addb(0xe8);
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
+    cache_addb(0xe8);
 	cache_addd((Bit32u)func - (Bit32u)cache.pos-4);
 }
 
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
-	Bit32u proc_addr=(Bit32u)cache.pos;
+template <typename T> static Bit32u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+    Bit32u proc_addr=(Bit32u)cache.pos;
 	// Do the actual call to the procedure
 	cache_addb(0xe8);
 	cache_addd((Bit32u)func - (Bit32u)cache.pos-4);
