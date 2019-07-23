@@ -205,10 +205,6 @@ bool OpenGL_using(void);
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
-#ifndef SDL_MAIN_NOEXCEPT
-#define SDL_MAIN_NOEXCEPT
-#endif
-
 using namespace std;
 
 void UpdateOverscanMenu(void);

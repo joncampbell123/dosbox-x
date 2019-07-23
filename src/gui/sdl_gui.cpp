@@ -16,6 +16,9 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
  */
 
+#if defined(_MSC_VER)
+#pragma warning(disable:4065) /* Please do not warn on default case without other case statements */
+#endif
 
 #include "SDL.h"
 #include "menu.h"
