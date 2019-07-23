@@ -815,7 +815,7 @@ static void INLINE gen_load_param_mem(Bitu mem,Bitu param) {
 
 // jump to an address pointed at by ptr, offset is in imm
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
-	Bit32u scale;
+//	Bit32u scale; // unused
 
 	gen_mov_word_to_reg(temp3, ptr, 1);
 
