@@ -894,7 +894,7 @@ static void dyn_lea_segphys_mem(HostReg ea_reg,Bitu op1_index,void* op2,Bitu sca
 static void dyn_fill_ea(HostReg ea_reg,bool addseg=true) {
 	Bit8u seg_base=DRC_SEG_DS;
 	if (!decode.big_addr) {
-		Bits imm;
+		Bits imm=0;
 		switch (decode.modrm.mod) {
 		case 0:imm=0;break;
 		case 1:imm=(Bit8s)decode_fetchb();break;
@@ -948,7 +948,7 @@ skip_extend_word:
 		}
 	} else {
 		Bits imm=0;
-		Bit8u base_reg;
+		Bit8u base_reg=0;
 		Bit8u scaled_reg;
 		Bitu scale=0;
 		switch (decode.modrm.rm) {
