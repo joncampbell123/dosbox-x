@@ -503,94 +503,94 @@ static INLINE void dyn_set_eip_end(HostReg reg,Bit32u imm=0) {
 // is architecture dependent
 // R=host register; I=32bit immediate value; A=address value; m=memory
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_R(void * func,Bitu op) {
-	gen_load_param_reg(op,0);
-	return gen_call_function_setup(func, 1);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_R(const T func,Bitu op) {
+    gen_load_param_reg(op,0);
+    return gen_call_function_setup(func, 1);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_R3(void * func,Bitu op) {
-	gen_load_param_reg(op,2);
-	return gen_call_function_setup(func, 3, true);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_R3(const T func,Bitu op) {
+    gen_load_param_reg(op,2);
+    return gen_call_function_setup(func, 3, true);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_RI(void * func,Bitu op1,Bitu op2) {
-	gen_load_param_imm(op2,1);
-	gen_load_param_reg(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_RI(const T func,Bitu op1,Bitu op2) {
+    gen_load_param_imm(op2,1);
+    gen_load_param_reg(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_RA(void * func,Bitu op1,DRC_PTR_SIZE_IM op2) {
-	gen_load_param_addr(op2,1);
-	gen_load_param_reg(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_RA(const T func,Bitu op1,DRC_PTR_SIZE_IM op2) {
+    gen_load_param_addr(op2,1);
+    gen_load_param_reg(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_RR(void * func,Bitu op1,Bitu op2) {
-	gen_load_param_reg(op2,1);
-	gen_load_param_reg(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_RR(const T func,Bitu op1,Bitu op2) {
+    gen_load_param_reg(op2,1);
+    gen_load_param_reg(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_IR(void * func,Bitu op1,Bitu op2) {
-	gen_load_param_reg(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_IR(const T func,Bitu op1,Bitu op2) {
+    gen_load_param_reg(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
 template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_I(const T func,Bitu op) {
-	gen_load_param_imm(op,0);
-	return gen_call_function_setup(func, 1);
+    gen_load_param_imm(op,0);
+    return gen_call_function_setup(func, 1);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_II(void * func,Bitu op1,Bitu op2) {
-	gen_load_param_imm(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_II(const T func,Bitu op1,Bitu op2) {
+    gen_load_param_imm(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_III(void * func,Bitu op1,Bitu op2,Bitu op3) {
-	gen_load_param_imm(op3,2);
-	gen_load_param_imm(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 3);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_III(const T func,Bitu op1,Bitu op2,Bitu op3) {
+    gen_load_param_imm(op3,2);
+    gen_load_param_imm(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 3);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_IA(void * func,Bitu op1,DRC_PTR_SIZE_IM op2) {
-	gen_load_param_addr(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 2);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_IA(const T func,Bitu op1,DRC_PTR_SIZE_IM op2) {
+    gen_load_param_addr(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_IIR(void * func,Bitu op1,Bitu op2,Bitu op3) {
-	gen_load_param_reg(op3,2);
-	gen_load_param_imm(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 3);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_IIR(const T func,Bitu op1,Bitu op2,Bitu op3) {
+    gen_load_param_reg(op3,2);
+    gen_load_param_imm(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 3);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_IIIR(void * func,Bitu op1,Bitu op2,Bitu op3,Bitu op4) {
-	gen_load_param_reg(op4,3);
-	gen_load_param_imm(op3,2);
-	gen_load_param_imm(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 4);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_IIIR(const T func,Bitu op1,Bitu op2,Bitu op3,Bitu op4) {
+    gen_load_param_reg(op4,3);
+    gen_load_param_imm(op3,2);
+    gen_load_param_imm(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 4);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_IRRR(void * func,Bitu op1,Bitu op2,Bitu op3,Bitu op4) {
-	gen_load_param_reg(op4,3);
-	gen_load_param_reg(op3,2);
-	gen_load_param_reg(op2,1);
-	gen_load_param_imm(op1,0);
-	return gen_call_function_setup(func, 4);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_IRRR(const T func,Bitu op1,Bitu op2,Bitu op3,Bitu op4) {
+    gen_load_param_reg(op4,3);
+    gen_load_param_reg(op3,2);
+    gen_load_param_reg(op2,1);
+    gen_load_param_imm(op1,0);
+    return gen_call_function_setup(func, 4);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_m(void * func,Bitu op) {
-	gen_load_param_mem(op,2);
-	return gen_call_function_setup(func, 3, true);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_m(const T func,Bitu op) {
+    gen_load_param_mem(op,2);
+    return gen_call_function_setup(func, 3, true);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_mm(void * func,Bitu op1,Bitu op2) {
-	gen_load_param_mem(op2,3);
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_mm(const T func,Bitu op1,Bitu op2) {
+    gen_load_param_mem(op2,3);
 	gen_load_param_mem(op1,2);
 	return gen_call_function_setup(func, 4, true);
 }
@@ -644,8 +644,8 @@ static void dyn_fill_blocks(void) {
 			case db_exception:
 				// code for exception handling, load cycles and call DynRunException
 				decode.cycles=save_info_dynrec[sct].cycles;
-				if (cpu.code.big) gen_call_function_II((void *)&DynRunException,save_info_dynrec[sct].eip_change,save_info_dynrec[sct].cycles);
-				else gen_call_function_II((void *)&DynRunException,save_info_dynrec[sct].eip_change&0xffff,save_info_dynrec[sct].cycles);
+				if (cpu.code.big) gen_call_function_II(DynRunException,save_info_dynrec[sct].eip_change,save_info_dynrec[sct].cycles);
+				else gen_call_function_II(DynRunException,save_info_dynrec[sct].eip_change&0xffff,save_info_dynrec[sct].cycles);
 				dyn_return(BR_Normal,true);
 				break;
 			case cycle_check:
@@ -756,13 +756,13 @@ bool DRC_CALL_CONV mem_writed_checked_drc(PhysPt address,Bit32u val) {
 // read a byte from a given address and store it in reg_dst
 static void dyn_read_byte(HostReg reg_addr,HostReg reg_dst) {
 	gen_mov_regs(FC_OP1,reg_addr);
-	gen_call_function_raw((void *)&mem_readb_checked_drc);
+	gen_call_function_raw(mem_readb_checked_drc);
 	dyn_check_exception(FC_RETOP);
 	gen_mov_byte_to_reg_low(reg_dst,&core_dynrec.readdata);
 }
 static void dyn_read_byte_canuseword(HostReg reg_addr,HostReg reg_dst) {
 	gen_mov_regs(FC_OP1,reg_addr);
-	gen_call_function_raw((void *)&mem_readb_checked_drc);
+	gen_call_function_raw(mem_readb_checked_drc);
 	dyn_check_exception(FC_RETOP);
 	gen_mov_byte_to_reg_low_canuseword(reg_dst,&core_dynrec.readdata);
 }
@@ -771,7 +771,7 @@ static void dyn_read_byte_canuseword(HostReg reg_addr,HostReg reg_dst) {
 static void dyn_write_byte(HostReg reg_addr,HostReg reg_val) {
 	gen_mov_regs(FC_OP2,reg_val);
 	gen_mov_regs(FC_OP1,reg_addr);
-	gen_call_function_raw((void *)&mem_writeb_checked_drc);
+	gen_call_function_raw(mem_writeb_checked_drc);
 	dyn_check_exception(FC_RETOP);
 }
 
@@ -779,8 +779,8 @@ static void dyn_write_byte(HostReg reg_addr,HostReg reg_val) {
 // from a given address and store it in reg_dst
 static void dyn_read_word(HostReg reg_addr,HostReg reg_dst,bool dword) {
 	gen_mov_regs(FC_OP1,reg_addr);
-	if (dword) gen_call_function_raw((void *)&mem_readd_checked_drc);
-	else gen_call_function_raw((void *)&mem_readw_checked_drc);
+	if (dword) gen_call_function_raw(mem_readd_checked_drc);
+	else gen_call_function_raw(mem_readw_checked_drc);
 	dyn_check_exception(FC_RETOP);
 	gen_mov_word_to_reg(reg_dst,&core_dynrec.readdata,dword);
 }
@@ -791,8 +791,8 @@ static void dyn_write_word(HostReg reg_addr,HostReg reg_val,bool dword) {
 //	if (!dword) gen_extend_word(false,reg_val);
 	gen_mov_regs(FC_OP2,reg_val);
 	gen_mov_regs(FC_OP1,reg_addr);
-	if (dword) gen_call_function_raw((void *)&mem_writed_checked_drc);
-	else gen_call_function_raw((void *)&mem_writew_checked_drc);
+	if (dword) gen_call_function_raw(mem_writed_checked_drc);
+	else gen_call_function_raw(mem_writew_checked_drc);
 	dyn_check_exception(FC_RETOP);
 }
 
@@ -1146,7 +1146,7 @@ skip_extend_word:
 // the port is given in a register
 static void dyn_add_iocheck(HostReg reg_port,Bitu access_size) {
 	if (cpu.pmode) {
-		gen_call_function_RI((void *)&CPU_IO_Exception,reg_port,access_size);
+		gen_call_function_RI(CPU_IO_Exception,reg_port,access_size);
 		dyn_check_exception(FC_RETOP);
 	}
 }
@@ -1155,7 +1155,7 @@ static void dyn_add_iocheck(HostReg reg_port,Bitu access_size) {
 // the port is a constant
 static void dyn_add_iocheck_var(Bit8u accessed_port,Bitu access_size) {
 	if (cpu.pmode) {
-		gen_call_function_II((void *)&CPU_IO_Exception,accessed_port,access_size);
+		gen_call_function_II(CPU_IO_Exception,accessed_port,access_size);
 		dyn_check_exception(FC_RETOP);
 	}
 }
