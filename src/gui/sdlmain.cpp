@@ -7097,6 +7097,11 @@ void OutputSettingMenuUpdate(void) {
 
 bool custom_bios = false;
 
+// OK why isn't this being set for Linux??
+#ifndef SDL_MAIN_NOEXCEPT
+#define SDL_MAIN_NOEXCEPT
+#endif
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
