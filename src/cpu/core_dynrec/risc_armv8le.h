@@ -757,19 +757,19 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 }
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
-	cache_addd( MOVZ64(temp1, ((Bit64u)func) & 0xffff, 0) );            // movz dest_reg, #(func & 0xffff)
-	cache_addd( MOVK64(temp1, (((Bit64u)func) >> 16) & 0xffff, 16) );   // movk dest_reg, #((func >> 16) & 0xffff), lsl #16
-	cache_addd( MOVK64(temp1, (((Bit64u)func) >> 32) & 0xffff, 32) );   // movk dest_reg, #((func >> 32) & 0xffff), lsl #32
-	cache_addd( MOVK64(temp1, (((Bit64u)func) >> 48) & 0xffff, 48) );   // movk dest_reg, #((func >> 48) & 0xffff), lsl #48
-	cache_addd( BLR_REG(temp1) );      // blr temp1
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
+    cache_addd( MOVZ64(temp1, ((Bit64u)func) & 0xffff, 0) );            // movz dest_reg, #(func & 0xffff)
+    cache_addd( MOVK64(temp1, (((Bit64u)func) >> 16) & 0xffff, 16) );   // movk dest_reg, #((func >> 16) & 0xffff), lsl #16
+    cache_addd( MOVK64(temp1, (((Bit64u)func) >> 32) & 0xffff, 32) );   // movk dest_reg, #((func >> 32) & 0xffff), lsl #32
+    cache_addd( MOVK64(temp1, (((Bit64u)func) >> 48) & 0xffff, 48) );   // movk dest_reg, #((func >> 48) & 0xffff), lsl #48
+    cache_addd( BLR_REG(temp1) );      // blr temp1
 }
 
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static DRC_PTR_SIZE_IM INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
-	DRC_PTR_SIZE_IM proc_addr = (DRC_PTR_SIZE_IM)cache.pos;
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+    DRC_PTR_SIZE_IM proc_addr = (DRC_PTR_SIZE_IM)cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }

@@ -386,20 +386,20 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 #define DELAY cache_addd(0)			// nop
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
 #if C_DEBUG
-	if ((cache.pos ^ func) & 0xf0000000) LOG_MSG("jump overflow\n");
+    if ((cache.pos ^ func) & 0xf0000000) LOG_MSG("jump overflow\n");
 #endif
-	temp1_valid = false;
-	cache_addd(0x0c000000+(((Bit32u)func>>2)&0x3ffffff));		// jal func
-	DELAY;
+    temp1_valid = false;
+    cache_addd(0x0c000000+(((Bit32u)func>>2)&0x3ffffff));		// jal func
+    DELAY;
 }
 
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
-	Bit32u proc_addr = (Bit32u)cache.pos;
+template <typename T> static Bit32u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+    Bit32u proc_addr = (Bit32u)cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }

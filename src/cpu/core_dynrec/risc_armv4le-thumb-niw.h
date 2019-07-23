@@ -822,43 +822,43 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 }
 
 // helper function for gen_call_function_raw and gen_call_function_setup
-static void gen_call_function_helper(void * func) {
-	Bit8u *datapos;
+template <typename T> static void gen_call_function_helper(const T func) {
+    Bit8u *datapos;
 
-	datapos = cache_reservedata();
-	*(Bit32u*)datapos=(Bit32u)func;
+    datapos = cache_reservedata();
+    *(Bit32u*)datapos=(Bit32u)func;
 
-	if (((Bit32u)cache.pos & 0x03) == 0) {
-		cache_addw( LDR_PC_IMM(templo1, datapos - (cache.pos + 4)) );      // ldr templo1, [pc, datapos]
-		cache_addw( ADD_LO_PC_IMM(templo2, 4) );      // adr templo2, after_call (add templo2, pc, #4)
-		cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
-		cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
-	} else {
-		cache_addw( LDR_PC_IMM(templo1, datapos - (cache.pos + 2)) );      // ldr templo1, [pc, datapos]
-		cache_addw( ADD_LO_PC_IMM(templo2, 4) );      // adr templo2, after_call (add templo2, pc, #4)
-		cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
-		cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
-		cache_addw( NOP );      // nop
-	}
-	// after_call:
+    if (((Bit32u)cache.pos & 0x03) == 0) {
+        cache_addw( LDR_PC_IMM(templo1, datapos - (cache.pos + 4)) );      // ldr templo1, [pc, datapos]
+        cache_addw( ADD_LO_PC_IMM(templo2, 4) );      // adr templo2, after_call (add templo2, pc, #4)
+        cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
+        cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
+    } else {
+        cache_addw( LDR_PC_IMM(templo1, datapos - (cache.pos + 2)) );      // ldr templo1, [pc, datapos]
+        cache_addw( ADD_LO_PC_IMM(templo2, 4) );      // adr templo2, after_call (add templo2, pc, #4)
+        cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
+        cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
+        cache_addw( NOP );      // nop
+    }
+    // after_call:
 
-	// switch from arm to thumb state
-	cache_addd(0xe2800000 + (templo1 << 12) + (HOST_pc << 16) + (1));      // add templo1, pc, #1
-	cache_addd(0xe12fff10 + (templo1));      // bx templo1
+    // switch from arm to thumb state
+    cache_addd(0xe2800000 + (templo1 << 12) + (HOST_pc << 16) + (1));      // add templo1, pc, #1
+    cache_addd(0xe12fff10 + (templo1));      // bx templo1
 
-	// thumb state from now on
+    // thumb state from now on
 }
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
-	cache_checkinstr(18);
-	gen_call_function_helper(func);
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
+    cache_checkinstr(18);
+    gen_call_function_helper(func);
 }
 
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+template <typename T> static Bit32u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
 	cache_checkinstr(18);
 	Bit32u proc_addr = (Bit32u)cache.pos;
 	gen_call_function_helper(func);
