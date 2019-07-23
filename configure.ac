@@ -763,12 +763,8 @@ if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then
 else
 dnl x86 only enable it if dynamic-x86 is disabled.
   if test x$c_targetcpu = xx86 ; then
-    if test x$enable_dynamic_x86 = xno ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-        AC_MSG_RESULT([no, using dynamic-x86])
-    fi
+    AC_DEFINE(C_DYNREC,1)
+    AC_MSG_RESULT(yes)
   else 
     if test x$c_targetcpu = xx86_64 ; then
         AC_DEFINE(C_DYNREC,1)
