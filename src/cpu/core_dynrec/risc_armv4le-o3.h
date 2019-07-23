@@ -765,7 +765,7 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 }
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
 #if C_TARGETCPU == ARMV7LE
 	cache_addd( MOVW(temp1, ((Bit32u)func) & 0xffff) );      // movw temp1, #(func & 0xffff)
 	cache_addd( MOVT(temp1, ((Bit32u)func) >> 16) );      // movt temp1, #(func >> 16)
@@ -781,7 +781,7 @@ static void INLINE gen_call_function_raw(void * func) {
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+template <typename T> static Bit32u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
 	Bit32u proc_addr = (Bit32u)cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
