@@ -537,7 +537,7 @@ static DRC_PTR_SIZE_IM INLINE gen_call_function_IR(void * func,Bitu op1,Bitu op2
 	return gen_call_function_setup(func, 2);
 }
 
-static DRC_PTR_SIZE_IM INLINE gen_call_function_I(void * func,Bitu op) {
+template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_I(const T func,Bitu op) {
 	gen_load_param_imm(op,0);
 	return gen_call_function_setup(func, 1);
 }

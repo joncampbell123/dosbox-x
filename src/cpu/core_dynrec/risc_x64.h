@@ -374,7 +374,7 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 
 
 // generate a call to a parameterless function
-static void INLINE gen_call_function_raw(void * func) {
+template <typename T> static void INLINE gen_call_function_raw(const T func) {
 	cache_addw(0xb848);
 	cache_addq((Bit64u)func);
 	cache_addw(0xd0ff);
@@ -383,7 +383,7 @@ static void INLINE gen_call_function_raw(void * func) {
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-static Bit64u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+template <typename T> static Bit64u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
 	(void)paramcount;
 	(void)fastcall;
 
