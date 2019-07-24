@@ -1,4 +1,9 @@
 0.82.20 (next)
+  - PC-98 graphics emulation fixed to render only the
+    number of active display lines programmed into
+    the GDC instead of matching the text layer. This
+    fixes the status bar at the bottom of the screen
+    in "First Queen" and "First Queen II".
   - Normal CPU core fixed not to immediately process
     interrupts on STI but to wait a little bit so that
     a STI + CLI sequence does not cause interrupt

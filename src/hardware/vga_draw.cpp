@@ -1908,6 +1908,18 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect)
         ok_raster = (vga.draw.lines_done & 1) == 0;
 
+    // Generally the master and slave GDC are given the same active display area, timing, etc.
+    // however some games reprogram the slave (graphics) GDC to reduce the active display area.
+    //
+    // Without this consideration, graphics display will be incorrect relative to actual hardware.
+    //
+    // This will NOT cause correct display if other parameters like blanking area are changed!
+    //
+    // Examples:
+    //  - "First Queen" and "First Queen II" (reduces active lines count to 384 to display status bar at the bottom of the screen)
+    if (vga.draw.lines_done >= pc98_gdc[GDC_SLAVE].active_display_lines)
+        ok_raster = false;
+
     // Graphic RAM layer (or blank)
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
