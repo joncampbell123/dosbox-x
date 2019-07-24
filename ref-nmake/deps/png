@@ -1,0 +1,54 @@
+CC		=	cl
+CXX		=   cl
+LD		= 	link
+LIBR	=	lib
+WINDRES =	rc
+
+ZLIB = ..\..\vs2015\zlib
+
+LPNG = ..\..\vs2015\libpng
+
+CXXFLAGS =  -nologo -O2 -MT -DNDEBUG -I$(ZLIB)
+
+CFLAGS	=	-nologo -O2 -MT -DNDEBUG -I$(ZLIB)
+
+LFLAGS	=	-nologo
+
+TARGET	=	png.lib
+
+OBJS	=	$(LPNG)\png.obj \
+			$(LPNG)\pngerror.obj \
+			$(LPNG)\pngget.obj \
+			$(LPNG)\pngmem.obj \
+			$(LPNG)\pngpread.obj \
+			$(LPNG)\pngread.obj \
+			$(LPNG)\pngrio.obj \
+			$(LPNG)\pngrtran.obj \
+			$(LPNG)\pngrutil.obj \
+			$(LPNG)\pngset.obj \
+			$(LPNG)\pngtest.obj \
+			$(LPNG)\pngtrans.obj \
+			$(LPNG)\pngwio.obj \
+			$(LPNG)\pngwrite.obj \
+			$(LPNG)\pngwtran.obj \
+			$(LPNG)\pngwutil.obj
+
+.SUFFIXES: .c.o
+.SUFFIXES: .cpp.o
+
+all: $(TARGET)
+
+$(TARGET):	$(OBJS)
+	$(LIBR) $(LFLAGS) -OUT:$@ $(OBJS) 
+
+.c.obj:
+	$(CC) $(CFLAGS) -c -Fo$@ $<
+
+.cpp.obj:
+	$(CXX) $(CXXFLAGS) -c -Fo$@ $<
+
+.rc.res: 
+	$(WINDRES) -fo $@ $< 
+	
+clean:
+	del $(TARGET) $(OBJS)

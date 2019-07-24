@@ -1,0 +1,52 @@
+CC		=	cl
+CXX		=   cl
+LD		= 	link
+LIBR	=	lib
+WINDRES =	rc
+
+
+CXXFLAGS =  -nologo -O2 -MT -DNDEBUG
+
+CFLAGS	=	-nologo -O2 -MT -DNDEBUG
+
+LFLAGS	=	-nologo
+
+TARGET	=	z.lib
+
+ZLIB = ..\..\vs2015\zlib
+
+OBJS	=	$(ZLIB)\adler32.obj \
+			$(ZLIB)\compress.obj \
+			$(ZLIB)\crc32.obj \
+			$(ZLIB)\deflate.obj \
+			$(ZLIB)\gzclose.obj \
+			$(ZLIB)\gzlib.obj \
+			$(ZLIB)\gzread.obj \
+			$(ZLIB)\gzwrite.obj \
+			$(ZLIB)\infback.obj \
+			$(ZLIB)\inffast.obj \
+			$(ZLIB)\inflate.obj \
+			$(ZLIB)\inftrees.obj \
+			$(ZLIB)\trees.obj \
+			$(ZLIB)\uncompr.obj \
+			$(ZLIB)\zutil.obj
+
+.SUFFIXES: .c.o
+.SUFFIXES: .cpp.o
+
+all: $(TARGET)
+
+$(TARGET):	$(OBJS)
+	$(LIBR) $(LFLAGS) -OUT:$@ $(OBJS) 
+
+.c.obj:
+	$(CC) $(CFLAGS) -c -Fo$@ $<
+
+.cpp.obj:
+	$(CXX) $(CXXFLAGS) -c -Fo$@ $<
+
+.rc.res: 
+	$(WINDRES) -fo $@ $< 
+	
+clean:
+	del $(TARGET) $(OBJS)
