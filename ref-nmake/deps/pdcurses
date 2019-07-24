@@ -1,0 +1,85 @@
+CC		=	cl
+CXX		=   cl
+LD		= 	link
+LIBR	=	lib
+WINDRES =	rc
+
+PDCURSES = ..\..\vs2015\libpdcurses
+
+CXXFLAGS =  -nologo -O2 -MT -DNDEBUG -I$(PDCURSES)
+
+CFLAGS	=	-nologo -O2 -MT -DNDEBUG -I$(PDCURSES)
+
+LFLAGS	=	-nologo
+
+TARGET	=	pdcurses.lib
+
+OBJS	=	$(PDCURSES)\pdcurses\addch.obj \
+			$(PDCURSES)\pdcurses\addchstr.obj \
+			$(PDCURSES)\pdcurses\addstr.obj \
+			$(PDCURSES)\pdcurses\attr.obj \
+			$(PDCURSES)\pdcurses\beep.obj \
+			$(PDCURSES)\pdcurses\bkgd.obj \
+			$(PDCURSES)\pdcurses\border.obj \
+			$(PDCURSES)\pdcurses\clear.obj \
+			$(PDCURSES)\pdcurses\color.obj \
+			$(PDCURSES)\pdcurses\debug.obj \
+			$(PDCURSES)\pdcurses\delch.obj \
+			$(PDCURSES)\pdcurses\deleteln.obj \
+			$(PDCURSES)\pdcurses\deprec.obj \
+			$(PDCURSES)\pdcurses\getch.obj \
+			$(PDCURSES)\pdcurses\getstr.obj \
+			$(PDCURSES)\pdcurses\getyx.obj \
+			$(PDCURSES)\pdcurses\inch.obj \
+			$(PDCURSES)\pdcurses\inchstr.obj \
+			$(PDCURSES)\pdcurses\initscr.obj \
+			$(PDCURSES)\pdcurses\inopts.obj \
+			$(PDCURSES)\pdcurses\insch.obj \
+			$(PDCURSES)\pdcurses\insstr.obj \
+			$(PDCURSES)\pdcurses\instr.obj \
+			$(PDCURSES)\pdcurses\kernel.obj \
+			$(PDCURSES)\pdcurses\keyname.obj \
+			$(PDCURSES)\pdcurses\mouse.obj \
+			$(PDCURSES)\pdcurses\move.obj \
+			$(PDCURSES)\pdcurses\outopts.obj \
+			$(PDCURSES)\pdcurses\overlay.obj \
+			$(PDCURSES)\pdcurses\pad.obj \
+			$(PDCURSES)\pdcurses\panel.obj \
+			$(PDCURSES)\pdcurses\printw.obj \
+			$(PDCURSES)\pdcurses\refresh.obj \
+			$(PDCURSES)\pdcurses\scanw.obj \
+			$(PDCURSES)\pdcurses\scr_dump.obj \
+			$(PDCURSES)\pdcurses\scroll.obj \
+			$(PDCURSES)\pdcurses\slk.obj \
+			$(PDCURSES)\pdcurses\termattr.obj \
+			$(PDCURSES)\pdcurses\terminfo.obj \
+			$(PDCURSES)\pdcurses\touch.obj \
+			$(PDCURSES)\pdcurses\util.obj \
+			$(PDCURSES)\pdcurses\window.obj \
+			$(PDCURSES)\wincon\pdcclip.obj \
+			$(PDCURSES)\wincon\pdcdisp.obj \
+			$(PDCURSES)\wincon\pdcgetsc.obj \
+			$(PDCURSES)\wincon\pdckbd.obj \
+			$(PDCURSES)\wincon\pdcscrn.obj \
+			$(PDCURSES)\wincon\pdcsetsc.obj \
+			$(PDCURSES)\wincon\pdcutil.obj 
+
+.SUFFIXES: .c.o
+.SUFFIXES: .cpp.o
+
+all: $(TARGET)
+
+$(TARGET):	$(OBJS)
+	$(LIBR) $(LFLAGS) -OUT:$@ $(OBJS) 
+
+.c.obj:
+	$(CC) $(CFLAGS) -c -Fo$@ $<
+
+.cpp.obj:
+	$(CXX) $(CXXFLAGS) -c -Fo$@ $<
+
+.rc.res: 
+	$(WINDRES) -fo $@ $< 
+	
+clean:
+	del $(TARGET) $(OBJS)
