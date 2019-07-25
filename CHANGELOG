@@ -1,4 +1,6 @@
 0.82.20 (next)
+  - Dynamic core IMUL instruction mistake fixed,
+    signed multiply works properly again.
   - PC-98 graphics emulation fixed to render only the
     number of active display lines programmed into
     the GDC instead of matching the text layer. This
