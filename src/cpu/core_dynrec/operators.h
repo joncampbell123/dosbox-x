@@ -1434,7 +1434,7 @@ static void DRC_CALL_CONV dynrec_mul_word(Bit16u op) {
 static void DRC_CALL_CONV dynrec_imul_word(Bit16u op) DRC_FC;
 static void DRC_CALL_CONV dynrec_imul_word(Bit16u op) {
 	FillFlagsNoCFOF();
-	Bits temps=((Bit16s)reg_ax)*((Bits)op);
+	Bits temps=Bits((Bit16s)reg_ax)*Bits((Bit16s)op);
 	reg_ax=(Bit16s)(temps);
 	reg_dx=(Bit16s)(temps >> 16);
 	if (((temps & 0xffff8000)==0xffff8000 || (temps & 0xffff8000)==0x0000)) {
@@ -1567,7 +1567,7 @@ static bool DRC_CALL_CONV dynrec_idiv_dword(Bit32u op) {
 static Bit16u DRC_CALL_CONV dynrec_dimul_word(Bit16u op1,Bit16u op2) DRC_FC;
 static Bit16u DRC_CALL_CONV dynrec_dimul_word(Bit16u op1,Bit16u op2) {
 	FillFlagsNoCFOF();
-	Bits res=((Bit16s)op1) * ((Bits)op2);
+	Bits res=Bits((Bit16s)op1) * Bits((Bit16s)op2);
 	if ((res>-32768)  && (res<32767)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
