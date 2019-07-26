@@ -8193,6 +8193,9 @@ private:
                 case MCH_AMSTRAD:
                     card = "Amstrad graphics";
                     break;
+                case MCH_FM_TOWNS:
+                    card = "FM Towns (STUB)";
+                    break;
                 default:
                     abort(); // should not happen
                     break;
