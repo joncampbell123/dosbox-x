@@ -946,6 +946,9 @@ void VGA_Reset(Section*) {
         case MCH_MCGA:
             if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
             break;
+        case MCH_FM_TOWNS:
+            if (vga.mem.memsize < _KB_bytes(640)) vga.mem.memsize = _KB_bytes(640); /* "640KB of RAM, 512KB VRAM and 128KB sprite RAM" */
+            break;
         default:
             E_Exit("Unexpected machine");
     };
