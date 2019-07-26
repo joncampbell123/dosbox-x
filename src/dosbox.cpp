@@ -955,8 +955,12 @@ void DOSBOX_RealInit() {
     clockdom_ISA_BCLK.set_name("ISA BCLK");
     clockdom_PCI_BCLK.set_name("PCI BCLK");
 
-    // FM TOWNS is stub!!!
-    if (IS_FM_TOWNS) E_Exit("FM Towns emulation not yet implemented");
+    // FM TOWNS is stub so far. According to sources like Wikipedia though,
+    // it boots from DOS in ROM that then loads bootcode from CD-ROM. So
+    // for now, allow booting into FM TOWNS mode with a warning. The
+    // switch to FM Towns will begin in the BOOT command with a flag to
+    // indicate the ISO is intended for FM TOwns.
+    if (IS_FM_TOWNS) LOG_MSG("FM Towns emulation not yet implemented. It's currently just a stub for future development.");
 }
 
 void DOSBOX_SetupConfigSections(void) {
