@@ -82,13 +82,6 @@ private:
 		Bit8u savecol;
 		Bit8u saverow;
 		bool warned;
-
-		void Disable() {
-            if (!IS_PC98_ARCH)
-                enabled = false;
-
-			attr = DefaultANSIAttr();
-		}
 	} ansi;
 
     // ESC M
@@ -936,7 +929,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         switch(ansi.data[i]){
                             case 0: /* normal */
                                 //Real ansi does this as well. (should do current defaults)
-                                ansi.Disable();
+                                ansi.attr = DefaultANSIAttr();
                                 break;
                             case 1: /* bold mode on*/
                                 // FIXME: According to http://www.ninton.co.jp/?p=11, this
@@ -1202,7 +1195,8 @@ Bit16u device_CON::GetInformation(void) {
 device_CON::device_CON() {
 	SetName("CON");
 	readcache=0;
-	ansi.Disable();
+	ansi.enabled=false;
+	ansi.attr=DefaultANSIAttr();
     if (IS_PC98_ARCH) {
         // NTS: On real hardware, the BIOS does NOT manage the console at all.
         //      TTY handling is entirely handled by MS-DOS.
