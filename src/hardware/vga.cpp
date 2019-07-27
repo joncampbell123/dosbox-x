@@ -186,6 +186,7 @@ extern bool                         enable_pc98_188usermod;
 extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
 extern bool                         pc98_256kb_boundary;
+extern bool                         want_fm_towns;
 
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
@@ -946,9 +947,6 @@ void VGA_Reset(Section*) {
         case MCH_MCGA:
             if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
             break;
-        case MCH_FM_TOWNS:
-            if (vga.mem.memsize < _KB_bytes(640)) vga.mem.memsize = _KB_bytes(640); /* "640KB of RAM, 512KB VRAM and 128KB sprite RAM" */
-            break;
         default:
             E_Exit("Unexpected machine");
     };
@@ -959,6 +957,11 @@ void VGA_Reset(Section*) {
      * in such a manner. --J.C. */
     if (IS_EGA_ARCH && vga.mem.memsize < _KB_bytes(128))
         LOG_MSG("WARNING: EGA 64KB emulation is very experimental and not well supported");
+
+    // prepare for transition
+    if (want_fm_towns) {
+        if (vga.mem.memsize < _KB_bytes(640)) vga.mem.memsize = _KB_bytes(640); /* "640KB of RAM, 512KB VRAM and 128KB sprite RAM" */
+    }
 
     if (!IS_PC98_ARCH)
         SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
