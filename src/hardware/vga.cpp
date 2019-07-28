@@ -949,7 +949,7 @@ void VGA_Reset(Section*) {
             break;
         default:
             E_Exit("Unexpected machine");
-    };
+    }
 
     /* I'm sorry, emulating 640x350 4-color chained EGA graphics is
      * harder than I thought and would require revision of quite a

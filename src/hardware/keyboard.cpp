@@ -507,7 +507,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
             keyb.ps2mouse.resolution = val & 3;
             LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse resolution set to %u",(int)(1 << (val&3)));
             break;
-    };
+    }
 }
 
 #include "control.h"
@@ -1354,7 +1354,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         return;
 
     default: return;
-    };
+    }
 
     /* PC-98 keyboards appear to repeat make/break codes when the key is held down */
     if (pressed && keyb.repeat.key == keytype)
@@ -1642,7 +1642,7 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
             case 2: KEYBOARD_AddKey2(keytype,pressed); break;
             case 3: KEYBOARD_AddKey3(keytype,pressed); break;
         }
-    };
+    }
 }
     
 static void KEYBOARD_ShutDown(Section * sec) {
@@ -2311,7 +2311,7 @@ public:
             case 3:
                 r |= (uint8_t)(p7fd9_8255_mouse_y_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
                 break;
-        };
+        }
 
         return r;
     }

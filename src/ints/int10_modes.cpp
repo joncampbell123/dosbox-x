@@ -1875,7 +1875,7 @@ dac_text16:
 			default:
 				reg_3a=5;
 				break;
-		};
+		}
 
         unsigned char s3_mode = 0x00;
 		

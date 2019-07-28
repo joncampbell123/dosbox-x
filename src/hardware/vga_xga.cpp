@@ -652,7 +652,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							LOG_MSG("XGA: unsupported bpp / datawidth combination %x",
 								(int)xga.waitcmd.buswidth);
 							break;
-					};
+					}
 					break;
 			
 				case 0x02: // Data from PIX_TRANS selects the mix

@@ -823,7 +823,7 @@ static void MIXER_FillUp(void) {
     SDL_LockAudio();
     float index = PIC_TickIndex();
     if (index < 0) index = 0;
-    MIXER_MixData((Bitu)(((double)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd))));
+    MIXER_MixData((Bitu)((double)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)));
     SDL_UnlockAudio();
 }
 

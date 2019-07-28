@@ -421,17 +421,17 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 			// error and FIFO inactive
 			rise (ERROR_PRIORITY);
 			LSR |= error;
-		};
+		}
         if(error&LSR_PARITY_ERROR_MASK) {
 			parityErrors++;
-		};
+		}
 		if(error&LSR_OVERRUN_ERROR_MASK) {
 			overrunErrors++;
 			if(!GETFLAG(IF)) overrunIF0++;
 #if SERIAL_DEBUG
 			log_ser(dbg_serialtraffic,"rx overrun (IF=%d)", GETFLAG(IF)>0);
 #endif
-		};
+		}
 		if(error&LSR_FRAMING_ERROR_MASK) {
 			framingErrors++;
 		}
@@ -499,7 +499,7 @@ void CSerial::ByteTransmitted () {
 void CSerial::Write_THR (Bit8u data) {
 	// 0-7 transmit data
 	
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) {
+	if (LCR & LCR_DIVISOR_Enable_MASK) {
 		// write to DLL
 		baud_divider&=0xFF00;
 		baud_divider |= data;
@@ -508,7 +508,7 @@ void CSerial::Write_THR (Bit8u data) {
 		// write to THR
         clear (TX_PRIORITY);
 
-		if((LSR & LSR_TX_EMPTY_MASK))
+		if(LSR & LSR_TX_EMPTY_MASK)
 		{	// we were idle before
 			//LOG_MSG("starting new transmit cycle");
 			//if(sync_guardtime) LOG_MSG("Serial port internal error 1");
@@ -553,7 +553,7 @@ void CSerial::Write_THR (Bit8u data) {
 /*****************************************************************************/
 Bitu CSerial::Read_RHR () {
 	// 0-7 received data
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) return baud_divider&0xff;
+	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider&0xff;
 	else {
 		Bit8u data=rxfifo->getb();
 		if(FCR&FCR_ACTIVATE) {
@@ -595,7 +595,7 @@ Bitu CSerial::Read_IER () {
 }
 
 void CSerial::Write_IER (Bit8u data) {
-	if ((LCR & LCR_DIVISOR_Enable_MASK)) {	// write to DLM
+	if (LCR & LCR_DIVISOR_Enable_MASK) {	// write to DLM
 		baud_divider&=0xff;
 		baud_divider |= ((Bit16u)data)<<8;
 		changeLineProperties();

@@ -1389,7 +1389,7 @@ void On_Software_CPU_Reset() {
             case 0x09:  /* INT 15h block move return to real mode (to appease Windows 3.1 KRNL286.EXE and cputype=286, yuck) */
                 On_Software_286_int15_block_move_return(c);
                 return;
-        };
+        }
     }
 
 #if C_DYNAMIC_X86

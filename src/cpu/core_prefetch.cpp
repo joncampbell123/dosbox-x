@@ -218,7 +218,7 @@ Bits CPU_Core_Prefetch_Run(void) {
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
 			return (Bits)debugCallback;
-		};
+		}
 #endif
 		cycle_count++;
 #endif

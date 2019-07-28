@@ -1001,7 +1001,7 @@ void FloppyController::on_fdc_in_command() {
 			LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
 			reset_io();
 			break;
-	};
+	}
 
 	switch (in_cmd[0]&0x1F) {
 		case 0x0A:
@@ -1174,7 +1174,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				invalid_command_code();
 				reset_cmd();
 				break;
-		};
+		}
 
 		if (in_cmd_state && in_cmd_pos >= in_cmd_len)
 			on_fdc_in_command();
@@ -1223,7 +1223,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		default:
 			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",(int)port,(int)val,(int)iolen);
 			break;
-	};
+	}
 }
 
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
@@ -1269,7 +1269,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 		default:
 			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
 			break;
-	};
+	}
 
 	return ~(0UL);
 }

@@ -100,7 +100,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 			if (input[vnamePos]=='.') vnamePos++;
 			output[labelPos]='.'; labelPos++; point=true; togo=3;
 		}
-	};
+	}
 	output[labelPos]=0;
 
 	//Remove trailing dot. except when on cdrom and filename is exactly 8 (9 including the dot) letters. MSCDEX feature/bug (fifa96 cdrom detection)

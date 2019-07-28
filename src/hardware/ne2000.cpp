@@ -356,7 +356,7 @@ Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
     BX_PANIC(("unaligned chipmem word read"));
 
   // ROM'd MAC address
-  if (/*(address >=0) && */(address <= 31)) {
+  if (/*(address >=0) && */address <= 31) {
     retval = BX_NE2K_THIS s.macaddr[address];
     if ((io_len == 2u) || (io_len == 4u)) {
       retval |= (unsigned int)(BX_NE2K_THIS s.macaddr[address + 1u] << 8u);

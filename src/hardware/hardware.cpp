@@ -851,10 +851,10 @@ skip_shot:
 	if (CaptureState & CAPTURE_VIDEO) {
 		zmbv_format_t format;
 		/* Disable capturing if any of the test fails */
-		if ((capture.video.width != width ||
+		if (capture.video.width != width ||
 			capture.video.height != height ||
 			capture.video.bpp != bpp ||
-			capture.video.fps != fps)) {
+			capture.video.fps != fps) {
 			if (native_zmbv && capture.video.writer != NULL)
 				CAPTURE_VideoEvent(true);
 #if (C_AVCODEC)

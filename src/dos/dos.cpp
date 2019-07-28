@@ -541,7 +541,7 @@ static Bitu DOS_21Handler(void) {
                         reg_al=c;
                     }
                     break;
-            };
+            }
             break;
         case 0x07:      /* Character Input, without echo */
             {
@@ -549,7 +549,7 @@ static Bitu DOS_21Handler(void) {
                 DOS_ReadFile (STDIN,&c,&n);
                 reg_al=c;
                 break;
-            };
+            }
         case 0x08:      /* Direct Character Input, without echo (checks for breaks officially :)*/
             {
                 Bit8u c;Bit16u n=1;
@@ -560,7 +560,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 reg_al=c;
                 break;
-            };
+            }
         case 0x09:      /* Write string to STDOUT */
             {   
                 Bit8u c;Bit16u n=1;
@@ -610,10 +610,10 @@ static Bitu DOS_21Handler(void) {
                     if (c==13) 
                         break;
                     read++;
-                };
+                }
                 mem_writeb(data+1,read);
                 break;
-            };
+            }
         case 0x0b:      /* Get STDIN Status */
             if (!DOS_GetSTDINStatus()) {reg_al=0x00;}
             else {reg_al=0xFF;}
@@ -1103,7 +1103,7 @@ static Bitu DOS_21Handler(void) {
                     reg_al=0;reg_dl=0x2f;break;
                 case 3:
                     reg_al=0;break;
-            };
+            }
             LOG(LOG_MISC,LOG_ERROR)("DOS:0x37:Call for not supported switchchar");
             break;
         case 0x38:                  /* Set Country Code */  
@@ -1249,7 +1249,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 diskio_delay(reg_ax);
                 break;
-            };
+            }
         case 0x41:                  /* UNLINK Delete file */
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
@@ -1292,7 +1292,7 @@ static Bitu DOS_21Handler(void) {
                             reg_ax=dos.errorcode;
                         }
                         break;
-                    };
+                    }
                 case 0x01:              /* Set */
                     LOG(LOG_MISC,LOG_ERROR)("DOS:Set File Attributes for %s not supported",name1);
                     if (DOS_SetFileAttr(name1,reg_cx)) {
@@ -1408,7 +1408,7 @@ static Bitu DOS_21Handler(void) {
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
-            };
+            }
             break;       
         case 0x4f:                  /* FINDNEXT Find next matching file */
             if (DOS_FindNext()) {
@@ -1418,7 +1418,7 @@ static Bitu DOS_21Handler(void) {
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
-            };
+            }
             break;      
         case 0x50:                  /* Set current PSP */
             dos.psp(reg_bx);
@@ -1729,7 +1729,7 @@ static Bitu DOS_21Handler(void) {
                         break;
                     default:
                         E_Exit("DOS:0x65:Unhandled country information call %2X",reg_al);   
-                };
+                }
                 break;
             }
         case 0x66:                  /* Get/Set global code page table  */
@@ -1748,7 +1748,7 @@ static Bitu DOS_21Handler(void) {
                 psp.SetNumFiles(reg_bx);
                 CALLBACK_SCF(false);
                 break;
-            };
+            }
         case 0x68:                  /* FFLUSH Commit file */
             if(DOS_FlushFile(reg_bl)) {
                 CALLBACK_SCF(false);
@@ -1807,7 +1807,7 @@ static Bitu DOS_21Handler(void) {
             if (reg_ah < 0x6d) LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X. Set al to default of 0",reg_ah,reg_al); //Less errors. above 0x6c the functions are simply always skipped, only al is zeroed, all other registers untouched
             reg_al=0x00; /* default value */
             break;
-    };
+    }
 
     /* if INT 21h involves any BIOS calls that need the timer, emulate the fact that tbe
      * BIOS might unmask IRQ 0 as part of the job (especially INT 13h disk I/O).

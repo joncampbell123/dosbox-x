@@ -331,7 +331,7 @@ void DOS_PSP::SetCommandTail(RealPt src) {
 	} else {	// empty
 		sSave(sPSP,cmdtail.count,0x00);
 		mem_writeb(pt+offsetof(sPSP,cmdtail.buffer),0x0d);
-	};
+	}
 }
 
 void DOS_PSP::SetFCB1(RealPt src) {
@@ -358,7 +358,7 @@ bool DOS_PSP::SetNumFiles(Bit16u fileNum) {
 		for (i=20; i<fileNum; i++)	SetFileHandle(i,0xFF);
 	} else {
 		sSave(sPSP,max_files,fileNum);
-	};
+	}
 	return true;
 }
 

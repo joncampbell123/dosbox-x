@@ -755,7 +755,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		LOG(LOG_INT10,LOG_ERROR)("Function %4X not supported",reg_ax);
 //		reg_al=0x00;		//Successfull, breaks marriage
 		break;
-	};
+	}
 	return CBRET_NONE;
 }
 

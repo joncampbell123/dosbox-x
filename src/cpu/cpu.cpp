@@ -1087,7 +1087,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 			CPU_Cycles=0;
 			return;
 		}
-	};
+	}
 #endif
 	if (!cpu.pmode) {
 		/* Save everything on a 16-bit stack */

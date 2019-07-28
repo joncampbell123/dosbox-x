@@ -479,7 +479,7 @@ Bit32u get_PF(void) {
 		return	PARITY16(lf_resw);
 	default:
 		return	(parity_lookup[lf_resb]);
-	};
+	}
 	return 0;
 }
 

@@ -1450,7 +1450,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
         case 0xBB: /* Right Channel ADC Offset Adjust */
             ESSreg(reg) = data;
             break;
-    };
+    }
 }
 
 static uint8_t ESS_DoRead(uint8_t reg) {
@@ -1459,7 +1459,7 @@ static uint8_t ESS_DoRead(uint8_t reg) {
     switch (reg) {
         default:
             return ESSreg(reg);
-    };
+    }
 
     return 0xFF;
 }
@@ -1950,7 +1950,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0xe8:  /* Read Test Register */
         DSP_FlushData();
-        DSP_AddData(sb.dsp.test_register);;
+        DSP_AddData(sb.dsp.test_register);
         break;
     case 0xf2:  /* Trigger 8bit IRQ */
         //Small delay in order to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D
@@ -2012,7 +2012,7 @@ static void DSP_DoCommand(void) {
             case 1: sb.hw.dma8 =  0u; break;
             case 2: sb.hw.dma8 =  1u; break;
             case 3: sb.hw.dma8 =  3u; break;
-        };
+        }
         sb.hw.dma16 = sb.hw.dma8;
         switch ((sb.dsp.in.data[0]>>3)&7) {
             case 0: sb.hw.irq =  (Bit8u)(-1); break;
@@ -2023,7 +2023,7 @@ static void DSP_DoCommand(void) {
             case 5: sb.hw.irq =  5u; break;
             case 6: sb.hw.irq =  (Bit8u)(-1); break;
             case 7: sb.hw.irq =  (Bit8u)(-1); break;
-        };
+        }
         {
             int irq;
 
@@ -3116,14 +3116,14 @@ class ViBRA_PnP : public ISAPnPDevice {
                         ret = sb.hw.dma16 == 0xFF ? sb.hw.dma8 : sb.hw.dma16;
                         break;
 
-                };
+                }
             }
             else if (logical_device == 1) {
                 switch (addr) {
                     case 0x60: case 0x61:   /* I/O [0] gameport */
                         ret = 0x200 >> ((addr & 1) ? 0 : 8);
                         break;
-                };
+                }
             }
 
             return ret;
@@ -3165,7 +3165,7 @@ class ViBRA_PnP : public ISAPnPDevice {
                             sb.hw.dma16 = val & 7;
                         break;
 
-                };
+                }
             }
             else if (logical_device == 1) {
                 switch (addr) {
@@ -3173,7 +3173,7 @@ class ViBRA_PnP : public ISAPnPDevice {
                         /* TODO: on-the-fly changing */
                         //LOG_MSG("ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
                         break;
-                };
+                }
             }
         }
 };
@@ -3541,7 +3541,7 @@ public:
                 case 5:     t |= 0x5; break;
                 case 7:     t |= 0xA; break;
                 case 10:    t |= 0xF; break;
-            };
+            }
             ESSreg(0xB1) = t;
 
             /* DRQ control */
@@ -3550,7 +3550,7 @@ public:
                 case 0:     t |= 0x5; break;
                 case 1:     t |= 0xA; break;
                 case 3:     t |= 0xF; break;
-            };
+            }
             ESSreg(0xB2) = t;
         }
 
@@ -3594,19 +3594,19 @@ public:
             case 0: sb.sc400_cfg |= (1 << 0); break;
             case 1: sb.sc400_cfg |= (2 << 0); break;
             case 3: sb.sc400_cfg |= (3 << 0); break;
-        };
+        }
         switch (sb.hw.irq) {
             case 5: sb.sc400_cfg |= (5 << 3); break;
             case 7: sb.sc400_cfg |= (1 << 3); break;
             case 9: sb.sc400_cfg |= (2 << 3); break;
             case 10:sb.sc400_cfg |= (3 << 3); break;
             case 11:sb.sc400_cfg |= (4 << 3); break;
-        };
+        }
         switch (MPU401_GetIRQ()) { // SC400: bit 7 and bit 2 control MPU IRQ
             case 5: sb.sc400_cfg |= (0 << 7) + (1 << 2); break; // bit 7=0 bit 2=1   MPU IRQ 5
             case 9: sb.sc400_cfg |= (1 << 7) + (1 << 2); break; // bit 7=1 bit 2=1   MPU IRQ 9
             default: break;                     // bit 7=0 bit 2=0   MPU IRQ disabled
-        };
+        }
 
         if (sb.reveal_sc_type != RSC_NONE) {
             // SC400 cards always use 8-bit DMA even for 16-bit PCM

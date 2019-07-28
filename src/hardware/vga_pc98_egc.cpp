@@ -85,7 +85,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
         default:
             LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
             break;
-    };
+    }
 
     return ~0ul;
 }
@@ -214,7 +214,7 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
         default:
             // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
             break;
-    };
+    }
 }
 
 // I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.

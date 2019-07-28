@@ -441,7 +441,7 @@ void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 	if (!(adlibreg[ARC_TVS_KSR_MUL+regbase]&0x10)) op_pt->toff >>= 2;
 
 	// 20+a0+b0:
-	op_pt->tinc = (Bit32u)((((fltype)(frn<<oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&15]));
+	op_pt->tinc = (Bit32u)(((fltype)(frn<<oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&15]);
 	// 40+a0+b0:
 	fltype vol_in = (fltype)((fltype)(adlibreg[ARC_KSL_OUTLEV+regbase]&63) +
 							kslmul[adlibreg[ARC_KSL_OUTLEV+regbase]>>6]*kslev[oct][frn>>6]);
@@ -570,7 +570,7 @@ void adlib_init(Bit32u samplerate) {
 
 		// create waveform tables
 		for (i=0;i<(WAVEPREC>>1);i++) {
-			wavtable[(i<<1)  +WAVEPREC]	= (Bit16s)(16384*sin((fltype)((i<<1)  )*PI*2/WAVEPREC));
+			wavtable[(i<<1)  +WAVEPREC]	= (Bit16s)(16384*sin((fltype)(i<<1)*PI*2/WAVEPREC));
 			wavtable[(i<<1)+1+WAVEPREC]	= (Bit16s)(16384*sin((fltype)((i<<1)+1)*PI*2/WAVEPREC));
 			wavtable[i]					= wavtable[(i<<1)  +WAVEPREC];
 			// alternative: (zero-less)

@@ -410,7 +410,7 @@ Bit8u VESA_GetSVGAMode(Bit16u & mode) {
 
 Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
 	if (window) return VESA_FAIL;
-	if (((Bit32u)(address)*64*1024<vga.mem.memsize)) {
+	if ((Bit32u)(address)*64*1024<vga.mem.memsize) {
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(Bit8u)address);
 		return VESA_SUCCESS;

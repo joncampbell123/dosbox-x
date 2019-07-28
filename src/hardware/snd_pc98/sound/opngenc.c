@@ -336,7 +336,7 @@ static void set_dt2_d2r(OPNSLOT *slot, REG8 value) {
 
 static void set_d1l_rr(OPNSLOT *slot, REG8 value) {
 
-	slot->decaylevel = decayleveltable[(value >> 4)];
+	slot->decaylevel = decayleveltable[value >> 4];
 	slot->release = decaytable + ((value & 0x0f) << 2) + 2;
 	slot->env_inc_release = slot->release[slot->envratio];
 	if (slot->env_mode == EM_RELEASE) {

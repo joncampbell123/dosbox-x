@@ -131,7 +131,7 @@ const char *EMS_Type_String(void) {
         case EMS_BOARD: return "Board";
         case EMS_EMM386:return "EMM386";
         default:        break;
-    };
+    }
 
     return NULL;
 }
@@ -456,7 +456,7 @@ static Bit8u EMM_MapPage(Bitu phys_page,Bit16u handle,Bit16u log_page) {
 		emm_mappings[phys_page].handle=handle;
 		emm_mappings[phys_page].page=log_page;
 		
-		MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);;
+		MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);
 		for (Bitu i=0;i<4;i++) {
 			PAGING_MapPage(EMM_PAGEFRAME4K+(unsigned int)phys_page*4u+i,(Bitu)memh);
 			memh=MEM_NextHandle(memh);
@@ -519,7 +519,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 				emm_segmentmappings[segment>>10u].page=log_page;
 			}
 			
-			MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);;
+			MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);
 			for (Bitu i=0;i<4;i++) {
 				PAGING_MapPage(segment*16u/4096u+i,(Bitu)memh);
 				memh=MEM_NextHandle(memh);
@@ -926,7 +926,7 @@ static Bitu INT67_Handler(void) {
 						Bit16u physPage = mem_readw(data); data+=2;
 						reg_ah = EMM_MapPage(physPage,reg_dx,logPage);
 						if (reg_ah!=EMM_NO_ERROR) break;
-					};
+					}
 				} break;
 			case 0x01: // use segment address 
 				{	PhysPt data = SegPhys(ds)+reg_si;
@@ -934,7 +934,7 @@ static Bitu INT67_Handler(void) {
 						Bit16u logPage	= mem_readw(data); data+=2;
 						reg_ah = EMM_MapSegment(mem_readw(data),reg_dx,logPage); data+=2;
 						if (reg_ah!=EMM_NO_ERROR) break;
-					};
+					}
 				}
 				break;
 			default:
@@ -963,8 +963,8 @@ static Bitu INT67_Handler(void) {
 			for (Bit16u i=0; i<EMM_MAX_PHYS; i++) {
 				mem_writew(data,EMM_PAGEFRAME+step*i);	data+=2;
 				mem_writew(data,i);						data+=2;
-			};
-		};
+			}
+		}
 		// Set number of pages
 		reg_cx = EMM_MAX_PHYS;
 		reg_ah = EMM_NO_ERROR;
@@ -975,7 +975,7 @@ static Bitu INT67_Handler(void) {
 		} else {
 			LOG(LOG_MISC,LOG_ERROR)("EMS:Call 5A subfct %2X not supported",reg_al);
 			reg_ah=EMM_INVALID_SUB;
-		};
+		}
 		break;
 	case 0xDE:		/* VCPI Functions */
 		if (!vcpi.enabled) {
@@ -1225,7 +1225,7 @@ bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
 		case 0x92:
 			reg_al = vcpi_virtual_a20?0x02:0x00;
 			return true;
-	};
+	}
 
 	return false;
 }
@@ -1236,7 +1236,7 @@ bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
 		case 0x92:
 			vcpi_virtual_a20 = (data & 2) ? true : false;
 			return true;
-	};
+	}
 
 	return false;
 }

@@ -92,7 +92,7 @@ Bits CPU_Core_Full_Run(void) {
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
 			return (Bits)debugCallback;
-		};
+		}
 #endif
 #endif
 

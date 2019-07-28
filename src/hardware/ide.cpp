@@ -417,7 +417,7 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
             break;
         default:
             abort();
-    };
+    }
 
     return true;
 }
@@ -599,7 +599,7 @@ void IDEATAPICDROMDevice::mode_sense() {
             memset(write,0,6); write += 6;
             LOG_MSG("WARNING: MODE SENSE on page 0x%02x not supported\n",PAGE);
             break;
-    };
+    }
 
     /* fill in page length */
     sector[1] = (unsigned int)(write-sector) - 2;
@@ -1180,7 +1180,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             controller->raise_irq();
             allow_writing = true;
             break;
-    };
+    }
 
 }
 
@@ -1273,7 +1273,7 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
-        };
+        }
     }
 
     count = 0x03; /* no more data (command/data=1, input/output=1) */
@@ -1699,7 +1699,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             controller->raise_irq();
             allow_writing = true;
             break;
-    };
+    }
 }
 
 void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {

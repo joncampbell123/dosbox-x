@@ -570,7 +570,7 @@ const char *DOSBoxMenu::TypeToString(const enum item_type_t type) {
         case separator_type_id:         return "Separator";
         case vseparator_type_id:        return "VSeparator";
         default:                        break;
-    };
+    }
 
     return "";
 }
@@ -1447,7 +1447,7 @@ void UnMount(int i_drive) {
         if (!strlen(name)) goto umount;
         LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
         return;
-    };
+    }
 umount:
     if (i_drive-'A' < DOS_DRIVES && i_drive-'A' >= 0 && Drives[i_drive-'A']) {
         switch (DriveManager::UnmountDrive(i_drive-'A')) {

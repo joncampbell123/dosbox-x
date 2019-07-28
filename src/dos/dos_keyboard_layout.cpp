@@ -757,7 +757,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 	}
 
 	static Bit8u cpi_buf[65536];
-	Bit32u cpi_buf_size=0,size_of_cpxdata=0;;
+	Bit32u cpi_buf_size=0,size_of_cpxdata=0;
 	bool upxfound=false;
 	Bit16u found_at_pos=5;
 	if (tempfile==NULL) {

@@ -198,7 +198,7 @@ struct PIT_Block {
                         set_output(true);
                     }
                     break;
-            };
+            }
 
             gate = on;
         }

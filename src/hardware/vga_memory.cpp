@@ -117,7 +117,7 @@ INLINE static Bit32u RasterOp(Bit32u input,Bit32u mask) {
 		return (input & mask) | vga.latch.d;
 	case 0x03:	/* XOR */
 		return (input & mask) ^ vga.latch.d;
-	};
+	}
 	return 0;
 }
 
@@ -1311,7 +1311,7 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
             pc98_egc_data[2].w = tmp;
             pc98_egc_data[3].w = tmp;
             } break;
-    };
+    }
 
     return pc98_egc_data;
 }
@@ -1694,7 +1694,7 @@ public:
                 return modeEGC_r<AWT>(addr,addr);
             default: /* should not happen */
                 break;
-        };
+        }
 
 		return (AWT)(~0ull);
 	}
@@ -1769,7 +1769,7 @@ public:
                 break;
             default: /* Should not happen */
                 break;
-        };
+        }
 	}
 
     /* byte-wise */
