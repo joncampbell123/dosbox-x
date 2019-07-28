@@ -207,8 +207,16 @@ static inline constexpr bytecount_t operator "" _bytes(const bytecount_t x) {
     return x;
 }
 
+static inline constexpr bytecount_t operator "" _parabytes(const bytecount_t x) { /* AKA bytes per segment increment in real mode */
+    return x << bytecount_t(4u);
+}
+
 static inline constexpr bytecount_t operator "" _kibibytes(const bytecount_t x) {
     return x << bytecount_t(10u);
+}
+
+static inline constexpr bytecount_t operator "" _pagebytes(const bytecount_t x) { /* bytes per 4KB page in protected mode */
+    return x << bytecount_t(12u);
 }
 
 static inline constexpr bytecount_t operator "" _mibibytes(const bytecount_t x) {
