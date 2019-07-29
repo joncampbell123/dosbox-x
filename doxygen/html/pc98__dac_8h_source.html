@@ -106,24 +106,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00009"></a>00009 <span class="keyword">extern</span> uint32_t                 pc98_text_palette[8];
 <a name="l00010"></a>00010 <span class="keyword">extern</span> uint8_t                  pc98_16col_analog_rgb_palette_index;
 <a name="l00011"></a>00011 
-<a name="l00012"></a>00012 <span class="keyword">extern</span> uint8_t                  pc98_pal_analog[256*3]; <span class="comment">/* G R B    0x0..0xF */</span>
-<a name="l00013"></a>00013 <span class="keyword">extern</span> uint8_t                  pc98_pal_digital[8];    <span class="comment">/* G R B    0x0..0x7 */</span>
-<a name="l00014"></a>00014 
-<a name="l00015"></a>00015 <span class="comment">/* 4-bit to 6-bit expansion */</span>
-<a name="l00016"></a>00016 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> dac_4to6(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c4) {
-<a name="l00017"></a>00017     <span class="comment">/* a b c d . .</span>
-<a name="l00018"></a>00018 <span class="comment">     *</span>
-<a name="l00019"></a>00019 <span class="comment">     * becomes</span>
-<a name="l00020"></a>00020 <span class="comment">     *</span>
-<a name="l00021"></a>00021 <span class="comment">     * a b c d a b */</span>
-<a name="l00022"></a>00022     <span class="keywordflow">return</span> (c4 &lt;&lt; 2) | (c4 &gt;&gt; 2);
-<a name="l00023"></a>00023 }
-<a name="l00024"></a>00024 
+<a name="l00012"></a>00012 <span class="keyword">extern</span> uint8_t                  pc98_pal_vga[256*3];    <span class="comment">/* G R B    0x0..0xFF */</span>
+<a name="l00013"></a>00013 <span class="keyword">extern</span> uint8_t                  pc98_pal_analog[256*3]; <span class="comment">/* G R B    0x0..0xF */</span>
+<a name="l00014"></a>00014 <span class="keyword">extern</span> uint8_t                  pc98_pal_digital[8];    <span class="comment">/* G R B    0x0..0x7 */</span>
+<a name="l00015"></a>00015 
+<a name="l00016"></a>00016 <span class="comment">/* 4-bit to 6-bit expansion */</span>
+<a name="l00017"></a>00017 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> dac_4to6(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c4) {
+<a name="l00018"></a>00018     <span class="comment">/* a b c d . .</span>
+<a name="l00019"></a>00019 <span class="comment">     *</span>
+<a name="l00020"></a>00020 <span class="comment">     * becomes</span>
+<a name="l00021"></a>00021 <span class="comment">     *</span>
+<a name="l00022"></a>00022 <span class="comment">     * a b c d a b */</span>
+<a name="l00023"></a>00023     <span class="keywordflow">return</span> (c4 &lt;&lt; 2) | (c4 &gt;&gt; 2);
+<a name="l00024"></a>00024 }
+<a name="l00025"></a>00025 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

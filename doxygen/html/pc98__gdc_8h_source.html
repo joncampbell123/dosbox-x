@@ -118,120 +118,122 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00021"></a>00021         VOPBIT_EGC              = 1,
 <a name="l00022"></a>00022         VOPBIT_GRCG             = 2,
 <a name="l00023"></a>00023         VOPBIT_ANALOG   = 4,
-<a name="l00024"></a>00024         VOPBIT_VGA              = 5
-<a name="l00025"></a>00025 };
-<a name="l00026"></a>00026 
-<a name="l00027"></a><a class="code" href="unionpc98__tile.html">00027</a> <span class="keyword">union </span><a class="code" href="unionpc98__tile.html">pc98_tile</a> {
-<a name="l00028"></a>00028     uint8_t                 b[2];
-<a name="l00029"></a>00029     uint16_t                w;
-<a name="l00030"></a>00030 };
-<a name="l00031"></a>00031 
-<a name="l00032"></a><a class="code" href="structPC98__GDC__state.html">00032</a> <span class="keyword">struct </span><a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> {
-<a name="l00033"></a>00033     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a>();
-<a name="l00034"></a>00034     <span class="keywordtype">void</span> reset_fifo(<span class="keywordtype">void</span>);
-<a name="l00035"></a>00035     <span class="keywordtype">void</span> reset_rfifo(<span class="keywordtype">void</span>);
-<a name="l00036"></a>00036     <span class="keywordtype">void</span> flush_fifo_old(<span class="keywordtype">void</span>);
-<a name="l00037"></a>00037     <span class="keywordtype">bool</span> write_fifo(<span class="keyword">const</span> uint16_t c);
-<a name="l00038"></a>00038     <span class="keywordtype">bool</span> write_rfifo(<span class="keyword">const</span> uint16_t c);
-<a name="l00039"></a>00039     <span class="keywordtype">bool</span> write_fifo_command(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c);
-<a name="l00040"></a>00040     <span class="keywordtype">bool</span> write_fifo_param(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c);
-<a name="l00041"></a>00041     <span class="keywordtype">bool</span> rfifo_has_content(<span class="keywordtype">void</span>);
-<a name="l00042"></a>00042     uint8_t read_status(<span class="keywordtype">void</span>);
-<a name="l00043"></a>00043     uint8_t rfifo_read_data(<span class="keywordtype">void</span>);
-<a name="l00044"></a>00044     <span class="keywordtype">void</span> idle_proc(<span class="keywordtype">void</span>);
-<a name="l00045"></a>00045 
-<a name="l00046"></a>00046     <span class="keywordtype">void</span> force_fifo_complete(<span class="keywordtype">void</span>);
-<a name="l00047"></a>00047     <span class="keywordtype">void</span> take_cursor_char_setup(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bi);
-<a name="l00048"></a>00048     <span class="keywordtype">void</span> take_cursor_pos(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bi);
-<a name="l00049"></a>00049     <span class="keywordtype">void</span> take_reset_sync_parameters(<span class="keywordtype">void</span>);
-<a name="l00050"></a>00050     <span class="keywordtype">void</span> cursor_advance(<span class="keywordtype">void</span>);
-<a name="l00051"></a>00051 
-<a name="l00052"></a>00052     <span class="keywordtype">void</span> begin_frame(<span class="keywordtype">void</span>);
-<a name="l00053"></a>00053     <span class="keywordtype">void</span> next_line(<span class="keywordtype">void</span>);
-<a name="l00054"></a>00054 
-<a name="l00055"></a>00055     <span class="keywordtype">void</span> load_display_partition(<span class="keywordtype">void</span>);
-<a name="l00056"></a>00056     <span class="keywordtype">void</span> next_display_partition(<span class="keywordtype">void</span>);
-<a name="l00057"></a>00057 
-<a name="l00058"></a>00058     <span class="keywordtype">size_t</span> fifo_can_read(<span class="keywordtype">void</span>);
-<a name="l00059"></a>00059     <span class="keywordtype">bool</span> fifo_empty(<span class="keywordtype">void</span>);
-<a name="l00060"></a>00060     Bit16u read_fifo(<span class="keywordtype">void</span>);
-<a name="l00061"></a>00061 
-<a name="l00062"></a>00062     <span class="comment">/* NTS:</span>
-<a name="l00063"></a>00063 <span class="comment">     *</span>
-<a name="l00064"></a>00064 <span class="comment">     * We&#39;re following the Neko Project II method of FIFO emulation BUT</span>
-<a name="l00065"></a>00065 <span class="comment">     * I wonder if the GDC maintains two FIFOs and allows stacking params</span>
-<a name="l00066"></a>00066 <span class="comment">     * in one and commands in another....? */</span>
-<a name="l00067"></a>00067 
-<a name="l00068"></a>00068     uint8_t                 cmd_parm_tmp[8];            <span class="comment">/* temp storage before accepting params */</span>
-<a name="l00069"></a>00069 
-<a name="l00070"></a>00070     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
-<a name="l00071"></a>00071     uint8_t                 rfifo_read,rfifo_write;
-<a name="l00072"></a>00072 
-<a name="l00073"></a>00073     uint16_t                fifo[PC98_GDC_FIFO_SIZE];   <span class="comment">/* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */</span>
-<a name="l00074"></a>00074     uint8_t                 fifo_read,fifo_write;
-<a name="l00075"></a>00075 
-<a name="l00076"></a>00076     uint8_t                 param_ram[16];
-<a name="l00077"></a>00077     uint8_t                 param_ram_wptr;
-<a name="l00078"></a>00078 
-<a name="l00079"></a>00079     uint16_t                scan_address;
-<a name="l00080"></a>00080     uint8_t                 row_height;
-<a name="l00081"></a>00081     uint8_t                 row_line;
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083     uint8_t                 display_partition;
-<a name="l00084"></a>00084     uint16_t                display_partition_rem_lines;
-<a name="l00085"></a>00085     uint8_t                 display_partition_mask;
-<a name="l00086"></a>00086 
-<a name="l00087"></a>00087     uint16_t                active_display_lines;       <span class="comment">/* AL (translated) */</span>
-<a name="l00088"></a>00088     uint16_t                active_display_words_per_line;<span class="comment">/* AW bits (translated) */</span>
-<a name="l00089"></a>00089     uint16_t                display_pitch;
-<a name="l00090"></a>00090     uint8_t                 horizontal_sync_width;      <span class="comment">/* HS (translated) */</span>
-<a name="l00091"></a>00091     uint8_t                 vertical_sync_width;        <span class="comment">/* VS (translated) */</span>
-<a name="l00092"></a>00092     uint8_t                 horizontal_front_porch_width;<span class="comment">/* HFP (translated) */</span>
-<a name="l00093"></a>00093     uint8_t                 horizontal_back_porch_width;<span class="comment">/* HBP (translated) */</span>
-<a name="l00094"></a>00094     uint8_t                 vertical_front_porch_width; <span class="comment">/* VFP (translated) */</span>
-<a name="l00095"></a>00095     uint8_t                 vertical_back_porch_width;  <span class="comment">/* VBP (translated) */</span>
-<a name="l00096"></a>00096     uint8_t                 display_mode;               <span class="comment">/* CG bits */</span>
-<a name="l00097"></a>00097             <span class="comment">/* CG = 00 = mixed graphics &amp; character</span>
-<a name="l00098"></a>00098 <span class="comment">             * CG = 01 = graphics mode</span>
-<a name="l00099"></a>00099 <span class="comment">             * CG = 10 = character mode</span>
-<a name="l00100"></a>00100 <span class="comment">             * CG = 11 = invalid */</span>
-<a name="l00101"></a>00101     uint8_t                 video_framing;              <span class="comment">/* IS bits */</span>
-<a name="l00102"></a>00102             <span class="comment">/* IS = 00 = non-interlaced</span>
-<a name="l00103"></a>00103 <span class="comment">             * IS = 01 = invalid</span>
-<a name="l00104"></a>00104 <span class="comment">             * IS = 10 = interlaced repeat field for character displays</span>
-<a name="l00105"></a>00105 <span class="comment">             * IS = 11 = interlaced */</span>
-<a name="l00106"></a>00106     uint8_t                 current_command;
-<a name="l00107"></a>00107     uint8_t                 proc_step;
-<a name="l00108"></a>00108     uint8_t                 cursor_blink_state;
-<a name="l00109"></a>00109     uint8_t                 cursor_blink_count;         <span class="comment">/* count from 0 to BR - 1 */</span>
-<a name="l00110"></a>00110     uint8_t                 cursor_blink_rate;          <span class="comment">/* BR */</span>
-<a name="l00111"></a>00111     <span class="keywordtype">bool</span>                    draw_only_during_retrace;   <span class="comment">/* F bits */</span>
-<a name="l00112"></a>00112     <span class="keywordtype">bool</span>                    dynamic_ram_refresh;        <span class="comment">/* D bits */</span>
-<a name="l00113"></a>00113     <span class="keywordtype">bool</span>                    master_sync;                <span class="comment">/* master source generation */</span>
-<a name="l00114"></a>00114     <span class="keywordtype">bool</span>                    display_enable;
-<a name="l00115"></a>00115     <span class="keywordtype">bool</span>                    cursor_enable;
-<a name="l00116"></a>00116     <span class="keywordtype">bool</span>                    cursor_blink;
-<a name="l00117"></a>00117     <span class="keywordtype">bool</span>                    idle;
-<a name="l00118"></a>00118 
-<a name="l00119"></a>00119     <span class="keywordtype">bool</span>                    doublescan;                 <span class="comment">/* 200-line as 400-line */</span>
-<a name="l00120"></a>00120 };
-<a name="l00121"></a>00121 
-<a name="l00122"></a>00122 <span class="keyword">typedef</span> <span class="keyword">union </span><a class="code" href="unionpc98__tile.html">pc98_tile</a>             egc_quad[4];
+<a name="l00024"></a>00024         VOPBIT_VGA              = 5,
+<a name="l00025"></a>00025     VOPBIT_PEGC_PLANAR = 6
+<a name="l00026"></a>00026 };
+<a name="l00027"></a>00027 
+<a name="l00028"></a><a class="code" href="unionpc98__tile.html">00028</a> <span class="keyword">union </span><a class="code" href="unionpc98__tile.html">pc98_tile</a> {
+<a name="l00029"></a>00029     uint8_t                 b[2];
+<a name="l00030"></a>00030     uint16_t                w;
+<a name="l00031"></a>00031 };
+<a name="l00032"></a>00032 
+<a name="l00033"></a><a class="code" href="structPC98__GDC__state.html">00033</a> <span class="keyword">struct </span><a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> {
+<a name="l00034"></a>00034     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a>();
+<a name="l00035"></a>00035     <span class="keywordtype">void</span> reset_fifo(<span class="keywordtype">void</span>);
+<a name="l00036"></a>00036     <span class="keywordtype">void</span> reset_rfifo(<span class="keywordtype">void</span>);
+<a name="l00037"></a>00037     <span class="keywordtype">void</span> flush_fifo_old(<span class="keywordtype">void</span>);
+<a name="l00038"></a>00038     <span class="keywordtype">bool</span> write_fifo(<span class="keyword">const</span> uint16_t c);
+<a name="l00039"></a>00039     <span class="keywordtype">bool</span> write_rfifo(<span class="keyword">const</span> uint8_t c);
+<a name="l00040"></a>00040     <span class="keywordtype">bool</span> write_fifo_command(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c);
+<a name="l00041"></a>00041     <span class="keywordtype">bool</span> write_fifo_param(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> c);
+<a name="l00042"></a>00042     <span class="keywordtype">bool</span> rfifo_has_content(<span class="keywordtype">void</span>);
+<a name="l00043"></a>00043     uint8_t read_status(<span class="keywordtype">void</span>);
+<a name="l00044"></a>00044     uint8_t rfifo_read_data(<span class="keywordtype">void</span>);
+<a name="l00045"></a>00045     <span class="keywordtype">void</span> idle_proc(<span class="keywordtype">void</span>);
+<a name="l00046"></a>00046 
+<a name="l00047"></a>00047     <span class="keywordtype">void</span> force_fifo_complete(<span class="keywordtype">void</span>);
+<a name="l00048"></a>00048     <span class="keywordtype">void</span> take_cursor_char_setup(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bi);
+<a name="l00049"></a>00049     <span class="keywordtype">void</span> take_cursor_pos(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bi);
+<a name="l00050"></a>00050     <span class="keywordtype">void</span> take_reset_sync_parameters(<span class="keywordtype">void</span>);
+<a name="l00051"></a>00051     <span class="keywordtype">void</span> cursor_advance(<span class="keywordtype">void</span>);
+<a name="l00052"></a>00052 
+<a name="l00053"></a>00053     <span class="keywordtype">void</span> begin_frame(<span class="keywordtype">void</span>);
+<a name="l00054"></a>00054     <span class="keywordtype">void</span> next_line(<span class="keywordtype">void</span>);
+<a name="l00055"></a>00055 
+<a name="l00056"></a>00056     <span class="keywordtype">void</span> load_display_partition(<span class="keywordtype">void</span>);
+<a name="l00057"></a>00057     <span class="keywordtype">void</span> next_display_partition(<span class="keywordtype">void</span>);
+<a name="l00058"></a>00058 
+<a name="l00059"></a>00059     <span class="keywordtype">size_t</span> fifo_can_read(<span class="keywordtype">void</span>);
+<a name="l00060"></a>00060     <span class="keywordtype">bool</span> fifo_empty(<span class="keywordtype">void</span>);
+<a name="l00061"></a>00061     Bit16u read_fifo(<span class="keywordtype">void</span>);
+<a name="l00062"></a>00062 
+<a name="l00063"></a>00063     <span class="comment">/* NTS:</span>
+<a name="l00064"></a>00064 <span class="comment">     *</span>
+<a name="l00065"></a>00065 <span class="comment">     * We&#39;re following the Neko Project II method of FIFO emulation BUT</span>
+<a name="l00066"></a>00066 <span class="comment">     * I wonder if the GDC maintains two FIFOs and allows stacking params</span>
+<a name="l00067"></a>00067 <span class="comment">     * in one and commands in another....? */</span>
+<a name="l00068"></a>00068 
+<a name="l00069"></a>00069     uint8_t                 cmd_parm_tmp[8];            <span class="comment">/* temp storage before accepting params */</span>
+<a name="l00070"></a>00070 
+<a name="l00071"></a>00071     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
+<a name="l00072"></a>00072     uint8_t                 rfifo_read,rfifo_write;
+<a name="l00073"></a>00073 
+<a name="l00074"></a>00074     uint16_t                fifo[PC98_GDC_FIFO_SIZE];   <span class="comment">/* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */</span>
+<a name="l00075"></a>00075     uint8_t                 fifo_read,fifo_write;
+<a name="l00076"></a>00076 
+<a name="l00077"></a>00077     uint8_t                 param_ram[16];
+<a name="l00078"></a>00078     uint8_t                 param_ram_wptr;
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080     uint16_t                scan_address;
+<a name="l00081"></a>00081     uint8_t                 row_height;
+<a name="l00082"></a>00082     uint8_t                 row_line;
+<a name="l00083"></a>00083 
+<a name="l00084"></a>00084     uint8_t                 display_partition;
+<a name="l00085"></a>00085     uint16_t                display_partition_rem_lines;
+<a name="l00086"></a>00086     uint8_t                 display_partition_mask;
+<a name="l00087"></a>00087 
+<a name="l00088"></a>00088     uint16_t                active_display_lines;       <span class="comment">/* AL (translated) */</span>
+<a name="l00089"></a>00089     uint16_t                active_display_words_per_line;<span class="comment">/* AW bits (translated) */</span>
+<a name="l00090"></a>00090     uint16_t                display_pitch;
+<a name="l00091"></a>00091     uint8_t                 horizontal_sync_width;      <span class="comment">/* HS (translated) */</span>
+<a name="l00092"></a>00092     uint8_t                 vertical_sync_width;        <span class="comment">/* VS (translated) */</span>
+<a name="l00093"></a>00093     uint8_t                 horizontal_front_porch_width;<span class="comment">/* HFP (translated) */</span>
+<a name="l00094"></a>00094     uint8_t                 horizontal_back_porch_width;<span class="comment">/* HBP (translated) */</span>
+<a name="l00095"></a>00095     uint8_t                 vertical_front_porch_width; <span class="comment">/* VFP (translated) */</span>
+<a name="l00096"></a>00096     uint8_t                 vertical_back_porch_width;  <span class="comment">/* VBP (translated) */</span>
+<a name="l00097"></a>00097     uint8_t                 display_mode;               <span class="comment">/* CG bits */</span>
+<a name="l00098"></a>00098             <span class="comment">/* CG = 00 = mixed graphics &amp; character</span>
+<a name="l00099"></a>00099 <span class="comment">             * CG = 01 = graphics mode</span>
+<a name="l00100"></a>00100 <span class="comment">             * CG = 10 = character mode</span>
+<a name="l00101"></a>00101 <span class="comment">             * CG = 11 = invalid */</span>
+<a name="l00102"></a>00102     uint8_t                 video_framing;              <span class="comment">/* IS bits */</span>
+<a name="l00103"></a>00103             <span class="comment">/* IS = 00 = non-interlaced</span>
+<a name="l00104"></a>00104 <span class="comment">             * IS = 01 = invalid</span>
+<a name="l00105"></a>00105 <span class="comment">             * IS = 10 = interlaced repeat field for character displays</span>
+<a name="l00106"></a>00106 <span class="comment">             * IS = 11 = interlaced */</span>
+<a name="l00107"></a>00107     uint8_t                 current_command;
+<a name="l00108"></a>00108     uint8_t                 proc_step;
+<a name="l00109"></a>00109     uint8_t                 cursor_blink_state;
+<a name="l00110"></a>00110     uint8_t                 cursor_blink_count;         <span class="comment">/* count from 0 to BR - 1 */</span>
+<a name="l00111"></a>00111     uint8_t                 cursor_blink_rate;          <span class="comment">/* BR */</span>
+<a name="l00112"></a>00112     <span class="keywordtype">bool</span>                    draw_only_during_retrace;   <span class="comment">/* F bits */</span>
+<a name="l00113"></a>00113     <span class="keywordtype">bool</span>                    dynamic_ram_refresh;        <span class="comment">/* D bits */</span>
+<a name="l00114"></a>00114     <span class="keywordtype">bool</span>                    master_sync;                <span class="comment">/* master source generation */</span>
+<a name="l00115"></a>00115     <span class="keywordtype">bool</span>                    display_enable;
+<a name="l00116"></a>00116     <span class="keywordtype">bool</span>                    cursor_enable;
+<a name="l00117"></a>00117     <span class="keywordtype">bool</span>                    cursor_blink;
+<a name="l00118"></a>00118     <span class="keywordtype">bool</span>                    IM_bit;                     <span class="comment">/* display partition, IM bit */</span>
+<a name="l00119"></a>00119     <span class="keywordtype">bool</span>                    idle;
+<a name="l00120"></a>00120 
+<a name="l00121"></a>00121     <span class="keywordtype">bool</span>                    doublescan;                 <span class="comment">/* 200-line as 400-line */</span>
+<a name="l00122"></a>00122 };
 <a name="l00123"></a>00123 
-<a name="l00124"></a>00124 <span class="keyword">extern</span> <span class="keywordtype">bool</span>                         gdc_analog;
+<a name="l00124"></a>00124 <span class="keyword">typedef</span> <span class="keyword">union </span><a class="code" href="unionpc98__tile.html">pc98_tile</a>             egc_quad[4];
 <a name="l00125"></a>00125 
-<a name="l00126"></a>00126 <span class="keyword">extern</span> uint32_t                     pc98_text_palette[8];
+<a name="l00126"></a>00126 <span class="keyword">extern</span> <span class="keywordtype">bool</span>                         gdc_analog;
 <a name="l00127"></a>00127 
-<a name="l00128"></a>00128 <span class="keyword">extern</span> <span class="keyword">struct </span><a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a>        pc98_gdc[2];
-<a name="l00129"></a>00129 <span class="keyword">extern</span> egc_quad                     pc98_gdc_tiles;
-<a name="l00130"></a>00130 <span class="keyword">extern</span> uint8_t                      pc98_gdc_vramop;
-<a name="l00131"></a>00131 <span class="keyword">extern</span> uint8_t                      pc98_gdc_modereg;
-<a name="l00132"></a>00132 
+<a name="l00128"></a>00128 <span class="keyword">extern</span> uint32_t                     pc98_text_palette[8];
+<a name="l00129"></a>00129 
+<a name="l00130"></a>00130 <span class="keyword">extern</span> <span class="keyword">struct </span><a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a>        pc98_gdc[2];
+<a name="l00131"></a>00131 <span class="keyword">extern</span> egc_quad                     pc98_gdc_tiles;
+<a name="l00132"></a>00132 <span class="keyword">extern</span> uint8_t                      pc98_gdc_vramop;
+<a name="l00133"></a>00133 <span class="keyword">extern</span> uint8_t                      pc98_gdc_modereg;
+<a name="l00134"></a>00134 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

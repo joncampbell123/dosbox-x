@@ -13,7 +13,7 @@ A \hyperlink{classGUI_1_1Window}{Window} is a rectangular sub-\/area of another 
 Inheritance diagram for G\-U\-I\-:\-:Window\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=3.045843cm]{classGUI_1_1Window}
+\includegraphics[height=3.480963cm]{classGUI_1_1Window}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -75,6 +75,9 @@ virtual void \hyperlink{classGUI_1_1Window_a7cd474e3c89ff37a4295da00f3624cc7}{se
 \hypertarget{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}{virtual bool \hyperlink{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}{mouse\-Moved} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}
 
 \begin{DoxyCompactList}\small\item\em Mouse was moved. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a27219144cd775914db872cdd40d1cf97}{virtual void \hyperlink{classGUI_1_1Window_a27219144cd775914db872cdd40d1cf97}{mouse\-Moved\-Outside} (void)}\label{classGUI_1_1Window_a27219144cd775914db872cdd40d1cf97}
+
+\begin{DoxyCompactList}\small\item\em Mouse was moved outside the window (when it was once inside the window) \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}{virtual bool \hyperlink{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}{mouse\-Dragged} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}
 
 \begin{DoxyCompactList}\small\item\em Mouse was moved while a button was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
@@ -89,6 +92,8 @@ virtual bool \hyperlink{classGUI_1_1Window_a9519fe8a8f08b5b70524d2230d209107}{mo
 \hypertarget{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}{virtual bool \hyperlink{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}{mouse\-Double\-Clicked} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}
 
 \begin{DoxyCompactList}\small\item\em Mouse was double-\/clicked. Returns true if event was handled. \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classGUI_1_1Window_a7f661001795d601ecf3f4af66ac19e0f}{mouse\-Down\-Outside} (\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)
+\begin{DoxyCompactList}\small\item\em Transient windows by default should disappear. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}{virtual bool \hyperlink{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}{key\-Down} (const \hyperlink{classGUI_1_1Key}{Key} \&key)}\label{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}
 
 \begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Key}{Key} was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
@@ -148,11 +153,23 @@ virtual bool \hyperlink{classGUI_1_1Window_a90890951f6ce5f043657756b2691e754}{ra
 \hypertarget{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}{bool \hyperlink{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}{visible}}\label{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}
 
 \begin{DoxyCompactList}\small\item\em {\ttfamily true} if this window should be visible on screen. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a0377219c50452c34ea1cd4e96d2574f8}{bool \hyperlink{classGUI_1_1Window_a0377219c50452c34ea1cd4e96d2574f8}{tabbable}}\label{classGUI_1_1Window_a0377219c50452c34ea1cd4e96d2574f8}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily true} if the user should be allowed to T\-A\-B to this window. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{\hyperlink{classGUI_1_1Window}{Window} $\ast$const \hyperlink{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{parent}}\label{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}
 
 \begin{DoxyCompactList}\small\item\em Parent window. \end{DoxyCompactList}\item 
 \hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}{mouse\-Child}
 \begin{DoxyCompactList}\small\item\em Child window of last button-\/down event. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a5bfe42b831d9d036ac85062e97eb99f0}{bool \hyperlink{classGUI_1_1Window_a5bfe42b831d9d036ac85062e97eb99f0}{transient}}\label{classGUI_1_1Window_a5bfe42b831d9d036ac85062e97eb99f0}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily true} if this window is transient (such as menu popus) \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a3bccd3f871c42d8905b316a272399a6e}{bool \hyperlink{classGUI_1_1Window_a3bccd3f871c42d8905b316a272399a6e}{toplevel}}\label{classGUI_1_1Window_a3bccd3f871c42d8905b316a272399a6e}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily toplevel} window \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a785347b0afa1f9ce56e004e5941f0ebe}{bool \hyperlink{classGUI_1_1Window_a785347b0afa1f9ce56e004e5941f0ebe}{mouse\-\_\-in\-\_\-window}}\label{classGUI_1_1Window_a785347b0afa1f9ce56e004e5941f0ebe}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily mouse} is within the boundaries of the window \end{DoxyCompactList}\item 
 std\-::list$<$ \hyperlink{classGUI_1_1Window}{Window} $\ast$ $>$ \hyperlink{classGUI_1_1Window_ac10e617306be4367ed164ea97f5d3132}{children}
 \begin{DoxyCompactList}\small\item\em Child windows. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}{std\-::list$<$ \hyperlink{structGUI_1_1Window__Callback}{Window\-\_\-\-Callback} $\ast$ $>$ \hyperlink{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}{movehandlers}}\label{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}
@@ -179,7 +196,7 @@ Windows are arranged hierarchically. A \hyperlink{classGUI_1_1Window}{Window} ca
 
 Usually, every \hyperlink{namespaceGUI}{G\-U\-I} element is a subclass of \hyperlink{classGUI_1_1Window}{Window}. Note that this is {\itshape not\/} a \hyperlink{namespaceGUI}{G\-U\-I} window with decorations like border and title bar. See \hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} for that. 
 
-Definition at line 507 of file gui\-\_\-tk.\-h.
+Definition at line 576 of file gui\-\_\-tk.\-h.
 
 
 
@@ -197,7 +214,7 @@ Return parent window.
 
 May return N\-U\-L\-L if this is the topmost window (the \hyperlink{classGUI_1_1Screen}{Screen}). 
 
-Definition at line 617 of file gui\-\_\-tk.\-h.
+Definition at line 698 of file gui\-\_\-tk.\-h.
 
 
 
@@ -226,7 +243,7 @@ Reimplemented in \hyperlink{classGUI_1_1Button_a88a1ed778b528d75a55351f2e3a00cf1
 
 
 
-Definition at line 682 of file gui\-\_\-tk.\-cpp.
+Definition at line 802 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -235,6 +252,33 @@ References mouse\-Child, mouse\-Clicked(), x, and y.
 
 
 Referenced by G\-U\-I\-::\-Checkbox\-::key\-Up(), G\-U\-I\-::\-Radiobox\-::key\-Up(), mouse\-Clicked(), and G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Double\-Clicked().
+
+\hypertarget{classGUI_1_1Window_a7f661001795d601ecf3f4af66ac19e0f}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!mouse\-Down\-Outside@{mouse\-Down\-Outside}}
+\index{mouse\-Down\-Outside@{mouse\-Down\-Outside}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{mouse\-Down\-Outside}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf G\-U\-I\-::\-Window\-::mouse\-Down\-Outside} (
+\begin{DoxyParamCaption}
+\item[{{\bf Mouse\-Button}}]{button}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classGUI_1_1Window_a7f661001795d601ecf3f4af66ac19e0f}
+
+
+Transient windows by default should disappear. 
+
+Mouse was pressed outside the bounds of the window, if this window has focus (for transient windows). Returns true if event was handled. 
+
+Reimplemented in \hyperlink{classGUI_1_1Menu_afccc45f348b1ff9cd2668f8e29731589}{G\-U\-I\-::\-Menu}, and \hyperlink{classGUI_1_1TransientWindow_aa66cecd7ddcd0f8cf7a63cc5cc897acf}{G\-U\-I\-::\-Transient\-Window}.
+
+
+
+Definition at line 747 of file gui\-\_\-tk.\-cpp.
+
+
+
+References children, has\-Focus(), and mouse\-Down\-Outside().
+
+
+
+Referenced by mouse\-Down(), and mouse\-Down\-Outside().
 
 \hypertarget{classGUI_1_1Window_a426af83d31a4c42b4e8f011fc3aa9555}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!move@{move}}
 \index{move@{move}!GUI::Window@{G\-U\-I\-::\-Window}}
@@ -254,7 +298,7 @@ Reimplemented in \hyperlink{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9
 
 
 
-Definition at line 571 of file gui\-\_\-tk.\-cpp.
+Definition at line 639 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -281,7 +325,7 @@ Reimplemented in \hyperlink{classGUI_1_1TransientWindow_a970674e955de6a1d5a09669
 
 
 
-Definition at line 646 of file gui\-\_\-tk.\-h.
+Definition at line 732 of file gui\-\_\-tk.\-h.
 
 
 
@@ -309,7 +353,7 @@ Reimplemented in \hyperlink{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}
 
 
 
-Definition at line 586 of file gui\-\_\-tk.\-cpp.
+Definition at line 654 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -336,11 +380,11 @@ Reimplemented in \hyperlink{classGUI_1_1Menu_aa98bb7305b74088dd875ead6747cfa52}{
 
 
 
-Definition at line 610 of file gui\-\_\-tk.\-h.
+Definition at line 691 of file gui\-\_\-tk.\-h.
 
 
 
-References parent, set\-Dirty(), and visible.
+References mouse\-\_\-in\-\_\-window, parent, set\-Dirty(), and visible.
 
 
 
@@ -358,11 +402,11 @@ Child windows.
 
 Z ordering is done in list order. The first element is the lowermost window. This window's content is below all children. 
 
-Definition at line 538 of file gui\-\_\-tk.\-h.
+Definition at line 619 of file gui\-\_\-tk.\-h.
 
 
 
-Referenced by G\-U\-I\-::\-Frame\-::action\-Executed(), add\-Child(), focus\-Changed(), get\-Child(), has\-Focus(), key\-Down(), key\-Up(), lower(), mouse\-Down(), mouse\-Moved(), paint\-All(), G\-U\-I\-::\-Bordered\-Window\-::paint\-All(), raise(), G\-U\-I\-::\-Toplevel\-Window\-::raise(), G\-U\-I\-::\-Transient\-Window\-::raise(), remove\-Child(), and $\sim$\-Window().
+Referenced by G\-U\-I\-::\-Frame\-::action\-Executed(), add\-Child(), focus\-Changed(), get\-Child(), has\-Focus(), key\-Down(), key\-Up(), lower(), mouse\-Down(), mouse\-Down\-Outside(), mouse\-Moved(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), paint\-All(), G\-U\-I\-::\-Bordered\-Window\-::paint\-All(), raise(), G\-U\-I\-::\-Toplevel\-Window\-::raise(), G\-U\-I\-::\-Transient\-Window\-::raise(), remove\-Child(), and $\sim$\-Window().
 
 \hypertarget{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!mouse\-Child@{mouse\-Child}}
 \index{mouse\-Child@{mouse\-Child}!GUI::Window@{G\-U\-I\-::\-Window}}
@@ -373,7 +417,7 @@ Child window of last button-\/down event.
 
 It receives all drag/up/click/doubleclick events until an up event is received 
 
-Definition at line 533 of file gui\-\_\-tk.\-h.
+Definition at line 605 of file gui\-\_\-tk.\-h.
 
 
 

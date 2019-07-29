@@ -70,10 +70,19 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \hypertarget{classfatDrive_ae4f1277e3b57d312737f2ece5785b2a9}{virtual Bits {\bfseries Un\-Mount} (void)}\label{classfatDrive_ae4f1277e3b57d312737f2ece5785b2a9}
 
 \item 
+\hypertarget{classfatDrive_a97bc6dda9d3bec5a85ef2382c0b26654}{Bit8u {\bfseries read\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classfatDrive_a97bc6dda9d3bec5a85ef2382c0b26654}
+
+\item 
+\hypertarget{classfatDrive_a5c105a99ce90237b34f5a57a915042d7}{Bit8u {\bfseries write\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classfatDrive_a5c105a99ce90237b34f5a57a915042d7}
+
+\item 
 \hypertarget{classfatDrive_ac865cd5b15f0a72a122783abdb9decbb}{Bit32u {\bfseries get\-Absolute\-Sect\-From\-Byte\-Pos} (Bit32u start\-Clust\-Num, Bit32u byte\-Pos)}\label{classfatDrive_ac865cd5b15f0a72a122783abdb9decbb}
 
 \item 
 \hypertarget{classfatDrive_ad2affae0064e689be43f4b081e8ae86b}{Bit32u {\bfseries get\-Sector\-Size} (void)}\label{classfatDrive_ad2affae0064e689be43f4b081e8ae86b}
+
+\item 
+\hypertarget{classfatDrive_ac9e9fc2d188b9e94e58366bf7a1a8be5}{Bit32u {\bfseries get\-Cluster\-Size} (void)}\label{classfatDrive_ac9e9fc2d188b9e94e58366bf7a1a8be5}
 
 \item 
 \hypertarget{classfatDrive_ab31954a5996df17bbd27e17f4fbc26d6}{Bit32u {\bfseries get\-Absolute\-Sect\-From\-Chain} (Bit32u start\-Clust\-Num, Bit32u logical\-Sector)}\label{classfatDrive_ab31954a5996df17bbd27e17f4fbc26d6}
@@ -85,7 +94,7 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \hypertarget{classfatDrive_a06109e670f9aea5c4dd11d07c50ae240}{Bit32u {\bfseries append\-Cluster} (Bit32u start\-Cluster)}\label{classfatDrive_a06109e670f9aea5c4dd11d07c50ae240}
 
 \item 
-\hypertarget{classfatDrive_a87019330262253fb796f8eec8ecccf5e}{void {\bfseries delete\-Clust\-Chain} (Bit32u start\-Cluster)}\label{classfatDrive_a87019330262253fb796f8eec8ecccf5e}
+\hypertarget{classfatDrive_acdf76d8c0cefb8fa35d3bbbaea54c8e0}{void {\bfseries delete\-Clust\-Chain} (Bit32u start\-Cluster, Bit32u byte\-Pos)}\label{classfatDrive_acdf76d8c0cefb8fa35d3bbbaea54c8e0}
 
 \item 
 \hypertarget{classfatDrive_a629d48445667f2662cc360ccaef4b43e}{Bit32u {\bfseries get\-First\-Free\-Clust} (void)}\label{classfatDrive_a629d48445667f2662cc360ccaef4b43e}
@@ -147,7 +156,7 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 205 of file drives.\-h.
+Definition at line 206 of file drives.\-h.
 
 
 

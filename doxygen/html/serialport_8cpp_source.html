@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -277,28 +277,28 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00180"></a>00180 <span class="preprocessor">#endif</span>
 <a name="l00181"></a>00181 <span class="preprocessor"></span>        <span class="keywordflow">switch</span> (index) {
 <a name="l00182"></a>00182                 <span class="keywordflow">case</span> THR_OFFSET:
-<a name="l00183"></a>00183                         serialports[i]-&gt;Write_THR (val);
+<a name="l00183"></a>00183                         serialports[i]-&gt;Write_THR ((Bit8u)val);
 <a name="l00184"></a>00184                         <span class="keywordflow">return</span>;
 <a name="l00185"></a>00185                 <span class="keywordflow">case</span> IER_OFFSET:
-<a name="l00186"></a>00186                         serialports[i]-&gt;Write_IER (val);
+<a name="l00186"></a>00186                         serialports[i]-&gt;Write_IER ((Bit8u)val);
 <a name="l00187"></a>00187                         <span class="keywordflow">return</span>;
 <a name="l00188"></a>00188                 <span class="keywordflow">case</span> FCR_OFFSET:
-<a name="l00189"></a>00189                         serialports[i]-&gt;Write_FCR (val);
+<a name="l00189"></a>00189                         serialports[i]-&gt;Write_FCR ((Bit8u)val);
 <a name="l00190"></a>00190                         <span class="keywordflow">return</span>;
 <a name="l00191"></a>00191                 <span class="keywordflow">case</span> LCR_OFFSET:
-<a name="l00192"></a>00192                         serialports[i]-&gt;Write_LCR (val);
+<a name="l00192"></a>00192                         serialports[i]-&gt;Write_LCR ((Bit8u)val);
 <a name="l00193"></a>00193                         <span class="keywordflow">return</span>;
 <a name="l00194"></a>00194                 <span class="keywordflow">case</span> MCR_OFFSET:
-<a name="l00195"></a>00195                         serialports[i]-&gt;Write_MCR (val);
+<a name="l00195"></a>00195                         serialports[i]-&gt;Write_MCR ((Bit8u)val);
 <a name="l00196"></a>00196                         <span class="keywordflow">return</span>;
 <a name="l00197"></a>00197                 <span class="keywordflow">case</span> MSR_OFFSET:
-<a name="l00198"></a>00198                         serialports[i]-&gt;Write_MSR (val);
+<a name="l00198"></a>00198                         serialports[i]-&gt;Write_MSR ((Bit8u)val);
 <a name="l00199"></a>00199                         <span class="keywordflow">return</span>;
 <a name="l00200"></a>00200                 <span class="keywordflow">case</span> SPR_OFFSET:
-<a name="l00201"></a>00201                         serialports[i]-&gt;Write_SPR (val);
+<a name="l00201"></a>00201                         serialports[i]-&gt;Write_SPR ((Bit8u)val);
 <a name="l00202"></a>00202                         <span class="keywordflow">return</span>;
 <a name="l00203"></a>00203                 <span class="keywordflow">default</span>:
-<a name="l00204"></a>00204                         serialports[i]-&gt;Write_reserved (val, port &amp; 0x7);
+<a name="l00204"></a>00204                         serialports[i]-&gt;Write_reserved ((Bit8u)val, port &amp; 0x7);
 <a name="l00205"></a>00205         }
 <a name="l00206"></a>00206 }
 <a name="l00207"></a>00207 <span class="preprocessor">#if SERIAL_DEBUG</span>
@@ -342,7 +342,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00245"></a>00245 <span class="keyword">static</span> <span class="keywordtype">void</span> Serial_EventHandler(Bitu val) {
 <a name="l00246"></a>00246         Bitu serclassid=val&amp;0x3;
 <a name="l00247"></a>00247         <span class="keywordflow">if</span>(serialports[serclassid]!=0)
-<a name="l00248"></a>00248                 serialports[serclassid]-&gt;handleEvent(val&gt;&gt;2);
+<a name="l00248"></a>00248                 serialports[serclassid]-&gt;handleEvent((Bit16u)(val&gt;&gt;2));
 <a name="l00249"></a>00249 }
 <a name="l00250"></a>00250 
 <a name="l00251"></a>00251 <span class="keywordtype">void</span> CSerial::setEvent(Bit16u type, <span class="keywordtype">float</span> duration) {
@@ -829,718 +829,722 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00732"></a>00732 
 <a name="l00733"></a>00733 <span class="keywordtype">void</span> CSerial::Write_MCR (Bit8u data) {
 <a name="l00734"></a>00734         <span class="comment">// WARNING: At the time setRTSDTR is called rts and dsr members are still wrong.</span>
-<a name="l00735"></a>00735         <span class="keywordflow">if</span>(data&amp;FIFO_FLOWCONTROL) LOG_MSG(<span class="stringliteral">&quot;Warning: tried to activate hardware handshake.&quot;</span>);
-<a name="l00736"></a>00736         <span class="keywordtype">bool</span> temp_dtr = data &amp; MCR_DTR_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00737"></a>00737         <span class="keywordtype">bool</span> temp_rts = data &amp; MCR_RTS_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00738"></a>00738         <span class="keywordtype">bool</span> temp_op1 = data &amp; MCR_OP1_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00739"></a>00739         <span class="keywordtype">bool</span> temp_op2 = data &amp; MCR_OP2_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00740"></a>00740         <span class="keywordtype">bool</span> temp_loopback = data &amp; MCR_LOOPBACK_Enable_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00741"></a>00741         <span class="keywordflow">if</span>(loopback!=temp_loopback) {
-<a name="l00742"></a>00742                 <span class="keywordflow">if</span>(temp_loopback) setRTSDTR(<span class="keyword">false</span>,<span class="keyword">false</span>);
-<a name="l00743"></a>00743                 <span class="keywordflow">else</span> setRTSDTR(temp_rts,temp_dtr);
+<a name="l00735"></a>00735         <span class="keywordflow">if</span> (data&amp;FIFO_FLOWCONTROL) LOG_MSG(<span class="stringliteral">&quot;Warning: tried to activate hardware handshake.&quot;</span>);
+<a name="l00736"></a>00736         <span class="keywordtype">bool</span> new_dtr = data &amp; MCR_DTR_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00737"></a>00737         <span class="keywordtype">bool</span> new_rts = data &amp; MCR_RTS_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00738"></a>00738         <span class="keywordtype">bool</span> new_op1 = data &amp; MCR_OP1_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00739"></a>00739         <span class="keywordtype">bool</span> new_op2 = data &amp; MCR_OP2_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00740"></a>00740         <span class="keywordtype">bool</span> new_loopback = data &amp; MCR_LOOPBACK_Enable_MASK? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00741"></a>00741         <span class="keywordflow">if</span> (loopback != new_loopback) {
+<a name="l00742"></a>00742                 <span class="keywordflow">if</span> (new_loopback) setRTSDTR(<span class="keyword">false</span>,<span class="keyword">false</span>);
+<a name="l00743"></a>00743                 <span class="keywordflow">else</span> setRTSDTR(new_rts,new_dtr);
 <a name="l00744"></a>00744         }
 <a name="l00745"></a>00745 
-<a name="l00746"></a>00746         <span class="keywordflow">if</span> (temp_loopback) {    <span class="comment">// is on:</span>
+<a name="l00746"></a>00746         <span class="keywordflow">if</span> (new_loopback) {     <span class="comment">// is on:</span>
 <a name="l00747"></a>00747                 <span class="comment">// DTR-&gt;DSR</span>
 <a name="l00748"></a>00748                 <span class="comment">// RTS-&gt;CTS</span>
 <a name="l00749"></a>00749                 <span class="comment">// OP1-&gt;RI</span>
 <a name="l00750"></a>00750                 <span class="comment">// OP2-&gt;CD</span>
-<a name="l00751"></a>00751                 <span class="keywordflow">if</span>(temp_dtr!=dtr &amp;&amp; !d_dsr) {
-<a name="l00752"></a>00752                         d_dsr=<span class="keyword">true</span>;
+<a name="l00751"></a>00751                 <span class="keywordflow">if</span> (new_dtr != dtr &amp;&amp; !d_dsr) {
+<a name="l00752"></a>00752                         d_dsr = <span class="keyword">true</span>;
 <a name="l00753"></a>00753                         rise (MSR_PRIORITY);
 <a name="l00754"></a>00754                 }
-<a name="l00755"></a>00755                 <span class="keywordflow">if</span>(temp_rts!=rts &amp;&amp; !d_cts) {
-<a name="l00756"></a>00756                         d_cts=<span class="keyword">true</span>;
+<a name="l00755"></a>00755                 <span class="keywordflow">if</span> (new_dtr != dtr &amp;&amp; !d_dsr) {
+<a name="l00756"></a>00756                         d_dsr = <span class="keyword">true</span>;
 <a name="l00757"></a>00757                         rise (MSR_PRIORITY);
 <a name="l00758"></a>00758                 }
-<a name="l00759"></a>00759                 <span class="keywordflow">if</span>(temp_op1!=op1 &amp;&amp; !d_ri) {
+<a name="l00759"></a>00759                 <span class="keywordflow">if</span> (new_op1 != op1 &amp;&amp; !d_ri) {
 <a name="l00760"></a>00760                         <span class="comment">// interrupt only at trailing edge</span>
-<a name="l00761"></a>00761                         <span class="keywordflow">if</span>(!temp_op1) {
-<a name="l00762"></a>00762                                 d_ri=<span class="keyword">true</span>;
+<a name="l00761"></a>00761                         <span class="keywordflow">if</span> (!new_op1) {
+<a name="l00762"></a>00762                                 d_ri = <span class="keyword">true</span>;
 <a name="l00763"></a>00763                                 rise (MSR_PRIORITY);
 <a name="l00764"></a>00764                         }
 <a name="l00765"></a>00765                 }
-<a name="l00766"></a>00766                 <span class="keywordflow">if</span>(temp_op2!=op2 &amp;&amp; !d_cd) {
-<a name="l00767"></a>00767                         d_cd=<span class="keyword">true</span>;
+<a name="l00766"></a>00766                 <span class="keywordflow">if</span> (new_op2 != op2 &amp;&amp; !d_cd) {
+<a name="l00767"></a>00767                         d_cd = <span class="keyword">true</span>;
 <a name="l00768"></a>00768                         rise (MSR_PRIORITY);
 <a name="l00769"></a>00769                 }
 <a name="l00770"></a>00770         } <span class="keywordflow">else</span> {
 <a name="l00771"></a>00771                 <span class="comment">// loopback is off</span>
-<a name="l00772"></a>00772                 <span class="keywordflow">if</span>(temp_rts!=rts) {
+<a name="l00772"></a>00772                 <span class="keywordflow">if</span> (new_rts != rts) {
 <a name="l00773"></a>00773                         <span class="comment">// RTS difference</span>
-<a name="l00774"></a>00774                         <span class="keywordflow">if</span>(temp_dtr!=dtr) {
+<a name="l00774"></a>00774                         <span class="keywordflow">if</span> (new_dtr != dtr) {
 <a name="l00775"></a>00775                                 <span class="comment">// both difference</span>
 <a name="l00776"></a>00776 
 <a name="l00777"></a>00777 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00778"></a>00778 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;RTS %x.&quot;</span>,temp_rts);
-<a name="l00779"></a>00779                                 log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;DTR %x.&quot;</span>,temp_dtr);
+<a name="l00778"></a>00778 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;RTS %x.&quot;</span>,new_rts);
+<a name="l00779"></a>00779                                 log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;DTR %x.&quot;</span>,new_dtr);
 <a name="l00780"></a>00780 <span class="preprocessor">#endif</span>
-<a name="l00781"></a>00781 <span class="preprocessor"></span>                                setRTSDTR(temp_rts, temp_dtr);
+<a name="l00781"></a>00781 <span class="preprocessor"></span>                                setRTSDTR(new_rts, new_dtr);
 <a name="l00782"></a>00782                         } <span class="keywordflow">else</span> {
 <a name="l00783"></a>00783                                 <span class="comment">// only RTS</span>
 <a name="l00784"></a>00784 
 <a name="l00785"></a>00785 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00786"></a>00786 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;RTS %x.&quot;</span>,temp_rts);
+<a name="l00786"></a>00786 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;RTS %x.&quot;</span>,new_rts);
 <a name="l00787"></a>00787 <span class="preprocessor">#endif</span>
-<a name="l00788"></a>00788 <span class="preprocessor"></span>                                setRTS(temp_rts);
+<a name="l00788"></a>00788 <span class="preprocessor"></span>                                setRTS(new_rts);
 <a name="l00789"></a>00789                         }
-<a name="l00790"></a>00790                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(temp_dtr!=dtr) {
+<a name="l00790"></a>00790                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (new_dtr != dtr) {
 <a name="l00791"></a>00791                         <span class="comment">// only DTR</span>
 <a name="l00792"></a>00792 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00793"></a>00793 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;%DTR %x.&quot;</span>,temp_dtr);
+<a name="l00793"></a>00793 <span class="preprocessor"></span>                                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;%DTR %x.&quot;</span>,new_dtr);
 <a name="l00794"></a>00794 <span class="preprocessor">#endif</span>
-<a name="l00795"></a>00795 <span class="preprocessor"></span>                        setDTR(temp_dtr);
+<a name="l00795"></a>00795 <span class="preprocessor"></span>                        setDTR(new_dtr);
 <a name="l00796"></a>00796                 }
 <a name="l00797"></a>00797         }
-<a name="l00798"></a>00798         <span class="comment">// interrupt logic: if OP2 is 0, the IRQ line is tristated (pulled high)</span>
-<a name="l00799"></a>00799         <span class="keywordflow">if</span>((!op2) &amp;&amp; temp_op2) {
-<a name="l00800"></a>00800                 <span class="comment">// irq has been enabled (tristate high -&gt; irq level)</span>
-<a name="l00801"></a>00801                 <span class="keywordflow">if</span>(!irq_active) PIC_DeActivateIRQ(irq);
-<a name="l00802"></a>00802         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(op2 &amp;&amp; (!temp_op2)) {
-<a name="l00803"></a>00803                 <span class="keywordflow">if</span>(!irq_active) PIC_ActivateIRQ(irq); 
-<a name="l00804"></a>00804         }
-<a name="l00805"></a>00805 
-<a name="l00806"></a>00806         dtr=temp_dtr;
-<a name="l00807"></a>00807         rts=temp_rts;
-<a name="l00808"></a>00808         op1=temp_op1;
-<a name="l00809"></a>00809         op2=temp_op2;
-<a name="l00810"></a>00810         loopback=temp_loopback;
-<a name="l00811"></a>00811 }
-<a name="l00812"></a>00812 
-<a name="l00813"></a>00813 <span class="comment">/*****************************************************************************/</span>
-<a name="l00814"></a>00814 <span class="comment">/* Line Status Register (r)                                                 **/</span>
-<a name="l00815"></a>00815 <span class="comment">/*****************************************************************************/</span>
-<a name="l00816"></a>00816 <span class="comment">// errors, tx registers status, rx register status</span>
-<a name="l00817"></a>00817 <span class="comment">// modified by:</span>
-<a name="l00818"></a>00818 <span class="comment">// - event from real serial port</span>
-<a name="l00819"></a>00819 <span class="comment">// - loopback</span>
-<a name="l00820"></a>00820 Bitu CSerial::Read_LSR () {
-<a name="l00821"></a>00821         Bitu retval = LSR &amp; (LSR_ERROR_MASK|LSR_TX_EMPTY_MASK);
-<a name="l00822"></a>00822         <span class="keywordflow">if</span>(txfifo-&gt;isEmpty()) retval |= LSR_TX_HOLDING_EMPTY_MASK;
-<a name="l00823"></a>00823         <span class="keywordflow">if</span>(!(rxfifo-&gt;isEmpty()))retval |= LSR_RX_DATA_READY_MASK;
-<a name="l00824"></a>00824         <span class="keywordflow">if</span>(errors_in_fifo) retval |= FIFO_ERROR;
-<a name="l00825"></a>00825         LSR &amp;= (~LSR_ERROR_MASK);                       <span class="comment">// clear error bits on read</span>
-<a name="l00826"></a>00826         clear (ERROR_PRIORITY);
-<a name="l00827"></a>00827         <span class="keywordflow">return</span> retval;
-<a name="l00828"></a>00828 }
-<a name="l00829"></a>00829 
-<a name="l00830"></a>00830 <span class="keywordtype">void</span> CSerial::Write_MSR (Bit8u val) {
-<a name="l00831"></a>00831         d_cts = (val&amp;MSR_dCTS_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00832"></a>00832         d_dsr = (val&amp;MSR_dDSR_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00833"></a>00833         d_cd = (val&amp;MSR_dCD_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00834"></a>00834         d_ri = (val&amp;MSR_dRI_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00835"></a>00835 }
-<a name="l00836"></a>00836 
-<a name="l00837"></a>00837 <span class="comment">/*****************************************************************************/</span>
-<a name="l00838"></a>00838 <span class="comment">/* Modem Status Register (r)                                                **/</span>
-<a name="l00839"></a>00839 <span class="comment">/*****************************************************************************/</span>
-<a name="l00840"></a>00840 <span class="comment">// Contains status of the control input lines (CD, RI, DSR, CTS) and</span>
-<a name="l00841"></a>00841 <span class="comment">// their &quot;deltas&quot;: if level changed since last read delta = 1.</span>
-<a name="l00842"></a>00842 <span class="comment">// modified by:</span>
-<a name="l00843"></a>00843 <span class="comment">// - real values</span>
-<a name="l00844"></a>00844 <span class="comment">// - write operation to MCR in loopback mode</span>
-<a name="l00845"></a>00845 Bitu CSerial::Read_MSR () {
-<a name="l00846"></a>00846         Bit8u retval=0;
-<a name="l00847"></a>00847         
-<a name="l00848"></a>00848         <span class="keywordflow">if</span> (loopback) {
-<a name="l00849"></a>00849                 
-<a name="l00850"></a>00850                 <span class="keywordflow">if</span> (rts) retval |= MSR_CTS_MASK;
-<a name="l00851"></a>00851                 <span class="keywordflow">if</span> (dtr) retval |= MSR_DSR_MASK;
-<a name="l00852"></a>00852                 <span class="keywordflow">if</span> (op1) retval |= MSR_RI_MASK;
-<a name="l00853"></a>00853                 <span class="keywordflow">if</span> (op2) retval |= MSR_CD_MASK;
-<a name="l00854"></a>00854         
-<a name="l00855"></a>00855         } <span class="keywordflow">else</span> {
-<a name="l00856"></a>00856 
-<a name="l00857"></a>00857                 updateMSR();
-<a name="l00858"></a>00858                 <span class="keywordflow">if</span> (cd) retval |= MSR_CD_MASK;
-<a name="l00859"></a>00859                 <span class="keywordflow">if</span> (ri) retval |= MSR_RI_MASK;
-<a name="l00860"></a>00860                 <span class="keywordflow">if</span> (dsr) retval |= MSR_DSR_MASK;
-<a name="l00861"></a>00861                 <span class="keywordflow">if</span> (cts) retval |= MSR_CTS_MASK;
-<a name="l00862"></a>00862         
-<a name="l00863"></a>00863         }
-<a name="l00864"></a>00864         <span class="comment">// new delta flags</span>
-<a name="l00865"></a>00865         <span class="keywordflow">if</span>(d_cd) retval|=MSR_dCD_MASK;
-<a name="l00866"></a>00866         <span class="keywordflow">if</span>(d_ri) retval|=MSR_dRI_MASK;
-<a name="l00867"></a>00867         <span class="keywordflow">if</span>(d_cts) retval|=MSR_dCTS_MASK;
-<a name="l00868"></a>00868         <span class="keywordflow">if</span>(d_dsr) retval|=MSR_dDSR_MASK;
-<a name="l00869"></a>00869         
-<a name="l00870"></a>00870         d_cd = <span class="keyword">false</span>;
-<a name="l00871"></a>00871         d_ri = <span class="keyword">false</span>;
-<a name="l00872"></a>00872         d_cts = <span class="keyword">false</span>;
-<a name="l00873"></a>00873         d_dsr = <span class="keyword">false</span>;
-<a name="l00874"></a>00874         
-<a name="l00875"></a>00875         clear (MSR_PRIORITY);
-<a name="l00876"></a>00876         <span class="keywordflow">return</span> retval;
-<a name="l00877"></a>00877 }
-<a name="l00878"></a>00878 
-<a name="l00879"></a>00879 <span class="comment">/*****************************************************************************/</span>
-<a name="l00880"></a>00880 <span class="comment">/* Scratchpad Register (r/w)                                                **/</span>
-<a name="l00881"></a>00881 <span class="comment">/*****************************************************************************/</span>
-<a name="l00882"></a>00882 <span class="comment">// Just a memory register. Not much to do here.</span>
-<a name="l00883"></a>00883 Bitu CSerial::Read_SPR () {
-<a name="l00884"></a>00884         <span class="keywordflow">return</span> SPR;
-<a name="l00885"></a>00885 }
-<a name="l00886"></a>00886 
-<a name="l00887"></a>00887 <span class="keywordtype">void</span> CSerial::Write_SPR (Bit8u data) {
-<a name="l00888"></a>00888         SPR = data;
+<a name="l00798"></a>00798         <span class="comment">// interrupt logic: if new_OP2 is 0, the IRQ line is tristated (pulled high)</span>
+<a name="l00799"></a>00799         <span class="comment">// which turns off the IRQ generation.</span>
+<a name="l00800"></a>00800         <span class="keywordflow">if</span> ((!op2) &amp;&amp; new_op2) {
+<a name="l00801"></a>00801                 <span class="comment">// irq has been enabled (tristate high -&gt; irq level)</span>
+<a name="l00802"></a>00802                 <span class="comment">// Generate one if ComputeInterrupts has set irq_active to true</span>
+<a name="l00803"></a>00803                 <span class="keywordflow">if</span> (irq_active) PIC_ActivateIRQ(irq);
+<a name="l00804"></a>00804         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (op2 &amp;&amp; (!new_op2)) {
+<a name="l00805"></a>00805                 <span class="comment">// irq has been disabled (irq level -&gt; tristate) </span>
+<a name="l00806"></a>00806                 <span class="comment">// Remove the IRQ signal if the irq was being generated before</span>
+<a name="l00807"></a>00807                 <span class="keywordflow">if</span> (irq_active) PIC_DeActivateIRQ(irq); 
+<a name="l00808"></a>00808         }
+<a name="l00809"></a>00809 
+<a name="l00810"></a>00810         dtr=new_dtr;
+<a name="l00811"></a>00811         rts=new_rts;
+<a name="l00812"></a>00812         op1=new_op1;
+<a name="l00813"></a>00813         op2=new_op2;
+<a name="l00814"></a>00814         loopback=new_loopback;
+<a name="l00815"></a>00815 }
+<a name="l00816"></a>00816 
+<a name="l00817"></a>00817 <span class="comment">/*****************************************************************************/</span>
+<a name="l00818"></a>00818 <span class="comment">/* Line Status Register (r)                                                 **/</span>
+<a name="l00819"></a>00819 <span class="comment">/*****************************************************************************/</span>
+<a name="l00820"></a>00820 <span class="comment">// errors, tx registers status, rx register status</span>
+<a name="l00821"></a>00821 <span class="comment">// modified by:</span>
+<a name="l00822"></a>00822 <span class="comment">// - event from real serial port</span>
+<a name="l00823"></a>00823 <span class="comment">// - loopback</span>
+<a name="l00824"></a>00824 Bitu CSerial::Read_LSR () {
+<a name="l00825"></a>00825         Bitu retval = LSR &amp; (LSR_ERROR_MASK|LSR_TX_EMPTY_MASK);
+<a name="l00826"></a>00826         <span class="keywordflow">if</span>(txfifo-&gt;isEmpty()) retval |= LSR_TX_HOLDING_EMPTY_MASK;
+<a name="l00827"></a>00827         <span class="keywordflow">if</span>(!(rxfifo-&gt;isEmpty()))retval |= LSR_RX_DATA_READY_MASK;
+<a name="l00828"></a>00828         <span class="keywordflow">if</span>(errors_in_fifo) retval |= FIFO_ERROR;
+<a name="l00829"></a>00829         LSR &amp;= (~LSR_ERROR_MASK);                       <span class="comment">// clear error bits on read</span>
+<a name="l00830"></a>00830         clear (ERROR_PRIORITY);
+<a name="l00831"></a>00831         <span class="keywordflow">return</span> retval;
+<a name="l00832"></a>00832 }
+<a name="l00833"></a>00833 
+<a name="l00834"></a>00834 <span class="keywordtype">void</span> CSerial::Write_MSR (Bit8u val) {
+<a name="l00835"></a>00835         d_cts = (val&amp;MSR_dCTS_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00836"></a>00836         d_dsr = (val&amp;MSR_dDSR_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00837"></a>00837         d_cd = (val&amp;MSR_dCD_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00838"></a>00838         d_ri = (val&amp;MSR_dRI_MASK)?<span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00839"></a>00839 }
+<a name="l00840"></a>00840 
+<a name="l00841"></a>00841 <span class="comment">/*****************************************************************************/</span>
+<a name="l00842"></a>00842 <span class="comment">/* Modem Status Register (r)                                                **/</span>
+<a name="l00843"></a>00843 <span class="comment">/*****************************************************************************/</span>
+<a name="l00844"></a>00844 <span class="comment">// Contains status of the control input lines (CD, RI, DSR, CTS) and</span>
+<a name="l00845"></a>00845 <span class="comment">// their &quot;deltas&quot;: if level changed since last read delta = 1.</span>
+<a name="l00846"></a>00846 <span class="comment">// modified by:</span>
+<a name="l00847"></a>00847 <span class="comment">// - real values</span>
+<a name="l00848"></a>00848 <span class="comment">// - write operation to MCR in loopback mode</span>
+<a name="l00849"></a>00849 Bitu CSerial::Read_MSR () {
+<a name="l00850"></a>00850         Bit8u retval=0;
+<a name="l00851"></a>00851         
+<a name="l00852"></a>00852         <span class="keywordflow">if</span> (loopback) {
+<a name="l00853"></a>00853                 
+<a name="l00854"></a>00854                 <span class="keywordflow">if</span> (rts) retval |= MSR_CTS_MASK;
+<a name="l00855"></a>00855                 <span class="keywordflow">if</span> (dtr) retval |= MSR_DSR_MASK;
+<a name="l00856"></a>00856                 <span class="keywordflow">if</span> (op1) retval |= MSR_RI_MASK;
+<a name="l00857"></a>00857                 <span class="keywordflow">if</span> (op2) retval |= MSR_CD_MASK;
+<a name="l00858"></a>00858         
+<a name="l00859"></a>00859         } <span class="keywordflow">else</span> {
+<a name="l00860"></a>00860 
+<a name="l00861"></a>00861                 updateMSR();
+<a name="l00862"></a>00862                 <span class="keywordflow">if</span> (cd) retval |= MSR_CD_MASK;
+<a name="l00863"></a>00863                 <span class="keywordflow">if</span> (ri) retval |= MSR_RI_MASK;
+<a name="l00864"></a>00864                 <span class="keywordflow">if</span> (dsr) retval |= MSR_DSR_MASK;
+<a name="l00865"></a>00865                 <span class="keywordflow">if</span> (cts) retval |= MSR_CTS_MASK;
+<a name="l00866"></a>00866         
+<a name="l00867"></a>00867         }
+<a name="l00868"></a>00868         <span class="comment">// new delta flags</span>
+<a name="l00869"></a>00869         <span class="keywordflow">if</span>(d_cd) retval|=MSR_dCD_MASK;
+<a name="l00870"></a>00870         <span class="keywordflow">if</span>(d_ri) retval|=MSR_dRI_MASK;
+<a name="l00871"></a>00871         <span class="keywordflow">if</span>(d_cts) retval|=MSR_dCTS_MASK;
+<a name="l00872"></a>00872         <span class="keywordflow">if</span>(d_dsr) retval|=MSR_dDSR_MASK;
+<a name="l00873"></a>00873         
+<a name="l00874"></a>00874         d_cd = <span class="keyword">false</span>;
+<a name="l00875"></a>00875         d_ri = <span class="keyword">false</span>;
+<a name="l00876"></a>00876         d_cts = <span class="keyword">false</span>;
+<a name="l00877"></a>00877         d_dsr = <span class="keyword">false</span>;
+<a name="l00878"></a>00878         
+<a name="l00879"></a>00879         clear (MSR_PRIORITY);
+<a name="l00880"></a>00880         <span class="keywordflow">return</span> retval;
+<a name="l00881"></a>00881 }
+<a name="l00882"></a>00882 
+<a name="l00883"></a>00883 <span class="comment">/*****************************************************************************/</span>
+<a name="l00884"></a>00884 <span class="comment">/* Scratchpad Register (r/w)                                                **/</span>
+<a name="l00885"></a>00885 <span class="comment">/*****************************************************************************/</span>
+<a name="l00886"></a>00886 <span class="comment">// Just a memory register. Not much to do here.</span>
+<a name="l00887"></a>00887 Bitu CSerial::Read_SPR () {
+<a name="l00888"></a>00888         <span class="keywordflow">return</span> SPR;
 <a name="l00889"></a>00889 }
 <a name="l00890"></a>00890 
-<a name="l00891"></a>00891 <span class="comment">/*****************************************************************************/</span>
-<a name="l00892"></a>00892 <span class="comment">/* Write_reserved                                                           **/</span>
-<a name="l00893"></a>00893 <span class="comment">/*****************************************************************************/</span>
-<a name="l00894"></a>00894 <span class="keywordtype">void</span> CSerial::Write_reserved (Bit8u data, Bit8u address) {
-<a name="l00895"></a>00895     (void)data;<span class="comment">//UNUSED</span>
-<a name="l00896"></a>00896     (void)address;<span class="comment">//UNUSED</span>
-<a name="l00897"></a>00897         <span class="comment">/*LOG_UART(&quot;Serial%d: Write to reserved register, value 0x%x, register %x&quot;,</span>
-<a name="l00898"></a>00898 <span class="comment">                COMNUMBER, data, address);*/</span>
-<a name="l00899"></a>00899 }
-<a name="l00900"></a>00900 
-<a name="l00901"></a>00901 <span class="comment">/*****************************************************************************/</span>
-<a name="l00902"></a>00902 <span class="comment">/* MCR Access: returns cirquit state as boolean.                            **/</span>
-<a name="l00903"></a>00903 <span class="comment">/*****************************************************************************/</span>
-<a name="l00904"></a>00904 <span class="keywordtype">bool</span> CSerial::getDTR () {
-<a name="l00905"></a>00905         <span class="keywordflow">if</span>(loopback) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00906"></a>00906         <span class="keywordflow">else</span> <span class="keywordflow">return</span> dtr;
-<a name="l00907"></a>00907 }
-<a name="l00908"></a>00908 
-<a name="l00909"></a>00909 <span class="keywordtype">bool</span> CSerial::getRTS () {
-<a name="l00910"></a>00910         <span class="keywordflow">if</span>(loopback) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00911"></a>00911         <span class="keywordflow">else</span> <span class="keywordflow">return</span> rts;
-<a name="l00912"></a>00912 }
-<a name="l00913"></a>00913 
-<a name="l00914"></a>00914 <span class="comment">/*****************************************************************************/</span>
-<a name="l00915"></a>00915 <span class="comment">/* MSR Access                                                               **/</span>
-<a name="l00916"></a>00916 <span class="comment">/*****************************************************************************/</span>
-<a name="l00917"></a>00917 <span class="keywordtype">bool</span> CSerial::getRI () {
-<a name="l00918"></a>00918         <span class="keywordflow">return</span> ri;
-<a name="l00919"></a>00919 }
-<a name="l00920"></a>00920 
-<a name="l00921"></a>00921 <span class="keywordtype">bool</span> CSerial::getCD () {
-<a name="l00922"></a>00922         <span class="keywordflow">return</span> cd;
+<a name="l00891"></a>00891 <span class="keywordtype">void</span> CSerial::Write_SPR (Bit8u data) {
+<a name="l00892"></a>00892         SPR = data;
+<a name="l00893"></a>00893 }
+<a name="l00894"></a>00894 
+<a name="l00895"></a>00895 <span class="comment">/*****************************************************************************/</span>
+<a name="l00896"></a>00896 <span class="comment">/* Write_reserved                                                           **/</span>
+<a name="l00897"></a>00897 <span class="comment">/*****************************************************************************/</span>
+<a name="l00898"></a>00898 <span class="keywordtype">void</span> CSerial::Write_reserved (Bit8u data, Bit8u address) {
+<a name="l00899"></a>00899     (void)data;<span class="comment">//UNUSED</span>
+<a name="l00900"></a>00900     (void)address;<span class="comment">//UNUSED</span>
+<a name="l00901"></a>00901         <span class="comment">/*LOG_UART(&quot;Serial%d: Write to reserved register, value 0x%x, register %x&quot;,</span>
+<a name="l00902"></a>00902 <span class="comment">                COMNUMBER, data, address);*/</span>
+<a name="l00903"></a>00903 }
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905 <span class="comment">/*****************************************************************************/</span>
+<a name="l00906"></a>00906 <span class="comment">/* MCR Access: returns cirquit state as boolean.                            **/</span>
+<a name="l00907"></a>00907 <span class="comment">/*****************************************************************************/</span>
+<a name="l00908"></a>00908 <span class="keywordtype">bool</span> CSerial::getDTR () {
+<a name="l00909"></a>00909         <span class="keywordflow">if</span>(loopback) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00910"></a>00910         <span class="keywordflow">else</span> <span class="keywordflow">return</span> dtr;
+<a name="l00911"></a>00911 }
+<a name="l00912"></a>00912 
+<a name="l00913"></a>00913 <span class="keywordtype">bool</span> CSerial::getRTS () {
+<a name="l00914"></a>00914         <span class="keywordflow">if</span>(loopback) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00915"></a>00915         <span class="keywordflow">else</span> <span class="keywordflow">return</span> rts;
+<a name="l00916"></a>00916 }
+<a name="l00917"></a>00917 
+<a name="l00918"></a>00918 <span class="comment">/*****************************************************************************/</span>
+<a name="l00919"></a>00919 <span class="comment">/* MSR Access                                                               **/</span>
+<a name="l00920"></a>00920 <span class="comment">/*****************************************************************************/</span>
+<a name="l00921"></a>00921 <span class="keywordtype">bool</span> CSerial::getRI () {
+<a name="l00922"></a>00922         <span class="keywordflow">return</span> ri;
 <a name="l00923"></a>00923 }
 <a name="l00924"></a>00924 
-<a name="l00925"></a>00925 <span class="keywordtype">bool</span> CSerial::getDSR () {
-<a name="l00926"></a>00926         <span class="keywordflow">return</span> dsr;
+<a name="l00925"></a>00925 <span class="keywordtype">bool</span> CSerial::getCD () {
+<a name="l00926"></a>00926         <span class="keywordflow">return</span> cd;
 <a name="l00927"></a>00927 }
 <a name="l00928"></a>00928 
-<a name="l00929"></a>00929 <span class="keywordtype">bool</span> CSerial::getCTS () {
-<a name="l00930"></a>00930         <span class="keywordflow">return</span> cts;
+<a name="l00929"></a>00929 <span class="keywordtype">bool</span> CSerial::getDSR () {
+<a name="l00930"></a>00930         <span class="keywordflow">return</span> dsr;
 <a name="l00931"></a>00931 }
 <a name="l00932"></a>00932 
-<a name="l00933"></a>00933 <span class="keywordtype">void</span> CSerial::setRI (<span class="keywordtype">bool</span> value) {
-<a name="l00934"></a>00934         <span class="keywordflow">if</span> (value != ri) {
-<a name="l00935"></a>00935 
-<a name="l00936"></a>00936 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00937"></a>00937 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;%RI  %x.&quot;</span>,value);
-<a name="l00938"></a>00938 <span class="preprocessor">#endif</span>
-<a name="l00939"></a>00939 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
-<a name="l00940"></a>00940                 ri=value;
-<a name="l00941"></a>00941                 <span class="keywordflow">if</span>(!loopback) {
-<a name="l00942"></a>00942             <span class="keywordflow">if</span>(value==<span class="keyword">false</span>) d_ri=<span class="keyword">true</span>;
-<a name="l00943"></a>00943                         rise (MSR_PRIORITY);
-<a name="l00944"></a>00944                 }
-<a name="l00945"></a>00945         }
-<a name="l00946"></a>00946         <span class="comment">//else no change</span>
-<a name="l00947"></a>00947 }
-<a name="l00948"></a>00948 <span class="keywordtype">void</span> CSerial::setDSR (<span class="keywordtype">bool</span> value) {
-<a name="l00949"></a>00949         <span class="keywordflow">if</span> (value != dsr) {
-<a name="l00950"></a>00950 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00951"></a>00951 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;DSR %x.&quot;</span>,value);
-<a name="l00952"></a>00952 <span class="preprocessor">#endif</span>
-<a name="l00953"></a>00953 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
-<a name="l00954"></a>00954                 dsr=value;
-<a name="l00955"></a>00955                 <span class="keywordflow">if</span>(!loopback) {
-<a name="l00956"></a>00956             d_dsr=<span class="keyword">true</span>;
-<a name="l00957"></a>00957                         rise (MSR_PRIORITY);
-<a name="l00958"></a>00958                 }
-<a name="l00959"></a>00959         }
-<a name="l00960"></a>00960         <span class="comment">//else no change</span>
-<a name="l00961"></a>00961 }
-<a name="l00962"></a>00962 <span class="keywordtype">void</span> CSerial::setCD (<span class="keywordtype">bool</span> value) {
-<a name="l00963"></a>00963         <span class="keywordflow">if</span> (value != cd) {
-<a name="l00964"></a>00964 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00965"></a>00965 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;CD  %x.&quot;</span>,value);
-<a name="l00966"></a>00966 <span class="preprocessor">#endif</span>
-<a name="l00967"></a>00967 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
-<a name="l00968"></a>00968                 cd=value;
-<a name="l00969"></a>00969                 <span class="keywordflow">if</span>(!loopback) {
-<a name="l00970"></a>00970             d_cd=<span class="keyword">true</span>;
-<a name="l00971"></a>00971                         rise (MSR_PRIORITY);
-<a name="l00972"></a>00972                 }
-<a name="l00973"></a>00973         }
-<a name="l00974"></a>00974         <span class="comment">//else no change</span>
-<a name="l00975"></a>00975 }
-<a name="l00976"></a>00976 <span class="keywordtype">void</span> CSerial::setCTS (<span class="keywordtype">bool</span> value) {
-<a name="l00977"></a>00977         <span class="keywordflow">if</span> (value != cts) {
-<a name="l00978"></a>00978 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l00979"></a>00979 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;CTS %x.&quot;</span>,value);
-<a name="l00980"></a>00980 <span class="preprocessor">#endif</span>
-<a name="l00981"></a>00981 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
-<a name="l00982"></a>00982                 cts=value;
-<a name="l00983"></a>00983                 <span class="keywordflow">if</span>(!loopback) {
-<a name="l00984"></a>00984             d_cts=<span class="keyword">true</span>;
-<a name="l00985"></a>00985                         rise (MSR_PRIORITY);
-<a name="l00986"></a>00986                 }
-<a name="l00987"></a>00987         }
-<a name="l00988"></a>00988         <span class="comment">//else no change</span>
-<a name="l00989"></a>00989 }
-<a name="l00990"></a>00990 
-<a name="l00991"></a>00991 <span class="comment">/*****************************************************************************/</span>
-<a name="l00992"></a>00992 <span class="comment">/* Initialisation                                                           **/</span>
-<a name="l00993"></a>00993 <span class="comment">/*****************************************************************************/</span>
-<a name="l00994"></a>00994 <span class="keywordtype">void</span> CSerial::Init_Registers () {
-<a name="l00995"></a>00995         <span class="comment">// The &quot;power on&quot; settings</span>
-<a name="l00996"></a>00996         irq_active=<span class="keyword">false</span>;
-<a name="l00997"></a>00997         waiting_interrupts = 0x0;
-<a name="l00998"></a>00998 
-<a name="l00999"></a>00999         Bit32u initbps = 9600;
-<a name="l01000"></a>01000         Bit8u bytesize = 8;
-<a name="l01001"></a>01001         <span class="keywordtype">char</span> parity = <span class="charliteral">&#39;N&#39;</span>;
-<a name="l01002"></a>01002                                                           
-<a name="l01003"></a>01003         Bit8u lcrresult = 0;
-<a name="l01004"></a>01004         Bit16u baudresult = 0;
-<a name="l01005"></a>01005 
-<a name="l01006"></a>01006         IER = 0;
-<a name="l01007"></a>01007         ISR = 0x1;
-<a name="l01008"></a>01008         LCR = 0;
-<a name="l01009"></a>01009         <span class="comment">//MCR = 0xff;</span>
-<a name="l01010"></a>01010         loopback = <span class="keyword">true</span>;
-<a name="l01011"></a>01011         dtr=<span class="keyword">true</span>;
-<a name="l01012"></a>01012         rts=<span class="keyword">true</span>;
-<a name="l01013"></a>01013         op1=<span class="keyword">true</span>;
-<a name="l01014"></a>01014         op2=<span class="keyword">true</span>;
-<a name="l01015"></a>01015 
-<a name="l01016"></a>01016         sync_guardtime=<span class="keyword">false</span>;
-<a name="l01017"></a>01017         FCR=0xff;
-<a name="l01018"></a>01018         Write_FCR(0x00);
+<a name="l00933"></a>00933 <span class="keywordtype">bool</span> CSerial::getCTS () {
+<a name="l00934"></a>00934         <span class="keywordflow">return</span> cts;
+<a name="l00935"></a>00935 }
+<a name="l00936"></a>00936 
+<a name="l00937"></a>00937 <span class="keywordtype">void</span> CSerial::setRI (<span class="keywordtype">bool</span> value) {
+<a name="l00938"></a>00938         <span class="keywordflow">if</span> (value != ri) {
+<a name="l00939"></a>00939 
+<a name="l00940"></a>00940 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l00941"></a>00941 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;%RI  %x.&quot;</span>,value);
+<a name="l00942"></a>00942 <span class="preprocessor">#endif</span>
+<a name="l00943"></a>00943 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
+<a name="l00944"></a>00944                 ri=value;
+<a name="l00945"></a>00945                 <span class="keywordflow">if</span>(!loopback) {
+<a name="l00946"></a>00946             <span class="keywordflow">if</span>(value==<span class="keyword">false</span>) d_ri=<span class="keyword">true</span>;
+<a name="l00947"></a>00947                         rise (MSR_PRIORITY);
+<a name="l00948"></a>00948                 }
+<a name="l00949"></a>00949         }
+<a name="l00950"></a>00950         <span class="comment">//else no change</span>
+<a name="l00951"></a>00951 }
+<a name="l00952"></a>00952 <span class="keywordtype">void</span> CSerial::setDSR (<span class="keywordtype">bool</span> value) {
+<a name="l00953"></a>00953         <span class="keywordflow">if</span> (value != dsr) {
+<a name="l00954"></a>00954 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l00955"></a>00955 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;DSR %x.&quot;</span>,value);
+<a name="l00956"></a>00956 <span class="preprocessor">#endif</span>
+<a name="l00957"></a>00957 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
+<a name="l00958"></a>00958                 dsr=value;
+<a name="l00959"></a>00959                 <span class="keywordflow">if</span>(!loopback) {
+<a name="l00960"></a>00960             d_dsr=<span class="keyword">true</span>;
+<a name="l00961"></a>00961                         rise (MSR_PRIORITY);
+<a name="l00962"></a>00962                 }
+<a name="l00963"></a>00963         }
+<a name="l00964"></a>00964         <span class="comment">//else no change</span>
+<a name="l00965"></a>00965 }
+<a name="l00966"></a>00966 <span class="keywordtype">void</span> CSerial::setCD (<span class="keywordtype">bool</span> value) {
+<a name="l00967"></a>00967         <span class="keywordflow">if</span> (value != cd) {
+<a name="l00968"></a>00968 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l00969"></a>00969 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;CD  %x.&quot;</span>,value);
+<a name="l00970"></a>00970 <span class="preprocessor">#endif</span>
+<a name="l00971"></a>00971 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
+<a name="l00972"></a>00972                 cd=value;
+<a name="l00973"></a>00973                 <span class="keywordflow">if</span>(!loopback) {
+<a name="l00974"></a>00974             d_cd=<span class="keyword">true</span>;
+<a name="l00975"></a>00975                         rise (MSR_PRIORITY);
+<a name="l00976"></a>00976                 }
+<a name="l00977"></a>00977         }
+<a name="l00978"></a>00978         <span class="comment">//else no change</span>
+<a name="l00979"></a>00979 }
+<a name="l00980"></a>00980 <span class="keywordtype">void</span> CSerial::setCTS (<span class="keywordtype">bool</span> value) {
+<a name="l00981"></a>00981         <span class="keywordflow">if</span> (value != cts) {
+<a name="l00982"></a>00982 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l00983"></a>00983 <span class="preprocessor"></span>                log_ser(dbg_modemcontrol,<span class="stringliteral">&quot;CTS %x.&quot;</span>,value);
+<a name="l00984"></a>00984 <span class="preprocessor">#endif</span>
+<a name="l00985"></a>00985 <span class="preprocessor"></span>                <span class="comment">// don&#39;t change delta when in loopback mode</span>
+<a name="l00986"></a>00986                 cts=value;
+<a name="l00987"></a>00987                 <span class="keywordflow">if</span>(!loopback) {
+<a name="l00988"></a>00988             d_cts=<span class="keyword">true</span>;
+<a name="l00989"></a>00989                         rise (MSR_PRIORITY);
+<a name="l00990"></a>00990                 }
+<a name="l00991"></a>00991         }
+<a name="l00992"></a>00992         <span class="comment">//else no change</span>
+<a name="l00993"></a>00993 }
+<a name="l00994"></a>00994 
+<a name="l00995"></a>00995 <span class="comment">/*****************************************************************************/</span>
+<a name="l00996"></a>00996 <span class="comment">/* Initialisation                                                           **/</span>
+<a name="l00997"></a>00997 <span class="comment">/*****************************************************************************/</span>
+<a name="l00998"></a>00998 <span class="keywordtype">void</span> CSerial::Init_Registers () {
+<a name="l00999"></a>00999         <span class="comment">// The &quot;power on&quot; settings</span>
+<a name="l01000"></a>01000         irq_active=<span class="keyword">false</span>;
+<a name="l01001"></a>01001         waiting_interrupts = 0x0;
+<a name="l01002"></a>01002 
+<a name="l01003"></a>01003         Bit32u initbps = 9600;
+<a name="l01004"></a>01004         Bit8u bytesize = 8;
+<a name="l01005"></a>01005         <span class="keywordtype">char</span> parity = <span class="charliteral">&#39;N&#39;</span>;
+<a name="l01006"></a>01006                                                           
+<a name="l01007"></a>01007         Bit8u lcrresult = 0;
+<a name="l01008"></a>01008         Bit16u baudresult = 0;
+<a name="l01009"></a>01009 
+<a name="l01010"></a>01010         IER = 0;
+<a name="l01011"></a>01011         ISR = 0x1;
+<a name="l01012"></a>01012         LCR = 0;
+<a name="l01013"></a>01013         <span class="comment">//MCR = 0xff;</span>
+<a name="l01014"></a>01014         loopback = <span class="keyword">true</span>;
+<a name="l01015"></a>01015         dtr=<span class="keyword">true</span>;
+<a name="l01016"></a>01016         rts=<span class="keyword">true</span>;
+<a name="l01017"></a>01017         op1=<span class="keyword">true</span>;
+<a name="l01018"></a>01018         op2=<span class="keyword">true</span>;
 <a name="l01019"></a>01019 
-<a name="l01020"></a>01020 
-<a name="l01021"></a>01021         LSR = 0x60;
-<a name="l01022"></a>01022         d_cts = <span class="keyword">true</span>;   
-<a name="l01023"></a>01023         d_dsr = <span class="keyword">true</span>;   
-<a name="l01024"></a>01024         d_ri = <span class="keyword">true</span>;
-<a name="l01025"></a>01025         d_cd = <span class="keyword">true</span>;    
-<a name="l01026"></a>01026         cts = <span class="keyword">true</span>;     
-<a name="l01027"></a>01027         dsr = <span class="keyword">true</span>;     
-<a name="l01028"></a>01028         ri = <span class="keyword">true</span>;      
-<a name="l01029"></a>01029         cd = <span class="keyword">true</span>;      
-<a name="l01030"></a>01030 
-<a name="l01031"></a>01031         SPR = 0xFF;
-<a name="l01032"></a>01032 
-<a name="l01033"></a>01033         baud_divider=0x0;
+<a name="l01020"></a>01020         sync_guardtime=<span class="keyword">false</span>;
+<a name="l01021"></a>01021         FCR=0xff;
+<a name="l01022"></a>01022         Write_FCR(0x00);
+<a name="l01023"></a>01023 
+<a name="l01024"></a>01024 
+<a name="l01025"></a>01025         LSR = 0x60;
+<a name="l01026"></a>01026         d_cts = <span class="keyword">true</span>;   
+<a name="l01027"></a>01027         d_dsr = <span class="keyword">true</span>;   
+<a name="l01028"></a>01028         d_ri = <span class="keyword">true</span>;
+<a name="l01029"></a>01029         d_cd = <span class="keyword">true</span>;    
+<a name="l01030"></a>01030         cts = <span class="keyword">true</span>;     
+<a name="l01031"></a>01031         dsr = <span class="keyword">true</span>;     
+<a name="l01032"></a>01032         ri = <span class="keyword">true</span>;      
+<a name="l01033"></a>01033         cd = <span class="keyword">true</span>;      
 <a name="l01034"></a>01034 
-<a name="l01035"></a>01035         <span class="comment">// make lcr: byte size, parity, stopbits, baudrate</span>
+<a name="l01035"></a>01035         SPR = 0xFF;
 <a name="l01036"></a>01036 
-<a name="l01037"></a>01037         <span class="keywordflow">if</span> (bytesize == 5)
-<a name="l01038"></a>01038                 lcrresult |= LCR_DATABITS_5;
-<a name="l01039"></a>01039         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bytesize == 6)
-<a name="l01040"></a>01040                 lcrresult |= LCR_DATABITS_6;
-<a name="l01041"></a>01041         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bytesize == 7)
-<a name="l01042"></a>01042                 lcrresult |= LCR_DATABITS_7;
-<a name="l01043"></a>01043         <span class="keywordflow">else</span>
-<a name="l01044"></a>01044                 lcrresult |= LCR_DATABITS_8;
-<a name="l01045"></a>01045 
-<a name="l01046"></a>01046         <span class="keywordflow">switch</span>(parity)
-<a name="l01047"></a>01047         {
-<a name="l01048"></a>01048         <span class="keywordflow">case</span> <span class="charliteral">&#39;N&#39;</span>:
-<a name="l01049"></a>01049         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>:
-<a name="l01050"></a>01050                 lcrresult |= LCR_PARITY_NONE;
-<a name="l01051"></a>01051                 <span class="keywordflow">break</span>;
-<a name="l01052"></a>01052         <span class="keywordflow">case</span> <span class="charliteral">&#39;O&#39;</span>:
-<a name="l01053"></a>01053         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>:
-<a name="l01054"></a>01054                 lcrresult |= LCR_PARITY_ODD;
+<a name="l01037"></a>01037         baud_divider=0x0;
+<a name="l01038"></a>01038 
+<a name="l01039"></a>01039         <span class="comment">// make lcr: byte size, parity, stopbits, baudrate</span>
+<a name="l01040"></a>01040 
+<a name="l01041"></a>01041         <span class="keywordflow">if</span> (bytesize == 5)
+<a name="l01042"></a>01042                 lcrresult |= LCR_DATABITS_5;
+<a name="l01043"></a>01043         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bytesize == 6)
+<a name="l01044"></a>01044                 lcrresult |= LCR_DATABITS_6;
+<a name="l01045"></a>01045         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bytesize == 7)
+<a name="l01046"></a>01046                 lcrresult |= LCR_DATABITS_7;
+<a name="l01047"></a>01047         <span class="keywordflow">else</span>
+<a name="l01048"></a>01048                 lcrresult |= LCR_DATABITS_8;
+<a name="l01049"></a>01049 
+<a name="l01050"></a>01050         <span class="keywordflow">switch</span>(parity)
+<a name="l01051"></a>01051         {
+<a name="l01052"></a>01052         <span class="keywordflow">case</span> <span class="charliteral">&#39;N&#39;</span>:
+<a name="l01053"></a>01053         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>:
+<a name="l01054"></a>01054                 lcrresult |= LCR_PARITY_NONE;
 <a name="l01055"></a>01055                 <span class="keywordflow">break</span>;
-<a name="l01056"></a>01056         <span class="keywordflow">case</span> <span class="charliteral">&#39;E&#39;</span>:
-<a name="l01057"></a>01057         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:
-<a name="l01058"></a>01058                 lcrresult |= LCR_PARITY_EVEN;
+<a name="l01056"></a>01056         <span class="keywordflow">case</span> <span class="charliteral">&#39;O&#39;</span>:
+<a name="l01057"></a>01057         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>:
+<a name="l01058"></a>01058                 lcrresult |= LCR_PARITY_ODD;
 <a name="l01059"></a>01059                 <span class="keywordflow">break</span>;
-<a name="l01060"></a>01060         <span class="keywordflow">case</span> <span class="charliteral">&#39;M&#39;</span>:
-<a name="l01061"></a>01061         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>:
-<a name="l01062"></a>01062                 lcrresult |= LCR_PARITY_MARK;
+<a name="l01060"></a>01060         <span class="keywordflow">case</span> <span class="charliteral">&#39;E&#39;</span>:
+<a name="l01061"></a>01061         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:
+<a name="l01062"></a>01062                 lcrresult |= LCR_PARITY_EVEN;
 <a name="l01063"></a>01063                 <span class="keywordflow">break</span>;
-<a name="l01064"></a>01064         <span class="keywordflow">case</span> <span class="charliteral">&#39;S&#39;</span>:
-<a name="l01065"></a>01065         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
-<a name="l01066"></a>01066                 lcrresult |= LCR_PARITY_SPACE;
+<a name="l01064"></a>01064         <span class="keywordflow">case</span> <span class="charliteral">&#39;M&#39;</span>:
+<a name="l01065"></a>01065         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>:
+<a name="l01066"></a>01066                 lcrresult |= LCR_PARITY_MARK;
 <a name="l01067"></a>01067                 <span class="keywordflow">break</span>;
-<a name="l01068"></a>01068         }
-<a name="l01069"></a>01069 
-<a name="l01070"></a>01070         <span class="comment">// baudrate</span>
-<a name="l01071"></a>01071         <span class="keywordflow">if</span> (initbps &gt; 0)
-<a name="l01072"></a>01072                 baudresult = (Bit16u) (115200 / initbps);
-<a name="l01073"></a>01073         <span class="keywordflow">else</span>
-<a name="l01074"></a>01074                 baudresult = 12;                        <span class="comment">// = 9600 baud</span>
-<a name="l01075"></a>01075 
-<a name="l01076"></a>01076         Write_MCR (0);
-<a name="l01077"></a>01077         Write_LCR (LCR_DIVISOR_Enable_MASK);
-<a name="l01078"></a>01078         Write_THR ((Bit8u) baudresult &amp; 0xff);
-<a name="l01079"></a>01079         Write_IER ((Bit8u) (baudresult &gt;&gt; 8));
-<a name="l01080"></a>01080         Write_LCR (lcrresult);
-<a name="l01081"></a>01081         updateMSR();
-<a name="l01082"></a>01082         Read_MSR();
-<a name="l01083"></a>01083         PIC_DeActivateIRQ(irq);
-<a name="l01084"></a>01084 }
-<a name="l01085"></a>01085 
-<a name="l01086"></a>01086 CSerial::CSerial(Bitu <span class="keywordtype">id</span>, <a class="code" href="classCommandLine.html">CommandLine</a>* cmd) {
-<a name="l01087"></a>01087         idnumber=id;
-<a name="l01088"></a>01088         Bit16u base = serial_baseaddr[id];
+<a name="l01068"></a>01068         <span class="keywordflow">case</span> <span class="charliteral">&#39;S&#39;</span>:
+<a name="l01069"></a>01069         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
+<a name="l01070"></a>01070                 lcrresult |= LCR_PARITY_SPACE;
+<a name="l01071"></a>01071                 <span class="keywordflow">break</span>;
+<a name="l01072"></a>01072         }
+<a name="l01073"></a>01073 
+<a name="l01074"></a>01074         <span class="comment">// baudrate</span>
+<a name="l01075"></a>01075         <span class="keywordflow">if</span> (initbps &gt; 0)
+<a name="l01076"></a>01076                 baudresult = (Bit16u) (115200 / initbps);
+<a name="l01077"></a>01077         <span class="keywordflow">else</span>
+<a name="l01078"></a>01078                 baudresult = 12;                        <span class="comment">// = 9600 baud</span>
+<a name="l01079"></a>01079 
+<a name="l01080"></a>01080         Write_MCR (0);
+<a name="l01081"></a>01081         Write_LCR (LCR_DIVISOR_Enable_MASK);
+<a name="l01082"></a>01082         Write_THR ((Bit8u) baudresult &amp; 0xff);
+<a name="l01083"></a>01083         Write_IER ((Bit8u) (baudresult &gt;&gt; 8));
+<a name="l01084"></a>01084         Write_LCR (lcrresult);
+<a name="l01085"></a>01085         updateMSR();
+<a name="l01086"></a>01086         Read_MSR();
+<a name="l01087"></a>01087         PIC_DeActivateIRQ(irq);
+<a name="l01088"></a>01088 }
 <a name="l01089"></a>01089 
-<a name="l01090"></a>01090     d_cts=<span class="keyword">false</span>;                <span class="comment">// bit0: deltaCTS</span>
-<a name="l01091"></a>01091     d_dsr=<span class="keyword">false</span>;                <span class="comment">// bit1: deltaDSR</span>
-<a name="l01092"></a>01092     d_ri=<span class="keyword">false</span>;                 <span class="comment">// bit2: deltaRI</span>
-<a name="l01093"></a>01093     d_cd=<span class="keyword">false</span>;                 <span class="comment">// bit3: deltaCD</span>
-<a name="l01094"></a>01094     cts=<span class="keyword">false</span>;                  <span class="comment">// bit4: CTS</span>
-<a name="l01095"></a>01095     dsr=<span class="keyword">false</span>;                  <span class="comment">// bit5: DSR</span>
-<a name="l01096"></a>01096     ri=<span class="keyword">false</span>;                   <span class="comment">// bit6: RI</span>
-<a name="l01097"></a>01097     cd=<span class="keyword">false</span>;                   <span class="comment">// bit7: CD</span>
-<a name="l01098"></a>01098 
-<a name="l01099"></a>01099         irq = serial_defaultirq[id];
-<a name="l01100"></a>01100         getBituSubstring(<span class="stringliteral">&quot;irq:&quot;</span>,&amp;irq, cmd);
-<a name="l01101"></a>01101         <span class="keywordflow">if</span> (irq &lt; 2 || irq &gt; 15) irq = serial_defaultirq[id];
+<a name="l01090"></a>01090 CSerial::CSerial(Bitu <span class="keywordtype">id</span>, <a class="code" href="classCommandLine.html">CommandLine</a>* cmd) {
+<a name="l01091"></a>01091         idnumber=id;
+<a name="l01092"></a>01092         Bit16u base = serial_baseaddr[id];
+<a name="l01093"></a>01093 
+<a name="l01094"></a>01094     d_cts=<span class="keyword">false</span>;                <span class="comment">// bit0: deltaCTS</span>
+<a name="l01095"></a>01095     d_dsr=<span class="keyword">false</span>;                <span class="comment">// bit1: deltaDSR</span>
+<a name="l01096"></a>01096     d_ri=<span class="keyword">false</span>;                 <span class="comment">// bit2: deltaRI</span>
+<a name="l01097"></a>01097     d_cd=<span class="keyword">false</span>;                 <span class="comment">// bit3: deltaCD</span>
+<a name="l01098"></a>01098     cts=<span class="keyword">false</span>;                  <span class="comment">// bit4: CTS</span>
+<a name="l01099"></a>01099     dsr=<span class="keyword">false</span>;                  <span class="comment">// bit5: DSR</span>
+<a name="l01100"></a>01100     ri=<span class="keyword">false</span>;                   <span class="comment">// bit6: RI</span>
+<a name="l01101"></a>01101     cd=<span class="keyword">false</span>;                   <span class="comment">// bit7: CD</span>
 <a name="l01102"></a>01102 
-<a name="l01103"></a>01103 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01104"></a>01104 <span class="preprocessor"></span>        dbg_serialtraffic = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgtr&quot;</span>, <span class="keyword">false</span>);
-<a name="l01105"></a>01105         dbg_modemcontrol  = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgmd&quot;</span>, <span class="keyword">false</span>);
-<a name="l01106"></a>01106         dbg_register      = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgreg&quot;</span>, <span class="keyword">false</span>);
-<a name="l01107"></a>01107         dbg_interrupt     = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgirq&quot;</span>, <span class="keyword">false</span>);
-<a name="l01108"></a>01108         dbg_aux                   = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgaux&quot;</span>, <span class="keyword">false</span>);
-<a name="l01109"></a>01109         
-<a name="l01110"></a>01110         <span class="keywordflow">if</span>(cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgall&quot;</span>, <span class="keyword">false</span>)) {
-<a name="l01111"></a>01111                 dbg_serialtraffic= 
-<a name="l01112"></a>01112                 dbg_modemcontrol= 
-<a name="l01113"></a>01113                 dbg_register=
-<a name="l01114"></a>01114                 dbg_interrupt=
-<a name="l01115"></a>01115                 dbg_aux= <span class="keyword">true</span>;
-<a name="l01116"></a>01116         }
-<a name="l01117"></a>01117 
-<a name="l01118"></a>01118 
-<a name="l01119"></a>01119         <span class="keywordflow">if</span>(dbg_serialtraffic|dbg_modemcontrol|dbg_register|dbg_interrupt|dbg_aux)
-<a name="l01120"></a>01120                 debugfp=OpenCaptureFile(<span class="stringliteral">&quot;serlog&quot;</span>,<span class="stringliteral">&quot;.serlog.txt&quot;</span>);
-<a name="l01121"></a>01121         <span class="keywordflow">else</span> debugfp=0;
+<a name="l01103"></a>01103         irq = serial_defaultirq[id];
+<a name="l01104"></a>01104         getBituSubstring(<span class="stringliteral">&quot;irq:&quot;</span>,&amp;irq, cmd);
+<a name="l01105"></a>01105         <span class="keywordflow">if</span> (irq &lt; 2 || irq &gt; 15) irq = serial_defaultirq[id];
+<a name="l01106"></a>01106 
+<a name="l01107"></a>01107 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01108"></a>01108 <span class="preprocessor"></span>        dbg_serialtraffic = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgtr&quot;</span>, <span class="keyword">false</span>);
+<a name="l01109"></a>01109         dbg_modemcontrol  = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgmd&quot;</span>, <span class="keyword">false</span>);
+<a name="l01110"></a>01110         dbg_register      = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgreg&quot;</span>, <span class="keyword">false</span>);
+<a name="l01111"></a>01111         dbg_interrupt     = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgirq&quot;</span>, <span class="keyword">false</span>);
+<a name="l01112"></a>01112         dbg_aux                   = cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgaux&quot;</span>, <span class="keyword">false</span>);
+<a name="l01113"></a>01113         
+<a name="l01114"></a>01114         <span class="keywordflow">if</span>(cmd-&gt;FindExist(<span class="stringliteral">&quot;dbgall&quot;</span>, <span class="keyword">false</span>)) {
+<a name="l01115"></a>01115                 dbg_serialtraffic= 
+<a name="l01116"></a>01116                 dbg_modemcontrol= 
+<a name="l01117"></a>01117                 dbg_register=
+<a name="l01118"></a>01118                 dbg_interrupt=
+<a name="l01119"></a>01119                 dbg_aux= <span class="keyword">true</span>;
+<a name="l01120"></a>01120         }
+<a name="l01121"></a>01121 
 <a name="l01122"></a>01122 
-<a name="l01123"></a>01123         <span class="keywordflow">if</span>(debugfp == 0) {
-<a name="l01124"></a>01124                 dbg_serialtraffic= 
-<a name="l01125"></a>01125                 dbg_modemcontrol= 
-<a name="l01126"></a>01126                 dbg_register=
-<a name="l01127"></a>01127                 dbg_interrupt=
-<a name="l01128"></a>01128                 dbg_aux= <span class="keyword">false</span>;
-<a name="l01129"></a>01129         } <span class="keywordflow">else</span> {
-<a name="l01130"></a>01130                 std::string cleft;
-<a name="l01131"></a>01131                 cmd-&gt;GetStringRemain(cleft);
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133                 log_ser(<span class="keyword">true</span>,<span class="stringliteral">&quot;Serial%d: BASE %3x, IRQ %d, initstring \&quot;%s\&quot;\r\n\r\n&quot;</span>,
-<a name="l01134"></a>01134                         COMNUMBER,base,irq,cleft.c_str());
-<a name="l01135"></a>01135         }
-<a name="l01136"></a>01136 <span class="preprocessor">#endif</span>
-<a name="l01137"></a>01137 <span class="preprocessor"></span>        fifosize=16;
-<a name="l01138"></a>01138 
-<a name="l01139"></a>01139         errorfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
-<a name="l01140"></a>01140         rxfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
-<a name="l01141"></a>01141         txfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
+<a name="l01123"></a>01123         <span class="keywordflow">if</span>(dbg_serialtraffic|dbg_modemcontrol|dbg_register|dbg_interrupt|dbg_aux)
+<a name="l01124"></a>01124                 debugfp=OpenCaptureFile(<span class="stringliteral">&quot;serlog&quot;</span>,<span class="stringliteral">&quot;.serlog.txt&quot;</span>);
+<a name="l01125"></a>01125         <span class="keywordflow">else</span> debugfp=0;
+<a name="l01126"></a>01126 
+<a name="l01127"></a>01127         <span class="keywordflow">if</span>(debugfp == 0) {
+<a name="l01128"></a>01128                 dbg_serialtraffic= 
+<a name="l01129"></a>01129                 dbg_modemcontrol= 
+<a name="l01130"></a>01130                 dbg_register=
+<a name="l01131"></a>01131                 dbg_interrupt=
+<a name="l01132"></a>01132                 dbg_aux= <span class="keyword">false</span>;
+<a name="l01133"></a>01133         } <span class="keywordflow">else</span> {
+<a name="l01134"></a>01134                 std::string cleft;
+<a name="l01135"></a>01135                 cmd-&gt;GetStringRemain(cleft);
+<a name="l01136"></a>01136 
+<a name="l01137"></a>01137                 log_ser(<span class="keyword">true</span>,<span class="stringliteral">&quot;Serial%d: BASE %3x, IRQ %d, initstring \&quot;%s\&quot;\r\n\r\n&quot;</span>,
+<a name="l01138"></a>01138                         COMNUMBER,base,irq,cleft.c_str());
+<a name="l01139"></a>01139         }
+<a name="l01140"></a>01140 <span class="preprocessor">#endif</span>
+<a name="l01141"></a>01141 <span class="preprocessor"></span>        fifosize=16;
 <a name="l01142"></a>01142 
-<a name="l01143"></a>01143         mydosdevice=NULL;
-<a name="l01144"></a>01144         errormsg_pending=<span class="keyword">false</span>;
-<a name="l01145"></a>01145         framingErrors=0;
-<a name="l01146"></a>01146         parityErrors=0;
-<a name="l01147"></a>01147         overrunErrors=0;
-<a name="l01148"></a>01148         txOverrunErrors=0;
-<a name="l01149"></a>01149         overrunIF0=0;
-<a name="l01150"></a>01150         breakErrors=0;
-<a name="l01151"></a>01151         
-<a name="l01152"></a>01152         <span class="keywordflow">for</span> (Bitu i = 0; i &lt;= 7; i++) {
-<a name="l01153"></a>01153                 WriteHandler[i].Install (i + base, SERIAL_Write, IO_MB);
-<a name="l01154"></a>01154                 ReadHandler[i].Install (i + base, SERIAL_Read, IO_MB);
-<a name="l01155"></a>01155         }
-<a name="l01156"></a>01156 }
-<a name="l01157"></a>01157 
-<a name="l01158"></a>01158 <span class="keywordtype">bool</span> CSerial::getBituSubstring(<span class="keyword">const</span> <span class="keywordtype">char</span>* name,Bitu* data, <a class="code" href="classCommandLine.html">CommandLine</a>* cmd) {
-<a name="l01159"></a>01159         std::string tmpstring;
-<a name="l01160"></a>01160         <span class="keywordflow">if</span>(!(cmd-&gt;FindStringBegin(name,tmpstring,<span class="keyword">false</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01161"></a>01161         <span class="keyword">const</span> <span class="keywordtype">char</span>* tmpchar=tmpstring.c_str();
-<a name="l01162"></a>01162 
-<a name="l01163"></a>01163         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> tmp;
-<a name="l01164"></a>01164         <span class="keywordflow">if</span>(sscanf(tmpchar,<span class="stringliteral">&quot;%u&quot;</span>,&amp;tmp)!=1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01165"></a>01165         *data = (Bitu)tmp;
-<a name="l01166"></a>01166         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01167"></a>01167 }
-<a name="l01168"></a>01168 
-<a name="l01169"></a>01169 <span class="keywordtype">void</span> CSerial::registerDOSDevice() {
-<a name="l01170"></a>01170         <span class="keywordflow">if</span> (mydosdevice == NULL) {
-<a name="l01171"></a>01171                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;COM%d: Registering DOS device&quot;</span>,(int)idnumber+1);
-<a name="l01172"></a>01172                 mydosdevice = <span class="keyword">new</span> <a class="code" href="classdevice__COM.html">device_COM</a>(<span class="keyword">this</span>);
-<a name="l01173"></a>01173                 DOS_AddDevice(mydosdevice);
-<a name="l01174"></a>01174         }
-<a name="l01175"></a>01175 }
-<a name="l01176"></a>01176 
-<a name="l01177"></a>01177 <span class="keywordtype">void</span> CSerial::unregisterDOSDevice() {
-<a name="l01178"></a>01178         <span class="keywordflow">if</span> (mydosdevice != NULL) {
-<a name="l01179"></a>01179                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;COM%d: Unregistering DOS device&quot;</span>,(int)idnumber+1);
-<a name="l01180"></a>01180                 DOS_DelDevice(mydosdevice); <span class="comment">// deletes the pointer for us!</span>
-<a name="l01181"></a>01181                 mydosdevice=NULL;
-<a name="l01182"></a>01182         }
-<a name="l01183"></a>01183 }
-<a name="l01184"></a>01184 
-<a name="l01185"></a>01185 CSerial::~CSerial(<span class="keywordtype">void</span>) {
-<a name="l01186"></a>01186         unregisterDOSDevice();
-<a name="l01187"></a>01187         <span class="keywordflow">for</span>(Bitu i = 0; i &lt;= SERIAL_BASE_EVENT_COUNT; i++)
-<a name="l01188"></a>01188                 removeEvent(i);
-<a name="l01189"></a>01189 
-<a name="l01190"></a>01190         <span class="keywordflow">if</span> (rxfifo != NULL) {
-<a name="l01191"></a>01191                 <span class="keyword">delete</span> rxfifo;
-<a name="l01192"></a>01192                 rxfifo = NULL;
-<a name="l01193"></a>01193         }
-<a name="l01194"></a>01194         <span class="keywordflow">if</span> (txfifo != NULL) {
-<a name="l01195"></a>01195                 <span class="keyword">delete</span> txfifo;
-<a name="l01196"></a>01196                 txfifo = NULL;
+<a name="l01143"></a>01143         errorfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
+<a name="l01144"></a>01144         rxfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
+<a name="l01145"></a>01145         txfifo = <span class="keyword">new</span> <a class="code" href="classMyFifo.html">MyFifo</a>(fifosize);
+<a name="l01146"></a>01146 
+<a name="l01147"></a>01147         mydosdevice=NULL;
+<a name="l01148"></a>01148         errormsg_pending=<span class="keyword">false</span>;
+<a name="l01149"></a>01149         framingErrors=0;
+<a name="l01150"></a>01150         parityErrors=0;
+<a name="l01151"></a>01151         overrunErrors=0;
+<a name="l01152"></a>01152         txOverrunErrors=0;
+<a name="l01153"></a>01153         overrunIF0=0;
+<a name="l01154"></a>01154         breakErrors=0;
+<a name="l01155"></a>01155         
+<a name="l01156"></a>01156         <span class="keywordflow">for</span> (Bitu i = 0; i &lt;= 7; i++) {
+<a name="l01157"></a>01157                 WriteHandler[i].Install (i + base, SERIAL_Write, IO_MB);
+<a name="l01158"></a>01158                 ReadHandler[i].Install (i + base, SERIAL_Read, IO_MB);
+<a name="l01159"></a>01159         }
+<a name="l01160"></a>01160 }
+<a name="l01161"></a>01161 
+<a name="l01162"></a>01162 <span class="keywordtype">bool</span> CSerial::getBituSubstring(<span class="keyword">const</span> <span class="keywordtype">char</span>* name,Bitu* data, <a class="code" href="classCommandLine.html">CommandLine</a>* cmd) {
+<a name="l01163"></a>01163         std::string tmpstring;
+<a name="l01164"></a>01164         <span class="keywordflow">if</span>(!(cmd-&gt;FindStringBegin(name,tmpstring,<span class="keyword">false</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01165"></a>01165         <span class="keyword">const</span> <span class="keywordtype">char</span>* tmpchar=tmpstring.c_str();
+<a name="l01166"></a>01166 
+<a name="l01167"></a>01167         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> tmp;
+<a name="l01168"></a>01168         <span class="keywordflow">if</span>(sscanf(tmpchar,<span class="stringliteral">&quot;%u&quot;</span>,&amp;tmp)!=1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01169"></a>01169         *data = (Bitu)tmp;
+<a name="l01170"></a>01170         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01171"></a>01171 }
+<a name="l01172"></a>01172 
+<a name="l01173"></a>01173 <span class="keywordtype">void</span> CSerial::registerDOSDevice() {
+<a name="l01174"></a>01174         <span class="keywordflow">if</span> (mydosdevice == NULL) {
+<a name="l01175"></a>01175                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;COM%d: Registering DOS device&quot;</span>,(int)idnumber+1);
+<a name="l01176"></a>01176                 mydosdevice = <span class="keyword">new</span> <a class="code" href="classdevice__COM.html">device_COM</a>(<span class="keyword">this</span>);
+<a name="l01177"></a>01177                 DOS_AddDevice(mydosdevice);
+<a name="l01178"></a>01178         }
+<a name="l01179"></a>01179 }
+<a name="l01180"></a>01180 
+<a name="l01181"></a>01181 <span class="keywordtype">void</span> CSerial::unregisterDOSDevice() {
+<a name="l01182"></a>01182         <span class="keywordflow">if</span> (mydosdevice != NULL) {
+<a name="l01183"></a>01183                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;COM%d: Unregistering DOS device&quot;</span>,(int)idnumber+1);
+<a name="l01184"></a>01184                 DOS_DelDevice(mydosdevice); <span class="comment">// deletes the pointer for us!</span>
+<a name="l01185"></a>01185                 mydosdevice=NULL;
+<a name="l01186"></a>01186         }
+<a name="l01187"></a>01187 }
+<a name="l01188"></a>01188 
+<a name="l01189"></a>01189 CSerial::~CSerial(<span class="keywordtype">void</span>) {
+<a name="l01190"></a>01190         unregisterDOSDevice();
+<a name="l01191"></a>01191         <span class="keywordflow">for</span>(Bit8u i = 0; i &lt;= SERIAL_BASE_EVENT_COUNT; i++)
+<a name="l01192"></a>01192                 removeEvent(i);
+<a name="l01193"></a>01193 
+<a name="l01194"></a>01194         <span class="keywordflow">if</span> (rxfifo != NULL) {
+<a name="l01195"></a>01195                 <span class="keyword">delete</span> rxfifo;
+<a name="l01196"></a>01196                 rxfifo = NULL;
 <a name="l01197"></a>01197         }
-<a name="l01198"></a>01198         <span class="keywordflow">if</span> (errorfifo != NULL) {
-<a name="l01199"></a>01199                 <span class="keyword">delete</span> errorfifo;
-<a name="l01200"></a>01200                 errorfifo = NULL;
+<a name="l01198"></a>01198         <span class="keywordflow">if</span> (txfifo != NULL) {
+<a name="l01199"></a>01199                 <span class="keyword">delete</span> txfifo;
+<a name="l01200"></a>01200                 txfifo = NULL;
 <a name="l01201"></a>01201         }
-<a name="l01202"></a>01202 }
-<a name="l01203"></a>01203 
-<a name="l01204"></a>01204 <span class="keywordtype">bool</span> CSerial::Getchar(Bit8u* data, Bit8u* lsr, <span class="keywordtype">bool</span> wait_dsr, Bitu timeout) {
-<a name="l01205"></a>01205         <span class="keywordtype">double</span> starttime=PIC_FullIndex();
-<a name="l01206"></a>01206         <span class="comment">// wait for DSR on</span>
-<a name="l01207"></a>01207         <span class="keywordflow">if</span>(wait_dsr) {
-<a name="l01208"></a>01208                 <span class="keywordflow">while</span>((!(Read_MSR()&amp;0x20))&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
-<a name="l01209"></a>01209                         CALLBACK_Idle();
-<a name="l01210"></a>01210                 <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
-<a name="l01211"></a>01211 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01212"></a>01212 <span class="preprocessor"></span>                        log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar status timeout: MSR 0x%x&quot;</span>,Read_MSR());
-<a name="l01213"></a>01213 <span class="preprocessor">#endif</span>
-<a name="l01214"></a>01214 <span class="preprocessor"></span>                        <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01215"></a>01215                 }
-<a name="l01216"></a>01216         }
-<a name="l01217"></a>01217         <span class="comment">// wait for a byte to arrive</span>
-<a name="l01218"></a>01218         <span class="keywordflow">while</span>((!((*lsr=Read_LSR())&amp;0x1))&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
-<a name="l01219"></a>01219                 CALLBACK_Idle();
-<a name="l01220"></a>01220         
-<a name="l01221"></a>01221         <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
-<a name="l01222"></a>01222 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01223"></a>01223 <span class="preprocessor"></span>                log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar data timeout: MSR 0x%x&quot;</span>,Read_MSR());
-<a name="l01224"></a>01224 <span class="preprocessor">#endif</span>
-<a name="l01225"></a>01225 <span class="preprocessor"></span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01226"></a>01226         }
-<a name="l01227"></a>01227         *data=Read_RHR();
-<a name="l01228"></a>01228 
-<a name="l01229"></a>01229 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01230"></a>01230 <span class="preprocessor"></span>        log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar read 0x%x&quot;</span>,*data);
-<a name="l01231"></a>01231 <span class="preprocessor">#endif</span>
-<a name="l01232"></a>01232 <span class="preprocessor"></span>        <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01233"></a>01233 }
-<a name="l01234"></a>01234 
-<a name="l01235"></a>01235 
-<a name="l01236"></a>01236 <span class="keywordtype">bool</span> CSerial::Putchar(Bit8u data, <span class="keywordtype">bool</span> wait_dsr, <span class="keywordtype">bool</span> wait_cts, Bitu timeout) {
-<a name="l01237"></a>01237         
-<a name="l01238"></a>01238         <span class="keywordtype">double</span> starttime=PIC_FullIndex();
-<a name="l01239"></a>01239         <span class="comment">// wait for it to become empty</span>
-<a name="l01240"></a>01240         <span class="keywordflow">while</span>(!(Read_LSR()&amp;0x20)) {
-<a name="l01241"></a>01241                 CALLBACK_Idle();
-<a name="l01242"></a>01242         }
-<a name="l01243"></a>01243         <span class="comment">// wait for DSR+CTS on</span>
-<a name="l01244"></a>01244         <span class="keywordflow">if</span>(wait_dsr||wait_cts) {
-<a name="l01245"></a>01245                 <span class="keywordflow">if</span>(wait_dsr||wait_cts) {
-<a name="l01246"></a>01246                         <span class="keywordflow">while</span>(((Read_MSR()&amp;0x30)!=0x30)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
-<a name="l01247"></a>01247                                 CALLBACK_Idle();
-<a name="l01248"></a>01248                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(wait_dsr) {
-<a name="l01249"></a>01249                         <span class="keywordflow">while</span>(!(Read_MSR()&amp;0x20)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
-<a name="l01250"></a>01250                                 CALLBACK_Idle();
-<a name="l01251"></a>01251                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(wait_cts) {
-<a name="l01252"></a>01252                         <span class="keywordflow">while</span>(!(Read_MSR()&amp;0x10)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
-<a name="l01253"></a>01253                                 CALLBACK_Idle();
-<a name="l01254"></a>01254                 } 
-<a name="l01255"></a>01255                 <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
-<a name="l01256"></a>01256 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01257"></a>01257 <span class="preprocessor"></span>                        log_ser(dbg_aux,<span class="stringliteral">&quot;Putchar timeout: MSR 0x%x&quot;</span>,Read_MSR());
-<a name="l01258"></a>01258 <span class="preprocessor">#endif</span>
-<a name="l01259"></a>01259 <span class="preprocessor"></span>                        <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01260"></a>01260                 }
-<a name="l01261"></a>01261         }
-<a name="l01262"></a>01262         Write_THR(data);
-<a name="l01263"></a>01263 
-<a name="l01264"></a>01264 <span class="preprocessor">#if SERIAL_DEBUG</span>
-<a name="l01265"></a>01265 <span class="preprocessor"></span>        log_ser(dbg_aux,<span class="stringliteral">&quot;Putchar 0x%x&quot;</span>,data);
-<a name="l01266"></a>01266 <span class="preprocessor">#endif</span>
-<a name="l01267"></a>01267 <span class="preprocessor"></span>
-<a name="l01268"></a>01268         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01269"></a>01269 }
-<a name="l01270"></a>01270 
-<a name="l01271"></a>01271 <span class="keywordtype">void</span> BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
-<a name="l01272"></a>01272 <span class="keywordtype">void</span> BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
-<a name="l01273"></a>01273 
-<a name="l01274"></a>01274 <span class="keywordtype">void</span> BIOS_Post_register_comports_PNP() {
-<a name="l01275"></a>01275         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l01276"></a>01276 
-<a name="l01277"></a>01277         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l01278"></a>01278                 <span class="keywordflow">if</span> (serialports[i] != NULL) {
-<a name="l01279"></a>01279                         BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]-&gt;irq);
-<a name="l01280"></a>01280                 }
-<a name="l01281"></a>01281         }
-<a name="l01282"></a>01282 }
-<a name="l01283"></a>01283 
-<a name="l01284"></a>01284 Bitu bios_post_comport_count() {
-<a name="l01285"></a>01285         Bitu count = 0;
-<a name="l01286"></a>01286         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01202"></a>01202         <span class="keywordflow">if</span> (errorfifo != NULL) {
+<a name="l01203"></a>01203                 <span class="keyword">delete</span> errorfifo;
+<a name="l01204"></a>01204                 errorfifo = NULL;
+<a name="l01205"></a>01205         }
+<a name="l01206"></a>01206 }
+<a name="l01207"></a>01207 
+<a name="l01208"></a>01208 <span class="keywordtype">bool</span> CSerial::Getchar(Bit8u* data, Bit8u* lsr, <span class="keywordtype">bool</span> wait_dsr, Bitu timeout) {
+<a name="l01209"></a>01209         <span class="keywordtype">double</span> starttime=PIC_FullIndex();
+<a name="l01210"></a>01210         <span class="comment">// wait for DSR on</span>
+<a name="l01211"></a>01211         <span class="keywordflow">if</span>(wait_dsr) {
+<a name="l01212"></a>01212                 <span class="keywordflow">while</span>((!(Read_MSR()&amp;0x20))&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
+<a name="l01213"></a>01213                         CALLBACK_Idle();
+<a name="l01214"></a>01214                 <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
+<a name="l01215"></a>01215 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01216"></a>01216 <span class="preprocessor"></span>                        log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar status timeout: MSR 0x%x&quot;</span>,Read_MSR());
+<a name="l01217"></a>01217 <span class="preprocessor">#endif</span>
+<a name="l01218"></a>01218 <span class="preprocessor"></span>                        <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01219"></a>01219                 }
+<a name="l01220"></a>01220         }
+<a name="l01221"></a>01221         <span class="comment">// wait for a byte to arrive</span>
+<a name="l01222"></a>01222         <span class="keywordflow">while</span>((!((*lsr=(Bit8u)Read_LSR())&amp;0x1))&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
+<a name="l01223"></a>01223                 CALLBACK_Idle();
+<a name="l01224"></a>01224         
+<a name="l01225"></a>01225         <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
+<a name="l01226"></a>01226 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01227"></a>01227 <span class="preprocessor"></span>                log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar data timeout: MSR 0x%x&quot;</span>,Read_MSR());
+<a name="l01228"></a>01228 <span class="preprocessor">#endif</span>
+<a name="l01229"></a>01229 <span class="preprocessor"></span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01230"></a>01230         }
+<a name="l01231"></a>01231         *data=(Bit8u)Read_RHR();
+<a name="l01232"></a>01232 
+<a name="l01233"></a>01233 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01234"></a>01234 <span class="preprocessor"></span>        log_ser(dbg_aux,<span class="stringliteral">&quot;Getchar read 0x%x&quot;</span>,*data);
+<a name="l01235"></a>01235 <span class="preprocessor">#endif</span>
+<a name="l01236"></a>01236 <span class="preprocessor"></span>        <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01237"></a>01237 }
+<a name="l01238"></a>01238 
+<a name="l01239"></a>01239 
+<a name="l01240"></a>01240 <span class="keywordtype">bool</span> CSerial::Putchar(Bit8u data, <span class="keywordtype">bool</span> wait_dsr, <span class="keywordtype">bool</span> wait_cts, Bitu timeout) {
+<a name="l01241"></a>01241         
+<a name="l01242"></a>01242         <span class="keywordtype">double</span> starttime=PIC_FullIndex();
+<a name="l01243"></a>01243         <span class="comment">// wait for it to become empty</span>
+<a name="l01244"></a>01244         <span class="keywordflow">while</span>(!(Read_LSR()&amp;0x20)) {
+<a name="l01245"></a>01245                 CALLBACK_Idle();
+<a name="l01246"></a>01246         }
+<a name="l01247"></a>01247         <span class="comment">// wait for DSR+CTS on</span>
+<a name="l01248"></a>01248         <span class="keywordflow">if</span>(wait_dsr||wait_cts) {
+<a name="l01249"></a>01249                 <span class="keywordflow">if</span>(wait_dsr||wait_cts) {
+<a name="l01250"></a>01250                         <span class="keywordflow">while</span>(((Read_MSR()&amp;0x30)!=0x30)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
+<a name="l01251"></a>01251                                 CALLBACK_Idle();
+<a name="l01252"></a>01252                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(wait_dsr) {
+<a name="l01253"></a>01253                         <span class="keywordflow">while</span>(!(Read_MSR()&amp;0x20)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
+<a name="l01254"></a>01254                                 CALLBACK_Idle();
+<a name="l01255"></a>01255                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(wait_cts) {
+<a name="l01256"></a>01256                         <span class="keywordflow">while</span>(!(Read_MSR()&amp;0x10)&amp;&amp;(starttime&gt;PIC_FullIndex()-timeout))
+<a name="l01257"></a>01257                                 CALLBACK_Idle();
+<a name="l01258"></a>01258                 } 
+<a name="l01259"></a>01259                 <span class="keywordflow">if</span>(!(starttime&gt;PIC_FullIndex()-timeout)) {
+<a name="l01260"></a>01260 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01261"></a>01261 <span class="preprocessor"></span>                        log_ser(dbg_aux,<span class="stringliteral">&quot;Putchar timeout: MSR 0x%x&quot;</span>,Read_MSR());
+<a name="l01262"></a>01262 <span class="preprocessor">#endif</span>
+<a name="l01263"></a>01263 <span class="preprocessor"></span>                        <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01264"></a>01264                 }
+<a name="l01265"></a>01265         }
+<a name="l01266"></a>01266         Write_THR(data);
+<a name="l01267"></a>01267 
+<a name="l01268"></a>01268 <span class="preprocessor">#if SERIAL_DEBUG</span>
+<a name="l01269"></a>01269 <span class="preprocessor"></span>        log_ser(dbg_aux,<span class="stringliteral">&quot;Putchar 0x%x&quot;</span>,data);
+<a name="l01270"></a>01270 <span class="preprocessor">#endif</span>
+<a name="l01271"></a>01271 <span class="preprocessor"></span>
+<a name="l01272"></a>01272         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01273"></a>01273 }
+<a name="l01274"></a>01274 
+<a name="l01275"></a>01275 <span class="keywordtype">void</span> BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
+<a name="l01276"></a>01276 <span class="keywordtype">void</span> BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
+<a name="l01277"></a>01277 
+<a name="l01278"></a>01278 <span class="keywordtype">void</span> BIOS_Post_register_comports_PNP() {
+<a name="l01279"></a>01279         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01280"></a>01280 
+<a name="l01281"></a>01281         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l01282"></a>01282                 <span class="keywordflow">if</span> (serialports[i] != NULL) {
+<a name="l01283"></a>01283                         BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]-&gt;irq);
+<a name="l01284"></a>01284                 }
+<a name="l01285"></a>01285         }
+<a name="l01286"></a>01286 }
 <a name="l01287"></a>01287 
-<a name="l01288"></a>01288         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l01289"></a>01289                 <span class="keywordflow">if</span> (serialports[i] != NULL)
-<a name="l01290"></a>01290                         count++;
-<a name="l01291"></a>01291         }
-<a name="l01292"></a>01292 
-<a name="l01293"></a>01293         <span class="keywordflow">return</span> count;
-<a name="l01294"></a>01294 }
-<a name="l01295"></a>01295 
-<a name="l01296"></a>01296 <span class="comment">/* at BIOS POST stage, write serial ports to bios data area */</span>
-<a name="l01297"></a>01297 <span class="keywordtype">void</span> BIOS_Post_register_comports() {
-<a name="l01298"></a>01298         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01288"></a>01288 Bitu bios_post_comport_count() {
+<a name="l01289"></a>01289         Bitu count = 0;
+<a name="l01290"></a>01290         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01291"></a>01291 
+<a name="l01292"></a>01292         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l01293"></a>01293                 <span class="keywordflow">if</span> (serialports[i] != NULL)
+<a name="l01294"></a>01294                         count++;
+<a name="l01295"></a>01295         }
+<a name="l01296"></a>01296 
+<a name="l01297"></a>01297         <span class="keywordflow">return</span> count;
+<a name="l01298"></a>01298 }
 <a name="l01299"></a>01299 
-<a name="l01300"></a>01300         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l01301"></a>01301                 <span class="keywordflow">if</span> (serialports[i] != NULL)
-<a name="l01302"></a>01302                         BIOS_SetCOMPort(i,serial_baseaddr[i]);
-<a name="l01303"></a>01303         }
-<a name="l01304"></a>01304 }
-<a name="l01305"></a>01305 
-<a name="l01306"></a><a class="code" href="classSERIALPORTS.html">01306</a> <span class="keyword">class </span><a class="code" href="classSERIALPORTS.html">SERIALPORTS</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
-<a name="l01307"></a>01307 <span class="keyword">public</span>:
-<a name="l01308"></a>01308         <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> (<a class="code" href="classSection.html">Section</a> * configuration):<a class="code" href="classModule__base.html">Module_base</a> (configuration) {
-<a name="l01309"></a>01309                 <a class="code" href="classSection__prop.html">Section_prop</a> *section = static_cast &lt;<a class="code" href="classSection__prop.html">Section_prop</a>*&gt;(configuration);
-<a name="l01310"></a>01310 
-<a name="l01311"></a>01311         <span class="comment">// TODO: PC-98 does have serial ports, though differently.</span>
-<a name="l01312"></a>01312         <span class="comment">//       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs</span>
-<a name="l01313"></a>01313         <span class="keywordflow">if</span> (IS_PC98_ARCH) <span class="keywordflow">return</span>;
+<a name="l01300"></a>01300 <span class="comment">/* at BIOS POST stage, write serial ports to bios data area */</span>
+<a name="l01301"></a>01301 <span class="keywordtype">void</span> BIOS_Post_register_comports() {
+<a name="l01302"></a>01302         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l01305"></a>01305                 <span class="keywordflow">if</span> (serialports[i] != NULL)
+<a name="l01306"></a>01306                         BIOS_SetCOMPort(i,serial_baseaddr[i]);
+<a name="l01307"></a>01307         }
+<a name="l01308"></a>01308 }
+<a name="l01309"></a>01309 
+<a name="l01310"></a><a class="code" href="classSERIALPORTS.html">01310</a> <span class="keyword">class </span><a class="code" href="classSERIALPORTS.html">SERIALPORTS</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
+<a name="l01311"></a>01311 <span class="keyword">public</span>:
+<a name="l01312"></a>01312         <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> (<a class="code" href="classSection.html">Section</a> * configuration):<a class="code" href="classModule__base.html">Module_base</a> (configuration) {
+<a name="l01313"></a>01313                 <a class="code" href="classSection__prop.html">Section_prop</a> *section = static_cast &lt;<a class="code" href="classSection__prop.html">Section_prop</a>*&gt;(configuration);
 <a name="l01314"></a>01314 
-<a name="l01315"></a>01315                 <span class="keywordtype">char</span> s_property[] = <span class="stringliteral">&quot;serialx&quot;</span>; 
-<a name="l01316"></a>01316                 <span class="keywordflow">for</span>(Bitu i = 0; i &lt; 4; i++) {
-<a name="l01317"></a>01317                         <span class="comment">// get the configuration property</span>
-<a name="l01318"></a>01318                         s_property[6] = <span class="charliteral">&#39;1&#39;</span> + i;
-<a name="l01319"></a>01319                         <a class="code" href="classProp__multival.html">Prop_multival</a>* p = section-&gt;Get_multival(s_property);
-<a name="l01320"></a>01320                         std::string type = p-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;type&quot;</span>);
-<a name="l01321"></a>01321                         <a class="code" href="classCommandLine.html">CommandLine</a> cmd(0,p-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;parameters&quot;</span>));
-<a name="l01322"></a>01322                         
-<a name="l01323"></a>01323                         <span class="comment">// detect the type</span>
-<a name="l01324"></a>01324                         <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;dummy&quot;</span>) {
-<a name="l01325"></a>01325                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialDummy.html">CSerialDummy</a> (i, &amp;cmd);
-<a name="l01326"></a>01326                         }
-<a name="l01327"></a>01327                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;log&quot;</span>) {
-<a name="l01328"></a>01328                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialLog.html">CSerialLog</a> (i, &amp;cmd);
-<a name="l01329"></a>01329                         }
-<a name="l01330"></a>01330                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;serialmouse&quot;</span>) {
-<a name="l01331"></a>01331                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialMouse.html">CSerialMouse</a> (i, &amp;cmd);
-<a name="l01332"></a>01332                         }
-<a name="l01333"></a>01333 <span class="preprocessor">#ifdef DIRECTSERIAL_AVAILIBLE</span>
-<a name="l01334"></a>01334 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;directserial&quot;</span>) {
-<a name="l01335"></a>01335                                 serialports[i] = <span class="keyword">new</span> CDirectSerial (i, &amp;cmd);
-<a name="l01336"></a>01336                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
-<a name="l01337"></a>01337                                         <span class="comment">// serial port name was wrong or already in use</span>
-<a name="l01338"></a>01338                                         <span class="keyword">delete</span> serialports[i];
-<a name="l01339"></a>01339                                         serialports[i] = NULL;
-<a name="l01340"></a>01340                                 }
-<a name="l01341"></a>01341                         }
-<a name="l01342"></a>01342 <span class="preprocessor">#endif</span>
-<a name="l01343"></a>01343 <span class="preprocessor"></span><span class="preprocessor">#if C_MODEM</span>
-<a name="l01344"></a>01344 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;modem&quot;</span>) {
-<a name="l01345"></a>01345                                 serialports[i] = <span class="keyword">new</span> CSerialModem (i, &amp;cmd);
-<a name="l01346"></a>01346                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
-<a name="l01347"></a>01347                                         <span class="keyword">delete</span> serialports[i];
-<a name="l01348"></a>01348                                         serialports[i] = NULL;
-<a name="l01349"></a>01349                                 }
-<a name="l01350"></a>01350                         }
-<a name="l01351"></a>01351                         <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;nullmodem&quot;</span>) {
-<a name="l01352"></a>01352                                 serialports[i] = <span class="keyword">new</span> CNullModem (i, &amp;cmd);
-<a name="l01353"></a>01353                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
-<a name="l01354"></a>01354                                         <span class="keyword">delete</span> serialports[i];
-<a name="l01355"></a>01355                                         serialports[i] = NULL;
-<a name="l01356"></a>01356                                 }
-<a name="l01357"></a>01357                         }
-<a name="l01358"></a>01358 <span class="preprocessor">#endif</span>
-<a name="l01359"></a>01359 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;disabled&quot;</span>) {
-<a name="l01360"></a>01360                                 serialports[i] = NULL;
-<a name="l01361"></a>01361                         } <span class="keywordflow">else</span> {
-<a name="l01362"></a>01362                                 serialports[i] = NULL;
-<a name="l01363"></a>01363                                 LOG_MSG(<span class="stringliteral">&quot;Invalid type for serial%d&quot;</span>,(<span class="keywordtype">int</span>)i+1);
-<a name="l01364"></a>01364                         }
-<a name="l01365"></a>01365                 } <span class="comment">// for 1-4</span>
-<a name="l01366"></a>01366         }
-<a name="l01367"></a>01367 
-<a name="l01368"></a>01368         ~<a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> () {
-<a name="l01369"></a>01369                 <span class="keywordflow">for</span> (Bitu i = 0; i &lt; 4; i++)
-<a name="l01370"></a>01370                         <span class="keywordflow">if</span> (serialports[i]) {
-<a name="l01371"></a>01371                                 <span class="keyword">delete</span> serialports[i];
-<a name="l01372"></a>01372                                 serialports[i] = 0;
-<a name="l01373"></a>01373                         }
-<a name="l01374"></a>01374         }
-<a name="l01375"></a>01375 };
-<a name="l01376"></a>01376 
-<a name="l01377"></a>01377 <span class="keyword">static</span> <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> *testSerialPortsBaseclass;
-<a name="l01378"></a>01378 
-<a name="l01379"></a>01379 <span class="keywordtype">void</span> SERIAL_Destroy (<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01380"></a>01380     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01381"></a>01381         <span class="keywordflow">if</span> (testSerialPortsBaseclass) {
-<a name="l01382"></a>01382                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Deleting serial port base class&quot;</span>);
-<a name="l01383"></a>01383                 <span class="keyword">delete</span> testSerialPortsBaseclass;
-<a name="l01384"></a>01384                 testSerialPortsBaseclass = NULL;
-<a name="l01385"></a>01385         }
-<a name="l01386"></a>01386 }
-<a name="l01387"></a>01387 
-<a name="l01388"></a>01388 <span class="keywordtype">void</span> SERIAL_OnPowerOn (<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01389"></a>01389     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01390"></a>01390         <span class="comment">// should never happen</span>
-<a name="l01391"></a>01391         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Reinitializing serial emulation&quot;</span>);
-<a name="l01392"></a>01392         <span class="keywordflow">if</span> (testSerialPortsBaseclass) <span class="keyword">delete</span> testSerialPortsBaseclass;
-<a name="l01393"></a>01393         testSerialPortsBaseclass = <span class="keyword">new</span> <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> (control-&gt;GetSection(<span class="stringliteral">&quot;serial&quot;</span>));
-<a name="l01394"></a>01394 }
-<a name="l01395"></a>01395 
-<a name="l01396"></a>01396 <span class="keywordtype">void</span> SERIAL_OnDOSKernelInit (<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01397"></a>01397     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01398"></a>01398         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01315"></a>01315         <span class="comment">// TODO: PC-98 does have serial ports, though differently.</span>
+<a name="l01316"></a>01316         <span class="comment">//       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs</span>
+<a name="l01317"></a>01317         <span class="keywordflow">if</span> (IS_PC98_ARCH) <span class="keywordflow">return</span>;
+<a name="l01318"></a>01318 
+<a name="l01319"></a>01319                 <span class="keywordtype">char</span> s_property[] = <span class="stringliteral">&quot;serialx&quot;</span>; 
+<a name="l01320"></a>01320                 <span class="keywordflow">for</span>(Bit8u i = 0; i &lt; 4; i++) {
+<a name="l01321"></a>01321                         <span class="comment">// get the configuration property</span>
+<a name="l01322"></a>01322                         s_property[6] = <span class="charliteral">&#39;1&#39;</span> + i;
+<a name="l01323"></a>01323                         <a class="code" href="classProp__multival.html">Prop_multival</a>* p = section-&gt;Get_multival(s_property);
+<a name="l01324"></a>01324                         std::string type = p-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;type&quot;</span>);
+<a name="l01325"></a>01325                         <a class="code" href="classCommandLine.html">CommandLine</a> cmd(0,p-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;parameters&quot;</span>));
+<a name="l01326"></a>01326                         
+<a name="l01327"></a>01327                         <span class="comment">// detect the type</span>
+<a name="l01328"></a>01328                         <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;dummy&quot;</span>) {
+<a name="l01329"></a>01329                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialDummy.html">CSerialDummy</a> (i, &amp;cmd);
+<a name="l01330"></a>01330                         }
+<a name="l01331"></a>01331                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;log&quot;</span>) {
+<a name="l01332"></a>01332                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialLog.html">CSerialLog</a> (i, &amp;cmd);
+<a name="l01333"></a>01333                         }
+<a name="l01334"></a>01334                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;serialmouse&quot;</span>) {
+<a name="l01335"></a>01335                                 serialports[i] = <span class="keyword">new</span> <a class="code" href="classCSerialMouse.html">CSerialMouse</a> (i, &amp;cmd);
+<a name="l01336"></a>01336                         }
+<a name="l01337"></a>01337 <span class="preprocessor">#ifdef DIRECTSERIAL_AVAILIBLE</span>
+<a name="l01338"></a>01338 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (type==<span class="stringliteral">&quot;directserial&quot;</span>) {
+<a name="l01339"></a>01339                                 serialports[i] = <span class="keyword">new</span> CDirectSerial (i, &amp;cmd);
+<a name="l01340"></a>01340                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
+<a name="l01341"></a>01341                                         <span class="comment">// serial port name was wrong or already in use</span>
+<a name="l01342"></a>01342                                         <span class="keyword">delete</span> serialports[i];
+<a name="l01343"></a>01343                                         serialports[i] = NULL;
+<a name="l01344"></a>01344                                 }
+<a name="l01345"></a>01345                         }
+<a name="l01346"></a>01346 <span class="preprocessor">#endif</span>
+<a name="l01347"></a>01347 <span class="preprocessor"></span><span class="preprocessor">#if C_MODEM</span>
+<a name="l01348"></a>01348 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;modem&quot;</span>) {
+<a name="l01349"></a>01349                                 serialports[i] = <span class="keyword">new</span> CSerialModem (i, &amp;cmd);
+<a name="l01350"></a>01350                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
+<a name="l01351"></a>01351                                         <span class="keyword">delete</span> serialports[i];
+<a name="l01352"></a>01352                                         serialports[i] = NULL;
+<a name="l01353"></a>01353                                 }
+<a name="l01354"></a>01354                         }
+<a name="l01355"></a>01355                         <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;nullmodem&quot;</span>) {
+<a name="l01356"></a>01356                                 serialports[i] = <span class="keyword">new</span> CNullModem (i, &amp;cmd);
+<a name="l01357"></a>01357                                 <span class="keywordflow">if</span> (!serialports[i]-&gt;InstallationSuccessful)  {
+<a name="l01358"></a>01358                                         <span class="keyword">delete</span> serialports[i];
+<a name="l01359"></a>01359                                         serialports[i] = NULL;
+<a name="l01360"></a>01360                                 }
+<a name="l01361"></a>01361                         }
+<a name="l01362"></a>01362 <span class="preprocessor">#endif</span>
+<a name="l01363"></a>01363 <span class="preprocessor"></span>                        <span class="keywordflow">else</span> <span class="keywordflow">if</span>(type==<span class="stringliteral">&quot;disabled&quot;</span>) {
+<a name="l01364"></a>01364                                 serialports[i] = NULL;
+<a name="l01365"></a>01365                         } <span class="keywordflow">else</span> {
+<a name="l01366"></a>01366                                 serialports[i] = NULL;
+<a name="l01367"></a>01367                                 LOG_MSG(<span class="stringliteral">&quot;Invalid type for serial%d&quot;</span>,(<span class="keywordtype">int</span>)i+1);
+<a name="l01368"></a>01368                         }
+<a name="l01369"></a>01369                 } <span class="comment">// for 1-4</span>
+<a name="l01370"></a>01370         }
+<a name="l01371"></a>01371 
+<a name="l01372"></a>01372         ~<a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> () {
+<a name="l01373"></a>01373                 <span class="keywordflow">for</span> (Bitu i = 0; i &lt; 4; i++)
+<a name="l01374"></a>01374                         <span class="keywordflow">if</span> (serialports[i]) {
+<a name="l01375"></a>01375                                 <span class="keyword">delete</span> serialports[i];
+<a name="l01376"></a>01376                                 serialports[i] = 0;
+<a name="l01377"></a>01377                         }
+<a name="l01378"></a>01378         }
+<a name="l01379"></a>01379 };
+<a name="l01380"></a>01380 
+<a name="l01381"></a>01381 <span class="keyword">static</span> <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> *testSerialPortsBaseclass;
+<a name="l01382"></a>01382 
+<a name="l01383"></a>01383 <span class="keywordtype">void</span> SERIAL_Destroy (<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01384"></a>01384     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01385"></a>01385         <span class="keywordflow">if</span> (testSerialPortsBaseclass) {
+<a name="l01386"></a>01386                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Deleting serial port base class&quot;</span>);
+<a name="l01387"></a>01387                 <span class="keyword">delete</span> testSerialPortsBaseclass;
+<a name="l01388"></a>01388                 testSerialPortsBaseclass = NULL;
+<a name="l01389"></a>01389         }
+<a name="l01390"></a>01390 }
+<a name="l01391"></a>01391 
+<a name="l01392"></a>01392 <span class="keywordtype">void</span> SERIAL_OnPowerOn (<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01393"></a>01393     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01394"></a>01394         <span class="comment">// should never happen</span>
+<a name="l01395"></a>01395         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Reinitializing serial emulation&quot;</span>);
+<a name="l01396"></a>01396         <span class="keywordflow">if</span> (testSerialPortsBaseclass) <span class="keyword">delete</span> testSerialPortsBaseclass;
+<a name="l01397"></a>01397         testSerialPortsBaseclass = <span class="keyword">new</span> <a class="code" href="classSERIALPORTS.html">SERIALPORTS</a> (control-&gt;GetSection(<span class="stringliteral">&quot;serial&quot;</span>));
+<a name="l01398"></a>01398 }
 <a name="l01399"></a>01399 
-<a name="l01400"></a>01400         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DOS kernel initializing, creating COMx devices&quot;</span>);
-<a name="l01401"></a>01401 
-<a name="l01402"></a>01402         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
-<a name="l01403"></a>01403                 <span class="keywordflow">if</span> (serialports[i] != NULL)
-<a name="l01404"></a>01404                         serialports[i]-&gt;registerDOSDevice();
-<a name="l01405"></a>01405         }
-<a name="l01406"></a>01406 }
-<a name="l01407"></a>01407 
-<a name="l01408"></a>01408 <span class="keywordtype">void</span> SERIAL_OnDOSKernelExit (<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01409"></a>01409     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01410"></a>01410         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01400"></a>01400 <span class="keywordtype">void</span> SERIAL_OnDOSKernelInit (<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01401"></a>01401     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01402"></a>01402         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01403"></a>01403 
+<a name="l01404"></a>01404         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DOS kernel initializing, creating COMx devices&quot;</span>);
+<a name="l01405"></a>01405 
+<a name="l01406"></a>01406         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
+<a name="l01407"></a>01407                 <span class="keywordflow">if</span> (serialports[i] != NULL)
+<a name="l01408"></a>01408                         serialports[i]-&gt;registerDOSDevice();
+<a name="l01409"></a>01409         }
+<a name="l01410"></a>01410 }
 <a name="l01411"></a>01411 
-<a name="l01412"></a>01412         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
-<a name="l01413"></a>01413                 <span class="keywordflow">if</span> (serialports[i] != NULL)
-<a name="l01414"></a>01414                         serialports[i]-&gt;unregisterDOSDevice();
-<a name="l01415"></a>01415         }
-<a name="l01416"></a>01416 }
-<a name="l01417"></a>01417 
-<a name="l01418"></a>01418 <span class="keywordtype">void</span> SERIAL_OnReset (<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01419"></a>01419     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01420"></a>01420         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01412"></a>01412 <span class="keywordtype">void</span> SERIAL_OnDOSKernelExit (<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01413"></a>01413     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01414"></a>01414         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01415"></a>01415 
+<a name="l01416"></a>01416         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
+<a name="l01417"></a>01417                 <span class="keywordflow">if</span> (serialports[i] != NULL)
+<a name="l01418"></a>01418                         serialports[i]-&gt;unregisterDOSDevice();
+<a name="l01419"></a>01419         }
+<a name="l01420"></a>01420 }
 <a name="l01421"></a>01421 
-<a name="l01422"></a>01422         <span class="comment">// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.</span>
-<a name="l01423"></a>01423         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
-<a name="l01424"></a>01424                 <span class="keywordflow">if</span> (serialports[i] != NULL)
-<a name="l01425"></a>01425                         serialports[i]-&gt;unregisterDOSDevice();
-<a name="l01426"></a>01426         }
-<a name="l01427"></a>01427 }
-<a name="l01428"></a>01428 
-<a name="l01429"></a>01429 <span class="keywordtype">void</span> SERIAL_Init () {
-<a name="l01430"></a>01430         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing serial port emulation&quot;</span>);
-<a name="l01431"></a>01431 
-<a name="l01432"></a>01432         AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),<span class="keyword">true</span>);
-<a name="l01433"></a>01433 
-<a name="l01434"></a>01434     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
-<a name="l01435"></a>01435         AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
-<a name="l01436"></a>01436         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
-<a name="l01437"></a>01437         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
-<a name="l01438"></a>01438         AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
-<a name="l01439"></a>01439     }
-<a name="l01440"></a>01440 }
-<a name="l01441"></a>01441 
+<a name="l01422"></a>01422 <span class="keywordtype">void</span> SERIAL_OnReset (<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01423"></a>01423     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01424"></a>01424         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01425"></a>01425 
+<a name="l01426"></a>01426         <span class="comment">// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.</span>
+<a name="l01427"></a>01427         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
+<a name="l01428"></a>01428                 <span class="keywordflow">if</span> (serialports[i] != NULL)
+<a name="l01429"></a>01429                         serialports[i]-&gt;unregisterDOSDevice();
+<a name="l01430"></a>01430         }
+<a name="l01431"></a>01431 }
+<a name="l01432"></a>01432 
+<a name="l01433"></a>01433 <span class="keywordtype">void</span> SERIAL_Init () {
+<a name="l01434"></a>01434         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing serial port emulation&quot;</span>);
+<a name="l01435"></a>01435 
+<a name="l01436"></a>01436         AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),<span class="keyword">true</span>);
+<a name="l01437"></a>01437 
+<a name="l01438"></a>01438     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
+<a name="l01439"></a>01439         AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
+<a name="l01440"></a>01440         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+<a name="l01441"></a>01441         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
+<a name="l01442"></a>01442         AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
+<a name="l01443"></a>01443     }
+<a name="l01444"></a>01444 }
+<a name="l01445"></a>01445 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

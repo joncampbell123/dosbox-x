@@ -105,6 +105,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a62aad1f9ded73ccca0777269ff9655d8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a62aad1f9ded73ccca0777269ff9655d8"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>page_bank_increment</b> (void)</td></tr>
 <tr class="memitem:acbbb585f3c95c5c83073644a939b6e36"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbbb585f3c95c5c83073644a939b6e36"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>DmaChannel</b> (Bit8u num, bool dma16)</td></tr>
 <tr class="memitem:a21479bb39f01212ebf26954a6c8c261f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21479bb39f01212ebf26954a6c8c261f"></a>
@@ -127,10 +129,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>Clear_Request</b> (vo
 Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>Read</b> (Bitu size, Bit8u *buffer)</td></tr>
 <tr class="memitem:a647b6c2b8606a2734952eff78c942c08"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a647b6c2b8606a2734952eff78c942c08"></a>
 Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>Write</b> (Bitu size, Bit8u *buffer)</td></tr>
-<tr class="memitem:aa5fb2180ba0fd2e00d2196966d6edada"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5fb2180ba0fd2e00d2196966d6edada"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SaveState</b> (std::ostream &amp;stream)</td></tr>
-<tr class="memitem:abc903a46e4e30ba17ed5e67241e177ac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc903a46e4e30ba17ed5e67241e177ac"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadState</b> (std::istream &amp;stream)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ab476f51a0e1647c534237be6d9107bb9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab476f51a0e1647c534237be6d9107bb9"></a>
@@ -153,6 +151,8 @@ Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>DMA16_PAGESHIFT</b><
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>DMA16_ADDRMASK</b></td></tr>
 <tr class="memitem:ad662efc766a89ba91872c62d4b075a7c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad662efc766a89ba91872c62d4b075a7c"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>DMA16</b></td></tr>
+<tr class="memitem:a1ff8f265195cc49d623bf3b4e1f9cc51"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1ff8f265195cc49d623bf3b4e1f9cc51"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>transfer_mode</b></td></tr>
 <tr class="memitem:a462fde087b93bc0172eae96bfac4cb78"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a462fde087b93bc0172eae96bfac4cb78"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>increment</b></td></tr>
 <tr class="memitem:ad70005267377fb3829595928fc400f9a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad70005267377fb3829595928fc400f9a"></a>
@@ -165,10 +165,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>tcount</b></td></tr>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>request</b></td></tr>
 <tr class="memitem:a41e670fcadb263b920f0a4bd86c044b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a41e670fcadb263b920f0a4bd86c044b2"></a>
 DMA_CallBack&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b></td></tr>
+<tr class="memitem:ae139ade8199f7d7dce6f2031578cb59c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae139ade8199f7d7dce6f2031578cb59c"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>page_bank_increment_wraparound</b> = 0u</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dma_8h_source.html#l00034">34</a> of file <a class="el" href="dma_8h_source.html">dma.h</a>.</p>
+<p>Definition at line <a class="el" href="dma_8h_source.html#l00040">40</a> of file <a class="el" href="dma_8h_source.html">dma.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dma_8h_source.html">dma.h</a></li>
 <li>src/hardware/<a class="el" href="dma_8cpp_source.html">dma.cpp</a></li>
@@ -177,7 +179,7 @@ DMA_CallBack&#160;</td><td class="memItemRight" valign="bottom"><b>callback</b><
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:56 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

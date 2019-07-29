@@ -141,7 +141,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00046"></a>00046 <span class="comment">//</span>
 <a name="l00047"></a>00047 <span class="comment">//  You should have received a copy of the GNU Lesser General Public</span>
 <a name="l00048"></a>00048 <span class="comment">//  License along with this library; if not, write to the Free Software</span>
-<a name="l00049"></a>00049 <span class="comment">//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA</span>
+<a name="l00049"></a>00049 <span class="comment">//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 USA USA</span>
 <a name="l00050"></a>00050 
 <a name="l00051"></a>00051 <span class="comment">// Peter Grehan (grehan@iprg.nokia.com) coded all of this</span>
 <a name="l00052"></a>00052 <span class="comment">// NE2000/ether stuff.</span>
@@ -1494,7 +1494,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01399"></a>01399 <span class="comment">//Bit8u macaddr[6] = { 0xAC, 0xDE, 0x48, 0x8E, 0x89, 0x19 };</span>
 <a name="l01400"></a>01400 
 <a name="l01401"></a>01401 Bitu dosbox_read(Bitu port, Bitu len) {
-<a name="l01402"></a>01402         Bitu retval = theNE2kDevice-&gt;read(port,len);
+<a name="l01402"></a>01402         Bitu retval = theNE2kDevice-&gt;read((Bit32u)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)len);
 <a name="l01403"></a>01403         <span class="comment">//LOG_MSG(&quot;ne2k rd port %x val %4x len %d page %d, CS:IP %8x:%8x&quot;,</span>
 <a name="l01404"></a>01404         <span class="comment">//      port, retval, len, theNE2kDevice-&gt;s.CR.pgsel,SegValue(cs),reg_eip);</span>
 <a name="l01405"></a>01405         <span class="keywordflow">return</span> retval;
@@ -1502,7 +1502,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01407"></a>01407 <span class="keywordtype">void</span> dosbox_write(Bitu port, Bitu val, Bitu len) {
 <a name="l01408"></a>01408         <span class="comment">//LOG_MSG(&quot;ne2k wr port %x val %4x len %d page %d, CS:IP %8x:%8x&quot;,</span>
 <a name="l01409"></a>01409         <span class="comment">//      port, val, len,theNE2kDevice-&gt;s.CR.pgsel,SegValue(cs),reg_eip);</span>
-<a name="l01410"></a>01410         theNE2kDevice-&gt;write(port, val, len);
+<a name="l01410"></a>01410         theNE2kDevice-&gt;write((Bit32u)port, (Bit32u)val, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)len);
 <a name="l01411"></a>01411 }
 <a name="l01412"></a>01412 
 <a name="l01413"></a>01413 <span class="keywordtype">void</span> bx_ne2k_c::init()
@@ -1780,8 +1780,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01685"></a>01685                 theNE2kDevice = <span class="keyword">new</span> <a class="code" href="classbx__ne2k__c.html">bx_ne2k_c</a> ();
 <a name="l01686"></a>01686                 memcpy(theNE2kDevice-&gt;s.physaddr, mac, 6);
 <a name="l01687"></a>01687 
-<a name="l01688"></a>01688                 theNE2kDevice-&gt;s.base_address=base;
-<a name="l01689"></a>01689                 theNE2kDevice-&gt;s.base_irq=irq;
+<a name="l01688"></a>01688                 theNE2kDevice-&gt;s.base_address=(Bit32u)base;
+<a name="l01689"></a>01689                 theNE2kDevice-&gt;s.base_irq=(int)irq;
 <a name="l01690"></a>01690 
 <a name="l01691"></a>01691                 theNE2kDevice-&gt;init();
 <a name="l01692"></a>01692 
@@ -1841,7 +1841,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;adlib.h&quot;</span>
@@ -273,10 +273,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00176"></a>00176         <span class="keywordtype">void</span> SetChanData( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit32u data );
 <a name="l00177"></a>00177         <span class="comment">//Change in the chandata, check for new values and if we have to forward to operators</span>
 <a name="l00178"></a>00178         <span class="keywordtype">void</span> UpdateFrequency( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u fourOp );
-<a name="l00179"></a>00179         <span class="keywordtype">void</span> WriteA0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
-<a name="l00180"></a>00180         <span class="keywordtype">void</span> WriteB0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
-<a name="l00181"></a>00181         <span class="keywordtype">void</span> WriteC0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
-<a name="l00182"></a>00182         <span class="keywordtype">void</span> ResetC0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip );
+<a name="l00179"></a>00179         <span class="keywordtype">void</span> UpdateSynth(<span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip);
+<a name="l00180"></a>00180         <span class="keywordtype">void</span> WriteA0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
+<a name="l00181"></a>00181         <span class="keywordtype">void</span> WriteB0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
+<a name="l00182"></a>00182         <span class="keywordtype">void</span> WriteC0( <span class="keyword">const</span> <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>* chip, Bit8u val );
 <a name="l00183"></a>00183 
 <a name="l00184"></a>00184         <span class="comment">//call this for the first channel</span>
 <a name="l00185"></a>00185         <span class="keyword">template</span>&lt; <span class="keywordtype">bool</span> opl3Mode &gt;
@@ -336,27 +336,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00239"></a>00239         <span class="keywordtype">void</span> GenerateBlock2( Bitu samples, Bit32s* output );
 <a name="l00240"></a>00240         <span class="keywordtype">void</span> GenerateBlock3( Bitu samples, Bit32s* output );
 <a name="l00241"></a>00241 
-<a name="l00242"></a>00242         <span class="keywordtype">void</span> Generate( Bit32u samples );
-<a name="l00243"></a>00243         <span class="keywordtype">void</span> Setup( Bit32u r );
-<a name="l00244"></a>00244 
-<a name="l00245"></a>00245         <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>();
-<a name="l00246"></a>00246 };
-<a name="l00247"></a>00247 
-<a name="l00248"></a><a class="code" href="structDBOPL_1_1Handler.html">00248</a> <span class="keyword">struct </span><a class="code" href="structDBOPL_1_1Handler.html">Handler</a> : <span class="keyword">public</span> <a class="code" href="classAdlib_1_1Handler.html">Adlib::Handler</a> {
-<a name="l00249"></a>00249         <a class="code" href="structDBOPL_1_1Chip.html">DBOPL::Chip</a> chip;
-<a name="l00250"></a>00250         <span class="keyword">virtual</span> Bit32u WriteAddr( Bit32u port, Bit8u val );
-<a name="l00251"></a>00251         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg( Bit32u addr, Bit8u val );
-<a name="l00252"></a>00252         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples );
-<a name="l00253"></a>00253         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Init( Bitu rate );
-<a name="l00254"></a>00254 };
-<a name="l00255"></a>00255 
-<a name="l00256"></a>00256 
-<a name="l00257"></a>00257 }               <span class="comment">//Namespace</span>
+<a name="l00242"></a>00242         <span class="comment">//Update the synth handlers in all channels</span>
+<a name="l00243"></a>00243         <span class="keywordtype">void</span> UpdateSynths();
+<a name="l00244"></a>00244         <span class="keywordtype">void</span> Generate( Bit32u samples );
+<a name="l00245"></a>00245         <span class="keywordtype">void</span> Setup( Bit32u r );
+<a name="l00246"></a>00246 
+<a name="l00247"></a>00247         <a class="code" href="structDBOPL_1_1Chip.html">Chip</a>();
+<a name="l00248"></a>00248 };
+<a name="l00249"></a>00249 
+<a name="l00250"></a><a class="code" href="structDBOPL_1_1Handler.html">00250</a> <span class="keyword">struct </span><a class="code" href="structDBOPL_1_1Handler.html">Handler</a> : <span class="keyword">public</span> <a class="code" href="classAdlib_1_1Handler.html">Adlib::Handler</a> {
+<a name="l00251"></a>00251         <a class="code" href="structDBOPL_1_1Chip.html">DBOPL::Chip</a> chip;
+<a name="l00252"></a>00252         <span class="keyword">virtual</span> Bit32u WriteAddr( Bit32u port, Bit8u val );
+<a name="l00253"></a>00253         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg( Bit32u addr, Bit8u val );
+<a name="l00254"></a>00254         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples );
+<a name="l00255"></a>00255         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Init( Bitu rate );
+<a name="l00256"></a>00256 };
+<a name="l00257"></a>00257 
+<a name="l00258"></a>00258 
+<a name="l00259"></a>00259 }               <span class="comment">//Namespace</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#ifndef _RENDER_SCALERS_H</span>
@@ -152,95 +152,102 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00055"></a>00055 <span class="preprocessor"></span>        scalerOpTV,
 <a name="l00056"></a>00056         scalerOpRGB,
 <a name="l00057"></a>00057         scalerOpScan,
-<a name="l00058"></a>00058 <span class="preprocessor">#endif</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span>        scalerLast
-<a name="l00060"></a>00060 } scalerOperation_t;
-<a name="l00061"></a>00061 
-<a name="l00062"></a>00062 <span class="keyword">typedef</span> void (*ScalerLineHandler_t)(<span class="keyword">const</span> <span class="keywordtype">void</span> *src);
-<a name="l00063"></a>00063 <span class="keyword">typedef</span> void (*ScalerComplexHandler_t)(void);
-<a name="l00064"></a>00064 
-<a name="l00065"></a>00065 <span class="keyword">extern</span> Bit8u Scaler_Aspect[];
-<a name="l00066"></a>00066 <span class="keyword">extern</span> Bit8u diff_table[];
-<a name="l00067"></a>00067 <span class="keyword">extern</span> Bitu Scaler_ChangedLineIndex;
-<a name="l00068"></a>00068 <span class="keyword">extern</span> Bit16u Scaler_ChangedLines[];
-<a name="l00069"></a>00069 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00070"></a>00070 <span class="preprocessor"></span><span class="comment">/* Not entirely happy about those +2&#39;s since they make a non power of 2, with muls instead of shift */</span>
-<a name="l00071"></a>00071 <span class="keyword">typedef</span> Bit8u scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
-<a name="l00072"></a>00072 <span class="keyword">typedef</span> <span class="keyword">union </span>{
-<a name="l00073"></a>00073         Bit32u b32      [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-<a name="l00074"></a>00074         Bit16u b16      [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-<a name="l00075"></a>00075         Bit8u b8        [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-<a name="l00076"></a>00076 } scalerFrameCache_t;
-<a name="l00077"></a>00077 <span class="preprocessor">#endif</span>
-<a name="l00078"></a><a class="code" href="unionscalerSourceCache__t.html">00078</a> <span class="preprocessor"></span><span class="keyword">typedef</span> <span class="keyword">union </span>{
-<a name="l00079"></a>00079         Bit32u b32      [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-<a name="l00080"></a>00080         Bit16u b16      [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-<a name="l00081"></a>00081         Bit8u b8        [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-<a name="l00082"></a>00082 } <a class="code" href="unionscalerSourceCache__t.html">scalerSourceCache_t</a>;
-<a name="l00083"></a>00083 <span class="keyword">extern</span> <a class="code" href="unionscalerSourceCache__t.html">scalerSourceCache_t</a> scalerSourceCache;
-<a name="l00084"></a>00084 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00085"></a>00085 <span class="preprocessor"></span><span class="keyword">extern</span> scalerChangeCache_t scalerChangeCache;
-<a name="l00086"></a>00086 <span class="preprocessor">#endif</span>
-<a name="l00087"></a>00087 <span class="preprocessor"></span><span class="keyword">typedef</span> ScalerLineHandler_t ScalerLineBlock_t[5][4];
-<a name="l00088"></a>00088 
-<a name="l00089"></a><a class="code" href="structScalerComplexBlock__t.html">00089</a> <span class="keyword">typedef</span> <span class="keyword">struct </span>{
-<a name="l00090"></a>00090         <span class="keyword">const</span> <span class="keywordtype">char</span> *name;
-<a name="l00091"></a>00091         Bitu gfxFlags;
-<a name="l00092"></a>00092         Bitu xscale,yscale;
-<a name="l00093"></a>00093         ScalerComplexHandler_t Linear[4];
-<a name="l00094"></a>00094         ScalerComplexHandler_t Random[4];
-<a name="l00095"></a>00095 } <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a>;
-<a name="l00096"></a>00096 
-<a name="l00097"></a><a class="code" href="structScalerSimpleBlock__t.html">00097</a> <span class="keyword">typedef</span> <span class="keyword">struct </span>{
-<a name="l00098"></a>00098         <span class="keyword">const</span> <span class="keywordtype">char</span> *name;
-<a name="l00099"></a>00099         Bitu gfxFlags;
-<a name="l00100"></a>00100         Bitu xscale,yscale;
-<a name="l00101"></a>00101         ScalerLineBlock_t       Linear;
-<a name="l00102"></a>00102         ScalerLineBlock_t       Random;
-<a name="l00103"></a>00103 } <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a>;
-<a name="l00104"></a>00104 
+<a name="l00058"></a>00058         scalerOpGray,
+<a name="l00059"></a>00059 <span class="preprocessor">#endif</span>
+<a name="l00060"></a>00060 <span class="preprocessor"></span>        scalerLast
+<a name="l00061"></a>00061 } scalerOperation_t;
+<a name="l00062"></a>00062 
+<a name="l00063"></a>00063 <span class="keyword">typedef</span> void (*ScalerLineHandler_t)(<span class="keyword">const</span> <span class="keywordtype">void</span> *src);
+<a name="l00064"></a>00064 <span class="keyword">typedef</span> void (*ScalerComplexHandler_t)(void);
+<a name="l00065"></a>00065 
+<a name="l00066"></a>00066 <span class="keyword">extern</span> Bit8u Scaler_Aspect[];
+<a name="l00067"></a>00067 <span class="keyword">extern</span> Bit8u diff_table[];
+<a name="l00068"></a>00068 <span class="keyword">extern</span> Bitu Scaler_ChangedLineIndex;
+<a name="l00069"></a>00069 <span class="keyword">extern</span> Bit16u Scaler_ChangedLines[];
+<a name="l00070"></a>00070 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="comment">/* Not entirely happy about those +2&#39;s since they make a non power of 2, with muls instead of shift */</span>
+<a name="l00072"></a>00072 <span class="keyword">typedef</span> Bit8u scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
+<a name="l00073"></a>00073 <span class="keyword">typedef</span> <span class="keyword">union </span>{
+<a name="l00074"></a>00074         Bit32u b32      [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+<a name="l00075"></a>00075         Bit16u b16      [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+<a name="l00076"></a>00076         Bit8u b8        [SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+<a name="l00077"></a>00077 } scalerFrameCache_t;
+<a name="l00078"></a>00078 <span class="preprocessor">#endif</span>
+<a name="l00079"></a><a class="code" href="unionscalerSourceCache__t.html">00079</a> <span class="preprocessor"></span><span class="keyword">typedef</span> <span class="keyword">union </span>{
+<a name="l00080"></a>00080         Bit32u b32      [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+<a name="l00081"></a>00081         Bit16u b16      [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+<a name="l00082"></a>00082         Bit8u b8        [SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+<a name="l00083"></a>00083 } <a class="code" href="unionscalerSourceCache__t.html">scalerSourceCache_t</a>;
+<a name="l00084"></a>00084 <span class="keyword">extern</span> <a class="code" href="unionscalerSourceCache__t.html">scalerSourceCache_t</a> scalerSourceCache;
+<a name="l00085"></a>00085 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00086"></a>00086 <span class="preprocessor"></span><span class="keyword">extern</span> scalerChangeCache_t scalerChangeCache;
+<a name="l00087"></a>00087 <span class="preprocessor">#endif</span>
+<a name="l00088"></a>00088 <span class="preprocessor"></span><span class="keyword">typedef</span> ScalerLineHandler_t ScalerLineBlock_t[5][4];
+<a name="l00089"></a>00089 
+<a name="l00090"></a><a class="code" href="structScalerComplexBlock__t.html">00090</a> <span class="keyword">typedef</span> <span class="keyword">struct </span>{
+<a name="l00091"></a>00091         <span class="keyword">const</span> <span class="keywordtype">char</span> *name;
+<a name="l00092"></a>00092         Bitu gfxFlags;
+<a name="l00093"></a>00093         Bitu xscale,yscale;
+<a name="l00094"></a>00094         ScalerComplexHandler_t Linear[4];
+<a name="l00095"></a>00095         ScalerComplexHandler_t Random[4];
+<a name="l00096"></a>00096 } <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a>;
+<a name="l00097"></a>00097 
+<a name="l00098"></a><a class="code" href="structScalerSimpleBlock__t.html">00098</a> <span class="keyword">typedef</span> <span class="keyword">struct </span>{
+<a name="l00099"></a>00099         <span class="keyword">const</span> <span class="keywordtype">char</span> *name;
+<a name="l00100"></a>00100         Bitu gfxFlags;
+<a name="l00101"></a>00101         Bitu xscale,yscale;
+<a name="l00102"></a>00102         ScalerLineBlock_t       Linear;
+<a name="l00103"></a>00103         ScalerLineBlock_t       Random;
+<a name="l00104"></a>00104 } <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a>;
 <a name="l00105"></a>00105 
-<a name="l00106"></a>00106 <span class="preprocessor">#define SCALE_LEFT      0x1</span>
-<a name="l00107"></a>00107 <span class="preprocessor"></span><span class="preprocessor">#define SCALE_RIGHT     0x2</span>
-<a name="l00108"></a>00108 <span class="preprocessor"></span><span class="preprocessor">#define SCALE_FULL      0x4</span>
-<a name="l00109"></a>00109 <span class="preprocessor"></span>
-<a name="l00110"></a>00110 <span class="comment">/* Simple scalers */</span>
-<a name="l00111"></a>00111 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal1x;
-<a name="l00112"></a>00112 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormalDw;
-<a name="l00113"></a>00113 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormalDh;
-<a name="l00114"></a>00114 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal2x;
-<a name="l00115"></a>00115 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal3x;
-<a name="l00116"></a>00116 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal4x;
-<a name="l00117"></a>00117 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal5x;
-<a name="l00118"></a>00118 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
-<a name="l00119"></a>00119 <span class="preprocessor"></span><span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleTV2x;
-<a name="l00120"></a>00120 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleTV3x;
-<a name="l00121"></a>00121 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleRGB2x;
-<a name="l00122"></a>00122 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleRGB3x;
-<a name="l00123"></a>00123 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleScan2x;
-<a name="l00124"></a>00124 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleScan3x;
-<a name="l00125"></a>00125 <span class="preprocessor">#endif</span>
-<a name="l00126"></a>00126 <span class="preprocessor"></span><span class="comment">/* Complex scalers */</span>
-<a name="l00127"></a>00127 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
-<a name="l00128"></a>00128 <span class="preprocessor"></span><span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleHQ2x;
-<a name="l00129"></a>00129 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleHQ3x;
-<a name="l00130"></a>00130 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> Scale2xSaI;
-<a name="l00131"></a>00131 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleSuper2xSaI;
-<a name="l00132"></a>00132 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleSuperEagle;
-<a name="l00133"></a>00133 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvMame2x;
-<a name="l00134"></a>00134 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvMame3x;
-<a name="l00135"></a>00135 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvInterp2x;
-<a name="l00136"></a>00136 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvInterp3x;
-<a name="l00137"></a>00137 <span class="preprocessor">#endif</span>
-<a name="l00138"></a>00138 <span class="preprocessor"></span><span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00139"></a>00139 <span class="preprocessor"></span><span class="keyword">extern</span> ScalerLineBlock_t ScalerCache;
-<a name="l00140"></a>00140 <span class="preprocessor">#endif</span>
-<a name="l00141"></a>00141 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107 <span class="preprocessor">#define SCALE_LEFT      0x1</span>
+<a name="l00108"></a>00108 <span class="preprocessor"></span><span class="preprocessor">#define SCALE_RIGHT     0x2</span>
+<a name="l00109"></a>00109 <span class="preprocessor"></span><span class="preprocessor">#define SCALE_FULL      0x4</span>
+<a name="l00110"></a>00110 <span class="preprocessor"></span>
+<a name="l00111"></a>00111 <span class="comment">/* Simple scalers */</span>
+<a name="l00112"></a>00112 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal1x;
+<a name="l00113"></a>00113 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormalDw;
+<a name="l00114"></a>00114 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormalDh;
+<a name="l00115"></a>00115 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal2x;
+<a name="l00116"></a>00116 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal3x;
+<a name="l00117"></a>00117 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal4x;
+<a name="l00118"></a>00118 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleNormal5x;
+<a name="l00119"></a>00119 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
+<a name="l00120"></a>00120 <span class="preprocessor"></span><span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleTV2x;
+<a name="l00121"></a>00121 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleTVDh;
+<a name="l00122"></a>00122 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleTV3x;
+<a name="l00123"></a>00123 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleRGB2x;
+<a name="l00124"></a>00124 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleRGB3x;
+<a name="l00125"></a>00125 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleScan2x;
+<a name="l00126"></a>00126 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleScanDh;
+<a name="l00127"></a>00127 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleScan3x;
+<a name="l00128"></a>00128 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleGrayNormal;
+<a name="l00129"></a>00129 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleGrayDw;
+<a name="l00130"></a>00130 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleGrayDh;
+<a name="l00131"></a>00131 <span class="keyword">extern</span> <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a> ScaleGray2x;
+<a name="l00132"></a>00132 <span class="preprocessor">#endif</span>
+<a name="l00133"></a>00133 <span class="preprocessor"></span><span class="comment">/* Complex scalers */</span>
+<a name="l00134"></a>00134 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
+<a name="l00135"></a>00135 <span class="preprocessor"></span><span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleHQ2x;
+<a name="l00136"></a>00136 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleHQ3x;
+<a name="l00137"></a>00137 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> Scale2xSaI;
+<a name="l00138"></a>00138 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleSuper2xSaI;
+<a name="l00139"></a>00139 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleSuperEagle;
+<a name="l00140"></a>00140 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvMame2x;
+<a name="l00141"></a>00141 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvMame3x;
+<a name="l00142"></a>00142 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvInterp2x;
+<a name="l00143"></a>00143 <span class="keyword">extern</span> <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a> ScaleAdvInterp3x;
+<a name="l00144"></a>00144 <span class="preprocessor">#endif</span>
+<a name="l00145"></a>00145 <span class="preprocessor"></span><span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00146"></a>00146 <span class="preprocessor"></span><span class="keyword">extern</span> ScalerLineBlock_t ScalerCache;
+<a name="l00147"></a>00147 <span class="preprocessor">#endif</span>
+<a name="l00148"></a>00148 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

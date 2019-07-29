@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -321,7 +321,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00224"></a>00224                 Bitu pages=(size/4) + ((size &amp; 3) ? 1 : 0);
 <a name="l00225"></a>00225                 mem=MEM_AllocatePages(pages,<span class="keyword">true</span>);
 <a name="l00226"></a>00226                 <span class="keywordflow">if</span> (!mem) <span class="keywordflow">return</span> XMS_OUT_OF_SPACE;
-<a name="l00227"></a>00227                 <span class="keywordflow">if</span> (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,pages);
+<a name="l00227"></a>00227                 <span class="keywordflow">if</span> (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pages);
 <a name="l00228"></a>00228         } <span class="keywordflow">else</span> {
 <a name="l00229"></a>00229                 mem=MEM_GetNextFreePage();
 <a name="l00230"></a>00230                 <span class="keywordflow">if</span> (mem==0) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;XMS:Allocate zero pages with no memory left&quot;</span>); <span class="comment">// Windows 3.1 triggers this surprisingly often!</span>
@@ -564,11 +564,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00467"></a>00467         SET_RESULT(XMS_LocalDisableA20());
 <a name="l00468"></a>00468                 <span class="keywordflow">break</span>;
 <a name="l00469"></a>00469         <span class="keywordflow">case</span> XMS_QUERY_A20:                                                                                     <span class="comment">/* 07 */</span>
-<a name="l00470"></a>00470                 reg_ax = XMS_GetEnabledA20();
+<a name="l00470"></a>00470                 reg_ax = (Bit16u)XMS_GetEnabledA20();
 <a name="l00471"></a>00471                 reg_bl = 0;
 <a name="l00472"></a>00472                 <span class="keywordflow">break</span>;
 <a name="l00473"></a>00473         <span class="keywordflow">case</span> XMS_QUERY_FREE_EXTENDED_MEMORY:                                            <span class="comment">/* 08 */</span>
-<a name="l00474"></a>00474                 reg_bl = XMS_QueryFreeMemory(reg_eax,reg_edx);
+<a name="l00474"></a>00474                 reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
 <a name="l00475"></a>00475                 <span class="keywordflow">if</span> (reg_eax &gt; 65535) reg_eax = 65535; <span class="comment">/* cap sizes for older DOS programs. newer ones use function 0x88 */</span>
 <a name="l00476"></a>00476                 <span class="keywordflow">if</span> (reg_edx &gt; 65535) reg_edx = 65535;
 <a name="l00477"></a>00477                 <span class="keywordflow">break</span>;
@@ -668,13 +668,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00571"></a>00571                 reg_bl=UMB_NO_BLOCKS_AVAILABLE;
 <a name="l00572"></a>00572                 <span class="keywordflow">break</span>;
 <a name="l00573"></a>00573         <span class="keywordflow">case</span> XMS_QUERY_ANY_FREE_MEMORY:                                                         <span class="comment">/* 88 */</span>
-<a name="l00574"></a>00574                 reg_bl = XMS_QueryFreeMemory(reg_eax,reg_edx);
-<a name="l00575"></a>00575                 reg_ecx = (MEM_TotalPages()*MEM_PAGESIZE)-1;                    <span class="comment">// highest known physical memory address</span>
+<a name="l00574"></a>00574                 reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
+<a name="l00575"></a>00575                 reg_ecx = (Bit32u)((MEM_TotalPages()*MEM_PAGESIZE)-1);                  <span class="comment">// highest known physical memory address</span>
 <a name="l00576"></a>00576                 <span class="keywordflow">break</span>;
 <a name="l00577"></a>00577         <span class="keywordflow">case</span> XMS_GET_EMB_HANDLE_INFORMATION_EXT: {                                      <span class="comment">/* 8e */</span>
 <a name="l00578"></a>00578                 Bit8u free_handles;
 <a name="l00579"></a>00579                 Bitu result = XMS_GetHandleInformation(reg_dx,reg_bh,free_handles,reg_edx);
-<a name="l00580"></a>00580                 <span class="keywordflow">if</span> (result != 0) reg_bl = result;
+<a name="l00580"></a>00580                 <span class="keywordflow">if</span> (result != 0) reg_bl = (Bit8u)result;
 <a name="l00581"></a>00581                 <span class="keywordflow">else</span> reg_cx = free_handles;
 <a name="l00582"></a>00582                 reg_ax = (result==0);
 <a name="l00583"></a>00583                 } <span class="keywordflow">break</span>;
@@ -729,7 +729,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00632"></a>00632 
 <a name="l00633"></a>00633                 <span class="keywordflow">if</span> (!section-&gt;Get_bool(<span class="stringliteral">&quot;xms&quot;</span>)) <span class="keywordflow">return</span>;
 <a name="l00634"></a>00634 
-<a name="l00635"></a>00635         XMS_HANDLES = section-&gt;Get_int(<span class="stringliteral">&quot;xms handles&quot;</span>);
+<a name="l00635"></a>00635         XMS_HANDLES = (<span class="keywordtype">unsigned</span> int)(section-&gt;Get_int(<span class="stringliteral">&quot;xms handles&quot;</span>));
 <a name="l00636"></a>00636         <span class="keywordflow">if</span> (XMS_HANDLES == 0)
 <a name="l00637"></a>00637             XMS_HANDLES = XMS_HANDLES_DEFAULT;
 <a name="l00638"></a>00638         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (XMS_HANDLES &lt; XMS_HANDLES_MIN)
@@ -813,10 +813,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00716"></a>00716 
 <a name="l00717"></a>00717                 <span class="keywordflow">if</span> (first_umb_seg == 0) {
 <a name="l00718"></a>00718                         first_umb_seg = DOS_PRIVATE_SEGMENT_END;
-<a name="l00719"></a>00719                         <span class="keywordflow">if</span> (first_umb_seg &lt; VGA_BIOS_SEG_END)
-<a name="l00720"></a>00720                                 first_umb_seg = VGA_BIOS_SEG_END;
+<a name="l00719"></a>00719                         <span class="keywordflow">if</span> (first_umb_seg &lt; (Bit16u)VGA_BIOS_SEG_END)
+<a name="l00720"></a>00720                                 first_umb_seg = (Bit16u)VGA_BIOS_SEG_END;
 <a name="l00721"></a>00721                 }
-<a name="l00722"></a>00722                 <span class="keywordflow">if</span> (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()&gt;&gt;4;
+<a name="l00722"></a>00722                 <span class="keywordflow">if</span> (first_umb_size == 0) first_umb_size = (Bit16u)(ROMBIOS_MinAllocatedLoc()&gt;&gt;4);
 <a name="l00723"></a>00723 
 <a name="l00724"></a>00724                 <span class="keywordflow">if</span> (first_umb_seg &lt; 0xC000 || first_umb_seg &lt; DOS_PRIVATE_SEGMENT_END) {
 <a name="l00725"></a>00725                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)&quot;</span>,
@@ -868,7 +868,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00771"></a>00771         <span class="keywordflow">if</span> (ems_available &amp;&amp; first_umb_size &gt;= GetEMSPageFrameSegment()) {
 <a name="l00772"></a>00772             assert(GetEMSPageFrameSegment() &gt;= 0xA000);
 <a name="l00773"></a>00773             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;UMB overlaps EMS page frame at 0x%04x, truncating region&quot;</span>,(<span class="keywordtype">unsigned</span> int)GetEMSPageFrameSegment());
-<a name="l00774"></a>00774             first_umb_size = GetEMSPageFrameSegment() - 1;
+<a name="l00774"></a>00774             first_umb_size = (Bit16u)(GetEMSPageFrameSegment() - 1);
 <a name="l00775"></a>00775         }
 <a name="l00776"></a>00776         <span class="comment">/* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */</span>
 <a name="l00777"></a>00777         <span class="comment">/* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */</span>
@@ -962,7 +962,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:22 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

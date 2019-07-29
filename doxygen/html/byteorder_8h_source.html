@@ -102,7 +102,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00005"></a>00005 <span class="preprocessor">#  include &lt;endian.h&gt;</span>
 <a name="l00006"></a>00006 
 <a name="l00007"></a>00007 <span class="comment">/* MinGW implements some MSVC idioms, so always test for MinGW first. */</span>
-<a name="l00008"></a>00008 <span class="preprocessor"># elif defined(__MINGW32__)</span>
+<a name="l00008"></a>00008 <span class="preprocessor"># elif defined(__MINGW32__) || defined(__riscos__)</span>
 <a name="l00009"></a>00009 <span class="preprocessor"></span>
 <a name="l00010"></a>00010 <span class="preprocessor"># if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__</span>
 <a name="l00011"></a>00011 <span class="preprocessor"></span>
@@ -235,7 +235,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

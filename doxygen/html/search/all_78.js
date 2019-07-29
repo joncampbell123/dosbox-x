@@ -7,5 +7,6 @@ var searchData=
   ['xgastatus',['XGAStatus',['../structXGAStatus.html',1,'']]],
   ['xms',['XMS',['../classXMS.html',1,'']]],
   ['xms_5fblock',['XMS_Block',['../structXMS__Block.html',1,'']]],
-  ['xms_5fmemmove',['XMS_MemMove',['../structXMS__MemMove.html',1,'']]]
+  ['xms_5fmemmove',['XMS_MemMove',['../structXMS__MemMove.html',1,'']]],
+  ['xvy',['xvy',['../structScreenSizeInfo_1_1xvy.html',1,'ScreenSizeInfo']]]
 ];

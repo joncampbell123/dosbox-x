@@ -94,7 +94,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a>  </div>
   <div class="headertitle">
 <div class="title">AutoexecEditor Class Reference</div>  </div>
 </div><!--header-->
@@ -105,10 +106,11 @@ Inheritance diagram for AutoexecEditor:</div>
  <div class="center">
   <img src="classAutoexecEditor.png" usemap="#AutoexecEditor_map" alt=""/>
   <map id="AutoexecEditor_map" name="AutoexecEditor_map">
-<area href="classGUI_1_1ToplevelWindow.html" title="An actual decorated window." alt="GUI::ToplevelWindow" shape="rect" coords="106,112,309,136"/>
-<area href="classGUI_1_1BorderedWindow.html" title="Internal class for windows whose child content should not span the entire area." alt="GUI::BorderedWindow" shape="rect" coords="0,56,203,80"/>
-<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="213,56,416,80"/>
-<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,0,203,24"/>
+<area href="classGUI_1_1ToplevelWindow.html" title="An actual decorated window." alt="GUI::ToplevelWindow" shape="rect" coords="106,168,309,192"/>
+<area href="classGUI_1_1BorderedWindow.html" title="Internal class for windows whose child content should not span the entire area." alt="GUI::BorderedWindow" shape="rect" coords="0,112,203,136"/>
+<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="213,112,416,136"/>
+<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,56,203,80"/>
+<area href="classGUI_1_1Refcount.html" alt="GUI::Refcount" shape="rect" coords="0,0,203,24"/>
 </map>
  </div></div>
 
@@ -121,10 +123,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5103a2bb5e750230a808ce091448ed05"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5103a2bb5e750230a808ce091448ed05"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAutoexecEditor.html#a5103a2bb5e750230a808ce091448ed05">actionExecuted</a> (<a class="el" href="classGUI_1_1ActionEventSource.html">GUI::ActionEventSource</a> *b, const <a class="el" href="classGUI_1_1String.html">GUI::String</a> &amp;arg)</td></tr>
 <tr class="memdesc:a5103a2bb5e750230a808ce091448ed05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Menu callback function. <br/></td></tr>
+<tr class="memitem:ac0720e029f17584c845af698f3c72ceb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac0720e029f17584c845af698f3c72ceb"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAutoexecEditor.html#ac0720e029f17584c845af698f3c72ceb">keyDown</a> (const <a class="el" href="classGUI_1_1Key.html">GUI::Key</a> &amp;key)</td></tr>
+<tr class="memdesc:ac0720e029f17584c845af698f3c72ceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key was pressed. Returns true if event was handled. <br/></td></tr>
+<tr class="memitem:a6c9f4c06e4f6e8e92f6d40e4b0d0eec6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6c9f4c06e4f6e8e92f6d40e4b0d0eec6"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAutoexecEditor.html#a6c9f4c06e4f6e8e92f6d40e4b0d0eec6">keyUp</a> (const <a class="el" href="classGUI_1_1Key.html">GUI::Key</a> &amp;key)</td></tr>
+<tr class="memdesc:a6c9f4c06e4f6e8e92f6d40e4b0d0eec6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key was released. Returns true if event was handled. <br/></td></tr>
+<tr><td colspan="2"><h2><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:af1d96f7032869aac93bba3fae830c902"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1d96f7032869aac93bba3fae830c902"></a>
+std::vector&lt; <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">GUI::Char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>cfg_sname</b></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="sdl__gui_8cpp_source.html#l00520">520</a> of file <a class="el" href="sdl__gui_8cpp_source.html">sdl_gui.cpp</a>.</p>
+<p>Definition at line <a class="el" href="sdl__gui_8cpp_source.html#l00835">835</a> of file <a class="el" href="sdl__gui_8cpp_source.html">sdl_gui.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/gui/<a class="el" href="sdl__gui_8cpp_source.html">sdl_gui.cpp</a></li>
 </ul>
@@ -132,7 +144,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

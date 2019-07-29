@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 1022.727273
+%%BoundingBox: 0 0 500 1182.795699
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,12 +19,12 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 0.488889 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 0.422727 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
-/rows 27 def
+/rows 33 def
 /cols 2 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
@@ -174,7 +174,7 @@
 boxfont setfont
 1 boundaspect scale
 (PageHandler) cw
-(CodePageHandler) cw
+(CodePageHandlerDynRec) cw
 (ExceptionPageHandler) cw
 (IllegalPageHandler) cw
 (NewInitPageHandler) cw
@@ -193,7 +193,13 @@ boxfont setfont
 (VGA_Map_Handler) cw
 (VGA_MCGATEXT_PageHandler) cw
 (VGA_MMIO_Handler) cw
+(VGA_PC98_256BANK_PageHandler< bank >) cw
+(VGA_PC98_256MMIO_PageHandler) cw
+(VGA_PC98_256Planar_PageHandler) cw
+(VGA_PC98_CG_PageHandler) cw
+(VGA_PC98_LFB_Handler) cw
 (VGA_PC98_PageHandler) cw
+(VGA_PC98_TEXT_PageHandler) cw
 (VGA_PCJR_Handler) cw
 (VGA_Slow_CGA_Handler) cw
 (VGA_TANDY_PageHandler) cw
@@ -211,28 +217,34 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (PageHandler) 0.000000 26.000000 box
- (CodePageHandler) 1.000000 25.000000 box
- (ExceptionPageHandler) 1.000000 24.000000 box
- (IllegalPageHandler) 1.000000 23.000000 box
- (NewInitPageHandler) 1.000000 22.000000 box
- (PageFoilHandler) 1.000000 21.000000 box
- (PC98ITFPageHandler) 1.000000 20.000000 box
- (RAMPageHandler) 1.000000 19.000000 box
-1.000000 19.000000 mark
- (ROMAliasPageHandler) 1.000000 18.000000 box
- (UnmappedPageHandler) 1.000000 17.000000 box
- (VGA_AMS_Handler) 1.000000 16.000000 box
- (VGA_CGATEXT_PageHandler) 1.000000 15.000000 box
- (VGA_ChainedVGA_Slow_Handler) 1.000000 14.000000 box
- (VGA_Empty_Handler) 1.000000 13.000000 box
- (VGA_ET4000_ChainedVGA_Slow_Handler) 1.000000 12.000000 box
- (VGA_HERC_Handler) 1.000000 11.000000 box
- (VGA_LFB_Handler) 1.000000 10.000000 box
- (VGA_Map_Handler) 1.000000 9.000000 box
- (VGA_MCGATEXT_PageHandler) 1.000000 8.000000 box
- (VGA_MMIO_Handler) 1.000000 7.000000 box
- (VGA_PC98_PageHandler) 1.000000 6.000000 box
+ (PageHandler) 0.000000 32.000000 box
+ (CodePageHandlerDynRec) 1.000000 31.000000 box
+ (ExceptionPageHandler) 1.000000 30.000000 box
+ (IllegalPageHandler) 1.000000 29.000000 box
+ (NewInitPageHandler) 1.000000 28.000000 box
+ (PageFoilHandler) 1.000000 27.000000 box
+ (PC98ITFPageHandler) 1.000000 26.000000 box
+ (RAMPageHandler) 1.000000 25.000000 box
+1.000000 25.000000 mark
+ (ROMAliasPageHandler) 1.000000 24.000000 box
+ (UnmappedPageHandler) 1.000000 23.000000 box
+ (VGA_AMS_Handler) 1.000000 22.000000 box
+ (VGA_CGATEXT_PageHandler) 1.000000 21.000000 box
+ (VGA_ChainedVGA_Slow_Handler) 1.000000 20.000000 box
+ (VGA_Empty_Handler) 1.000000 19.000000 box
+ (VGA_ET4000_ChainedVGA_Slow_Handler) 1.000000 18.000000 box
+ (VGA_HERC_Handler) 1.000000 17.000000 box
+ (VGA_LFB_Handler) 1.000000 16.000000 box
+ (VGA_Map_Handler) 1.000000 15.000000 box
+ (VGA_MCGATEXT_PageHandler) 1.000000 14.000000 box
+ (VGA_MMIO_Handler) 1.000000 13.000000 box
+ (VGA_PC98_256BANK_PageHandler< bank >) 1.000000 12.000000 box
+ (VGA_PC98_256MMIO_PageHandler) 1.000000 11.000000 box
+ (VGA_PC98_256Planar_PageHandler) 1.000000 10.000000 box
+ (VGA_PC98_CG_PageHandler) 1.000000 9.000000 box
+ (VGA_PC98_LFB_Handler) 1.000000 8.000000 box
+ (VGA_PC98_PageHandler) 1.000000 7.000000 box
+ (VGA_PC98_TEXT_PageHandler) 1.000000 6.000000 box
  (VGA_PCJR_Handler) 1.000000 5.000000 box
  (VGA_Slow_CGA_Handler) 1.000000 4.000000 box
  (VGA_TANDY_PageHandler) 1.000000 3.000000 box
@@ -243,7 +255,19 @@ boundx scalefactor div boundy scalefactor div scale
 % ----- relations -----
 
 solid
-1 0.000000 25.250000 out
+1 0.000000 31.250000 out
+solid
+0 0.000000 31.500000 hedge
+solid
+0 0.000000 30.500000 hedge
+solid
+0 0.000000 29.500000 hedge
+solid
+0 0.000000 28.500000 hedge
+solid
+0 0.000000 27.500000 hedge
+solid
+0 0.000000 26.500000 hedge
 solid
 0 0.000000 25.500000 hedge
 solid
@@ -297,4 +321,4 @@ solid
 solid
 0 0.000000 0.500000 hedge
 solid
-0.000000 26.000000 0.500000 vedge
+0.000000 32.000000 0.500000 vedge

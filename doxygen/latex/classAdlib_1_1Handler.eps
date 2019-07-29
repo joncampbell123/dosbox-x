@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 75.757576
+%%BoundingBox: 0 0 500 46.948357
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 6.600000 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 10.650000 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
 /rows 2 def
-/cols 4 def
+/cols 6 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -175,6 +175,8 @@ boxfont setfont
 1 boundaspect scale
 (Adlib::Handler) cw
 (DBOPL::Handler) cw
+(MAMEOPL2::Handler) cw
+(MAMEOPL3::Handler) cw
 (NukedOPL::Handler) cw
 (OPL2::Handler) cw
 (OPL3::Handler) cw
@@ -189,18 +191,20 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (Adlib::Handler) 1.500000 1.000000 box
+ (Adlib::Handler) 2.500000 1.000000 box
  (DBOPL::Handler) 0.000000 0.000000 box
- (NukedOPL::Handler) 1.000000 0.000000 box
- (OPL2::Handler) 2.000000 0.000000 box
- (OPL3::Handler) 3.000000 0.000000 box
+ (MAMEOPL2::Handler) 1.000000 0.000000 box
+ (MAMEOPL3::Handler) 2.000000 0.000000 box
+ (NukedOPL::Handler) 3.000000 0.000000 box
+ (OPL2::Handler) 4.000000 0.000000 box
+ (OPL3::Handler) 5.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-1 1.500000 0.250000 out
+1 2.500000 0.250000 out
 solid
-0.000000 3.000000 1.000000 conn
+0.000000 5.000000 1.000000 conn
 solid
 0 0.000000 0.750000 in
 solid
@@ -209,3 +213,7 @@ solid
 0 2.000000 0.750000 in
 solid
 0 3.000000 0.750000 in
+solid
+0 4.000000 0.750000 in
+solid
+0 5.000000 0.750000 in

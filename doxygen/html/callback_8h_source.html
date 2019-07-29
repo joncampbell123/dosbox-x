@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -127,49 +127,49 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00030"></a>00030 <span class="keyword">enum</span> { CB_RETN,CB_RETF,CB_RETF8,CB_IRET,CB_IRETD,CB_IRET_STI,CB_IRET_EOI_PIC1,
 <a name="l00031"></a>00031                 CB_IRQ0,CB_IRQ1,CB_IRQ1_BREAK,CB_IRQ9,CB_IRQ12,CB_IRQ12_RET,CB_IRQ6_PCJR,CB_MOUSE,
 <a name="l00032"></a>00032                 <span class="comment">/*CB_INT28,*/</span>CB_INT29,CB_INT16,CB_HOOKABLE,CB_TDE_IRET,CB_IPXESR,CB_IPXESR_RET,
-<a name="l00033"></a>00033                 CB_INT21,CB_INT13,CB_VESA_START,CB_IRET_EOI_PIC2,CB_CPM };
-<a name="l00034"></a>00034 
-<a name="l00035"></a>00035 <span class="comment">/* NTS: Cannot make runtime configurable, because CB_MAX is used to define an array */</span>
-<a name="l00036"></a>00036 <span class="preprocessor">#define CB_MAX          128U</span>
-<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define CB_SIZE         32U</span>
-<a name="l00038"></a>00038 <span class="preprocessor"></span>
-<a name="l00039"></a>00039 <span class="comment">/* we can make THESE configurable though! */</span>
-<a name="l00040"></a>00040 <span class="comment">//#define CB_SEG        0xF000</span>
-<a name="l00041"></a>00041 <span class="comment">//#define CB_SOFFSET    0x1000</span>
-<a name="l00042"></a>00042 <span class="keyword">extern</span> Bit16u CB_SEG,CB_SOFFSET;
-<a name="l00043"></a>00043 
-<a name="l00044"></a>00044 <span class="keyword">enum</span> {  
-<a name="l00045"></a>00045         CBRET_NONE=0,CBRET_STOP=1
-<a name="l00046"></a>00046 };
-<a name="l00047"></a>00047 
-<a name="l00048"></a>00048 <span class="keyword">extern</span> Bit8u lastint;
-<a name="l00049"></a>00049 
-<a name="l00050"></a>00050 <span class="keyword">static</span> INLINE RealPt CALLBACK_RealPointer(Bitu callback) {
-<a name="l00051"></a>00051         <span class="keywordflow">return</span> RealMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
-<a name="l00052"></a>00052 }
-<a name="l00053"></a>00053 <span class="keyword">static</span> INLINE PhysPt CALLBACK_PhysPointer(Bitu callback) {
-<a name="l00054"></a>00054         <span class="keywordflow">return</span> PhysMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
-<a name="l00055"></a>00055 }
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057 <span class="keyword">static</span> <span class="keyword">inline</span> PhysPt CALLBACK_GetBase(<span class="keywordtype">void</span>) {
-<a name="l00058"></a>00058         <span class="keywordflow">return</span> (PhysPt)(((PhysPt)CB_SEG &lt;&lt; (PhysPt)4U) + (PhysPt)CB_SOFFSET);
-<a name="l00059"></a>00059 }
-<a name="l00060"></a>00060 
-<a name="l00061"></a>00061 Bitu CALLBACK_Allocate();
-<a name="l00062"></a>00062 
-<a name="l00063"></a>00063 <span class="keywordtype">void</span> CALLBACK_Idle(<span class="keywordtype">void</span>);
-<a name="l00064"></a>00064 
+<a name="l00033"></a>00033                 CB_INT21,CB_INT13,CB_VESA_WAIT,CB_VESA_PM,CB_IRET_EOI_PIC2,CB_CPM,
+<a name="l00034"></a>00034         CB_RETF_STI,CB_RETF_CLI};
+<a name="l00035"></a>00035 
+<a name="l00036"></a>00036 <span class="comment">/* NTS: Cannot make runtime configurable, because CB_MAX is used to define an array */</span>
+<a name="l00037"></a>00037 <span class="preprocessor">#define CB_MAX          128U</span>
+<a name="l00038"></a>00038 <span class="preprocessor"></span><span class="preprocessor">#define CB_SIZE         32U</span>
+<a name="l00039"></a>00039 <span class="preprocessor"></span>
+<a name="l00040"></a>00040 <span class="comment">/* we can make THESE configurable though! */</span>
+<a name="l00041"></a>00041 <span class="comment">//#define CB_SEG        0xF000</span>
+<a name="l00042"></a>00042 <span class="comment">//#define CB_SOFFSET    0x1000</span>
+<a name="l00043"></a>00043 <span class="keyword">extern</span> Bit16u CB_SEG,CB_SOFFSET;
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045 <span class="keyword">enum</span> {  
+<a name="l00046"></a>00046         CBRET_NONE=0,CBRET_STOP=1
+<a name="l00047"></a>00047 };
+<a name="l00048"></a>00048 
+<a name="l00049"></a>00049 <span class="keyword">extern</span> Bit8u lastint;
+<a name="l00050"></a>00050 
+<a name="l00051"></a>00051 <span class="keyword">static</span> INLINE RealPt CALLBACK_RealPointer(Bitu callback) {
+<a name="l00052"></a>00052         <span class="keywordflow">return</span> RealMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
+<a name="l00053"></a>00053 }
+<a name="l00054"></a>00054 <span class="keyword">static</span> INLINE PhysPt CALLBACK_PhysPointer(Bitu callback) {
+<a name="l00055"></a>00055         <span class="keywordflow">return</span> PhysMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
+<a name="l00056"></a>00056 }
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058 <span class="keyword">static</span> <span class="keyword">inline</span> PhysPt CALLBACK_GetBase(<span class="keywordtype">void</span>) {
+<a name="l00059"></a>00059         <span class="keywordflow">return</span> (PhysPt)(((PhysPt)CB_SEG &lt;&lt; (PhysPt)4U) + (PhysPt)CB_SOFFSET);
+<a name="l00060"></a>00060 }
+<a name="l00061"></a>00061 
+<a name="l00062"></a>00062 Bit8u CALLBACK_Allocate();
+<a name="l00063"></a>00063 
+<a name="l00064"></a>00064 <span class="keywordtype">void</span> CALLBACK_Idle(<span class="keywordtype">void</span>);
 <a name="l00065"></a>00065 
-<a name="l00066"></a>00066 <span class="keywordtype">void</span> CALLBACK_RunRealInt(Bit8u intnum);
-<a name="l00067"></a>00067 <span class="keywordtype">void</span> CALLBACK_RunRealFar(Bit16u seg,Bit16u off);
-<a name="l00068"></a>00068 <span class="keywordtype">void</span> CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off);
-<a name="l00069"></a>00069 
-<a name="l00070"></a>00070 <span class="keywordtype">bool</span> CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,<span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
-<a name="l00071"></a>00071 Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr,<span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
-<a name="l00072"></a>00072 
-<a name="l00073"></a>00073 <span class="keywordtype">void</span> CALLBACK_SetDescription(Bitu nr, <span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
-<a name="l00074"></a>00074 <span class="keyword">const</span> <span class="keywordtype">char</span>* CALLBACK_GetDescription(Bitu callback);
-<a name="l00075"></a>00075 <span class="keywordtype">bool</span> CALLBACK_Free(Bitu callback);
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067 <span class="keywordtype">void</span> CALLBACK_RunRealInt(Bit8u intnum);
+<a name="l00068"></a>00068 <span class="keywordtype">void</span> CALLBACK_RunRealFar(Bit16u seg,Bit16u off);
+<a name="l00069"></a>00069 <span class="keywordtype">void</span> CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off);
+<a name="l00070"></a>00070 
+<a name="l00071"></a>00071 <span class="keywordtype">bool</span> CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,<span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
+<a name="l00072"></a>00072 Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr,<span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
+<a name="l00073"></a>00073 
+<a name="l00074"></a>00074 <span class="keywordtype">void</span> CALLBACK_SetDescription(Bitu nr, <span class="keyword">const</span> <span class="keywordtype">char</span>* descr);
+<a name="l00075"></a>00075 <span class="keyword">const</span> <span class="keywordtype">char</span>* CALLBACK_GetDescription(Bitu callback);
 <a name="l00076"></a>00076 
 <a name="l00077"></a>00077 <span class="keywordtype">void</span> CALLBACK_SCF(<span class="keywordtype">bool</span> val);
 <a name="l00078"></a>00078 <span class="keywordtype">void</span> CALLBACK_SZF(<span class="keywordtype">bool</span> val);
@@ -189,7 +189,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00092"></a>00092                 <span class="keywordtype">bool</span> installed;
 <a name="l00093"></a>00093         } vectorhandler;
 <a name="l00094"></a>00094 <span class="keyword">public</span>:
-<a name="l00095"></a>00095         <a class="code" href="classCALLBACK__HandlerObject.html">CALLBACK_HandlerObject</a>():installed(<span class="keyword">false</span>),m_type(NONE) {
+<a name="l00095"></a>00095         <a class="code" href="classCALLBACK__HandlerObject.html">CALLBACK_HandlerObject</a>():installed(<span class="keyword">false</span>),m_callback(0<span class="comment">/*NULL*/</span>),m_type(NONE) {
 <a name="l00096"></a>00096                 vectorhandler.installed=<span class="keyword">false</span>;
 <a name="l00097"></a>00097         }
 <a name="l00098"></a>00098         ~<a class="code" href="classCALLBACK__HandlerObject.html">CALLBACK_HandlerObject</a>();
@@ -215,7 +215,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

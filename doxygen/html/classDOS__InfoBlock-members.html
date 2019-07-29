@@ -101,13 +101,14 @@ This is the complete list of members for <a class="el" href="classDOS__InfoBlock
   <tr bgcolor="#f0f0f0"><td><b>DOS_InfoBlock</b>() (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GCC_ATTRIBUTE</b>(packed) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetDeviceChain</b>(void) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>GetIt</b>(Bitu size, PhysPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetIt</b>(const Bit32u size, const PhysPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetPointer</b>(void) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetStartOfUMBChain</b>(void) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetUMBChainState</b>(void) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>pt</b> (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [protected]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SaveIt</b>(Bitu size, PhysPt addr, Bitu val) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SaveIt</b>(const Bit32u size, const PhysPt addr, const Bit32u val) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>seg</b> (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetBlockDevices</b>(Bit8u _count) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetBuffers</b>(Bit16u x, Bit16u y) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetCurDirStruct</b>(Bit32u _curdirstruct) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetDeviceChainStart</b>(Bit32u _devchain) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
@@ -115,16 +116,16 @@ This is the complete list of members for <a class="el" href="classDOS__InfoBlock
   <tr bgcolor="#f0f0f0"><td><b>SetFCBTable</b>(Bit32u _fcbtable) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetFirstMCB</b>(Bit16u _first_mcb) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetLocation</b>(Bit16u seg) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(Bit16u seg) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(Bit16u seg, Bit16u off) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(RealPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const Bit16u seg) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const Bit16u seg, const Bit16u off) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const RealPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetStartOfUMBChain</b>(Bit16u _umbstartseg) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetUMBChainState</b>(Bit8u _umbchaining) (defined in <a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a>)</td><td><a class="el" href="classDOS__InfoBlock.html">DOS_InfoBlock</a></td><td></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:56 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

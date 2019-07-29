@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -171,35 +171,35 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00074"></a>00074 
 <a name="l00075"></a>00075 <span class="keywordtype">void</span> XGA_Write_Multifunc(Bitu val, Bitu len) {
 <a name="l00076"></a>00076     (void)len;<span class="comment">//UNUSED</span>
-<a name="l00077"></a>00077         Bitu regselect = val &gt;&gt; 12;
+<a name="l00077"></a>00077         Bitu regselect = val &gt;&gt; 12ul;
 <a name="l00078"></a>00078         Bitu dataval = val &amp; 0xfff;
 <a name="l00079"></a>00079         <span class="keywordflow">switch</span>(regselect) {
 <a name="l00080"></a>00080                 <span class="keywordflow">case</span> 0: <span class="comment">// minor axis pixel count</span>
-<a name="l00081"></a>00081                         xga.MIPcount = dataval;
+<a name="l00081"></a>00081                         xga.MIPcount = (Bit16u)dataval;
 <a name="l00082"></a>00082                         <span class="keywordflow">break</span>;
 <a name="l00083"></a>00083                 <span class="keywordflow">case</span> 1: <span class="comment">// top scissors</span>
-<a name="l00084"></a>00084                         xga.scissors.y1 = dataval;
+<a name="l00084"></a>00084                         xga.scissors.y1 = (Bit16u)dataval;
 <a name="l00085"></a>00085                         <span class="keywordflow">break</span>;
 <a name="l00086"></a>00086                 <span class="keywordflow">case</span> 2: <span class="comment">// left</span>
-<a name="l00087"></a>00087                         xga.scissors.x1 = dataval;
+<a name="l00087"></a>00087                         xga.scissors.x1 = (Bit16u)dataval;
 <a name="l00088"></a>00088                         <span class="keywordflow">break</span>;
 <a name="l00089"></a>00089                 <span class="keywordflow">case</span> 3: <span class="comment">// bottom</span>
-<a name="l00090"></a>00090                         xga.scissors.y2 = dataval;
+<a name="l00090"></a>00090                         xga.scissors.y2 = (Bit16u)dataval;
 <a name="l00091"></a>00091                         <span class="keywordflow">break</span>;
 <a name="l00092"></a>00092                 <span class="keywordflow">case</span> 4: <span class="comment">// right</span>
-<a name="l00093"></a>00093                         xga.scissors.x2 = dataval;
+<a name="l00093"></a>00093                         xga.scissors.x2 = (Bit16u)dataval;
 <a name="l00094"></a>00094                         <span class="keywordflow">break</span>;
 <a name="l00095"></a>00095                 <span class="keywordflow">case</span> 0xa: <span class="comment">// data manip control</span>
-<a name="l00096"></a>00096                         xga.pix_cntl = dataval;
+<a name="l00096"></a>00096                         xga.pix_cntl = (Bit16u)dataval;
 <a name="l00097"></a>00097                         <span class="keywordflow">break</span>;
 <a name="l00098"></a>00098                 <span class="keywordflow">case</span> 0xd: <span class="comment">// misc 2</span>
-<a name="l00099"></a>00099                         xga.control2 = dataval;
+<a name="l00099"></a>00099                         xga.control2 = (Bit16u)dataval;
 <a name="l00100"></a>00100                         <span class="keywordflow">break</span>;
 <a name="l00101"></a>00101                 <span class="keywordflow">case</span> 0xe:
-<a name="l00102"></a>00102                         xga.control1 = dataval;
+<a name="l00102"></a>00102                         xga.control1 = (Bit16u)dataval;
 <a name="l00103"></a>00103                         <span class="keywordflow">break</span>;
 <a name="l00104"></a>00104                 <span class="keywordflow">case</span> 0xf:
-<a name="l00105"></a>00105                         xga.read_sel = dataval;
+<a name="l00105"></a>00105                         xga.read_sel = (Bit16u)dataval;
 <a name="l00106"></a>00106                         <span class="keywordflow">break</span>;
 <a name="l00107"></a>00107                 <span class="keywordflow">default</span>:
 <a name="l00108"></a>00108                         LOG_MSG(<span class="stringliteral">&quot;XGA: Unhandled multifunction command %x&quot;</span>, (<span class="keywordtype">int</span>)regselect);
@@ -234,14 +234,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00137"></a>00137         <span class="keywordflow">if</span>(y &lt; xga.scissors.y1) <span class="keywordflow">return</span>;
 <a name="l00138"></a>00138         <span class="keywordflow">if</span>(y &gt; xga.scissors.y2) <span class="keywordflow">return</span>;
 <a name="l00139"></a>00139 
-<a name="l00140"></a>00140         Bit32u memaddr = (y * XGA_SCREEN_WIDTH) + x;
+<a name="l00140"></a>00140         Bit32u memaddr = (Bit32u)((y * XGA_SCREEN_WIDTH) + x);
 <a name="l00141"></a>00141         <span class="comment">/* Need to zero out all unused bits in modes that have any (15-bit or &quot;32&quot;-bit -- the last</span>
 <a name="l00142"></a>00142 <span class="comment">           one is actually 24-bit. Without this step there may be some graphics corruption (mainly,</span>
 <a name="l00143"></a>00143 <span class="comment">           during windows dragging. */</span>
 <a name="l00144"></a>00144         <span class="keywordflow">switch</span>(XGA_COLOR_MODE) {
 <a name="l00145"></a>00145                 <span class="keywordflow">case</span> M_LIN8:
 <a name="l00146"></a>00146                         <span class="keywordflow">if</span> (GCC_UNLIKELY(memaddr &gt;= vga.mem.memsize)) <span class="keywordflow">break</span>;
-<a name="l00147"></a>00147                         vga.mem.linear[memaddr] = c;
+<a name="l00147"></a>00147                         vga.mem.linear[memaddr] = (Bit8u)c;
 <a name="l00148"></a>00148                         <span class="keywordflow">break</span>;
 <a name="l00149"></a>00149                 <span class="keywordflow">case</span> M_LIN15:
 <a name="l00150"></a>00150                         <span class="keywordflow">if</span> (GCC_UNLIKELY(memaddr*2 &gt;= vga.mem.memsize)) <span class="keywordflow">break</span>;
@@ -253,7 +253,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00156"></a>00156                         <span class="keywordflow">break</span>;
 <a name="l00157"></a>00157                 <span class="keywordflow">case</span> M_LIN32:
 <a name="l00158"></a>00158                         <span class="keywordflow">if</span> (GCC_UNLIKELY(memaddr*4 &gt;= vga.mem.memsize)) <span class="keywordflow">break</span>;
-<a name="l00159"></a>00159                         ((Bit32u*)(vga.mem.linear))[memaddr] = c;
+<a name="l00159"></a>00159                         ((Bit32u*)(vga.mem.linear))[memaddr] = (Bit32u)c;
 <a name="l00160"></a>00160                         <span class="keywordflow">break</span>;
 <a name="l00161"></a>00161                 <span class="keywordflow">default</span>:
 <a name="l00162"></a>00162                         <span class="keywordflow">break</span>;
@@ -262,7 +262,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00165"></a>00165 }
 <a name="l00166"></a>00166 
 <a name="l00167"></a>00167 Bitu XGA_GetPoint(Bitu x, Bitu y) {
-<a name="l00168"></a>00168         Bit32u memaddr = (y * XGA_SCREEN_WIDTH) + x;
+<a name="l00168"></a>00168         Bit32u memaddr = (Bit32u)((y * XGA_SCREEN_WIDTH) + x);
 <a name="l00169"></a>00169 
 <a name="l00170"></a>00170         <span class="keywordflow">switch</span>(XGA_COLOR_MODE) {
 <a name="l00171"></a>00171         <span class="keywordflow">case</span> M_LIN8:
@@ -433,8 +433,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00336"></a>00336                 yat += sy;
 <a name="l00337"></a>00337         }
 <a name="l00338"></a>00338 
-<a name="l00339"></a>00339         xga.curx = xat-1;
-<a name="l00340"></a>00340         xga.cury = yat;
+<a name="l00339"></a>00339         xga.curx = (Bit16u)(xat-1);
+<a name="l00340"></a>00340         xga.cury = (Bit16u)yat;
 <a name="l00341"></a>00341 }
 <a name="l00342"></a>00342 
 <a name="l00343"></a>00343 <span class="keywordtype">void</span> XGA_DrawLineBresenham(Bitu val) {
@@ -546,11 +546,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00449"></a>00449         }
 <a name="l00450"></a>00450 
 <a name="l00451"></a>00451         <span class="keywordflow">if</span>(steep) {
-<a name="l00452"></a>00452                 xga.curx = xat;
-<a name="l00453"></a>00453                 xga.cury = yat;
+<a name="l00452"></a>00452                 xga.curx = (Bit16u)xat;
+<a name="l00453"></a>00453                 xga.cury = (Bit16u)yat;
 <a name="l00454"></a>00454         } <span class="keywordflow">else</span> {
-<a name="l00455"></a>00455                 xga.curx = yat;
-<a name="l00456"></a>00456                 xga.cury = xat;
+<a name="l00455"></a>00455                 xga.curx = (Bit16u)yat;
+<a name="l00456"></a>00456                 xga.cury = (Bit16u)xat;
 <a name="l00457"></a>00457         }
 <a name="l00458"></a>00458         <span class="comment">//      }</span>
 <a name="l00459"></a>00459         <span class="comment">//}</span>
@@ -616,8 +616,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00519"></a>00519                 }
 <a name="l00520"></a>00520                 srcy += dy;
 <a name="l00521"></a>00521         }
-<a name="l00522"></a>00522         xga.curx = srcx;
-<a name="l00523"></a>00523         xga.cury = srcy;
+<a name="l00522"></a>00522         xga.curx = (Bit16u)srcx;
+<a name="l00523"></a>00523         xga.cury = (Bit16u)srcy;
 <a name="l00524"></a>00524 
 <a name="l00525"></a>00525         <span class="comment">//LOG_MSG(&quot;XGA: Draw rect (%d, %d)-(%d, %d), %d&quot;, x1, y1, x2, y2, xga.forecolor);</span>
 <a name="l00526"></a>00526 }
@@ -720,7 +720,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00623"></a>00623                                                         <span class="keywordflow">if</span>(len!=4) { <span class="comment">// Win 3.11 864 &#39;hack?&#39;</span>
 <a name="l00624"></a>00624                                                                 <span class="keywordflow">if</span>(xga.waitcmd.datasize == 0) {
 <a name="l00625"></a>00625                                                                         <span class="comment">// set it up to wait for the next word</span>
-<a name="l00626"></a>00626                                                                         xga.waitcmd.data = val; 
+<a name="l00626"></a>00626                                                                         xga.waitcmd.data = (Bit32u)val;
 <a name="l00627"></a>00627                                                                         xga.waitcmd.datasize = 2;
 <a name="l00628"></a>00628                                                                         <span class="keywordflow">return</span>;
 <a name="l00629"></a>00629                                                                 } <span class="keywordflow">else</span> {
@@ -786,7 +786,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00689"></a>00689                                                         Bitu mixmode;
 <a name="l00690"></a>00690                                                         
 <a name="l00691"></a>00691                                                         <span class="comment">// This formula can rule the world ;)</span>
-<a name="l00692"></a>00692                                                         Bitu mask = 1ul &lt;&lt; ((((n&amp;0xF8u)+(8u-(n&amp;0x7u)))-1u)+chunksize*k);
+<a name="l00692"></a>00692                                                         Bitu mask = (Bitu)1ul &lt;&lt; (Bitu)((((n&amp;0xF8u)+(8u-(n&amp;0x7u)))-1u)+chunksize*k);
 <a name="l00693"></a>00693                                                         <span class="keywordflow">if</span>(val&amp;mask) mixmode = xga.foremix;
 <a name="l00694"></a>00694                                                         <span class="keywordflow">else</span> mixmode = xga.backmix;
 <a name="l00695"></a>00695                                                         
@@ -1009,8 +1009,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00912"></a>00912 <span class="keywordtype">void</span> XGA_DrawCmd(Bitu val, Bitu len) {
 <a name="l00913"></a>00913     (void)len;<span class="comment">//UNUSED</span>
 <a name="l00914"></a>00914         Bit16u cmd;
-<a name="l00915"></a>00915         cmd = val &gt;&gt; 13;
-<a name="l00916"></a>00916         <span class="keywordflow">if</span> (val &amp; 0x800) cmd |= 0x8; <span class="comment">// S3 CMD bit 3</span>
+<a name="l00915"></a>00915         cmd = (Bit16u)(val &gt;&gt; 13ul);
+<a name="l00916"></a>00916         <span class="keywordflow">if</span> (val &amp; 0x800) cmd |= 0x8u; <span class="comment">// S3 CMD bit 3</span>
 <a name="l00917"></a>00917 <span class="preprocessor">#if XGA_SHOW_COMMAND_TRACE == 1</span>
 <a name="l00918"></a>00918 <span class="preprocessor"></span>        <span class="comment">//LOG_MSG(&quot;XGA: Draw command %x&quot;, cmd);</span>
 <a name="l00919"></a>00919 <span class="preprocessor">#endif</span>
@@ -1096,11 +1096,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00999"></a>00999                 reg = (Bit16u)(val&amp;0xffff); <span class="keywordflow">break</span>;
 <a name="l01000"></a>01000         <span class="keywordflow">case</span> M_LIN32:
 <a name="l01001"></a>01001                 <span class="keywordflow">if</span> (xga.control1 &amp; 0x200)
-<a name="l01002"></a>01002                         reg = val;
+<a name="l01002"></a>01002                         reg = (Bit32u)val;
 <a name="l01003"></a>01003                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (xga.control1 &amp; 0x10)
-<a name="l01004"></a>01004                         reg = (reg&amp;0x0000ffff)|(val&lt;&lt;16);
+<a name="l01004"></a>01004                         reg = (reg&amp;0x0000ffff)|((Bit32u)(val&lt;&lt;16));
 <a name="l01005"></a>01005                 <span class="keywordflow">else</span>
-<a name="l01006"></a>01006                         reg = (reg&amp;0xffff0000)|(val&amp;0x0000ffff);
+<a name="l01006"></a>01006                         reg = (reg&amp;0xffff0000)|((Bit32u)(val&amp;0x0000ffff));
 <a name="l01007"></a>01007                 xga.control1 ^= 0x10;
 <a name="l01008"></a>01008                 <span class="keywordflow">break</span>;
 <a name="l01009"></a>01009         <span class="keywordflow">default</span>:
@@ -1139,45 +1139,45 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01042"></a>01042         <span class="keywordflow">switch</span>(port) {
 <a name="l01043"></a>01043                 <span class="keywordflow">case</span> 0x8100:<span class="comment">// drawing control: row (low word), column (high word)</span>
 <a name="l01044"></a>01044                                         <span class="comment">// &quot;CUR_X&quot; and &quot;CUR_Y&quot; (see PORT 82E8h,PORT 86E8h)</span>
-<a name="l01045"></a>01045                         xga.cury = val &amp; 0x0fff;
-<a name="l01046"></a>01046                         <span class="keywordflow">if</span>(len==4) xga.curx = (val&gt;&gt;16)&amp;0x0fff;
+<a name="l01045"></a>01045                         xga.cury = (Bit16u)(val &amp; 0x0fff);
+<a name="l01046"></a>01046                         <span class="keywordflow">if</span>(len==4) xga.curx = (Bit16u)((val&gt;&gt;16)&amp;0x0fff);
 <a name="l01047"></a>01047                         <span class="keywordflow">break</span>;
 <a name="l01048"></a>01048                 <span class="keywordflow">case</span> 0x8102:
-<a name="l01049"></a>01049                         xga.curx = val&amp; 0x0fff;
+<a name="l01049"></a>01049                         xga.curx = (Bit16u)(val&amp; 0x0fff);
 <a name="l01050"></a>01050                         <span class="keywordflow">break</span>;
 <a name="l01051"></a>01051 
 <a name="l01052"></a>01052                 <span class="keywordflow">case</span> 0x8108:<span class="comment">// DWORD drawing control: destination Y and axial step</span>
 <a name="l01053"></a>01053                                         <span class="comment">// constant (low word), destination X and axial step</span>
 <a name="l01054"></a>01054                                         <span class="comment">// constant (high word) (see PORT 8AE8h,PORT 8EE8h)</span>
-<a name="l01055"></a>01055                         xga.desty = val&amp;0x3FFF;
-<a name="l01056"></a>01056                         <span class="keywordflow">if</span>(len==4) xga.destx = (val&gt;&gt;16)&amp;0x3fff;
+<a name="l01055"></a>01055                         xga.desty = (Bit16u)(val&amp;0x3FFF);
+<a name="l01056"></a>01056                         <span class="keywordflow">if</span>(len==4) xga.destx = (Bit16u)((val&gt;&gt;16)&amp;0x3fff);
 <a name="l01057"></a>01057                         <span class="keywordflow">break</span>;
 <a name="l01058"></a>01058                 <span class="keywordflow">case</span> 0x810a:
-<a name="l01059"></a>01059                         xga.destx = val&amp;0x3fff;
+<a name="l01059"></a>01059                         xga.destx = (Bit16u)(val&amp;0x3fff);
 <a name="l01060"></a>01060                         <span class="keywordflow">break</span>;
 <a name="l01061"></a>01061                 <span class="keywordflow">case</span> 0x8110: <span class="comment">// WORD error term (see PORT 92E8h)</span>
-<a name="l01062"></a>01062                         xga.ErrTerm = val&amp;0x3FFF;
+<a name="l01062"></a>01062                         xga.ErrTerm = (Bit16u)(val&amp;0x3FFF);
 <a name="l01063"></a>01063                         <span class="keywordflow">break</span>;
 <a name="l01064"></a>01064 
 <a name="l01065"></a>01065                 <span class="keywordflow">case</span> 0x8120: <span class="comment">// packed MMIO: DWORD background color (see PORT A2E8h)</span>
-<a name="l01066"></a>01066                         xga.backcolor = val;
+<a name="l01066"></a>01066                         xga.backcolor = (Bit16u)val;
 <a name="l01067"></a>01067                         <span class="keywordflow">break</span>;
 <a name="l01068"></a>01068                 <span class="keywordflow">case</span> 0x8124: <span class="comment">// packed MMIO: DWORD foreground color (see PORT A6E8h)</span>
-<a name="l01069"></a>01069                         xga.forecolor = val;
+<a name="l01069"></a>01069                         xga.forecolor = (Bit16u)val;
 <a name="l01070"></a>01070                         <span class="keywordflow">break</span>;
 <a name="l01071"></a>01071                 <span class="keywordflow">case</span> 0x8128: <span class="comment">// DWORD   write mask (see PORT AAE8h)</span>
-<a name="l01072"></a>01072                         xga.writemask = val;
+<a name="l01072"></a>01072                         xga.writemask = (Bit16u)val;
 <a name="l01073"></a>01073                         <span class="keywordflow">break</span>;
 <a name="l01074"></a>01074                 <span class="keywordflow">case</span> 0x812C: <span class="comment">// DWORD   read mask (see PORT AEE8h)</span>
-<a name="l01075"></a>01075                         xga.readmask = val;
+<a name="l01075"></a>01075                         xga.readmask = (Bit16u)val;
 <a name="l01076"></a>01076                         <span class="keywordflow">break</span>;
 <a name="l01077"></a>01077                 <span class="keywordflow">case</span> 0x8134: <span class="comment">// packed MMIO: DWORD      background mix (low word) and</span>
 <a name="l01078"></a>01078                                          <span class="comment">// foreground mix (high word)  (see PORT B6E8h,PORT BAE8h)</span>
 <a name="l01079"></a>01079                         xga.backmix = val&amp;0xFFFF;
-<a name="l01080"></a>01080                         <span class="keywordflow">if</span>(len==4) xga.foremix = (val&gt;&gt;16);
+<a name="l01080"></a>01080                         <span class="keywordflow">if</span>(len==4) xga.foremix = (Bit16u)(val&gt;&gt;16ul);
 <a name="l01081"></a>01081                         <span class="keywordflow">break</span>;
 <a name="l01082"></a>01082                 <span class="keywordflow">case</span> 0x8136:
-<a name="l01083"></a>01083                         xga.foremix = val;
+<a name="l01083"></a>01083                         xga.foremix = (Bit16u)val;
 <a name="l01084"></a>01084                         <span class="keywordflow">break</span>;
 <a name="l01085"></a>01085                 <span class="keywordflow">case</span> 0x8138:<span class="comment">// DWORD top scissors (low word) and left scissors (high</span>
 <a name="l01086"></a>01086                                         <span class="comment">// word) (see PORT BEE8h,#P1047)</span>
@@ -1252,10 +1252,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01155"></a>01155                         <span class="comment">//LOG_MSG(&quot;COLOR_CMP not implemented&quot;);</span>
 <a name="l01156"></a>01156                         <span class="keywordflow">break</span>;
 <a name="l01157"></a>01157                 <span class="keywordflow">case</span> 0xb6e8:
-<a name="l01158"></a>01158                         xga.backmix = val;
+<a name="l01158"></a>01158                         xga.backmix = (Bit16u)val;
 <a name="l01159"></a>01159                         <span class="keywordflow">break</span>;
 <a name="l01160"></a>01160                 <span class="keywordflow">case</span> 0xbae8:
-<a name="l01161"></a>01161                         xga.foremix = val;
+<a name="l01161"></a>01161                         xga.foremix = (Bit16u)val;
 <a name="l01162"></a>01162                         <span class="keywordflow">break</span>;
 <a name="l01163"></a>01163                 <span class="keywordflow">case</span> 0xbee8:
 <a name="l01164"></a>01164                         XGA_Write_Multifunc(val, len);
@@ -1442,7 +1442,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:21 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

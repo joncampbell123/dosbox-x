@@ -3327,7 +3327,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03230"></a>03230                 <span class="comment">/* iterate over blocks of extents */</span>
 <a name="l03231"></a>03231                 <span class="keywordflow">for</span> (y = sy; y &lt; ey; y += (int)ARRAY_LENGTH(extents))
 <a name="l03232"></a>03232                 {
-<a name="l03233"></a>03233                         <span class="keywordtype">int</span> count = MIN(((<span class="keywordtype">size_t</span>)(ey - y)), ARRAY_LENGTH(extents));
+<a name="l03233"></a>03233                         <span class="keywordtype">int</span> count = (int)MIN(((<span class="keywordtype">size_t</span>)(ey - y)), ARRAY_LENGTH(extents));
 <a name="l03234"></a>03234 
 <a name="l03235"></a>03235                         extra-&gt;state = v;
 <a name="l03236"></a>03236                         memcpy(extra-&gt;dither, dithermatrix, <span class="keyword">sizeof</span>(extra-&gt;dither));
@@ -3929,7 +3929,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:21 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

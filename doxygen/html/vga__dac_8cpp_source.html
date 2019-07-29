@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
@@ -119,366 +119,397 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00022"></a>00022 <span class="preprocessor">#include &quot;vga.h&quot;</span>
 <a name="l00023"></a>00023 
 <a name="l00024"></a>00024 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vga_enable_3C6_ramdac;
-<a name="l00025"></a>00025 
-<a name="l00026"></a>00026 <span class="comment">/*</span>
-<a name="l00027"></a>00027 <span class="comment">3C6h (R/W):  PEL Mask</span>
-<a name="l00028"></a>00028 <span class="comment">bit 0-7  This register is anded with the palette index sent for each dot.</span>
-<a name="l00029"></a>00029 <span class="comment">         Should be set to FFh.</span>
-<a name="l00030"></a>00030 <span class="comment"></span>
-<a name="l00031"></a>00031 <span class="comment">3C7h (R):  DAC State Register</span>
-<a name="l00032"></a>00032 <span class="comment">bit 0-1  0 indicates the DAC is in Write Mode and 3 indicates Read mode.</span>
-<a name="l00033"></a>00033 <span class="comment"></span>
-<a name="l00034"></a>00034 <span class="comment">3C7h (W):  PEL Address Read Mode</span>
-<a name="l00035"></a>00035 <span class="comment">bit 0-7  The PEL data register (0..255) to be read from 3C9h.</span>
-<a name="l00036"></a>00036 <span class="comment">Note: After reading the 3 bytes at 3C9h this register will increment,</span>
-<a name="l00037"></a>00037 <span class="comment">      pointing to the next data register.</span>
-<a name="l00038"></a>00038 <span class="comment"></span>
-<a name="l00039"></a>00039 <span class="comment">3C8h (R/W):  PEL Address Write Mode</span>
-<a name="l00040"></a>00040 <span class="comment">bit 0-7  The PEL data register (0..255) to be written to 3C9h.</span>
-<a name="l00041"></a>00041 <span class="comment">Note: After writing the 3 bytes at 3C9h this register will increment, pointing</span>
-<a name="l00042"></a>00042 <span class="comment">      to the next data register.</span>
-<a name="l00043"></a>00043 <span class="comment"></span>
-<a name="l00044"></a>00044 <span class="comment">3C9h (R/W):  PEL Data Register</span>
-<a name="l00045"></a>00045 <span class="comment">bit 0-5  Color value</span>
-<a name="l00046"></a>00046 <span class="comment">Note:  Each read or write of this register will cycle through first the</span>
-<a name="l00047"></a>00047 <span class="comment">       registers for Red, Blue and Green, then increment the appropriate</span>
-<a name="l00048"></a>00048 <span class="comment">       address register, thus the entire palette can be loaded by writing 0 to</span>
-<a name="l00049"></a>00049 <span class="comment">       the PEL Address Write Mode register 3C8h and then writing all 768 bytes</span>
-<a name="l00050"></a>00050 <span class="comment">       of the palette to this register.</span>
-<a name="l00051"></a>00051 <span class="comment">*/</span>
-<a name="l00052"></a>00052 
-<a name="l00053"></a>00053 <span class="keyword">enum</span> {DAC_READ,DAC_WRITE};
-<a name="l00054"></a>00054 
-<a name="l00055"></a>00055 <span class="keyword">static</span> <span class="keywordtype">void</span> VGA_DAC_SendColor( Bitu index, Bitu src ) {
-<a name="l00056"></a>00056     <span class="comment">/* NTS: Don&#39;t forget red/green/blue are 6-bit RGB not 8-bit RGB */</span>
-<a name="l00057"></a>00057     <span class="keyword">const</span> Bit8u red = vga.dac.rgb[src].red;
-<a name="l00058"></a>00058     <span class="keyword">const</span> Bit8u green = vga.dac.rgb[src].green;
-<a name="l00059"></a>00059     <span class="keyword">const</span> Bit8u blue = vga.dac.rgb[src].blue;
-<a name="l00060"></a>00060 
-<a name="l00061"></a>00061     <span class="comment">/* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */</span>
-<a name="l00062"></a>00062     <span class="keywordflow">if</span> (vga.mode == M_CGA16)
-<a name="l00063"></a>00063         <span class="keywordflow">return</span>;
-<a name="l00064"></a>00064 
-<a name="l00065"></a>00065     <span class="comment">/* FIXME: Can someone behind the GCC project explain how (unsigned int) OR (unsigned int) somehow becomes (signed int)?? */</span>
-<a name="l00066"></a>00066 
-<a name="l00067"></a>00067     <span class="keywordflow">if</span> (GFX_bpp &gt;= 24) <span class="comment">/* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */</span>
-<a name="l00068"></a>00068         vga.dac.xlat32[index] =
-<a name="l00069"></a>00069             (uint32_t)(blue &lt;&lt; (2u + GFX_Bshift)) |
-<a name="l00070"></a>00070             (uint32_t)(green &lt;&lt; (2u + GFX_Gshift)) |
-<a name="l00071"></a>00071             (uint32_t)(red&lt;&lt;(2u + GFX_Rshift)) |
-<a name="l00072"></a>00072             (uint32_t)GFX_Amask;
-<a name="l00073"></a>00073     <span class="keywordflow">else</span> {
-<a name="l00074"></a>00074         <span class="comment">/* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */</span>
-<a name="l00075"></a>00075         vga.dac.xlat16[index] =
-<a name="l00076"></a>00076             (uint16_t)(((blue&amp;0x3fu)&gt;&gt;1u)&lt;&lt;GFX_Bshift) |
-<a name="l00077"></a>00077             (uint16_t)((green&amp;0x3fu)&lt;&lt;GFX_Gshift) |
-<a name="l00078"></a>00078             (uint16_t)(((red&amp;0x3fu)&gt;&gt;1u)&lt;&lt;GFX_Rshift) |
-<a name="l00079"></a>00079             (uint16_t)GFX_Amask;
-<a name="l00080"></a>00080 
-<a name="l00081"></a>00081         <span class="comment">/* PC-98 mode always renders 32bpp, therefore needs this fix */</span>
-<a name="l00082"></a>00082         <span class="keywordflow">if</span> (GFX_Bshift == 0)
-<a name="l00083"></a>00083             vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 2U) | (uint32_t)(green &lt;&lt; 10U) | (uint32_t)(red &lt;&lt; 18U);
-<a name="l00084"></a>00084         <span class="keywordflow">else</span>
-<a name="l00085"></a>00085             vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 18U) | (uint32_t)(green &lt;&lt; 10U) | (uint32_t)(red &lt;&lt; 2U);
-<a name="l00086"></a>00086     }
-<a name="l00087"></a>00087 
-<a name="l00088"></a>00088     RENDER_SetPal( index, (red &lt;&lt; 2u) | ( red &gt;&gt; 4u ), (green &lt;&lt; 2u) | ( green &gt;&gt; 4u ), (blue &lt;&lt; 2u) | ( blue &gt;&gt; 4u ) );
-<a name="l00089"></a>00089 }
-<a name="l00090"></a>00090 
-<a name="l00091"></a>00091 <span class="keywordtype">void</span> VGA_DAC_UpdateColor( Bitu index ) {
-<a name="l00092"></a>00092     Bitu maskIndex;
-<a name="l00093"></a>00093 
-<a name="l00094"></a>00094     <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l00095"></a>00095         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8) {
-<a name="l00096"></a>00096             <span class="comment">/* WARNING: This code assumes index &lt; 256 */</span>
-<a name="l00097"></a>00097             <span class="keywordflow">switch</span> (VGA_AC_remap) {
-<a name="l00098"></a>00098                 <span class="keywordflow">case</span> AC_4x4:
-<a name="l00099"></a>00099                 <span class="keywordflow">default</span>: <span class="comment">// &lt;- just in case</span>
-<a name="l00100"></a>00100                     <span class="comment">/* Standard VGA hardware (including the original IBM PS/2 hardware) */</span>
-<a name="l00101"></a>00101                     maskIndex  =  vga.dac.combine[index&amp;0xF] &amp; 0x0F;
-<a name="l00102"></a>00102                     maskIndex += (vga.dac.combine[index&gt;&gt;4u] &amp; 0x0F) &lt;&lt; 4u;
-<a name="l00103"></a>00103                     maskIndex &amp;=  vga.dac.pel_mask;
-<a name="l00104"></a>00104                     <span class="keywordflow">break</span>;
-<a name="l00105"></a>00105                 <span class="keywordflow">case</span> AC_low4:
-<a name="l00106"></a>00106                     <span class="comment">/* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */</span>
-<a name="l00107"></a>00107                     maskIndex  =  vga.dac.combine[index&amp;0xF] &amp; 0x0F;
-<a name="l00108"></a>00108 
-<a name="l00109"></a>00109                     <span class="comment">/* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly.</span>
-<a name="l00110"></a>00110 <span class="comment">                     *        Is this what actual ET4000 hardware does in 256-color mode with Color Select? */</span>
-<a name="l00111"></a>00111                     <span class="keywordflow">if</span> (vga.attr.mode_control &amp; 0x80)
-<a name="l00112"></a>00112                         maskIndex += vga.attr.color_select &lt;&lt; 4;
-<a name="l00113"></a>00113                     <span class="keywordflow">else</span>
-<a name="l00114"></a>00114                         maskIndex += index &amp; 0xF0;
-<a name="l00115"></a>00115 
-<a name="l00116"></a>00116                     maskIndex &amp;=  vga.dac.pel_mask;
-<a name="l00117"></a>00117                     <span class="keywordflow">break</span>;
-<a name="l00118"></a>00118             }
-<a name="l00119"></a>00119         }
-<a name="l00120"></a>00120         <span class="keywordflow">else</span> {
-<a name="l00121"></a>00121             maskIndex = vga.dac.combine[index&amp;0xF] &amp; vga.dac.pel_mask;
-<a name="l00122"></a>00122         }
-<a name="l00123"></a>00123 
-<a name="l00124"></a>00124         VGA_DAC_SendColor( index, maskIndex );
-<a name="l00125"></a>00125     }
-<a name="l00126"></a>00126     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_MCGA) {
-<a name="l00127"></a>00127         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8)
-<a name="l00128"></a>00128             maskIndex = index &amp; vga.dac.pel_mask;
-<a name="l00129"></a>00129         <span class="keywordflow">else</span>
-<a name="l00130"></a>00130             maskIndex = vga.dac.combine[index&amp;0xF] &amp; vga.dac.pel_mask;
-<a name="l00131"></a>00131 
-<a name="l00132"></a>00132         VGA_DAC_SendColor( index, maskIndex );
-<a name="l00133"></a>00133     }
-<a name="l00134"></a>00134     <span class="keywordflow">else</span> {
-<a name="l00135"></a>00135         VGA_DAC_SendColor( index, index );
-<a name="l00136"></a>00136     }
-<a name="l00137"></a>00137 }
-<a name="l00138"></a>00138 
-<a name="l00139"></a>00139 <span class="keywordtype">void</span> VGA_DAC_UpdateColorPalette() {
-<a name="l00140"></a>00140     <span class="keywordflow">for</span> ( Bitu i = 0;i&lt;256;i++) 
-<a name="l00141"></a>00141         VGA_DAC_UpdateColor( i );
-<a name="l00142"></a>00142 }
-<a name="l00143"></a>00143 
-<a name="l00144"></a>00144 <span class="keywordtype">void</span> write_p3c6(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00145"></a>00145     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00146"></a>00146     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00147"></a>00147     <span class="keywordflow">if</span>((IS_VGA_ARCH) &amp;&amp; (vga.dac.hidac_counter&gt;3)) {
-<a name="l00148"></a>00148         vga.dac.reg02=val;
-<a name="l00149"></a>00149         vga.dac.hidac_counter=0;
-<a name="l00150"></a>00150         VGA_StartResize();
-<a name="l00151"></a>00151         <span class="keywordflow">return</span>;
-<a name="l00152"></a>00152     }
-<a name="l00153"></a>00153     <span class="keywordflow">if</span> ( vga.dac.pel_mask != val ) {
-<a name="l00154"></a>00154         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:DCA:Pel Mask set to %X&quot;</span>, (int)val);
-<a name="l00155"></a>00155         vga.dac.pel_mask = val;
+<a name="l00025"></a>00025 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vga_8bit_dac;
+<a name="l00026"></a>00026 
+<a name="l00027"></a>00027 <span class="comment">/*</span>
+<a name="l00028"></a>00028 <span class="comment">3C6h (R/W):  PEL Mask</span>
+<a name="l00029"></a>00029 <span class="comment">bit 0-7  This register is anded with the palette index sent for each dot.</span>
+<a name="l00030"></a>00030 <span class="comment">         Should be set to FFh.</span>
+<a name="l00031"></a>00031 <span class="comment"></span>
+<a name="l00032"></a>00032 <span class="comment">3C7h (R):  DAC State Register</span>
+<a name="l00033"></a>00033 <span class="comment">bit 0-1  0 indicates the DAC is in Write Mode and 3 indicates Read mode.</span>
+<a name="l00034"></a>00034 <span class="comment"></span>
+<a name="l00035"></a>00035 <span class="comment">3C7h (W):  PEL Address Read Mode</span>
+<a name="l00036"></a>00036 <span class="comment">bit 0-7  The PEL data register (0..255) to be read from 3C9h.</span>
+<a name="l00037"></a>00037 <span class="comment">Note: After reading the 3 bytes at 3C9h this register will increment,</span>
+<a name="l00038"></a>00038 <span class="comment">      pointing to the next data register.</span>
+<a name="l00039"></a>00039 <span class="comment"></span>
+<a name="l00040"></a>00040 <span class="comment">3C8h (R/W):  PEL Address Write Mode</span>
+<a name="l00041"></a>00041 <span class="comment">bit 0-7  The PEL data register (0..255) to be written to 3C9h.</span>
+<a name="l00042"></a>00042 <span class="comment">Note: After writing the 3 bytes at 3C9h this register will increment, pointing</span>
+<a name="l00043"></a>00043 <span class="comment">      to the next data register.</span>
+<a name="l00044"></a>00044 <span class="comment"></span>
+<a name="l00045"></a>00045 <span class="comment">3C9h (R/W):  PEL Data Register</span>
+<a name="l00046"></a>00046 <span class="comment">bit 0-5  Color value</span>
+<a name="l00047"></a>00047 <span class="comment">Note:  Each read or write of this register will cycle through first the</span>
+<a name="l00048"></a>00048 <span class="comment">       registers for Red, Blue and Green, then increment the appropriate</span>
+<a name="l00049"></a>00049 <span class="comment">       address register, thus the entire palette can be loaded by writing 0 to</span>
+<a name="l00050"></a>00050 <span class="comment">       the PEL Address Write Mode register 3C8h and then writing all 768 bytes</span>
+<a name="l00051"></a>00051 <span class="comment">       of the palette to this register.</span>
+<a name="l00052"></a>00052 <span class="comment">*/</span>
+<a name="l00053"></a>00053 
+<a name="l00054"></a>00054 <span class="keyword">enum</span> {DAC_READ,DAC_WRITE};
+<a name="l00055"></a>00055 
+<a name="l00056"></a>00056 <span class="keyword">static</span> <span class="keywordtype">void</span> VGA_DAC_SendColor( Bitu index, Bitu src ) {
+<a name="l00057"></a>00057     <span class="comment">/* NTS: Don&#39;t forget red/green/blue are 6-bit RGB not 8-bit RGB */</span>
+<a name="l00058"></a>00058     <span class="keyword">const</span> Bit8u red = vga.dac.rgb[src].red;
+<a name="l00059"></a>00059     <span class="keyword">const</span> Bit8u green = vga.dac.rgb[src].green;
+<a name="l00060"></a>00060     <span class="keyword">const</span> Bit8u blue = vga.dac.rgb[src].blue;
+<a name="l00061"></a>00061 
+<a name="l00062"></a>00062     <span class="comment">/* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */</span>
+<a name="l00063"></a>00063     <span class="keywordflow">if</span> (vga.mode == M_CGA16)
+<a name="l00064"></a>00064         <span class="keywordflow">return</span>;
+<a name="l00065"></a>00065 
+<a name="l00066"></a>00066     <span class="comment">/* FIXME: Can someone behind the GCC project explain how (unsigned int) OR (unsigned int) somehow becomes (signed int)?? */</span>
+<a name="l00067"></a>00067 
+<a name="l00068"></a>00068     <span class="keywordflow">if</span> (vga_8bit_dac) {
+<a name="l00069"></a>00069         <span class="keywordflow">if</span> (GFX_bpp &gt;= 24) <span class="comment">/* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */</span>
+<a name="l00070"></a>00070             vga.dac.xlat32[index] =
+<a name="l00071"></a>00071                 (uint32_t)(blue &lt;&lt; (GFX_Bshift)) |
+<a name="l00072"></a>00072                 (uint32_t)(green &lt;&lt; (GFX_Gshift)) |
+<a name="l00073"></a>00073                 (uint32_t)(red&lt;&lt; (GFX_Rshift)) |
+<a name="l00074"></a>00074                 (uint32_t)GFX_Amask;
+<a name="l00075"></a>00075         <span class="keywordflow">else</span> {
+<a name="l00076"></a>00076             <span class="comment">/* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */</span>
+<a name="l00077"></a>00077             vga.dac.xlat16[index] =
+<a name="l00078"></a>00078                 (uint16_t)(((blue&amp;0xffu)&gt;&gt;3u)&lt;&lt;GFX_Bshift) |
+<a name="l00079"></a>00079                 (uint16_t)(((green&amp;0xffu)&gt;&gt;2u)&lt;&lt;GFX_Gshift) |
+<a name="l00080"></a>00080                 (uint16_t)(((red&amp;0xffu)&gt;&gt;3u)&lt;&lt;GFX_Rshift) |
+<a name="l00081"></a>00081                 (uint16_t)GFX_Amask;
+<a name="l00082"></a>00082 
+<a name="l00083"></a>00083             <span class="comment">/* PC-98 mode always renders 32bpp, therefore needs this fix */</span>
+<a name="l00084"></a>00084             <span class="keywordflow">if</span> (GFX_Bshift == 0)
+<a name="l00085"></a>00085                 vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 0U) | (uint32_t)(green &lt;&lt; 8U) | (uint32_t)(red &lt;&lt; 16U);
+<a name="l00086"></a>00086             <span class="keywordflow">else</span>
+<a name="l00087"></a>00087                 vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 16U) | (uint32_t)(green &lt;&lt; 8U) | (uint32_t)(red &lt;&lt; 0U);
+<a name="l00088"></a>00088         }
+<a name="l00089"></a>00089 
+<a name="l00090"></a>00090         RENDER_SetPal( (Bit8u)index, red, green, blue );
+<a name="l00091"></a>00091     }
+<a name="l00092"></a>00092     <span class="keywordflow">else</span> {
+<a name="l00093"></a>00093         <span class="keywordflow">if</span> (GFX_bpp &gt;= 24) <span class="comment">/* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */</span>
+<a name="l00094"></a>00094             vga.dac.xlat32[index] =
+<a name="l00095"></a>00095                 (uint32_t)(blue &lt;&lt; (2u + GFX_Bshift)) |
+<a name="l00096"></a>00096                 (uint32_t)(green &lt;&lt; (2u + GFX_Gshift)) |
+<a name="l00097"></a>00097                 (uint32_t)(red&lt;&lt;(2u + GFX_Rshift)) |
+<a name="l00098"></a>00098                 (uint32_t)GFX_Amask;
+<a name="l00099"></a>00099         <span class="keywordflow">else</span> {
+<a name="l00100"></a>00100             <span class="comment">/* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */</span>
+<a name="l00101"></a>00101             vga.dac.xlat16[index] =
+<a name="l00102"></a>00102                 (uint16_t)(((blue&amp;0x3fu)&gt;&gt;1u)&lt;&lt;GFX_Bshift) |
+<a name="l00103"></a>00103                 (uint16_t)((green&amp;0x3fu)&lt;&lt;GFX_Gshift) |
+<a name="l00104"></a>00104                 (uint16_t)(((red&amp;0x3fu)&gt;&gt;1u)&lt;&lt;GFX_Rshift) |
+<a name="l00105"></a>00105                 (uint16_t)GFX_Amask;
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107             <span class="comment">/* PC-98 mode always renders 32bpp, therefore needs this fix */</span>
+<a name="l00108"></a>00108             <span class="keywordflow">if</span> (GFX_Bshift == 0)
+<a name="l00109"></a>00109                 vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 2U) | (uint32_t)(green &lt;&lt; 10U) | (uint32_t)(red &lt;&lt; 18U);
+<a name="l00110"></a>00110             <span class="keywordflow">else</span>
+<a name="l00111"></a>00111                 vga.dac.xlat32[index] = (uint32_t)(blue &lt;&lt; 18U) | (uint32_t)(green &lt;&lt; 10U) | (uint32_t)(red &lt;&lt; 2U);
+<a name="l00112"></a>00112         }
+<a name="l00113"></a>00113 
+<a name="l00114"></a>00114         RENDER_SetPal( (Bit8u)index, (red &lt;&lt; 2u) | ( red &gt;&gt; 4u ), (green &lt;&lt; 2u) | ( green &gt;&gt; 4u ), (blue &lt;&lt; 2u) | ( blue &gt;&gt; 4u ) );
+<a name="l00115"></a>00115     }
+<a name="l00116"></a>00116 }
+<a name="l00117"></a>00117 
+<a name="l00118"></a>00118 <span class="keywordtype">void</span> VGA_DAC_UpdateColor( Bitu index ) {
+<a name="l00119"></a>00119     Bitu maskIndex;
+<a name="l00120"></a>00120 
+<a name="l00121"></a>00121     <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l00122"></a>00122         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8) {
+<a name="l00123"></a>00123             <span class="comment">/* WARNING: This code assumes index &lt; 256 */</span>
+<a name="l00124"></a>00124             <span class="keywordflow">switch</span> (VGA_AC_remap) {
+<a name="l00125"></a>00125                 <span class="keywordflow">case</span> AC_4x4:
+<a name="l00126"></a>00126                 <span class="keywordflow">default</span>: <span class="comment">// &lt;- just in case</span>
+<a name="l00127"></a>00127                     <span class="comment">/* Standard VGA hardware (including the original IBM PS/2 hardware) */</span>
+<a name="l00128"></a>00128                     maskIndex  =  vga.dac.combine[index&amp;0xF] &amp; 0x0F;
+<a name="l00129"></a>00129                     maskIndex += (vga.dac.combine[index&gt;&gt;4u] &amp; 0x0F) &lt;&lt; 4u;
+<a name="l00130"></a>00130                     maskIndex &amp;=  vga.dac.pel_mask;
+<a name="l00131"></a>00131                     <span class="keywordflow">break</span>;
+<a name="l00132"></a>00132                 <span class="keywordflow">case</span> AC_low4:
+<a name="l00133"></a>00133                     <span class="comment">/* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */</span>
+<a name="l00134"></a>00134                     maskIndex  =  vga.dac.combine[index&amp;0xF] &amp; 0x0F;
+<a name="l00135"></a>00135 
+<a name="l00136"></a>00136                     <span class="keywordflow">if</span> (vga.attr.mode_control &amp; 0x80u)
+<a name="l00137"></a>00137                         maskIndex += Bitu(vga.attr.color_select &lt;&lt; 4u);
+<a name="l00138"></a>00138                     <span class="keywordflow">else</span>
+<a name="l00139"></a>00139                         maskIndex += index &amp; 0xF0u;
+<a name="l00140"></a>00140 
+<a name="l00141"></a>00141                     maskIndex &amp;=  vga.dac.pel_mask;
+<a name="l00142"></a>00142                     <span class="keywordflow">break</span>;
+<a name="l00143"></a>00143             }
+<a name="l00144"></a>00144         }
+<a name="l00145"></a>00145         <span class="keywordflow">else</span> {
+<a name="l00146"></a>00146             maskIndex = vga.dac.combine[index&amp;0xF] &amp; vga.dac.pel_mask;
+<a name="l00147"></a>00147         }
+<a name="l00148"></a>00148 
+<a name="l00149"></a>00149         VGA_DAC_SendColor( index, maskIndex );
+<a name="l00150"></a>00150     }
+<a name="l00151"></a>00151     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_MCGA) {
+<a name="l00152"></a>00152         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8)
+<a name="l00153"></a>00153             maskIndex = index &amp; vga.dac.pel_mask;
+<a name="l00154"></a>00154         <span class="keywordflow">else</span>
+<a name="l00155"></a>00155             maskIndex = vga.dac.combine[index&amp;0xF] &amp; vga.dac.pel_mask;
 <a name="l00156"></a>00156 
-<a name="l00157"></a>00157         <span class="comment">// TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace</span>
-<a name="l00158"></a>00158         <span class="comment">//       for background/foreground. Does that apply to the PEL mask too?</span>
-<a name="l00159"></a>00159 
-<a name="l00160"></a>00160         VGA_DAC_UpdateColorPalette();
+<a name="l00157"></a>00157         VGA_DAC_SendColor( index, maskIndex );
+<a name="l00158"></a>00158     }
+<a name="l00159"></a>00159     <span class="keywordflow">else</span> {
+<a name="l00160"></a>00160         VGA_DAC_SendColor( index, index );
 <a name="l00161"></a>00161     }
 <a name="l00162"></a>00162 }
 <a name="l00163"></a>00163 
-<a name="l00164"></a>00164 
-<a name="l00165"></a>00165 Bitu read_p3c6(Bitu port,Bitu iolen) {
-<a name="l00166"></a>00166     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00167"></a>00167     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00168"></a>00168     <span class="keywordflow">if</span> (vga_enable_3C6_ramdac)
-<a name="l00169"></a>00169         vga.dac.hidac_counter++;
-<a name="l00170"></a>00170 
-<a name="l00171"></a>00171     <span class="keywordflow">return</span> vga.dac.pel_mask;
-<a name="l00172"></a>00172 }
-<a name="l00173"></a>00173 
-<a name="l00174"></a>00174 
-<a name="l00175"></a>00175 <span class="keywordtype">void</span> write_p3c7(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00176"></a>00176     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00177"></a>00177     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00178"></a>00178     vga.dac.hidac_counter=0;
-<a name="l00179"></a>00179     vga.dac.pel_index=0;
-<a name="l00180"></a>00180     vga.dac.state=DAC_READ;
-<a name="l00181"></a>00181     vga.dac.read_index=val;         <span class="comment">/* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */</span>
-<a name="l00182"></a>00182     vga.dac.write_index=val + 1;
-<a name="l00183"></a>00183 }
+<a name="l00164"></a>00164 <span class="keywordtype">void</span> VGA_DAC_UpdateColorPalette() {
+<a name="l00165"></a>00165     <span class="keywordflow">for</span> ( Bitu i = 0;i&lt;256;i++) 
+<a name="l00166"></a>00166         VGA_DAC_UpdateColor( i );
+<a name="l00167"></a>00167 }
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169 <span class="keywordtype">void</span> write_p3c6(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00170"></a>00170     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00171"></a>00171     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00172"></a>00172     <span class="keywordflow">if</span>((IS_VGA_ARCH) &amp;&amp; (vga.dac.hidac_counter&gt;3)) {
+<a name="l00173"></a>00173         vga.dac.reg02=(Bit8u)val;
+<a name="l00174"></a>00174         vga.dac.hidac_counter=0;
+<a name="l00175"></a>00175         VGA_StartResize();
+<a name="l00176"></a>00176         <span class="keywordflow">return</span>;
+<a name="l00177"></a>00177     }
+<a name="l00178"></a>00178     <span class="keywordflow">if</span> ( vga.dac.pel_mask != val ) {
+<a name="l00179"></a>00179         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:DCA:Pel Mask set to %X&quot;</span>, (int)val);
+<a name="l00180"></a>00180         vga.dac.pel_mask = (Bit8u)val;
+<a name="l00181"></a>00181 
+<a name="l00182"></a>00182         <span class="comment">// TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace</span>
+<a name="l00183"></a>00183         <span class="comment">//       for background/foreground. Does that apply to the PEL mask too?</span>
 <a name="l00184"></a>00184 
-<a name="l00185"></a>00185 Bitu read_p3c7(Bitu port,Bitu iolen) {
-<a name="l00186"></a>00186     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00187"></a>00187     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00188"></a>00188     vga.dac.hidac_counter=0;
-<a name="l00189"></a>00189     <span class="keywordflow">if</span> (vga.dac.state==DAC_READ) <span class="keywordflow">return</span> 0x3;
-<a name="l00190"></a>00190     <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0;
-<a name="l00191"></a>00191 }
-<a name="l00192"></a>00192 
-<a name="l00193"></a>00193 <span class="keywordtype">void</span> write_p3c8(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00194"></a>00194     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00195"></a>00195     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00196"></a>00196     vga.dac.hidac_counter=0;
-<a name="l00197"></a>00197     vga.dac.pel_index=0;
-<a name="l00198"></a>00198     vga.dac.state=DAC_WRITE;
-<a name="l00199"></a>00199     vga.dac.write_index=val;        <span class="comment">/* NTS: Paradise SVGA behavior, this affects write index, but not read index */</span>
-<a name="l00200"></a>00200 }
-<a name="l00201"></a>00201 
-<a name="l00202"></a>00202 Bitu read_p3c8(Bitu port, Bitu iolen){
-<a name="l00203"></a>00203     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00204"></a>00204     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00205"></a>00205     vga.dac.hidac_counter=0;
-<a name="l00206"></a>00206     <span class="keywordflow">return</span> vga.dac.write_index;
-<a name="l00207"></a>00207 }
-<a name="l00208"></a>00208 
-<a name="l00209"></a>00209 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vga_palette_update_on_full_load;
-<a name="l00210"></a>00210 
-<a name="l00211"></a>00211 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp_dac[3] = {0,0,0};
-<a name="l00212"></a>00212 
-<a name="l00213"></a>00213 <span class="keywordtype">void</span> write_p3c9(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00214"></a>00214     <span class="keywordtype">bool</span> update = <span class="keyword">false</span>;
-<a name="l00215"></a>00215 
-<a name="l00216"></a>00216     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00217"></a>00217     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00218"></a>00218     vga.dac.hidac_counter=0;
-<a name="l00219"></a>00219     val&amp;=0x3f;
-<a name="l00220"></a>00220 
-<a name="l00221"></a>00221     <span class="keywordflow">if</span> (vga.dac.pel_index &lt; 3) {
-<a name="l00222"></a>00222         tmp_dac[vga.dac.pel_index]=val;
-<a name="l00223"></a>00223 
-<a name="l00224"></a>00224         <span class="keywordflow">if</span> (!vga_palette_update_on_full_load) {
-<a name="l00225"></a>00225             <span class="comment">/* update palette right away, partial change */</span>
-<a name="l00226"></a>00226             <span class="keywordflow">switch</span> (vga.dac.pel_index) {
-<a name="l00227"></a>00227                 <span class="keywordflow">case</span> 0:
-<a name="l00228"></a>00228                     vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
-<a name="l00229"></a>00229                     <span class="keywordflow">break</span>;
-<a name="l00230"></a>00230                 <span class="keywordflow">case</span> 1:
-<a name="l00231"></a>00231                     vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
-<a name="l00232"></a>00232                     <span class="keywordflow">break</span>;
-<a name="l00233"></a>00233                 <span class="keywordflow">case</span> 2:
-<a name="l00234"></a>00234                     vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
-<a name="l00235"></a>00235                     <span class="keywordflow">break</span>;
-<a name="l00236"></a>00236             }
-<a name="l00237"></a>00237             update = <span class="keyword">true</span>;
-<a name="l00238"></a>00238         }
-<a name="l00239"></a>00239         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.dac.pel_index == 2) {
-<a name="l00240"></a>00240             <span class="comment">/* update palette ONLY when all three are given */</span>
-<a name="l00241"></a>00241             vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
-<a name="l00242"></a>00242             vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
-<a name="l00243"></a>00243             vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
-<a name="l00244"></a>00244             update = <span class="keyword">true</span>;
-<a name="l00245"></a>00245         }
-<a name="l00246"></a>00246 
-<a name="l00247"></a>00247         <span class="keywordflow">if</span> ((++vga.dac.pel_index) &gt;= 3)
-<a name="l00248"></a>00248             vga.dac.pel_index = 0;
-<a name="l00249"></a>00249     }
+<a name="l00185"></a>00185         VGA_DAC_UpdateColorPalette();
+<a name="l00186"></a>00186     }
+<a name="l00187"></a>00187 }
+<a name="l00188"></a>00188 
+<a name="l00189"></a>00189 
+<a name="l00190"></a>00190 Bitu read_p3c6(Bitu port,Bitu iolen) {
+<a name="l00191"></a>00191     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00192"></a>00192     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00193"></a>00193     <span class="keywordflow">if</span> (vga_enable_3C6_ramdac)
+<a name="l00194"></a>00194         vga.dac.hidac_counter++;
+<a name="l00195"></a>00195 
+<a name="l00196"></a>00196     <span class="keywordflow">return</span> vga.dac.pel_mask;
+<a name="l00197"></a>00197 }
+<a name="l00198"></a>00198 
+<a name="l00199"></a>00199 
+<a name="l00200"></a>00200 <span class="keywordtype">void</span> write_p3c7(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00201"></a>00201     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00202"></a>00202     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00203"></a>00203     vga.dac.hidac_counter=0;
+<a name="l00204"></a>00204     vga.dac.pel_index=0;
+<a name="l00205"></a>00205     vga.dac.state=DAC_READ;
+<a name="l00206"></a>00206     vga.dac.read_index=(Bit8u)val;         <span class="comment">/* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */</span>
+<a name="l00207"></a>00207     vga.dac.write_index=(Bit8u)(val + 1);
+<a name="l00208"></a>00208 }
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210 Bitu read_p3c7(Bitu port,Bitu iolen) {
+<a name="l00211"></a>00211     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00212"></a>00212     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00213"></a>00213     vga.dac.hidac_counter=0;
+<a name="l00214"></a>00214     <span class="keywordflow">if</span> (vga.dac.state==DAC_READ) <span class="keywordflow">return</span> 0x3;
+<a name="l00215"></a>00215     <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0;
+<a name="l00216"></a>00216 }
+<a name="l00217"></a>00217 
+<a name="l00218"></a>00218 <span class="keywordtype">void</span> write_p3c8(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00219"></a>00219     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00220"></a>00220     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00221"></a>00221     vga.dac.hidac_counter=0;
+<a name="l00222"></a>00222     vga.dac.pel_index=0;
+<a name="l00223"></a>00223     vga.dac.state=DAC_WRITE;
+<a name="l00224"></a>00224     vga.dac.write_index=(Bit8u)val;        <span class="comment">/* NTS: Paradise SVGA behavior, this affects write index, but not read index */</span>
+<a name="l00225"></a>00225     <span class="keywordflow">if</span> (svgaCard != SVGA_ParadisePVGA1A)
+<a name="l00226"></a>00226         vga.dac.read_index = (Bit8u)(val - 1);
+<a name="l00227"></a>00227 }
+<a name="l00228"></a>00228 
+<a name="l00229"></a>00229 Bitu read_p3c8(Bitu port, Bitu iolen){
+<a name="l00230"></a>00230     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00231"></a>00231     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00232"></a>00232     vga.dac.hidac_counter=0;
+<a name="l00233"></a>00233     <span class="keywordflow">return</span> vga.dac.write_index;
+<a name="l00234"></a>00234 }
+<a name="l00235"></a>00235 
+<a name="l00236"></a>00236 <span class="keyword">extern</span> <span class="keywordtype">bool</span> enable_vga_8bit_dac;
+<a name="l00237"></a>00237 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vga_palette_update_on_full_load;
+<a name="l00238"></a>00238 
+<a name="l00239"></a>00239 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp_dac[3] = {0,0,0};
+<a name="l00240"></a>00240 
+<a name="l00241"></a>00241 <span class="keywordtype">void</span> write_p3c9(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00242"></a>00242     <span class="keywordtype">bool</span> update = <span class="keyword">false</span>;
+<a name="l00243"></a>00243 
+<a name="l00244"></a>00244     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00245"></a>00245     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00246"></a>00246     vga.dac.hidac_counter=0;
+<a name="l00247"></a>00247 
+<a name="l00248"></a>00248     <span class="keywordflow">if</span> (!enable_vga_8bit_dac)
+<a name="l00249"></a>00249         val&amp;=0x3f;
 <a name="l00250"></a>00250 
-<a name="l00251"></a>00251     <span class="keywordflow">if</span> (update) {
-<a name="l00252"></a>00252         <span class="comment">// As seen on real hardware: 640x480 2-color is the ONLY video mode</span>
-<a name="l00253"></a>00253         <span class="comment">// where the MCGA hardware appears to latch foreground and background</span>
-<a name="l00254"></a>00254         <span class="comment">// colors from the DAC at retrace, instead of always reading through</span>
-<a name="l00255"></a>00255         <span class="comment">// the DAC.</span>
-<a name="l00256"></a>00256         <span class="comment">//</span>
-<a name="l00257"></a>00257         <span class="comment">// Perhaps IBM couldn&#39;t get the DAC to run fast enough for 640x480 2-color mode.</span>
-<a name="l00258"></a>00258         <span class="keywordflow">if</span> (machine == MCH_MCGA &amp;&amp; (vga.other.mcga_mode_control &amp; 2)) {
-<a name="l00259"></a>00259             <span class="comment">/* do not update the palette right now.</span>
-<a name="l00260"></a>00260 <span class="comment">             * MCGA double-buffers foreground and background colors */</span>
-<a name="l00261"></a>00261         }
-<a name="l00262"></a>00262         <span class="keywordflow">else</span> {
-<a name="l00263"></a>00263             VGA_DAC_UpdateColorPalette(); <span class="comment">// FIXME: Yes, this is very inefficient. Will improve later.</span>
-<a name="l00264"></a>00264         }
-<a name="l00265"></a>00265 
-<a name="l00266"></a>00266         <span class="comment">/* only if we just completed a color should we advance */</span>
-<a name="l00267"></a>00267         <span class="keywordflow">if</span> (vga.dac.pel_index == 0)
-<a name="l00268"></a>00268             vga.dac.read_index = vga.dac.write_index++;                           <span class="comment">// NTS: Paradise SVGA behavior</span>
-<a name="l00269"></a>00269     }
-<a name="l00270"></a>00270 }
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272 Bitu read_p3c9(Bitu port,Bitu iolen) {
-<a name="l00273"></a>00273     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00274"></a>00274     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00275"></a>00275     vga.dac.hidac_counter=0;
-<a name="l00276"></a>00276     Bit8u ret;
-<a name="l00277"></a>00277     <span class="keywordflow">switch</span> (vga.dac.pel_index) {
-<a name="l00278"></a>00278     <span class="keywordflow">case</span> 0:
-<a name="l00279"></a>00279         ret=vga.dac.rgb[vga.dac.read_index].red;
-<a name="l00280"></a>00280         vga.dac.pel_index=1;
-<a name="l00281"></a>00281         <span class="keywordflow">break</span>;
-<a name="l00282"></a>00282     <span class="keywordflow">case</span> 1:
-<a name="l00283"></a>00283         ret=vga.dac.rgb[vga.dac.read_index].green;
-<a name="l00284"></a>00284         vga.dac.pel_index=2;
-<a name="l00285"></a>00285         <span class="keywordflow">break</span>;
-<a name="l00286"></a>00286     <span class="keywordflow">case</span> 2:
-<a name="l00287"></a>00287         ret=vga.dac.rgb[vga.dac.read_index].blue;
-<a name="l00288"></a>00288         vga.dac.pel_index=0;
-<a name="l00289"></a>00289         vga.dac.read_index=vga.dac.write_index++;                           <span class="comment">// NTS: Paradise SVGA behavior</span>
-<a name="l00290"></a>00290         <span class="keywordflow">break</span>;
-<a name="l00291"></a>00291     <span class="keywordflow">default</span>:
-<a name="l00292"></a>00292         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:DAC:Illegal Pel Index&quot;</span>);           <span class="comment">//If this can actually happen that will be the day</span>
-<a name="l00293"></a>00293         ret=0;
-<a name="l00294"></a>00294         <span class="keywordflow">break</span>;
-<a name="l00295"></a>00295     }
-<a name="l00296"></a>00296     <span class="keywordflow">return</span> ret;
-<a name="l00297"></a>00297 }
-<a name="l00298"></a>00298 
-<a name="l00299"></a>00299 <span class="keywordtype">void</span> VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
-<a name="l00300"></a>00300     vga.dac.combine[attr] = pal;
+<a name="l00251"></a>00251     <span class="keywordflow">if</span> (vga.dac.pel_index &lt; 3) {
+<a name="l00252"></a>00252         tmp_dac[vga.dac.pel_index]=(<span class="keywordtype">unsigned</span> char)val;
+<a name="l00253"></a>00253 
+<a name="l00254"></a>00254         <span class="keywordflow">if</span> (!vga_palette_update_on_full_load) {
+<a name="l00255"></a>00255             <span class="comment">/* update palette right away, partial change */</span>
+<a name="l00256"></a>00256             <span class="keywordflow">switch</span> (vga.dac.pel_index) {
+<a name="l00257"></a>00257                 <span class="keywordflow">case</span> 0:
+<a name="l00258"></a>00258                     vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
+<a name="l00259"></a>00259                     <span class="keywordflow">break</span>;
+<a name="l00260"></a>00260                 <span class="keywordflow">case</span> 1:
+<a name="l00261"></a>00261                     vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
+<a name="l00262"></a>00262                     <span class="keywordflow">break</span>;
+<a name="l00263"></a>00263                 <span class="keywordflow">case</span> 2:
+<a name="l00264"></a>00264                     vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
+<a name="l00265"></a>00265                     <span class="keywordflow">break</span>;
+<a name="l00266"></a>00266             }
+<a name="l00267"></a>00267             update = <span class="keyword">true</span>;
+<a name="l00268"></a>00268         }
+<a name="l00269"></a>00269         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.dac.pel_index == 2) {
+<a name="l00270"></a>00270             <span class="comment">/* update palette ONLY when all three are given */</span>
+<a name="l00271"></a>00271             vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
+<a name="l00272"></a>00272             vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
+<a name="l00273"></a>00273             vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
+<a name="l00274"></a>00274             update = <span class="keyword">true</span>;
+<a name="l00275"></a>00275         }
+<a name="l00276"></a>00276 
+<a name="l00277"></a>00277         <span class="keywordflow">if</span> ((++vga.dac.pel_index) &gt;= 3)
+<a name="l00278"></a>00278             vga.dac.pel_index = 0;
+<a name="l00279"></a>00279     }
+<a name="l00280"></a>00280 
+<a name="l00281"></a>00281     <span class="keywordflow">if</span> (update) {
+<a name="l00282"></a>00282         <span class="comment">// As seen on real hardware: 640x480 2-color is the ONLY video mode</span>
+<a name="l00283"></a>00283         <span class="comment">// where the MCGA hardware appears to latch foreground and background</span>
+<a name="l00284"></a>00284         <span class="comment">// colors from the DAC at retrace, instead of always reading through</span>
+<a name="l00285"></a>00285         <span class="comment">// the DAC.</span>
+<a name="l00286"></a>00286         <span class="comment">//</span>
+<a name="l00287"></a>00287         <span class="comment">// Perhaps IBM couldn&#39;t get the DAC to run fast enough for 640x480 2-color mode.</span>
+<a name="l00288"></a>00288         <span class="keywordflow">if</span> (machine == MCH_MCGA &amp;&amp; (vga.other.mcga_mode_control &amp; 2)) {
+<a name="l00289"></a>00289             <span class="comment">/* do not update the palette right now.</span>
+<a name="l00290"></a>00290 <span class="comment">             * MCGA double-buffers foreground and background colors */</span>
+<a name="l00291"></a>00291         }
+<a name="l00292"></a>00292         <span class="keywordflow">else</span> {
+<a name="l00293"></a>00293             VGA_DAC_UpdateColorPalette(); <span class="comment">// FIXME: Yes, this is very inefficient. Will improve later.</span>
+<a name="l00294"></a>00294         }
+<a name="l00295"></a>00295 
+<a name="l00296"></a>00296         <span class="comment">/* only if we just completed a color should we advance */</span>
+<a name="l00297"></a>00297         <span class="keywordflow">if</span> (vga.dac.pel_index == 0)
+<a name="l00298"></a>00298             vga.dac.read_index = vga.dac.write_index++;                           <span class="comment">// NTS: Paradise SVGA behavior</span>
+<a name="l00299"></a>00299     }
+<a name="l00300"></a>00300 }
 <a name="l00301"></a>00301 
-<a name="l00302"></a>00302     <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l00303"></a>00303         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8) {
-<a name="l00304"></a>00304             <span class="keywordflow">switch</span> (VGA_AC_remap) {
-<a name="l00305"></a>00305                 <span class="keywordflow">case</span> AC_4x4:
-<a name="l00306"></a>00306                 <span class="keywordflow">default</span>: <span class="comment">// &lt;- just in case</span>
-<a name="l00307"></a>00307                     <span class="comment">/* Standard VGA hardware (including the original IBM PS/2 hardware) */</span>
-<a name="l00308"></a>00308                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr;i &lt; 0x100;i += 0x10)
-<a name="l00309"></a>00309                         VGA_DAC_UpdateColor( i );
-<a name="l00310"></a>00310                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x10;i++)
-<a name="l00311"></a>00311                         VGA_DAC_UpdateColor( i + (attr&lt;&lt;4u) );
-<a name="l00312"></a>00312                     <span class="keywordflow">break</span>;
-<a name="l00313"></a>00313                 <span class="keywordflow">case</span> AC_low4:
-<a name="l00314"></a>00314                     <span class="comment">/* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */</span>
-<a name="l00315"></a>00315                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr;i &lt; 0x100;i += 0x10)
-<a name="l00316"></a>00316                         VGA_DAC_UpdateColor( i );
-<a name="l00317"></a>00317                     <span class="keywordflow">break</span>;
-<a name="l00318"></a>00318             }
-<a name="l00319"></a>00319         }
-<a name="l00320"></a>00320         <span class="keywordflow">else</span> {
-<a name="l00321"></a>00321             VGA_DAC_UpdateColor( attr );
-<a name="l00322"></a>00322         }
-<a name="l00323"></a>00323     }
-<a name="l00324"></a>00324     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_MCGA) {
-<a name="l00325"></a>00325         VGA_DAC_UpdateColor( attr );
-<a name="l00326"></a>00326     }
-<a name="l00327"></a>00327     <span class="keywordflow">else</span> {
-<a name="l00328"></a>00328         VGA_DAC_SendColor( attr, pal );
-<a name="l00329"></a>00329     }
-<a name="l00330"></a>00330 }
+<a name="l00302"></a>00302 Bitu read_p3c9(Bitu port,Bitu iolen) {
+<a name="l00303"></a>00303     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00304"></a>00304     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00305"></a>00305     vga.dac.hidac_counter=0;
+<a name="l00306"></a>00306     Bit8u ret;
+<a name="l00307"></a>00307     <span class="keywordflow">switch</span> (vga.dac.pel_index) {
+<a name="l00308"></a>00308     <span class="keywordflow">case</span> 0:
+<a name="l00309"></a>00309         ret=vga.dac.rgb[vga.dac.read_index].red;
+<a name="l00310"></a>00310         vga.dac.pel_index=1;
+<a name="l00311"></a>00311         <span class="keywordflow">break</span>;
+<a name="l00312"></a>00312     <span class="keywordflow">case</span> 1:
+<a name="l00313"></a>00313         ret=vga.dac.rgb[vga.dac.read_index].green;
+<a name="l00314"></a>00314         vga.dac.pel_index=2;
+<a name="l00315"></a>00315         <span class="keywordflow">break</span>;
+<a name="l00316"></a>00316     <span class="keywordflow">case</span> 2:
+<a name="l00317"></a>00317         ret=vga.dac.rgb[vga.dac.read_index].blue;
+<a name="l00318"></a>00318         vga.dac.pel_index=0;
+<a name="l00319"></a>00319         vga.dac.read_index=vga.dac.write_index++;                           <span class="comment">// NTS: Paradise SVGA behavior</span>
+<a name="l00320"></a>00320         <span class="keywordflow">break</span>;
+<a name="l00321"></a>00321     <span class="keywordflow">default</span>:
+<a name="l00322"></a>00322         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:DAC:Illegal Pel Index&quot;</span>);           <span class="comment">//If this can actually happen that will be the day</span>
+<a name="l00323"></a>00323         ret=0;
+<a name="l00324"></a>00324         <span class="keywordflow">break</span>;
+<a name="l00325"></a>00325     }
+<a name="l00326"></a>00326     <span class="keywordflow">return</span> ret;
+<a name="l00327"></a>00327 }
+<a name="l00328"></a>00328 
+<a name="l00329"></a>00329 <span class="keywordtype">void</span> VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
+<a name="l00330"></a>00330     vga.dac.combine[attr] = pal;
 <a name="l00331"></a>00331 
-<a name="l00332"></a>00332 <span class="keywordtype">void</span> VGA_DAC_SetEntry(Bitu entry,Bit8u red,Bit8u green,Bit8u blue) {
-<a name="l00333"></a>00333     <span class="comment">//Should only be called in machine != vga</span>
-<a name="l00334"></a>00334     vga.dac.rgb[entry].red=red;
-<a name="l00335"></a>00335     vga.dac.rgb[entry].green=green;
-<a name="l00336"></a>00336     vga.dac.rgb[entry].blue=blue;
-<a name="l00337"></a>00337     <span class="keywordflow">for</span> (Bitu i=0;i&lt;16;i++) 
-<a name="l00338"></a>00338         <span class="keywordflow">if</span> (vga.dac.combine[i]==entry)
-<a name="l00339"></a>00339             VGA_DAC_SendColor( i, i );
-<a name="l00340"></a>00340 }
-<a name="l00341"></a>00341 
-<a name="l00342"></a>00342 <span class="keywordtype">void</span> VGA_SetupDAC(<span class="keywordtype">void</span>) {
-<a name="l00343"></a>00343     vga.dac.first_changed=256;
-<a name="l00344"></a>00344     vga.dac.bits=6;
-<a name="l00345"></a>00345     vga.dac.pel_mask=0xff;
-<a name="l00346"></a>00346     vga.dac.pel_index=0;
-<a name="l00347"></a>00347     vga.dac.state=DAC_READ;
-<a name="l00348"></a>00348     vga.dac.read_index=0;
-<a name="l00349"></a>00349     vga.dac.write_index=0;
-<a name="l00350"></a>00350     vga.dac.hidac_counter=0;
-<a name="l00351"></a>00351     vga.dac.reg02=0;
-<a name="l00352"></a>00352     <span class="keywordflow">if</span> (IS_VGA_ARCH || machine == MCH_MCGA) {
-<a name="l00353"></a>00353         <span class="comment">/* Setup the DAC IO port Handlers */</span>
-<a name="l00354"></a>00354         <span class="keywordflow">if</span> (svga.setup_dac) {
-<a name="l00355"></a>00355             svga.setup_dac();
-<a name="l00356"></a>00356         } <span class="keywordflow">else</span> {
-<a name="l00357"></a>00357             IO_RegisterWriteHandler(0x3c6,write_p3c6,IO_MB);
-<a name="l00358"></a>00358             IO_RegisterReadHandler(0x3c6,read_p3c6,IO_MB);
-<a name="l00359"></a>00359             IO_RegisterWriteHandler(0x3c7,write_p3c7,IO_MB);
-<a name="l00360"></a>00360             IO_RegisterReadHandler(0x3c7,read_p3c7,IO_MB);
-<a name="l00361"></a>00361             IO_RegisterWriteHandler(0x3c8,write_p3c8,IO_MB);
-<a name="l00362"></a>00362             IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
-<a name="l00363"></a>00363             IO_RegisterWriteHandler(0x3c9,write_p3c9,IO_MB);
-<a name="l00364"></a>00364             IO_RegisterReadHandler(0x3c9,read_p3c9,IO_MB);
-<a name="l00365"></a>00365         }
-<a name="l00366"></a>00366     }
-<a name="l00367"></a>00367 }
-<a name="l00368"></a>00368 
-<a name="l00369"></a>00369 <span class="keywordtype">void</span> VGA_UnsetupDAC(<span class="keywordtype">void</span>) {
-<a name="l00370"></a>00370     IO_FreeWriteHandler(0x3c6,IO_MB);
-<a name="l00371"></a>00371     IO_FreeReadHandler(0x3c6,IO_MB);
-<a name="l00372"></a>00372     IO_FreeWriteHandler(0x3c7,IO_MB);
-<a name="l00373"></a>00373     IO_FreeReadHandler(0x3c7,IO_MB);
-<a name="l00374"></a>00374     IO_FreeWriteHandler(0x3c8,IO_MB);
-<a name="l00375"></a>00375     IO_FreeReadHandler(0x3c8,IO_MB);
-<a name="l00376"></a>00376     IO_FreeWriteHandler(0x3c9,IO_MB);
-<a name="l00377"></a>00377     IO_FreeReadHandler(0x3c9,IO_MB);
-<a name="l00378"></a>00378 }
-<a name="l00379"></a>00379 
+<a name="l00332"></a>00332     <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l00333"></a>00333         <span class="keywordflow">if</span> (vga.mode == M_VGA || vga.mode == M_LIN8) {
+<a name="l00334"></a>00334             <span class="keywordflow">switch</span> (VGA_AC_remap) {
+<a name="l00335"></a>00335                 <span class="keywordflow">case</span> AC_4x4:
+<a name="l00336"></a>00336                 <span class="keywordflow">default</span>: <span class="comment">// &lt;- just in case</span>
+<a name="l00337"></a>00337                     <span class="comment">/* Standard VGA hardware (including the original IBM PS/2 hardware) */</span>
+<a name="l00338"></a>00338                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr;i &lt; 0x100;i += 0x10)
+<a name="l00339"></a>00339                         VGA_DAC_UpdateColor( i );
+<a name="l00340"></a>00340                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x10;i++)
+<a name="l00341"></a>00341                         VGA_DAC_UpdateColor( i + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr&lt;&lt;4u) );
+<a name="l00342"></a>00342                     <span class="keywordflow">break</span>;
+<a name="l00343"></a>00343                 <span class="keywordflow">case</span> AC_low4:
+<a name="l00344"></a>00344                     <span class="comment">/* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */</span>
+<a name="l00345"></a>00345                     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr;i &lt; 0x100;i += 0x10)
+<a name="l00346"></a>00346                         VGA_DAC_UpdateColor( i );
+<a name="l00347"></a>00347                     <span class="keywordflow">break</span>;
+<a name="l00348"></a>00348             }
+<a name="l00349"></a>00349         }
+<a name="l00350"></a>00350         <span class="keywordflow">else</span> {
+<a name="l00351"></a>00351             <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr;i &lt; 0x100;i += 0x10)
+<a name="l00352"></a>00352                 VGA_DAC_UpdateColor( i );
+<a name="l00353"></a>00353         }
+<a name="l00354"></a>00354     }
+<a name="l00355"></a>00355     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_MCGA) {
+<a name="l00356"></a>00356         VGA_DAC_UpdateColor( attr );
+<a name="l00357"></a>00357     }
+<a name="l00358"></a>00358     <span class="keywordflow">else</span> {
+<a name="l00359"></a>00359         VGA_DAC_SendColor( attr, pal );
+<a name="l00360"></a>00360     }
+<a name="l00361"></a>00361 }
+<a name="l00362"></a>00362 
+<a name="l00363"></a>00363 <span class="keywordtype">void</span> VGA_DAC_SetEntry(Bitu entry,Bit8u red,Bit8u green,Bit8u blue) {
+<a name="l00364"></a>00364     <span class="comment">//Should only be called in machine != vga</span>
+<a name="l00365"></a>00365     vga.dac.rgb[entry].red=red;
+<a name="l00366"></a>00366     vga.dac.rgb[entry].green=green;
+<a name="l00367"></a>00367     vga.dac.rgb[entry].blue=blue;
+<a name="l00368"></a>00368     <span class="keywordflow">for</span> (Bitu i=0;i&lt;16;i++) 
+<a name="l00369"></a>00369         <span class="keywordflow">if</span> (vga.dac.combine[i]==entry)
+<a name="l00370"></a>00370             VGA_DAC_SendColor( i, i );
+<a name="l00371"></a>00371 }
+<a name="l00372"></a>00372 
+<a name="l00373"></a>00373 <span class="keywordtype">void</span> VGA_SetupDAC(<span class="keywordtype">void</span>) {
+<a name="l00374"></a>00374     vga.dac.first_changed=256;
+<a name="l00375"></a>00375     vga.dac.bits=6;
+<a name="l00376"></a>00376     vga.dac.pel_mask=0xff;
+<a name="l00377"></a>00377     vga.dac.pel_index=0;
+<a name="l00378"></a>00378     vga.dac.state=DAC_READ;
+<a name="l00379"></a>00379     vga.dac.read_index=0;
+<a name="l00380"></a>00380     vga.dac.write_index=0;
+<a name="l00381"></a>00381     vga.dac.hidac_counter=0;
+<a name="l00382"></a>00382     vga.dac.reg02=0;
+<a name="l00383"></a>00383     <span class="keywordflow">if</span> (IS_VGA_ARCH || machine == MCH_MCGA) {
+<a name="l00384"></a>00384         <span class="comment">/* Setup the DAC IO port Handlers */</span>
+<a name="l00385"></a>00385         <span class="keywordflow">if</span> (svga.setup_dac) {
+<a name="l00386"></a>00386             svga.setup_dac();
+<a name="l00387"></a>00387         } <span class="keywordflow">else</span> {
+<a name="l00388"></a>00388             IO_RegisterWriteHandler(0x3c6,write_p3c6,IO_MB);
+<a name="l00389"></a>00389             IO_RegisterReadHandler(0x3c6,read_p3c6,IO_MB);
+<a name="l00390"></a>00390             IO_RegisterWriteHandler(0x3c7,write_p3c7,IO_MB);
+<a name="l00391"></a>00391             IO_RegisterReadHandler(0x3c7,read_p3c7,IO_MB);
+<a name="l00392"></a>00392             IO_RegisterWriteHandler(0x3c8,write_p3c8,IO_MB);
+<a name="l00393"></a>00393             IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
+<a name="l00394"></a>00394             IO_RegisterWriteHandler(0x3c9,write_p3c9,IO_MB);
+<a name="l00395"></a>00395             IO_RegisterReadHandler(0x3c9,read_p3c9,IO_MB);
+<a name="l00396"></a>00396         }
+<a name="l00397"></a>00397     }
+<a name="l00398"></a>00398 }
+<a name="l00399"></a>00399 
+<a name="l00400"></a>00400 <span class="keywordtype">void</span> VGA_UnsetupDAC(<span class="keywordtype">void</span>) {
+<a name="l00401"></a>00401     IO_FreeWriteHandler(0x3c6,IO_MB);
+<a name="l00402"></a>00402     IO_FreeReadHandler(0x3c6,IO_MB);
+<a name="l00403"></a>00403     IO_FreeWriteHandler(0x3c7,IO_MB);
+<a name="l00404"></a>00404     IO_FreeReadHandler(0x3c7,IO_MB);
+<a name="l00405"></a>00405     IO_FreeWriteHandler(0x3c8,IO_MB);
+<a name="l00406"></a>00406     IO_FreeReadHandler(0x3c8,IO_MB);
+<a name="l00407"></a>00407     IO_FreeWriteHandler(0x3c9,IO_MB);
+<a name="l00408"></a>00408     IO_FreeReadHandler(0x3c9,IO_MB);
+<a name="l00409"></a>00409 }
+<a name="l00410"></a>00410 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:21 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

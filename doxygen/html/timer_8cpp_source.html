@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -136,724 +136,937 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00039"></a>00039 }
 <a name="l00040"></a>00040 
 <a name="l00041"></a><a class="code" href="structPIT__Block.html">00041</a> <span class="keyword">struct </span><a class="code" href="structPIT__Block.html">PIT_Block</a> {
-<a name="l00042"></a>00042         Bitu cntr;
-<a name="l00043"></a>00043         <span class="keywordtype">float</span> delay;
-<a name="l00044"></a>00044         <span class="keywordtype">double</span> start;
-<a name="l00045"></a>00045 
-<a name="l00046"></a>00046         Bit16u read_latch;
-<a name="l00047"></a>00047         Bit16u write_latch;
-<a name="l00048"></a>00048 
-<a name="l00049"></a>00049         Bit8u mode;
-<a name="l00050"></a>00050         Bit8u latch_mode;
-<a name="l00051"></a>00051         Bit8u read_state;
-<a name="l00052"></a>00052         Bit8u write_state;
-<a name="l00053"></a>00053 
-<a name="l00054"></a>00054         <span class="keywordtype">bool</span> bcd;
-<a name="l00055"></a>00055         <span class="keywordtype">bool</span> go_read_latch;
-<a name="l00056"></a>00056         <span class="keywordtype">bool</span> new_mode;
-<a name="l00057"></a>00057         <span class="keywordtype">bool</span> counterstatus_set;
-<a name="l00058"></a>00058         <span class="keywordtype">bool</span> counting;
-<a name="l00059"></a>00059         <span class="keywordtype">bool</span> update_count;
-<a name="l00060"></a>00060 };
-<a name="l00061"></a>00061 
-<a name="l00062"></a>00062 <span class="keyword">static</span> <a class="code" href="structPIT__Block.html">PIT_Block</a> pit[3];
-<a name="l00063"></a>00063 <span class="keyword">static</span> <span class="keywordtype">bool</span> gate2;
-<a name="l00064"></a>00064 
-<a name="l00065"></a>00065 <span class="keyword">static</span> Bit8u latched_timerstatus;
-<a name="l00066"></a>00066 <span class="comment">// the timer status can not be overwritten until it is read or the timer was </span>
-<a name="l00067"></a>00067 <span class="comment">// reprogrammed.</span>
-<a name="l00068"></a>00068 <span class="keyword">static</span> <span class="keywordtype">bool</span> latched_timerstatus_locked;
-<a name="l00069"></a>00069 
-<a name="l00070"></a>00070 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIT_TICK_RATE = PIT_TICK_RATE_IBM;
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072 <span class="keyword">static</span> <span class="keywordtype">void</span> PIT0_Event(Bitu <span class="comment">/*val*/</span>) {
-<a name="l00073"></a>00073         PIC_ActivateIRQ(0);
-<a name="l00074"></a>00074         <span class="keywordflow">if</span> (pit[0].mode != 0) {
-<a name="l00075"></a>00075                 pit[0].start += pit[0].delay;
-<a name="l00076"></a>00076 
-<a name="l00077"></a>00077                 <span class="keywordflow">if</span> (GCC_UNLIKELY(pit[0].update_count)) {
-<a name="l00078"></a>00078                         pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)pit[0].cntr));
-<a name="l00079"></a>00079                         pit[0].update_count=<span class="keyword">false</span>;
-<a name="l00080"></a>00080                 }
-<a name="l00081"></a>00081                 PIC_AddEvent(PIT0_Event,pit[0].delay);
-<a name="l00082"></a>00082         }
-<a name="l00083"></a>00083 }
-<a name="l00084"></a>00084 
-<a name="l00085"></a>00085 <span class="keyword">static</span> <span class="keywordtype">bool</span> counter_output(Bitu counter) {
-<a name="l00086"></a>00086         <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
-<a name="l00087"></a>00087         <span class="keywordtype">double</span> index=PIC_FullIndex()-p-&gt;start;
-<a name="l00088"></a>00088         <span class="keywordflow">switch</span> (p-&gt;mode) {
-<a name="l00089"></a>00089         <span class="keywordflow">case</span> 0:
-<a name="l00090"></a>00090                 <span class="keywordflow">if</span> (p-&gt;new_mode) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00091"></a>00091                 <span class="keywordflow">if</span> (index&gt;p-&gt;delay) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00092"></a>00092                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00093"></a>00093                 <span class="keywordflow">break</span>;
-<a name="l00094"></a>00094         <span class="keywordflow">case</span> 2:
-<a name="l00095"></a>00095                 <span class="keywordflow">if</span> (p-&gt;new_mode) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00096"></a>00096                 index=fmod(index,(<span class="keywordtype">double</span>)p-&gt;delay);
-<a name="l00097"></a>00097                 <span class="keywordflow">return</span> index&gt;0;
-<a name="l00098"></a>00098         <span class="keywordflow">case</span> 3:
-<a name="l00099"></a>00099                 <span class="keywordflow">if</span> (p-&gt;new_mode) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00100"></a>00100                 index=fmod(index,(<span class="keywordtype">double</span>)p-&gt;delay);
-<a name="l00101"></a>00101                 <span class="keywordflow">return</span> index*2&lt;p-&gt;delay;
-<a name="l00102"></a>00102         <span class="keywordflow">case</span> 4:
-<a name="l00103"></a>00103                 <span class="comment">//Only low on terminal count</span>
-<a name="l00104"></a>00104                 <span class="comment">// if(fmod(index,(double)p-&gt;delay) == 0) return false; //Maybe take one rate tick in consideration</span>
-<a name="l00105"></a>00105                 <span class="comment">//Easiest solution is to report always high (Space marines uses this mode)</span>
-<a name="l00106"></a>00106                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00107"></a>00107         <span class="keywordflow">default</span>:
-<a name="l00108"></a>00108                 <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_ERROR)(<span class="stringliteral">&quot;Illegal Mode %d for reading output&quot;</span>,p-&gt;mode);
-<a name="l00109"></a>00109                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00110"></a>00110         }
-<a name="l00111"></a>00111 }
-<a name="l00112"></a>00112 <span class="keyword">static</span> <span class="keywordtype">void</span> status_latch(Bitu counter) {
-<a name="l00113"></a>00113         <span class="comment">// the timer status can not be overwritten until it is read or the timer was </span>
-<a name="l00114"></a>00114         <span class="comment">// reprogrammed.</span>
-<a name="l00115"></a>00115         <span class="keywordflow">if</span>(!latched_timerstatus_locked) {
-<a name="l00116"></a>00116                 <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
-<a name="l00117"></a>00117                 latched_timerstatus=0;
-<a name="l00118"></a>00118                 <span class="comment">// Timer Status Word</span>
-<a name="l00119"></a>00119                 <span class="comment">// 0: BCD </span>
-<a name="l00120"></a>00120                 <span class="comment">// 1-3: Timer mode</span>
-<a name="l00121"></a>00121                 <span class="comment">// 4-5: read/load mode</span>
-<a name="l00122"></a>00122                 <span class="comment">// 6: &quot;NULL&quot; - this is 0 if &quot;the counter value is in the counter&quot; ;)</span>
-<a name="l00123"></a>00123                 <span class="comment">// should rarely be 1 (i.e. on exotic modes)</span>
-<a name="l00124"></a>00124                 <span class="comment">// 7: OUT - the logic level on the Timer output pin</span>
-<a name="l00125"></a>00125                 <span class="keywordflow">if</span>(p-&gt;bcd)latched_timerstatus|=0x1;
-<a name="l00126"></a>00126                 latched_timerstatus|=((p-&gt;mode&amp;7)&lt;&lt;1);
-<a name="l00127"></a>00127                 <span class="keywordflow">if</span>((p-&gt;read_state==0)||(p-&gt;read_state==3)) latched_timerstatus|=0x30;
-<a name="l00128"></a>00128                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>(p-&gt;read_state==1) latched_timerstatus|=0x10;
-<a name="l00129"></a>00129                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>(p-&gt;read_state==2) latched_timerstatus|=0x20;
-<a name="l00130"></a>00130                 <span class="keywordflow">if</span>(counter_output(counter)) latched_timerstatus|=0x80;
-<a name="l00131"></a>00131                 <span class="keywordflow">if</span>(p-&gt;new_mode) latched_timerstatus|=0x40;
-<a name="l00132"></a>00132                 <span class="comment">// The first thing that is being read from this counter now is the</span>
-<a name="l00133"></a>00133                 <span class="comment">// counter status.</span>
-<a name="l00134"></a>00134                 p-&gt;counterstatus_set=<span class="keyword">true</span>;
-<a name="l00135"></a>00135                 latched_timerstatus_locked=<span class="keyword">true</span>;
-<a name="l00136"></a>00136         }
-<a name="l00137"></a>00137 }
-<a name="l00138"></a>00138 <span class="keyword">static</span> <span class="keywordtype">void</span> counter_latch(Bitu counter,<span class="keywordtype">bool</span> do_latch=<span class="keyword">true</span>) {
-<a name="l00139"></a>00139         <span class="comment">/* Fill the read_latch of the selected counter with current count */</span>
-<a name="l00140"></a>00140         <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
-<a name="l00141"></a>00141         p-&gt;go_read_latch=<span class="keyword">false</span>;
-<a name="l00142"></a>00142 
-<a name="l00143"></a>00143         <span class="comment">//If gate2 is disabled don&#39;t update the read_latch</span>
-<a name="l00144"></a>00144         <span class="keywordflow">if</span> (counter == (IS_PC98_ARCH ? 1 : 2) &amp;&amp; !gate2 &amp;&amp; p-&gt;mode !=1) <span class="keywordflow">return</span>;
+<a name="l00042"></a><a class="code" href="structPIT__Block_1_1read__counter__result.html">00042</a>     <span class="keyword">struct </span><a class="code" href="structPIT__Block_1_1read__counter__result.html">read_counter_result</a> {
+<a name="l00043"></a>00043         Bit16u          counter = 0xFFFFu;
+<a name="l00044"></a>00044         Bit16u          cycle = 0;          <span class="comment">// cycle (Mode 3: 0 or 1)</span>
+<a name="l00045"></a>00045     };
+<a name="l00046"></a>00046 
+<a name="l00047"></a>00047         Bitu cntr;      <span class="comment">/* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */</span>
+<a name="l00048"></a>00048     Bitu cntr_cur;  <span class="comment">/* current counter value in effect */</span>
+<a name="l00049"></a>00049         <span class="keywordtype">double</span> delay;   <span class="comment">/* interval (in ms) between one full count cycle */</span>
+<a name="l00050"></a>00050         <span class="keywordtype">double</span> start;   <span class="comment">/* time base (in ms) that cycle started at */</span>
+<a name="l00051"></a>00051     <span class="keywordtype">double</span> now;     <span class="comment">/* current time (in ms) */</span>
+<a name="l00052"></a>00052 
+<a name="l00053"></a>00053         Bit16u read_latch;      <span class="comment">/* counter value, latched for read back */</span>
+<a name="l00054"></a>00054         Bit16u write_latch;     <span class="comment">/* counter value, written by host */</span>
+<a name="l00055"></a>00055 
+<a name="l00056"></a>00056         Bit8u mode;             <span class="comment">/* 8254 mode (mode 0 through 5 inclusive) */</span>
+<a name="l00057"></a>00057         Bit8u read_state;       <span class="comment">/* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */</span>
+<a name="l00058"></a>00058         Bit8u write_state;      <span class="comment">/* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */</span>
+<a name="l00059"></a>00059     Bit8u cycle_base = 0;
+<a name="l00060"></a>00060 
+<a name="l00061"></a>00061         <span class="keywordtype">bool</span> bcd;               <span class="comment">/* BCD mode */</span>
+<a name="l00062"></a>00062         <span class="keywordtype">bool</span> go_read_latch;     <span class="comment">/* reading should latch another value */</span>
+<a name="l00063"></a>00063         <span class="keywordtype">bool</span> new_mode;          <span class="comment">/* a new mode has been written to port 43h for this timer */</span>
+<a name="l00064"></a>00064         <span class="keywordtype">bool</span> counterstatus_set; <span class="comment">/* set by status_latch(), when using 8254 command to latch multiple counters */</span>
+<a name="l00065"></a>00065         <span class="keywordtype">bool</span> counting;          <span class="comment">/* is counting (?) */</span>
+<a name="l00066"></a>00066         <span class="keywordtype">bool</span> update_count;      <span class="comment">/* update count on completion */</span>
+<a name="l00067"></a>00067 
+<a name="l00068"></a>00068     <span class="keywordtype">bool</span> gate = <span class="keyword">true</span>;       <span class="comment">/* gate signal (IN) */</span>
+<a name="l00069"></a>00069     <span class="keywordtype">bool</span> output = <span class="keyword">true</span>;     <span class="comment">/* output signal (OUT) */</span>
+<a name="l00070"></a>00070 
+<a name="l00071"></a>00071     <a class="code" href="structPIT__Block_1_1read__counter__result.html">read_counter_result</a>     last_counter;       <span class="comment">/* what to return when gate == false (not counting) */</span>
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073     <span class="keywordtype">void</span> set_output(<span class="keywordtype">bool</span> on) {
+<a name="l00074"></a>00074         <span class="keywordflow">if</span> (output != on) {
+<a name="l00075"></a>00075             output = on;
+<a name="l00076"></a>00076             <span class="comment">// TODO: Event callback</span>
+<a name="l00077"></a>00077         }
+<a name="l00078"></a>00078     }
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080     <span class="keywordtype">void</span> set_next_counter(Bitu new_cntr) {
+<a name="l00081"></a>00081         update_count = <span class="keyword">true</span>;
+<a name="l00082"></a>00082         cntr = new_cntr;
+<a name="l00083"></a>00083     }
+<a name="l00084"></a>00084     <span class="keywordtype">void</span> set_active_counter(Bitu new_cntr) {
+<a name="l00085"></a>00085         assert(new_cntr != 0);
+<a name="l00086"></a>00086 
+<a name="l00087"></a>00087         cntr_cur = new_cntr;
+<a name="l00088"></a>00088         delay = ((double)(1000ul * cntr_cur)) / PIT_TICK_RATE;
+<a name="l00089"></a>00089     }
+<a name="l00090"></a>00090     <span class="keywordtype">void</span> latch_next_counter(<span class="keywordtype">void</span>) {
+<a name="l00091"></a>00091         set_active_counter(cntr);
+<a name="l00092"></a>00092     }
+<a name="l00093"></a>00093     <span class="keywordtype">void</span> reset_count_at(pic_tickindex_t t) {
+<a name="l00094"></a>00094         start = now = t;
+<a name="l00095"></a>00095         cycle_base = 0;
+<a name="l00096"></a>00096     }
+<a name="l00097"></a>00097     <span class="keywordtype">void</span> restart_counter_at(pic_tickindex_t t,Bit16u counter) {
+<a name="l00098"></a>00098         <span class="keywordtype">double</span> c_delay;
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100         <span class="keywordflow">if</span> (counter == 0)
+<a name="l00101"></a>00101             c_delay = ((double)(1000ull * 0x10000)) / PIT_TICK_RATE;
+<a name="l00102"></a>00102         <span class="keywordflow">else</span>
+<a name="l00103"></a>00103             c_delay = ((double)(1000ull * counter)) / PIT_TICK_RATE;
+<a name="l00104"></a>00104 
+<a name="l00105"></a>00105         start = (t - c_delay);
+<a name="l00106"></a>00106     }
+<a name="l00107"></a>00107     <span class="keywordtype">void</span> track_time(pic_tickindex_t t) {
+<a name="l00108"></a>00108         now = t;
+<a name="l00109"></a>00109 
+<a name="l00110"></a>00110         <span class="comment">/* Mode 0 will always reset the count whether &quot;new mode&quot; or not.</span>
+<a name="l00111"></a>00111 <span class="comment">         * Mode 1 will count down and stop. TODO: Writing a new counter without &quot;new mode&quot; starts another countdown? */</span>
+<a name="l00112"></a>00112         <span class="comment">/* if any periodic mode (Mode 2, 3, 4, 5), then process fully. */</span>
+<a name="l00113"></a>00113         <span class="keywordflow">if</span> (mode == 3) {
+<a name="l00114"></a>00114             <span class="keyword">const</span> <span class="keywordtype">double</span> half = delay / 2;
+<a name="l00115"></a>00115 
+<a name="l00116"></a>00116             <span class="keywordflow">if</span> (now &gt;= (start+half)) {
+<a name="l00117"></a>00117                 cycle_base = (cycle_base + 1u) &amp; 1u;
+<a name="l00118"></a>00118                 start += half;
+<a name="l00119"></a>00119 
+<a name="l00120"></a>00120                 <span class="keywordflow">if</span> (update_count) {
+<a name="l00121"></a>00121                     latch_next_counter();
+<a name="l00122"></a>00122                     update_count = <span class="keyword">false</span>;
+<a name="l00123"></a>00123                 }
+<a name="l00124"></a>00124 
+<a name="l00125"></a>00125                 <span class="keywordflow">if</span> (now &gt;= (start+half)) {
+<a name="l00126"></a>00126                     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> cnt = (<span class="keywordtype">unsigned</span> int)floor((now - start) / half);
+<a name="l00127"></a>00127                     cycle_base = (cycle_base + cnt) &amp; 1u;
+<a name="l00128"></a>00128                     start += cnt * half;
+<a name="l00129"></a>00129                 }
+<a name="l00130"></a>00130             }
+<a name="l00131"></a>00131         }
+<a name="l00132"></a>00132         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mode &gt;= 2) {
+<a name="l00133"></a>00133             <span class="keywordflow">if</span> (now &gt;= (start+delay)) {
+<a name="l00134"></a>00134                 start += delay;
+<a name="l00135"></a>00135 
+<a name="l00136"></a>00136                 <span class="keywordflow">if</span> (update_count) {
+<a name="l00137"></a>00137                     latch_next_counter();
+<a name="l00138"></a>00138                     update_count = <span class="keyword">false</span>;
+<a name="l00139"></a>00139                 }
+<a name="l00140"></a>00140 
+<a name="l00141"></a>00141                 <span class="keywordflow">if</span> (now &gt;= (start+delay))
+<a name="l00142"></a>00142                     start += floor((now - start) / delay) * delay;
+<a name="l00143"></a>00143             }
+<a name="l00144"></a>00144         }
 <a name="l00145"></a>00145 
-<a name="l00146"></a>00146         <span class="keywordflow">if</span> (GCC_UNLIKELY(p-&gt;new_mode)) {
-<a name="l00147"></a>00147                 <span class="keywordtype">double</span> passed_time = PIC_FullIndex() - p-&gt;start;
-<a name="l00148"></a>00148                 Bitu ticks_since_then = (Bitu)(passed_time / (1000.0/PIT_TICK_RATE));
-<a name="l00149"></a>00149                 <span class="comment">//if (p-&gt;mode==3) ticks_since_then /= 2; // TODO figure this out on real hardware</span>
-<a name="l00150"></a>00150                 p-&gt;read_latch -= ticks_since_then;
-<a name="l00151"></a>00151                 <span class="keywordflow">return</span>;
-<a name="l00152"></a>00152         }
-<a name="l00153"></a>00153         <span class="keywordtype">double</span> index=PIC_FullIndex()-p-&gt;start;
-<a name="l00154"></a>00154         <span class="keywordflow">switch</span> (p-&gt;mode) {
-<a name="l00155"></a>00155         <span class="keywordflow">case</span> 4:         <span class="comment">/* Software Triggered Strobe */</span>
-<a name="l00156"></a>00156         <span class="keywordflow">case</span> 0:         <span class="comment">/* Interrupt on Terminal Count */</span>
-<a name="l00157"></a>00157                 {
-<a name="l00158"></a>00158                         <span class="comment">/* Counter keeps on counting after passing terminal count */</span>
-<a name="l00159"></a>00159                         <span class="keywordflow">if</span>(p-&gt;bcd) {
-<a name="l00160"></a>00160                                 index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
-<a name="l00161"></a>00161                                 p-&gt;read_latch = (Bit16u)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(p-&gt;cntr-index*(PIT_TICK_RATE/1000.0))) % 10000UL);
-<a name="l00162"></a>00162                         } <span class="keywordflow">else</span> {
-<a name="l00163"></a>00163                                 index = fmod(index,(1000.0/PIT_TICK_RATE)*(<span class="keywordtype">double</span>)0x10000);
-<a name="l00164"></a>00164                                 p-&gt;read_latch = (Bit16u)(p-&gt;cntr-index*(PIT_TICK_RATE/1000.0));
-<a name="l00165"></a>00165                         }
-<a name="l00166"></a>00166                 }
-<a name="l00167"></a>00167                 <span class="keywordflow">break</span>;
-<a name="l00168"></a>00168         <span class="keywordflow">case</span> 1: <span class="comment">// countdown</span>
-<a name="l00169"></a>00169                 <span class="keywordflow">if</span>(p-&gt;counting) {
-<a name="l00170"></a>00170                         <span class="keywordflow">if</span> (index&gt;p-&gt;delay) { <span class="comment">// has timed out</span>
-<a name="l00171"></a>00171                                 p-&gt;read_latch = 0xffff; <span class="comment">//unconfirmed</span>
-<a name="l00172"></a>00172                         } <span class="keywordflow">else</span> {
-<a name="l00173"></a>00173                                 p-&gt;read_latch=(Bit16u)(p-&gt;cntr-index*(PIT_TICK_RATE/1000.0));
-<a name="l00174"></a>00174                         }
-<a name="l00175"></a>00175                 }
-<a name="l00176"></a>00176                 <span class="keywordflow">break</span>;
-<a name="l00177"></a>00177         <span class="keywordflow">case</span> 2:         <span class="comment">/* Rate Generator */</span>
-<a name="l00178"></a>00178                 index=fmod(index,(<span class="keywordtype">double</span>)p-&gt;delay);
-<a name="l00179"></a>00179                 p-&gt;read_latch=(Bit16u)(p-&gt;cntr - (index/p-&gt;delay)*p-&gt;cntr);
-<a name="l00180"></a>00180                 <span class="keywordflow">break</span>;
-<a name="l00181"></a>00181         <span class="keywordflow">case</span> 3:         <span class="comment">/* Square Wave Rate Generator */</span>
-<a name="l00182"></a>00182         {
-<a name="l00183"></a>00183             <span class="keywordtype">bool</span> out = <span class="keyword">true</span>;
-<a name="l00184"></a>00184 
-<a name="l00185"></a>00185             index=fmod(index,(<span class="keywordtype">double</span>)p-&gt;delay);
-<a name="l00186"></a>00186             index*=2;
-<a name="l00187"></a>00187             <span class="keywordflow">if</span> (index&gt;p-&gt;delay) {
-<a name="l00188"></a>00188                 index-=p-&gt;delay;
-<a name="l00189"></a>00189                 out = <span class="keyword">false</span>;
-<a name="l00190"></a>00190             }
-<a name="l00191"></a>00191 
-<a name="l00192"></a>00192             <span class="keywordflow">if</span> (do_latch) {
-<a name="l00193"></a>00193                 p-&gt;read_latch=(Bit16u)(p-&gt;cntr - (index/p-&gt;delay)*p-&gt;cntr);
-<a name="l00194"></a>00194                 <span class="comment">// In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be</span>
-<a name="l00195"></a>00195                 <span class="comment">// subtracted on first clock and then always 2)</span>
-<a name="l00196"></a>00196                 <span class="comment">// fixes &quot;Corncob 3D&quot;</span>
-<a name="l00197"></a>00197                 p-&gt;read_latch&amp;=0xfffe;
-<a name="l00198"></a>00198             }
-<a name="l00199"></a>00199 
-<a name="l00200"></a>00200             <span class="comment">// for the second half of the cycle, OUT goes low.</span>
-<a name="l00201"></a>00201             <span class="comment">// remember that counter #0 is tied to IRQ0 on both IBM PC and PC-98.</span>
-<a name="l00202"></a>00202             <span class="comment">// therefore, counter #0 output directly affects bit 0 of the interrupt request register on the PIC.</span>
-<a name="l00203"></a>00203             <span class="comment">// I don&#39;t know any IBM PC compatible game that uses this behavior, but I did find a PC-98 game</span>
-<a name="l00204"></a>00204             <span class="comment">// &quot;Steel Gun Nyan&quot; with delay loops that are dependent on polling the IRR like that.</span>
-<a name="l00205"></a>00205             <span class="comment">// Yes, instead of polling the timer directly, it polls the PIC&#39;s interrupt request register instead. Ick.</span>
-<a name="l00206"></a>00206             <span class="keywordflow">if</span> (counter == 0<span class="comment">/*IRQ 0*/</span>) {
-<a name="l00207"></a>00207                 <span class="keywordflow">if</span> (!out)
-<a name="l00208"></a>00208                     PIC_ActivateIRQ(0);
-<a name="l00209"></a>00209                 <span class="keywordflow">else</span>
-<a name="l00210"></a>00210                     PIC_DeActivateIRQ(0);
-<a name="l00211"></a>00211             }
-<a name="l00212"></a>00212         }
-<a name="l00213"></a>00213                 <span class="keywordflow">break</span>;
-<a name="l00214"></a>00214         <span class="keywordflow">default</span>:
-<a name="l00215"></a>00215                 <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_ERROR)(<span class="stringliteral">&quot;Illegal Mode %d for reading counter %d&quot;</span>,(int)p-&gt;mode,(<span class="keywordtype">int</span>)counter);
-<a name="l00216"></a>00216                 p-&gt;read_latch=0xffff;
+<a name="l00146"></a>00146         <span class="keywordflow">if</span> (now &lt; start)
+<a name="l00147"></a>00147             now = start;
+<a name="l00148"></a>00148     }
+<a name="l00149"></a>00149     <span class="keywordtype">double</span> reltime(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00150"></a>00150         <span class="keywordflow">return</span> now - start;
+<a name="l00151"></a>00151     }
+<a name="l00152"></a>00152 
+<a name="l00153"></a>00153     <span class="keywordtype">void</span> set_gate(<span class="keywordtype">bool</span> on) {
+<a name="l00154"></a>00154         <span class="keywordflow">if</span> (gate != on) {
+<a name="l00155"></a>00155             <span class="keywordflow">if</span> (!on)<span class="comment">/*on=false gate=true*/</span>
+<a name="l00156"></a>00156                 last_counter = read_counter();
+<a name="l00157"></a>00157 
+<a name="l00158"></a>00158             <span class="comment">// restart aka &quot;trigger&quot; the counters</span>
+<a name="l00159"></a>00159             <span class="keywordflow">switch</span> (mode) {
+<a name="l00160"></a>00160                 <span class="keywordflow">case</span> 0:     <span class="comment">/* Interrupt on Terminal Count */</span>
+<a name="l00161"></a>00161                 <span class="keywordflow">case</span> 4:     <span class="comment">/* Software Triggered Strobe */</span>
+<a name="l00162"></a>00162                     restart_counter_at(now,last_counter.counter);
+<a name="l00163"></a>00163                     <span class="keywordflow">break</span>;
+<a name="l00164"></a>00164                 <span class="keywordflow">case</span> 1:     <span class="comment">/* Hardware Triggered one-shot */</span>
+<a name="l00165"></a>00165                     <span class="comment">/* output goes LOW when triggered, returns HIGH when counter expires */</span>
+<a name="l00166"></a>00166                     <span class="keywordflow">if</span> (on) {
+<a name="l00167"></a>00167                         reset_count_at(now);
+<a name="l00168"></a>00168                         latch_next_counter();
+<a name="l00169"></a>00169                         set_output(<span class="keyword">false</span>);
+<a name="l00170"></a>00170                     }
+<a name="l00171"></a>00171                     <span class="comment">/* TODO */</span>
+<a name="l00172"></a>00172                     <span class="keywordflow">break</span>;
+<a name="l00173"></a>00173                 <span class="keywordflow">case</span> 2:     <span class="comment">/* Rate Generator */</span>
+<a name="l00174"></a>00174                     <span class="comment">/* output goes HIGH immediately */</span>
+<a name="l00175"></a>00175                     <span class="keywordflow">if</span> (on) {
+<a name="l00176"></a>00176                         reset_count_at(now);
+<a name="l00177"></a>00177                         latch_next_counter();
+<a name="l00178"></a>00178                     }
+<a name="l00179"></a>00179                     <span class="keywordflow">else</span> {
+<a name="l00180"></a>00180                         set_output(<span class="keyword">true</span>);
+<a name="l00181"></a>00181                     }
+<a name="l00182"></a>00182                     <span class="comment">/* TODO */</span>
+<a name="l00183"></a>00183                     <span class="keywordflow">break</span>;
+<a name="l00184"></a>00184                 <span class="keywordflow">case</span> 3:     <span class="comment">/* Square Wave Mode */</span>
+<a name="l00185"></a>00185                     <span class="keywordflow">if</span> (on) {
+<a name="l00186"></a>00186                         reset_count_at(now);
+<a name="l00187"></a>00187                         latch_next_counter();
+<a name="l00188"></a>00188                     }
+<a name="l00189"></a>00189                     <span class="keywordflow">else</span> {
+<a name="l00190"></a>00190                         set_output(<span class="keyword">true</span>);
+<a name="l00191"></a>00191                     }
+<a name="l00192"></a>00192                     <span class="comment">/* TODO */</span>
+<a name="l00193"></a>00193                     <span class="keywordflow">break</span>;
+<a name="l00194"></a>00194                 <span class="keywordflow">case</span> 5:     <span class="comment">/* Hardware Triggered Strobe */</span>
+<a name="l00195"></a>00195                     <span class="keywordflow">if</span> (on) {
+<a name="l00196"></a>00196                         reset_count_at(now);
+<a name="l00197"></a>00197                         latch_next_counter();
+<a name="l00198"></a>00198                         set_output(<span class="keyword">true</span>);
+<a name="l00199"></a>00199                     }
+<a name="l00200"></a>00200                     <span class="keywordflow">break</span>;
+<a name="l00201"></a>00201             };
+<a name="l00202"></a>00202 
+<a name="l00203"></a>00203             gate = on;
+<a name="l00204"></a>00204         }
+<a name="l00205"></a>00205     }
+<a name="l00206"></a>00206 
+<a name="l00207"></a>00207     <span class="keywordtype">void</span> update_output_from_counter(<span class="keyword">const</span> read_counter_result &amp;res) {
+<a name="l00208"></a>00208         set_output(get_output_from_counter(res));
+<a name="l00209"></a>00209     }
+<a name="l00210"></a>00210 
+<a name="l00211"></a>00211     <span class="keywordtype">bool</span> get_output_from_counter(<span class="keyword">const</span> read_counter_result &amp;res) {
+<a name="l00212"></a>00212         <span class="keywordflow">switch</span> (mode) {
+<a name="l00213"></a>00213             <span class="keywordflow">case</span> 0:
+<a name="l00214"></a>00214                 <span class="keywordflow">if</span> (new_mode) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00215"></a>00215                 <span class="keywordflow">if</span> (res.cycle != 0u<span class="comment">/*index &gt; delay*/</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00216"></a>00216                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00217"></a>00217                 <span class="keywordflow">break</span>;
-<a name="l00218"></a>00218         }
-<a name="l00219"></a>00219 }
-<a name="l00220"></a>00220 
-<a name="l00221"></a>00221 <span class="keywordtype">void</span> TIMER_IRQ0Poll(<span class="keywordtype">void</span>) {
-<a name="l00222"></a>00222     counter_latch(0,<span class="keyword">false</span><span class="comment">/*do not latch*/</span>);
-<a name="l00223"></a>00223 }
-<a name="l00224"></a>00224 
-<a name="l00225"></a>00225 <span class="keyword">static</span> <span class="keywordtype">void</span> write_latch(Bitu port,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l00226"></a>00226 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port %X write:%X state:%X&quot;,port,val,pit[port-0x40].write_state);</span>
-<a name="l00227"></a>00227 
-<a name="l00228"></a>00228     <span class="comment">// HACK: Port translation for this code PC-98 mode.</span>
-<a name="l00229"></a>00229     <span class="comment">//       0x71,0x73,0x75,0x77 =&gt; 0x40-0x43</span>
-<a name="l00230"></a>00230     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00231"></a>00231         <span class="keywordflow">if</span> (port &gt;= 0x3FD9)
-<a name="l00232"></a>00232             port = ((port - 0x3FD9) &gt;&gt; 1) + 0x40;
-<a name="l00233"></a>00233         <span class="keywordflow">else</span>
-<a name="l00234"></a>00234             port = ((port - 0x71) &gt;&gt; 1) + 0x40;
-<a name="l00235"></a>00235     }
+<a name="l00218"></a>00218             <span class="keywordflow">case</span> 2:
+<a name="l00219"></a>00219                 <span class="keywordflow">if</span> (new_mode) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00220"></a>00220                 <span class="keywordflow">return</span> res.counter != 0;
+<a name="l00221"></a>00221             <span class="keywordflow">case</span> 3:
+<a name="l00222"></a>00222                 <span class="keywordflow">if</span> (new_mode) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00223"></a>00223                 <span class="keywordflow">return</span> res.cycle == 0;
+<a name="l00224"></a>00224             <span class="keywordflow">case</span> 4:
+<a name="l00225"></a>00225                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00226"></a>00226             <span class="keywordflow">default</span>:
+<a name="l00227"></a>00227                 <span class="keywordflow">break</span>;
+<a name="l00228"></a>00228         }
+<a name="l00229"></a>00229 
+<a name="l00230"></a>00230         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00231"></a>00231     }
+<a name="l00232"></a>00232 
+<a name="l00233"></a>00233     read_counter_result read_counter(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{<span class="comment">//This assumes you call track_time()</span>
+<a name="l00234"></a>00234         <span class="keywordflow">if</span> (!gate)
+<a name="l00235"></a>00235             <span class="keywordflow">return</span> last_counter;
 <a name="l00236"></a>00236 
-<a name="l00237"></a>00237         Bitu counter=port-0x40;
-<a name="l00238"></a>00238         <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
-<a name="l00239"></a>00239         <span class="keywordflow">if</span>(p-&gt;bcd == <span class="keyword">true</span>) BIN2BCD(p-&gt;write_latch);
-<a name="l00240"></a>00240    
-<a name="l00241"></a>00241         <span class="keywordflow">switch</span> (p-&gt;write_state) {
-<a name="l00242"></a>00242                 <span class="keywordflow">case</span> 0:
-<a name="l00243"></a>00243                         p-&gt;write_latch = p-&gt;write_latch | ((val &amp; 0xff) &lt;&lt; 8);
-<a name="l00244"></a>00244                         p-&gt;write_state = 3;
-<a name="l00245"></a>00245                         <span class="keywordflow">break</span>;
-<a name="l00246"></a>00246                 <span class="keywordflow">case</span> 3:
-<a name="l00247"></a>00247                         p-&gt;write_latch = val &amp; 0xff;
-<a name="l00248"></a>00248                         p-&gt;write_state = 0;
-<a name="l00249"></a>00249                         <span class="keywordflow">break</span>;
-<a name="l00250"></a>00250                 <span class="keywordflow">case</span> 1:
-<a name="l00251"></a>00251                         p-&gt;write_latch = val &amp; 0xff;
-<a name="l00252"></a>00252                         <span class="keywordflow">break</span>;
-<a name="l00253"></a>00253                 <span class="keywordflow">case</span> 2:
-<a name="l00254"></a>00254                         p-&gt;write_latch = (val &amp; 0xff) &lt;&lt; 8;
-<a name="l00255"></a>00255                 <span class="keywordflow">break</span>;
-<a name="l00256"></a>00256         }
-<a name="l00257"></a>00257         <span class="keywordflow">if</span> (p-&gt;bcd==<span class="keyword">true</span>) BCD2BIN(p-&gt;write_latch);
-<a name="l00258"></a>00258         <span class="keywordflow">if</span> (p-&gt;write_state != 0) {
-<a name="l00259"></a>00259                 <span class="keywordflow">if</span> (p-&gt;write_latch == 0) {
-<a name="l00260"></a>00260                         <span class="keywordflow">if</span> (p-&gt;bcd == <span class="keyword">false</span>) p-&gt;cntr = 0x10000;
-<a name="l00261"></a>00261                         <span class="keywordflow">else</span> p-&gt;cntr=9999;
-<a name="l00262"></a>00262                 } <span class="keywordflow">else</span> p-&gt;cntr = p-&gt;write_latch;
-<a name="l00263"></a>00263 
-<a name="l00264"></a>00264                 <span class="keywordflow">if</span> ((!p-&gt;new_mode) &amp;&amp; (p-&gt;mode == 2) &amp;&amp; (counter == 0)) {
-<a name="l00265"></a>00265                         <span class="comment">// In mode 2 writing another value has no direct effect on the count</span>
-<a name="l00266"></a>00266                         <span class="comment">// until the old one has run out. This might apply to other modes too.</span>
-<a name="l00267"></a>00267                         <span class="comment">// This is not fixed for PIT2 yet!!</span>
-<a name="l00268"></a>00268                         p-&gt;update_count=<span class="keyword">true</span>;
-<a name="l00269"></a>00269                         <span class="keywordflow">return</span>;
-<a name="l00270"></a>00270                 }
-<a name="l00271"></a>00271                 p-&gt;start=PIC_FullIndex();
-<a name="l00272"></a>00272                 p-&gt;delay=(1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)p-&gt;cntr));
-<a name="l00273"></a>00273 
-<a name="l00274"></a>00274                 <span class="keywordflow">switch</span> (counter) {
-<a name="l00275"></a>00275                 <span class="keywordflow">case</span> 0x00:                      <span class="comment">/* Timer hooked to IRQ 0 */</span>
-<a name="l00276"></a>00276                         <span class="keywordflow">if</span> (p-&gt;new_mode || p-&gt;mode == 0 ) {
-<a name="l00277"></a>00277                                 <span class="keywordflow">if</span>(p-&gt;mode==0) PIC_RemoveEvents(PIT0_Event); <span class="comment">// DoWhackaDo demo</span>
-<a name="l00278"></a>00278                                 PIC_AddEvent(PIT0_Event,p-&gt;delay);
-<a name="l00279"></a>00279                         } <span class="keywordflow">else</span> <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_NORMAL)(<span class="stringliteral">&quot;PIT 0 Timer set without new control word&quot;</span>);
-<a name="l00280"></a>00280                         <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_NORMAL)(<span class="stringliteral">&quot;PIT 0 Timer at %.4f Hz mode %d&quot;</span>,1000.0/p-&gt;delay,p-&gt;mode);
-<a name="l00281"></a>00281                         <span class="keywordflow">break</span>;
-<a name="l00282"></a>00282         <span class="keywordflow">case</span> 0x01:          <span class="comment">/* Timer hooked to PC-Speaker (NEC-PC98) */</span>
-<a name="l00283"></a>00283             <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00284"></a>00284                 PCSPEAKER_SetCounter(p-&gt;cntr,p-&gt;mode);
-<a name="l00285"></a>00285             <span class="keywordflow">break</span>;
-<a name="l00286"></a>00286         <span class="keywordflow">case</span> 0x02:                      <span class="comment">/* Timer hooked to PC-Speaker (IBM PC) */</span>
-<a name="l00287"></a>00287             <span class="keywordflow">if</span> (!IS_PC98_ARCH)
-<a name="l00288"></a>00288                 PCSPEAKER_SetCounter(p-&gt;cntr,p-&gt;mode);
-<a name="l00289"></a>00289             <span class="keywordflow">break</span>;
-<a name="l00290"></a>00290         <span class="keywordflow">default</span>:
-<a name="l00291"></a>00291                         <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_ERROR)(<span class="stringliteral">&quot;PIT:Illegal timer selected for writing&quot;</span>);
-<a name="l00292"></a>00292                 }
-<a name="l00293"></a>00293                 p-&gt;new_mode=<span class="keyword">false</span>;
+<a name="l00237"></a>00237         <span class="keyword">const</span> <span class="keywordtype">double</span> index = reltime();
+<a name="l00238"></a>00238         read_counter_result ret;
+<a name="l00239"></a>00239 
+<a name="l00240"></a>00240         <span class="keywordflow">switch</span> (mode) {
+<a name="l00241"></a>00241             <span class="keywordflow">case</span> 4:             <span class="comment">/* Software Triggered Strobe */</span>
+<a name="l00242"></a>00242             <span class="keywordflow">case</span> 0:             <span class="comment">/* Interrupt on Terminal Count */</span>
+<a name="l00243"></a>00243                 {
+<a name="l00244"></a>00244                     <span class="keywordtype">double</span> tmp;
+<a name="l00245"></a>00245 
+<a name="l00246"></a>00246                     <span class="comment">/* Counter keeps on counting after passing terminal count */</span>
+<a name="l00247"></a>00247                     <span class="keywordflow">if</span> (bcd) {
+<a name="l00248"></a>00248                         tmp = fmod(index,((<span class="keywordtype">double</span>)(1000ul *   10000ul)) / PIT_TICK_RATE);
+<a name="l00249"></a>00249                         ret.counter = (Bit16u)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
+<a name="l00250"></a>00250                     } <span class="keywordflow">else</span> {
+<a name="l00251"></a>00251                         tmp = fmod(index,((<span class="keywordtype">double</span>)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
+<a name="l00252"></a>00252                         ret.counter = (Bit16u)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
+<a name="l00253"></a>00253                     }
+<a name="l00254"></a>00254 
+<a name="l00255"></a>00255                     <span class="keywordflow">if</span> (mode == 0) {
+<a name="l00256"></a>00256                         <span class="keywordflow">if</span> (index &gt; delay)
+<a name="l00257"></a>00257                             ret.cycle = 1;
+<a name="l00258"></a>00258                     }
+<a name="l00259"></a>00259                 }
+<a name="l00260"></a>00260                 <span class="keywordflow">break</span>;
+<a name="l00261"></a>00261             <span class="keywordflow">case</span> 5:     <span class="comment">/* Hardware Triggered Strobe */</span>
+<a name="l00262"></a>00262             <span class="keywordflow">case</span> 1:     <span class="comment">/* Hardware Retriggerable one-shot */</span>
+<a name="l00263"></a>00263                 <span class="keywordflow">if</span> (index &gt; delay) <span class="comment">// has timed out</span>
+<a name="l00264"></a>00264                     ret.counter = 0xFFFF;
+<a name="l00265"></a>00265                 <span class="keywordflow">else</span>
+<a name="l00266"></a>00266                     ret.counter = (Bit16u)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
+<a name="l00267"></a>00267                 <span class="keywordflow">break</span>;
+<a name="l00268"></a>00268             <span class="keywordflow">case</span> 2:             <span class="comment">/* Rate Generator */</span>
+<a name="l00269"></a>00269                 ret.counter = (Bit16u)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
+<a name="l00270"></a>00270                 <span class="keywordflow">break</span>;
+<a name="l00271"></a>00271             <span class="keywordflow">case</span> 3:             <span class="comment">/* Square Wave Rate Generator */</span>
+<a name="l00272"></a>00272                 {
+<a name="l00273"></a>00273                     <span class="keywordtype">double</span> tmp = fmod(index,(<span class="keywordtype">double</span>)delay) * 2;
+<a name="l00274"></a>00274 
+<a name="l00275"></a>00275                     <span class="keywordflow">if</span> (tmp &lt; 0) {
+<a name="l00276"></a>00276                         fprintf(stderr,<span class="stringliteral">&quot;tmp %.9f index %.9f delay %.9f now %.3f start %.3f\n&quot;</span>,tmp,index,delay,now,start);
+<a name="l00277"></a>00277                         abort();
+<a name="l00278"></a>00278                     }
+<a name="l00279"></a>00279 
+<a name="l00280"></a>00280                     ret.cycle = cycle_base;
+<a name="l00281"></a>00281                     <span class="keywordflow">if</span> (tmp &gt;= delay) {
+<a name="l00282"></a>00282                         tmp -= delay;
+<a name="l00283"></a>00283                         ret.cycle = (ret.cycle + 1u) &amp; 1u;
+<a name="l00284"></a>00284                     }
+<a name="l00285"></a>00285 
+<a name="l00286"></a>00286                     ret.counter = ((Bit16u)(cntr_cur - ((tmp * cntr_cur) / delay))) &amp; 0xFFFEu; <span class="comment">/* always even value */</span>
+<a name="l00287"></a>00287                 }
+<a name="l00288"></a>00288                 <span class="keywordflow">break</span>;
+<a name="l00289"></a>00289             <span class="keywordflow">default</span>:
+<a name="l00290"></a>00290                 <span class="keywordflow">break</span>;
+<a name="l00291"></a>00291         }
+<a name="l00292"></a>00292 
+<a name="l00293"></a>00293         <span class="keywordflow">return</span> ret;
 <a name="l00294"></a>00294     }
-<a name="l00295"></a>00295 }
+<a name="l00295"></a>00295 };
 <a name="l00296"></a>00296 
-<a name="l00297"></a>00297 <span class="keyword">static</span> Bitu read_latch(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l00298"></a>00298 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port read %X&quot;,port);</span>
-<a name="l00299"></a>00299 
-<a name="l00300"></a>00300     <span class="comment">// HACK: Port translation for this code PC-98 mode.</span>
-<a name="l00301"></a>00301     <span class="comment">//       0x71,0x73,0x75,0x77 =&gt; 0x40-0x43</span>
-<a name="l00302"></a>00302     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00303"></a>00303         <span class="keywordflow">if</span> (port &gt;= 0x3FD9)
-<a name="l00304"></a>00304             port = ((port - 0x3FD9) &gt;&gt; 1) + 0x40;
-<a name="l00305"></a>00305         <span class="keywordflow">else</span>
-<a name="l00306"></a>00306             port = ((port - 0x71) &gt;&gt; 1) + 0x40;
-<a name="l00307"></a>00307     }
-<a name="l00308"></a>00308 
-<a name="l00309"></a>00309         Bit32u counter=port-0x40;
-<a name="l00310"></a>00310         Bit8u ret=0;
-<a name="l00311"></a>00311         <span class="keywordflow">if</span>(GCC_UNLIKELY(pit[counter].counterstatus_set)){
-<a name="l00312"></a>00312                 pit[counter].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00313"></a>00313                 latched_timerstatus_locked = <span class="keyword">false</span>;
-<a name="l00314"></a>00314                 ret = latched_timerstatus;
-<a name="l00315"></a>00315         } <span class="keywordflow">else</span> {
-<a name="l00316"></a>00316                 <span class="keywordflow">if</span> (pit[counter].go_read_latch == <span class="keyword">true</span>) 
-<a name="l00317"></a>00317                         counter_latch(counter);
-<a name="l00318"></a>00318 
-<a name="l00319"></a>00319                 <span class="keywordflow">if</span>( pit[counter].bcd == <span class="keyword">true</span>) BIN2BCD(pit[counter].read_latch);
-<a name="l00320"></a>00320 
-<a name="l00321"></a>00321                 <span class="keywordflow">switch</span> (pit[counter].read_state) {
-<a name="l00322"></a>00322                 <span class="keywordflow">case</span> 0: <span class="comment">/* read MSB &amp; return to state 3 */</span>
-<a name="l00323"></a>00323                         ret=(pit[counter].read_latch &gt;&gt; 8) &amp; 0xff;
-<a name="l00324"></a>00324                         pit[counter].read_state = 3;
-<a name="l00325"></a>00325                         pit[counter].go_read_latch = <span class="keyword">true</span>;
-<a name="l00326"></a>00326                         <span class="keywordflow">break</span>;
-<a name="l00327"></a>00327                 <span class="keywordflow">case</span> 3: <span class="comment">/* read LSB followed by MSB */</span>
-<a name="l00328"></a>00328                         ret = pit[counter].read_latch &amp; 0xff;
-<a name="l00329"></a>00329                         pit[counter].read_state = 0;
-<a name="l00330"></a>00330                         <span class="keywordflow">break</span>;
-<a name="l00331"></a>00331                 <span class="keywordflow">case</span> 1: <span class="comment">/* read LSB */</span>
-<a name="l00332"></a>00332                         ret = pit[counter].read_latch &amp; 0xff;
-<a name="l00333"></a>00333                         pit[counter].go_read_latch = <span class="keyword">true</span>;
-<a name="l00334"></a>00334                         <span class="keywordflow">break</span>;
-<a name="l00335"></a>00335                 <span class="keywordflow">case</span> 2: <span class="comment">/* read MSB */</span>
-<a name="l00336"></a>00336                         ret = (pit[counter].read_latch &gt;&gt; 8) &amp; 0xff;
-<a name="l00337"></a>00337                         pit[counter].go_read_latch = <span class="keyword">true</span>;
-<a name="l00338"></a>00338                         <span class="keywordflow">break</span>;
-<a name="l00339"></a>00339                 <span class="keywordflow">default</span>:
-<a name="l00340"></a>00340                         E_Exit(<span class="stringliteral">&quot;Timer.cpp: error in readlatch&quot;</span>);
-<a name="l00341"></a>00341                         <span class="keywordflow">break</span>;
-<a name="l00342"></a>00342                 }
-<a name="l00343"></a>00343                 <span class="keywordflow">if</span>( pit[counter].bcd == <span class="keyword">true</span>) BCD2BIN(pit[counter].read_latch);
-<a name="l00344"></a>00344         }
-<a name="l00345"></a>00345         <span class="keywordflow">return</span> ret;
-<a name="l00346"></a>00346 }
-<a name="l00347"></a>00347 
-<a name="l00348"></a>00348 <span class="keyword">static</span> <span class="keywordtype">void</span> write_p43(Bitu <span class="comment">/*port*/</span>,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l00349"></a>00349 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port 43 %X&quot;,val);</span>
-<a name="l00350"></a>00350         Bitu latch=(val &gt;&gt; 6) &amp; 0x03;
-<a name="l00351"></a>00351         <span class="keywordflow">switch</span> (latch) {
-<a name="l00352"></a>00352         <span class="keywordflow">case</span> 0:
-<a name="l00353"></a>00353         <span class="keywordflow">case</span> 1:
-<a name="l00354"></a>00354         <span class="keywordflow">case</span> 2:
-<a name="l00355"></a>00355                 <span class="keywordflow">if</span> ((val &amp; 0x30) == 0) {
-<a name="l00356"></a>00356                         <span class="comment">/* Counter latch command */</span>
-<a name="l00357"></a>00357                         counter_latch(latch);
-<a name="l00358"></a>00358                 } <span class="keywordflow">else</span> {
-<a name="l00359"></a>00359                         <span class="comment">// save output status to be used with timer 0 irq</span>
-<a name="l00360"></a>00360                         <span class="keywordtype">bool</span> old_output = counter_output(0);
-<a name="l00361"></a>00361                         <span class="comment">// save the current count value to be re-used in undocumented newmode</span>
-<a name="l00362"></a>00362                         counter_latch(latch);
-<a name="l00363"></a>00363                         pit[latch].bcd = (val&amp;1)&gt;0;   
-<a name="l00364"></a>00364                         <span class="keywordflow">if</span> (val &amp; 1) {
-<a name="l00365"></a>00365                                 <span class="keywordflow">if</span>(pit[latch].cntr&gt;=9999) pit[latch].cntr=9999;
-<a name="l00366"></a>00366                         }
-<a name="l00367"></a>00367 
-<a name="l00368"></a>00368                         <span class="comment">// Timer is being reprogrammed, unlock the status</span>
-<a name="l00369"></a>00369                         <span class="keywordflow">if</span>(pit[latch].counterstatus_set) {
-<a name="l00370"></a>00370                                 pit[latch].counterstatus_set=<span class="keyword">false</span>;
-<a name="l00371"></a>00371                                 latched_timerstatus_locked=<span class="keyword">false</span>;
-<a name="l00372"></a>00372                         }
-<a name="l00373"></a>00373                         pit[latch].start = PIC_FullIndex(); <span class="comment">// for undocumented newmode</span>
-<a name="l00374"></a>00374                         pit[latch].go_read_latch = <span class="keyword">true</span>;
-<a name="l00375"></a>00375                         pit[latch].update_count = <span class="keyword">false</span>;
-<a name="l00376"></a>00376                         pit[latch].counting = <span class="keyword">false</span>;
-<a name="l00377"></a>00377                         pit[latch].read_state  = (val &gt;&gt; 4) &amp; 0x03;
-<a name="l00378"></a>00378                         pit[latch].write_state = (val &gt;&gt; 4) &amp; 0x03;
-<a name="l00379"></a>00379                         Bit8u mode             = (val &gt;&gt; 1) &amp; 0x07;
-<a name="l00380"></a>00380                         <span class="keywordflow">if</span> (mode &gt; 5)
-<a name="l00381"></a>00381                                 mode -= 4; <span class="comment">//6,7 become 2 and 3</span>
-<a name="l00382"></a>00382 
-<a name="l00383"></a>00383                         pit[latch].mode = mode;
+<a name="l00297"></a>00297 <span class="keyword">static</span> <a class="code" href="structPIT__Block.html">PIT_Block</a> pit[3];
+<a name="l00298"></a>00298 
+<a name="l00299"></a>00299 <span class="keyword">static</span> Bit8u latched_timerstatus;
+<a name="l00300"></a>00300 <span class="comment">// the timer status can not be overwritten until it is read or the timer was </span>
+<a name="l00301"></a>00301 <span class="comment">// reprogrammed.</span>
+<a name="l00302"></a>00302 <span class="keyword">static</span> <span class="keywordtype">bool</span> latched_timerstatus_locked;
+<a name="l00303"></a>00303 
+<a name="l00304"></a>00304 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIT_TICK_RATE = PIT_TICK_RATE_IBM;
+<a name="l00305"></a>00305 
+<a name="l00306"></a>00306 <span class="keyword">static</span> <span class="keywordtype">void</span> PIT0_Event(Bitu <span class="comment">/*val*/</span>) {
+<a name="l00307"></a>00307         PIC_ActivateIRQ(0);
+<a name="l00308"></a>00308         <span class="keywordflow">if</span> (pit[0].mode != 0) {
+<a name="l00309"></a>00309                 pit[0].track_time(PIC_FullIndex());
+<a name="l00310"></a>00310 
+<a name="l00311"></a>00311         <span class="comment">/* event timing error checking */</span>
+<a name="l00312"></a>00312         <span class="keywordtype">double</span> err = PIC_GetCurrentEventTime() - pit[0].start;
+<a name="l00313"></a>00313 
+<a name="l00314"></a>00314         <span class="keywordflow">if</span> (err &gt;= (pit[0].delay/2))
+<a name="l00315"></a>00315             err -=  pit[0].delay;
+<a name="l00316"></a>00316 
+<a name="l00317"></a>00317 <span class="preprocessor">#if 0//change if debug information wanted</span>
+<a name="l00318"></a>00318 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (fabs(err) &gt;= (0.5 / CPU_CycleMax))
+<a name="l00319"></a>00319             LOG_MSG(<span class="stringliteral">&quot;PIT0_Event timing error %.6fms&quot;</span>,err);
+<a name="l00320"></a>00320 <span class="preprocessor">#endif</span>
+<a name="l00321"></a>00321 <span class="preprocessor"></span>
+<a name="l00322"></a>00322         PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
+<a name="l00323"></a>00323         }
+<a name="l00324"></a>00324 }
+<a name="l00325"></a>00325 
+<a name="l00326"></a>00326 <span class="keyword">static</span> <span class="keywordtype">bool</span> counter_output(Bitu counter) {
+<a name="l00327"></a>00327         <a class="code" href="structPIT__Block.html">PIT_Block</a> *p = &amp;pit[counter];
+<a name="l00328"></a>00328     p-&gt;track_time(PIC_FullIndex());
+<a name="l00329"></a>00329 
+<a name="l00330"></a>00330     <a class="code" href="structPIT__Block_1_1read__counter__result.html">PIT_Block::read_counter_result</a> res = p-&gt;read_counter();
+<a name="l00331"></a>00331     p-&gt;update_output_from_counter(res);
+<a name="l00332"></a>00332 
+<a name="l00333"></a>00333     <span class="keywordflow">return</span> p-&gt;output;
+<a name="l00334"></a>00334 }
+<a name="l00335"></a>00335 <span class="keyword">static</span> <span class="keywordtype">void</span> status_latch(Bitu counter) {
+<a name="l00336"></a>00336         <span class="comment">// the timer status can not be overwritten until it is read or the timer was </span>
+<a name="l00337"></a>00337         <span class="comment">// reprogrammed.</span>
+<a name="l00338"></a>00338         <span class="keywordflow">if</span>(!latched_timerstatus_locked) {
+<a name="l00339"></a>00339                 <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
+<a name="l00340"></a>00340                 latched_timerstatus=0;
+<a name="l00341"></a>00341                 <span class="comment">// Timer Status Word</span>
+<a name="l00342"></a>00342                 <span class="comment">// 0: BCD </span>
+<a name="l00343"></a>00343                 <span class="comment">// 1-3: Timer mode</span>
+<a name="l00344"></a>00344                 <span class="comment">// 4-5: read/load mode</span>
+<a name="l00345"></a>00345                 <span class="comment">// 6: &quot;NULL&quot; - this is 0 if &quot;the counter value is in the counter&quot; ;)</span>
+<a name="l00346"></a>00346                 <span class="comment">// should rarely be 1 (i.e. on exotic modes)</span>
+<a name="l00347"></a>00347                 <span class="comment">// 7: OUT - the logic level on the Timer output pin</span>
+<a name="l00348"></a>00348                 <span class="keywordflow">if</span>(p-&gt;bcd)latched_timerstatus|=0x1;
+<a name="l00349"></a>00349                 latched_timerstatus|=((p-&gt;mode&amp;7)&lt;&lt;1);
+<a name="l00350"></a>00350                 <span class="keywordflow">if</span>((p-&gt;read_state==0)||(p-&gt;read_state==3)) latched_timerstatus|=0x30;
+<a name="l00351"></a>00351                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>(p-&gt;read_state==1) latched_timerstatus|=0x10;
+<a name="l00352"></a>00352                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>(p-&gt;read_state==2) latched_timerstatus|=0x20;
+<a name="l00353"></a>00353                 <span class="keywordflow">if</span>(counter_output(counter)) latched_timerstatus|=0x80;
+<a name="l00354"></a>00354                 <span class="keywordflow">if</span>(p-&gt;new_mode) latched_timerstatus|=0x40;
+<a name="l00355"></a>00355                 <span class="comment">// The first thing that is being read from this counter now is the</span>
+<a name="l00356"></a>00356                 <span class="comment">// counter status.</span>
+<a name="l00357"></a>00357                 p-&gt;counterstatus_set=<span class="keyword">true</span>;
+<a name="l00358"></a>00358                 latched_timerstatus_locked=<span class="keyword">true</span>;
+<a name="l00359"></a>00359         }
+<a name="l00360"></a>00360 }
+<a name="l00361"></a>00361 
+<a name="l00362"></a>00362 <span class="keyword">static</span> <span class="keywordtype">void</span> counter_latch(Bitu counter,<span class="keywordtype">bool</span> do_latch=<span class="keyword">true</span>) {
+<a name="l00363"></a>00363         <a class="code" href="structPIT__Block.html">PIT_Block</a> *p = &amp;pit[counter];
+<a name="l00364"></a>00364 
+<a name="l00365"></a>00365     p-&gt;track_time(PIC_FullIndex());
+<a name="l00366"></a>00366 
+<a name="l00367"></a>00367     <a class="code" href="structPIT__Block_1_1read__counter__result.html">PIT_Block::read_counter_result</a> res = p-&gt;read_counter();
+<a name="l00368"></a>00368     p-&gt;update_output_from_counter(res);
+<a name="l00369"></a>00369 
+<a name="l00370"></a>00370     <span class="keywordflow">if</span> (do_latch) {
+<a name="l00371"></a>00371         p-&gt;go_read_latch = <span class="keyword">false</span>;
+<a name="l00372"></a>00372         p-&gt;read_latch = res.counter;
+<a name="l00373"></a>00373     }
+<a name="l00374"></a>00374 
+<a name="l00375"></a>00375     <span class="keywordflow">if</span> (counter == 0<span class="comment">/*IRQ 0*/</span>) {
+<a name="l00376"></a>00376         <span class="keywordflow">if</span> (!p-&gt;output)
+<a name="l00377"></a>00377             PIC_DeActivateIRQ(0);
+<a name="l00378"></a>00378     }
+<a name="l00379"></a>00379 }
+<a name="l00380"></a>00380 
+<a name="l00381"></a>00381 <span class="keywordtype">void</span> TIMER_IRQ0Poll(<span class="keywordtype">void</span>) {
+<a name="l00382"></a>00382     counter_latch(0,<span class="keyword">false</span><span class="comment">/*do not latch*/</span>);
+<a name="l00383"></a>00383 }
 <a name="l00384"></a>00384 
-<a name="l00385"></a>00385                         <span class="comment">/* If the line goes from low to up =&gt; generate irq. </span>
-<a name="l00386"></a>00386 <span class="comment">                         *      ( BUT needs to stay up until acknowlegded by the cpu!!! therefore: )</span>
-<a name="l00387"></a>00387 <span class="comment">                         * If the line goes to low =&gt; disable irq.</span>
-<a name="l00388"></a>00388 <span class="comment">                         * Mode 0 starts with a low line. (so always disable irq)</span>
-<a name="l00389"></a>00389 <span class="comment">                         * Mode 2,3 start with a high line.</span>
-<a name="l00390"></a>00390 <span class="comment">                         * counter_output tells if the current counter is high or low </span>
-<a name="l00391"></a>00391 <span class="comment">                         * So actually a mode 3 timer enables and disables irq al the time. (not handled) */</span>
-<a name="l00392"></a>00392 
-<a name="l00393"></a>00393             <span class="comment">/* Jon C: Oh yeah? Nobody abuses counter == 0 on IBM PC that way, but there is a PC-98</span>
-<a name="l00394"></a>00394 <span class="comment">             *        game that relies on that behavior: Steel Gun Nyan! */</span>
-<a name="l00395"></a>00395 
-<a name="l00396"></a>00396                         <span class="keywordflow">if</span> (latch == 0) {
-<a name="l00397"></a>00397                                 PIC_RemoveEvents(PIT0_Event);
-<a name="l00398"></a>00398                                 <span class="keywordflow">if</span>((mode != 0)&amp;&amp; !old_output) {
-<a name="l00399"></a>00399                                         PIC_ActivateIRQ(0);
-<a name="l00400"></a>00400                                 } <span class="keywordflow">else</span> {
-<a name="l00401"></a>00401                                         PIC_DeActivateIRQ(0);
-<a name="l00402"></a>00402                                 }
-<a name="l00403"></a>00403                         }
-<a name="l00404"></a>00404                         pit[latch].new_mode = <span class="keyword">true</span>;
-<a name="l00405"></a>00405                         <span class="keywordflow">if</span> (latch == (IS_PC98_ARCH ? 1 : 2)) {
-<a name="l00406"></a>00406                                 <span class="comment">// notify pc speaker code that the control word was written</span>
-<a name="l00407"></a>00407                                 PCSPEAKER_SetPITControl(mode);
-<a name="l00408"></a>00408                         }
-<a name="l00409"></a>00409                 }
-<a name="l00410"></a>00410                 <span class="keywordflow">break</span>;
-<a name="l00411"></a>00411     <span class="keywordflow">case</span> 3:
-<a name="l00412"></a>00412                 <span class="keywordflow">if</span> ((val &amp; 0x20)==0) {  <span class="comment">/* Latch multiple pit counters */</span>
-<a name="l00413"></a>00413                         <span class="keywordflow">if</span> (val &amp; 0x02) counter_latch(0);
-<a name="l00414"></a>00414                         <span class="keywordflow">if</span> (val &amp; 0x04) counter_latch(1);
-<a name="l00415"></a>00415                         <span class="keywordflow">if</span> (val &amp; 0x08) counter_latch(2);
-<a name="l00416"></a>00416                 }
-<a name="l00417"></a>00417                 <span class="comment">// status and values can be latched simultaneously</span>
-<a name="l00418"></a>00418                 <span class="keywordflow">if</span> ((val &amp; 0x10)==0) {  <span class="comment">/* Latch status words */</span>
-<a name="l00419"></a>00419                         <span class="comment">// but only 1 status can be latched simultaneously</span>
-<a name="l00420"></a>00420                         <span class="keywordflow">if</span> (val &amp; 0x02) status_latch(0);
-<a name="l00421"></a>00421                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val &amp; 0x04) status_latch(1);
-<a name="l00422"></a>00422                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val &amp; 0x08) status_latch(2);
-<a name="l00423"></a>00423                 }
-<a name="l00424"></a>00424                 <span class="keywordflow">break</span>;
-<a name="l00425"></a>00425         }
-<a name="l00426"></a>00426 }
-<a name="l00427"></a>00427 
-<a name="l00428"></a>00428 <span class="keywordtype">void</span> TIMER_SetGate2(<span class="keywordtype">bool</span> in) {
-<a name="l00429"></a>00429         <span class="comment">//No changes if gate doesn&#39;t change</span>
-<a name="l00430"></a>00430         <span class="keywordflow">if</span>(gate2 == in) <span class="keywordflow">return</span>;
-<a name="l00431"></a>00431         Bit8u &amp; mode=pit[2].mode;
-<a name="l00432"></a>00432         <span class="keywordflow">switch</span>(mode) {
-<a name="l00433"></a>00433         <span class="keywordflow">case</span> 0:
-<a name="l00434"></a>00434                 <span class="keywordflow">if</span>(in) pit[2].start = PIC_FullIndex();
-<a name="l00435"></a>00435                 <span class="keywordflow">else</span> {
-<a name="l00436"></a>00436                         <span class="comment">//Fill readlatch and store it.</span>
-<a name="l00437"></a>00437                         counter_latch(2);
-<a name="l00438"></a>00438                         pit[2].cntr = pit[2].read_latch;
-<a name="l00439"></a>00439                 }
-<a name="l00440"></a>00440                 <span class="keywordflow">break</span>;
-<a name="l00441"></a>00441         <span class="keywordflow">case</span> 1:
-<a name="l00442"></a>00442                 <span class="comment">// gate 1 on: reload counter; off: nothing</span>
-<a name="l00443"></a>00443                 <span class="keywordflow">if</span>(in) {
-<a name="l00444"></a>00444                         pit[2].counting = <span class="keyword">true</span>;
-<a name="l00445"></a>00445                         pit[2].start = PIC_FullIndex();
-<a name="l00446"></a>00446                 }
-<a name="l00447"></a>00447                 <span class="keywordflow">break</span>;
-<a name="l00448"></a>00448         <span class="keywordflow">case</span> 2:
-<a name="l00449"></a>00449         <span class="keywordflow">case</span> 3:
-<a name="l00450"></a>00450                 <span class="comment">//If gate is enabled restart counting. If disable store the current read_latch</span>
-<a name="l00451"></a>00451                 <span class="keywordflow">if</span>(in) pit[2].start = PIC_FullIndex();
-<a name="l00452"></a>00452                 <span class="keywordflow">else</span> counter_latch(2);
-<a name="l00453"></a>00453                 <span class="keywordflow">break</span>;
-<a name="l00454"></a>00454         <span class="keywordflow">case</span> 4:
-<a name="l00455"></a>00455         <span class="keywordflow">case</span> 5:
-<a name="l00456"></a>00456                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;unsupported gate 2 mode %x&quot;</span>,mode);
-<a name="l00457"></a>00457                 <span class="keywordflow">break</span>;
-<a name="l00458"></a>00458         }
-<a name="l00459"></a>00459         gate2 = in; <span class="comment">//Set it here so the counter_latch above works</span>
-<a name="l00460"></a>00460 }
-<a name="l00461"></a>00461 
-<a name="l00462"></a>00462 <span class="keywordtype">bool</span> TIMER_GetOutput2() {
-<a name="l00463"></a>00463         <span class="keywordflow">return</span> counter_output(2);
-<a name="l00464"></a>00464 }
-<a name="l00465"></a>00465 
-<a name="l00466"></a>00466 <span class="preprocessor">#include &quot;programs.h&quot;</span>
-<a name="l00467"></a>00467 
-<a name="l00468"></a>00468 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
-<a name="l00469"></a>00469 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
-<a name="l00470"></a>00470 
-<a name="l00471"></a>00471 <span class="comment">/* PC-98 alias */</span>
-<a name="l00472"></a>00472 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler2[4];
-<a name="l00473"></a>00473 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler2[4];
+<a name="l00385"></a>00385 pic_tickindex_t speaker_pit_delta(<span class="keywordtype">void</span>) {
+<a name="l00386"></a>00386     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> speaker_pit = IS_PC98_ARCH ? 1 : 2;
+<a name="l00387"></a>00387     <span class="keywordflow">return</span> fmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
+<a name="l00388"></a>00388 }
+<a name="l00389"></a>00389 
+<a name="l00390"></a>00390 <span class="keywordtype">void</span> speaker_pit_update(<span class="keywordtype">void</span>) {
+<a name="l00391"></a>00391     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> speaker_pit = IS_PC98_ARCH ? 1 : 2;
+<a name="l00392"></a>00392     pit[speaker_pit].track_time(PIC_FullIndex());
+<a name="l00393"></a>00393 }
+<a name="l00394"></a>00394 
+<a name="l00395"></a>00395 <span class="keyword">static</span> <span class="keywordtype">void</span> write_latch(Bitu port,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00396"></a>00396 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port %X write:%X state:%X&quot;,port,val,pit[port-0x40].write_state);</span>
+<a name="l00397"></a>00397 
+<a name="l00398"></a>00398     <span class="comment">// HACK: Port translation for this code PC-98 mode.</span>
+<a name="l00399"></a>00399     <span class="comment">//       0x71,0x73,0x75,0x77 =&gt; 0x40-0x43</span>
+<a name="l00400"></a>00400     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00401"></a>00401         <span class="keywordflow">if</span> (port &gt;= 0x3FD9)
+<a name="l00402"></a>00402             port = ((port - 0x3FD9) &gt;&gt; 1) + 0x40;
+<a name="l00403"></a>00403         <span class="keywordflow">else</span>
+<a name="l00404"></a>00404             port = ((port - 0x71) &gt;&gt; 1) + 0x40;
+<a name="l00405"></a>00405     }
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407         Bitu counter=port-0x40;
+<a name="l00408"></a>00408         <a class="code" href="structPIT__Block.html">PIT_Block</a> * p=&amp;pit[counter];
+<a name="l00409"></a>00409         <span class="keywordflow">if</span>(p-&gt;bcd == <span class="keyword">true</span>) BIN2BCD(p-&gt;write_latch);
+<a name="l00410"></a>00410    
+<a name="l00411"></a>00411         <span class="keywordflow">switch</span> (p-&gt;write_state) {
+<a name="l00412"></a>00412                 <span class="keywordflow">case</span> 0:
+<a name="l00413"></a>00413                         p-&gt;write_latch = p-&gt;write_latch | ((val &amp; 0xff) &lt;&lt; 8);
+<a name="l00414"></a>00414                         p-&gt;write_state = 3;
+<a name="l00415"></a>00415                         <span class="keywordflow">break</span>;
+<a name="l00416"></a>00416                 <span class="keywordflow">case</span> 3:
+<a name="l00417"></a>00417                         p-&gt;write_latch = val &amp; 0xff;
+<a name="l00418"></a>00418                         p-&gt;write_state = 0;
+<a name="l00419"></a>00419                         <span class="keywordflow">break</span>;
+<a name="l00420"></a>00420                 <span class="keywordflow">case</span> 1:
+<a name="l00421"></a>00421                         p-&gt;write_latch = val &amp; 0xff;
+<a name="l00422"></a>00422                         <span class="keywordflow">break</span>;
+<a name="l00423"></a>00423                 <span class="keywordflow">case</span> 2:
+<a name="l00424"></a>00424                         p-&gt;write_latch = (val &amp; 0xff) &lt;&lt; 8;
+<a name="l00425"></a>00425                 <span class="keywordflow">break</span>;
+<a name="l00426"></a>00426         }
+<a name="l00427"></a>00427         <span class="keywordflow">if</span> (p-&gt;bcd==<span class="keyword">true</span>) BCD2BIN(p-&gt;write_latch);
+<a name="l00428"></a>00428         <span class="keywordflow">if</span> (p-&gt;write_state != 0) {
+<a name="l00429"></a>00429         Bitu old_cntr = p-&gt;cntr;
+<a name="l00430"></a>00430 
+<a name="l00431"></a>00431         p-&gt;track_time(PIC_FullIndex());
+<a name="l00432"></a>00432 
+<a name="l00433"></a>00433         <span class="keywordflow">if</span> (p-&gt;write_latch == 0) {
+<a name="l00434"></a>00434             <span class="keywordflow">if</span> (p-&gt;bcd == <span class="keyword">false</span>)
+<a name="l00435"></a>00435                 p-&gt;set_next_counter(0x10000);
+<a name="l00436"></a>00436             <span class="keywordflow">else</span>
+<a name="l00437"></a>00437                 p-&gt;set_next_counter(9999<span class="comment">/*check this*/</span>);
+<a name="l00438"></a>00438         }
+<a name="l00439"></a>00439         <span class="keywordflow">else</span> {
+<a name="l00440"></a>00440             p-&gt;set_next_counter(p-&gt;write_latch);
+<a name="l00441"></a>00441         }
+<a name="l00442"></a>00442 
+<a name="l00443"></a>00443         <span class="keywordflow">if</span> (!p-&gt;new_mode) {
+<a name="l00444"></a>00444             <span class="keywordflow">if</span> ((p-&gt;mode == 2<span class="comment">/*common IBM PC mode*/</span> || p-&gt;mode == 3<span class="comment">/*common PC-98 mode*/</span>) &amp;&amp; (counter == 0)) {
+<a name="l00445"></a>00445                 <span class="comment">// In mode 2 writing another value has no direct effect on the count</span>
+<a name="l00446"></a>00446                 <span class="comment">// until the old one has run out. This might apply to other modes too.</span>
+<a name="l00447"></a>00447                 <span class="comment">// This is not fixed for PIT2 yet!!</span>
+<a name="l00448"></a>00448                 p-&gt;update_count=<span class="keyword">true</span>;
+<a name="l00449"></a>00449                 <span class="keywordflow">return</span>;
+<a name="l00450"></a>00450             }
+<a name="l00451"></a>00451             <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((p-&gt;mode == 3) &amp;&amp; (counter == (IS_PC98_ARCH ? 1 : 2))) {
+<a name="l00452"></a>00452                 <span class="keywordtype">void</span> PCSPEAKER_SetCounter_NoNewMode(Bitu cntr);
+<a name="l00453"></a>00453 
+<a name="l00454"></a>00454                 <span class="comment">// PC speaker</span>
+<a name="l00455"></a>00455                 PCSPEAKER_SetCounter_NoNewMode(p-&gt;cntr);
+<a name="l00456"></a>00456                 p-&gt;update_count=<span class="keyword">true</span>;
+<a name="l00457"></a>00457                 <span class="keywordflow">return</span>;
+<a name="l00458"></a>00458             }
+<a name="l00459"></a>00459 
+<a name="l00460"></a>00460             <span class="keywordflow">if</span> (p-&gt;mode == 0) {
+<a name="l00461"></a>00461                 <span class="comment">/* Mode 0 is the only mode NOT to wait for the current counter to finish if you write another counter value</span>
+<a name="l00462"></a>00462 <span class="comment">                 * according to the Intel 8254 datasheet.</span>
+<a name="l00463"></a>00463 <span class="comment">                 *</span>
+<a name="l00464"></a>00464 <span class="comment">                 * For timer 0 (system timer) this is used by DoWhackaDo as a sort of one-shot timer interrupt.</span>
+<a name="l00465"></a>00465 <span class="comment">                 * For timer 2 (PC speaker) this is used to do PWM &quot;realsound&quot; digitized speech in some games. */</span>
+<a name="l00466"></a>00466             }
+<a name="l00467"></a>00467             <span class="keywordflow">else</span> {
+<a name="l00468"></a>00468                 <span class="comment">// this debug message will help development trace down cases where writing without a new mode</span>
+<a name="l00469"></a>00469                 <span class="comment">// would incorrectly restart the counter instead of letting the current count complete before</span>
+<a name="l00470"></a>00470                 <span class="comment">// writing a new one.</span>
+<a name="l00471"></a>00471                 <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_NORMAL)(<span class="stringliteral">&quot;WARNING: Writing counter %u in mode %u without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle&quot;</span>,(int)counter,(<span class="keywordtype">int</span>)p-&gt;mode);
+<a name="l00472"></a>00472             }
+<a name="l00473"></a>00473         }
 <a name="l00474"></a>00474 
-<a name="l00475"></a>00475 <span class="keywordtype">void</span> TIMER_BIOS_INIT_Configure() {
-<a name="l00476"></a>00476         PIC_RemoveEvents(PIT0_Event);
-<a name="l00477"></a>00477         PIC_DeActivateIRQ(0);
-<a name="l00478"></a>00478 
-<a name="l00479"></a>00479         <span class="comment">/* Setup Timer 0 */</span>
-<a name="l00480"></a>00480         pit[0].cntr = 0x10000;
-<a name="l00481"></a>00481         pit[0].write_state = 3;
-<a name="l00482"></a>00482         pit[0].read_state = 3;
-<a name="l00483"></a>00483         pit[0].read_latch = 0;
-<a name="l00484"></a>00484         pit[0].write_latch = 0;
-<a name="l00485"></a>00485         pit[0].mode = 3;
-<a name="l00486"></a>00486         pit[0].bcd = <span class="keyword">false</span>;
-<a name="l00487"></a>00487         pit[0].go_read_latch = <span class="keyword">true</span>;
-<a name="l00488"></a>00488         pit[0].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00489"></a>00489         pit[0].update_count = <span class="keyword">false</span>;
-<a name="l00490"></a>00490         pit[0].start = PIC_FullIndex();
-<a name="l00491"></a>00491 
-<a name="l00492"></a>00492         pit[1].bcd = <span class="keyword">false</span>;
-<a name="l00493"></a>00493         pit[1].write_state = 1;
-<a name="l00494"></a>00494         pit[1].read_state = 1;
-<a name="l00495"></a>00495         pit[1].go_read_latch = <span class="keyword">true</span>;
-<a name="l00496"></a>00496         pit[1].cntr = 18;
-<a name="l00497"></a>00497         pit[1].mode = 2;
-<a name="l00498"></a>00498         pit[1].write_state = 3;
-<a name="l00499"></a>00499         pit[1].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00500"></a>00500         pit[1].start = PIC_FullIndex();
-<a name="l00501"></a>00501 
-<a name="l00502"></a>00502         pit[2].bcd = <span class="keyword">false</span>;
-<a name="l00503"></a>00503         pit[2].write_state = 1;
-<a name="l00504"></a>00504         pit[2].read_state = 1;
-<a name="l00505"></a>00505         pit[2].go_read_latch = <span class="keyword">true</span>;
-<a name="l00506"></a>00506         pit[2].cntr = 18;
-<a name="l00507"></a>00507         pit[2].mode = 2;
-<a name="l00508"></a>00508         pit[2].write_state = 3;
-<a name="l00509"></a>00509         pit[2].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00510"></a>00510         pit[2].start = PIC_FullIndex();
-<a name="l00511"></a>00511 
-<a name="l00512"></a>00512     <span class="comment">/* TODO: I have observed that on real PC-98 hardware:</span>
-<a name="l00513"></a>00513 <span class="comment">     * </span>
-<a name="l00514"></a>00514 <span class="comment">     *   Output 1 (speaker) does not cycle if inhibited by port 35h</span>
-<a name="l00515"></a>00515 <span class="comment">     *</span>
-<a name="l00516"></a>00516 <span class="comment">     *   Output 2 (RS232C) does not cycle until programmed to cycle</span>
-<a name="l00517"></a>00517 <span class="comment">     *   to operate the 8251 for data transfer. It is configured by</span>
-<a name="l00518"></a>00518 <span class="comment">     *   the BIOS to countdown and stop, thus the UART is not cycling</span>
-<a name="l00519"></a>00519 <span class="comment">     *   until put into active use. */</span>
-<a name="l00520"></a>00520 
-<a name="l00521"></a>00521     <span class="keywordtype">int</span> pcspeaker_pit = IS_PC98_ARCH ? 1 : 2; <span class="comment">/* IBM: PC speaker on output 2   PC-98: PC speaker on output 1 */</span>
-<a name="l00522"></a>00522 
-<a name="l00523"></a>00523         {
-<a name="l00524"></a>00524                 <a class="code" href="classSection__prop.html">Section_prop</a> *pcsec = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
-<a name="l00525"></a>00525                 <span class="keywordtype">int</span> freq = pcsec-&gt;Get_int(<span class="stringliteral">&quot;initial frequency&quot;</span>); <span class="comment">/* original code: 1320 */</span>
-<a name="l00526"></a>00526                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> div;
-<a name="l00527"></a>00527 
-<a name="l00528"></a>00528         <span class="comment">/* IBM PC defaults to 903Hz.</span>
-<a name="l00529"></a>00529 <span class="comment">         * NEC PC-98 defaults to 2KHz */</span>
-<a name="l00530"></a>00530         <span class="keywordflow">if</span> (freq &lt; 0)
-<a name="l00531"></a>00531             freq = IS_PC98_ARCH ? 2000 : 903;
-<a name="l00532"></a>00532 
-<a name="l00533"></a>00533                 <span class="keywordflow">if</span> (freq &lt; 19) {
-<a name="l00534"></a>00534                         div = 1;
-<a name="l00535"></a>00535                 }
-<a name="l00536"></a>00536                 <span class="keywordflow">else</span> {
-<a name="l00537"></a>00537                         div = (<span class="keywordtype">unsigned</span> int)PIT_TICK_RATE / (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)freq;
-<a name="l00538"></a>00538                         <span class="keywordflow">if</span> (div &gt; 65535) div = 65535;
-<a name="l00539"></a>00539                 }
-<a name="l00540"></a>00540 
-<a name="l00541"></a>00541                 pit[pcspeaker_pit].cntr = div;
-<a name="l00542"></a>00542                 pit[pcspeaker_pit].read_latch = div;
-<a name="l00543"></a>00543                 pit[pcspeaker_pit].write_state = 3; <span class="comment">/* Chuck Yeager */</span>
-<a name="l00544"></a>00544                 pit[pcspeaker_pit].read_state = 3;
-<a name="l00545"></a>00545                 pit[pcspeaker_pit].mode = 3;
-<a name="l00546"></a>00546                 pit[pcspeaker_pit].bcd = <span class="keyword">false</span>;
-<a name="l00547"></a>00547                 pit[pcspeaker_pit].go_read_latch = <span class="keyword">true</span>;
-<a name="l00548"></a>00548                 pit[pcspeaker_pit].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00549"></a>00549                 pit[pcspeaker_pit].counting = <span class="keyword">false</span>;
-<a name="l00550"></a>00550             pit[pcspeaker_pit].start = PIC_FullIndex();
-<a name="l00551"></a>00551         }
-<a name="l00552"></a>00552 
-<a name="l00553"></a>00553         pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)pit[0].cntr));
-<a name="l00554"></a>00554         pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)pit[1].cntr));
-<a name="l00555"></a>00555         pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)pit[2].cntr));
-<a name="l00556"></a>00556 
-<a name="l00557"></a>00557         PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
-<a name="l00558"></a>00558         PIC_AddEvent(PIT0_Event,pit[0].delay);
-<a name="l00559"></a>00559 
-<a name="l00560"></a>00560     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00561"></a>00561     <span class="comment">/* BIOS data area at 0x501 tells the DOS application which clock rate to use */</span>
-<a name="l00562"></a>00562         phys_writeb(0x501,
-<a name="l00563"></a>00563             (phys_readb(0x501) &amp; 0x7F) |
-<a name="l00564"></a>00564             ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      <span class="comment">/* bit 7: 1=8MHz  0=5MHz/10MHz */</span>
-<a name="l00565"></a>00565             );
-<a name="l00566"></a>00566     }
-<a name="l00567"></a>00567 }
-<a name="l00568"></a>00568 
-<a name="l00569"></a>00569 <span class="keywordtype">void</span> TIMER_OnPowerOn(<a class="code" href="classSection.html">Section</a>*) {
-<a name="l00570"></a>00570         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l00571"></a>00571         assert(section != NULL);
-<a name="l00572"></a>00572 
-<a name="l00573"></a>00573         <span class="comment">// log</span>
-<a name="l00574"></a>00574         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER_OnPowerOn(): Reinitializing PIT timer emulation&quot;</span>);
-<a name="l00575"></a>00575 
-<a name="l00576"></a>00576         PIC_RemoveEvents(PIT0_Event);
-<a name="l00577"></a>00577 
-<a name="l00578"></a>00578         WriteHandler[0].Uninstall();
-<a name="l00579"></a>00579         WriteHandler[1].Uninstall();
-<a name="l00580"></a>00580         WriteHandler[2].Uninstall();
-<a name="l00581"></a>00581         WriteHandler[3].Uninstall();
-<a name="l00582"></a>00582         ReadHandler[0].Uninstall();
-<a name="l00583"></a>00583         ReadHandler[1].Uninstall();
-<a name="l00584"></a>00584         ReadHandler[2].Uninstall();
-<a name="l00585"></a>00585         ReadHandler[3].Uninstall();
-<a name="l00586"></a>00586 
-<a name="l00587"></a>00587         WriteHandler2[0].Uninstall();
-<a name="l00588"></a>00588         WriteHandler2[1].Uninstall();
-<a name="l00589"></a>00589         WriteHandler2[2].Uninstall();
-<a name="l00590"></a>00590         WriteHandler2[3].Uninstall();
-<a name="l00591"></a>00591         ReadHandler2[0].Uninstall();
-<a name="l00592"></a>00592         ReadHandler2[1].Uninstall();
-<a name="l00593"></a>00593         ReadHandler2[2].Uninstall();
-<a name="l00594"></a>00594         ReadHandler2[3].Uninstall();
-<a name="l00595"></a>00595 
-<a name="l00596"></a>00596         WriteHandler[0].Install(0x40,write_latch,IO_MB);
-<a name="l00597"></a>00597 <span class="comment">//      WriteHandler[1].Install(0x41,write_latch,IO_MB);</span>
-<a name="l00598"></a>00598         WriteHandler[2].Install(0x42,write_latch,IO_MB);
-<a name="l00599"></a>00599         WriteHandler[3].Install(0x43,write_p43,IO_MB);
-<a name="l00600"></a>00600         ReadHandler[0].Install(0x40,read_latch,IO_MB);
-<a name="l00601"></a>00601         ReadHandler[1].Install(0x41,read_latch,IO_MB);
-<a name="l00602"></a>00602         ReadHandler[2].Install(0x42,read_latch,IO_MB);
-<a name="l00603"></a>00603 
-<a name="l00604"></a>00604         latched_timerstatus_locked=<span class="keyword">false</span>;
-<a name="l00605"></a>00605         gate2 = <span class="keyword">false</span>;
-<a name="l00606"></a>00606 
-<a name="l00607"></a>00607     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00608"></a>00608         <span class="keywordtype">void</span> TIMER_OnEnterPC98_Phase2(<a class="code" href="classSection.html">Section</a>*);
-<a name="l00609"></a>00609         TIMER_OnEnterPC98_Phase2(NULL);
-<a name="l00610"></a>00610     }
-<a name="l00611"></a>00611 }
-<a name="l00612"></a>00612 
-<a name="l00613"></a>00613 <span class="keywordtype">void</span> TIMER_OnEnterPC98_Phase2_UpdateBDA(<span class="keywordtype">void</span>) {
-<a name="l00614"></a>00614         <span class="keywordflow">if</span> (!cpu.pmode) {
-<a name="l00615"></a>00615                 <span class="comment">/* BIOS data area at 0x501 tells the DOS application which clock rate to use */</span>
-<a name="l00616"></a>00616                 phys_writeb(0x501,
-<a name="l00617"></a>00617             (phys_readb(0x501) &amp; 0x7F) |
-<a name="l00618"></a>00618                         ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      <span class="comment">/* bit 7: 1=8MHz  0=5MHz/10MHz */</span>
-<a name="l00619"></a>00619                 );
-<a name="l00620"></a>00620         }
-<a name="l00621"></a>00621         <span class="keywordflow">else</span> {
-<a name="l00622"></a>00622                 LOG_MSG(<span class="stringliteral">&quot;PC-98 warning: PIT timer change cannot be reflected to BIOS data area in protected/vm86 mode&quot;</span>);
-<a name="l00623"></a>00623         }
-<a name="l00624"></a>00624 }
-<a name="l00625"></a>00625 
-<a name="l00626"></a>00626 <span class="comment">/* NTS: This comes in two phases because we&#39;re taking ports 0x71-0x77 which overlap</span>
-<a name="l00627"></a>00627 <span class="comment"> *      with ports 0x70-0x71 from CMOS emulation.</span>
-<a name="l00628"></a>00628 <span class="comment"> *</span>
-<a name="l00629"></a>00629 <span class="comment"> *      Phase 1 is where we unregister our I/O ports. CMOS emulation will do so as</span>
-<a name="l00630"></a>00630 <span class="comment"> *      well either before or after our callback procedure.</span>
-<a name="l00631"></a>00631 <span class="comment"> *</span>
-<a name="l00632"></a>00632 <span class="comment"> *      Phase 2 is where we can then claim the I/O ports without our claim getting</span>
-<a name="l00633"></a>00633 <span class="comment"> *      overwritten by CMOS emulation unregistering the I/O port. */</span>
-<a name="l00634"></a>00634 
-<a name="l00635"></a>00635 <span class="keywordtype">void</span> TIMER_OnEnterPC98_Phase2(<a class="code" href="classSection.html">Section</a>*) {
-<a name="l00636"></a>00636         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l00637"></a>00637         assert(section != NULL);
-<a name="l00638"></a>00638     <span class="keywordtype">int</span> pc98rate;
-<a name="l00639"></a>00639 
-<a name="l00640"></a>00640         PIC_RemoveEvents(PIT0_Event);
-<a name="l00641"></a>00641 
-<a name="l00642"></a>00642         WriteHandler[0].Uninstall();
-<a name="l00643"></a>00643         WriteHandler[1].Uninstall();
-<a name="l00644"></a>00644         WriteHandler[2].Uninstall();
-<a name="l00645"></a>00645         WriteHandler[3].Uninstall();
-<a name="l00646"></a>00646         ReadHandler[0].Uninstall();
-<a name="l00647"></a>00647         ReadHandler[1].Uninstall();
-<a name="l00648"></a>00648         ReadHandler[2].Uninstall();
-<a name="l00649"></a>00649         ReadHandler[3].Uninstall();
-<a name="l00650"></a>00650 
-<a name="l00651"></a>00651         WriteHandler2[0].Uninstall();
-<a name="l00652"></a>00652         WriteHandler2[1].Uninstall();
-<a name="l00653"></a>00653         WriteHandler2[2].Uninstall();
-<a name="l00654"></a>00654         WriteHandler2[3].Uninstall();
-<a name="l00655"></a>00655         ReadHandler2[0].Uninstall();
-<a name="l00656"></a>00656         ReadHandler2[1].Uninstall();
-<a name="l00657"></a>00657         ReadHandler2[2].Uninstall();
-<a name="l00658"></a>00658         ReadHandler2[3].Uninstall();
-<a name="l00659"></a>00659 
-<a name="l00660"></a>00660     <span class="comment">/* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */</span>
-<a name="l00661"></a>00661     pc98rate = section-&gt;Get_int(<span class="stringliteral">&quot;pc-98 timer master frequency&quot;</span>);
-<a name="l00662"></a>00662         <span class="keywordflow">if</span> (pc98rate &gt; 6) pc98rate /= 2;
-<a name="l00663"></a>00663     <span class="keywordflow">if</span> (pc98rate == 0) pc98rate = 5; <span class="comment">/* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */</span>
-<a name="l00664"></a>00664     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (pc98rate &lt; 5) pc98rate = 4;
-<a name="l00665"></a>00665     <span class="keywordflow">else</span> pc98rate = 5;
-<a name="l00666"></a>00666 
-<a name="l00667"></a>00667     <span class="keywordflow">if</span> (pc98rate &gt;= 5)
-<a name="l00668"></a>00668         PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
-<a name="l00669"></a>00669     <span class="keywordflow">else</span>
-<a name="l00670"></a>00670         PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
-<a name="l00671"></a>00671 
-<a name="l00672"></a>00672     LOG_MSG(<span class="stringliteral">&quot;PC-98 PIT master clock rate %luHz&quot;</span>,PIT_TICK_RATE);
-<a name="l00673"></a>00673 
-<a name="l00674"></a>00674     <span class="comment">/* I/O port map (8254)</span>
-<a name="l00675"></a>00675 <span class="comment">     *</span>
-<a name="l00676"></a>00676 <span class="comment">     * IBM PC/XT/AT      NEC-PC98     A1-A0</span>
-<a name="l00677"></a>00677 <span class="comment">     * -----------------------------------</span>
-<a name="l00678"></a>00678 <span class="comment">     *  0x40              0x71        0</span>
-<a name="l00679"></a>00679 <span class="comment">     *  0x41              0x73        1</span>
-<a name="l00680"></a>00680 <span class="comment">     *  0x42              0x75        2</span>
-<a name="l00681"></a>00681 <span class="comment">     *  0x43              0x77        3</span>
-<a name="l00682"></a>00682 <span class="comment">     */</span>
-<a name="l00683"></a>00683     <span class="comment">/* Timer output connection</span>
-<a name="l00684"></a>00684 <span class="comment">     * </span>
-<a name="l00685"></a>00685 <span class="comment">     * IBM PC/XT/AT      NEC-PC98     Timer</span>
-<a name="l00686"></a>00686 <span class="comment">     * ------------------------------------</span>
-<a name="l00687"></a>00687 <span class="comment">     * Timer int.        Timer int.   0</span>
-<a name="l00688"></a>00688 <span class="comment">     * DRAM refresh      Speaker      1</span>
-<a name="l00689"></a>00689 <span class="comment">     * Speaker           RS-232C clk  2</span>
-<a name="l00690"></a>00690 <span class="comment">     *</span>
-<a name="l00691"></a>00691 <span class="comment">     * If I read documentation correctly, PC-98 wires timer output 2</span>
-<a name="l00692"></a>00692 <span class="comment">     * to the clock pin of the 8251 UART for COM1 as a way to set the</span>
-<a name="l00693"></a>00693 <span class="comment">     * baud rate. */</span>
-<a name="l00694"></a>00694 
-<a name="l00695"></a>00695     <span class="comment">/* This code is written to eventually copy-paste out in general */</span>
-<a name="l00696"></a>00696         WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
-<a name="l00697"></a>00697         WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
-<a name="l00698"></a>00698         WriteHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,write_latch,IO_MB);
-<a name="l00699"></a>00699         WriteHandler[3].Install(IS_PC98_ARCH ? 0x77 : 0x43,write_p43,IO_MB);
-<a name="l00700"></a>00700         ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
-<a name="l00701"></a>00701         ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
-<a name="l00702"></a>00702         ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
-<a name="l00703"></a>00703 
-<a name="l00704"></a>00704     <span class="comment">/* Apparently all but the first PC-9801 systems have an alias of these</span>
-<a name="l00705"></a>00705 <span class="comment">     * ports at 0x3FD9-0x3FDF odd. This alias is required for games that</span>
-<a name="l00706"></a>00706 <span class="comment">     * rely on this alias. */</span>
-<a name="l00707"></a>00707     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00708"></a>00708         WriteHandler2[0].Install(0x3FD9,write_latch,IO_MB);
-<a name="l00709"></a>00709         WriteHandler2[1].Install(0x3FDB,write_latch,IO_MB);
-<a name="l00710"></a>00710         WriteHandler2[2].Install(0x3FDD,write_latch,IO_MB);
-<a name="l00711"></a>00711         WriteHandler2[3].Install(0x3FDF,write_p43,IO_MB);
-<a name="l00712"></a>00712         ReadHandler2[0].Install(0x3FD9,read_latch,IO_MB);
-<a name="l00713"></a>00713         ReadHandler2[1].Install(0x3FDB,read_latch,IO_MB);
-<a name="l00714"></a>00714         ReadHandler2[2].Install(0x3FDD,read_latch,IO_MB);
-<a name="l00715"></a>00715     }
-<a name="l00716"></a>00716 
-<a name="l00717"></a>00717         latched_timerstatus_locked=<span class="keyword">false</span>;
-<a name="l00718"></a>00718         gate2 = <span class="keyword">false</span>;
-<a name="l00719"></a>00719 
-<a name="l00720"></a>00720     TIMER_BIOS_INIT_Configure();
-<a name="l00721"></a>00721 }
-<a name="l00722"></a>00722 
-<a name="l00723"></a>00723 <span class="keywordtype">void</span> TIMER_Destroy(<a class="code" href="classSection.html">Section</a>*) {
-<a name="l00724"></a>00724         PIC_RemoveEvents(PIT0_Event);
-<a name="l00725"></a>00725 }
-<a name="l00726"></a>00726 
-<a name="l00727"></a>00727 <span class="keywordtype">void</span> TIMER_Init() {
-<a name="l00728"></a>00728         Bitu i;
-<a name="l00729"></a>00729 
-<a name="l00730"></a>00730         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER_Init()&quot;</span>);
+<a name="l00475"></a>00475         p-&gt;reset_count_at(PIC_FullIndex());
+<a name="l00476"></a>00476         p-&gt;latch_next_counter();
+<a name="l00477"></a>00477 
+<a name="l00478"></a>00478                 <span class="keywordflow">switch</span> (counter) {
+<a name="l00479"></a>00479                 <span class="keywordflow">case</span> 0x00:                      <span class="comment">/* Timer hooked to IRQ 0 */</span>
+<a name="l00480"></a>00480             PIC_RemoveEvents(PIT0_Event);
+<a name="l00481"></a>00481             PIC_AddEvent(PIT0_Event,p-&gt;delay);
+<a name="l00482"></a>00482 
+<a name="l00483"></a>00483 <span class="preprocessor">#if 0//change to #if 1 if you want to debug Mode 0 one-shot events</span>
+<a name="l00484"></a>00484 <span class="preprocessor"></span>            <span class="keywordflow">if</span> (p-&gt;mode == 0)
+<a name="l00485"></a>00485                 <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_NORMAL)(<span class="stringliteral">&quot;PIT 0 Timer one-shot event %.3fms&quot;</span>,p-&gt;delay);
+<a name="l00486"></a>00486 <span class="preprocessor">#endif</span>
+<a name="l00487"></a>00487 <span class="preprocessor"></span>
+<a name="l00488"></a>00488             <span class="comment">//please do not spam the log and console if a game is writing the SAME counter value constantly,</span>
+<a name="l00489"></a>00489             <span class="comment">//and do not spam the console if Mode 0 is used because events are not consistent.</span>
+<a name="l00490"></a>00490             <span class="keywordflow">if</span> (p-&gt;cntr != old_cntr &amp;&amp; p-&gt;mode != 0)
+<a name="l00491"></a>00491                 <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_NORMAL)(<span class="stringliteral">&quot;PIT 0 Timer at %.4f Hz mode %d&quot;</span>,1000.0/p-&gt;delay,p-&gt;mode);
+<a name="l00492"></a>00492 
+<a name="l00493"></a>00493             <span class="keywordflow">break</span>;
+<a name="l00494"></a>00494         <span class="keywordflow">case</span> 0x01:          <span class="comment">/* Timer hooked to PC-Speaker (NEC-PC98) */</span>
+<a name="l00495"></a>00495             <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00496"></a>00496                 PCSPEAKER_SetCounter(p-&gt;cntr,p-&gt;mode);
+<a name="l00497"></a>00497             <span class="keywordflow">break</span>;
+<a name="l00498"></a>00498         <span class="keywordflow">case</span> 0x02:                      <span class="comment">/* Timer hooked to PC-Speaker (IBM PC) */</span>
+<a name="l00499"></a>00499             <span class="keywordflow">if</span> (!IS_PC98_ARCH)
+<a name="l00500"></a>00500                 PCSPEAKER_SetCounter(p-&gt;cntr,p-&gt;mode);
+<a name="l00501"></a>00501             <span class="keywordflow">break</span>;
+<a name="l00502"></a>00502         <span class="keywordflow">default</span>:
+<a name="l00503"></a>00503                         <a class="code" href="classLOG.html">LOG</a>(LOG_PIT,LOG_ERROR)(<span class="stringliteral">&quot;PIT:Illegal timer selected for writing&quot;</span>);
+<a name="l00504"></a>00504                 }
+<a name="l00505"></a>00505                 p-&gt;new_mode=<span class="keyword">false</span>;
+<a name="l00506"></a>00506     }
+<a name="l00507"></a>00507     <span class="keywordflow">else</span> { <span class="comment">/* write state == 0 */</span>
+<a name="l00508"></a>00508         <span class="comment">/* If a new count is written to the Counter, it will be</span>
+<a name="l00509"></a>00509 <span class="comment">         * loaded on the next CLK pulse and counting will con-</span>
+<a name="l00510"></a>00510 <span class="comment">         * tinue from the new count. If a two-byte count is writ-</span>
+<a name="l00511"></a>00511 <span class="comment">         * ten, the following happens:</span>
+<a name="l00512"></a>00512 <span class="comment">         * 1) Writing the first byte disables counting. OUT is set</span>
+<a name="l00513"></a>00513 <span class="comment">         * low immediately (no clock pulse required)</span>
+<a name="l00514"></a>00514 <span class="comment">         * 2) Writing the second byte allows the new count to</span>
+<a name="l00515"></a>00515 <span class="comment">         * be loaded on the next CLK pulse. */</span>
+<a name="l00516"></a>00516         <span class="keywordflow">if</span> (p-&gt;mode == 0) {
+<a name="l00517"></a>00517             <span class="keywordflow">if</span> (counter == 0) {
+<a name="l00518"></a>00518                 PIC_RemoveEvents(PIT0_Event);
+<a name="l00519"></a>00519                 PIC_DeActivateIRQ(0);
+<a name="l00520"></a>00520             }
+<a name="l00521"></a>00521             p-&gt;update_count = <span class="keyword">false</span>;
+<a name="l00522"></a>00522         }
+<a name="l00523"></a>00523     }
+<a name="l00524"></a>00524 }
+<a name="l00525"></a>00525 
+<a name="l00526"></a>00526 <span class="keyword">static</span> Bitu read_latch(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00527"></a>00527 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port read %X&quot;,port);</span>
+<a name="l00528"></a>00528 
+<a name="l00529"></a>00529     <span class="comment">// HACK: Port translation for this code PC-98 mode.</span>
+<a name="l00530"></a>00530     <span class="comment">//       0x71,0x73,0x75,0x77 =&gt; 0x40-0x43</span>
+<a name="l00531"></a>00531     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00532"></a>00532         <span class="keywordflow">if</span> (port &gt;= 0x3FD9)
+<a name="l00533"></a>00533             port = ((port - 0x3FD9) &gt;&gt; 1) + 0x40;
+<a name="l00534"></a>00534         <span class="keywordflow">else</span>
+<a name="l00535"></a>00535             port = ((port - 0x71) &gt;&gt; 1) + 0x40;
+<a name="l00536"></a>00536     }
+<a name="l00537"></a>00537 
+<a name="l00538"></a>00538         Bit32u counter=(Bit32u)(port-0x40);
+<a name="l00539"></a>00539         Bit8u ret=0;
+<a name="l00540"></a>00540         <span class="keywordflow">if</span>(GCC_UNLIKELY(pit[counter].counterstatus_set)){
+<a name="l00541"></a>00541                 pit[counter].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00542"></a>00542                 latched_timerstatus_locked = <span class="keyword">false</span>;
+<a name="l00543"></a>00543                 ret = latched_timerstatus;
+<a name="l00544"></a>00544         } <span class="keywordflow">else</span> {
+<a name="l00545"></a>00545                 <span class="keywordflow">if</span> (pit[counter].go_read_latch == <span class="keyword">true</span>) 
+<a name="l00546"></a>00546                         counter_latch(counter);
+<a name="l00547"></a>00547 
+<a name="l00548"></a>00548                 <span class="keywordflow">if</span>( pit[counter].bcd == <span class="keyword">true</span>) BIN2BCD(pit[counter].read_latch);
+<a name="l00549"></a>00549 
+<a name="l00550"></a>00550                 <span class="keywordflow">switch</span> (pit[counter].read_state) {
+<a name="l00551"></a>00551                 <span class="keywordflow">case</span> 0: <span class="comment">/* read MSB &amp; return to state 3 */</span>
+<a name="l00552"></a>00552                         ret=(pit[counter].read_latch &gt;&gt; 8) &amp; 0xff;
+<a name="l00553"></a>00553                         pit[counter].read_state = 3;
+<a name="l00554"></a>00554                         pit[counter].go_read_latch = <span class="keyword">true</span>;
+<a name="l00555"></a>00555                         <span class="keywordflow">break</span>;
+<a name="l00556"></a>00556                 <span class="keywordflow">case</span> 3: <span class="comment">/* read LSB followed by MSB */</span>
+<a name="l00557"></a>00557                         ret = pit[counter].read_latch &amp; 0xff;
+<a name="l00558"></a>00558                         pit[counter].read_state = 0;
+<a name="l00559"></a>00559                         <span class="keywordflow">break</span>;
+<a name="l00560"></a>00560                 <span class="keywordflow">case</span> 1: <span class="comment">/* read LSB */</span>
+<a name="l00561"></a>00561                         ret = pit[counter].read_latch &amp; 0xff;
+<a name="l00562"></a>00562                         pit[counter].go_read_latch = <span class="keyword">true</span>;
+<a name="l00563"></a>00563                         <span class="keywordflow">break</span>;
+<a name="l00564"></a>00564                 <span class="keywordflow">case</span> 2: <span class="comment">/* read MSB */</span>
+<a name="l00565"></a>00565                         ret = (pit[counter].read_latch &gt;&gt; 8) &amp; 0xff;
+<a name="l00566"></a>00566                         pit[counter].go_read_latch = <span class="keyword">true</span>;
+<a name="l00567"></a>00567                         <span class="keywordflow">break</span>;
+<a name="l00568"></a>00568                 <span class="keywordflow">default</span>:
+<a name="l00569"></a>00569                         E_Exit(<span class="stringliteral">&quot;Timer.cpp: error in readlatch&quot;</span>);
+<a name="l00570"></a>00570                         <span class="keywordflow">break</span>;
+<a name="l00571"></a>00571                 }
+<a name="l00572"></a>00572                 <span class="keywordflow">if</span>( pit[counter].bcd == <span class="keyword">true</span>) BCD2BIN(pit[counter].read_latch);
+<a name="l00573"></a>00573         }
+<a name="l00574"></a>00574         <span class="keywordflow">return</span> ret;
+<a name="l00575"></a>00575 }
+<a name="l00576"></a>00576 
+<a name="l00577"></a>00577 <span class="keyword">static</span> <span class="keywordtype">void</span> write_p43(Bitu <span class="comment">/*port*/</span>,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00578"></a>00578 <span class="comment">//LOG(LOG_PIT,LOG_ERROR)(&quot;port 43 %X&quot;,val);</span>
+<a name="l00579"></a>00579         Bitu latch=(val &gt;&gt; 6) &amp; 0x03;
+<a name="l00580"></a>00580         <span class="keywordflow">switch</span> (latch) {
+<a name="l00581"></a>00581         <span class="keywordflow">case</span> 0:
+<a name="l00582"></a>00582         <span class="keywordflow">case</span> 1:
+<a name="l00583"></a>00583         <span class="keywordflow">case</span> 2:
+<a name="l00584"></a>00584                 <span class="keywordflow">if</span> ((val &amp; 0x30) == 0) {
+<a name="l00585"></a>00585                         <span class="comment">/* Counter latch command */</span>
+<a name="l00586"></a>00586                         counter_latch(latch);
+<a name="l00587"></a>00587                 } <span class="keywordflow">else</span> {
+<a name="l00588"></a>00588                         <span class="comment">// save output status to be used with timer 0 irq</span>
+<a name="l00589"></a>00589                         <span class="keywordtype">bool</span> old_output = counter_output(0);
+<a name="l00590"></a>00590                         <span class="comment">// save the current count value to be re-used in undocumented newmode</span>
+<a name="l00591"></a>00591                         counter_latch(latch);
+<a name="l00592"></a>00592                         pit[latch].bcd = (val&amp;1)&gt;0;   
+<a name="l00593"></a>00593                         <span class="keywordflow">if</span> (val &amp; 1) {
+<a name="l00594"></a>00594                                 <span class="keywordflow">if</span>(pit[latch].cntr&gt;=9999) pit[latch].cntr=9999;
+<a name="l00595"></a>00595                         }
+<a name="l00596"></a>00596 
+<a name="l00597"></a>00597                         <span class="comment">// Timer is being reprogrammed, unlock the status</span>
+<a name="l00598"></a>00598                         <span class="keywordflow">if</span>(pit[latch].counterstatus_set) {
+<a name="l00599"></a>00599                                 pit[latch].counterstatus_set=<span class="keyword">false</span>;
+<a name="l00600"></a>00600                                 latched_timerstatus_locked=<span class="keyword">false</span>;
+<a name="l00601"></a>00601                         }
+<a name="l00602"></a>00602 <span class="comment">//                      pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode</span>
+<a name="l00603"></a>00603                         pit[latch].go_read_latch = <span class="keyword">true</span>;
+<a name="l00604"></a>00604                         pit[latch].update_count = <span class="keyword">false</span>;
+<a name="l00605"></a>00605                         pit[latch].counting = <span class="keyword">false</span>;
+<a name="l00606"></a>00606                         pit[latch].read_state  = (val &gt;&gt; 4) &amp; 0x03;
+<a name="l00607"></a>00607                         pit[latch].write_state = (val &gt;&gt; 4) &amp; 0x03;
+<a name="l00608"></a>00608                         Bit8u mode             = (val &gt;&gt; 1) &amp; 0x07;
+<a name="l00609"></a>00609                         <span class="keywordflow">if</span> (mode &gt; 5)
+<a name="l00610"></a>00610                                 mode -= 4; <span class="comment">//6,7 become 2 and 3</span>
+<a name="l00611"></a>00611 
+<a name="l00612"></a>00612                         pit[latch].mode = mode;
+<a name="l00613"></a>00613 
+<a name="l00614"></a>00614                         <span class="comment">/* If the line goes from low to up =&gt; generate irq. </span>
+<a name="l00615"></a>00615 <span class="comment">                         *      ( BUT needs to stay up until acknowlegded by the cpu!!! therefore: )</span>
+<a name="l00616"></a>00616 <span class="comment">                         * If the line goes to low =&gt; disable irq.</span>
+<a name="l00617"></a>00617 <span class="comment">                         * Mode 0 starts with a low line. (so always disable irq)</span>
+<a name="l00618"></a>00618 <span class="comment">                         * Mode 2,3 start with a high line.</span>
+<a name="l00619"></a>00619 <span class="comment">                         * counter_output tells if the current counter is high or low </span>
+<a name="l00620"></a>00620 <span class="comment">                         * So actually a mode 3 timer enables and disables irq al the time. (not handled) */</span>
+<a name="l00621"></a>00621 
+<a name="l00622"></a>00622             <span class="comment">/* Jon C: Oh yeah? Nobody abuses counter == 0 on IBM PC that way, but there is a PC-98</span>
+<a name="l00623"></a>00623 <span class="comment">             *        game that relies on that behavior: Steel Gun Nyan! */</span>
+<a name="l00624"></a>00624 
+<a name="l00625"></a>00625                         <span class="keywordflow">if</span> (latch == 0) {
+<a name="l00626"></a>00626                                 PIC_RemoveEvents(PIT0_Event);
+<a name="l00627"></a>00627                                 <span class="keywordflow">if</span>((mode != 0)&amp;&amp; !old_output) {
+<a name="l00628"></a>00628                                         PIC_ActivateIRQ(0);
+<a name="l00629"></a>00629                                 } <span class="keywordflow">else</span> {
+<a name="l00630"></a>00630                                         PIC_DeActivateIRQ(0);
+<a name="l00631"></a>00631                                 }
+<a name="l00632"></a>00632                         }
+<a name="l00633"></a>00633                         pit[latch].new_mode = <span class="keyword">true</span>;
+<a name="l00634"></a>00634                         <span class="keywordflow">if</span> (latch == (IS_PC98_ARCH ? 1 : 2)) {
+<a name="l00635"></a>00635                                 <span class="comment">// notify pc speaker code that the control word was written</span>
+<a name="l00636"></a>00636                                 PCSPEAKER_SetPITControl(mode);
+<a name="l00637"></a>00637                         }
+<a name="l00638"></a>00638                 }
+<a name="l00639"></a>00639                 <span class="keywordflow">break</span>;
+<a name="l00640"></a>00640     <span class="keywordflow">case</span> 3:
+<a name="l00641"></a>00641                 <span class="keywordflow">if</span> ((val &amp; 0x20)==0) {  <span class="comment">/* Latch multiple pit counters */</span>
+<a name="l00642"></a>00642                         <span class="keywordflow">if</span> (val &amp; 0x02) counter_latch(0);
+<a name="l00643"></a>00643                         <span class="keywordflow">if</span> (val &amp; 0x04) counter_latch(1);
+<a name="l00644"></a>00644                         <span class="keywordflow">if</span> (val &amp; 0x08) counter_latch(2);
+<a name="l00645"></a>00645                 }
+<a name="l00646"></a>00646                 <span class="comment">// status and values can be latched simultaneously</span>
+<a name="l00647"></a>00647                 <span class="keywordflow">if</span> ((val &amp; 0x10)==0) {  <span class="comment">/* Latch status words */</span>
+<a name="l00648"></a>00648                         <span class="comment">// but only 1 status can be latched simultaneously</span>
+<a name="l00649"></a>00649                         <span class="keywordflow">if</span> (val &amp; 0x02) status_latch(0);
+<a name="l00650"></a>00650                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val &amp; 0x04) status_latch(1);
+<a name="l00651"></a>00651                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val &amp; 0x08) status_latch(2);
+<a name="l00652"></a>00652                 }
+<a name="l00653"></a>00653                 <span class="keywordflow">break</span>;
+<a name="l00654"></a>00654         }
+<a name="l00655"></a>00655 }
+<a name="l00656"></a>00656 
+<a name="l00657"></a>00657 <span class="comment">// FIXME: I am assuming that the &quot;buzzer inhibit&quot; on PC-98 controls the &quot;trigger&quot; pin</span>
+<a name="l00658"></a>00658 <span class="comment">//        that either enables the PIT to count or stops it and resets the counter.</span>
+<a name="l00659"></a>00659 <span class="comment">//        Verify this on real hardware (DOSLIB TPCRAPI6.EXE)</span>
+<a name="l00660"></a>00660 <span class="comment">//</span>
+<a name="l00661"></a>00661 <span class="comment">//        This is the picture I have of the hardware:</span>
+<a name="l00662"></a>00662 <span class="comment">//</span>
+<a name="l00663"></a>00663 <span class="comment">//        IBM PC:</span>
+<a name="l00664"></a>00664 <span class="comment">//</span>
+<a name="l00665"></a>00665 <span class="comment">//        Port 61h</span>
+<a name="l00666"></a>00666 <span class="comment">//        - bit 0 PIT 2 counter gate (write)</span>
+<a name="l00667"></a>00667 <span class="comment">//        - bit 1 PIT 2 counter output gate (write)</span>
+<a name="l00668"></a>00668 <span class="comment">//        - bit 5 PIT 2 counter output (read). The connection point lies BEFORE the AND gate.</span>
+<a name="l00669"></a>00669 <span class="comment">//            You will see the output toggle even if the speaker was muted by clearing the output gate bit.</span>
+<a name="l00670"></a>00670 <span class="comment">//</span>
+<a name="l00671"></a>00671 <span class="comment">//        PC-98:</span>
+<a name="l00672"></a>00672 <span class="comment">//</span>
+<a name="l00673"></a>00673 <span class="comment">//        Port 35h (Intel 8255 PPI Port C)</span>
+<a name="l00674"></a>00674 <span class="comment">//        - bit 3 PIT 1 counter gate (there is no output gate). Setting the bit inhibits the counter (and therefore PC speaker)</span>
+<a name="l00675"></a>00675 <span class="comment">//</span>
+<a name="l00676"></a>00676 <span class="comment">//        IBM PC:</span>
+<a name="l00677"></a>00677 <span class="comment">//</span>
+<a name="l00678"></a>00678 <span class="comment">//        counter output readback &lt;- --------+</span>
+<a name="l00679"></a>00679 <span class="comment">//                                           |</span>
+<a name="l00680"></a>00680 <span class="comment">//                        +------+           |        +----------+</span>
+<a name="l00681"></a>00681 <span class="comment">//        counter gate -&gt; | 8254 | -&gt; PIT 2 output -&gt; | AND GATE | -&gt; PC speaker</span>
+<a name="l00682"></a>00682 <span class="comment">//                        +------+                    +----------+</span>
+<a name="l00683"></a>00683 <span class="comment">//                                                         |</span>
+<a name="l00684"></a>00684 <span class="comment">//        counter output gate -&gt; --------------------------+</span>
+<a name="l00685"></a>00685 <span class="comment">//</span>
+<a name="l00686"></a>00686 <span class="comment">//        PC-98:</span>
+<a name="l00687"></a>00687 <span class="comment">//</span>
+<a name="l00688"></a>00688 <span class="comment">//                        +------+</span>
+<a name="l00689"></a>00689 <span class="comment">//        counter gate -&gt; | 8254 | -&gt; PC speaker</span>
+<a name="l00690"></a>00690 <span class="comment">//                        +------+</span>
+<a name="l00691"></a>00691 <span class="keywordtype">void</span> TIMER_SetGate2(<span class="keywordtype">bool</span> in) {
+<a name="l00692"></a>00692     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> speaker_pit = IS_PC98_ARCH ? 1 : 2;
+<a name="l00693"></a>00693     pit[speaker_pit].track_time(PIC_FullIndex());
+<a name="l00694"></a>00694     pit[speaker_pit].set_gate(in);
+<a name="l00695"></a>00695 }
+<a name="l00696"></a>00696 
+<a name="l00697"></a>00697 <span class="keywordtype">bool</span> TIMER_GetOutput2() {
+<a name="l00698"></a>00698     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> speaker_pit = IS_PC98_ARCH ? 1 : 2;<span class="comment">//NTS: For completion sake, even though there is no readback bit on PC-98</span>
+<a name="l00699"></a>00699 
+<a name="l00700"></a>00700         <span class="keywordflow">return</span> counter_output(speaker_pit);
+<a name="l00701"></a>00701 }
+<a name="l00702"></a>00702 
+<a name="l00703"></a>00703 <span class="preprocessor">#include &quot;programs.h&quot;</span>
+<a name="l00704"></a>00704 
+<a name="l00705"></a>00705 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
+<a name="l00706"></a>00706 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
+<a name="l00707"></a>00707 
+<a name="l00708"></a>00708 <span class="comment">/* PC-98 alias */</span>
+<a name="l00709"></a>00709 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler2[4];
+<a name="l00710"></a>00710 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler2[4];
+<a name="l00711"></a>00711 
+<a name="l00712"></a>00712 <span class="keywordtype">void</span> TIMER_BIOS_INIT_Configure() {
+<a name="l00713"></a>00713         PIC_RemoveEvents(PIT0_Event);
+<a name="l00714"></a>00714         PIC_DeActivateIRQ(0);
+<a name="l00715"></a>00715 
+<a name="l00716"></a>00716         <span class="comment">/* Setup Timer 0 */</span>
+<a name="l00717"></a>00717     pit[0].output = <span class="keyword">true</span>;
+<a name="l00718"></a>00718     pit[0].gate = <span class="keyword">true</span>;
+<a name="l00719"></a>00719         pit[0].cntr = 0x10000;
+<a name="l00720"></a>00720         pit[0].write_state = 3;
+<a name="l00721"></a>00721         pit[0].read_state = 3;
+<a name="l00722"></a>00722         pit[0].read_latch = 0;
+<a name="l00723"></a>00723         pit[0].write_latch = 0;
+<a name="l00724"></a>00724         pit[0].mode = 3;
+<a name="l00725"></a>00725         pit[0].bcd = <span class="keyword">false</span>;
+<a name="l00726"></a>00726         pit[0].go_read_latch = <span class="keyword">true</span>;
+<a name="l00727"></a>00727         pit[0].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00728"></a>00728         pit[0].update_count = <span class="keyword">false</span>;
+<a name="l00729"></a>00729         pit[0].reset_count_at(PIC_FullIndex());
+<a name="l00730"></a>00730     pit[0].track_time(PIC_FullIndex());
 <a name="l00731"></a>00731 
-<a name="l00732"></a>00732     PIT_TICK_RATE = PIT_TICK_RATE_IBM;
-<a name="l00733"></a>00733 
-<a name="l00734"></a>00734         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
-<a name="l00735"></a>00735                 pit[i].cntr = 0x10000;
-<a name="l00736"></a>00736                 pit[i].write_state = 0;
-<a name="l00737"></a>00737                 pit[i].read_state = 0;
-<a name="l00738"></a>00738                 pit[i].read_latch = 0;
-<a name="l00739"></a>00739                 pit[i].write_latch = 0;
-<a name="l00740"></a>00740                 pit[i].mode = 0;
-<a name="l00741"></a>00741                 pit[i].bcd = <span class="keyword">false</span>;
-<a name="l00742"></a>00742                 pit[i].go_read_latch = <span class="keyword">false</span>;
-<a name="l00743"></a>00743                 pit[i].counterstatus_set = <span class="keyword">false</span>;
-<a name="l00744"></a>00744                 pit[i].update_count = <span class="keyword">false</span>;
-<a name="l00745"></a>00745                 pit[i].delay = (1000.0f/((float)PIT_TICK_RATE/(<span class="keywordtype">float</span>)pit[i].cntr));
-<a name="l00746"></a>00746         }
-<a name="l00747"></a>00747 
-<a name="l00748"></a>00748         AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
-<a name="l00749"></a>00749         AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
-<a name="l00750"></a>00750 
-<a name="l00751"></a>00751     <span class="keywordflow">if</span> (IS_PC98_ARCH) <span class="comment">/* HACK! Clean this up! */</span>
-<a name="l00752"></a>00752         AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
-<a name="l00753"></a>00753 }
-<a name="l00754"></a>00754 
+<a name="l00732"></a>00732     pit[1].output = <span class="keyword">true</span>;
+<a name="l00733"></a>00733     pit[1].gate = <span class="keyword">true</span>;
+<a name="l00734"></a>00734         pit[1].bcd = <span class="keyword">false</span>;
+<a name="l00735"></a>00735         pit[1].write_state = 1;
+<a name="l00736"></a>00736         pit[1].read_state = 1;
+<a name="l00737"></a>00737         pit[1].go_read_latch = <span class="keyword">true</span>;
+<a name="l00738"></a>00738         pit[1].cntr = 18;
+<a name="l00739"></a>00739         pit[1].mode = 2;
+<a name="l00740"></a>00740         pit[1].write_state = 3;
+<a name="l00741"></a>00741         pit[1].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00742"></a>00742         pit[1].reset_count_at(PIC_FullIndex());
+<a name="l00743"></a>00743     pit[1].track_time(PIC_FullIndex());
+<a name="l00744"></a>00744 
+<a name="l00745"></a>00745     pit[2].output = <span class="keyword">true</span>;
+<a name="l00746"></a>00746     pit[2].gate = <span class="keyword">false</span>;
+<a name="l00747"></a>00747         pit[2].bcd = <span class="keyword">false</span>;
+<a name="l00748"></a>00748         pit[2].write_state = 1;
+<a name="l00749"></a>00749         pit[2].read_state = 1;
+<a name="l00750"></a>00750         pit[2].go_read_latch = <span class="keyword">true</span>;
+<a name="l00751"></a>00751         pit[2].cntr = 18;
+<a name="l00752"></a>00752         pit[2].mode = 2;
+<a name="l00753"></a>00753         pit[2].write_state = 3;
+<a name="l00754"></a>00754         pit[2].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00755"></a>00755         pit[2].reset_count_at(PIC_FullIndex());
+<a name="l00756"></a>00756     pit[2].track_time(PIC_FullIndex());
+<a name="l00757"></a>00757 
+<a name="l00758"></a>00758     <span class="comment">/* TODO: I have observed that on real PC-98 hardware:</span>
+<a name="l00759"></a>00759 <span class="comment">     * </span>
+<a name="l00760"></a>00760 <span class="comment">     *   Output 1 (speaker) does not cycle if inhibited by port 35h</span>
+<a name="l00761"></a>00761 <span class="comment">     *</span>
+<a name="l00762"></a>00762 <span class="comment">     *   Output 2 (RS232C) does not cycle until programmed to cycle</span>
+<a name="l00763"></a>00763 <span class="comment">     *   to operate the 8251 for data transfer. It is configured by</span>
+<a name="l00764"></a>00764 <span class="comment">     *   the BIOS to countdown and stop, thus the UART is not cycling</span>
+<a name="l00765"></a>00765 <span class="comment">     *   until put into active use. */</span>
+<a name="l00766"></a>00766 
+<a name="l00767"></a>00767     <span class="keywordtype">int</span> pcspeaker_pit = IS_PC98_ARCH ? 1 : 2; <span class="comment">/* IBM: PC speaker on output 2   PC-98: PC speaker on output 1 */</span>
+<a name="l00768"></a>00768 
+<a name="l00769"></a>00769         {
+<a name="l00770"></a>00770                 <a class="code" href="classSection__prop.html">Section_prop</a> *pcsec = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
+<a name="l00771"></a>00771                 <span class="keywordtype">int</span> freq = pcsec-&gt;Get_int(<span class="stringliteral">&quot;initial frequency&quot;</span>); <span class="comment">/* original code: 1320 */</span>
+<a name="l00772"></a>00772                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> div;
+<a name="l00773"></a>00773 
+<a name="l00774"></a>00774         <span class="comment">/* IBM PC defaults to 903Hz.</span>
+<a name="l00775"></a>00775 <span class="comment">         * NEC PC-98 defaults to 2KHz */</span>
+<a name="l00776"></a>00776         <span class="keywordflow">if</span> (freq &lt; 0)
+<a name="l00777"></a>00777             freq = IS_PC98_ARCH ? 2000 : 903;
+<a name="l00778"></a>00778 
+<a name="l00779"></a>00779                 <span class="keywordflow">if</span> (freq &lt; 19) {
+<a name="l00780"></a>00780                         div = 1;
+<a name="l00781"></a>00781                 }
+<a name="l00782"></a>00782                 <span class="keywordflow">else</span> {
+<a name="l00783"></a>00783                         div = (<span class="keywordtype">unsigned</span> int)PIT_TICK_RATE / (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)freq;
+<a name="l00784"></a>00784                         <span class="keywordflow">if</span> (div &gt; 65535) div = 65535;
+<a name="l00785"></a>00785                 }
+<a name="l00786"></a>00786 
+<a name="l00787"></a>00787                 pit[pcspeaker_pit].cntr = div;
+<a name="l00788"></a>00788                 pit[pcspeaker_pit].read_latch = div;
+<a name="l00789"></a>00789                 pit[pcspeaker_pit].write_state = 3; <span class="comment">/* Chuck Yeager */</span>
+<a name="l00790"></a>00790                 pit[pcspeaker_pit].read_state = 3;
+<a name="l00791"></a>00791                 pit[pcspeaker_pit].mode = 3;
+<a name="l00792"></a>00792                 pit[pcspeaker_pit].bcd = <span class="keyword">false</span>;
+<a name="l00793"></a>00793                 pit[pcspeaker_pit].go_read_latch = <span class="keyword">true</span>;
+<a name="l00794"></a>00794                 pit[pcspeaker_pit].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00795"></a>00795                 pit[pcspeaker_pit].counting = <span class="keyword">false</span>;
+<a name="l00796"></a>00796             pit[pcspeaker_pit].reset_count_at(PIC_FullIndex());
+<a name="l00797"></a>00797         }
+<a name="l00798"></a>00798 
+<a name="l00799"></a>00799         pit[0].latch_next_counter();
+<a name="l00800"></a>00800         pit[1].latch_next_counter();
+<a name="l00801"></a>00801         pit[2].latch_next_counter();
+<a name="l00802"></a>00802 
+<a name="l00803"></a>00803         PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
+<a name="l00804"></a>00804         PIC_AddEvent(PIT0_Event,pit[0].delay);
+<a name="l00805"></a>00805 
+<a name="l00806"></a>00806     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00807"></a>00807     <span class="comment">/* BIOS data area at 0x501 tells the DOS application which clock rate to use */</span>
+<a name="l00808"></a>00808         phys_writeb(0x501,
+<a name="l00809"></a>00809             (phys_readb(0x501) &amp; 0x7F) |
+<a name="l00810"></a>00810             ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      <span class="comment">/* bit 7: 1=8MHz  0=5MHz/10MHz */</span>
+<a name="l00811"></a>00811             );
+<a name="l00812"></a>00812 
+<a name="l00813"></a>00813         <span class="comment">/* The timer is always on, there&#39;s no clock gate that I know of.</span>
+<a name="l00814"></a>00814 <span class="comment">         * There&#39;s a bit 6 port 434h that might gate it on some hardware, but that doesn&#39;t seem to be the case on anything I have.</span>
+<a name="l00815"></a>00815 <span class="comment">         *</span>
+<a name="l00816"></a>00816 <span class="comment">         * NTS: If you run 8254.EXE from DOSLIB on PC-98 hardware and notice PIT 2 isn&#39;t cycling, try writing values to 75h</span>
+<a name="l00817"></a>00817 <span class="comment">         *      and see if it begins counting again. A PC-9821Lt2 laptop seems to have a bios that writes a mode byte for</span>
+<a name="l00818"></a>00818 <span class="comment">         *      it to 77h but then never writes to 75h, which leaves the timer idle. */</span>
+<a name="l00819"></a>00819         pit[2].track_time(PIC_FullIndex());
+<a name="l00820"></a>00820         pit[2].set_gate(<span class="keyword">true</span>);
+<a name="l00821"></a>00821     }
+<a name="l00822"></a>00822 }
+<a name="l00823"></a>00823 
+<a name="l00824"></a>00824 <span class="keywordtype">void</span> TIMER_OnPowerOn(<a class="code" href="classSection.html">Section</a>*) {
+<a name="l00825"></a>00825         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l00826"></a>00826         assert(section != NULL);
+<a name="l00827"></a>00827 
+<a name="l00828"></a>00828         <span class="comment">// log</span>
+<a name="l00829"></a>00829         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER_OnPowerOn(): Reinitializing PIT timer emulation&quot;</span>);
+<a name="l00830"></a>00830 
+<a name="l00831"></a>00831         PIC_RemoveEvents(PIT0_Event);
+<a name="l00832"></a>00832 
+<a name="l00833"></a>00833         <span class="comment">/* I/O port map (8254)</span>
+<a name="l00834"></a>00834 <span class="comment">         *</span>
+<a name="l00835"></a>00835 <span class="comment">         * IBM PC/XT/AT      NEC-PC98     A1-A0</span>
+<a name="l00836"></a>00836 <span class="comment">         * -----------------------------------</span>
+<a name="l00837"></a>00837 <span class="comment">         *  0x40              0x71        0</span>
+<a name="l00838"></a>00838 <span class="comment">         *  0x41              0x73        1</span>
+<a name="l00839"></a>00839 <span class="comment">         *  0x42              0x75        2</span>
+<a name="l00840"></a>00840 <span class="comment">         *  0x43              0x77        3</span>
+<a name="l00841"></a>00841 <span class="comment">         */</span>
+<a name="l00842"></a>00842         <span class="comment">/* Timer output connection</span>
+<a name="l00843"></a>00843 <span class="comment">         * </span>
+<a name="l00844"></a>00844 <span class="comment">         * IBM PC/XT/AT      NEC-PC98     Timer</span>
+<a name="l00845"></a>00845 <span class="comment">         * ------------------------------------</span>
+<a name="l00846"></a>00846 <span class="comment">         * Timer int.        Timer int.   0</span>
+<a name="l00847"></a>00847 <span class="comment">         * DRAM refresh      Speaker      1</span>
+<a name="l00848"></a>00848 <span class="comment">         * Speaker           RS-232C clk  2</span>
+<a name="l00849"></a>00849 <span class="comment">         *</span>
+<a name="l00850"></a>00850 <span class="comment">         * If I read documentation correctly, PC-98 wires timer output 2</span>
+<a name="l00851"></a>00851 <span class="comment">         * to the clock pin of the 8251 UART for COM1 as a way to set the</span>
+<a name="l00852"></a>00852 <span class="comment">         * baud rate. */</span>
+<a name="l00853"></a>00853 
+<a name="l00854"></a>00854         WriteHandler[0].Uninstall();
+<a name="l00855"></a>00855         WriteHandler[1].Uninstall();
+<a name="l00856"></a>00856         WriteHandler[2].Uninstall();
+<a name="l00857"></a>00857         WriteHandler[3].Uninstall();
+<a name="l00858"></a>00858         ReadHandler[0].Uninstall();
+<a name="l00859"></a>00859         ReadHandler[1].Uninstall();
+<a name="l00860"></a>00860         ReadHandler[2].Uninstall();
+<a name="l00861"></a>00861         ReadHandler[3].Uninstall();
+<a name="l00862"></a>00862 
+<a name="l00863"></a>00863         WriteHandler2[0].Uninstall();
+<a name="l00864"></a>00864         WriteHandler2[1].Uninstall();
+<a name="l00865"></a>00865         WriteHandler2[2].Uninstall();
+<a name="l00866"></a>00866         WriteHandler2[3].Uninstall();
+<a name="l00867"></a>00867         ReadHandler2[0].Uninstall();
+<a name="l00868"></a>00868         ReadHandler2[1].Uninstall();
+<a name="l00869"></a>00869         ReadHandler2[2].Uninstall();
+<a name="l00870"></a>00870         ReadHandler2[3].Uninstall();
+<a name="l00871"></a>00871 
+<a name="l00872"></a>00872     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00873"></a>00873         <span class="comment">/* This code is written to eventually copy-paste out in general */</span>
+<a name="l00874"></a>00874         WriteHandler[0].Install(0x71,write_latch,IO_MB);
+<a name="l00875"></a>00875         WriteHandler[1].Install(0x73,write_latch,IO_MB);
+<a name="l00876"></a>00876         WriteHandler[2].Install(0x75,write_latch,IO_MB);
+<a name="l00877"></a>00877         WriteHandler[3].Install(0x77,write_p43,IO_MB);
+<a name="l00878"></a>00878         ReadHandler[0].Install(0x71,read_latch,IO_MB);
+<a name="l00879"></a>00879         ReadHandler[1].Install(0x73,read_latch,IO_MB);
+<a name="l00880"></a>00880         ReadHandler[2].Install(0x75,read_latch,IO_MB);
+<a name="l00881"></a>00881 
+<a name="l00882"></a>00882         <span class="comment">/* Apparently all but the first PC-9801 systems have an alias of these</span>
+<a name="l00883"></a>00883 <span class="comment">         * ports at 0x3FD9-0x3FDF odd. This alias is required for games that</span>
+<a name="l00884"></a>00884 <span class="comment">         * rely on this alias. */</span>
+<a name="l00885"></a>00885         WriteHandler2[0].Install(0x3FD9,write_latch,IO_MB);
+<a name="l00886"></a>00886         WriteHandler2[1].Install(0x3FDB,write_latch,IO_MB);
+<a name="l00887"></a>00887         WriteHandler2[2].Install(0x3FDD,write_latch,IO_MB);
+<a name="l00888"></a>00888         WriteHandler2[3].Install(0x3FDF,write_p43,IO_MB);
+<a name="l00889"></a>00889         ReadHandler2[0].Install(0x3FD9,read_latch,IO_MB);
+<a name="l00890"></a>00890         ReadHandler2[1].Install(0x3FDB,read_latch,IO_MB);
+<a name="l00891"></a>00891         ReadHandler2[2].Install(0x3FDD,read_latch,IO_MB);
+<a name="l00892"></a>00892     }
+<a name="l00893"></a>00893     <span class="keywordflow">else</span> {
+<a name="l00894"></a>00894         WriteHandler[0].Install(0x40,write_latch,IO_MB);
+<a name="l00895"></a>00895 <span class="comment">//          WriteHandler[1].Install(0x41,write_latch,IO_MB);</span>
+<a name="l00896"></a>00896         WriteHandler[2].Install(0x42,write_latch,IO_MB);
+<a name="l00897"></a>00897         WriteHandler[3].Install(0x43,write_p43,IO_MB);
+<a name="l00898"></a>00898         ReadHandler[0].Install(0x40,read_latch,IO_MB);
+<a name="l00899"></a>00899         ReadHandler[1].Install(0x41,read_latch,IO_MB);
+<a name="l00900"></a>00900         ReadHandler[2].Install(0x42,read_latch,IO_MB);
+<a name="l00901"></a>00901     }
+<a name="l00902"></a>00902 
+<a name="l00903"></a>00903         latched_timerstatus_locked=<span class="keyword">false</span>;
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00906"></a>00906         <span class="keywordtype">int</span> pc98rate;
+<a name="l00907"></a>00907 
+<a name="l00908"></a>00908         <span class="comment">/* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */</span>
+<a name="l00909"></a>00909         pc98rate = section-&gt;Get_int(<span class="stringliteral">&quot;pc-98 timer master frequency&quot;</span>);
+<a name="l00910"></a>00910         <span class="keywordflow">if</span> (pc98rate &gt; 6) pc98rate /= 2;
+<a name="l00911"></a>00911         <span class="keywordflow">if</span> (pc98rate == 0) pc98rate = 5; <span class="comment">/* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */</span>
+<a name="l00912"></a>00912         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (pc98rate &lt; 5) pc98rate = 4;
+<a name="l00913"></a>00913         <span class="keywordflow">else</span> pc98rate = 5;
+<a name="l00914"></a>00914 
+<a name="l00915"></a>00915         <span class="keywordflow">if</span> (pc98rate &gt;= 5)
+<a name="l00916"></a>00916             PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
+<a name="l00917"></a>00917         <span class="keywordflow">else</span>
+<a name="l00918"></a>00918             PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
+<a name="l00919"></a>00919 
+<a name="l00920"></a>00920         LOG_MSG(<span class="stringliteral">&quot;PC-98 PIT master clock rate %luHz&quot;</span>,PIT_TICK_RATE);
+<a name="l00921"></a>00921 
+<a name="l00922"></a>00922         latched_timerstatus_locked=<span class="keyword">false</span>;
+<a name="l00923"></a>00923     }
+<a name="l00924"></a>00924 }
+<a name="l00925"></a>00925 
+<a name="l00926"></a>00926 <span class="keywordtype">void</span> TIMER_OnEnterPC98_Phase2_UpdateBDA(<span class="keywordtype">void</span>) {
+<a name="l00927"></a>00927         <span class="keywordflow">if</span> (!cpu.pmode) {
+<a name="l00928"></a>00928                 <span class="comment">/* BIOS data area at 0x501 tells the DOS application which clock rate to use */</span>
+<a name="l00929"></a>00929                 phys_writeb(0x501,
+<a name="l00930"></a>00930             (phys_readb(0x501) &amp; 0x7F) |
+<a name="l00931"></a>00931                         ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      <span class="comment">/* bit 7: 1=8MHz  0=5MHz/10MHz */</span>
+<a name="l00932"></a>00932                 );
+<a name="l00933"></a>00933         }
+<a name="l00934"></a>00934         <span class="keywordflow">else</span> {
+<a name="l00935"></a>00935                 LOG_MSG(<span class="stringliteral">&quot;PC-98 warning: PIT timer change cannot be reflected to BIOS data area in protected/vm86 mode&quot;</span>);
+<a name="l00936"></a>00936         }
+<a name="l00937"></a>00937 }
+<a name="l00938"></a>00938 
+<a name="l00939"></a>00939 <span class="keywordtype">void</span> TIMER_Destroy(<a class="code" href="classSection.html">Section</a>*) {
+<a name="l00940"></a>00940         PIC_RemoveEvents(PIT0_Event);
+<a name="l00941"></a>00941 }
+<a name="l00942"></a>00942 
+<a name="l00943"></a>00943 <span class="keywordtype">void</span> TIMER_Init() {
+<a name="l00944"></a>00944         Bitu i;
+<a name="l00945"></a>00945 
+<a name="l00946"></a>00946         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER_Init()&quot;</span>);
+<a name="l00947"></a>00947 
+<a name="l00948"></a>00948     PIT_TICK_RATE = PIT_TICK_RATE_IBM;
+<a name="l00949"></a>00949 
+<a name="l00950"></a>00950         <span class="keywordflow">for</span> (i=0;i &lt; 3;i++) {
+<a name="l00951"></a>00951                 pit[i].cntr = 0x10000;
+<a name="l00952"></a>00952                 pit[i].write_state = 0;
+<a name="l00953"></a>00953                 pit[i].read_state = 0;
+<a name="l00954"></a>00954                 pit[i].read_latch = 0;
+<a name="l00955"></a>00955                 pit[i].write_latch = 0;
+<a name="l00956"></a>00956                 pit[i].mode = 0;
+<a name="l00957"></a>00957                 pit[i].bcd = <span class="keyword">false</span>;
+<a name="l00958"></a>00958                 pit[i].go_read_latch = <span class="keyword">false</span>;
+<a name="l00959"></a>00959                 pit[i].counterstatus_set = <span class="keyword">false</span>;
+<a name="l00960"></a>00960                 pit[i].update_count = <span class="keyword">false</span>;
+<a name="l00961"></a>00961         pit[i].latch_next_counter();
+<a name="l00962"></a>00962         }
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964         AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
+<a name="l00965"></a>00965         AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+<a name="l00966"></a>00966 }
+<a name="l00967"></a>00967 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:21 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

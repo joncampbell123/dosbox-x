@@ -6,6 +6,7 @@ var searchData=
   ['emm_5fhandle',['EMM_Handle',['../structEMM__Handle.html',1,'']]],
   ['emm_5fmapping',['EMM_Mapping',['../structEMM__Mapping.html',1,'']]],
   ['ems',['EMS',['../classEMS.html',1,'']]],
+  ['enable_5ftab_5finput',['enable_tab_input',['../classGUI_1_1Input.html#a379257828d778eed79d3ef4646bac7d3',1,'GUI::Input']]],
   ['entries',['entries',['../structbootSector_1_1entries.html',1,'bootSector']]],
   ['entries',['entries',['../structentries.html',1,'']]],
   ['entry',['entry',['../classCEvent.html#a20cca21cb3c606f3161a2757c1ba466d',1,'CEvent']]],
@@ -18,9 +19,5 @@ var searchData=
   ['execute',['Execute',['../classDOS__Shell.html#afd2875b08f791d9100ef111800855f09',1,'DOS_Shell::Execute()'],['../classGUI_1_1Menu.html#a667536e40b0f50577d6c2ed0c655f24d',1,'GUI::Menu::execute()'],['../classGUI_1_1Checkbox.html#a578d66f5d9006c6bbedbffbfd769caef',1,'GUI::Checkbox::execute()']]],
   ['executeaction',['executeAction',['../classGUI_1_1ActionEventSource.html#a13d6f184c4e7b52ba4081810f95ac92f',1,'GUI::ActionEventSource::executeAction(const String &amp;arg)'],['../classGUI_1_1ActionEventSource.html#af0750d285ae79d15436f6288705e42b4',1,'GUI::ActionEventSource::executeAction()']]],
   ['exit_5fstatus',['exit_status',['../classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12',1,'Program']]],
-  ['expdvar',['ExpdVar',['../structfmath_1_1local_1_1ExpdVar.html',1,'fmath::local']]],
-  ['expdvar_3c_20expd_5fn_20_3e',['ExpdVar< EXPD_N >',['../structfmath_1_1local_1_1ExpdVar.html',1,'fmath::local']]],
-  ['expvar',['ExpVar',['../structfmath_1_1local_1_1ExpVar.html',1,'fmath::local']]],
-  ['expvar_3c_20exp_5fn_20_3e',['ExpVar< EXP_N >',['../structfmath_1_1local_1_1ExpVar.html',1,'fmath::local']]],
   ['externalfilter',['ExternalFilter',['../classExternalFilter.html',1,'']]]
 ];

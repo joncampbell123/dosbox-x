@@ -13,7 +13,7 @@ A popup menu.
 Inheritance diagram for G\-U\-I\-:\-:Menu\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=2.886598cm]{classGUI_1_1Menu}
+\includegraphics[height=3.848797cm]{classGUI_1_1Menu}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -27,12 +27,17 @@ Inheritance diagram for G\-U\-I\-:\-:Menu\-:\begin{figure}[H]
 \hypertarget{classGUI_1_1Menu_a8c82c2e98eeaf6a9c232551504908ee8}{virtual bool \hyperlink{classGUI_1_1Menu_a8c82c2e98eeaf6a9c232551504908ee8}{mouse\-Moved} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1Menu_a8c82c2e98eeaf6a9c232551504908ee8}
 
 \begin{DoxyCompactList}\small\item\em Highlight current item. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Menu_aa41d8cb7c278d18f880a2879f335a07f}{void \hyperlink{classGUI_1_1Menu_aa41d8cb7c278d18f880a2879f335a07f}{mouse\-Moved\-Outside} (void)}\label{classGUI_1_1Menu_aa41d8cb7c278d18f880a2879f335a07f}
+
+\begin{DoxyCompactList}\small\item\em Mouse was moved outside the window (when it was once inside the window) \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Menu_ac625425b56b527467ddbbaa107fa12cb}{virtual bool \hyperlink{classGUI_1_1Menu_ac625425b56b527467ddbbaa107fa12cb}{mouse\-Dragged} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Menu_ac625425b56b527467ddbbaa107fa12cb}
 
 \begin{DoxyCompactList}\small\item\em Highlight current item. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Menu_a8a8b70584666a921cdb7f8b73bc281c4}{virtual bool \hyperlink{classGUI_1_1Menu_a8a8b70584666a921cdb7f8b73bc281c4}{mouse\-Down} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Menu_a8a8b70584666a921cdb7f8b73bc281c4}
 
 \begin{DoxyCompactList}\small\item\em Mouse was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classGUI_1_1Menu_afccc45f348b1ff9cd2668f8e29731589}{mouse\-Down\-Outside} (\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)
+\begin{DoxyCompactList}\small\item\em Transient windows by default should disappear. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Menu_a4bb3124249e2092d1f8ec90ae698a66f}{virtual bool \hyperlink{classGUI_1_1Menu_a4bb3124249e2092d1f8ec90ae698a66f}{mouse\-Up} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Menu_a4bb3124249e2092d1f8ec90ae698a66f}
 
 \begin{DoxyCompactList}\small\item\em Possibly select item. \end{DoxyCompactList}\item 
@@ -86,7 +91,7 @@ Currently, menu entries are not interpreted in any way. This may change in the f
 
 Please note the general remarks in \hyperlink{classGUI_1_1TransientWindow}{G\-U\-I\-::\-Transient\-Window} 
 
-Definition at line 1773 of file gui\-\_\-tk.\-h.
+Definition at line 1887 of file gui\-\_\-tk.\-h.
 
 
 
@@ -107,15 +112,38 @@ Create a menu with given position.
 
 Size is determined dynamically. {\itshape parent\/} is the logical parent. The true parent object is always the screen the logical parent resides on. 
 
-Definition at line 1829 of file gui\-\_\-tk.\-h.
+Definition at line 1947 of file gui\-\_\-tk.\-h.
 
 
 
-References set\-Visible().
+References set\-Visible(), and G\-U\-I\-::\-Window\-::tabbable.
 
 
 
 \subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Menu_afccc45f348b1ff9cd2668f8e29731589}{\index{G\-U\-I\-::\-Menu@{G\-U\-I\-::\-Menu}!mouse\-Down\-Outside@{mouse\-Down\-Outside}}
+\index{mouse\-Down\-Outside@{mouse\-Down\-Outside}!GUI::Menu@{G\-U\-I\-::\-Menu}}
+\subsubsection[{mouse\-Down\-Outside}]{\setlength{\rightskip}{0pt plus 5cm}virtual bool {\bf G\-U\-I\-::\-Menu\-::mouse\-Down\-Outside} (
+\begin{DoxyParamCaption}
+\item[{{\bf Mouse\-Button}}]{button}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1Menu_afccc45f348b1ff9cd2668f8e29731589}
+
+
+Transient windows by default should disappear. 
+
+Mouse was pressed outside the bounds of the window, if this window has focus (for transient windows). Returns true if event was handled. 
+
+Reimplemented from \hyperlink{classGUI_1_1TransientWindow_aa66cecd7ddcd0f8cf7a63cc5cc897acf}{G\-U\-I\-::\-Transient\-Window}.
+
+
+
+Definition at line 2003 of file gui\-\_\-tk.\-h.
+
+
+
+References selected, set\-Visible(), and G\-U\-I\-::\-Window\-::visible.
+
 \hypertarget{classGUI_1_1Menu_a57297fc9ebe558143299d57417c77169}{\index{G\-U\-I\-::\-Menu@{G\-U\-I\-::\-Menu}!select\-Item@{select\-Item}}
 \index{select\-Item@{select\-Item}!GUI::Menu@{G\-U\-I\-::\-Menu}}
 \subsubsection[{select\-Item}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Menu\-::select\-Item} (
@@ -130,11 +158,11 @@ Selects menu item at position (x,y).
 
 {\itshape selected\/} is set to -\/1 if there is no active item at that location. 
 
-Definition at line 1790 of file gui\-\_\-tk.\-h.
+Definition at line 1904 of file gui\-\_\-tk.\-h.
 
 
 
-References G\-U\-I\-::\-Font\-::get\-Font(), G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Window\-::height, items, and selected.
+References G\-U\-I\-::\-Font\-::get\-Font(), G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Window\-::height, items, selected, and G\-U\-I\-::\-Window\-::width.
 
 
 
@@ -157,15 +185,15 @@ Reimplemented from \hyperlink{classGUI_1_1TransientWindow_a5581ee490ae2ce490ca45
 
 
 
-Definition at line 1900 of file gui\-\_\-tk.\-h.
+Definition at line 2071 of file gui\-\_\-tk.\-h.
 
 
 
-References first\-Mouse\-Up, G\-U\-I\-::\-Window\-::mouse\-Child, and G\-U\-I\-::\-Window\-::parent.
+References first\-Mouse\-Up, G\-U\-I\-::\-Window\-::mouse\-Child, G\-U\-I\-::\-Window\-::parent, and G\-U\-I\-::\-Window\-::visible.
 
 
 
-Referenced by execute(), key\-Down(), Menu(), G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Down(), and mouse\-Up().
+Referenced by execute(), key\-Down(), Menu(), G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Down(), mouse\-Down\-Outside(), and mouse\-Up().
 
 
 
@@ -179,11 +207,11 @@ Currently selected menu item.
 
 Can be -\/1 if no item is currently active. 
 
-Definition at line 1780 of file gui\-\_\-tk.\-h.
+Definition at line 1894 of file gui\-\_\-tk.\-h.
 
 
 
-Referenced by execute(), key\-Down(), paint(), and select\-Item().
+Referenced by execute(), key\-Down(), mouse\-Down\-Outside(), mouse\-Moved\-Outside(), paint(), and select\-Item().
 
 
 

@@ -155,18 +155,24 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isRemote</b> 
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isRemovable</b> (void)</td></tr>
 <tr class="memitem:ae4f1277e3b57d312737f2ece5785b2a9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae4f1277e3b57d312737f2ece5785b2a9"></a>
 virtual Bits&#160;</td><td class="memItemRight" valign="bottom"><b>UnMount</b> (void)</td></tr>
+<tr class="memitem:a97bc6dda9d3bec5a85ef2382c0b26654"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97bc6dda9d3bec5a85ef2382c0b26654"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>readSector</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:a5c105a99ce90237b34f5a57a915042d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5c105a99ce90237b34f5a57a915042d7"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>writeSector</b> (Bit32u sectnum, void *data)</td></tr>
 <tr class="memitem:ac865cd5b15f0a72a122783abdb9decbb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac865cd5b15f0a72a122783abdb9decbb"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getAbsoluteSectFromBytePos</b> (Bit32u startClustNum, Bit32u bytePos)</td></tr>
 <tr class="memitem:ad2affae0064e689be43f4b081e8ae86b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2affae0064e689be43f4b081e8ae86b"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getSectorSize</b> (void)</td></tr>
+<tr class="memitem:ac9e9fc2d188b9e94e58366bf7a1a8be5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac9e9fc2d188b9e94e58366bf7a1a8be5"></a>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getClusterSize</b> (void)</td></tr>
 <tr class="memitem:ab31954a5996df17bbd27e17f4fbc26d6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab31954a5996df17bbd27e17f4fbc26d6"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getAbsoluteSectFromChain</b> (Bit32u startClustNum, Bit32u logicalSector)</td></tr>
 <tr class="memitem:a77ee4b8cfb4e4fa3f3f63315c827c5aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77ee4b8cfb4e4fa3f3f63315c827c5aa"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>allocateCluster</b> (Bit32u useCluster, Bit32u prevCluster)</td></tr>
 <tr class="memitem:a06109e670f9aea5c4dd11d07c50ae240"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a06109e670f9aea5c4dd11d07c50ae240"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>appendCluster</b> (Bit32u startCluster)</td></tr>
-<tr class="memitem:a87019330262253fb796f8eec8ecccf5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87019330262253fb796f8eec8ecccf5e"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteClustChain</b> (Bit32u startCluster)</td></tr>
+<tr class="memitem:acdf76d8c0cefb8fa35d3bbbaea54c8e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acdf76d8c0cefb8fa35d3bbbaea54c8e0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteClustChain</b> (Bit32u startCluster, Bit32u bytePos)</td></tr>
 <tr class="memitem:a629d48445667f2662cc360ccaef4b43e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a629d48445667f2662cc360ccaef4b43e"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getFirstFreeClust</b> (void)</td></tr>
 <tr class="memitem:accabf68f45861dba60d9c93981c816c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="accabf68f45861dba60d9c93981c816c4"></a>
@@ -206,7 +212,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00205">205</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00206">206</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__fat_8cpp_source.html">drive_fat.cpp</a></li>
@@ -215,7 +221,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:57 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

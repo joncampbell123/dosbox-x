@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -146,13 +146,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00049"></a>00049 
 <a name="l00050"></a>00050 <span class="keywordtype">void</span> IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 <a name="l00051"></a>00051 
-<a name="l00052"></a>00052 <span class="keywordtype">void</span> IO_WriteB(Bitu port,Bitu val);
-<a name="l00053"></a>00053 <span class="keywordtype">void</span> IO_WriteW(Bitu port,Bitu val);
-<a name="l00054"></a>00054 <span class="keywordtype">void</span> IO_WriteD(Bitu port,Bitu val);
+<a name="l00052"></a>00052 <span class="keywordtype">void</span> IO_WriteB(Bitu port,Bit8u val);
+<a name="l00053"></a>00053 <span class="keywordtype">void</span> IO_WriteW(Bitu port,Bit16u val);
+<a name="l00054"></a>00054 <span class="keywordtype">void</span> IO_WriteD(Bitu port,Bit32u val);
 <a name="l00055"></a>00055 
-<a name="l00056"></a>00056 Bitu IO_ReadB(Bitu port);
-<a name="l00057"></a>00057 Bitu IO_ReadW(Bitu port);
-<a name="l00058"></a>00058 Bitu IO_ReadD(Bitu port);
+<a name="l00056"></a>00056 Bit8u IO_ReadB(Bitu port);
+<a name="l00057"></a>00057 Bit16u IO_ReadW(Bitu port);
+<a name="l00058"></a>00058 Bit32u IO_ReadD(Bitu port);
 <a name="l00059"></a>00059 
 <a name="l00060"></a>00060 <span class="keyword">static</span> <span class="keyword">const</span> Bitu IOMASK_ISA_10BIT = 0x3FFU; <span class="comment">/* ISA 10-bit decode */</span>
 <a name="l00061"></a>00061 <span class="keyword">static</span> <span class="keyword">const</span> Bitu IOMASK_ISA_12BIT = 0xFFFU; <span class="comment">/* ISA 12-bit decode */</span>
@@ -248,7 +248,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00151"></a>00151         IO_WriteB(port,val);
 <a name="l00152"></a>00152 }
 <a name="l00153"></a>00153 <span class="keyword">static</span> INLINE Bit8u IO_Read(Bitu port){
-<a name="l00154"></a>00154         <span class="keywordflow">return</span> (Bit8u)IO_ReadB(port);
+<a name="l00154"></a>00154         <span class="keywordflow">return</span> IO_ReadB(port);
 <a name="l00155"></a>00155 }
 <a name="l00156"></a>00156 
 <a name="l00157"></a>00157 <span class="keyword">enum</span> IO_Type_t {
@@ -289,7 +289,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

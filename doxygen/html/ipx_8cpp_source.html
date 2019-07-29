@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -235,11 +235,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00138"></a>00138         Bit8u* buffer = databuffer;
 <a name="l00139"></a>00139         <a class="code" href="structfragmentDescriptor.html">fragmentDescriptor</a> tmpFrag;
 <a name="l00140"></a>00140         setInUseFlag(USEFLAG_AVAILABLE);
-<a name="l00141"></a>00141         Bitu fragCount = getFragCount(); 
+<a name="l00141"></a>00141         Bit16u fragCount = getFragCount(); 
 <a name="l00142"></a>00142         Bitu bufoffset = 0;
-<a name="l00143"></a>00143         <span class="keywordflow">for</span>(Bitu i = 0;i &lt; fragCount;i++) {
+<a name="l00143"></a>00143         <span class="keywordflow">for</span>(Bit16u i = 0;i &lt; fragCount;i++) {
 <a name="l00144"></a>00144                 getFragDesc(i,&amp;tmpFrag);
-<a name="l00145"></a>00145                 <span class="keywordflow">for</span>(Bitu t = 0;t &lt; tmpFrag.size;t++) {
+<a name="l00145"></a>00145                 <span class="keywordflow">for</span>(Bit16u t = 0;t &lt; tmpFrag.size;t++) {
 <a name="l00146"></a>00146                         real_writeb(tmpFrag.segment, tmpFrag.offset + t, buffer[bufoffset]);
 <a name="l00147"></a>00147                         bufoffset++;
 <a name="l00148"></a>00148                         <span class="keywordflow">if</span>(bufoffset &gt;= length) {
@@ -328,12 +328,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00231"></a>00231 }
 <a name="l00232"></a>00232 
 <a name="l00233"></a>00233 <span class="keywordtype">void</span> ECBClass::setImmAddress(Bit8u *immAddr) {
-<a name="l00234"></a>00234         <span class="keywordflow">for</span>(Bitu i=0;i&lt;6;i++)
+<a name="l00234"></a>00234         <span class="keywordflow">for</span>(Bit8u i=0;i&lt;6;i++)
 <a name="l00235"></a>00235                 real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i, immAddr[i]);
 <a name="l00236"></a>00236 }
 <a name="l00237"></a>00237 
 <a name="l00238"></a>00238 <span class="keywordtype">void</span> ECBClass::getImmAddress(Bit8u* immAddr) {
-<a name="l00239"></a>00239         <span class="keywordflow">for</span>(Bitu i=0;i&lt;6;i++)
+<a name="l00239"></a>00239         <span class="keywordflow">for</span>(Bit8u i=0;i&lt;6;i++)
 <a name="l00240"></a>00240                 immAddr[i] = real_readb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i);
 <a name="l00241"></a>00241 }
 <a name="l00242"></a>00242 
@@ -411,7 +411,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00314"></a>00314         <span class="keywordflow">for</span>(i=0;i&lt;socketCount-1;i++) {
 <a name="l00315"></a>00315                 <span class="keywordflow">if</span> (opensockets[i] == sockNum) {
 <a name="l00316"></a>00316                         <span class="comment">// Realign list of open sockets</span>
-<a name="l00317"></a>00317                         memcpy(&amp;opensockets[i], &amp;opensockets[i+1], SOCKTABLESIZE - (i + 1));
+<a name="l00317"></a>00317                         memcpy(&amp;opensockets[i], &amp;opensockets[i+1], <span class="keywordtype">size_t</span>(SOCKTABLESIZE - (i + 1)));
 <a name="l00318"></a>00318                         <span class="keywordflow">break</span>;
 <a name="l00319"></a>00319                 }
 <a name="l00320"></a>00320         }
@@ -478,7 +478,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00381"></a>00381                                                 <span class="comment">// es:si</span>
 <a name="l00382"></a>00382                                                 <span class="comment">// Currently no support for multiple networks</span>
 <a name="l00383"></a>00383 
-<a name="l00384"></a>00384                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; 6; i++) 
+<a name="l00384"></a>00384                         <span class="keywordflow">for</span>(Bit8u i = 0; i &lt; 6; i++) 
 <a name="l00385"></a>00385                                 real_writeb(SegValue(es),reg_di+i,real_readb(SegValue(es),reg_si+i+4));
 <a name="l00386"></a>00386 
 <a name="l00387"></a>00387                         reg_cx=1;               <span class="comment">// time ticks expected</span>
@@ -686,7 +686,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00589"></a>00589         {
 <a name="l00590"></a>00590                 nextECB = useECB-&gt;nextECB;
 <a name="l00591"></a>00591                 <span class="keywordflow">if</span>(useECB-&gt;iuflag == USEFLAG_LISTENING &amp;&amp; useECB-&gt;mysocket == useSocket) {
-<a name="l00592"></a>00592                         useECB-&gt;writeDataBuffer(buffer, bufSize);
+<a name="l00592"></a>00592                         useECB-&gt;writeDataBuffer(buffer, (Bit16u)bufSize);
 <a name="l00593"></a>00593                         useECB-&gt;NotifyESR();
 <a name="l00594"></a>00594                         <span class="keywordflow">return</span>;
 <a name="l00595"></a>00595                 }
@@ -770,12 +770,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00673"></a>00673         <span class="comment">// Blank CRC</span>
 <a name="l00674"></a>00674         <span class="comment">//wordptr[0] = 0xffff;</span>
 <a name="l00675"></a>00675         <span class="comment">// Length</span>
-<a name="l00676"></a>00676         wordptr[1] = swapByte(packetsize);
+<a name="l00676"></a>00676         wordptr[1] = swapByte((Bit16u)packetsize);
 <a name="l00677"></a>00677         <span class="comment">// Source socket</span>
 <a name="l00678"></a>00678         <span class="comment">//wordptr[14] = swapByte(sendecb-&gt;getSocket());</span>
 <a name="l00679"></a>00679         
 <a name="l00680"></a>00680         sendecb-&gt;getFragDesc(0,&amp;tmpFrag);
-<a name="l00681"></a>00681         real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte(packetsize));
+<a name="l00681"></a>00681         real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte((Bit16u)packetsize));
 <a name="l00682"></a>00682         
 <a name="l00683"></a>00683 
 <a name="l00684"></a>00684         Bit8u immedAddr[6];
@@ -952,7 +952,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00855"></a>00855                 <span class="comment">// Help on connect command</span>
 <a name="l00856"></a>00856                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;connect&quot;</span>, helpStr) == 0) {
 <a name="l00857"></a>00857                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET CONNECT opens a connection to an IPX tunneling server running on another\n&quot;</span>);
-<a name="l00858"></a>00858                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;DosBox session.  The \&quot;address\&quot; parameter specifies the IP address or host name\n&quot;</span>);
+<a name="l00858"></a>00858                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;DOSBox session.  The \&quot;address\&quot; parameter specifies the IP address or host name\n&quot;</span>);
 <a name="l00859"></a>00859                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;of the server computer.  One can also specify the UDP port to use.  By default\n&quot;</span>);
 <a name="l00860"></a>00860                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET uses port 213, the assigned IANA port for IPX tunneling, for its\nconnection.\n\n&quot;</span>);
 <a name="l00861"></a>00861                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET CONNECT is:\n\n&quot;</span>);
@@ -968,9 +968,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00871"></a>00871                 }
 <a name="l00872"></a>00872                 <span class="comment">// Help on the startserver command</span>
 <a name="l00873"></a>00873                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;startserver&quot;</span>, helpStr) == 0) {
-<a name="l00874"></a>00874                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STARTSERVER starts and IPX tunneling server on this DosBox session.  By\n&quot;</span>);
+<a name="l00874"></a>00874                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STARTSERVER starts and IPX tunneling server on this DOSBox session.  By\n&quot;</span>);
 <a name="l00875"></a>00875                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;default, the server will accept connections on UDP port 213, though this can be\n&quot;</span>);
-<a name="l00876"></a>00876                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;changed.  Once the server is started, DosBox will automatically start a client\n&quot;</span>);
+<a name="l00876"></a>00876                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;changed.  Once the server is started, DOSBox will automatically start a client\n&quot;</span>);
 <a name="l00877"></a>00877                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;connection to the IPX tunneling server.\n\n&quot;</span>);
 <a name="l00878"></a>00878                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STARTSERVER is:\n\n&quot;</span>);
 <a name="l00879"></a>00879                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STARTSERVER &lt;port&gt;\n\n&quot;</span>);
@@ -980,7 +980,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00883"></a>00883                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;stopserver&quot;</span>, helpStr) == 0) {
 <a name="l00884"></a>00884                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STOPSERVER stops the IPX tunneling server running on this DosBox\nsession.&quot;</span>);
 <a name="l00885"></a>00885                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;  Care should be taken to ensure that all other connections have\nterminated &quot;</span>);
-<a name="l00886"></a>00886                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;as well sinnce stoping the server may cause lockups on other\nmachines still using &quot;</span>);
+<a name="l00886"></a>00886                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;as well since stopping the server may cause lockups on other\nmachines still using &quot;</span>);
 <a name="l00887"></a>00887                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;the IPX tunneling server.\n\n&quot;</span>);
 <a name="l00888"></a>00888                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STOPSERVER is:\n\n&quot;</span>);
 <a name="l00889"></a>00889                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STOPSERVER\n\n&quot;</span>);
@@ -997,7 +997,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00900"></a>00900                 }
 <a name="l00901"></a>00901                 <span class="comment">// Help on the status command</span>
 <a name="l00902"></a>00902                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;status&quot;</span>, helpStr) == 0) {
-<a name="l00903"></a>00903                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STATUS reports the current state of this DosBox&#39;s sessions IPX tunneling\n&quot;</span>);
+<a name="l00903"></a>00903                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STATUS reports the current state of this DOSBox&#39;s sessions IPX tunneling\n&quot;</span>);
 <a name="l00904"></a>00904                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;network.  For a list of the computers connected to the network use the IPXNET \n&quot;</span>);
 <a name="l00905"></a>00905                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;PING command.\n\n&quot;</span>);
 <a name="l00906"></a>00906                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STATUS is:\n\n&quot;</span>);
@@ -1008,7 +1008,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00911"></a>00911 
 <a name="l00912"></a>00912         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#acd37c94c3c12a55650a05ee1449aa176" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>)
 <a name="l00913"></a>00913         {
-<a name="l00914"></a>00914                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling utility for DosBox\n\n&quot;</span>);
+<a name="l00914"></a>00914                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling utility for DOSBox\n\n&quot;</span>);
 <a name="l00915"></a>00915                 <span class="keywordflow">if</span>(!cmd-&gt;GetCount()) {
 <a name="l00916"></a>00916                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax of this command is:\n\n&quot;</span>);
 <a name="l00917"></a>00917                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET [ CONNECT | DISCONNECT | STARTSERVER | STOPSERVER | PING | HELP |\n         STATUS ]\n\n&quot;</span>);
@@ -1040,7 +1040,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00943"></a>00943                                         <span class="keywordflow">if</span>(!cmd-&gt;FindCommand(2, temp_line)) {
 <a name="l00944"></a>00944                                                 udpPort = 213;
 <a name="l00945"></a>00945                                         } <span class="keywordflow">else</span> {
-<a name="l00946"></a>00946                                                 udpPort = strtol(temp_line.c_str(), NULL, 10);
+<a name="l00946"></a>00946                                                 udpPort = (<span class="keywordtype">unsigned</span> int)strtol(temp_line.c_str(), NULL, 10);
 <a name="l00947"></a>00947                                         }
 <a name="l00948"></a>00948                                         startsuccess = IPX_StartServer((Bit16u)udpPort);
 <a name="l00949"></a>00949                                         <span class="keywordflow">if</span>(startsuccess) {
@@ -1058,7 +1058,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00961"></a>00961                         }
 <a name="l00962"></a>00962                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;stopserver&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l00963"></a>00963                                 <span class="keywordflow">if</span>(!isIpxServer) {
-<a name="l00964"></a>00964                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server not running in this DosBox session.\n&quot;</span>);
+<a name="l00964"></a>00964                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server not running in this DOSBox session.\n&quot;</span>);
 <a name="l00965"></a>00965                                 } <span class="keywordflow">else</span> {
 <a name="l00966"></a>00966                                         isIpxServer = <span class="keyword">false</span>;
 <a name="l00967"></a>00967                                         DisconnectFromServer(<span class="keyword">false</span>);
@@ -1082,7 +1082,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00985"></a>00985                                 <span class="keywordflow">if</span>(!cmd-&gt;FindCommand(3, temp_line)) {
 <a name="l00986"></a>00986                                         udpPort = 213;
 <a name="l00987"></a>00987                                 } <span class="keywordflow">else</span> {
-<a name="l00988"></a>00988                                         udpPort = strtol(temp_line.c_str(), NULL, 10);
+<a name="l00988"></a>00988                                         udpPort = (<span class="keywordtype">unsigned</span> int)strtol(temp_line.c_str(), NULL, 10);
 <a name="l00989"></a>00989                                 }
 <a name="l00990"></a>00990 
 <a name="l00991"></a>00991                                 <span class="keywordflow">if</span>(ConnectToServer(strHost)) {
@@ -1281,7 +1281,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01184"></a>01184                 IO_WriteB(0xa1,IO_ReadB(0xa1)|8);       <span class="comment">// disable IRQ11</span>
 <a name="l01185"></a>01185    
 <a name="l01186"></a>01186                 PhysPt phyDospage = PhysMake(dospage,0);
-<a name="l01187"></a>01187                 <span class="keywordflow">for</span>(Bitu i = 0;i &lt; 32;i++)
+<a name="l01187"></a>01187                 <span class="keywordflow">for</span>(Bit8u i = 0;i &lt; 32;i++)
 <a name="l01188"></a>01188                         phys_writeb(phyDospage+i,(Bit8u)0x00);
 <a name="l01189"></a>01189 
 <a name="l01190"></a>01190                 VFILE_Remove(<span class="stringliteral">&quot;IPXNET.COM&quot;</span>);
@@ -1290,11 +1290,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01193"></a>01193 
 <a name="l01194"></a>01194 <span class="keyword">static</span> IPX* test;
 <a name="l01195"></a>01195 
-<a name="l01196"></a>01196 <span class="keywordtype">void</span> IPX_ShutDown(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l01196"></a>01196 <span class="keywordtype">void</span> IPX_ShutDown(<a class="code" href="classSection.html">Section</a>*) {
 <a name="l01197"></a>01197         <span class="keyword">delete</span> test;    
 <a name="l01198"></a>01198 }
 <a name="l01199"></a>01199 
-<a name="l01200"></a>01200 <span class="keywordtype">void</span> IPX_OnReset(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l01200"></a>01200 <span class="keywordtype">void</span> IPX_OnReset(<a class="code" href="classSection.html">Section</a>*) {
 <a name="l01201"></a>01201         <span class="keywordflow">if</span> (test == NULL) {
 <a name="l01202"></a>01202                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating IPX emulation&quot;</span>);
 <a name="l01203"></a>01203                 test = <span class="keyword">new</span> IPX(control-&gt;GetSection(<span class="stringliteral">&quot;ipx&quot;</span>));
@@ -1313,7 +1313,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

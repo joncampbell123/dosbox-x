@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
@@ -378,8 +378,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00281"></a>00281             <span class="keywordflow">if</span>(!(index &amp; 1)) {
 <a name="l00282"></a>00282                 y += changedLines[index];
 <a name="l00283"></a>00283             } <span class="keywordflow">else</span> {
-<a name="l00284"></a>00284                 rect.top = y;
-<a name="l00285"></a>00285                 rect.bottom = y + changedLines[index];
+<a name="l00284"></a>00284                 rect.top = (LONG)y;
+<a name="l00285"></a>00285                 rect.bottom = (LONG)(y + changedLines[index]);
 <a name="l00286"></a>00286                 lpTexture-&gt;AddDirtyRect(&amp;rect);
 <a name="l00287"></a>00287                 y += changedLines[index];
 <a name="l00288"></a>00288             }
@@ -897,696 +897,701 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00800"></a>00800     <span class="keywordflow">if</span>(GCC_UNLIKELY(hr=pD3DDevice9-&gt;Present(NULL, NULL, NULL, NULL)) != D3D_OK) {
 <a name="l00801"></a>00801         <span class="keywordflow">switch</span>(hr) {
 <a name="l00802"></a>00802             <span class="keywordflow">case</span> D3DERR_DEVICELOST:
-<a name="l00803"></a>00803                 <span class="comment">// This will be handled when SDL catches alt-tab and resets GFX</span>
-<a name="l00804"></a>00804                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00805"></a>00805                 <span class="keywordflow">break</span>;
-<a name="l00806"></a>00806             <span class="keywordflow">case</span> D3DERR_DRIVERINTERNALERROR:
-<a name="l00807"></a>00807                 LOG_MSG(<span class="stringliteral">&quot;D3D:Driver internal error&quot;</span>);
-<a name="l00808"></a>00808                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00809"></a>00809                 <span class="keywordflow">break</span>;
-<a name="l00810"></a>00810             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l00811"></a>00811             <span class="keywordflow">default</span>:
-<a name="l00812"></a>00812                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l00803"></a>00803         LOG_MSG(<span class="stringliteral">&quot;D3D:Driver device lost&quot;</span>);
+<a name="l00804"></a>00804         <span class="keywordflow">if</span> (!deviceLost) {
+<a name="l00805"></a>00805             deviceLost = <span class="keyword">true</span>;
+<a name="l00806"></a>00806             <span class="keywordtype">void</span> RENDER_CallBack(GFX_CallBackFunctions_t f);
+<a name="l00807"></a>00807             RENDER_CallBack(GFX_CallBackRedraw);
+<a name="l00808"></a>00808         }
+<a name="l00809"></a>00809                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00810"></a>00810                 <span class="keywordflow">break</span>;
+<a name="l00811"></a>00811             <span class="keywordflow">case</span> D3DERR_DRIVERINTERNALERROR:
+<a name="l00812"></a>00812                 LOG_MSG(<span class="stringliteral">&quot;D3D:Driver internal error&quot;</span>);
 <a name="l00813"></a>00813                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00814"></a>00814                 <span class="keywordflow">break</span>;
-<a name="l00815"></a>00815         }
-<a name="l00816"></a>00816     }
-<a name="l00817"></a>00817 
-<a name="l00818"></a>00818     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00819"></a>00819 }
-<a name="l00820"></a>00820 
-<a name="l00821"></a>00821 HRESULT CDirect3D::InvalidateDeviceObjects(<span class="keywordtype">void</span>)
-<a name="l00822"></a>00822 {
-<a name="l00823"></a>00823     SAFE_RELEASE(lpTexture);
-<a name="l00824"></a>00824 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l00825"></a>00825 <span class="preprocessor"></span>    SAFE_RELEASE(lpWorkTexture1);
-<a name="l00826"></a>00826     SAFE_RELEASE(lpWorkTexture2);
-<a name="l00827"></a>00827     SAFE_RELEASE(lpHq2xLookupTexture);
-<a name="l00828"></a>00828 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l00829"></a>00829 <span class="preprocessor"></span>    SAFE_RELEASE(lpDebugTexture);
-<a name="l00830"></a>00830 <span class="preprocessor">#endif</span>
-<a name="l00831"></a>00831 <span class="preprocessor"></span>
-<a name="l00832"></a>00832     <span class="comment">// Delete pixel shader</span>
-<a name="l00833"></a>00833     <span class="keywordflow">if</span>(psEffect) {
-<a name="l00834"></a>00834         <span class="keyword">delete</span> psEffect;
-<a name="l00835"></a>00835         psEffect = NULL;
-<a name="l00836"></a>00836     }
-<a name="l00837"></a>00837 <span class="preprocessor">#endif</span>
-<a name="l00838"></a>00838 <span class="preprocessor"></span>
-<a name="l00839"></a>00839     <span class="comment">// clear stream source</span>
-<a name="l00840"></a>00840     <span class="keywordflow">if</span>(pD3DDevice9)
-<a name="l00841"></a>00841         pD3DDevice9-&gt;SetStreamSource(0, NULL, 0, 0);
-<a name="l00842"></a>00842 
-<a name="l00843"></a>00843     SAFE_RELEASE(vertexBuffer);
-<a name="l00844"></a>00844 
-<a name="l00845"></a>00845     <span class="keywordflow">return</span> S_OK;
-<a name="l00846"></a>00846 }
+<a name="l00815"></a>00815             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l00816"></a>00816             <span class="keywordflow">default</span>:
+<a name="l00817"></a>00817                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l00818"></a>00818                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00819"></a>00819                 <span class="keywordflow">break</span>;
+<a name="l00820"></a>00820         }
+<a name="l00821"></a>00821     }
+<a name="l00822"></a>00822 
+<a name="l00823"></a>00823     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00824"></a>00824 }
+<a name="l00825"></a>00825 
+<a name="l00826"></a>00826 HRESULT CDirect3D::InvalidateDeviceObjects(<span class="keywordtype">void</span>)
+<a name="l00827"></a>00827 {
+<a name="l00828"></a>00828     SAFE_RELEASE(lpTexture);
+<a name="l00829"></a>00829 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l00830"></a>00830 <span class="preprocessor"></span>    SAFE_RELEASE(lpWorkTexture1);
+<a name="l00831"></a>00831     SAFE_RELEASE(lpWorkTexture2);
+<a name="l00832"></a>00832     SAFE_RELEASE(lpHq2xLookupTexture);
+<a name="l00833"></a>00833 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l00834"></a>00834 <span class="preprocessor"></span>    SAFE_RELEASE(lpDebugTexture);
+<a name="l00835"></a>00835 <span class="preprocessor">#endif</span>
+<a name="l00836"></a>00836 <span class="preprocessor"></span>
+<a name="l00837"></a>00837     <span class="comment">// Delete pixel shader</span>
+<a name="l00838"></a>00838     <span class="keywordflow">if</span>(psEffect) {
+<a name="l00839"></a>00839         <span class="keyword">delete</span> psEffect;
+<a name="l00840"></a>00840         psEffect = NULL;
+<a name="l00841"></a>00841     }
+<a name="l00842"></a>00842 <span class="preprocessor">#endif</span>
+<a name="l00843"></a>00843 <span class="preprocessor"></span>
+<a name="l00844"></a>00844     <span class="comment">// clear stream source</span>
+<a name="l00845"></a>00845     <span class="keywordflow">if</span>(pD3DDevice9)
+<a name="l00846"></a>00846         pD3DDevice9-&gt;SetStreamSource(0, NULL, 0, 0);
 <a name="l00847"></a>00847 
-<a name="l00848"></a>00848 HRESULT CDirect3D::RestoreDeviceObjects(<span class="keywordtype">void</span>)
-<a name="l00849"></a>00849 {
-<a name="l00850"></a>00850     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> vertexbuffersize = <span class="keyword">sizeof</span>(TLVERTEX) * 4;
-<a name="l00851"></a>00851     preProcess = <span class="keyword">false</span>;
+<a name="l00848"></a>00848     SAFE_RELEASE(vertexBuffer);
+<a name="l00849"></a>00849 
+<a name="l00850"></a>00850     <span class="keywordflow">return</span> S_OK;
+<a name="l00851"></a>00851 }
 <a name="l00852"></a>00852 
-<a name="l00853"></a>00853 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l00854"></a>00854 <span class="preprocessor"></span>    <span class="keywordflow">if</span>(psActive) {
-<a name="l00855"></a>00855         <span class="comment">// Set up pixel shaders</span>
-<a name="l00856"></a>00856         LoadPixelShader();
+<a name="l00853"></a>00853 HRESULT CDirect3D::RestoreDeviceObjects(<span class="keywordtype">void</span>)
+<a name="l00854"></a>00854 {
+<a name="l00855"></a>00855     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> vertexbuffersize = <span class="keyword">sizeof</span>(TLVERTEX) * 4;
+<a name="l00856"></a>00856     preProcess = <span class="keyword">false</span>;
 <a name="l00857"></a>00857 
-<a name="l00858"></a>00858         <span class="keywordflow">if</span>(psEffect &amp;&amp; psEffect-&gt;hasPreprocess()) {
-<a name="l00859"></a>00859 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l00860"></a>00860 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader preprocess active&quot;</span>);
-<a name="l00861"></a>00861 <span class="preprocessor">#endif</span>
-<a name="l00862"></a>00862 <span class="preprocessor"></span>            preProcess = <span class="keyword">true</span>;
-<a name="l00863"></a>00863             vertexbuffersize = <span class="keyword">sizeof</span>(TLVERTEX) * 8;
-<a name="l00864"></a>00864         }
-<a name="l00865"></a>00865     }
+<a name="l00858"></a>00858 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l00859"></a>00859 <span class="preprocessor"></span>    <span class="keywordflow">if</span>(psActive) {
+<a name="l00860"></a>00860         <span class="comment">// Set up pixel shaders</span>
+<a name="l00861"></a>00861         LoadPixelShader();
+<a name="l00862"></a>00862 
+<a name="l00863"></a>00863         <span class="keywordflow">if</span>(psEffect &amp;&amp; psEffect-&gt;hasPreprocess()) {
+<a name="l00864"></a>00864 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l00865"></a>00865 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader preprocess active&quot;</span>);
 <a name="l00866"></a>00866 <span class="preprocessor">#endif</span>
-<a name="l00867"></a>00867 <span class="preprocessor"></span>    <span class="comment">// Initialize vertex</span>
-<a name="l00868"></a>00868     pD3DDevice9-&gt;SetFVF(D3DFVF_TLVERTEX);
-<a name="l00869"></a>00869 
-<a name="l00870"></a>00870     <span class="comment">// Create vertex buffer</span>
-<a name="l00871"></a>00871     <span class="keywordflow">if</span>(FAILED(pD3DDevice9-&gt;CreateVertexBuffer(vertexbuffersize, D3DUSAGE_WRITEONLY,
-<a name="l00872"></a>00872         D3DFVF_TLVERTEX, D3DPOOL_MANAGED, &amp;vertexBuffer, NULL))) {
-<a name="l00873"></a>00873         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create Vertex Buffer&quot;</span>);
-<a name="l00874"></a>00874         <span class="keywordflow">return</span> E_FAIL;
-<a name="l00875"></a>00875     }
-<a name="l00876"></a>00876 
-<a name="l00877"></a>00877     <span class="comment">// Lock vertex buffer and set vertices</span>
-<a name="l00878"></a>00878     CreateVertex();
-<a name="l00879"></a>00879 
-<a name="l00880"></a>00880     pD3DDevice9-&gt;SetStreamSource(0, vertexBuffer, 0, <span class="keyword">sizeof</span>(TLVERTEX));
+<a name="l00867"></a>00867 <span class="preprocessor"></span>            preProcess = <span class="keyword">true</span>;
+<a name="l00868"></a>00868             vertexbuffersize = <span class="keyword">sizeof</span>(TLVERTEX) * 8;
+<a name="l00869"></a>00869         }
+<a name="l00870"></a>00870     }
+<a name="l00871"></a>00871 <span class="preprocessor">#endif</span>
+<a name="l00872"></a>00872 <span class="preprocessor"></span>    <span class="comment">// Initialize vertex</span>
+<a name="l00873"></a>00873     pD3DDevice9-&gt;SetFVF(D3DFVF_TLVERTEX);
+<a name="l00874"></a>00874 
+<a name="l00875"></a>00875     <span class="comment">// Create vertex buffer</span>
+<a name="l00876"></a>00876     <span class="keywordflow">if</span>(FAILED(pD3DDevice9-&gt;CreateVertexBuffer(vertexbuffersize, D3DUSAGE_WRITEONLY,
+<a name="l00877"></a>00877         D3DFVF_TLVERTEX, D3DPOOL_MANAGED, &amp;vertexBuffer, NULL))) {
+<a name="l00878"></a>00878         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create Vertex Buffer&quot;</span>);
+<a name="l00879"></a>00879         <span class="keywordflow">return</span> E_FAIL;
+<a name="l00880"></a>00880     }
 <a name="l00881"></a>00881 
-<a name="l00882"></a>00882     <span class="comment">// Turn off culling</span>
-<a name="l00883"></a>00883     pD3DDevice9-&gt;SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+<a name="l00882"></a>00882     <span class="comment">// Lock vertex buffer and set vertices</span>
+<a name="l00883"></a>00883     CreateVertex();
 <a name="l00884"></a>00884 
-<a name="l00885"></a>00885     <span class="comment">// Turn off D3D lighting</span>
-<a name="l00886"></a>00886     pD3DDevice9-&gt;SetRenderState(D3DRS_LIGHTING, <span class="keyword">false</span>);
-<a name="l00887"></a>00887 
-<a name="l00888"></a>00888     <span class="comment">// Turn off the zbuffer</span>
-<a name="l00889"></a>00889     pD3DDevice9-&gt;SetRenderState(D3DRS_ZENABLE, <span class="keyword">false</span>);
-<a name="l00890"></a>00890 
-<a name="l00891"></a>00891     CreateDisplayTexture();
-<a name="l00892"></a>00892     SetupSceneScaled();
-<a name="l00893"></a>00893 
-<a name="l00894"></a>00894     <span class="keywordflow">if</span>(!psActive) {
-<a name="l00895"></a>00895         pD3DDevice9-&gt;SetTexture(0, lpTexture);
-<a name="l00896"></a>00896 
-<a name="l00897"></a>00897         <span class="comment">// Disable Shaders</span>
-<a name="l00898"></a>00898         pD3DDevice9-&gt;SetVertexShader(0);
-<a name="l00899"></a>00899         pD3DDevice9-&gt;SetPixelShader(0);
-<a name="l00900"></a>00900 
-<a name="l00901"></a>00901         pD3DDevice9-&gt;SetTransform(D3DTS_PROJECTION, &amp;m_matProj);
-<a name="l00902"></a>00902         pD3DDevice9-&gt;SetTransform(D3DTS_VIEW, &amp;m_matView);
-<a name="l00903"></a>00903         pD3DDevice9-&gt;SetTransform(D3DTS_WORLD, &amp;m_matWorld);
-<a name="l00904"></a>00904     }
-<a name="l00905"></a>00905 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l00906"></a>00906 <span class="preprocessor"></span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span>(psEffect) {
-<a name="l00907"></a>00907         <span class="keywordflow">if</span>(preProcess) {
-<a name="l00908"></a>00908             <span class="comment">// Projection is (0,0,0) -&gt; (1,1,1)</span>
-<a name="l00909"></a>00909             D3DXMatrixOrthoOffCenterLH(&amp;m_matPreProj, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-<a name="l00910"></a>00910 
-<a name="l00911"></a>00911             <span class="comment">// Align texels with pixels</span>
-<a name="l00912"></a>00912             D3DXMatrixTranslation(&amp;m_matPreView, -0.5f/dwTexWidth, 0.5f/dwTexHeight, 0.0f);
-<a name="l00913"></a>00913 
-<a name="l00914"></a>00914             <span class="comment">// Identity for world</span>
-<a name="l00915"></a>00915             D3DXMatrixIdentity(&amp;m_matPreWorld);
-<a name="l00916"></a>00916 
-<a name="l00917"></a>00917         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(FAILED(psEffect-&gt;SetMatrices(m_matProj, m_matView, m_matWorld))) {
-<a name="l00918"></a>00918             LOG_MSG(<span class="stringliteral">&quot;D3D:Set matrices failed.&quot;</span>);
-<a name="l00919"></a>00919             InvalidateDeviceObjects();
-<a name="l00920"></a>00920             <span class="keywordflow">return</span> E_FAIL;
-<a name="l00921"></a>00921         }
-<a name="l00922"></a>00922     }
-<a name="l00923"></a>00923 <span class="preprocessor">#endif</span>
-<a name="l00924"></a>00924 <span class="preprocessor"></span>
-<a name="l00925"></a>00925     <span class="keywordflow">return</span> S_OK;
-<a name="l00926"></a>00926 }
-<a name="l00927"></a>00927 
-<a name="l00928"></a>00928 <span class="keyword">extern</span> <span class="keywordtype">void</span> RENDER_SetForceUpdate(<span class="keywordtype">bool</span>);
-<a name="l00929"></a>00929 HRESULT CDirect3D::LoadPixelShader(<span class="keyword">const</span> <span class="keywordtype">char</span> * shader, <span class="keywordtype">double</span> scalex, <span class="keywordtype">double</span> scaley, <span class="keywordtype">bool</span> forced)
-<a name="l00930"></a>00930 {
-<a name="l00931"></a>00931     <span class="keywordflow">if</span>(!psEnabled) {
-<a name="l00932"></a>00932         RENDER_SetForceUpdate(<span class="keyword">false</span>);
-<a name="l00933"></a>00933         psActive = <span class="keyword">false</span>;
-<a name="l00934"></a>00934         <span class="keywordflow">return</span> E_FAIL;
-<a name="l00935"></a>00935     }
-<a name="l00936"></a>00936 
-<a name="l00937"></a>00937 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l00938"></a>00938 <span class="preprocessor"></span>    <span class="comment">// See if the shader is already running</span>
-<a name="l00939"></a>00939     <span class="keywordflow">if</span>((!psEffect) || (strcmp(pshader+8, shader))) {
-<a name="l00940"></a>00940 
-<a name="l00941"></a>00941         <span class="comment">// This is called in main thread to test if pixelshader needs to be changed</span>
-<a name="l00942"></a>00942         <span class="keywordflow">if</span>((scalex == 0) &amp;&amp; (scaley == 0)) <span class="keywordflow">return</span> S_OK;
-<a name="l00943"></a>00943 
-<a name="l00944"></a>00944         RENDER_SetForceUpdate(<span class="keyword">false</span>);
-<a name="l00945"></a>00945         safe_strncpy(pshader+8, shader, 22); pshader[29] = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00946"></a>00946 <span class="preprocessor">#if D3D_THREAD</span>
-<a name="l00947"></a>00947 <span class="preprocessor"></span>        Wait(<span class="keyword">false</span>);
-<a name="l00948"></a>00948         thread_command = D3D_LOADPS;
-<a name="l00949"></a>00949         LeaveCriticalSection(&amp;cs);
-<a name="l00950"></a>00950         SDL_SemPost(thread_sem);
-<a name="l00951"></a>00951 
-<a name="l00952"></a>00952         <span class="keywordflow">if</span>(FAILED(Wait(<span class="keyword">true</span>))) <span class="keywordflow">return</span> E_FAIL;
-<a name="l00953"></a>00953 <span class="preprocessor">#else</span>
-<a name="l00954"></a>00954 <span class="preprocessor"></span>        <span class="keywordflow">if</span>(FAILED(LoadPixelShader())) <span class="keywordflow">return</span> E_FAIL;
-<a name="l00955"></a>00955 <span class="preprocessor">#endif</span>
-<a name="l00956"></a>00956 <span class="preprocessor"></span>
-<a name="l00957"></a>00957     } <span class="keywordflow">else</span> {
-<a name="l00958"></a>00958 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l00959"></a>00959 <span class="preprocessor"></span>        LOG_MSG(<span class="stringliteral">&quot;D3D:Shader %s is already loaded&quot;</span>, shader);
+<a name="l00885"></a>00885     pD3DDevice9-&gt;SetStreamSource(0, vertexBuffer, 0, <span class="keyword">sizeof</span>(TLVERTEX));
+<a name="l00886"></a>00886 
+<a name="l00887"></a>00887     <span class="comment">// Turn off culling</span>
+<a name="l00888"></a>00888     pD3DDevice9-&gt;SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+<a name="l00889"></a>00889 
+<a name="l00890"></a>00890     <span class="comment">// Turn off D3D lighting</span>
+<a name="l00891"></a>00891     pD3DDevice9-&gt;SetRenderState(D3DRS_LIGHTING, <span class="keyword">false</span>);
+<a name="l00892"></a>00892 
+<a name="l00893"></a>00893     <span class="comment">// Turn off the zbuffer</span>
+<a name="l00894"></a>00894     pD3DDevice9-&gt;SetRenderState(D3DRS_ZENABLE, <span class="keyword">false</span>);
+<a name="l00895"></a>00895 
+<a name="l00896"></a>00896     CreateDisplayTexture();
+<a name="l00897"></a>00897     SetupSceneScaled();
+<a name="l00898"></a>00898 
+<a name="l00899"></a>00899     <span class="keywordflow">if</span>(!psActive) {
+<a name="l00900"></a>00900         pD3DDevice9-&gt;SetTexture(0, lpTexture);
+<a name="l00901"></a>00901 
+<a name="l00902"></a>00902         <span class="comment">// Disable Shaders</span>
+<a name="l00903"></a>00903         pD3DDevice9-&gt;SetVertexShader(0);
+<a name="l00904"></a>00904         pD3DDevice9-&gt;SetPixelShader(0);
+<a name="l00905"></a>00905 
+<a name="l00906"></a>00906         pD3DDevice9-&gt;SetTransform(D3DTS_PROJECTION, &amp;m_matProj);
+<a name="l00907"></a>00907         pD3DDevice9-&gt;SetTransform(D3DTS_VIEW, &amp;m_matView);
+<a name="l00908"></a>00908         pD3DDevice9-&gt;SetTransform(D3DTS_WORLD, &amp;m_matWorld);
+<a name="l00909"></a>00909     }
+<a name="l00910"></a>00910 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l00911"></a>00911 <span class="preprocessor"></span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span>(psEffect) {
+<a name="l00912"></a>00912         <span class="keywordflow">if</span>(preProcess) {
+<a name="l00913"></a>00913             <span class="comment">// Projection is (0,0,0) -&gt; (1,1,1)</span>
+<a name="l00914"></a>00914             D3DXMatrixOrthoOffCenterLH(&amp;m_matPreProj, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+<a name="l00915"></a>00915 
+<a name="l00916"></a>00916             <span class="comment">// Align texels with pixels</span>
+<a name="l00917"></a>00917             D3DXMatrixTranslation(&amp;m_matPreView, -0.5f/dwTexWidth, 0.5f/dwTexHeight, 0.0f);
+<a name="l00918"></a>00918 
+<a name="l00919"></a>00919             <span class="comment">// Identity for world</span>
+<a name="l00920"></a>00920             D3DXMatrixIdentity(&amp;m_matPreWorld);
+<a name="l00921"></a>00921 
+<a name="l00922"></a>00922         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(FAILED(psEffect-&gt;SetMatrices(m_matProj, m_matView, m_matWorld))) {
+<a name="l00923"></a>00923             LOG_MSG(<span class="stringliteral">&quot;D3D:Set matrices failed.&quot;</span>);
+<a name="l00924"></a>00924             InvalidateDeviceObjects();
+<a name="l00925"></a>00925             <span class="keywordflow">return</span> E_FAIL;
+<a name="l00926"></a>00926         }
+<a name="l00927"></a>00927     }
+<a name="l00928"></a>00928 <span class="preprocessor">#endif</span>
+<a name="l00929"></a>00929 <span class="preprocessor"></span>
+<a name="l00930"></a>00930     <span class="keywordflow">return</span> S_OK;
+<a name="l00931"></a>00931 }
+<a name="l00932"></a>00932 
+<a name="l00933"></a>00933 <span class="keyword">extern</span> <span class="keywordtype">void</span> RENDER_SetForceUpdate(<span class="keywordtype">bool</span>);
+<a name="l00934"></a>00934 HRESULT CDirect3D::LoadPixelShader(<span class="keyword">const</span> <span class="keywordtype">char</span> * shader, <span class="keywordtype">double</span> scalex, <span class="keywordtype">double</span> scaley, <span class="keywordtype">bool</span> forced)
+<a name="l00935"></a>00935 {
+<a name="l00936"></a>00936     <span class="keywordflow">if</span>(!psEnabled) {
+<a name="l00937"></a>00937         RENDER_SetForceUpdate(<span class="keyword">false</span>);
+<a name="l00938"></a>00938         psActive = <span class="keyword">false</span>;
+<a name="l00939"></a>00939         <span class="keywordflow">return</span> E_FAIL;
+<a name="l00940"></a>00940     }
+<a name="l00941"></a>00941 
+<a name="l00942"></a>00942 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l00943"></a>00943 <span class="preprocessor"></span>    <span class="comment">// See if the shader is already running</span>
+<a name="l00944"></a>00944     <span class="keywordflow">if</span>((!psEffect) || (strcmp(pshader+8, shader))) {
+<a name="l00945"></a>00945 
+<a name="l00946"></a>00946         <span class="comment">// This is called in main thread to test if pixelshader needs to be changed</span>
+<a name="l00947"></a>00947         <span class="keywordflow">if</span>((scalex == 0) &amp;&amp; (scaley == 0)) <span class="keywordflow">return</span> S_OK;
+<a name="l00948"></a>00948 
+<a name="l00949"></a>00949         RENDER_SetForceUpdate(<span class="keyword">false</span>);
+<a name="l00950"></a>00950         safe_strncpy(pshader+8, shader, 22); pshader[29] = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00951"></a>00951 <span class="preprocessor">#if D3D_THREAD</span>
+<a name="l00952"></a>00952 <span class="preprocessor"></span>        Wait(<span class="keyword">false</span>);
+<a name="l00953"></a>00953         thread_command = D3D_LOADPS;
+<a name="l00954"></a>00954         LeaveCriticalSection(&amp;cs);
+<a name="l00955"></a>00955         SDL_SemPost(thread_sem);
+<a name="l00956"></a>00956 
+<a name="l00957"></a>00957         <span class="keywordflow">if</span>(FAILED(Wait(<span class="keyword">true</span>))) <span class="keywordflow">return</span> E_FAIL;
+<a name="l00958"></a>00958 <span class="preprocessor">#else</span>
+<a name="l00959"></a>00959 <span class="preprocessor"></span>        <span class="keywordflow">if</span>(FAILED(LoadPixelShader())) <span class="keywordflow">return</span> E_FAIL;
 <a name="l00960"></a>00960 <span class="preprocessor">#endif</span>
-<a name="l00961"></a>00961 <span class="preprocessor"></span>        <span class="keywordflow">return</span> E_FAIL;
-<a name="l00962"></a>00962     }
-<a name="l00963"></a>00963 
-<a name="l00964"></a>00964     <span class="keywordflow">if</span> (psEffect) {
-<a name="l00965"></a>00965 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l00966"></a>00966 <span class="preprocessor"></span>        LOG_MSG(<span class="stringliteral">&quot;D3D:Shader scale: %.2f&quot;</span>, psEffect-&gt;getScale());
-<a name="l00967"></a>00967 <span class="preprocessor">#endif</span>
-<a name="l00968"></a>00968 <span class="preprocessor"></span>        <span class="comment">// Compare optimal scaling factor</span>
-<a name="l00969"></a>00969         <span class="keywordtype">bool</span> dblgfx=((scalex &lt; scaley ? scalex : scaley) &gt;= psEffect-&gt;getScale());
-<a name="l00970"></a>00970 
-<a name="l00971"></a>00971         <span class="keywordflow">if</span>(dblgfx || forced) {
-<a name="l00972"></a>00972             LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader %s active&quot;</span>, shader);
-<a name="l00973"></a>00973             RENDER_SetForceUpdate(psEffect-&gt;getForceUpdate());
-<a name="l00974"></a>00974             psActive = <span class="keyword">true</span>;
-<a name="l00975"></a>00975             <span class="keywordflow">return</span> S_OK;
-<a name="l00976"></a>00976         } <span class="keywordflow">else</span> {
-<a name="l00977"></a>00977             LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader not needed&quot;</span>);
-<a name="l00978"></a>00978             psActive = <span class="keyword">false</span>;
-<a name="l00979"></a>00979             <span class="keywordflow">return</span> E_FAIL;
-<a name="l00980"></a>00980         }
-<a name="l00981"></a>00981     } <span class="keywordflow">else</span> psActive = <span class="keyword">false</span>;
-<a name="l00982"></a>00982 
-<a name="l00983"></a>00983 <span class="preprocessor">#endif // C_D3DSHADERS</span>
-<a name="l00984"></a>00984 <span class="preprocessor"></span>
-<a name="l00985"></a>00985     <span class="keywordflow">return</span> S_OK;
-<a name="l00986"></a>00986 }
+<a name="l00961"></a>00961 <span class="preprocessor"></span>
+<a name="l00962"></a>00962     } <span class="keywordflow">else</span> {
+<a name="l00963"></a>00963 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l00964"></a>00964 <span class="preprocessor"></span>        LOG_MSG(<span class="stringliteral">&quot;D3D:Shader %s is already loaded&quot;</span>, shader);
+<a name="l00965"></a>00965 <span class="preprocessor">#endif</span>
+<a name="l00966"></a>00966 <span class="preprocessor"></span>        <span class="keywordflow">return</span> E_FAIL;
+<a name="l00967"></a>00967     }
+<a name="l00968"></a>00968 
+<a name="l00969"></a>00969     <span class="keywordflow">if</span> (psEffect) {
+<a name="l00970"></a>00970 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l00971"></a>00971 <span class="preprocessor"></span>        LOG_MSG(<span class="stringliteral">&quot;D3D:Shader scale: %.2f&quot;</span>, psEffect-&gt;getScale());
+<a name="l00972"></a>00972 <span class="preprocessor">#endif</span>
+<a name="l00973"></a>00973 <span class="preprocessor"></span>        <span class="comment">// Compare optimal scaling factor</span>
+<a name="l00974"></a>00974         <span class="keywordtype">bool</span> dblgfx=((scalex &lt; scaley ? scalex : scaley) &gt;= psEffect-&gt;getScale());
+<a name="l00975"></a>00975 
+<a name="l00976"></a>00976         <span class="keywordflow">if</span>(dblgfx || forced) {
+<a name="l00977"></a>00977             LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader %s active&quot;</span>, shader);
+<a name="l00978"></a>00978             RENDER_SetForceUpdate(psEffect-&gt;getForceUpdate());
+<a name="l00979"></a>00979             psActive = <span class="keyword">true</span>;
+<a name="l00980"></a>00980             <span class="keywordflow">return</span> S_OK;
+<a name="l00981"></a>00981         } <span class="keywordflow">else</span> {
+<a name="l00982"></a>00982             LOG_MSG(<span class="stringliteral">&quot;D3D:Pixel shader not needed&quot;</span>);
+<a name="l00983"></a>00983             psActive = <span class="keyword">false</span>;
+<a name="l00984"></a>00984             <span class="keywordflow">return</span> E_FAIL;
+<a name="l00985"></a>00985         }
+<a name="l00986"></a>00986     } <span class="keywordflow">else</span> psActive = <span class="keyword">false</span>;
 <a name="l00987"></a>00987 
-<a name="l00988"></a>00988 HRESULT CDirect3D::LoadPixelShader(<span class="keywordtype">void</span>)
-<a name="l00989"></a>00989 {
-<a name="l00990"></a>00990 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l00991"></a>00991 <span class="preprocessor"></span>    <span class="comment">// Load new shader</span>
-<a name="l00992"></a>00992     <span class="keywordflow">if</span>(psEffect) {
-<a name="l00993"></a>00993         <span class="keyword">delete</span> psEffect;
-<a name="l00994"></a>00994         psEffect = NULL;
-<a name="l00995"></a>00995     }
-<a name="l00996"></a>00996 
-<a name="l00997"></a>00997     <span class="keywordflow">if</span>(!strcmp(pshader+8, <span class="stringliteral">&quot;none&quot;</span>)) {
-<a name="l00998"></a>00998         <span class="comment">// Returns E_FAIL so that further shader processing is disabled</span>
-<a name="l00999"></a>00999         psActive = <span class="keyword">false</span>;
-<a name="l01000"></a>01000         <span class="keywordflow">return</span> E_FAIL;
-<a name="l01001"></a>01001     }
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003     psEffect = <span class="keyword">new</span> <a class="code" href="classScalingEffect.html">ScalingEffect</a>(pD3DDevice9);
-<a name="l01004"></a>01004     <span class="keywordflow">if</span> (psEffect == NULL) {
-<a name="l01005"></a>01005         LOG_MSG(<span class="stringliteral">&quot;D3D:Error creating shader object!&quot;</span>);
-<a name="l01006"></a>01006         psActive = <span class="keyword">false</span>;
-<a name="l01007"></a>01007         <span class="keywordflow">return</span> E_FAIL;
-<a name="l01008"></a>01008     }
-<a name="l01009"></a>01009 
-<a name="l01010"></a>01010 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01011"></a>01011 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Loading pixel shader from %s&quot;</span>, pshader);
-<a name="l01012"></a>01012 <span class="preprocessor">#endif</span>
-<a name="l01013"></a>01013 <span class="preprocessor"></span>
-<a name="l01014"></a>01014     psEffect-&gt;setinputDim((<span class="keywordtype">float</span>)dwWidth, (<span class="keywordtype">float</span>)dwHeight);
-<a name="l01015"></a>01015     <span class="keywordflow">if</span>(FAILED(psEffect-&gt;LoadEffect(pshader)) || FAILED(psEffect-&gt;Validate())) {
-<a name="l01016"></a>01016         <span class="comment">/*LOG_MSG(&quot;D3D:Pixel shader error:&quot;);</span>
-<a name="l01017"></a>01017 <span class="comment"></span>
-<a name="l01018"></a>01018 <span class="comment">        // The resulting string can exceed 512 char LOG_MSG limit, split on newlines</span>
-<a name="l01019"></a>01019 <span class="comment">        std::stringstream ss(psEffect-&gt;getErrors());</span>
-<a name="l01020"></a>01020 <span class="comment">        std::string line;</span>
-<a name="l01021"></a>01021 <span class="comment">        while(std::getline(ss, line)) {</span>
-<a name="l01022"></a>01022 <span class="comment">            LOG_MSG(&quot; %s&quot;, line.c_str());</span>
-<a name="l01023"></a>01023 <span class="comment">        }</span>
-<a name="l01024"></a>01024 <span class="comment"></span>
-<a name="l01025"></a>01025 <span class="comment">        LOG_MSG(&quot;D3D:Pixel shader output disabled&quot;);*/</span>
-<a name="l01026"></a>01026         <span class="keyword">delete</span> psEffect;
-<a name="l01027"></a>01027         psEffect = NULL;
-<a name="l01028"></a>01028         psActive = <span class="keyword">false</span>;
-<a name="l01029"></a>01029         pshader[8] = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l01030"></a>01030         <span class="keywordflow">return</span> E_FAIL;
-<a name="l01031"></a>01031     }
-<a name="l01032"></a>01032 
-<a name="l01033"></a>01033 <span class="preprocessor">#endif // C_D3DSHADERS</span>
-<a name="l01034"></a>01034 <span class="preprocessor"></span>
-<a name="l01035"></a>01035     <span class="keywordflow">return</span> S_OK;
-<a name="l01036"></a>01036 }
+<a name="l00988"></a>00988 <span class="preprocessor">#endif // C_D3DSHADERS</span>
+<a name="l00989"></a>00989 <span class="preprocessor"></span>
+<a name="l00990"></a>00990     <span class="keywordflow">return</span> S_OK;
+<a name="l00991"></a>00991 }
+<a name="l00992"></a>00992 
+<a name="l00993"></a>00993 HRESULT CDirect3D::LoadPixelShader(<span class="keywordtype">void</span>)
+<a name="l00994"></a>00994 {
+<a name="l00995"></a>00995 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l00996"></a>00996 <span class="preprocessor"></span>    <span class="comment">// Load new shader</span>
+<a name="l00997"></a>00997     <span class="keywordflow">if</span>(psEffect) {
+<a name="l00998"></a>00998         <span class="keyword">delete</span> psEffect;
+<a name="l00999"></a>00999         psEffect = NULL;
+<a name="l01000"></a>01000     }
+<a name="l01001"></a>01001 
+<a name="l01002"></a>01002     <span class="keywordflow">if</span>(!strcmp(pshader+8, <span class="stringliteral">&quot;none&quot;</span>)) {
+<a name="l01003"></a>01003         <span class="comment">// Returns E_FAIL so that further shader processing is disabled</span>
+<a name="l01004"></a>01004         psActive = <span class="keyword">false</span>;
+<a name="l01005"></a>01005         <span class="keywordflow">return</span> E_FAIL;
+<a name="l01006"></a>01006     }
+<a name="l01007"></a>01007 
+<a name="l01008"></a>01008     psEffect = <span class="keyword">new</span> <a class="code" href="classScalingEffect.html">ScalingEffect</a>(pD3DDevice9);
+<a name="l01009"></a>01009     <span class="keywordflow">if</span> (psEffect == NULL) {
+<a name="l01010"></a>01010         LOG_MSG(<span class="stringliteral">&quot;D3D:Error creating shader object!&quot;</span>);
+<a name="l01011"></a>01011         psActive = <span class="keyword">false</span>;
+<a name="l01012"></a>01012         <span class="keywordflow">return</span> E_FAIL;
+<a name="l01013"></a>01013     }
+<a name="l01014"></a>01014 
+<a name="l01015"></a>01015 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01016"></a>01016 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Loading pixel shader from %s&quot;</span>, pshader);
+<a name="l01017"></a>01017 <span class="preprocessor">#endif</span>
+<a name="l01018"></a>01018 <span class="preprocessor"></span>
+<a name="l01019"></a>01019     psEffect-&gt;setinputDim((<span class="keywordtype">float</span>)dwWidth, (<span class="keywordtype">float</span>)dwHeight);
+<a name="l01020"></a>01020     <span class="keywordflow">if</span>(FAILED(psEffect-&gt;LoadEffect(pshader)) || FAILED(psEffect-&gt;Validate())) {
+<a name="l01021"></a>01021         <span class="comment">/*LOG_MSG(&quot;D3D:Pixel shader error:&quot;);</span>
+<a name="l01022"></a>01022 <span class="comment"></span>
+<a name="l01023"></a>01023 <span class="comment">        // The resulting string can exceed 512 char LOG_MSG limit, split on newlines</span>
+<a name="l01024"></a>01024 <span class="comment">        std::stringstream ss(psEffect-&gt;getErrors());</span>
+<a name="l01025"></a>01025 <span class="comment">        std::string line;</span>
+<a name="l01026"></a>01026 <span class="comment">        while(std::getline(ss, line)) {</span>
+<a name="l01027"></a>01027 <span class="comment">            LOG_MSG(&quot; %s&quot;, line.c_str());</span>
+<a name="l01028"></a>01028 <span class="comment">        }</span>
+<a name="l01029"></a>01029 <span class="comment"></span>
+<a name="l01030"></a>01030 <span class="comment">        LOG_MSG(&quot;D3D:Pixel shader output disabled&quot;);*/</span>
+<a name="l01031"></a>01031         <span class="keyword">delete</span> psEffect;
+<a name="l01032"></a>01032         psEffect = NULL;
+<a name="l01033"></a>01033         psActive = <span class="keyword">false</span>;
+<a name="l01034"></a>01034         pshader[8] = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l01035"></a>01035         <span class="keywordflow">return</span> E_FAIL;
+<a name="l01036"></a>01036     }
 <a name="l01037"></a>01037 
-<a name="l01038"></a>01038 HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu x, Bitu y, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, <span class="keywordtype">bool</span> fullscreen)
-<a name="l01039"></a>01039 {
-<a name="l01040"></a>01040 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01041"></a>01041 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resizing D3D screen...&quot;</span>);
-<a name="l01042"></a>01042 <span class="preprocessor">#endif</span>
-<a name="l01043"></a>01043 <span class="preprocessor"></span>
-<a name="l01044"></a>01044 <span class="preprocessor">#if D3D_THREAD</span>
-<a name="l01045"></a>01045 <span class="preprocessor"></span>    Wait(<span class="keyword">false</span>);
-<a name="l01046"></a>01046 <span class="preprocessor">#endif</span>
-<a name="l01047"></a>01047 <span class="preprocessor"></span>
-<a name="l01048"></a>01048         (void)fullscreen; <span class="comment">// FIXME: This should be stored and used!</span>
-<a name="l01049"></a>01049 
-<a name="l01050"></a>01050     <span class="comment">// set the presentation parameters</span>
-<a name="l01051"></a>01051         d3dpp.BackBufferWidth = window_width;
-<a name="l01052"></a>01052         d3dpp.BackBufferHeight = window_height;
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054     dwScaledWidth = width;
-<a name="l01055"></a>01055     dwScaledHeight = height;
-<a name="l01056"></a>01056 
-<a name="l01057"></a>01057     dwX = x;
-<a name="l01058"></a>01058     dwY = y;
-<a name="l01059"></a>01059 
-<a name="l01060"></a>01060     dwWidth = rwidth;
-<a name="l01061"></a>01061     dwHeight = rheight;
-<a name="l01062"></a>01062 
-<a name="l01063"></a>01063 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01064"></a>01064 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resolution set to %dx%d%s&quot;</span>, d3dpp.BackBufferWidth, d3dpp.BackBufferHeight, fullscreen ? <span class="stringliteral">&quot;, fullscreen&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
-<a name="l01065"></a>01065 <span class="preprocessor">#endif</span>
-<a name="l01066"></a>01066 <span class="preprocessor"></span>
-<a name="l01067"></a>01067     HRESULT hr = Resize3DEnvironment();
-<a name="l01068"></a>01068 
-<a name="l01069"></a>01069 <span class="preprocessor">#if D3D_THREAD</span>
-<a name="l01070"></a>01070 <span class="preprocessor"></span>    LeaveCriticalSection(&amp;cs);
-<a name="l01071"></a>01071 <span class="preprocessor">#endif</span>
-<a name="l01072"></a>01072 <span class="preprocessor"></span>    <span class="keywordflow">return</span> hr;
-<a name="l01073"></a>01073 }
-<a name="l01074"></a>01074 
-<a name="l01075"></a>01075 HRESULT CDirect3D::Resize3DEnvironment(<span class="keywordtype">void</span>)
-<a name="l01076"></a>01076 {
-<a name="l01077"></a>01077     <span class="comment">// Release all vidmem objects</span>
-<a name="l01078"></a>01078     HRESULT hr;
+<a name="l01038"></a>01038 <span class="preprocessor">#endif // C_D3DSHADERS</span>
+<a name="l01039"></a>01039 <span class="preprocessor"></span>
+<a name="l01040"></a>01040     <span class="keywordflow">return</span> S_OK;
+<a name="l01041"></a>01041 }
+<a name="l01042"></a>01042 
+<a name="l01043"></a>01043 HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu x, Bitu y, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, <span class="keywordtype">bool</span> fullscreen)
+<a name="l01044"></a>01044 {
+<a name="l01045"></a>01045 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01046"></a>01046 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resizing D3D screen...&quot;</span>);
+<a name="l01047"></a>01047 <span class="preprocessor">#endif</span>
+<a name="l01048"></a>01048 <span class="preprocessor"></span>
+<a name="l01049"></a>01049 <span class="preprocessor">#if D3D_THREAD</span>
+<a name="l01050"></a>01050 <span class="preprocessor"></span>    Wait(<span class="keyword">false</span>);
+<a name="l01051"></a>01051 <span class="preprocessor">#endif</span>
+<a name="l01052"></a>01052 <span class="preprocessor"></span>
+<a name="l01053"></a>01053         (void)fullscreen; <span class="comment">// FIXME: This should be stored and used!</span>
+<a name="l01054"></a>01054 
+<a name="l01055"></a>01055     <span class="comment">// set the presentation parameters</span>
+<a name="l01056"></a>01056         d3dpp.BackBufferWidth = (UINT)window_width;
+<a name="l01057"></a>01057         d3dpp.BackBufferHeight = (UINT)window_height;
+<a name="l01058"></a>01058 
+<a name="l01059"></a>01059     dwScaledWidth = (DWORD)width;
+<a name="l01060"></a>01060     dwScaledHeight = (DWORD)height;
+<a name="l01061"></a>01061 
+<a name="l01062"></a>01062     dwX = (DWORD)x;
+<a name="l01063"></a>01063     dwY = (DWORD)y;
+<a name="l01064"></a>01064 
+<a name="l01065"></a>01065     dwWidth = (DWORD)rwidth;
+<a name="l01066"></a>01066     dwHeight = (DWORD)rheight;
+<a name="l01067"></a>01067 
+<a name="l01068"></a>01068 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01069"></a>01069 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resolution set to %dx%d%s&quot;</span>, d3dpp.BackBufferWidth, d3dpp.BackBufferHeight, fullscreen ? <span class="stringliteral">&quot;, fullscreen&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
+<a name="l01070"></a>01070 <span class="preprocessor">#endif</span>
+<a name="l01071"></a>01071 <span class="preprocessor"></span>
+<a name="l01072"></a>01072     HRESULT hr = Resize3DEnvironment();
+<a name="l01073"></a>01073 
+<a name="l01074"></a>01074 <span class="preprocessor">#if D3D_THREAD</span>
+<a name="l01075"></a>01075 <span class="preprocessor"></span>    LeaveCriticalSection(&amp;cs);
+<a name="l01076"></a>01076 <span class="preprocessor">#endif</span>
+<a name="l01077"></a>01077 <span class="preprocessor"></span>    <span class="keywordflow">return</span> hr;
+<a name="l01078"></a>01078 }
 <a name="l01079"></a>01079 
-<a name="l01080"></a>01080 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01081"></a>01081 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resize3DEnvironment() called&quot;</span>);
-<a name="l01082"></a>01082 <span class="preprocessor">#endif</span>
-<a name="l01083"></a>01083 <span class="preprocessor"></span>
-<a name="l01084"></a>01084     <span class="keywordflow">if</span>(FAILED(hr=InvalidateDeviceObjects())) {
-<a name="l01085"></a>01085         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to invalidate objects&quot;</span>);
-<a name="l01086"></a>01086         <span class="keywordflow">return</span> hr;
-<a name="l01087"></a>01087     }
-<a name="l01088"></a>01088 
-<a name="l01089"></a>01089     <span class="comment">// Reset the device</span>
-<a name="l01090"></a>01090 reset_device:
-<a name="l01091"></a>01091     Bitu i = 20;
-<a name="l01092"></a>01092     <span class="comment">// Don&#39;t bother too much, when device is already lost</span>
-<a name="l01093"></a>01093     <span class="keywordflow">if</span>(deviceLost) i = 5;
-<a name="l01094"></a>01094     deviceLost = <span class="keyword">false</span>;
-<a name="l01095"></a>01095 
-<a name="l01096"></a>01096     <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;Reset(&amp;d3dpp))) {
-<a name="l01097"></a>01097         <span class="keywordflow">if</span>(hr==D3DERR_DEVICELOST) {
-<a name="l01098"></a>01098             <span class="keywordflow">while</span>((hr=pD3DDevice9-&gt;TestCooperativeLevel()) != D3DERR_DEVICENOTRESET) {
-<a name="l01099"></a>01099                 <span class="keywordflow">if</span>(hr==D3DERR_DRIVERINTERNALERROR) {
-<a name="l01100"></a>01100                     LOG_MSG(<span class="stringliteral">&quot;D3D:Driver internal error when resetting device!&quot;</span>);
-<a name="l01101"></a>01101                     <span class="keywordflow">return</span> hr;
-<a name="l01102"></a>01102                 }
-<a name="l01103"></a>01103 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01104"></a>01104 <span class="preprocessor"></span>                LOG_MSG(<span class="stringliteral">&quot;D3D:Wait for D3D device to become available...&quot;</span>);
-<a name="l01105"></a>01105 <span class="preprocessor">#endif</span>
-<a name="l01106"></a>01106 <span class="preprocessor"></span>                Sleep(50); i--;
-<a name="l01107"></a>01107                 <span class="keywordflow">if</span>(i == 0) {
-<a name="l01108"></a>01108                     deviceLost = <span class="keyword">true</span>;
-<a name="l01109"></a>01109 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01110"></a>01110 <span class="preprocessor"></span>                    LOG_MSG(<span class="stringliteral">&quot;D3D:Giving up on D3D wait...&quot;</span>);
-<a name="l01111"></a>01111 <span class="preprocessor">#endif</span>
-<a name="l01112"></a>01112 <span class="preprocessor"></span>                    <span class="comment">// Return ok or dosbox will quit, we&#39;ll try to reset the device later</span>
-<a name="l01113"></a>01113                     <span class="keywordflow">return</span> S_OK;
-<a name="l01114"></a>01114                 }
-<a name="l01115"></a>01115             }
-<a name="l01116"></a>01116 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01117"></a>01117 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;D3D:Performing another reset...&quot;</span>);
-<a name="l01118"></a>01118 <span class="preprocessor">#endif</span>
-<a name="l01119"></a>01119 <span class="preprocessor"></span>            <span class="keywordflow">goto</span> reset_device;
-<a name="l01120"></a>01120         } <span class="keywordflow">else</span> {
-<a name="l01121"></a>01121             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to reset device!&quot;</span>);
-<a name="l01122"></a>01122             <span class="keywordflow">return</span> hr;
-<a name="l01123"></a>01123         }
-<a name="l01124"></a>01124     }
-<a name="l01125"></a>01125 
-<a name="l01126"></a>01126         backbuffer_clear_countdown = 2;
-<a name="l01127"></a>01127         <span class="keywordflow">if</span> (d3dpp.BackBufferCount == 2) backbuffer_clear_countdown++;
-<a name="l01128"></a>01128 
-<a name="l01129"></a>01129 <span class="preprocessor">#if 0</span>
-<a name="l01130"></a>01130 <span class="preprocessor"></span>    <span class="comment">// Clear all backbuffers</span>
-<a name="l01131"></a>01131     pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133     pD3DDevice9-&gt;Present(NULL, NULL, NULL, NULL);
-<a name="l01134"></a>01134     pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-<a name="l01135"></a>01135 
-<a name="l01136"></a>01136     <span class="keywordflow">if</span>(d3dpp.BackBufferCount == 2) {
-<a name="l01137"></a>01137         pD3DDevice9-&gt;Present(NULL, NULL, NULL, NULL);
-<a name="l01138"></a>01138         pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-<a name="l01139"></a>01139     }
-<a name="l01140"></a>01140 <span class="preprocessor">#endif</span>
-<a name="l01141"></a>01141 <span class="preprocessor"></span>
-<a name="l01142"></a>01142 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01143"></a>01143 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Mode: %dx%d (x %.2fx%.2f) --&gt; scaled size: %dx%d&quot;</span>, dwWidth, dwHeight,
-<a name="l01144"></a>01144                     (<span class="keywordtype">float</span>)dwScaledWidth/dwWidth, (<span class="keywordtype">float</span>)dwScaledHeight/dwHeight, dwScaledWidth, dwScaledHeight);
+<a name="l01080"></a>01080 HRESULT CDirect3D::Resize3DEnvironment(<span class="keywordtype">void</span>)
+<a name="l01081"></a>01081 {
+<a name="l01082"></a>01082     <span class="comment">// Release all vidmem objects</span>
+<a name="l01083"></a>01083     HRESULT hr;
+<a name="l01084"></a>01084 
+<a name="l01085"></a>01085 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01086"></a>01086 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Resize3DEnvironment() called&quot;</span>);
+<a name="l01087"></a>01087 <span class="preprocessor">#endif</span>
+<a name="l01088"></a>01088 <span class="preprocessor"></span>
+<a name="l01089"></a>01089     <span class="keywordflow">if</span>(FAILED(hr=InvalidateDeviceObjects())) {
+<a name="l01090"></a>01090         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to invalidate objects&quot;</span>);
+<a name="l01091"></a>01091         <span class="keywordflow">return</span> hr;
+<a name="l01092"></a>01092     }
+<a name="l01093"></a>01093 
+<a name="l01094"></a>01094     <span class="comment">// Reset the device</span>
+<a name="l01095"></a>01095 reset_device:
+<a name="l01096"></a>01096     Bitu i = 20;
+<a name="l01097"></a>01097     <span class="comment">// Don&#39;t bother too much, when device is already lost</span>
+<a name="l01098"></a>01098     <span class="keywordflow">if</span>(deviceLost) i = 5;
+<a name="l01099"></a>01099     deviceLost = <span class="keyword">false</span>;
+<a name="l01100"></a>01100 
+<a name="l01101"></a>01101     <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;Reset(&amp;d3dpp))) {
+<a name="l01102"></a>01102         <span class="keywordflow">if</span>(hr==D3DERR_DEVICELOST) {
+<a name="l01103"></a>01103             <span class="keywordflow">while</span>((hr=pD3DDevice9-&gt;TestCooperativeLevel()) != D3DERR_DEVICENOTRESET) {
+<a name="l01104"></a>01104                 <span class="keywordflow">if</span>(hr==D3DERR_DRIVERINTERNALERROR) {
+<a name="l01105"></a>01105                     LOG_MSG(<span class="stringliteral">&quot;D3D:Driver internal error when resetting device!&quot;</span>);
+<a name="l01106"></a>01106                     <span class="keywordflow">return</span> hr;
+<a name="l01107"></a>01107                 }
+<a name="l01108"></a>01108 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01109"></a>01109 <span class="preprocessor"></span>                LOG_MSG(<span class="stringliteral">&quot;D3D:Wait for D3D device to become available...&quot;</span>);
+<a name="l01110"></a>01110 <span class="preprocessor">#endif</span>
+<a name="l01111"></a>01111 <span class="preprocessor"></span>                Sleep(50); i--;
+<a name="l01112"></a>01112                 <span class="keywordflow">if</span>(i == 0) {
+<a name="l01113"></a>01113                     deviceLost = <span class="keyword">true</span>;
+<a name="l01114"></a>01114 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01115"></a>01115 <span class="preprocessor"></span>                    LOG_MSG(<span class="stringliteral">&quot;D3D:Giving up on D3D wait...&quot;</span>);
+<a name="l01116"></a>01116 <span class="preprocessor">#endif</span>
+<a name="l01117"></a>01117 <span class="preprocessor"></span>                    <span class="comment">// Return ok or dosbox will quit, we&#39;ll try to reset the device later</span>
+<a name="l01118"></a>01118                     <span class="keywordflow">return</span> S_OK;
+<a name="l01119"></a>01119                 }
+<a name="l01120"></a>01120             }
+<a name="l01121"></a>01121 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01122"></a>01122 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;D3D:Performing another reset...&quot;</span>);
+<a name="l01123"></a>01123 <span class="preprocessor">#endif</span>
+<a name="l01124"></a>01124 <span class="preprocessor"></span>            <span class="keywordflow">goto</span> reset_device;
+<a name="l01125"></a>01125         } <span class="keywordflow">else</span> {
+<a name="l01126"></a>01126             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to reset device!&quot;</span>);
+<a name="l01127"></a>01127             <span class="keywordflow">return</span> hr;
+<a name="l01128"></a>01128         }
+<a name="l01129"></a>01129     }
+<a name="l01130"></a>01130 
+<a name="l01131"></a>01131         backbuffer_clear_countdown = 2;
+<a name="l01132"></a>01132         <span class="keywordflow">if</span> (d3dpp.BackBufferCount == 2) backbuffer_clear_countdown++;
+<a name="l01133"></a>01133 
+<a name="l01134"></a>01134 <span class="preprocessor">#if 0</span>
+<a name="l01135"></a>01135 <span class="preprocessor"></span>    <span class="comment">// Clear all backbuffers</span>
+<a name="l01136"></a>01136     pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+<a name="l01137"></a>01137 
+<a name="l01138"></a>01138     pD3DDevice9-&gt;Present(NULL, NULL, NULL, NULL);
+<a name="l01139"></a>01139     pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+<a name="l01140"></a>01140 
+<a name="l01141"></a>01141     <span class="keywordflow">if</span>(d3dpp.BackBufferCount == 2) {
+<a name="l01142"></a>01142         pD3DDevice9-&gt;Present(NULL, NULL, NULL, NULL);
+<a name="l01143"></a>01143         pD3DDevice9-&gt;Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+<a name="l01144"></a>01144     }
 <a name="l01145"></a>01145 <span class="preprocessor">#endif</span>
 <a name="l01146"></a>01146 <span class="preprocessor"></span>
-<a name="l01147"></a>01147     <span class="keywordflow">return</span> RestoreDeviceObjects();
-<a name="l01148"></a>01148 }
-<a name="l01149"></a>01149 
-<a name="l01150"></a>01150 HRESULT CDirect3D::CreateDisplayTexture(<span class="keywordtype">void</span>)
-<a name="l01151"></a>01151 {
-<a name="l01152"></a>01152     SAFE_RELEASE(lpTexture);
-<a name="l01153"></a>01153 
-<a name="l01154"></a>01154     <span class="keywordflow">if</span>((dwTexWidth == 0) || (dwTexHeight == 0))
-<a name="l01155"></a>01155         <span class="keywordflow">return</span> S_OK;
-<a name="l01156"></a>01156 
-<a name="l01157"></a>01157 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01158"></a>01158 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Creating Textures: %dx%d&quot;</span>, dwTexWidth, dwTexHeight);
-<a name="l01159"></a>01159 <span class="preprocessor">#endif</span>
-<a name="l01160"></a>01160 <span class="preprocessor"></span>
-<a name="l01161"></a>01161     HRESULT hr;
-<a name="l01162"></a>01162 
-<a name="l01163"></a>01163     D3DFORMAT d3dtexformat;
-<a name="l01164"></a>01164 
-<a name="l01165"></a>01165     <span class="keywordflow">if</span>(bpp16)
-<a name="l01166"></a>01166         d3dtexformat = D3DFMT_R5G6B5;
-<a name="l01167"></a>01167     <span class="keywordflow">else</span>
-<a name="l01168"></a>01168         d3dtexformat = D3DFMT_X8R8G8B8;
+<a name="l01147"></a>01147 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01148"></a>01148 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Mode: %dx%d (x %.2fx%.2f) --&gt; scaled size: %dx%d&quot;</span>, dwWidth, dwHeight,
+<a name="l01149"></a>01149                     (<span class="keywordtype">float</span>)dwScaledWidth/dwWidth, (<span class="keywordtype">float</span>)dwScaledHeight/dwHeight, dwScaledWidth, dwScaledHeight);
+<a name="l01150"></a>01150 <span class="preprocessor">#endif</span>
+<a name="l01151"></a>01151 <span class="preprocessor"></span>
+<a name="l01152"></a>01152     <span class="keywordflow">return</span> RestoreDeviceObjects();
+<a name="l01153"></a>01153 }
+<a name="l01154"></a>01154 
+<a name="l01155"></a>01155 HRESULT CDirect3D::CreateDisplayTexture(<span class="keywordtype">void</span>)
+<a name="l01156"></a>01156 {
+<a name="l01157"></a>01157     SAFE_RELEASE(lpTexture);
+<a name="l01158"></a>01158 
+<a name="l01159"></a>01159     <span class="keywordflow">if</span>((dwTexWidth == 0) || (dwTexHeight == 0))
+<a name="l01160"></a>01160         <span class="keywordflow">return</span> S_OK;
+<a name="l01161"></a>01161 
+<a name="l01162"></a>01162 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01163"></a>01163 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Creating Textures: %dx%d&quot;</span>, dwTexWidth, dwTexHeight);
+<a name="l01164"></a>01164 <span class="preprocessor">#endif</span>
+<a name="l01165"></a>01165 <span class="preprocessor"></span>
+<a name="l01166"></a>01166     HRESULT hr;
+<a name="l01167"></a>01167 
+<a name="l01168"></a>01168     D3DFORMAT d3dtexformat;
 <a name="l01169"></a>01169 
-<a name="l01170"></a>01170     <span class="keywordflow">if</span>(!dynamic) {
-<a name="l01171"></a>01171         hr = pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, 0, d3dtexformat,
-<a name="l01172"></a>01172                                 D3DPOOL_MANAGED, &amp;lpTexture, NULL);
-<a name="l01173"></a>01173 
-<a name="l01174"></a>01174     } <span class="keywordflow">else</span> {
-<a name="l01175"></a>01175         hr = pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_DYNAMIC, d3dtexformat,
-<a name="l01176"></a>01176                             D3DPOOL_DEFAULT, &amp;lpTexture, NULL);
-<a name="l01177"></a>01177     }
+<a name="l01170"></a>01170     <span class="keywordflow">if</span>(bpp16)
+<a name="l01171"></a>01171         d3dtexformat = D3DFMT_R5G6B5;
+<a name="l01172"></a>01172     <span class="keywordflow">else</span>
+<a name="l01173"></a>01173         d3dtexformat = D3DFMT_X8R8G8B8;
+<a name="l01174"></a>01174 
+<a name="l01175"></a>01175     <span class="keywordflow">if</span>(!dynamic) {
+<a name="l01176"></a>01176         hr = pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, 0, d3dtexformat,
+<a name="l01177"></a>01177                                 D3DPOOL_MANAGED, &amp;lpTexture, NULL);
 <a name="l01178"></a>01178 
-<a name="l01179"></a>01179     <span class="keywordflow">if</span>(FAILED(hr)) {
-<a name="l01180"></a>01180         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create %stexture: 0x%lx&quot;</span>, (dynamic ? <span class="stringliteral">&quot;dynamic &quot;</span> : <span class="stringliteral">&quot;&quot;</span>), (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01181"></a>01181 
-<a name="l01182"></a>01182         <span class="keywordflow">switch</span>(hr) {
-<a name="l01183"></a>01183         <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01184"></a>01184             LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01185"></a>01185             <span class="keywordflow">break</span>;
-<a name="l01186"></a>01186         <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
-<a name="l01187"></a>01187             LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
-<a name="l01188"></a>01188             <span class="keywordflow">break</span>;
-<a name="l01189"></a>01189         <span class="keywordflow">case</span> E_OUTOFMEMORY:
-<a name="l01190"></a>01190             LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
-<a name="l01191"></a>01191             <span class="keywordflow">break</span>;
-<a name="l01192"></a>01192         <span class="keywordflow">default</span>:
-<a name="l01193"></a>01193             LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01194"></a>01194         }
-<a name="l01195"></a>01195         <span class="keywordflow">return</span> E_FAIL;
-<a name="l01196"></a>01196     }
-<a name="l01197"></a>01197 
-<a name="l01198"></a>01198     <span class="comment">// Initialize texture to black</span>
-<a name="l01199"></a>01199     <span class="keywordflow">if</span>(LockTexture() == S_OK) {
-<a name="l01200"></a>01200         Bit8u * pixels = (Bit8u *)d3dlr.pBits;
-<a name="l01201"></a>01201 
-<a name="l01202"></a>01202         <span class="keywordflow">for</span>(Bitu lines = dwTexHeight; lines; lines--) {
-<a name="l01203"></a>01203             memset(pixels, 0, (dwTexWidth&lt;&lt;2)&gt;&gt;(bpp16?1:0));
-<a name="l01204"></a>01204             pixels += d3dlr.Pitch;
-<a name="l01205"></a>01205         }
+<a name="l01179"></a>01179     } <span class="keywordflow">else</span> {
+<a name="l01180"></a>01180         hr = pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_DYNAMIC, d3dtexformat,
+<a name="l01181"></a>01181                             D3DPOOL_DEFAULT, &amp;lpTexture, NULL);
+<a name="l01182"></a>01182     }
+<a name="l01183"></a>01183 
+<a name="l01184"></a>01184     <span class="keywordflow">if</span>(FAILED(hr)) {
+<a name="l01185"></a>01185         LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create %stexture: 0x%lx&quot;</span>, (dynamic ? <span class="stringliteral">&quot;dynamic &quot;</span> : <span class="stringliteral">&quot;&quot;</span>), (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01186"></a>01186 
+<a name="l01187"></a>01187         <span class="keywordflow">switch</span>(hr) {
+<a name="l01188"></a>01188         <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01189"></a>01189             LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01190"></a>01190             <span class="keywordflow">break</span>;
+<a name="l01191"></a>01191         <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
+<a name="l01192"></a>01192             LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
+<a name="l01193"></a>01193             <span class="keywordflow">break</span>;
+<a name="l01194"></a>01194         <span class="keywordflow">case</span> E_OUTOFMEMORY:
+<a name="l01195"></a>01195             LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
+<a name="l01196"></a>01196             <span class="keywordflow">break</span>;
+<a name="l01197"></a>01197         <span class="keywordflow">default</span>:
+<a name="l01198"></a>01198             LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01199"></a>01199         }
+<a name="l01200"></a>01200         <span class="keywordflow">return</span> E_FAIL;
+<a name="l01201"></a>01201     }
+<a name="l01202"></a>01202 
+<a name="l01203"></a>01203     <span class="comment">// Initialize texture to black</span>
+<a name="l01204"></a>01204     <span class="keywordflow">if</span>(LockTexture() == S_OK) {
+<a name="l01205"></a>01205         Bit8u * pixels = (Bit8u *)d3dlr.pBits;
 <a name="l01206"></a>01206 
-<a name="l01207"></a>01207         lpTexture-&gt;UnlockRect(0);
-<a name="l01208"></a>01208     }
-<a name="l01209"></a>01209 
-<a name="l01210"></a>01210     d3dlr.pBits = NULL;
-<a name="l01211"></a>01211     RECT rect;
-<a name="l01212"></a>01212 
-<a name="l01213"></a>01213     rect.left = rect.top = 0;
-<a name="l01214"></a>01214     rect.right = dwTexWidth; rect.bottom = dwTexHeight;
-<a name="l01215"></a>01215     lpTexture-&gt;AddDirtyRect(&amp;rect);
-<a name="l01216"></a>01216 
-<a name="l01217"></a>01217 <span class="preprocessor">#if C_D3DSHADERS</span>
-<a name="l01218"></a>01218 <span class="preprocessor"></span>    <span class="keywordflow">if</span>(psActive) {
-<a name="l01219"></a>01219         <span class="comment">// Working textures for pixel shader</span>
-<a name="l01220"></a>01220         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
-<a name="l01221"></a>01221                             D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &amp;lpWorkTexture1, NULL))) {
-<a name="l01222"></a>01222             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create working texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01223"></a>01223 
-<a name="l01224"></a>01224             <span class="keywordflow">switch</span>(hr) {
-<a name="l01225"></a>01225             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01226"></a>01226                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01227"></a>01227                 <span class="keywordflow">break</span>;
-<a name="l01228"></a>01228             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
-<a name="l01229"></a>01229                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
-<a name="l01230"></a>01230                 <span class="keywordflow">break</span>;
-<a name="l01231"></a>01231             <span class="keywordflow">case</span> E_OUTOFMEMORY:
-<a name="l01232"></a>01232                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
-<a name="l01233"></a>01233                 <span class="keywordflow">break</span>;
-<a name="l01234"></a>01234             <span class="keywordflow">default</span>:
-<a name="l01235"></a>01235                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01236"></a>01236             }
-<a name="l01237"></a>01237             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01238"></a>01238         }
-<a name="l01239"></a>01239 
-<a name="l01240"></a>01240         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
-<a name="l01241"></a>01241                             D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &amp;lpWorkTexture2, NULL))) {
-<a name="l01242"></a>01242             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create working texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01243"></a>01243 
-<a name="l01244"></a>01244             <span class="keywordflow">switch</span>(hr) {
-<a name="l01245"></a>01245             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01246"></a>01246                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01247"></a>01247                 <span class="keywordflow">break</span>;
-<a name="l01248"></a>01248             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
-<a name="l01249"></a>01249                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
-<a name="l01250"></a>01250                 <span class="keywordflow">break</span>;
-<a name="l01251"></a>01251             <span class="keywordflow">case</span> E_OUTOFMEMORY:
-<a name="l01252"></a>01252                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
-<a name="l01253"></a>01253                 <span class="keywordflow">break</span>;
-<a name="l01254"></a>01254             <span class="keywordflow">default</span>:
-<a name="l01255"></a>01255                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01256"></a>01256             }
-<a name="l01257"></a>01257             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01258"></a>01258         }
-<a name="l01259"></a>01259 
-<a name="l01260"></a>01260         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateVolumeTexture(256, 16, 256, 1, 0, D3DFMT_A8R8G8B8,
-<a name="l01261"></a>01261                             D3DPOOL_MANAGED, &amp;lpHq2xLookupTexture, NULL))) {
-<a name="l01262"></a>01262             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01263"></a>01263 
-<a name="l01264"></a>01264             <span class="keywordflow">switch</span>(hr) {
-<a name="l01265"></a>01265             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01266"></a>01266                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01267"></a>01267                 <span class="keywordflow">break</span>;
-<a name="l01268"></a>01268             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
-<a name="l01269"></a>01269                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
-<a name="l01270"></a>01270                 <span class="keywordflow">break</span>;
-<a name="l01271"></a>01271             <span class="keywordflow">case</span> E_OUTOFMEMORY:
-<a name="l01272"></a>01272                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
-<a name="l01273"></a>01273                 <span class="keywordflow">break</span>;
-<a name="l01274"></a>01274             <span class="keywordflow">default</span>:
-<a name="l01275"></a>01275                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01276"></a>01276             }
-<a name="l01277"></a>01277             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01278"></a>01278         }
-<a name="l01279"></a>01279 
-<a name="l01280"></a>01280         <span class="comment">// build lookup table</span>
-<a name="l01281"></a>01281         D3DLOCKED_BOX lockedBox;
-<a name="l01282"></a>01282 
-<a name="l01283"></a>01283         <span class="keywordflow">if</span>(FAILED(hr = lpHq2xLookupTexture-&gt;LockBox(0, &amp;lockedBox, NULL, 0))) {
-<a name="l01284"></a>01284             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to lock box of volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01285"></a>01285 
-<a name="l01286"></a>01286             <span class="keywordflow">switch</span>(hr) {
-<a name="l01287"></a>01287                 <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01288"></a>01288                     LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01289"></a>01289                     <span class="keywordflow">break</span>;
-<a name="l01290"></a>01290                 <span class="keywordflow">default</span>:
-<a name="l01291"></a>01291                     LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01292"></a>01292             }
-<a name="l01293"></a>01293             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01294"></a>01294         }
-<a name="l01295"></a>01295 
-<a name="l01296"></a>01296         BuildHq2xLookupTexture(dwScaledWidth, dwScaledHeight, dwWidth, dwHeight, (Bit8u *)lockedBox.pBits);
-<a name="l01297"></a>01297 
-<a name="l01298"></a>01298 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01299"></a>01299 <span class="preprocessor"></span>        <span class="comment">// Debug: Write look-up texture to file</span>
-<a name="l01300"></a>01300         <span class="keywordtype">int</span> fd = _open(<span class="stringliteral">&quot;hq2xLookupTexture.pam&quot;</span>,_O_WRONLY|_O_CREAT|_O_TRUNC|_O_BINARY,0666);
-<a name="l01301"></a>01301         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> table[4096] = HQ2X_D3D_TABLE_DATA;
-<a name="l01302"></a>01302         sprintf((<span class="keywordtype">char</span> *)table,<span class="stringliteral">&quot;P7\nWIDTH %i\nHEIGHT %i\nMAXVAL 255\nDEPTH 4\nTUPLTYPE RGB_ALPHA\nENDHDR\n&quot;</span>,16*HQ2X_RESOLUTION,4096/16*HQ2X_RESOLUTION);
-<a name="l01303"></a>01303         write(fd,table,strlen((<span class="keywordtype">char</span> *)table));
-<a name="l01304"></a>01304         write(fd, lockedBox.pBits, HQ2X_RESOLUTION * HQ2X_RESOLUTION * 4096 * 4);
-<a name="l01305"></a>01305         _close(fd);
-<a name="l01306"></a>01306 <span class="preprocessor">#endif</span>
-<a name="l01307"></a>01307 <span class="preprocessor"></span>
-<a name="l01308"></a>01308         <span class="keywordflow">if</span>(FAILED(hr = lpHq2xLookupTexture-&gt;UnlockBox(0))) {
-<a name="l01309"></a>01309             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to unlock box of volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
-<a name="l01310"></a>01310 
-<a name="l01311"></a>01311             <span class="keywordflow">switch</span>(hr) {
-<a name="l01312"></a>01312                 <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01313"></a>01313                     LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01314"></a>01314                     <span class="keywordflow">break</span>;
-<a name="l01315"></a>01315                 <span class="keywordflow">default</span>:
-<a name="l01316"></a>01316                     LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01317"></a>01317             }
-<a name="l01318"></a>01318             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01319"></a>01319         }
-<a name="l01320"></a>01320 
-<a name="l01321"></a>01321 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01322"></a>01322 <span class="preprocessor"></span>        <span class="comment">// Debug texture for pixel shader</span>
-<a name="l01323"></a>01323         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, 0, D3DFMT_A8R8G8B8,
-<a name="l01324"></a>01324                             D3DPOOL_SYSTEMMEM, &amp;lpDebugTexture, NULL))) {
-<a name="l01325"></a>01325             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create debug texture: 0x%x&quot;</span>, hr);
-<a name="l01326"></a>01326 
-<a name="l01327"></a>01327             <span class="keywordflow">switch</span>(hr) {
-<a name="l01328"></a>01328             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
-<a name="l01329"></a>01329                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
-<a name="l01330"></a>01330                 <span class="keywordflow">break</span>;
-<a name="l01331"></a>01331             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
-<a name="l01332"></a>01332                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
-<a name="l01333"></a>01333                 <span class="keywordflow">break</span>;
-<a name="l01334"></a>01334             <span class="keywordflow">case</span> E_OUTOFMEMORY:
-<a name="l01335"></a>01335                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
-<a name="l01336"></a>01336                 <span class="keywordflow">break</span>;
-<a name="l01337"></a>01337             <span class="keywordflow">default</span>:
-<a name="l01338"></a>01338                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
-<a name="l01339"></a>01339             }
-<a name="l01340"></a>01340             <span class="keywordflow">return</span> E_FAIL;
-<a name="l01341"></a>01341         }
-<a name="l01342"></a>01342 <span class="preprocessor">#endif  // LOG_D3D</span>
-<a name="l01343"></a>01343 <span class="preprocessor"></span>
-<a name="l01344"></a>01344         <span class="comment">// Set textures</span>
-<a name="l01345"></a>01345         <span class="keywordflow">if</span>(FAILED(psEffect-&gt;SetTextures(lpTexture, lpWorkTexture1, lpWorkTexture2, lpHq2xLookupTexture))) {
-<a name="l01346"></a>01346             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to set PS textures&quot;</span>);
-<a name="l01347"></a>01347             <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01348"></a>01348         }
-<a name="l01349"></a>01349 
-<a name="l01350"></a>01350     }
-<a name="l01351"></a>01351 <span class="preprocessor">#endif  // C_D3DSHADERS</span>
-<a name="l01352"></a>01352 <span class="preprocessor"></span>
-<a name="l01353"></a>01353     <span class="keywordflow">return</span> S_OK;
-<a name="l01354"></a>01354 }
-<a name="l01355"></a>01355 
-<a name="l01356"></a>01356 HRESULT CDirect3D::CreateVertex(<span class="keywordtype">void</span>)
-<a name="l01357"></a>01357 {
-<a name="l01358"></a>01358     TLVERTEX* vertices;
-<a name="l01359"></a>01359 
-<a name="l01360"></a>01360     <span class="comment">// Texture coordinates</span>
-<a name="l01361"></a>01361     <span class="keywordtype">float</span> sizex=1.0f, sizey=1.0f;
-<a name="l01362"></a>01362 
-<a name="l01363"></a>01363     <span class="comment">// If texture is larger than DOSBox FB</span>
-<a name="l01364"></a>01364     <span class="keywordflow">if</span>(dwTexWidth != dwWidth)
-<a name="l01365"></a>01365         sizex = (float)dwWidth/dwTexWidth;
-<a name="l01366"></a>01366     <span class="keywordflow">if</span>(dwTexHeight != dwHeight)
-<a name="l01367"></a>01367         sizey = (float)dwHeight/dwTexHeight;
-<a name="l01368"></a>01368 
-<a name="l01369"></a>01369 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01370"></a>01370 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Quad size: %dx%d, tex. coord.: 0,0--&gt;%.2f,%.2f&quot;</span>, dwWidth, dwHeight, sizex, sizey);
-<a name="l01371"></a>01371 <span class="preprocessor">#endif</span>
-<a name="l01372"></a>01372 <span class="preprocessor"></span>
-<a name="l01373"></a>01373     <span class="comment">// Lock the vertex buffer</span>
-<a name="l01374"></a>01374     vertexBuffer-&gt;Lock(0, 0, (<span class="keywordtype">void</span>**)&amp;vertices, 0);
-<a name="l01375"></a>01375 
-<a name="l01376"></a>01376     <span class="comment">//Setup vertices</span>
-<a name="l01377"></a>01377     vertices[0].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)dwX,                                       (<span class="keywordtype">float</span>)dwY,                                    0.0f );
-<a name="l01378"></a>01378     vertices[0].diffuse  = 0xFFFFFFFF;
-<a name="l01379"></a>01379     vertices[0].texcoord = D3DXVECTOR2( 0.0f,                                             0.0f );
+<a name="l01207"></a>01207         <span class="keywordflow">for</span>(Bitu lines = dwTexHeight; lines; lines--) {
+<a name="l01208"></a>01208             memset(pixels, 0, (dwTexWidth&lt;&lt;2)&gt;&gt;(bpp16?1:0));
+<a name="l01209"></a>01209             pixels += d3dlr.Pitch;
+<a name="l01210"></a>01210         }
+<a name="l01211"></a>01211 
+<a name="l01212"></a>01212         lpTexture-&gt;UnlockRect(0);
+<a name="l01213"></a>01213     }
+<a name="l01214"></a>01214 
+<a name="l01215"></a>01215     d3dlr.pBits = NULL;
+<a name="l01216"></a>01216     RECT rect;
+<a name="l01217"></a>01217 
+<a name="l01218"></a>01218     rect.left = rect.top = 0;
+<a name="l01219"></a>01219     rect.right = dwTexWidth; rect.bottom = dwTexHeight;
+<a name="l01220"></a>01220     lpTexture-&gt;AddDirtyRect(&amp;rect);
+<a name="l01221"></a>01221 
+<a name="l01222"></a>01222 <span class="preprocessor">#if C_D3DSHADERS</span>
+<a name="l01223"></a>01223 <span class="preprocessor"></span>    <span class="keywordflow">if</span>(psActive) {
+<a name="l01224"></a>01224         <span class="comment">// Working textures for pixel shader</span>
+<a name="l01225"></a>01225         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
+<a name="l01226"></a>01226                             D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &amp;lpWorkTexture1, NULL))) {
+<a name="l01227"></a>01227             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create working texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01228"></a>01228 
+<a name="l01229"></a>01229             <span class="keywordflow">switch</span>(hr) {
+<a name="l01230"></a>01230             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01231"></a>01231                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01232"></a>01232                 <span class="keywordflow">break</span>;
+<a name="l01233"></a>01233             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
+<a name="l01234"></a>01234                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
+<a name="l01235"></a>01235                 <span class="keywordflow">break</span>;
+<a name="l01236"></a>01236             <span class="keywordflow">case</span> E_OUTOFMEMORY:
+<a name="l01237"></a>01237                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
+<a name="l01238"></a>01238                 <span class="keywordflow">break</span>;
+<a name="l01239"></a>01239             <span class="keywordflow">default</span>:
+<a name="l01240"></a>01240                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01241"></a>01241             }
+<a name="l01242"></a>01242             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01243"></a>01243         }
+<a name="l01244"></a>01244 
+<a name="l01245"></a>01245         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
+<a name="l01246"></a>01246                             D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &amp;lpWorkTexture2, NULL))) {
+<a name="l01247"></a>01247             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create working texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01248"></a>01248 
+<a name="l01249"></a>01249             <span class="keywordflow">switch</span>(hr) {
+<a name="l01250"></a>01250             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01251"></a>01251                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01252"></a>01252                 <span class="keywordflow">break</span>;
+<a name="l01253"></a>01253             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
+<a name="l01254"></a>01254                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
+<a name="l01255"></a>01255                 <span class="keywordflow">break</span>;
+<a name="l01256"></a>01256             <span class="keywordflow">case</span> E_OUTOFMEMORY:
+<a name="l01257"></a>01257                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
+<a name="l01258"></a>01258                 <span class="keywordflow">break</span>;
+<a name="l01259"></a>01259             <span class="keywordflow">default</span>:
+<a name="l01260"></a>01260                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01261"></a>01261             }
+<a name="l01262"></a>01262             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01263"></a>01263         }
+<a name="l01264"></a>01264 
+<a name="l01265"></a>01265         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateVolumeTexture(256, 16, 256, 1, 0, D3DFMT_A8R8G8B8,
+<a name="l01266"></a>01266                             D3DPOOL_MANAGED, &amp;lpHq2xLookupTexture, NULL))) {
+<a name="l01267"></a>01267             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01268"></a>01268 
+<a name="l01269"></a>01269             <span class="keywordflow">switch</span>(hr) {
+<a name="l01270"></a>01270             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01271"></a>01271                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01272"></a>01272                 <span class="keywordflow">break</span>;
+<a name="l01273"></a>01273             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
+<a name="l01274"></a>01274                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
+<a name="l01275"></a>01275                 <span class="keywordflow">break</span>;
+<a name="l01276"></a>01276             <span class="keywordflow">case</span> E_OUTOFMEMORY:
+<a name="l01277"></a>01277                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
+<a name="l01278"></a>01278                 <span class="keywordflow">break</span>;
+<a name="l01279"></a>01279             <span class="keywordflow">default</span>:
+<a name="l01280"></a>01280                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01281"></a>01281             }
+<a name="l01282"></a>01282             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01283"></a>01283         }
+<a name="l01284"></a>01284 
+<a name="l01285"></a>01285         <span class="comment">// build lookup table</span>
+<a name="l01286"></a>01286         D3DLOCKED_BOX lockedBox;
+<a name="l01287"></a>01287 
+<a name="l01288"></a>01288         <span class="keywordflow">if</span>(FAILED(hr = lpHq2xLookupTexture-&gt;LockBox(0, &amp;lockedBox, NULL, 0))) {
+<a name="l01289"></a>01289             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to lock box of volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01290"></a>01290 
+<a name="l01291"></a>01291             <span class="keywordflow">switch</span>(hr) {
+<a name="l01292"></a>01292                 <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01293"></a>01293                     LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01294"></a>01294                     <span class="keywordflow">break</span>;
+<a name="l01295"></a>01295                 <span class="keywordflow">default</span>:
+<a name="l01296"></a>01296                     LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01297"></a>01297             }
+<a name="l01298"></a>01298             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01299"></a>01299         }
+<a name="l01300"></a>01300 
+<a name="l01301"></a>01301         BuildHq2xLookupTexture(dwScaledWidth, dwScaledHeight, dwWidth, dwHeight, (Bit8u *)lockedBox.pBits);
+<a name="l01302"></a>01302 
+<a name="l01303"></a>01303 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01304"></a>01304 <span class="preprocessor"></span>        <span class="comment">// Debug: Write look-up texture to file</span>
+<a name="l01305"></a>01305         <span class="keywordtype">int</span> fd = _open(<span class="stringliteral">&quot;hq2xLookupTexture.pam&quot;</span>,_O_WRONLY|_O_CREAT|_O_TRUNC|_O_BINARY,0666);
+<a name="l01306"></a>01306         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> table[4096] = HQ2X_D3D_TABLE_DATA;
+<a name="l01307"></a>01307         sprintf((<span class="keywordtype">char</span> *)table,<span class="stringliteral">&quot;P7\nWIDTH %i\nHEIGHT %i\nMAXVAL 255\nDEPTH 4\nTUPLTYPE RGB_ALPHA\nENDHDR\n&quot;</span>,16*HQ2X_RESOLUTION,4096/16*HQ2X_RESOLUTION);
+<a name="l01308"></a>01308         write(fd,table,strlen((<span class="keywordtype">char</span> *)table));
+<a name="l01309"></a>01309         write(fd, lockedBox.pBits, HQ2X_RESOLUTION * HQ2X_RESOLUTION * 4096 * 4);
+<a name="l01310"></a>01310         _close(fd);
+<a name="l01311"></a>01311 <span class="preprocessor">#endif</span>
+<a name="l01312"></a>01312 <span class="preprocessor"></span>
+<a name="l01313"></a>01313         <span class="keywordflow">if</span>(FAILED(hr = lpHq2xLookupTexture-&gt;UnlockBox(0))) {
+<a name="l01314"></a>01314             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to unlock box of volume texture: 0x%lx&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)hr);
+<a name="l01315"></a>01315 
+<a name="l01316"></a>01316             <span class="keywordflow">switch</span>(hr) {
+<a name="l01317"></a>01317                 <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01318"></a>01318                     LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01319"></a>01319                     <span class="keywordflow">break</span>;
+<a name="l01320"></a>01320                 <span class="keywordflow">default</span>:
+<a name="l01321"></a>01321                     LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01322"></a>01322             }
+<a name="l01323"></a>01323             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01324"></a>01324         }
+<a name="l01325"></a>01325 
+<a name="l01326"></a>01326 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01327"></a>01327 <span class="preprocessor"></span>        <span class="comment">// Debug texture for pixel shader</span>
+<a name="l01328"></a>01328         <span class="keywordflow">if</span>(FAILED(hr=pD3DDevice9-&gt;CreateTexture(dwTexWidth, dwTexHeight, 1, 0, D3DFMT_A8R8G8B8,
+<a name="l01329"></a>01329                             D3DPOOL_SYSTEMMEM, &amp;lpDebugTexture, NULL))) {
+<a name="l01330"></a>01330             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to create debug texture: 0x%x&quot;</span>, hr);
+<a name="l01331"></a>01331 
+<a name="l01332"></a>01332             <span class="keywordflow">switch</span>(hr) {
+<a name="l01333"></a>01333             <span class="keywordflow">case</span> D3DERR_INVALIDCALL:
+<a name="l01334"></a>01334                 LOG_MSG(<span class="stringliteral">&quot;D3D:Invalid call&quot;</span>);
+<a name="l01335"></a>01335                 <span class="keywordflow">break</span>;
+<a name="l01336"></a>01336             <span class="keywordflow">case</span> D3DERR_OUTOFVIDEOMEMORY:
+<a name="l01337"></a>01337                 LOG_MSG(<span class="stringliteral">&quot;D3D:D3DERR_OUTOFVIDEOMEMORY&quot;</span>);
+<a name="l01338"></a>01338                 <span class="keywordflow">break</span>;
+<a name="l01339"></a>01339             <span class="keywordflow">case</span> E_OUTOFMEMORY:
+<a name="l01340"></a>01340                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_OUTOFMEMORY&quot;</span>);
+<a name="l01341"></a>01341                 <span class="keywordflow">break</span>;
+<a name="l01342"></a>01342             <span class="keywordflow">default</span>:
+<a name="l01343"></a>01343                 LOG_MSG(<span class="stringliteral">&quot;D3D:E_UNKNOWN&quot;</span>);
+<a name="l01344"></a>01344             }
+<a name="l01345"></a>01345             <span class="keywordflow">return</span> E_FAIL;
+<a name="l01346"></a>01346         }
+<a name="l01347"></a>01347 <span class="preprocessor">#endif  // LOG_D3D</span>
+<a name="l01348"></a>01348 <span class="preprocessor"></span>
+<a name="l01349"></a>01349         <span class="comment">// Set textures</span>
+<a name="l01350"></a>01350         <span class="keywordflow">if</span>(FAILED(psEffect-&gt;SetTextures(lpTexture, lpWorkTexture1, lpWorkTexture2, lpHq2xLookupTexture))) {
+<a name="l01351"></a>01351             LOG_MSG(<span class="stringliteral">&quot;D3D:Failed to set PS textures&quot;</span>);
+<a name="l01352"></a>01352             <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01353"></a>01353         }
+<a name="l01354"></a>01354 
+<a name="l01355"></a>01355     }
+<a name="l01356"></a>01356 <span class="preprocessor">#endif  // C_D3DSHADERS</span>
+<a name="l01357"></a>01357 <span class="preprocessor"></span>
+<a name="l01358"></a>01358     <span class="keywordflow">return</span> S_OK;
+<a name="l01359"></a>01359 }
+<a name="l01360"></a>01360 
+<a name="l01361"></a>01361 HRESULT CDirect3D::CreateVertex(<span class="keywordtype">void</span>)
+<a name="l01362"></a>01362 {
+<a name="l01363"></a>01363     TLVERTEX* vertices;
+<a name="l01364"></a>01364 
+<a name="l01365"></a>01365     <span class="comment">// Texture coordinates</span>
+<a name="l01366"></a>01366     <span class="keywordtype">float</span> sizex=1.0f, sizey=1.0f;
+<a name="l01367"></a>01367 
+<a name="l01368"></a>01368     <span class="comment">// If texture is larger than DOSBox FB</span>
+<a name="l01369"></a>01369     <span class="keywordflow">if</span>(dwTexWidth != dwWidth)
+<a name="l01370"></a>01370         sizex = (float)dwWidth/dwTexWidth;
+<a name="l01371"></a>01371     <span class="keywordflow">if</span>(dwTexHeight != dwHeight)
+<a name="l01372"></a>01372         sizey = (float)dwHeight/dwTexHeight;
+<a name="l01373"></a>01373 
+<a name="l01374"></a>01374 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01375"></a>01375 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Quad size: %dx%d, tex. coord.: 0,0--&gt;%.2f,%.2f&quot;</span>, dwWidth, dwHeight, sizex, sizey);
+<a name="l01376"></a>01376 <span class="preprocessor">#endif</span>
+<a name="l01377"></a>01377 <span class="preprocessor"></span>
+<a name="l01378"></a>01378     <span class="comment">// Lock the vertex buffer</span>
+<a name="l01379"></a>01379     vertexBuffer-&gt;Lock(0, 0, (<span class="keywordtype">void</span>**)&amp;vertices, 0);
 <a name="l01380"></a>01380 
-<a name="l01381"></a>01381     vertices[1].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)dwX,                                       (<span class="keywordtype">float</span>)(dwY + dwScaledHeight), 0.0f );
-<a name="l01382"></a>01382     vertices[1].diffuse  = 0xFFFFFFFF;
-<a name="l01383"></a>01383     vertices[1].texcoord = D3DXVECTOR2( 0.0f,                                             (<span class="keywordtype">float</span>)sizey );
-<a name="l01384"></a>01384     
-<a name="l01385"></a>01385     vertices[2].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)(dwX + dwScaledWidth), (<span class="keywordtype">float</span>)dwY,                                    0.0f );
-<a name="l01386"></a>01386     vertices[2].diffuse  = 0xFFFFFFFF;
-<a name="l01387"></a>01387     vertices[2].texcoord = D3DXVECTOR2( (<span class="keywordtype">float</span>)sizex,                             0.0f );
-<a name="l01388"></a>01388     
-<a name="l01389"></a>01389     vertices[3].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)(dwX + dwScaledWidth), (<span class="keywordtype">float</span>)(dwY + dwScaledHeight), 0.0f );
-<a name="l01390"></a>01390     vertices[3].diffuse  = 0xFFFFFFFF;
-<a name="l01391"></a>01391     vertices[3].texcoord = D3DXVECTOR2( (<span class="keywordtype">float</span>)sizex,                             (<span class="keywordtype">float</span>)sizey );
-<a name="l01392"></a>01392 
-<a name="l01393"></a>01393     <span class="comment">// Additional vertices required for some PS effects</span>
-<a name="l01394"></a>01394     <span class="comment">// FIXME: Recent changes may have BROKEN pixel shader support here!!!!!</span>
-<a name="l01395"></a>01395     <span class="keywordflow">if</span>(preProcess) {
-<a name="l01396"></a>01396         vertices[4].position = D3DXVECTOR3( 0.0f, 0.0f, 0.0f);
-<a name="l01397"></a>01397         vertices[4].diffuse  = 0xFFFFFF00;
-<a name="l01398"></a>01398         vertices[4].texcoord = D3DXVECTOR2( 0.0f, 1.0f);
-<a name="l01399"></a>01399         vertices[5].position = D3DXVECTOR3( 0.0f, 1.0f, 0.0f);
-<a name="l01400"></a>01400         vertices[5].diffuse  = 0xFFFFFF00;
-<a name="l01401"></a>01401         vertices[5].texcoord = D3DXVECTOR2( 0.0f, 0.0f);
-<a name="l01402"></a>01402         vertices[6].position = D3DXVECTOR3( 1.0f, 0.0f, 0.0f);
-<a name="l01403"></a>01403         vertices[6].diffuse  = 0xFFFFFF00;
-<a name="l01404"></a>01404         vertices[6].texcoord = D3DXVECTOR2( 1.0f, 1.0f);
-<a name="l01405"></a>01405         vertices[7].position = D3DXVECTOR3( 1.0f, 1.0f, 0.0f);
-<a name="l01406"></a>01406         vertices[7].diffuse  = 0xFFFFFF00;
-<a name="l01407"></a>01407         vertices[7].texcoord = D3DXVECTOR2( 1.0f, 0.0f);
-<a name="l01408"></a>01408     }
-<a name="l01409"></a>01409 
-<a name="l01410"></a>01410     <span class="comment">// Unlock the vertex buffer</span>
-<a name="l01411"></a>01411     vertexBuffer-&gt;Unlock();
-<a name="l01412"></a>01412 
-<a name="l01413"></a>01413     <span class="keywordflow">return</span> S_OK;
-<a name="l01414"></a>01414 }
-<a name="l01415"></a>01415 
-<a name="l01416"></a>01416 <span class="keywordtype">void</span> CDirect3D::SetupSceneScaled(<span class="keywordtype">void</span>)
-<a name="l01417"></a>01417 {
-<a name="l01418"></a>01418         <span class="comment">// TODO: It would probably be nicer to offer an option here whether the user wants</span>
-<a name="l01419"></a>01419         <span class="comment">//               point sampling (D3DTEXF_POINT) or linear interpolation (D3DTEXF_LINEAR) when scaling up/down.</span>
-<a name="l01420"></a>01420     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-<a name="l01421"></a>01421     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-<a name="l01422"></a>01422     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-<a name="l01423"></a>01423     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
-<a name="l01424"></a>01424     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-<a name="l01425"></a>01425     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-<a name="l01426"></a>01426     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-<a name="l01427"></a>01427     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-<a name="l01428"></a>01428     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
-<a name="l01429"></a>01429 
-<a name="l01430"></a>01430     D3DVIEWPORT9 Viewport;
-<a name="l01431"></a>01431     pD3DDevice9-&gt;GetViewport(&amp;Viewport);
-<a name="l01432"></a>01432 
-<a name="l01433"></a>01433     <span class="comment">// Projection is screenspace coords</span>
-<a name="l01434"></a>01434     D3DXMatrixOrthoOffCenterLH(&amp;m_matProj, 0.0f, (<span class="keywordtype">float</span>)Viewport.Width, 0.0f, (<span class="keywordtype">float</span>)Viewport.Height, 0.0f, 1.0f);
-<a name="l01435"></a>01435     {
-<a name="l01436"></a>01436             D3DXMATRIX x;
-<a name="l01437"></a>01437             D3DXMatrixScaling(&amp;x, 1.0f, -1.0f, 1.0f);
-<a name="l01438"></a>01438             m_matProj *= x;
-<a name="l01439"></a>01439     }
-<a name="l01440"></a>01440 
-<a name="l01441"></a>01441     <span class="comment">// View matrix with -0.5f offset to avoid a fuzzy picture</span>
-<a name="l01442"></a>01442     D3DXMatrixTranslation(&amp;m_matView, -0.5f, -0.5f, 0.0f);
-<a name="l01443"></a>01443 
-<a name="l01444"></a>01444     <span class="comment">// TODO: Re-implement 5:4 monitor autofit</span>
+<a name="l01381"></a>01381     <span class="comment">//Setup vertices</span>
+<a name="l01382"></a>01382     vertices[0].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)dwX,                                       (<span class="keywordtype">float</span>)dwY,                                    0.0f );
+<a name="l01383"></a>01383     vertices[0].diffuse  = 0xFFFFFFFF;
+<a name="l01384"></a>01384     vertices[0].texcoord = D3DXVECTOR2( 0.0f,                                             0.0f );
+<a name="l01385"></a>01385 
+<a name="l01386"></a>01386     vertices[1].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)dwX,                                       (<span class="keywordtype">float</span>)(dwY + dwScaledHeight), 0.0f );
+<a name="l01387"></a>01387     vertices[1].diffuse  = 0xFFFFFFFF;
+<a name="l01388"></a>01388     vertices[1].texcoord = D3DXVECTOR2( 0.0f,                                             (<span class="keywordtype">float</span>)sizey );
+<a name="l01389"></a>01389     
+<a name="l01390"></a>01390     vertices[2].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)(dwX + dwScaledWidth), (<span class="keywordtype">float</span>)dwY,                                    0.0f );
+<a name="l01391"></a>01391     vertices[2].diffuse  = 0xFFFFFFFF;
+<a name="l01392"></a>01392     vertices[2].texcoord = D3DXVECTOR2( (<span class="keywordtype">float</span>)sizex,                             0.0f );
+<a name="l01393"></a>01393     
+<a name="l01394"></a>01394     vertices[3].position = D3DXVECTOR3( (<span class="keywordtype">float</span>)(dwX + dwScaledWidth), (<span class="keywordtype">float</span>)(dwY + dwScaledHeight), 0.0f );
+<a name="l01395"></a>01395     vertices[3].diffuse  = 0xFFFFFFFF;
+<a name="l01396"></a>01396     vertices[3].texcoord = D3DXVECTOR2( (<span class="keywordtype">float</span>)sizex,                             (<span class="keywordtype">float</span>)sizey );
+<a name="l01397"></a>01397 
+<a name="l01398"></a>01398     <span class="comment">// Additional vertices required for some PS effects</span>
+<a name="l01399"></a>01399     <span class="comment">// FIXME: Recent changes may have BROKEN pixel shader support here!!!!!</span>
+<a name="l01400"></a>01400     <span class="keywordflow">if</span>(preProcess) {
+<a name="l01401"></a>01401         vertices[4].position = D3DXVECTOR3( 0.0f, 0.0f, 0.0f);
+<a name="l01402"></a>01402         vertices[4].diffuse  = 0xFFFFFF00;
+<a name="l01403"></a>01403         vertices[4].texcoord = D3DXVECTOR2( 0.0f, 1.0f);
+<a name="l01404"></a>01404         vertices[5].position = D3DXVECTOR3( 0.0f, 1.0f, 0.0f);
+<a name="l01405"></a>01405         vertices[5].diffuse  = 0xFFFFFF00;
+<a name="l01406"></a>01406         vertices[5].texcoord = D3DXVECTOR2( 0.0f, 0.0f);
+<a name="l01407"></a>01407         vertices[6].position = D3DXVECTOR3( 1.0f, 0.0f, 0.0f);
+<a name="l01408"></a>01408         vertices[6].diffuse  = 0xFFFFFF00;
+<a name="l01409"></a>01409         vertices[6].texcoord = D3DXVECTOR2( 1.0f, 1.0f);
+<a name="l01410"></a>01410         vertices[7].position = D3DXVECTOR3( 1.0f, 1.0f, 0.0f);
+<a name="l01411"></a>01411         vertices[7].diffuse  = 0xFFFFFF00;
+<a name="l01412"></a>01412         vertices[7].texcoord = D3DXVECTOR2( 1.0f, 0.0f);
+<a name="l01413"></a>01413     }
+<a name="l01414"></a>01414 
+<a name="l01415"></a>01415     <span class="comment">// Unlock the vertex buffer</span>
+<a name="l01416"></a>01416     vertexBuffer-&gt;Unlock();
+<a name="l01417"></a>01417 
+<a name="l01418"></a>01418     <span class="keywordflow">return</span> S_OK;
+<a name="l01419"></a>01419 }
+<a name="l01420"></a>01420 
+<a name="l01421"></a>01421 <span class="keywordtype">void</span> CDirect3D::SetupSceneScaled(<span class="keywordtype">void</span>)
+<a name="l01422"></a>01422 {
+<a name="l01423"></a>01423         <span class="comment">// TODO: It would probably be nicer to offer an option here whether the user wants</span>
+<a name="l01424"></a>01424         <span class="comment">//               point sampling (D3DTEXF_POINT) or linear interpolation (D3DTEXF_LINEAR) when scaling up/down.</span>
+<a name="l01425"></a>01425     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
+<a name="l01426"></a>01426     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+<a name="l01427"></a>01427     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+<a name="l01428"></a>01428     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
+<a name="l01429"></a>01429     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+<a name="l01430"></a>01430     pD3DDevice9-&gt;SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+<a name="l01431"></a>01431     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+<a name="l01432"></a>01432     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+<a name="l01433"></a>01433     pD3DDevice9-&gt;SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+<a name="l01434"></a>01434 
+<a name="l01435"></a>01435     D3DVIEWPORT9 Viewport;
+<a name="l01436"></a>01436     pD3DDevice9-&gt;GetViewport(&amp;Viewport);
+<a name="l01437"></a>01437 
+<a name="l01438"></a>01438     <span class="comment">// Projection is screenspace coords</span>
+<a name="l01439"></a>01439     D3DXMatrixOrthoOffCenterLH(&amp;m_matProj, 0.0f, (<span class="keywordtype">float</span>)Viewport.Width, 0.0f, (<span class="keywordtype">float</span>)Viewport.Height, 0.0f, 1.0f);
+<a name="l01440"></a>01440     {
+<a name="l01441"></a>01441             D3DXMATRIX x;
+<a name="l01442"></a>01442             D3DXMatrixScaling(&amp;x, 1.0f, -1.0f, 1.0f);
+<a name="l01443"></a>01443             m_matProj *= x;
+<a name="l01444"></a>01444     }
 <a name="l01445"></a>01445 
-<a name="l01446"></a>01446 <span class="preprocessor">#if LOG_D3D</span>
-<a name="l01447"></a>01447 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Scaled resolution: %.1fx%.1f, factor: %dx%d&quot;</span>, sizex, sizey, x, y);
-<a name="l01448"></a>01448 <span class="preprocessor">#endif</span>
-<a name="l01449"></a>01449 <span class="preprocessor"></span>
-<a name="l01450"></a>01450     D3DXMatrixScaling(&amp;m_matWorld, 1.0, 1.0, 1.0f);
-<a name="l01451"></a>01451 }
-<a name="l01452"></a>01452 
-<a name="l01453"></a>01453 <span class="preprocessor">#if !(C_D3DSHADERS)</span>
+<a name="l01446"></a>01446     <span class="comment">// View matrix with -0.5f offset to avoid a fuzzy picture</span>
+<a name="l01447"></a>01447     D3DXMatrixTranslation(&amp;m_matView, -0.5f, -0.5f, 0.0f);
+<a name="l01448"></a>01448 
+<a name="l01449"></a>01449     <span class="comment">// TODO: Re-implement 5:4 monitor autofit</span>
+<a name="l01450"></a>01450 
+<a name="l01451"></a>01451 <span class="preprocessor">#if LOG_D3D</span>
+<a name="l01452"></a>01452 <span class="preprocessor"></span>    LOG_MSG(<span class="stringliteral">&quot;D3D:Scaled resolution: %.1fx%.1f, factor: %dx%d&quot;</span>, sizex, sizey, x, y);
+<a name="l01453"></a>01453 <span class="preprocessor">#endif</span>
 <a name="l01454"></a>01454 <span class="preprocessor"></span>
-<a name="l01455"></a>01455 D3DXMATRIX* CDirect3D::MatrixOrthoOffCenterLH(D3DXMATRIX *pOut, <span class="keywordtype">float</span> l, <span class="keywordtype">float</span> r, <span class="keywordtype">float</span> b, <span class="keywordtype">float</span> t, <span class="keywordtype">float</span> zn, <span class="keywordtype">float</span> zf)
-<a name="l01456"></a>01456 {
-<a name="l01457"></a>01457     pOut-&gt;_11=2.0f/r; pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
-<a name="l01458"></a>01458     pOut-&gt;_21=0.0f;   pOut-&gt;_22=2.0f/t; pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
-<a name="l01459"></a>01459     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
-<a name="l01460"></a>01460     pOut-&gt;_41=-1.0f;  pOut-&gt;_42=-1.0f;  pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
-<a name="l01461"></a>01461 
-<a name="l01462"></a>01462     <span class="keywordflow">return</span> pOut;
-<a name="l01463"></a>01463 }
-<a name="l01464"></a>01464 
-<a name="l01465"></a>01465 D3DXMATRIX* CDirect3D::MatrixScaling(D3DXMATRIX *pOut, <span class="keywordtype">float</span> sx, <span class="keywordtype">float</span> sy, <span class="keywordtype">float</span> sz)
-<a name="l01466"></a>01466 {
-<a name="l01467"></a>01467     pOut-&gt;_11=sx;     pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
-<a name="l01468"></a>01468     pOut-&gt;_21=0.0f;   pOut-&gt;_22=sy;     pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
-<a name="l01469"></a>01469     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=sz;    pOut-&gt;_34=0.0f;
-<a name="l01470"></a>01470     pOut-&gt;_41=0.0f;   pOut-&gt;_42=0.0f;   pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
-<a name="l01471"></a>01471 
-<a name="l01472"></a>01472     <span class="keywordflow">return</span> pOut;
-<a name="l01473"></a>01473 }
-<a name="l01474"></a>01474 
-<a name="l01475"></a>01475 D3DXMATRIX* CDirect3D::MatrixTranslation(D3DXMATRIX *pOut, <span class="keywordtype">float</span> tx, <span class="keywordtype">float</span> ty, <span class="keywordtype">float</span> tz)
-<a name="l01476"></a>01476 {
-<a name="l01477"></a>01477     pOut-&gt;_11=1.0f;   pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
-<a name="l01478"></a>01478     pOut-&gt;_21=0.0f;   pOut-&gt;_22=1.0f;   pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
-<a name="l01479"></a>01479     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
-<a name="l01480"></a>01480     pOut-&gt;_41=tx;     pOut-&gt;_42=ty;     pOut-&gt;_43=tz;    pOut-&gt;_44=1.0f;
-<a name="l01481"></a>01481 
-<a name="l01482"></a>01482     <span class="keywordflow">return</span> pOut;
-<a name="l01483"></a>01483 }
-<a name="l01484"></a>01484 
-<a name="l01485"></a>01485 <span class="preprocessor">#endif  // !(C_D3DSHADERS)</span>
-<a name="l01486"></a>01486 <span class="preprocessor"></span>
-<a name="l01487"></a>01487 <span class="preprocessor">#endif  // (HAVE_D3D9_H)</span>
+<a name="l01455"></a>01455     D3DXMatrixScaling(&amp;m_matWorld, 1.0, 1.0, 1.0f);
+<a name="l01456"></a>01456 }
+<a name="l01457"></a>01457 
+<a name="l01458"></a>01458 <span class="preprocessor">#if !(C_D3DSHADERS)</span>
+<a name="l01459"></a>01459 <span class="preprocessor"></span>
+<a name="l01460"></a>01460 D3DXMATRIX* CDirect3D::MatrixOrthoOffCenterLH(D3DXMATRIX *pOut, <span class="keywordtype">float</span> l, <span class="keywordtype">float</span> r, <span class="keywordtype">float</span> b, <span class="keywordtype">float</span> t, <span class="keywordtype">float</span> zn, <span class="keywordtype">float</span> zf)
+<a name="l01461"></a>01461 {
+<a name="l01462"></a>01462     pOut-&gt;_11=2.0f/r; pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
+<a name="l01463"></a>01463     pOut-&gt;_21=0.0f;   pOut-&gt;_22=2.0f/t; pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
+<a name="l01464"></a>01464     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
+<a name="l01465"></a>01465     pOut-&gt;_41=-1.0f;  pOut-&gt;_42=-1.0f;  pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
+<a name="l01466"></a>01466 
+<a name="l01467"></a>01467     <span class="keywordflow">return</span> pOut;
+<a name="l01468"></a>01468 }
+<a name="l01469"></a>01469 
+<a name="l01470"></a>01470 D3DXMATRIX* CDirect3D::MatrixScaling(D3DXMATRIX *pOut, <span class="keywordtype">float</span> sx, <span class="keywordtype">float</span> sy, <span class="keywordtype">float</span> sz)
+<a name="l01471"></a>01471 {
+<a name="l01472"></a>01472     pOut-&gt;_11=sx;     pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
+<a name="l01473"></a>01473     pOut-&gt;_21=0.0f;   pOut-&gt;_22=sy;     pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
+<a name="l01474"></a>01474     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=sz;    pOut-&gt;_34=0.0f;
+<a name="l01475"></a>01475     pOut-&gt;_41=0.0f;   pOut-&gt;_42=0.0f;   pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
+<a name="l01476"></a>01476 
+<a name="l01477"></a>01477     <span class="keywordflow">return</span> pOut;
+<a name="l01478"></a>01478 }
+<a name="l01479"></a>01479 
+<a name="l01480"></a>01480 D3DXMATRIX* CDirect3D::MatrixTranslation(D3DXMATRIX *pOut, <span class="keywordtype">float</span> tx, <span class="keywordtype">float</span> ty, <span class="keywordtype">float</span> tz)
+<a name="l01481"></a>01481 {
+<a name="l01482"></a>01482     pOut-&gt;_11=1.0f;   pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
+<a name="l01483"></a>01483     pOut-&gt;_21=0.0f;   pOut-&gt;_22=1.0f;   pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
+<a name="l01484"></a>01484     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
+<a name="l01485"></a>01485     pOut-&gt;_41=tx;     pOut-&gt;_42=ty;     pOut-&gt;_43=tz;    pOut-&gt;_44=1.0f;
+<a name="l01486"></a>01486 
+<a name="l01487"></a>01487     <span class="keywordflow">return</span> pOut;
+<a name="l01488"></a>01488 }
+<a name="l01489"></a>01489 
+<a name="l01490"></a>01490 <span class="preprocessor">#endif  // !(C_D3DSHADERS)</span>
+<a name="l01491"></a>01491 <span class="preprocessor"></span>
+<a name="l01492"></a>01492 <span class="preprocessor">#endif  // (HAVE_D3D9_H)</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['c',['C',['../structfmath_1_1local_1_1C.html',1,'fmath::local']]],
   ['c4axisbindgroup',['C4AxisBindGroup',['../classC4AxisBindGroup.html',1,'']]],
-  ['cacheblock',['CacheBlock',['../classCacheBlock.html',1,'']]],
+  ['cacheblockdynrec',['CacheBlockDynRec',['../classCacheBlockDynRec.html',1,'']]],
   ['callback_5fhandlerobject',['CALLBACK_HandlerObject',['../classCALLBACK__HandlerObject.html',1,'']]],
   ['capmouse',['CAPMOUSE',['../classCAPMOUSE.html',1,'']]],
   ['capture',['Capture',['../classAdlib_1_1Capture.html',1,'Adlib']]],
@@ -26,6 +25,7 @@ var searchData=
   ['cfcsbindgroup',['CFCSBindGroup',['../classCFCSBindGroup.html',1,'']]],
   ['cfileinfo',['CFileInfo',['../classDOS__Drive__Cache_1_1CFileInfo.html',1,'DOS_Drive_Cache']]],
   ['cfilelpt',['CFileLPT',['../classCFileLPT.html',1,'']]],
+  ['cga_5flatch',['CGA_Latch',['../unionCGA__Latch.html',1,'']]],
   ['cgasnow',['CGASNOW',['../classCGASNOW.html',1,'']]],
   ['chandlerevent',['CHandlerEvent',['../classCHandlerEvent.html',1,'']]],
   ['changeable',['Changeable',['../structProperty_1_1Changeable.html',1,'Property']]],
@@ -48,7 +48,7 @@ var searchData=
   ['cms',['CMS',['../classCMS.html',1,'']]],
   ['cmscdex',['CMscdex',['../classCMscdex.html',1,'']]],
   ['codecinst',['CodecInst',['../classCodecInst.html',1,'']]],
-  ['codepagehandler',['CodePageHandler',['../classCodePageHandler.html',1,'']]],
+  ['codepagehandlerdynrec',['CodePageHandlerDynRec',['../classCodePageHandlerDynRec.html',1,'']]],
   ['comb',['comb',['../classcomb.html',1,'']]],
   ['combfilter',['CombFilter',['../classMT32Emu_1_1CombFilter.html',1,'MT32Emu']]],
   ['commandline',['CommandLine',['../classCommandLine.html',1,'']]],

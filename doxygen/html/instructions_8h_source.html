@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* Jumps */</span>
@@ -899,237 +899,243 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00802"></a>00802 <span class="preprocessor">{                                                                                                                       \</span>
 <a name="l00803"></a>00803 <span class="preprocessor">        reg_ax=((Bit8s)reg_al) * ((Bit8s)(load(op1)));                  \</span>
 <a name="l00804"></a>00804 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00805"></a>00805 <span class="preprocessor">        if ((reg_ax &amp; 0xff80)==0xff80 ||                                                \</span>
-<a name="l00806"></a>00806 <span class="preprocessor">                (reg_ax &amp; 0xff80)==0x0000) {                                            \</span>
-<a name="l00807"></a>00807 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00808"></a>00808 <span class="preprocessor">        } else {                                                                                                \</span>
-<a name="l00809"></a>00809 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
-<a name="l00810"></a>00810 <span class="preprocessor">        }                                                                                                               \</span>
-<a name="l00811"></a>00811 <span class="preprocessor">}</span>
-<a name="l00812"></a>00812 <span class="preprocessor"></span>        
-<a name="l00813"></a>00813 
-<a name="l00814"></a>00814 <span class="preprocessor">#define IMULW(op1,load,save)                                                            \</span>
-<a name="l00815"></a>00815 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00816"></a>00816 <span class="preprocessor">        Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));              \</span>
-<a name="l00817"></a>00817 <span class="preprocessor">        reg_ax=(Bit16u)(temps);                                                                 \</span>
-<a name="l00818"></a>00818 <span class="preprocessor">        reg_dx=(Bit16u)(temps &gt;&gt; 16);                                                   \</span>
-<a name="l00819"></a>00819 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00820"></a>00820 <span class="preprocessor">        if (((temps &amp; 0xffff8000)==0xffff8000 ||                                \</span>
-<a name="l00821"></a>00821 <span class="preprocessor">                (temps &amp; 0xffff8000)==0x0000)) {                                        \</span>
-<a name="l00822"></a>00822 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00823"></a>00823 <span class="preprocessor">        } else {                                                                                                \</span>
-<a name="l00824"></a>00824 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
-<a name="l00825"></a>00825 <span class="preprocessor">        }                                                                                                               \</span>
-<a name="l00826"></a>00826 <span class="preprocessor">}</span>
-<a name="l00827"></a>00827 <span class="preprocessor"></span>
-<a name="l00828"></a>00828 <span class="preprocessor">#define IMULD(op1,load,save)                                                            \</span>
-<a name="l00829"></a>00829 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00830"></a>00830 <span class="preprocessor">        Bit64s temps=((Bit64s)((Bit32s)reg_eax))*                               \</span>
-<a name="l00831"></a>00831 <span class="preprocessor">                                 ((Bit64s)((Bit32s)(load(op1))));                       \</span>
-<a name="l00832"></a>00832 <span class="preprocessor">        reg_eax=(Bit32u)(temps);                                                                \</span>
-<a name="l00833"></a>00833 <span class="preprocessor">        reg_edx=(Bit32u)(temps &gt;&gt; 32);                                                  \</span>
-<a name="l00834"></a>00834 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00835"></a>00835 <span class="preprocessor">        if ((reg_edx==0xffffffff) &amp;&amp;                                                    \</span>
-<a name="l00836"></a>00836 <span class="preprocessor">                (reg_eax &amp; 0x80000000) ) {                                                      \</span>
-<a name="l00837"></a>00837 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00838"></a>00838 <span class="preprocessor">        } else if ( (reg_edx==0x00000000) &amp;&amp;                                    \</span>
-<a name="l00839"></a>00839 <span class="preprocessor">                                (reg_eax&lt; 0x80000000) ) {                                       \</span>
-<a name="l00840"></a>00840 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00841"></a>00841 <span class="preprocessor">        } else {                                                                                                \</span>
-<a name="l00842"></a>00842 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
-<a name="l00843"></a>00843 <span class="preprocessor">        }                                                                                                               \</span>
-<a name="l00844"></a>00844 <span class="preprocessor">}</span>
-<a name="l00845"></a>00845 <span class="preprocessor"></span>
-<a name="l00846"></a>00846 <span class="preprocessor">#define DIMULW(op1,op2,op3,load,save)                                           \</span>
-<a name="l00847"></a>00847 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00848"></a>00848 <span class="preprocessor">        Bits res=((Bit16s)op2) * ((Bit16s)op3);                                 \</span>
-<a name="l00849"></a>00849 <span class="preprocessor">        save(op1,res &amp; 0xffff);                                                                 \</span>
-<a name="l00850"></a>00850 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00851"></a>00851 <span class="preprocessor">        if ((res&gt;= -32768)  &amp;&amp; (res&lt;=32767)) {                                  \</span>
-<a name="l00852"></a>00852 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00853"></a>00853 <span class="preprocessor">        } else {                                                                                                \</span>
-<a name="l00854"></a>00854 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
-<a name="l00855"></a>00855 <span class="preprocessor">        }                                                                                                               \</span>
-<a name="l00856"></a>00856 <span class="preprocessor">}</span>
-<a name="l00857"></a>00857 <span class="preprocessor"></span>
-<a name="l00858"></a>00858 <span class="preprocessor">#define DIMULD(op1,op2,op3,load,save)                                           \</span>
-<a name="l00859"></a>00859 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00860"></a>00860 <span class="preprocessor">        Bit64s res=((Bit64s)((Bit32s)op2))*((Bit64s)((Bit32s)op3));     \</span>
-<a name="l00861"></a>00861 <span class="preprocessor">        save(op1,(Bit32s)res);                                                                  \</span>
-<a name="l00862"></a>00862 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00863"></a>00863 <span class="preprocessor">        if ((res&gt;=-((Bit64s)(2147483647)+1)) &amp;&amp;                                 \</span>
-<a name="l00864"></a>00864 <span class="preprocessor">                (res&lt;=(Bit64s)2147483647)) {                                            \</span>
-<a name="l00865"></a>00865 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
-<a name="l00866"></a>00866 <span class="preprocessor">        } else {                                                                                                \</span>
-<a name="l00867"></a>00867 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
-<a name="l00868"></a>00868 <span class="preprocessor">        }                                                                                                               \</span>
-<a name="l00869"></a>00869 <span class="preprocessor">}</span>
-<a name="l00870"></a>00870 <span class="preprocessor"></span>
-<a name="l00871"></a>00871 <span class="preprocessor">#if CPU_CORE == CPU_ARCHTYPE_8086</span>
-<a name="l00872"></a>00872 <span class="preprocessor"></span><span class="preprocessor">#  define CPU_SHIFTOP_MASK(x,m) ((x) &amp; 0xff)</span>
-<a name="l00873"></a>00873 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00874"></a>00874 <span class="preprocessor"></span><span class="preprocessor">#  define CPU_SHIFTOP_MASK(x,m) ((x) &amp; 0x1f)</span>
-<a name="l00875"></a>00875 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00805"></a>00805 <span class="preprocessor">        SETFLAGBIT(ZF,reg_al == 0);                                                             \</span>
+<a name="l00806"></a>00806 <span class="preprocessor">        SETFLAGBIT(SF,reg_al &amp; 0x80);                                                   \</span>
+<a name="l00807"></a>00807 <span class="preprocessor">        if ((reg_ax &amp; 0xff80)==0xff80 ||                                                \</span>
+<a name="l00808"></a>00808 <span class="preprocessor">                (reg_ax &amp; 0xff80)==0x0000) {                                            \</span>
+<a name="l00809"></a>00809 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00810"></a>00810 <span class="preprocessor">        } else {                                                                                                \</span>
+<a name="l00811"></a>00811 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
+<a name="l00812"></a>00812 <span class="preprocessor">        }                                                                                                               \</span>
+<a name="l00813"></a>00813 <span class="preprocessor">}</span>
+<a name="l00814"></a>00814 <span class="preprocessor"></span>        
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816 <span class="preprocessor">#define IMULW(op1,load,save)                                                            \</span>
+<a name="l00817"></a>00817 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00818"></a>00818 <span class="preprocessor">        Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));              \</span>
+<a name="l00819"></a>00819 <span class="preprocessor">        reg_ax=(Bit16u)(temps);                                                                 \</span>
+<a name="l00820"></a>00820 <span class="preprocessor">        reg_dx=(Bit16u)(temps &gt;&gt; 16);                                                   \</span>
+<a name="l00821"></a>00821 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
+<a name="l00822"></a>00822 <span class="preprocessor">        SETFLAGBIT(ZF,reg_ax == 0);                                                             \</span>
+<a name="l00823"></a>00823 <span class="preprocessor">        SETFLAGBIT(SF,reg_ax &amp; 0x8000);                                                 \</span>
+<a name="l00824"></a>00824 <span class="preprocessor">        if ((((unsigned int)temps &amp; 0xffff8000)==0xffff8000 ||                          \</span>
+<a name="l00825"></a>00825 <span class="preprocessor">                ((unsigned int)temps &amp; 0xffff8000)==0x0000)) {                                  \</span>
+<a name="l00826"></a>00826 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00827"></a>00827 <span class="preprocessor">        } else {                                                                                                \</span>
+<a name="l00828"></a>00828 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
+<a name="l00829"></a>00829 <span class="preprocessor">        }                                                                                                               \</span>
+<a name="l00830"></a>00830 <span class="preprocessor">}</span>
+<a name="l00831"></a>00831 <span class="preprocessor"></span>
+<a name="l00832"></a>00832 <span class="preprocessor">#define IMULD(op1,load,save)                                                            \</span>
+<a name="l00833"></a>00833 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00834"></a>00834 <span class="preprocessor">        Bit64s temps=((Bit64s)((Bit32s)reg_eax))*                               \</span>
+<a name="l00835"></a>00835 <span class="preprocessor">                                 ((Bit64s)((Bit32s)(load(op1))));                       \</span>
+<a name="l00836"></a>00836 <span class="preprocessor">        reg_eax=(Bit32u)(temps);                                                                \</span>
+<a name="l00837"></a>00837 <span class="preprocessor">        reg_edx=(Bit32u)(temps &gt;&gt; 32);                                                  \</span>
+<a name="l00838"></a>00838 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
+<a name="l00839"></a>00839 <span class="preprocessor">        SETFLAGBIT(ZF,reg_eax == 0);                                                    \</span>
+<a name="l00840"></a>00840 <span class="preprocessor">        SETFLAGBIT(SF,reg_eax &amp; 0x80000000);                                    \</span>
+<a name="l00841"></a>00841 <span class="preprocessor">        if ((reg_edx==0xffffffff) &amp;&amp;                                                    \</span>
+<a name="l00842"></a>00842 <span class="preprocessor">                (reg_eax &amp; 0x80000000) ) {                                                      \</span>
+<a name="l00843"></a>00843 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00844"></a>00844 <span class="preprocessor">        } else if ( (reg_edx==0x00000000) &amp;&amp;                                    \</span>
+<a name="l00845"></a>00845 <span class="preprocessor">                                (reg_eax&lt; 0x80000000) ) {                                       \</span>
+<a name="l00846"></a>00846 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00847"></a>00847 <span class="preprocessor">        } else {                                                                                                \</span>
+<a name="l00848"></a>00848 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
+<a name="l00849"></a>00849 <span class="preprocessor">        }                                                                                                               \</span>
+<a name="l00850"></a>00850 <span class="preprocessor">}</span>
+<a name="l00851"></a>00851 <span class="preprocessor"></span>
+<a name="l00852"></a>00852 <span class="preprocessor">#define DIMULW(op1,op2,op3,load,save)                                           \</span>
+<a name="l00853"></a>00853 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00854"></a>00854 <span class="preprocessor">        Bits res=((Bit16s)op2) * ((Bit16s)op3);                                 \</span>
+<a name="l00855"></a>00855 <span class="preprocessor">        save(op1,res &amp; 0xffff);                                                                 \</span>
+<a name="l00856"></a>00856 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
+<a name="l00857"></a>00857 <span class="preprocessor">        if ((res&gt;= -32768)  &amp;&amp; (res&lt;=32767)) {                                  \</span>
+<a name="l00858"></a>00858 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00859"></a>00859 <span class="preprocessor">        } else {                                                                                                \</span>
+<a name="l00860"></a>00860 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
+<a name="l00861"></a>00861 <span class="preprocessor">        }                                                                                                               \</span>
+<a name="l00862"></a>00862 <span class="preprocessor">}</span>
+<a name="l00863"></a>00863 <span class="preprocessor"></span>
+<a name="l00864"></a>00864 <span class="preprocessor">#define DIMULD(op1,op2,op3,load,save)                                           \</span>
+<a name="l00865"></a>00865 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00866"></a>00866 <span class="preprocessor">        Bit64s res=((Bit64s)((Bit32s)op2))*((Bit64s)((Bit32s)op3));     \</span>
+<a name="l00867"></a>00867 <span class="preprocessor">        save(op1,(Bit32s)res);                                                                  \</span>
+<a name="l00868"></a>00868 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
+<a name="l00869"></a>00869 <span class="preprocessor">        if ((res&gt;=-((Bit64s)(2147483647)+1)) &amp;&amp;                                 \</span>
+<a name="l00870"></a>00870 <span class="preprocessor">                (res&lt;=(Bit64s)2147483647)) {                                            \</span>
+<a name="l00871"></a>00871 <span class="preprocessor">                SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);                      \</span>
+<a name="l00872"></a>00872 <span class="preprocessor">        } else {                                                                                                \</span>
+<a name="l00873"></a>00873 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
+<a name="l00874"></a>00874 <span class="preprocessor">        }                                                                                                               \</span>
+<a name="l00875"></a>00875 <span class="preprocessor">}</span>
 <a name="l00876"></a>00876 <span class="preprocessor"></span>
-<a name="l00877"></a>00877 <span class="comment">/* FIXME: For 8086 core we care mostly about whether or not SHL/SHR emulate the non-masked shift count.</span>
-<a name="l00878"></a>00878 <span class="comment"> *        Note that running this code compiled for Intel processors naturally imposes the shift count,</span>
-<a name="l00879"></a>00879 <span class="comment"> *        compilers generate a shift instruction and do not consider the CPU masking the bit count.</span>
-<a name="l00880"></a>00880 <span class="comment"> *</span>
-<a name="l00881"></a>00881 <span class="comment"> *        unsigned int a = 0x12345678,b = 0x20,c;</span>
-<a name="l00882"></a>00882 <span class="comment"> *        c = a &lt;&lt; b;      &lt;-- on Intel x86 builds, c == a because GCC will compile to shl eax,cl and Intel processors will act like c == a &lt;&lt; (b&amp;0x1F).</span>
-<a name="l00883"></a>00883 <span class="comment"> *</span>
-<a name="l00884"></a>00884 <span class="comment"> *        What we care about is that shift counts greater than or equal to the width of the target register come out to zero,</span>
-<a name="l00885"></a>00885 <span class="comment"> *        or for SAR, that all bits become copies of the sign bit. When emulating the 8086 we want DOS programs to be able to</span>
-<a name="l00886"></a>00886 <span class="comment"> *        test that we are an 8086 by executing shl ax,cl with cl == 32 and to get AX == 0 as a result instead of AX unchanged.</span>
-<a name="l00887"></a>00887 <span class="comment"> *        the shift count mask test is one of the several tests DOS programs may do to differentiate 8086 from 80186. */</span>
-<a name="l00888"></a>00888 <span class="preprocessor">#define GRP2B(blah)                                                                                     \</span>
-<a name="l00889"></a>00889 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00890"></a>00890 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
-<a name="l00891"></a>00891 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
-<a name="l00892"></a>00892 <span class="preprocessor">                GetEArb;                                                                                        \</span>
-<a name="l00893"></a>00893 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,7);                                                             \</span>
-<a name="l00894"></a>00894 <span class="preprocessor">                switch (which)  {                                                                       \</span>
-<a name="l00895"></a>00895 <span class="preprocessor">                case 0x00:ROLB(*earb,val,LoadRb,SaveRb);break;          \</span>
-<a name="l00896"></a>00896 <span class="preprocessor">                case 0x01:RORB(*earb,val,LoadRb,SaveRb);break;          \</span>
-<a name="l00897"></a>00897 <span class="preprocessor">                case 0x02:RCLB(*earb,val,LoadRb,SaveRb);break;          \</span>
-<a name="l00898"></a>00898 <span class="preprocessor">                case 0x03:RCRB(*earb,val,LoadRb,SaveRb);break;          \</span>
-<a name="l00899"></a>00899 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00900"></a>00900                 case 0x06:SHLB(*earb,val,LoadRb,SaveRb);break;          \
-<a name="l00901"></a>00901                 case 0x05:SHRB(*earb,val,LoadRb,SaveRb);break;          \
-<a name="l00902"></a>00902                 case 0x07:SARB(*earb,val,LoadRb,SaveRb);break;          \
-<a name="l00903"></a>00903                 }                                                                                                       \
-<a name="l00904"></a>00904         } else {                                                                                                \
-<a name="l00905"></a>00905                 GetEAa;                                                                                         \
-<a name="l00906"></a>00906                 Bit8u val=CPU_SHIFTOP_MASK(blah,7);                                                             \
-<a name="l00907"></a>00907                 switch (which) {                                                                        \
-<a name="l00908"></a>00908                 case 0x00:ROLB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00909"></a>00909                 case 0x01:RORB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00910"></a>00910                 case 0x02:RCLB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00911"></a>00911                 case 0x03:RCRB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00912"></a>00912                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00913"></a>00913                 case 0x06:SHLB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00914"></a>00914                 case 0x05:SHRB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00915"></a>00915                 case 0x07:SARB(eaa,val,LoadMb,SaveMb);break;            \
-<a name="l00916"></a>00916                 }                                                                                                       \
-<a name="l00917"></a>00917         }                                                                                                               \
-<a name="l00918"></a>00918 }
-<a name="l00919"></a>00919 
-<a name="l00920"></a>00920 
-<a name="l00921"></a>00921 
-<a name="l00922"></a>00922 <span class="preprocessor">#define GRP2W(blah)                                                                                     \</span>
-<a name="l00923"></a>00923 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00924"></a>00924 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
-<a name="l00925"></a>00925 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
-<a name="l00926"></a>00926 <span class="preprocessor">                GetEArw;                                                                                        \</span>
-<a name="l00927"></a>00927 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,15);                                                            \</span>
-<a name="l00928"></a>00928 <span class="preprocessor">                switch (which)  {                                                                       \</span>
-<a name="l00929"></a>00929 <span class="preprocessor">                case 0x00:ROLW(*earw,val,LoadRw,SaveRw);break;          \</span>
-<a name="l00930"></a>00930 <span class="preprocessor">                case 0x01:RORW(*earw,val,LoadRw,SaveRw);break;          \</span>
-<a name="l00931"></a>00931 <span class="preprocessor">                case 0x02:RCLW(*earw,val,LoadRw,SaveRw);break;          \</span>
-<a name="l00932"></a>00932 <span class="preprocessor">                case 0x03:RCRW(*earw,val,LoadRw,SaveRw);break;          \</span>
-<a name="l00933"></a>00933 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00934"></a>00934                 case 0x06:SHLW(*earw,val,LoadRw,SaveRw);break;          \
-<a name="l00935"></a>00935                 case 0x05:SHRW(*earw,val,LoadRw,SaveRw);break;          \
-<a name="l00936"></a>00936                 case 0x07:SARW(*earw,val,LoadRw,SaveRw);break;          \
-<a name="l00937"></a>00937                 }                                                                                                       \
-<a name="l00938"></a>00938         } else {                                                                                                \
-<a name="l00939"></a>00939                 GetEAa;                                                                                         \
-<a name="l00940"></a>00940                 Bit8u val=CPU_SHIFTOP_MASK(blah,15);                                                            \
-<a name="l00941"></a>00941                 switch (which) {                                                                        \
-<a name="l00942"></a>00942                 case 0x00:ROLW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00943"></a>00943                 case 0x01:RORW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00944"></a>00944                 case 0x02:RCLW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00945"></a>00945                 case 0x03:RCRW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00946"></a>00946                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00947"></a>00947                 case 0x06:SHLW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00948"></a>00948                 case 0x05:SHRW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00949"></a>00949                 case 0x07:SARW(eaa,val,LoadMw,SaveMw);break;            \
-<a name="l00950"></a>00950                 }                                                                                                       \
-<a name="l00951"></a>00951         }                                                                                                               \
-<a name="l00952"></a>00952 }
-<a name="l00953"></a>00953 
-<a name="l00954"></a>00954 
-<a name="l00955"></a>00955 <span class="preprocessor">#define GRP2D(blah)                                                                                     \</span>
-<a name="l00956"></a>00956 <span class="preprocessor">{                                                                                                                       \</span>
-<a name="l00957"></a>00957 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
-<a name="l00958"></a>00958 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
-<a name="l00959"></a>00959 <span class="preprocessor">                GetEArd;                                                                                        \</span>
-<a name="l00960"></a>00960 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,31);                                                            \</span>
-<a name="l00961"></a>00961 <span class="preprocessor">                switch (which)  {                                                                       \</span>
-<a name="l00962"></a>00962 <span class="preprocessor">                case 0x00:ROLD(*eard,val,LoadRd,SaveRd);break;          \</span>
-<a name="l00963"></a>00963 <span class="preprocessor">                case 0x01:RORD(*eard,val,LoadRd,SaveRd);break;          \</span>
-<a name="l00964"></a>00964 <span class="preprocessor">                case 0x02:RCLD(*eard,val,LoadRd,SaveRd);break;          \</span>
-<a name="l00965"></a>00965 <span class="preprocessor">                case 0x03:RCRD(*eard,val,LoadRd,SaveRd);break;          \</span>
-<a name="l00966"></a>00966 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00967"></a>00967                 case 0x06:SHLD(*eard,val,LoadRd,SaveRd);break;          \
-<a name="l00968"></a>00968                 case 0x05:SHRD(*eard,val,LoadRd,SaveRd);break;          \
-<a name="l00969"></a>00969                 case 0x07:SARD(*eard,val,LoadRd,SaveRd);break;          \
-<a name="l00970"></a>00970                 }                                                                                                       \
-<a name="l00971"></a>00971         } else {                                                                                                \
-<a name="l00972"></a>00972                 GetEAa;                                                                                         \
-<a name="l00973"></a>00973                 Bit8u val=CPU_SHIFTOP_MASK(blah,31);                                                            \
-<a name="l00974"></a>00974                 switch (which) {                                                                        \
-<a name="l00975"></a>00975                 case 0x00:ROLD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00976"></a>00976                 case 0x01:RORD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00977"></a>00977                 case 0x02:RCLD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00978"></a>00978                 case 0x03:RCRD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00979"></a>00979                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
-<a name="l00980"></a>00980                 case 0x06:SHLD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00981"></a>00981                 case 0x05:SHRD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00982"></a>00982                 case 0x07:SARD(eaa,val,LoadMd,SaveMd);break;            \
-<a name="l00983"></a>00983                 }                                                                                                       \
-<a name="l00984"></a>00984         }                                                                                                               \
-<a name="l00985"></a>00985 }
-<a name="l00986"></a>00986 
-<a name="l00987"></a>00987 <span class="comment">/* let&#39;s hope bochs has it correct with the higher than 16 shifts */</span>
-<a name="l00988"></a>00988 <span class="comment">/* double-precision shift left has low bits in second argument */</span>
-<a name="l00989"></a>00989 <span class="preprocessor">#define DSHLW(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l00990"></a>00990 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
-<a name="l00991"></a>00991 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l00992"></a>00992 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)load(op1)&lt;&lt;16u)|op2;                                       \</span>
-<a name="l00993"></a>00993 <span class="preprocessor">        Bit32u tempd=lf_var1d &lt;&lt; lf_var2b;                                                      \</span>
-<a name="l00994"></a>00994 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (lf_var2b - 16u));                     \</span>
-<a name="l00995"></a>00995 <span class="preprocessor">        lf_resw=(Bit16u)((unsigned int)tempd &gt;&gt; 16u);                                                           \</span>
-<a name="l00996"></a>00996 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
-<a name="l00997"></a>00997 <span class="preprocessor">        lflags.type=t_DSHLw;</span>
-<a name="l00998"></a>00998 <span class="preprocessor"></span>
-<a name="l00999"></a>00999 <span class="preprocessor">#define DSHLD(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01000"></a>01000 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
-<a name="l01001"></a>01001 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l01002"></a>01002 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
-<a name="l01003"></a>01003 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &lt;&lt; lf_var2b) | ((unsigned int)op2 &gt;&gt; (32u-lf_var2b));   \</span>
-<a name="l01004"></a>01004 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
-<a name="l01005"></a>01005 <span class="preprocessor">        lflags.type=t_DSHLd;</span>
-<a name="l01006"></a>01006 <span class="preprocessor"></span>
-<a name="l01007"></a>01007 <span class="comment">/* double-precision shift right has high bits in second argument */</span>
-<a name="l01008"></a>01008 <span class="preprocessor">#define DSHRW(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01009"></a>01009 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
-<a name="l01010"></a>01010 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l01011"></a>01011 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)op2&lt;&lt;16u)|load(op1);                                       \</span>
-<a name="l01012"></a>01012 <span class="preprocessor">        Bit32u tempd=(unsigned int)lf_var1d &gt;&gt; lf_var2b;                                                        \</span>
-<a name="l01013"></a>01013 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));                       \</span>
-<a name="l01014"></a>01014 <span class="preprocessor">        lf_resw=(Bit16u)(tempd);                                                                                \</span>
-<a name="l01015"></a>01015 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
-<a name="l01016"></a>01016 <span class="preprocessor">        lflags.type=t_DSHRw;</span>
-<a name="l01017"></a>01017 <span class="preprocessor"></span>
-<a name="l01018"></a>01018 <span class="preprocessor">#define DSHRD(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01019"></a>01019 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
-<a name="l01020"></a>01020 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l01021"></a>01021 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
-<a name="l01022"></a>01022 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &gt;&gt; lf_var2b) | ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));   \</span>
-<a name="l01023"></a>01023 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
-<a name="l01024"></a>01024 <span class="preprocessor">        lflags.type=t_DSHRd;</span>
-<a name="l01025"></a>01025 <span class="preprocessor"></span>
-<a name="l01026"></a>01026 <span class="preprocessor">#define BSWAPW(op1)                                                                                                             \</span>
-<a name="l01027"></a>01027 <span class="preprocessor">        op1 = 0;</span>
-<a name="l01028"></a>01028 <span class="preprocessor"></span>
-<a name="l01029"></a>01029 <span class="preprocessor">#define BSWAPD(op1)                                                                                                             \</span>
-<a name="l01030"></a>01030 <span class="preprocessor">        op1 = (op1&gt;&gt;24)|((op1&gt;&gt;8)&amp;0xFF00)|((op1&lt;&lt;8)&amp;0xFF0000)|((op1&lt;&lt;24)&amp;0xFF000000);</span>
+<a name="l00877"></a>00877 <span class="preprocessor">#if CPU_CORE == CPU_ARCHTYPE_8086</span>
+<a name="l00878"></a>00878 <span class="preprocessor"></span><span class="preprocessor">#  define CPU_SHIFTOP_MASK(x,m) ((x) &amp; 0xff)</span>
+<a name="l00879"></a>00879 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+<a name="l00880"></a>00880 <span class="preprocessor"></span><span class="preprocessor">#  define CPU_SHIFTOP_MASK(x,m) ((x) &amp; 0x1f)</span>
+<a name="l00881"></a>00881 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00882"></a>00882 <span class="preprocessor"></span>
+<a name="l00883"></a>00883 <span class="comment">/* FIXME: For 8086 core we care mostly about whether or not SHL/SHR emulate the non-masked shift count.</span>
+<a name="l00884"></a>00884 <span class="comment"> *        Note that running this code compiled for Intel processors naturally imposes the shift count,</span>
+<a name="l00885"></a>00885 <span class="comment"> *        compilers generate a shift instruction and do not consider the CPU masking the bit count.</span>
+<a name="l00886"></a>00886 <span class="comment"> *</span>
+<a name="l00887"></a>00887 <span class="comment"> *        unsigned int a = 0x12345678,b = 0x20,c;</span>
+<a name="l00888"></a>00888 <span class="comment"> *        c = a &lt;&lt; b;      &lt;-- on Intel x86 builds, c == a because GCC will compile to shl eax,cl and Intel processors will act like c == a &lt;&lt; (b&amp;0x1F).</span>
+<a name="l00889"></a>00889 <span class="comment"> *</span>
+<a name="l00890"></a>00890 <span class="comment"> *        What we care about is that shift counts greater than or equal to the width of the target register come out to zero,</span>
+<a name="l00891"></a>00891 <span class="comment"> *        or for SAR, that all bits become copies of the sign bit. When emulating the 8086 we want DOS programs to be able to</span>
+<a name="l00892"></a>00892 <span class="comment"> *        test that we are an 8086 by executing shl ax,cl with cl == 32 and to get AX == 0 as a result instead of AX unchanged.</span>
+<a name="l00893"></a>00893 <span class="comment"> *        the shift count mask test is one of the several tests DOS programs may do to differentiate 8086 from 80186. */</span>
+<a name="l00894"></a>00894 <span class="preprocessor">#define GRP2B(blah)                                                                                     \</span>
+<a name="l00895"></a>00895 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00896"></a>00896 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
+<a name="l00897"></a>00897 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
+<a name="l00898"></a>00898 <span class="preprocessor">                GetEArb;                                                                                        \</span>
+<a name="l00899"></a>00899 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,7);                                                             \</span>
+<a name="l00900"></a>00900 <span class="preprocessor">                switch (which)  {                                                                       \</span>
+<a name="l00901"></a>00901 <span class="preprocessor">                case 0x00:ROLB(*earb,val,LoadRb,SaveRb);break;          \</span>
+<a name="l00902"></a>00902 <span class="preprocessor">                case 0x01:RORB(*earb,val,LoadRb,SaveRb);break;          \</span>
+<a name="l00903"></a>00903 <span class="preprocessor">                case 0x02:RCLB(*earb,val,LoadRb,SaveRb);break;          \</span>
+<a name="l00904"></a>00904 <span class="preprocessor">                case 0x03:RCRB(*earb,val,LoadRb,SaveRb);break;          \</span>
+<a name="l00905"></a>00905 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00906"></a>00906                 case 0x06:SHLB(*earb,val,LoadRb,SaveRb);break;          \
+<a name="l00907"></a>00907                 case 0x05:SHRB(*earb,val,LoadRb,SaveRb);break;          \
+<a name="l00908"></a>00908                 case 0x07:SARB(*earb,val,LoadRb,SaveRb);break;          \
+<a name="l00909"></a>00909                 }                                                                                                       \
+<a name="l00910"></a>00910         } else {                                                                                                \
+<a name="l00911"></a>00911                 GetEAa;                                                                                         \
+<a name="l00912"></a>00912                 Bit8u val=CPU_SHIFTOP_MASK(blah,7);                                                             \
+<a name="l00913"></a>00913                 switch (which) {                                                                        \
+<a name="l00914"></a>00914                 case 0x00:ROLB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00915"></a>00915                 case 0x01:RORB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00916"></a>00916                 case 0x02:RCLB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00917"></a>00917                 case 0x03:RCRB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00918"></a>00918                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00919"></a>00919                 case 0x06:SHLB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00920"></a>00920                 case 0x05:SHRB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00921"></a>00921                 case 0x07:SARB(eaa,val,LoadMb,SaveMb);break;            \
+<a name="l00922"></a>00922                 }                                                                                                       \
+<a name="l00923"></a>00923         }                                                                                                               \
+<a name="l00924"></a>00924 }
+<a name="l00925"></a>00925 
+<a name="l00926"></a>00926 
+<a name="l00927"></a>00927 
+<a name="l00928"></a>00928 <span class="preprocessor">#define GRP2W(blah)                                                                                     \</span>
+<a name="l00929"></a>00929 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00930"></a>00930 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
+<a name="l00931"></a>00931 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
+<a name="l00932"></a>00932 <span class="preprocessor">                GetEArw;                                                                                        \</span>
+<a name="l00933"></a>00933 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,15);                                                            \</span>
+<a name="l00934"></a>00934 <span class="preprocessor">                switch (which)  {                                                                       \</span>
+<a name="l00935"></a>00935 <span class="preprocessor">                case 0x00:ROLW(*earw,val,LoadRw,SaveRw);break;          \</span>
+<a name="l00936"></a>00936 <span class="preprocessor">                case 0x01:RORW(*earw,val,LoadRw,SaveRw);break;          \</span>
+<a name="l00937"></a>00937 <span class="preprocessor">                case 0x02:RCLW(*earw,val,LoadRw,SaveRw);break;          \</span>
+<a name="l00938"></a>00938 <span class="preprocessor">                case 0x03:RCRW(*earw,val,LoadRw,SaveRw);break;          \</span>
+<a name="l00939"></a>00939 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00940"></a>00940                 case 0x06:SHLW(*earw,val,LoadRw,SaveRw);break;          \
+<a name="l00941"></a>00941                 case 0x05:SHRW(*earw,val,LoadRw,SaveRw);break;          \
+<a name="l00942"></a>00942                 case 0x07:SARW(*earw,val,LoadRw,SaveRw);break;          \
+<a name="l00943"></a>00943                 }                                                                                                       \
+<a name="l00944"></a>00944         } else {                                                                                                \
+<a name="l00945"></a>00945                 GetEAa;                                                                                         \
+<a name="l00946"></a>00946                 Bit8u val=CPU_SHIFTOP_MASK(blah,15);                                                            \
+<a name="l00947"></a>00947                 switch (which) {                                                                        \
+<a name="l00948"></a>00948                 case 0x00:ROLW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00949"></a>00949                 case 0x01:RORW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00950"></a>00950                 case 0x02:RCLW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00951"></a>00951                 case 0x03:RCRW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00952"></a>00952                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00953"></a>00953                 case 0x06:SHLW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00954"></a>00954                 case 0x05:SHRW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00955"></a>00955                 case 0x07:SARW(eaa,val,LoadMw,SaveMw);break;            \
+<a name="l00956"></a>00956                 }                                                                                                       \
+<a name="l00957"></a>00957         }                                                                                                               \
+<a name="l00958"></a>00958 }
+<a name="l00959"></a>00959 
+<a name="l00960"></a>00960 
+<a name="l00961"></a>00961 <span class="preprocessor">#define GRP2D(blah)                                                                                     \</span>
+<a name="l00962"></a>00962 <span class="preprocessor">{                                                                                                                       \</span>
+<a name="l00963"></a>00963 <span class="preprocessor">        GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;                                                             \</span>
+<a name="l00964"></a>00964 <span class="preprocessor">        if (rm &gt;= 0xc0) {                                                                               \</span>
+<a name="l00965"></a>00965 <span class="preprocessor">                GetEArd;                                                                                        \</span>
+<a name="l00966"></a>00966 <span class="preprocessor">                Bit8u val=CPU_SHIFTOP_MASK(blah,31);                                                            \</span>
+<a name="l00967"></a>00967 <span class="preprocessor">                switch (which)  {                                                                       \</span>
+<a name="l00968"></a>00968 <span class="preprocessor">                case 0x00:ROLD(*eard,val,LoadRd,SaveRd);break;          \</span>
+<a name="l00969"></a>00969 <span class="preprocessor">                case 0x01:RORD(*eard,val,LoadRd,SaveRd);break;          \</span>
+<a name="l00970"></a>00970 <span class="preprocessor">                case 0x02:RCLD(*eard,val,LoadRd,SaveRd);break;          \</span>
+<a name="l00971"></a>00971 <span class="preprocessor">                case 0x03:RCRD(*eard,val,LoadRd,SaveRd);break;          \</span>
+<a name="l00972"></a>00972 <span class="preprocessor">                case 0x04:</span><span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00973"></a>00973                 case 0x06:SHLD(*eard,val,LoadRd,SaveRd);break;          \
+<a name="l00974"></a>00974                 case 0x05:SHRD(*eard,val,LoadRd,SaveRd);break;          \
+<a name="l00975"></a>00975                 case 0x07:SARD(*eard,val,LoadRd,SaveRd);break;          \
+<a name="l00976"></a>00976                 }                                                                                                       \
+<a name="l00977"></a>00977         } else {                                                                                                \
+<a name="l00978"></a>00978                 GetEAa;                                                                                         \
+<a name="l00979"></a>00979                 Bit8u val=CPU_SHIFTOP_MASK(blah,31);                                                            \
+<a name="l00980"></a>00980                 switch (which) {                                                                        \
+<a name="l00981"></a>00981                 case 0x00:ROLD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00982"></a>00982                 case 0x01:RORD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00983"></a>00983                 case 0x02:RCLD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00984"></a>00984                 case 0x03:RCRD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00985"></a>00985                 case 0x04:<span class="comment">/* SHL and SAL are the same */</span>                        \
+<a name="l00986"></a>00986                 case 0x06:SHLD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00987"></a>00987                 case 0x05:SHRD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00988"></a>00988                 case 0x07:SARD(eaa,val,LoadMd,SaveMd);break;            \
+<a name="l00989"></a>00989                 }                                                                                                       \
+<a name="l00990"></a>00990         }                                                                                                               \
+<a name="l00991"></a>00991 }
+<a name="l00992"></a>00992 
+<a name="l00993"></a>00993 <span class="comment">/* let&#39;s hope bochs has it correct with the higher than 16 shifts */</span>
+<a name="l00994"></a>00994 <span class="comment">/* double-precision shift left has low bits in second argument */</span>
+<a name="l00995"></a>00995 <span class="preprocessor">#define DSHLW(op1,op2,op3,load,save)                                                                    \</span>
+<a name="l00996"></a>00996 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
+<a name="l00997"></a>00997 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
+<a name="l00998"></a>00998 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)load(op1)&lt;&lt;16u)|op2;                                       \</span>
+<a name="l00999"></a>00999 <span class="preprocessor">        Bit32u tempd=lf_var1d &lt;&lt; lf_var2b;                                                      \</span>
+<a name="l01000"></a>01000 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (lf_var2b - 16u));                     \</span>
+<a name="l01001"></a>01001 <span class="preprocessor">        lf_resw=(Bit16u)((unsigned int)tempd &gt;&gt; 16u);                                                           \</span>
+<a name="l01002"></a>01002 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
+<a name="l01003"></a>01003 <span class="preprocessor">        lflags.type=t_DSHLw;</span>
+<a name="l01004"></a>01004 <span class="preprocessor"></span>
+<a name="l01005"></a>01005 <span class="preprocessor">#define DSHLD(op1,op2,op3,load,save)                                                                    \</span>
+<a name="l01006"></a>01006 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
+<a name="l01007"></a>01007 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
+<a name="l01008"></a>01008 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
+<a name="l01009"></a>01009 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &lt;&lt; lf_var2b) | ((unsigned int)op2 &gt;&gt; (32u-lf_var2b));   \</span>
+<a name="l01010"></a>01010 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
+<a name="l01011"></a>01011 <span class="preprocessor">        lflags.type=t_DSHLd;</span>
+<a name="l01012"></a>01012 <span class="preprocessor"></span>
+<a name="l01013"></a>01013 <span class="comment">/* double-precision shift right has high bits in second argument */</span>
+<a name="l01014"></a>01014 <span class="preprocessor">#define DSHRW(op1,op2,op3,load,save)                                                                    \</span>
+<a name="l01015"></a>01015 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
+<a name="l01016"></a>01016 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
+<a name="l01017"></a>01017 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)op2&lt;&lt;16u)|load(op1);                                       \</span>
+<a name="l01018"></a>01018 <span class="preprocessor">        Bit32u tempd=(unsigned int)lf_var1d &gt;&gt; lf_var2b;                                                        \</span>
+<a name="l01019"></a>01019 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));                       \</span>
+<a name="l01020"></a>01020 <span class="preprocessor">        lf_resw=(Bit16u)(tempd);                                                                                \</span>
+<a name="l01021"></a>01021 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
+<a name="l01022"></a>01022 <span class="preprocessor">        lflags.type=t_DSHRw;</span>
+<a name="l01023"></a>01023 <span class="preprocessor"></span>
+<a name="l01024"></a>01024 <span class="preprocessor">#define DSHRD(op1,op2,op3,load,save)                                                                    \</span>
+<a name="l01025"></a>01025 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
+<a name="l01026"></a>01026 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
+<a name="l01027"></a>01027 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
+<a name="l01028"></a>01028 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &gt;&gt; lf_var2b) | ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));   \</span>
+<a name="l01029"></a>01029 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
+<a name="l01030"></a>01030 <span class="preprocessor">        lflags.type=t_DSHRd;</span>
+<a name="l01031"></a>01031 <span class="preprocessor"></span>
+<a name="l01032"></a>01032 <span class="preprocessor">#define BSWAPW(op1)                                                                                                             \</span>
+<a name="l01033"></a>01033 <span class="preprocessor">        op1 = 0;</span>
+<a name="l01034"></a>01034 <span class="preprocessor"></span>
+<a name="l01035"></a>01035 <span class="preprocessor">#define BSWAPD(op1)                                                                                                             \</span>
+<a name="l01036"></a>01036 <span class="preprocessor">        op1 = (op1&gt;&gt;24)|((op1&gt;&gt;8)&amp;0xFF00)|((op1&lt;&lt;8)&amp;0xFF0000)|((op1&lt;&lt;24)&amp;0xFF000000);</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:17 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:50 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

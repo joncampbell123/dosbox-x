@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019         CASE_B(0x00)                                                                                            <span class="comment">/* ADD Eb,Gb */</span>
@@ -327,7 +327,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00230"></a>00230         CASE_W(0x60)                                                                                            <span class="comment">/* PUSHA */</span>
 <a name="l00231"></a>00231                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
 <a name="l00232"></a>00232                 {
-<a name="l00233"></a>00233                         Bitu old_esp = reg_esp;
+<a name="l00233"></a>00233                         Bit32u old_esp = reg_esp;
 <a name="l00234"></a>00234                         <span class="keywordflow">try</span> {
 <a name="l00235"></a>00235                                 Bit16u old_sp = (CPU_ArchitectureType &gt;= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 <a name="l00236"></a>00236                                 Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
@@ -343,7 +343,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00246"></a>00246         CASE_W(0x61)                                                                                            <span class="comment">/* POPA */</span>
 <a name="l00247"></a>00247                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
 <a name="l00248"></a>00248                 {
-<a name="l00249"></a>00249                         Bitu old_esp = reg_esp;
+<a name="l00249"></a>00249                         Bit32u old_esp = reg_esp;
 <a name="l00250"></a>00250                         <span class="keywordflow">try</span> {
 <a name="l00251"></a>00251                                 reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();<span class="comment">//Don&#39;t save SP</span>
 <a name="l00252"></a>00252                                 reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
@@ -407,7 +407,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00310"></a>00310                 break;
 <a name="l00311"></a>00311         CASE_W(0x6a)                                                                                            <span class="comment">/* PUSH Ib */</span>
 <a name="l00312"></a>00312                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
-<a name="l00313"></a>00313                 Push_16((Bitu)Fetchbs());
+<a name="l00313"></a>00313                 Push_16((Bit16u)Fetchbs());
 <a name="l00314"></a>00314                 break;
 <a name="l00315"></a>00315         CASE_W(0x6b)                                                                                            <span class="comment">/* IMUL Gw,Ew,Ib */</span>
 <a name="l00316"></a>00316                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
@@ -1319,119 +1319,161 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01222"></a>01222                 SETFLAGBIT(CF,true);
 <a name="l01223"></a>01223                 break;
 <a name="l01224"></a>01224         CASE_B(0xfa)                                                                                            <span class="comment">/* CLI */</span>
-<a name="l01225"></a>01225                 if (CPU_CLI()) RUNEXCEPTION();
+<a name="l01225"></a>01225 do_cli: if (CPU_CLI()) RUNEXCEPTION();
 <a name="l01226"></a>01226                 break;
 <a name="l01227"></a>01227         CASE_B(0xfb)                                                                                            <span class="comment">/* STI */</span>
 <a name="l01228"></a>01228                 if (CPU_STI()) RUNEXCEPTION();
 <a name="l01229"></a>01229 <span class="preprocessor">#if CPU_PIC_CHECK</span>
-<a name="l01230"></a>01230 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (GETFLAG(IF) &amp;&amp; PIC_IRQCheck) <span class="keywordflow">goto</span> decode_end;
-<a name="l01231"></a>01231 <span class="preprocessor">#endif</span>
-<a name="l01232"></a>01232 <span class="preprocessor"></span>                <span class="keywordflow">break</span>;
-<a name="l01233"></a>01233         CASE_B(0xfc)                                                                                            <span class="comment">/* CLD */</span>
-<a name="l01234"></a>01234                 SETFLAGBIT(DF,false);
-<a name="l01235"></a>01235                 cpu.direction=1;
-<a name="l01236"></a>01236                 break;
-<a name="l01237"></a>01237         CASE_B(0xfd)                                                                                            <span class="comment">/* STD */</span>
-<a name="l01238"></a>01238                 SETFLAGBIT(DF,true);
-<a name="l01239"></a>01239                 cpu.direction=-1;
-<a name="l01240"></a>01240                 break;
-<a name="l01241"></a>01241         CASE_B(0xfe)                                                                                            <span class="comment">/* GRP4 Eb */</span>
-<a name="l01242"></a>01242                 {
-<a name="l01243"></a>01243                         GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;
-<a name="l01244"></a>01244                         <span class="keywordflow">switch</span> (which) {
-<a name="l01245"></a>01245                         <span class="keywordflow">case</span> 0x00:                                                                              <span class="comment">/* INC Eb */</span>
-<a name="l01246"></a>01246                                 RMEb(INCB);
-<a name="l01247"></a>01247                                 <span class="keywordflow">break</span>;          
-<a name="l01248"></a>01248                         <span class="keywordflow">case</span> 0x01:                                                                              <span class="comment">/* DEC Eb */</span>
-<a name="l01249"></a>01249                                 RMEb(DECB);
-<a name="l01250"></a>01250                                 <span class="keywordflow">break</span>;
-<a name="l01251"></a>01251                         <span class="keywordflow">case</span> 0x07:                                                                              <span class="comment">/* CallBack */</span>
-<a name="l01252"></a>01252                                 {
-<a name="l01253"></a>01253                                         Bitu cb=Fetchw();
-<a name="l01254"></a>01254                                         FillFlags();SAVEIP;
-<a name="l01255"></a>01255                                         <span class="keywordflow">return</span> (Bits)cb;
-<a name="l01256"></a>01256                                 }
-<a name="l01257"></a>01257                         <span class="keywordflow">default</span>:
-<a name="l01258"></a>01258                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;Illegal GRP4 Call %d&quot;</span>,(rm&gt;&gt;3) &amp; 7);
-<a name="l01259"></a>01259                                 <span class="keywordflow">goto</span> illegal_opcode;
-<a name="l01260"></a>01260                         }
-<a name="l01261"></a>01261                         <span class="keywordflow">break</span>;
+<a name="l01230"></a>01230 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (GETFLAG(IF) &amp;&amp; PIC_IRQCheck) {
+<a name="l01231"></a>01231             <span class="comment">// NTS: Do not immmediately break execution, but set the cycle count to a minimal</span>
+<a name="l01232"></a>01232             <span class="comment">//      value so that if a CLI follows immediately the interrupt will be ignored.</span>
+<a name="l01233"></a>01233             <span class="comment">//</span>
+<a name="l01234"></a>01234             <span class="comment">//      It turns out on a 486 that STI+CLI (right next to each other) does not</span>
+<a name="l01235"></a>01235             <span class="comment">//      trigger the CPU to process interrupts. Like this:</span>
+<a name="l01236"></a>01236             <span class="comment">//</span>
+<a name="l01237"></a>01237             <span class="comment">//      STI</span>
+<a name="l01238"></a>01238             <span class="comment">//      CLI</span>
+<a name="l01239"></a>01239             <span class="comment">//</span>
+<a name="l01240"></a>01240             <span class="comment">//      The FM music driver for the PC-98 version of Peret em Heru appears to have</span>
+<a name="l01241"></a>01241             <span class="comment">//      STI+CLI sequences for some reason in certain subroutines within the FM</span>
+<a name="l01242"></a>01242             <span class="comment">//      music interrupt handler, which should not be trigger points to process</span>
+<a name="l01243"></a>01243             <span class="comment">//      interrupts because the FM interrupt is non-reentrant and Peret is also</span>
+<a name="l01244"></a>01244             <span class="comment">//      calling another entry point to the FM driver from IRQ 2 (vsync). If</span>
+<a name="l01245"></a>01245             <span class="comment">//      IRQ 2 is processed while the FM interrupt is processing at the STI, the</span>
+<a name="l01246"></a>01246             <span class="comment">//      stack switch will overwrite the first and the FM interrupt will return</span>
+<a name="l01247"></a>01247             <span class="comment">//      by stale data and crash.</span>
+<a name="l01248"></a>01248             <span class="comment">//</span>
+<a name="l01249"></a>01249             <span class="comment">//      [https://github.com/joncampbell123/dosbox-x/issues/1162]</span>
+<a name="l01250"></a>01250             <span class="comment">//</span>
+<a name="l01251"></a>01251             <span class="comment">// NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck</span>
+<a name="l01252"></a>01252             <span class="comment">//      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,</span>
+<a name="l01253"></a>01253             <span class="comment">//      so that isn&#39;t a long-term option.</span>
+<a name="l01254"></a>01254             {
+<a name="l01255"></a>01255                 Bit8u b = FetchPeekb();
+<a name="l01256"></a>01256                 <span class="keywordflow">if</span> (b == 0xFAu) {
+<a name="l01257"></a>01257                     <span class="comment">/* if the next opcode is CLI, then do CLI right here before the normal core</span>
+<a name="l01258"></a>01258 <span class="comment">                     * has any chance to break and handle interrupts */</span>
+<a name="l01259"></a>01259                     FetchDiscardb(); <span class="comment">// discard opcode we peeked, and then go execute it</span>
+<a name="l01260"></a>01260                     CPU_Cycles--; <span class="comment">// we&#39;re executing another instruction, which should eat one CPU cycle</span>
+<a name="l01261"></a>01261                     <span class="keywordflow">goto</span> do_cli;
 <a name="l01262"></a>01262                 }
-<a name="l01263"></a>01263         CASE_W(0xff)                                                                                            <span class="comment">/* GRP5 Ew */</span>
-<a name="l01264"></a>01264                 {
-<a name="l01265"></a>01265                         GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;
-<a name="l01266"></a>01266                         <span class="keywordflow">switch</span> (which) {
-<a name="l01267"></a>01267                         <span class="keywordflow">case</span> 0x00:                                                                              <span class="comment">/* INC Ew */</span>
-<a name="l01268"></a>01268                                 RMEw(INCW);
-<a name="l01269"></a>01269                                 <span class="keywordflow">break</span>;          
-<a name="l01270"></a>01270                         <span class="keywordflow">case</span> 0x01:                                                                              <span class="comment">/* DEC Ew */</span>
-<a name="l01271"></a>01271                                 RMEw(DECW);
-<a name="l01272"></a>01272                                 <span class="keywordflow">break</span>;          
-<a name="l01273"></a>01273                         <span class="keywordflow">case</span> 0x02:                                                                              <span class="comment">/* CALL Ev */</span>
-<a name="l01274"></a>01274                                 { <span class="comment">/* either EIP is set to the call address or EIP does not change if interrupted by PF */</span>
-<a name="l01275"></a>01275                                         Bit16u new_eip;
-<a name="l01276"></a>01276                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;new_eip=*earw;}
-<a name="l01277"></a>01277                                         <span class="keywordflow">else</span> {GetEAa;new_eip=LoadMw(eaa);}
-<a name="l01278"></a>01278                                         Push_16(GETIP); <span class="comment">/* &lt;- PF may happen here */</span>
-<a name="l01279"></a>01279                                         reg_eip = new_eip;
-<a name="l01280"></a>01280                                 }
-<a name="l01281"></a>01281                                 <span class="keywordflow">continue</span>;
-<a name="l01282"></a>01282                         <span class="keywordflow">case</span> 0x03:                                                                              <span class="comment">/* CALL Ep */</span>
-<a name="l01283"></a>01283                                 {
-<a name="l01284"></a>01284                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) <span class="keywordflow">goto</span> illegal_opcode;
-<a name="l01285"></a>01285                                         GetEAa;
-<a name="l01286"></a>01286                                         Bit16u newip=LoadMw(eaa);
-<a name="l01287"></a>01287                                         Bit16u newcs=LoadMw(eaa+2);
-<a name="l01288"></a>01288                                         FillFlags();
-<a name="l01289"></a>01289                                         CPU_CALL(<span class="keyword">false</span>,newcs,newip,GETIP);
-<a name="l01290"></a>01290 <span class="preprocessor">#if CPU_TRAP_CHECK</span>
-<a name="l01291"></a>01291 <span class="preprocessor"></span>                                        <span class="keywordflow">if</span> (GETFLAG(TF)) {      
-<a name="l01292"></a>01292                                                 cpudecoder=CPU_Core_Normal_Trap_Run;
-<a name="l01293"></a>01293                                                 <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01294"></a>01294                                         }
-<a name="l01295"></a>01295 <span class="preprocessor">#endif</span>
-<a name="l01296"></a>01296 <span class="preprocessor"></span>                                        <span class="keywordflow">continue</span>;
-<a name="l01297"></a>01297                                 }
-<a name="l01298"></a>01298                                 <span class="keywordflow">break</span>;
-<a name="l01299"></a>01299                         <span class="keywordflow">case</span> 0x04:                                                                              <span class="comment">/* JMP Ev */</span>    
-<a name="l01300"></a>01300                                 <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;reg_eip=*earw;}
-<a name="l01301"></a>01301                                 <span class="keywordflow">else</span> {GetEAa;reg_eip=LoadMw(eaa);}
-<a name="l01302"></a>01302                                 <span class="keywordflow">continue</span>;
-<a name="l01303"></a>01303                         <span class="keywordflow">case</span> 0x05:                                                                              <span class="comment">/* JMP Ep */</span>    
-<a name="l01304"></a>01304                                 {
-<a name="l01305"></a>01305                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) <span class="keywordflow">goto</span> illegal_opcode;
-<a name="l01306"></a>01306                                         GetEAa;
-<a name="l01307"></a>01307                                         Bit16u newip=LoadMw(eaa);
-<a name="l01308"></a>01308                                         Bit16u newcs=LoadMw(eaa+2);
-<a name="l01309"></a>01309                                         FillFlags();
-<a name="l01310"></a>01310                                         CPU_JMP(<span class="keyword">false</span>,newcs,newip,GETIP);
-<a name="l01311"></a>01311 <span class="preprocessor">#if CPU_TRAP_CHECK</span>
-<a name="l01312"></a>01312 <span class="preprocessor"></span>                                        <span class="keywordflow">if</span> (GETFLAG(TF)) {      
-<a name="l01313"></a>01313                                                 cpudecoder=CPU_Core_Normal_Trap_Run;
-<a name="l01314"></a>01314                                                 <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01315"></a>01315                                         }
-<a name="l01316"></a>01316 <span class="preprocessor">#endif</span>
-<a name="l01317"></a>01317 <span class="preprocessor"></span>                                        <span class="keywordflow">continue</span>;
-<a name="l01318"></a>01318                                 }
-<a name="l01319"></a>01319                                 <span class="keywordflow">break</span>;
-<a name="l01320"></a>01320                         <span class="keywordflow">case</span> 0x06:                                                                              <span class="comment">/* PUSH Ev */</span>
-<a name="l01321"></a>01321                                 <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;Push_16(*earw);}
-<a name="l01322"></a>01322                                 <span class="keywordflow">else</span> {GetEAa;Push_16(LoadMw(eaa));}
-<a name="l01323"></a>01323                                 <span class="keywordflow">break</span>;
-<a name="l01324"></a>01324                         <span class="keywordflow">default</span>:
-<a name="l01325"></a>01325                                 <span class="keywordflow">goto</span> illegal_opcode;
-<a name="l01326"></a>01326                         }
-<a name="l01327"></a>01327                         <span class="keywordflow">break</span>;
-<a name="l01328"></a>01328                 }
-<a name="l01329"></a>01329                         
-<a name="l01330"></a>01330 
-<a name="l01331"></a>01331 
-<a name="l01332"></a>01332 
+<a name="l01263"></a>01263             }
+<a name="l01264"></a>01264             <span class="comment">// otherwise, break for interrupt handling as normal</span>
+<a name="l01265"></a>01265             <span class="keywordflow">if</span> (CPU_Cycles &gt; 2) {
+<a name="l01266"></a>01266                 CPU_CycleLeft += CPU_Cycles - 2;
+<a name="l01267"></a>01267                 CPU_Cycles = 2;
+<a name="l01268"></a>01268             }
+<a name="l01269"></a>01269             <span class="keywordflow">else</span> {
+<a name="l01270"></a>01270                 <span class="keywordflow">goto</span> decode_end;
+<a name="l01271"></a>01271             }
+<a name="l01272"></a>01272         }
+<a name="l01273"></a>01273 <span class="preprocessor">#endif</span>
+<a name="l01274"></a>01274 <span class="preprocessor"></span>                <span class="keywordflow">break</span>;
+<a name="l01275"></a>01275         CASE_B(0xfc)                                                                                            <span class="comment">/* CLD */</span>
+<a name="l01276"></a>01276                 SETFLAGBIT(DF,false);
+<a name="l01277"></a>01277                 cpu.direction=1;
+<a name="l01278"></a>01278                 break;
+<a name="l01279"></a>01279         CASE_B(0xfd)                                                                                            <span class="comment">/* STD */</span>
+<a name="l01280"></a>01280                 SETFLAGBIT(DF,true);
+<a name="l01281"></a>01281                 cpu.direction=-1;
+<a name="l01282"></a>01282                 break;
+<a name="l01283"></a>01283         CASE_B(0xfe)                                                                                            <span class="comment">/* GRP4 Eb */</span>
+<a name="l01284"></a>01284                 {
+<a name="l01285"></a>01285                         GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;
+<a name="l01286"></a>01286                         <span class="keywordflow">switch</span> (which) {
+<a name="l01287"></a>01287                         <span class="keywordflow">case</span> 0x00:                                                                              <span class="comment">/* INC Eb */</span>
+<a name="l01288"></a>01288                                 RMEb(INCB);
+<a name="l01289"></a>01289                                 <span class="keywordflow">break</span>;          
+<a name="l01290"></a>01290                         <span class="keywordflow">case</span> 0x01:                                                                              <span class="comment">/* DEC Eb */</span>
+<a name="l01291"></a>01291                                 RMEb(DECB);
+<a name="l01292"></a>01292                                 <span class="keywordflow">break</span>;
+<a name="l01293"></a>01293                         <span class="keywordflow">case</span> 0x07:                                                                              <span class="comment">/* CallBack */</span>
+<a name="l01294"></a>01294                                 {
+<a name="l01295"></a>01295                                         Bitu cb=Fetchw();
+<a name="l01296"></a>01296                                         FillFlags();SAVEIP;
+<a name="l01297"></a>01297                                         <span class="keywordflow">return</span> (Bits)cb;
+<a name="l01298"></a>01298                                 }
+<a name="l01299"></a>01299                         <span class="keywordflow">default</span>:
+<a name="l01300"></a>01300                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;Illegal GRP4 Call %d&quot;</span>,(rm&gt;&gt;3) &amp; 7);
+<a name="l01301"></a>01301                                 <span class="keywordflow">goto</span> illegal_opcode;
+<a name="l01302"></a>01302                         }
+<a name="l01303"></a>01303                         <span class="keywordflow">break</span>;
+<a name="l01304"></a>01304                 }
+<a name="l01305"></a>01305         CASE_W(0xff)                                                                                            <span class="comment">/* GRP5 Ew */</span>
+<a name="l01306"></a>01306                 {
+<a name="l01307"></a>01307                         GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;
+<a name="l01308"></a>01308                         <span class="keywordflow">switch</span> (which) {
+<a name="l01309"></a>01309                         <span class="keywordflow">case</span> 0x00:                                                                              <span class="comment">/* INC Ew */</span>
+<a name="l01310"></a>01310                                 RMEw(INCW);
+<a name="l01311"></a>01311                                 <span class="keywordflow">break</span>;          
+<a name="l01312"></a>01312                         <span class="keywordflow">case</span> 0x01:                                                                              <span class="comment">/* DEC Ew */</span>
+<a name="l01313"></a>01313                                 RMEw(DECW);
+<a name="l01314"></a>01314                                 <span class="keywordflow">break</span>;          
+<a name="l01315"></a>01315                         <span class="keywordflow">case</span> 0x02:                                                                              <span class="comment">/* CALL Ev */</span>
+<a name="l01316"></a>01316                                 { <span class="comment">/* either EIP is set to the call address or EIP does not change if interrupted by PF */</span>
+<a name="l01317"></a>01317                                         Bit16u new_eip;
+<a name="l01318"></a>01318                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;new_eip=*earw;}
+<a name="l01319"></a>01319                                         <span class="keywordflow">else</span> {GetEAa;new_eip=LoadMw(eaa);}
+<a name="l01320"></a>01320                                         Push_16(GETIP); <span class="comment">/* &lt;- PF may happen here */</span>
+<a name="l01321"></a>01321                                         reg_eip = new_eip;
+<a name="l01322"></a>01322                                 }
+<a name="l01323"></a>01323                                 <span class="keywordflow">continue</span>;
+<a name="l01324"></a>01324                         <span class="keywordflow">case</span> 0x03:                                                                              <span class="comment">/* CALL Ep */</span>
+<a name="l01325"></a>01325                                 {
+<a name="l01326"></a>01326                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) <span class="keywordflow">goto</span> illegal_opcode;
+<a name="l01327"></a>01327                                         GetEAa;
+<a name="l01328"></a>01328                                         Bit16u newip=LoadMw(eaa);
+<a name="l01329"></a>01329                                         Bit16u newcs=LoadMw(eaa+2);
+<a name="l01330"></a>01330                                         FillFlags();
+<a name="l01331"></a>01331                                         CPU_CALL(<span class="keyword">false</span>,newcs,newip,GETIP);
+<a name="l01332"></a>01332 <span class="preprocessor">#if CPU_TRAP_CHECK</span>
+<a name="l01333"></a>01333 <span class="preprocessor"></span>                                        <span class="keywordflow">if</span> (GETFLAG(TF)) {      
+<a name="l01334"></a>01334                                                 cpudecoder=CPU_Core_Normal_Trap_Run;
+<a name="l01335"></a>01335                                                 <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01336"></a>01336                                         }
+<a name="l01337"></a>01337 <span class="preprocessor">#endif</span>
+<a name="l01338"></a>01338 <span class="preprocessor"></span>                                        <span class="keywordflow">continue</span>;
+<a name="l01339"></a>01339                                 }
+<a name="l01340"></a>01340                                 <span class="keywordflow">break</span>;
+<a name="l01341"></a>01341                         <span class="keywordflow">case</span> 0x04:                                                                              <span class="comment">/* JMP Ev */</span>    
+<a name="l01342"></a>01342                                 <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;reg_eip=*earw;}
+<a name="l01343"></a>01343                                 <span class="keywordflow">else</span> {GetEAa;reg_eip=LoadMw(eaa);}
+<a name="l01344"></a>01344                                 <span class="keywordflow">continue</span>;
+<a name="l01345"></a>01345                         <span class="keywordflow">case</span> 0x05:                                                                              <span class="comment">/* JMP Ep */</span>    
+<a name="l01346"></a>01346                                 {
+<a name="l01347"></a>01347                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) <span class="keywordflow">goto</span> illegal_opcode;
+<a name="l01348"></a>01348                                         GetEAa;
+<a name="l01349"></a>01349                                         Bit16u newip=LoadMw(eaa);
+<a name="l01350"></a>01350                                         Bit16u newcs=LoadMw(eaa+2);
+<a name="l01351"></a>01351                                         FillFlags();
+<a name="l01352"></a>01352                                         CPU_JMP(<span class="keyword">false</span>,newcs,newip,GETIP);
+<a name="l01353"></a>01353 <span class="preprocessor">#if CPU_TRAP_CHECK</span>
+<a name="l01354"></a>01354 <span class="preprocessor"></span>                                        <span class="keywordflow">if</span> (GETFLAG(TF)) {      
+<a name="l01355"></a>01355                                                 cpudecoder=CPU_Core_Normal_Trap_Run;
+<a name="l01356"></a>01356                                                 <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01357"></a>01357                                         }
+<a name="l01358"></a>01358 <span class="preprocessor">#endif</span>
+<a name="l01359"></a>01359 <span class="preprocessor"></span>                                        <span class="keywordflow">continue</span>;
+<a name="l01360"></a>01360                                 }
+<a name="l01361"></a>01361                                 <span class="keywordflow">break</span>;
+<a name="l01362"></a>01362                         <span class="keywordflow">case</span> 0x06:                                                                              <span class="comment">/* PUSH Ev */</span>
+<a name="l01363"></a>01363                                 <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;Push_16(*earw);}
+<a name="l01364"></a>01364                                 <span class="keywordflow">else</span> {GetEAa;Push_16(LoadMw(eaa));}
+<a name="l01365"></a>01365                                 <span class="keywordflow">break</span>;
+<a name="l01366"></a>01366                         <span class="keywordflow">default</span>:
+<a name="l01367"></a>01367                                 <span class="keywordflow">goto</span> illegal_opcode;
+<a name="l01368"></a>01368                         }
+<a name="l01369"></a>01369                         <span class="keywordflow">break</span>;
+<a name="l01370"></a>01370                 }
+<a name="l01371"></a>01371                         
+<a name="l01372"></a>01372 
+<a name="l01373"></a>01373 
+<a name="l01374"></a>01374 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:17 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:50 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

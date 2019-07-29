@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* Do the actual opcode */</span>
@@ -151,14 +151,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00054"></a>00054                 lflags.oldcf=(get_CF()!=0);
 <a name="l00055"></a>00055                 lf_var1d=inst_op1_d;
 <a name="l00056"></a>00056                 lf_var2d=inst_op2_d;
-<a name="l00057"></a>00057                 inst_op1_d=lf_resd=lf_var1d + lf_var2d + lflags.oldcf;
+<a name="l00057"></a>00057                 inst_op1_d=lf_resd=(Bit32u)(lf_var1d + lf_var2d + lflags.oldcf);
 <a name="l00058"></a>00058                 lflags.type=inst.code.op;
 <a name="l00059"></a>00059                 <span class="keywordflow">break</span>;
 <a name="l00060"></a>00060         <span class="keywordflow">case</span> t_SBBb:    <span class="keywordflow">case</span> t_SBBw:    <span class="keywordflow">case</span> t_SBBd:
 <a name="l00061"></a>00061                 lflags.oldcf=(get_CF()!=0);
 <a name="l00062"></a>00062                 lf_var1d=inst_op1_d;
 <a name="l00063"></a>00063                 lf_var2d=inst_op2_d;
-<a name="l00064"></a>00064                 inst_op1_d=lf_resd=lf_var1d - lf_var2d - lflags.oldcf;
+<a name="l00064"></a>00064                 inst_op1_d=lf_resd=(Bit32u)(lf_var1d - lf_var2d - lflags.oldcf);
 <a name="l00065"></a>00065                 lflags.type=inst.code.op;
 <a name="l00066"></a>00066                 <span class="keywordflow">break</span>;
 <a name="l00067"></a>00067         <span class="keywordflow">case</span> t_INCb:    <span class="keywordflow">case</span> t_INCw:    <span class="keywordflow">case</span> t_INCd:
@@ -488,7 +488,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00391"></a>00391                 <span class="keywordflow">goto</span> nextopcode;
 <a name="l00392"></a>00392         <span class="keywordflow">case</span> O_CBACK:
 <a name="l00393"></a>00393                 FillFlags();SaveIP();
-<a name="l00394"></a>00394                 <span class="keywordflow">return</span> inst_op1_d;
+<a name="l00394"></a>00394                 <span class="keywordflow">return</span> (Bits)inst_op1_d;
 <a name="l00395"></a>00395         <span class="keywordflow">case</span> O_GRP6w:
 <a name="l00396"></a>00396         <span class="keywordflow">case</span> O_GRP6d:
 <a name="l00397"></a>00397                 <span class="keywordflow">if</span> ((reg_flags &amp; FLAG_VM) || (!cpu.pmode)) <span class="keywordflow">goto</span> illegalopcode;
@@ -522,12 +522,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00425"></a>00425         <span class="keywordflow">case</span> O_GRP7d:
 <a name="l00426"></a>00426                 <span class="keywordflow">switch</span> (inst.rm_index) {
 <a name="l00427"></a>00427                 <span class="keywordflow">case</span> 0:         <span class="comment">/* SGDT */</span>
-<a name="l00428"></a>00428                         SaveMw(inst.rm_eaa,CPU_SGDT_limit());
-<a name="l00429"></a>00429                         SaveMd(inst.rm_eaa+2,CPU_SGDT_base());
+<a name="l00428"></a>00428                         SaveMw(inst.rm_eaa,(Bit16u)CPU_SGDT_limit());
+<a name="l00429"></a>00429                         SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SGDT_base());
 <a name="l00430"></a>00430                         <span class="keywordflow">goto</span> nextopcode;
 <a name="l00431"></a>00431                 <span class="keywordflow">case</span> 1:         <span class="comment">/* SIDT */</span>
-<a name="l00432"></a>00432                         SaveMw(inst.rm_eaa,CPU_SIDT_limit());
-<a name="l00433"></a>00433                         SaveMd(inst.rm_eaa+2,CPU_SIDT_base());
+<a name="l00432"></a>00432                         SaveMw(inst.rm_eaa,(Bit16u)CPU_SIDT_limit());
+<a name="l00433"></a>00433                         SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SIDT_base());
 <a name="l00434"></a>00434                         <span class="keywordflow">goto</span> nextopcode;
 <a name="l00435"></a>00435                 <span class="keywordflow">case</span> 2:         <span class="comment">/* LGDT */</span>
 <a name="l00436"></a>00436                         <span class="keywordflow">if</span> (cpu.pmode &amp;&amp; cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -538,7 +538,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00441"></a>00441                         CPU_LIDT(LoadMw(inst.rm_eaa),LoadMd(inst.rm_eaa+2)&amp;((inst.code.op == O_GRP7w) ? 0xFFFFFF : 0xFFFFFFFF));
 <a name="l00442"></a>00442                         <span class="keywordflow">goto</span> nextopcode;
 <a name="l00443"></a>00443                 <span class="keywordflow">case</span> 4:         <span class="comment">/* SMSW */</span>
-<a name="l00444"></a>00444                         inst_op1_d=CPU_SMSW();
+<a name="l00444"></a>00444                         inst_op1_d=(Bit32u)CPU_SMSW();
 <a name="l00445"></a>00445                         <span class="keywordflow">break</span>;
 <a name="l00446"></a>00446                 <span class="keywordflow">case</span> 6:         <span class="comment">/* LMSW */</span>
 <a name="l00447"></a>00447                         FillFlags();
@@ -600,7 +600,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00503"></a>00503                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00504"></a>00504                                 <span class="keywordflow">goto</span> nextopcode;
 <a name="l00505"></a>00505                         } <span class="keywordflow">else</span> {
-<a name="l00506"></a>00506                                 Bitu count=0;
+<a name="l00506"></a>00506                                 Bit8u count=0;
 <a name="l00507"></a>00507                                 <span class="keywordflow">while</span> (1) {
 <a name="l00508"></a>00508                                         <span class="keywordflow">if</span> (inst_op1_w &amp; 0x1) <span class="keywordflow">break</span>;
 <a name="l00509"></a>00509                                         count++;inst_op1_w&gt;&gt;=1;
@@ -617,7 +617,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00520"></a>00520                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00521"></a>00521                                 <span class="keywordflow">goto</span> nextopcode;
 <a name="l00522"></a>00522                         } <span class="keywordflow">else</span> {
-<a name="l00523"></a>00523                                 Bitu count=0;
+<a name="l00523"></a>00523                                 Bit8u count=0;
 <a name="l00524"></a>00524                                 <span class="keywordflow">while</span> (1) {
 <a name="l00525"></a>00525                                         <span class="keywordflow">if</span> (inst_op1_d &amp; 0x1) <span class="keywordflow">break</span>;
 <a name="l00526"></a>00526                                         count++;inst_op1_d&gt;&gt;=1;
@@ -634,7 +634,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00537"></a>00537                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00538"></a>00538                                 <span class="keywordflow">goto</span> nextopcode;
 <a name="l00539"></a>00539                         } <span class="keywordflow">else</span> {
-<a name="l00540"></a>00540                                 Bitu count=15;
+<a name="l00540"></a>00540                                 Bit8u count=15;
 <a name="l00541"></a>00541                                 <span class="keywordflow">while</span> (1) {
 <a name="l00542"></a>00542                                         <span class="keywordflow">if</span> (inst_op1_w &amp; 0x8000) <span class="keywordflow">break</span>;
 <a name="l00543"></a>00543                                         count--;inst_op1_w&lt;&lt;=1;
@@ -651,7 +651,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00554"></a>00554                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00555"></a>00555                                 <span class="keywordflow">goto</span> nextopcode;
 <a name="l00556"></a>00556                         } <span class="keywordflow">else</span> {
-<a name="l00557"></a>00557                                 Bitu count=31;
+<a name="l00557"></a>00557                                 Bit8u count=31;
 <a name="l00558"></a>00558                                 <span class="keywordflow">while</span> (1) {
 <a name="l00559"></a>00559                                         <span class="keywordflow">if</span> (inst_op1_d &amp; 0x80000000) <span class="keywordflow">break</span>;
 <a name="l00560"></a>00560                                         count--;inst_op1_d&lt;&lt;=1;
@@ -766,7 +766,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:17 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:50 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -98,6 +98,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 This is the complete list of members for <a class="el" href="classDOS__FCB.html">DOS_FCB</a>, including all inherited members.<table>
+  <tr bgcolor="#f0f0f0"><td><b>ClearBlockRecsize</b>(void) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Create</b>(bool _extended) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>DOS_FCB</b>(Bit16u seg, Bit16u off, bool allow_extended=true) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Extended</b>(void) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
@@ -105,29 +106,30 @@ This is the complete list of members for <a class="el" href="classDOS__FCB.html"
   <tr bgcolor="#f0f0f0"><td><b>FileOpen</b>(Bit8u _fhandle) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetAttr</b>(Bit8u &amp;attr) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetDrive</b>(void) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>GetIt</b>(Bitu size, PhysPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetIt</b>(const Bit32u size, const PhysPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetName</b>(char *fillname) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetRandom</b>(Bit32u &amp;_random) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetRecord</b>(Bit16u &amp;_cur_block, Bit8u &amp;_cur_rec) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetSeqData</b>(Bit8u &amp;_fhandle, Bit16u &amp;_rec_size) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetSizeDateTime</b>(Bit32u &amp;_size, Bit16u &amp;_date, Bit16u &amp;_time) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>pt</b> (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [protected]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SaveIt</b>(Bitu size, PhysPt addr, Bitu val) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SaveIt</b>(const Bit32u size, const PhysPt addr, const Bit32u val) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetAttr</b>(Bit8u attr) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetName</b>(Bit8u _drive, char *_fname, char *_ext) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(Bit16u seg) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(Bit16u seg, Bit16u off) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(RealPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const Bit16u seg) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const Bit16u seg, const Bit16u off) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetPt</b>(const RealPt addr) (defined in <a class="el" href="classMemStruct.html">MemStruct</a>)</td><td><a class="el" href="classMemStruct.html">MemStruct</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetRandom</b>(Bit32u _random) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetRecord</b>(Bit16u _cur_block, Bit8u _cur_rec) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetResultAttr</b>(Bit8u attr) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetResult</b>(Bit32u size, Bit16u date, Bit16u time, Bit8u attr) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetSeqData</b>(Bit8u _fhandle, Bit16u _rec_size) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetSizeDateTime</b>(Bit32u _size, Bit16u _date, Bit16u _time) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Valid</b>(void) (defined in <a class="el" href="classDOS__FCB.html">DOS_FCB</a>)</td><td><a class="el" href="classDOS__FCB.html">DOS_FCB</a></td><td></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:56 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

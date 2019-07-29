@@ -13,7 +13,7 @@ A \hyperlink{classGUI_1_1Screen}{Screen} represents the framebuffer that is the 
 Inheritance diagram for G\-U\-I\-:\-:Screen\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=3.000000cm]{classGUI_1_1Screen}
+\includegraphics[height=4.000000cm]{classGUI_1_1Screen}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -66,6 +66,9 @@ Inheritance diagram for G\-U\-I\-:\-:Screen\-:\begin{figure}[H]
 \hypertarget{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}{\hyperlink{classGUI_1_1Drawable}{Drawable} $\ast$const \hyperlink{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}{buffer}}\label{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}
 
 \begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Screen}{Screen} buffer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_aea9148e41c5bd314d068f879ed3e199f}{bool {\bfseries buffer\-\_\-i\-\_\-alloc}}\label{classGUI_1_1Screen_aea9148e41c5bd314d068f879ed3e199f}
+
+\item 
 \hypertarget{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{\hyperlink{classGUI_1_1String}{String} \hyperlink{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{clipboard}}\label{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}
 
 \begin{DoxyCompactList}\small\item\em Clipboard. \end{DoxyCompactList}\item 
@@ -83,7 +86,7 @@ This is an abstract base class. You need to use a subclass which implements rgb\
 
 To make things work, \hyperlink{classGUI_1_1Screen}{Screen} needs events. Call the mouse and key event functions (see \hyperlink{classGUI_1_1Window}{Window}) whenever such an event occurs. Call update(void $\ast$surface, int ticks) regularly, if possible about every 40msec (25 fps). If nothing has changed, screen updates are quite fast. 
 
-Definition at line 694 of file gui\-\_\-tk.\-h.
+Definition at line 780 of file gui\-\_\-tk.\-h.
 
 
 
@@ -102,7 +105,7 @@ Update the given surface with this screen's content, fully honouring the alpha c
 
 {\ttfamily ticks} can be set to a different value depending on how much time has passed. Timing doesn't need to be perfect, but try to call this at least every 40 msec. Each tick amounts to about 10 msec. Returns the number of ticks until the next event is scheduled, or 0 if none. 
 
-Definition at line 1278 of file gui\-\_\-tk.\-cpp.
+Definition at line 1426 of file gui\-\_\-tk.\-cpp.
 
 
 

@@ -1,9 +1,10 @@
 var searchData=
 [
   ['g_5fdescriptor',['G_Descriptor',['../structG__Descriptor.html',1,'']]],
+  ['gamegear_5fdevice',['gamegear_device',['../classgamegear__device.html',1,'']]],
   ['gcc_5fattribute',['GCC_ATTRIBUTE',['../structGCC__ATTRIBUTE.html',1,'']]],
   ['gdtdescriptortable',['GDTDescriptorTable',['../classGDTDescriptorTable.html',1,'']]],
-  ['genreg',['GenReg',['../classGenReg.html',1,'']]],
+  ['general_5fdim',['general_dim',['../structVGA__Draw__2_1_1general__dim.html',1,'VGA_Draw_2']]],
   ['genreg32',['GenReg32',['../unionGenReg32.html',1,'']]],
   ['gfgus',['GFGus',['../structGFGus.html',1,'']]],
   ['gfx_5fpalentry',['GFX_PalEntry',['../structGFX__PalEntry.html',1,'']]],

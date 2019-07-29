@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -204,7 +204,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00107"></a>00107         <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> &amp;obj = vec[scan++];
 <a name="l00108"></a>00108         <span class="keywordflow">if</span> (!obj.isInstalled()) <span class="keywordflow">continue</span>;
 <a name="l00109"></a>00109         <span class="keywordflow">if</span> (obj.m_r_handler == NULL) <span class="keywordflow">continue</span>;
-<a name="l00110"></a>00110         <span class="keywordflow">if</span> (!obj.MatchPort(port)) <span class="keywordflow">continue</span>;
+<a name="l00110"></a>00110         <span class="keywordflow">if</span> (!obj.MatchPort((Bit16u)port)) <span class="keywordflow">continue</span>;
 <a name="l00111"></a>00111 
 <a name="l00112"></a>00112         t_f = obj.m_r_handler(obj,port,iolen);
 <a name="l00113"></a>00113         <span class="keywordflow">if</span> (t_f != NULL) {
@@ -235,7 +235,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00138"></a>00138         <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> &amp;obj = vec[scan++];
 <a name="l00139"></a>00139         <span class="keywordflow">if</span> (!obj.isInstalled()) <span class="keywordflow">continue</span>;
 <a name="l00140"></a>00140         <span class="keywordflow">if</span> (obj.m_w_handler == NULL) <span class="keywordflow">continue</span>;
-<a name="l00141"></a>00141         <span class="keywordflow">if</span> (!obj.MatchPort(port)) <span class="keywordflow">continue</span>;
+<a name="l00141"></a>00141         <span class="keywordflow">if</span> (!obj.MatchPort((Bit16u)port)) <span class="keywordflow">continue</span>;
 <a name="l00142"></a>00142 
 <a name="l00143"></a>00143         t_f = obj.m_w_handler(obj,port,iolen);
 <a name="l00144"></a>00144         <span class="keywordflow">if</span> (t_f != NULL) {
@@ -279,7 +279,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00182"></a>00182     Bitu ret = ~0ul;
 <a name="l00183"></a>00183 
 <a name="l00184"></a>00184     <span class="comment">/* check motherboard devices */</span>
-<a name="l00185"></a>00185     <span class="keywordflow">if</span> ((port &amp; 0xFF00) == 0x0000) <span class="comment">/* motherboard-level I/O */</span>
+<a name="l00185"></a>00185     <span class="keywordflow">if</span> ((port &amp; 0xFF00) == 0x0000 || IS_PC98_ARCH) <span class="comment">/* motherboard-level I/O */</span>
 <a name="l00186"></a>00186         match = IO_Motherboard_Callout_Read(<span class="comment">/*&amp;*/</span>ret,<span class="comment">/*&amp;*/</span>f,port,iolen);
 <a name="l00187"></a>00187 
 <a name="l00188"></a>00188     <span class="keywordflow">if</span> (match == 0) {
@@ -327,7 +327,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00230"></a>00230 <span class="comment">     * if one device responded, assign it&#39;s handler to the IO handler slot.</span>
 <a name="l00231"></a>00231 <span class="comment">     * if more than one responded, then do not update the IO handler slot. */</span>
 <a name="l00232"></a>00232     assert(iolen &gt;= 1 &amp;&amp; iolen &lt;= 4);
-<a name="l00233"></a>00233     porti = (iolen &gt;= 4) ? 2 : (iolen - 1); <span class="comment">/* 1 2 x 4 -&gt; 0 1 1 2 */</span>
+<a name="l00233"></a>00233     porti = (iolen &gt;= 4) ? 2 : (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(iolen - 1); <span class="comment">/* 1 2 x 4 -&gt; 0 1 1 2 */</span>
 <a name="l00234"></a>00234     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;IO read slow path port=%x iolen=%u: device matches=%u&quot;</span>,(<span class="keywordtype">unsigned</span> int)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)iolen,(<span class="keywordtype">unsigned</span> int)match);
 <a name="l00235"></a>00235     <span class="keywordflow">if</span> (match == 0) ret = f(port,iolen); <span class="comment">/* if nobody responded, then call the default */</span>
 <a name="l00236"></a>00236     <span class="keywordflow">if</span> (match &lt;= 1) io_readhandlers[porti][port] = f;
@@ -341,7 +341,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00244"></a>00244     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> porti;
 <a name="l00245"></a>00245 
 <a name="l00246"></a>00246     <span class="comment">/* check motherboard devices */</span>
-<a name="l00247"></a>00247     <span class="keywordflow">if</span> ((port &amp; 0xFF00) == 0x0000) <span class="comment">/* motherboard-level I/O */</span>
+<a name="l00247"></a>00247     <span class="keywordflow">if</span> ((port &amp; 0xFF00) == 0x0000 || IS_PC98_ARCH) <span class="comment">/* motherboard-level I/O */</span>
 <a name="l00248"></a>00248         match = IO_Motherboard_Callout_Write(<span class="comment">/*&amp;*/</span>f,port,val,iolen);
 <a name="l00249"></a>00249 
 <a name="l00250"></a>00250     <span class="keywordflow">if</span> (match == 0) {
@@ -387,7 +387,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00290"></a>00290 <span class="comment">     * if one device responded, assign it&#39;s handler to the IO handler slot.</span>
 <a name="l00291"></a>00291 <span class="comment">     * if more than one responded, then do not update the IO handler slot. */</span>
 <a name="l00292"></a>00292     assert(iolen &gt;= 1 &amp;&amp; iolen &lt;= 4);
-<a name="l00293"></a>00293     porti = (iolen &gt;= 4) ? 2 : (iolen - 1); <span class="comment">/* 1 2 x 4 -&gt; 0 1 1 2 */</span>
+<a name="l00293"></a>00293     porti = (iolen &gt;= 4) ? 2 : (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(iolen - 1); <span class="comment">/* 1 2 x 4 -&gt; 0 1 1 2 */</span>
 <a name="l00294"></a>00294     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;IO write slow path port=%x data=%x iolen=%u: device matches=%u&quot;</span>,(<span class="keywordtype">unsigned</span> int)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val,(<span class="keywordtype">unsigned</span> int)iolen,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)match);
 <a name="l00295"></a>00295     <span class="keywordflow">if</span> (match == 0) f(port,val,iolen); <span class="comment">/* if nobody responded, then call the default */</span>
 <a name="l00296"></a>00296     <span class="keywordflow">if</span> (match &lt;= 1) io_writehandlers[porti][port] = f;
@@ -586,7 +586,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00489"></a>00489 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 <a name="l00490"></a>00490 <span class="preprocessor"></span>
 <a name="l00491"></a>00491 
-<a name="l00492"></a>00492 <span class="keywordtype">void</span> IO_WriteB(Bitu port,Bitu val) {
+<a name="l00492"></a>00492 <span class="keywordtype">void</span> IO_WriteB(Bitu port,Bit8u val) {
 <a name="l00493"></a>00493         log_io(0, <span class="keyword">true</span>, port, val);
 <a name="l00494"></a>00494         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,1)))) {
 <a name="l00495"></a>00495                 CPU_ForceV86FakeIO_Out(port,val,1);
@@ -597,7 +597,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00500"></a>00500         }
 <a name="l00501"></a>00501 }
 <a name="l00502"></a>00502 
-<a name="l00503"></a>00503 <span class="keywordtype">void</span> IO_WriteW(Bitu port,Bitu val) {
+<a name="l00503"></a>00503 <span class="keywordtype">void</span> IO_WriteW(Bitu port,Bit16u val) {
 <a name="l00504"></a>00504         log_io(1, <span class="keyword">true</span>, port, val);
 <a name="l00505"></a>00505         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,2)))) {
 <a name="l00506"></a>00506                 CPU_ForceV86FakeIO_Out(port,val,2);
@@ -608,7 +608,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00511"></a>00511         }
 <a name="l00512"></a>00512 }
 <a name="l00513"></a>00513 
-<a name="l00514"></a>00514 <span class="keywordtype">void</span> IO_WriteD(Bitu port,Bitu val) {
+<a name="l00514"></a>00514 <span class="keywordtype">void</span> IO_WriteD(Bitu port,Bit32u val) {
 <a name="l00515"></a>00515         log_io(2, <span class="keyword">true</span>, port, val);
 <a name="l00516"></a>00516         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,4)))) {
 <a name="l00517"></a>00517                 CPU_ForceV86FakeIO_Out(port,val,4);
@@ -619,40 +619,40 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00522"></a>00522         }
 <a name="l00523"></a>00523 }
 <a name="l00524"></a>00524 
-<a name="l00525"></a>00525 Bitu IO_ReadB(Bitu port) {
-<a name="l00526"></a>00526         Bitu retval;
+<a name="l00525"></a>00525 Bit8u IO_ReadB(Bitu port) {
+<a name="l00526"></a>00526         Bit8u retval;
 <a name="l00527"></a>00527         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,1)))) {
-<a name="l00528"></a>00528                 <span class="keywordflow">return</span> CPU_ForceV86FakeIO_In(port,1);
+<a name="l00528"></a>00528                 <span class="keywordflow">return</span> (Bit8u)CPU_ForceV86FakeIO_In(port,1);
 <a name="l00529"></a>00529         }
 <a name="l00530"></a>00530         <span class="keywordflow">else</span> {
 <a name="l00531"></a>00531                 IO_USEC_read_delay(0);
-<a name="l00532"></a>00532                 retval = io_readhandlers[0][port](port,1);
+<a name="l00532"></a>00532                 retval = (Bit8u)io_readhandlers[0][port](port,1);
 <a name="l00533"></a>00533         }
 <a name="l00534"></a>00534         log_io(0, <span class="keyword">false</span>, port, retval);
 <a name="l00535"></a>00535         <span class="keywordflow">return</span> retval;
 <a name="l00536"></a>00536 }
 <a name="l00537"></a>00537 
-<a name="l00538"></a>00538 Bitu IO_ReadW(Bitu port) {
-<a name="l00539"></a>00539         Bitu retval;
+<a name="l00538"></a>00538 Bit16u IO_ReadW(Bitu port) {
+<a name="l00539"></a>00539         Bit16u retval;
 <a name="l00540"></a>00540         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,2)))) {
-<a name="l00541"></a>00541                 <span class="keywordflow">return</span> CPU_ForceV86FakeIO_In(port,2);
+<a name="l00541"></a>00541                 <span class="keywordflow">return</span> (Bit16u)CPU_ForceV86FakeIO_In(port,2);
 <a name="l00542"></a>00542         }
 <a name="l00543"></a>00543         <span class="keywordflow">else</span> {
 <a name="l00544"></a>00544                 IO_USEC_read_delay(1);
-<a name="l00545"></a>00545                 retval = io_readhandlers[1][port](port,2);
+<a name="l00545"></a>00545                 retval = (Bit16u)io_readhandlers[1][port](port,2);
 <a name="l00546"></a>00546         }
 <a name="l00547"></a>00547         log_io(1, <span class="keyword">false</span>, port, retval);
 <a name="l00548"></a>00548         <span class="keywordflow">return</span> retval;
 <a name="l00549"></a>00549 }
 <a name="l00550"></a>00550 
-<a name="l00551"></a>00551 Bitu IO_ReadD(Bitu port) {
-<a name="l00552"></a>00552         Bitu retval;
+<a name="l00551"></a>00551 Bit32u IO_ReadD(Bitu port) {
+<a name="l00552"></a>00552         Bit32u retval;
 <a name="l00553"></a>00553         <span class="keywordflow">if</span> (GCC_UNLIKELY(GETFLAG(VM) &amp;&amp; (CPU_IO_Exception(port,4)))) {
-<a name="l00554"></a>00554                 <span class="keywordflow">return</span> CPU_ForceV86FakeIO_In(port,4);
+<a name="l00554"></a>00554                 <span class="keywordflow">return</span> (Bit32u)CPU_ForceV86FakeIO_In(port,4);
 <a name="l00555"></a>00555         }
 <a name="l00556"></a>00556         <span class="keywordflow">else</span> {
 <a name="l00557"></a>00557                 IO_USEC_read_delay(2);
-<a name="l00558"></a>00558                 retval = io_readhandlers[2][port](port,4);
+<a name="l00558"></a>00558                 retval = (Bit32u)io_readhandlers[2][port](port,4);
 <a name="l00559"></a>00559         }
 <a name="l00560"></a>00560         log_io(2, <span class="keyword">false</span>, port, retval);
 <a name="l00561"></a>00561         <span class="keywordflow">return</span> retval;
@@ -742,7 +742,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00645"></a>00645             range_mask = 0;
 <a name="l00646"></a>00646             test = portmask ^ 0xFFFFU;
 <a name="l00647"></a>00647             <span class="keywordflow">while</span> ((test &amp; m) == m) {
-<a name="l00648"></a>00648                 range_mask = m;
+<a name="l00648"></a>00648                 range_mask = (Bit16u)m;
 <a name="l00649"></a>00649                 m = (m &lt;&lt; 1) + 1;
 <a name="l00650"></a>00650             }
 <a name="l00651"></a>00651 
@@ -760,7 +760,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00663"></a>00663             alias_mask = range_mask;
 <a name="l00664"></a>00664             test = portmask + range_mask; <span class="comment">/* will break if portmask &amp; range_mask != 0 */</span>
 <a name="l00665"></a>00665             <span class="keywordflow">while</span> ((test &amp; m) == m) {
-<a name="l00666"></a>00666                 alias_mask = m;
+<a name="l00666"></a>00666                 alias_mask = (Bit16u)m;
 <a name="l00667"></a>00667                 m = (m &lt;&lt; 1) + 1;
 <a name="l00668"></a>00668             }
 <a name="l00669"></a>00669 
@@ -805,7 +805,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00708"></a>00708                 m_port=port;
 <a name="l00709"></a>00709                 m_mask=0; <span class="comment">/* not used */</span>
 <a name="l00710"></a>00710                 m_range=0; <span class="comment">/* not used */</span>
-<a name="l00711"></a>00711         io_mask=portmask;
+<a name="l00711"></a>00711         io_mask=(Bit16u)portmask;
 <a name="l00712"></a>00712         m_r_handler=r_handler;
 <a name="l00713"></a>00713         m_w_handler=w_handler;
 <a name="l00714"></a>00714 
@@ -929,7 +929,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -314,9 +314,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00217"></a>00217     <span class="keyword">const</span> <span class="keywordtype">int</span> g_diff = <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(getGreen(pix1)) - getGreen(pix2);
 <a name="l00218"></a>00218     <span class="keyword">const</span> <span class="keywordtype">int</span> b_diff = <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(getBlue (pix1)) - getBlue (pix2);
 <a name="l00219"></a>00219 
-<a name="l00220"></a>00220     <span class="keywordflow">return</span> diffToDist[(((r_diff + 0xFF) / 2) &lt;&lt; 16) | <span class="comment">//slightly reduce precision (division by 2) to squeeze value into single byte</span>
-<a name="l00221"></a>00221                                         (((g_diff + 0xFF) / 2) &lt;&lt;  8) |
-<a name="l00222"></a>00222                                         (( b_diff + 0xFF) / 2)];
+<a name="l00220"></a>00220     <span class="keywordflow">return</span> diffToDist[size_t((((r_diff + 0xFF) / 2) &lt;&lt; 16) | <span class="comment">//slightly reduce precision (division by 2) to squeeze value into single byte</span>
+<a name="l00221"></a>00221                              (((g_diff + 0xFF) / 2) &lt;&lt;  8) |
+<a name="l00222"></a>00222                              (((b_diff + 0xFF) / 2)      ))];
 <a name="l00223"></a>00223 <span class="preprocessor">#else //not noticeably faster:</span>
 <a name="l00224"></a>00224 <span class="preprocessor"></span>    <span class="keyword">const</span> <span class="keywordtype">int</span> r_diff_tmp = ((pix1 &amp; 0xFF0000) + 0xFF0000 - (pix2 &amp; 0xFF0000)) / 2;
 <a name="l00225"></a>00225     <span class="keyword">const</span> <span class="keywordtype">int</span> g_diff_tmp = ((pix1 &amp; 0x00FF00) + 0x00FF00 - (pix2 &amp; 0x00FF00)) / 2; <span class="comment">//slightly reduce precision (division by 2) to squeeze value into single byte</span>
@@ -511,7 +511,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00414"></a>00414                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00415"></a>00415 
 <a name="l00416"></a>00416             <span class="comment">//make sure there is no second blending in an adjacent rotation for this pixel: handles insular pixels, mario eyes</span>
-<a name="l00417"></a>00417             <span class="keywordflow">if</span> (getTopR(blend) != BLEND_NONE &amp;&amp; !eq(e, g)) <span class="comment">//but support double-blending for 90° corners</span>
+<a name="l00417"></a>00417             <span class="keywordflow">if</span> (getTopR(blend) != BLEND_NONE &amp;&amp; !eq(e, g)) <span class="comment">//but support double-blending for 90Â° corners</span>
 <a name="l00418"></a>00418                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00419"></a>00419             <span class="keywordflow">if</span> (getBottomL(blend) != BLEND_NONE &amp;&amp; !eq(e, c))
 <a name="l00420"></a>00420                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -707,7 +707,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00610"></a>00610             }
 <a name="l00611"></a>00611 
 <a name="l00612"></a>00612             <span class="comment">//fill block of size scale * scale with the given color</span>
-<a name="l00613"></a>00613             fillBlock(out, trgWidth * <span class="keyword">sizeof</span>(uint32_t), ker4.f, Scaler::scale, Scaler::scale);
+<a name="l00613"></a>00613             fillBlock(out, trgWidth * (<span class="keywordtype">int</span>)<span class="keyword">sizeof</span>(uint32_t), ker4.f, Scaler::scale, Scaler::scale);
 <a name="l00614"></a>00614             <span class="comment">//place *after* preprocessing step, to not overwrite the results while processing the the last pixel!</span>
 <a name="l00615"></a>00615 
 <a name="l00616"></a>00616             <span class="comment">//blend four corners of current pixel</span>
@@ -1103,273 +1103,277 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01006"></a>01006 {
 <a name="l01007"></a>01007     <span class="keyword">static</span> <span class="keywordtype">double</span> dist(uint32_t pix1, uint32_t pix2, <span class="keywordtype">double</span> luminanceWeight)
 <a name="l01008"></a>01008     {
-<a name="l01009"></a>01009         <span class="keywordflow">return</span> distYCbCrBuffered(pix1, pix2);
+<a name="l01009"></a>01009         (void)luminanceWeight;
 <a name="l01010"></a>01010 
-<a name="l01011"></a>01011         <span class="comment">//if (pix1 == pix2) //about 4% perf boost</span>
-<a name="l01012"></a>01012         <span class="comment">//    return 0;</span>
-<a name="l01013"></a>01013         <span class="comment">//return distYCbCr(pix1, pix2, luminanceWeight);</span>
-<a name="l01014"></a>01014     }
-<a name="l01015"></a>01015 };
-<a name="l01016"></a>01016 
-<a name="l01017"></a>01017 <span class="keyword">struct </span>ColorDistanceARGB
-<a name="l01018"></a>01018 {
-<a name="l01019"></a>01019     <span class="keyword">static</span> <span class="keywordtype">double</span> dist(uint32_t pix1, uint32_t pix2, <span class="keywordtype">double</span> luminanceWeight)
-<a name="l01020"></a>01020     {
-<a name="l01021"></a>01021         <span class="keyword">const</span> <span class="keywordtype">double</span> a1 = getAlpha(pix1) / 255.0 ;
-<a name="l01022"></a>01022         <span class="keyword">const</span> <span class="keywordtype">double</span> a2 = getAlpha(pix2) / 255.0 ;
-<a name="l01023"></a>01023         <span class="comment">/*</span>
-<a name="l01024"></a>01024 <span class="comment">        Requirements for a color distance handling alpha channel: with a1, a2 in [0, 1]</span>
-<a name="l01025"></a>01025 <span class="comment"></span>
-<a name="l01026"></a>01026 <span class="comment">            1. if a1 = a2, distance should be: a1 * distYCbCr()</span>
-<a name="l01027"></a>01027 <span class="comment">            2. if a1 = 0,  distance should be: a2 * distYCbCr(black, white) = a2 * 255</span>
-<a name="l01028"></a>01028 <span class="comment">            3. if a1 = 1,  ??? maybe: 255 * (1 - a2) + a2 * distYCbCr()</span>
-<a name="l01029"></a>01029 <span class="comment">        */</span>
-<a name="l01030"></a>01030 
-<a name="l01031"></a>01031         <span class="comment">//return std::min(a1, a2) * distYCbCrBuffered(pix1, pix2) + 255 * abs(a1 - a2);</span>
-<a name="l01032"></a>01032         <span class="comment">//=&gt; following code is 15% faster:</span>
-<a name="l01033"></a>01033         <span class="keyword">const</span> <span class="keywordtype">double</span> d = distYCbCrBuffered(pix1, pix2);
-<a name="l01034"></a>01034         <span class="keywordflow">if</span> (a1 &lt; a2)
-<a name="l01035"></a>01035             <span class="keywordflow">return</span> a1 * d + 255 * (a2 - a1);
-<a name="l01036"></a>01036         <span class="keywordflow">else</span>
-<a name="l01037"></a>01037             <span class="keywordflow">return</span> a2 * d + 255 * (a1 - a2);
-<a name="l01038"></a>01038 
-<a name="l01039"></a>01039         <span class="comment">//alternative? return std::sqrt(a1 * a2 * square(distYCbCrBuffered(pix1, pix2)) + square(255 * (a1 - a2)));</span>
-<a name="l01040"></a>01040     }
-<a name="l01041"></a>01041 };
+<a name="l01011"></a>01011         <span class="keywordflow">return</span> distYCbCrBuffered(pix1, pix2);
+<a name="l01012"></a>01012 
+<a name="l01013"></a>01013         <span class="comment">//if (pix1 == pix2) //about 4% perf boost</span>
+<a name="l01014"></a>01014         <span class="comment">//    return 0;</span>
+<a name="l01015"></a>01015         <span class="comment">//return distYCbCr(pix1, pix2, luminanceWeight);</span>
+<a name="l01016"></a>01016     }
+<a name="l01017"></a>01017 };
+<a name="l01018"></a>01018 
+<a name="l01019"></a>01019 <span class="keyword">struct </span>ColorDistanceARGB
+<a name="l01020"></a>01020 {
+<a name="l01021"></a>01021     <span class="keyword">static</span> <span class="keywordtype">double</span> dist(uint32_t pix1, uint32_t pix2, <span class="keywordtype">double</span> luminanceWeight)
+<a name="l01022"></a>01022     {
+<a name="l01023"></a>01023         (void)luminanceWeight;
+<a name="l01024"></a>01024 
+<a name="l01025"></a>01025         <span class="keyword">const</span> <span class="keywordtype">double</span> a1 = getAlpha(pix1) / 255.0 ;
+<a name="l01026"></a>01026         <span class="keyword">const</span> <span class="keywordtype">double</span> a2 = getAlpha(pix2) / 255.0 ;
+<a name="l01027"></a>01027         <span class="comment">/*</span>
+<a name="l01028"></a>01028 <span class="comment">        Requirements for a color distance handling alpha channel: with a1, a2 in [0, 1]</span>
+<a name="l01029"></a>01029 <span class="comment"></span>
+<a name="l01030"></a>01030 <span class="comment">            1. if a1 = a2, distance should be: a1 * distYCbCr()</span>
+<a name="l01031"></a>01031 <span class="comment">            2. if a1 = 0,  distance should be: a2 * distYCbCr(black, white) = a2 * 255</span>
+<a name="l01032"></a>01032 <span class="comment">            3. if a1 = 1,  ??? maybe: 255 * (1 - a2) + a2 * distYCbCr()</span>
+<a name="l01033"></a>01033 <span class="comment">        */</span>
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035         <span class="comment">//return std::min(a1, a2) * distYCbCrBuffered(pix1, pix2) + 255 * abs(a1 - a2);</span>
+<a name="l01036"></a>01036         <span class="comment">//=&gt; following code is 15% faster:</span>
+<a name="l01037"></a>01037         <span class="keyword">const</span> <span class="keywordtype">double</span> d = distYCbCrBuffered(pix1, pix2);
+<a name="l01038"></a>01038         <span class="keywordflow">if</span> (a1 &lt; a2)
+<a name="l01039"></a>01039             <span class="keywordflow">return</span> a1 * d + 255 * (a2 - a1);
+<a name="l01040"></a>01040         <span class="keywordflow">else</span>
+<a name="l01041"></a>01041             <span class="keywordflow">return</span> a2 * d + 255 * (a1 - a2);
 <a name="l01042"></a>01042 
-<a name="l01043"></a>01043 
-<a name="l01044"></a>01044 <span class="keyword">struct </span>ColorDistanceUnbufferedARGB
-<a name="l01045"></a>01045 {
-<a name="l01046"></a>01046     <span class="keyword">static</span> <span class="keywordtype">double</span> dist(uint32_t pix1, uint32_t pix2, <span class="keywordtype">double</span> luminanceWeight)
-<a name="l01047"></a>01047     {
-<a name="l01048"></a>01048         <span class="keyword">const</span> <span class="keywordtype">double</span> a1 = getAlpha(pix1) / 255.0 ;
-<a name="l01049"></a>01049         <span class="keyword">const</span> <span class="keywordtype">double</span> a2 = getAlpha(pix2) / 255.0 ;
-<a name="l01050"></a>01050 
-<a name="l01051"></a>01051         <span class="keyword">const</span> <span class="keywordtype">double</span> d = distYCbCr(pix1, pix2, luminanceWeight);
-<a name="l01052"></a>01052         <span class="keywordflow">if</span> (a1 &lt; a2)
-<a name="l01053"></a>01053             <span class="keywordflow">return</span> a1 * d + 255 * (a2 - a1);
-<a name="l01054"></a>01054         <span class="keywordflow">else</span>
-<a name="l01055"></a>01055             <span class="keywordflow">return</span> a2 * d + 255 * (a1 - a2);
-<a name="l01056"></a>01056     }
-<a name="l01057"></a>01057 };
-<a name="l01058"></a>01058 
-<a name="l01059"></a>01059 
-<a name="l01060"></a>01060 <span class="keyword">struct </span>ColorGradientRGB
-<a name="l01061"></a>01061 {
-<a name="l01062"></a>01062     <span class="keyword">template</span> &lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> M, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> N&gt;
-<a name="l01063"></a>01063     <span class="keyword">static</span> <span class="keywordtype">void</span> alphaGrad(uint32_t&amp; pixBack, uint32_t pixFront)
-<a name="l01064"></a>01064     {
-<a name="l01065"></a>01065         pixBack = gradientRGB&lt;M, N&gt;(pixFront, pixBack);
-<a name="l01066"></a>01066     }
-<a name="l01067"></a>01067 };
-<a name="l01068"></a>01068 
-<a name="l01069"></a>01069 <span class="keyword">struct </span>ColorGradientARGB
-<a name="l01070"></a>01070 {
-<a name="l01071"></a>01071     <span class="keyword">template</span> &lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> M, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> N&gt;
-<a name="l01072"></a>01072     <span class="keyword">static</span> <span class="keywordtype">void</span> alphaGrad(uint32_t&amp; pixBack, uint32_t pixFront)
-<a name="l01073"></a>01073     {
-<a name="l01074"></a>01074         pixBack = gradientARGB&lt;M, N&gt;(pixFront, pixBack);
-<a name="l01075"></a>01075     }
-<a name="l01076"></a>01076 };
-<a name="l01077"></a>01077 }
-<a name="l01078"></a>01078 
-<a name="l01079"></a>01079 
-<a name="l01080"></a>01080 <span class="keywordtype">void</span> xbrz::scale(<span class="keywordtype">size_t</span> factor, <span class="keyword">const</span> uint32_t* src, uint32_t* trg, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, ColorFormat colFmt, <span class="keyword">const</span> <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>&amp; cfg, <span class="keywordtype">int</span> yFirst, <span class="keywordtype">int</span> yLast)
-<a name="l01081"></a>01081 {
-<a name="l01082"></a>01082     static_assert(SCALE_FACTOR_MAX == 6, <span class="stringliteral">&quot;&quot;</span>);
-<a name="l01083"></a>01083     <span class="keywordflow">switch</span> (colFmt)
-<a name="l01084"></a>01084     {
-<a name="l01085"></a>01085         <span class="keywordflow">case</span> <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">ColorFormat::RGB</a>:
-<a name="l01086"></a>01086             <span class="keywordflow">switch</span> (factor)
-<a name="l01087"></a>01087             {
-<a name="l01088"></a>01088                 <span class="keywordflow">case</span> 2:
-<a name="l01089"></a>01089                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01090"></a>01090                 <span class="keywordflow">case</span> 3:
-<a name="l01091"></a>01091                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01092"></a>01092                 <span class="keywordflow">case</span> 4:
-<a name="l01093"></a>01093                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01094"></a>01094                 <span class="keywordflow">case</span> 5:
-<a name="l01095"></a>01095                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01096"></a>01096                 <span class="keywordflow">case</span> 6:
-<a name="l01097"></a>01097                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01098"></a>01098             }
-<a name="l01099"></a>01099             <span class="keywordflow">break</span>;
-<a name="l01100"></a>01100 
-<a name="l01101"></a>01101         <span class="keywordflow">case</span> ColorFormat::ARGB:
-<a name="l01102"></a>01102             <span class="keywordflow">switch</span> (factor)
-<a name="l01103"></a>01103             {
-<a name="l01104"></a>01104                 <span class="keywordflow">case</span> 2:
-<a name="l01105"></a>01105                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01106"></a>01106                 <span class="keywordflow">case</span> 3:
-<a name="l01107"></a>01107                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01108"></a>01108                 <span class="keywordflow">case</span> 4:
-<a name="l01109"></a>01109                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01110"></a>01110                 <span class="keywordflow">case</span> 5:
-<a name="l01111"></a>01111                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01112"></a>01112                 <span class="keywordflow">case</span> 6:
-<a name="l01113"></a>01113                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01114"></a>01114             }
-<a name="l01115"></a>01115             <span class="keywordflow">break</span>;
-<a name="l01116"></a>01116 
-<a name="l01117"></a>01117         <span class="keywordflow">case</span> ColorFormat::ARGB_UNBUFFERED:
-<a name="l01118"></a>01118             <span class="keywordflow">switch</span> (factor)
-<a name="l01119"></a>01119             {
-<a name="l01120"></a>01120                 <span class="keywordflow">case</span> 2:
-<a name="l01121"></a>01121                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01122"></a>01122                 <span class="keywordflow">case</span> 3:
-<a name="l01123"></a>01123                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01124"></a>01124                 <span class="keywordflow">case</span> 4:
-<a name="l01125"></a>01125                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01126"></a>01126                 <span class="keywordflow">case</span> 5:
-<a name="l01127"></a>01127                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01128"></a>01128                 <span class="keywordflow">case</span> 6:
-<a name="l01129"></a>01129                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
-<a name="l01130"></a>01130             }
-<a name="l01131"></a>01131             <span class="keywordflow">break</span>;
-<a name="l01132"></a>01132     }
-<a name="l01133"></a>01133     assert(<span class="keyword">false</span>);
-<a name="l01134"></a>01134 }
-<a name="l01135"></a>01135 
-<a name="l01136"></a>01136 
-<a name="l01137"></a>01137 <span class="keywordtype">bool</span> xbrz::equalColorTest(uint32_t col1, uint32_t col2, ColorFormat colFmt, <span class="keywordtype">double</span> luminanceWeight, <span class="keywordtype">double</span> equalColorTolerance)
-<a name="l01138"></a>01138 {
-<a name="l01139"></a>01139     <span class="keywordflow">switch</span> (colFmt)
-<a name="l01140"></a>01140     {
-<a name="l01141"></a>01141         <span class="keywordflow">case</span> <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">ColorFormat::RGB</a>:
-<a name="l01142"></a>01142             <span class="keywordflow">return</span> ColorDistanceRGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
-<a name="l01143"></a>01143         <span class="keywordflow">case</span> ColorFormat::ARGB:
-<a name="l01144"></a>01144             <span class="keywordflow">return</span> ColorDistanceARGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
-<a name="l01145"></a>01145         <span class="keywordflow">case</span> ColorFormat::ARGB_UNBUFFERED:
-<a name="l01146"></a>01146             <span class="keywordflow">return</span> ColorDistanceUnbufferedARGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
-<a name="l01147"></a>01147     }
-<a name="l01148"></a>01148     assert(<span class="keyword">false</span>);
-<a name="l01149"></a>01149     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01150"></a>01150 }
-<a name="l01151"></a>01151 
-<a name="l01152"></a>01152 
-<a name="l01153"></a>01153 <span class="keywordtype">void</span> xbrz::bilinearScale(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
-<a name="l01154"></a>01154                            uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
-<a name="l01155"></a>01155 {
-<a name="l01156"></a>01156     bilinearScale(src, srcWidth, srcHeight, srcWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01157"></a>01157                   trg, trgWidth, trgHeight, trgWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01158"></a>01158     0, trgHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l01159"></a>01159 }
-<a name="l01160"></a>01160 
-<a name="l01161"></a>01161 
-<a name="l01162"></a>01162 <span class="keywordtype">void</span> xbrz::nearestNeighborScale(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
-<a name="l01163"></a>01163                                   uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
-<a name="l01164"></a>01164 {
-<a name="l01165"></a>01165     nearestNeighborScale(src, srcWidth, srcHeight, srcWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01166"></a>01166                          trg, trgWidth, trgHeight, trgWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01167"></a>01167     0, trgHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l01168"></a>01168 }
-<a name="l01169"></a>01169 
-<a name="l01170"></a>01170 
-<a name="l01171"></a>01171 <span class="preprocessor">#if 0</span>
-<a name="l01172"></a>01172 <span class="preprocessor"></span><span class="comment">//#include &lt;ppl.h&gt;</span>
-<a name="l01173"></a>01173 <span class="keywordtype">void</span> bilinearScaleCpu(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
-<a name="l01174"></a>01174                         uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
-<a name="l01175"></a>01175 {
-<a name="l01176"></a>01176     <span class="keyword">const</span> <span class="keywordtype">int</span> TASK_GRANULARITY = 16;
-<a name="l01177"></a>01177 
-<a name="l01178"></a>01178     concurrency::task_group tg;
-<a name="l01179"></a>01179 
-<a name="l01180"></a>01180     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; trgHeight; i += TASK_GRANULARITY)
-<a name="l01181"></a>01181         tg.run([=]
-<a name="l01182"></a>01182     {
-<a name="l01183"></a>01183         <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = std::min(i + TASK_GRANULARITY, trgHeight);
-<a name="l01184"></a>01184         xbrz::bilinearScale(src, srcWidth, srcHeight, srcWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01185"></a>01185                             trg, trgWidth, trgHeight, trgWidth * <span class="keyword">sizeof</span>(uint32_t),
-<a name="l01186"></a>01186         i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l01187"></a>01187     });
-<a name="l01188"></a>01188     tg.wait();
-<a name="l01189"></a>01189 }
-<a name="l01190"></a>01190 
-<a name="l01191"></a>01191 
-<a name="l01192"></a>01192 <span class="comment">//Perf: AMP vs CPU: merely ~10% shorter runtime (scaling 1280x800 -&gt; 1920x1080)</span>
-<a name="l01193"></a>01193 <span class="comment">//#include &lt;amp.h&gt;</span>
-<a name="l01194"></a>01194 <span class="keywordtype">void</span> bilinearScaleAmp(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, <span class="comment">//throw concurrency::runtime_exception</span>
-<a name="l01195"></a>01195                         uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
-<a name="l01196"></a>01196 {
-<a name="l01197"></a>01197     <span class="comment">//C++ AMP reference:       https://msdn.microsoft.com/en-us/library/hh289390.aspx</span>
-<a name="l01198"></a>01198     <span class="comment">//introduction to C++ AMP: https://msdn.microsoft.com/en-us/magazine/hh882446.aspx</span>
-<a name="l01199"></a>01199     <span class="keyword">using namespace </span>concurrency;
-<a name="l01200"></a>01200     <span class="comment">//TODO: pitch</span>
-<a name="l01201"></a>01201 
-<a name="l01202"></a>01202     <span class="keywordflow">if</span> (srcHeight &lt;= 0 || srcWidth &lt;= 0) <span class="keywordflow">return</span>;
-<a name="l01203"></a>01203 
-<a name="l01204"></a>01204     <span class="keyword">const</span> <span class="keywordtype">float</span> scaleX = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(trgWidth ) / srcWidth;
-<a name="l01205"></a>01205     <span class="keyword">const</span> <span class="keywordtype">float</span> scaleY = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(trgHeight) / srcHeight;
-<a name="l01206"></a>01206 
-<a name="l01207"></a>01207     array_view&lt;const uint32_t, 2&gt; srcView(srcHeight, srcWidth, src);
-<a name="l01208"></a>01208     array_view&lt;      uint32_t, 2&gt; trgView(trgHeight, trgWidth, trg);
-<a name="l01209"></a>01209     trgView.discard_data();
+<a name="l01043"></a>01043         <span class="comment">//alternative? return std::sqrt(a1 * a2 * square(distYCbCrBuffered(pix1, pix2)) + square(255 * (a1 - a2)));</span>
+<a name="l01044"></a>01044     }
+<a name="l01045"></a>01045 };
+<a name="l01046"></a>01046 
+<a name="l01047"></a>01047 
+<a name="l01048"></a>01048 <span class="keyword">struct </span>ColorDistanceUnbufferedARGB
+<a name="l01049"></a>01049 {
+<a name="l01050"></a>01050     <span class="keyword">static</span> <span class="keywordtype">double</span> dist(uint32_t pix1, uint32_t pix2, <span class="keywordtype">double</span> luminanceWeight)
+<a name="l01051"></a>01051     {
+<a name="l01052"></a>01052         <span class="keyword">const</span> <span class="keywordtype">double</span> a1 = getAlpha(pix1) / 255.0 ;
+<a name="l01053"></a>01053         <span class="keyword">const</span> <span class="keywordtype">double</span> a2 = getAlpha(pix2) / 255.0 ;
+<a name="l01054"></a>01054 
+<a name="l01055"></a>01055         <span class="keyword">const</span> <span class="keywordtype">double</span> d = distYCbCr(pix1, pix2, luminanceWeight);
+<a name="l01056"></a>01056         <span class="keywordflow">if</span> (a1 &lt; a2)
+<a name="l01057"></a>01057             <span class="keywordflow">return</span> a1 * d + 255 * (a2 - a1);
+<a name="l01058"></a>01058         <span class="keywordflow">else</span>
+<a name="l01059"></a>01059             <span class="keywordflow">return</span> a2 * d + 255 * (a1 - a2);
+<a name="l01060"></a>01060     }
+<a name="l01061"></a>01061 };
+<a name="l01062"></a>01062 
+<a name="l01063"></a>01063 
+<a name="l01064"></a>01064 <span class="keyword">struct </span>ColorGradientRGB
+<a name="l01065"></a>01065 {
+<a name="l01066"></a>01066     <span class="keyword">template</span> &lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> M, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> N&gt;
+<a name="l01067"></a>01067     <span class="keyword">static</span> <span class="keywordtype">void</span> alphaGrad(uint32_t&amp; pixBack, uint32_t pixFront)
+<a name="l01068"></a>01068     {
+<a name="l01069"></a>01069         pixBack = gradientRGB&lt;M, N&gt;(pixFront, pixBack);
+<a name="l01070"></a>01070     }
+<a name="l01071"></a>01071 };
+<a name="l01072"></a>01072 
+<a name="l01073"></a>01073 <span class="keyword">struct </span>ColorGradientARGB
+<a name="l01074"></a>01074 {
+<a name="l01075"></a>01075     <span class="keyword">template</span> &lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> M, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> N&gt;
+<a name="l01076"></a>01076     <span class="keyword">static</span> <span class="keywordtype">void</span> alphaGrad(uint32_t&amp; pixBack, uint32_t pixFront)
+<a name="l01077"></a>01077     {
+<a name="l01078"></a>01078         pixBack = gradientARGB&lt;M, N&gt;(pixFront, pixBack);
+<a name="l01079"></a>01079     }
+<a name="l01080"></a>01080 };
+<a name="l01081"></a>01081 }
+<a name="l01082"></a>01082 
+<a name="l01083"></a>01083 
+<a name="l01084"></a>01084 <span class="keywordtype">void</span> xbrz::scale(<span class="keywordtype">size_t</span> factor, <span class="keyword">const</span> uint32_t* src, uint32_t* trg, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, ColorFormat colFmt, <span class="keyword">const</span> <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>&amp; cfg, <span class="keywordtype">int</span> yFirst, <span class="keywordtype">int</span> yLast)
+<a name="l01085"></a>01085 {
+<a name="l01086"></a>01086     static_assert(SCALE_FACTOR_MAX == 6, <span class="stringliteral">&quot;&quot;</span>);
+<a name="l01087"></a>01087     <span class="keywordflow">switch</span> (colFmt)
+<a name="l01088"></a>01088     {
+<a name="l01089"></a>01089         <span class="keywordflow">case</span> <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">ColorFormat::RGB</a>:
+<a name="l01090"></a>01090             <span class="keywordflow">switch</span> (factor)
+<a name="l01091"></a>01091             {
+<a name="l01092"></a>01092                 <span class="keywordflow">case</span> 2:
+<a name="l01093"></a>01093                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01094"></a>01094                 <span class="keywordflow">case</span> 3:
+<a name="l01095"></a>01095                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01096"></a>01096                 <span class="keywordflow">case</span> 4:
+<a name="l01097"></a>01097                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01098"></a>01098                 <span class="keywordflow">case</span> 5:
+<a name="l01099"></a>01099                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01100"></a>01100                 <span class="keywordflow">case</span> 6:
+<a name="l01101"></a>01101                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientRGB&gt;, ColorDistanceRGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01102"></a>01102             }
+<a name="l01103"></a>01103             <span class="keywordflow">break</span>;
+<a name="l01104"></a>01104 
+<a name="l01105"></a>01105         <span class="keywordflow">case</span> ColorFormat::ARGB:
+<a name="l01106"></a>01106             <span class="keywordflow">switch</span> (factor)
+<a name="l01107"></a>01107             {
+<a name="l01108"></a>01108                 <span class="keywordflow">case</span> 2:
+<a name="l01109"></a>01109                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01110"></a>01110                 <span class="keywordflow">case</span> 3:
+<a name="l01111"></a>01111                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01112"></a>01112                 <span class="keywordflow">case</span> 4:
+<a name="l01113"></a>01113                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01114"></a>01114                 <span class="keywordflow">case</span> 5:
+<a name="l01115"></a>01115                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01116"></a>01116                 <span class="keywordflow">case</span> 6:
+<a name="l01117"></a>01117                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientARGB&gt;, ColorDistanceARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01118"></a>01118             }
+<a name="l01119"></a>01119             <span class="keywordflow">break</span>;
+<a name="l01120"></a>01120 
+<a name="l01121"></a>01121         <span class="keywordflow">case</span> ColorFormat::ARGB_UNBUFFERED:
+<a name="l01122"></a>01122             <span class="keywordflow">switch</span> (factor)
+<a name="l01123"></a>01123             {
+<a name="l01124"></a>01124                 <span class="keywordflow">case</span> 2:
+<a name="l01125"></a>01125                     <span class="keywordflow">return</span> scaleImage&lt;Scaler2x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01126"></a>01126                 <span class="keywordflow">case</span> 3:
+<a name="l01127"></a>01127                     <span class="keywordflow">return</span> scaleImage&lt;Scaler3x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01128"></a>01128                 <span class="keywordflow">case</span> 4:
+<a name="l01129"></a>01129                     <span class="keywordflow">return</span> scaleImage&lt;Scaler4x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01130"></a>01130                 <span class="keywordflow">case</span> 5:
+<a name="l01131"></a>01131                     <span class="keywordflow">return</span> scaleImage&lt;Scaler5x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01132"></a>01132                 <span class="keywordflow">case</span> 6:
+<a name="l01133"></a>01133                     <span class="keywordflow">return</span> scaleImage&lt;Scaler6x&lt;ColorGradientARGB&gt;, ColorDistanceUnbufferedARGB&gt;(src, trg, srcWidth, srcHeight, cfg, yFirst, yLast);
+<a name="l01134"></a>01134             }
+<a name="l01135"></a>01135             <span class="keywordflow">break</span>;
+<a name="l01136"></a>01136     }
+<a name="l01137"></a>01137     assert(<span class="keyword">false</span>);
+<a name="l01138"></a>01138 }
+<a name="l01139"></a>01139 
+<a name="l01140"></a>01140 
+<a name="l01141"></a>01141 <span class="keywordtype">bool</span> xbrz::equalColorTest(uint32_t col1, uint32_t col2, ColorFormat colFmt, <span class="keywordtype">double</span> luminanceWeight, <span class="keywordtype">double</span> equalColorTolerance)
+<a name="l01142"></a>01142 {
+<a name="l01143"></a>01143     <span class="keywordflow">switch</span> (colFmt)
+<a name="l01144"></a>01144     {
+<a name="l01145"></a>01145         <span class="keywordflow">case</span> <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">ColorFormat::RGB</a>:
+<a name="l01146"></a>01146             <span class="keywordflow">return</span> ColorDistanceRGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
+<a name="l01147"></a>01147         <span class="keywordflow">case</span> ColorFormat::ARGB:
+<a name="l01148"></a>01148             <span class="keywordflow">return</span> ColorDistanceARGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
+<a name="l01149"></a>01149         <span class="keywordflow">case</span> ColorFormat::ARGB_UNBUFFERED:
+<a name="l01150"></a>01150             <span class="keywordflow">return</span> ColorDistanceUnbufferedARGB::dist(col1, col2, luminanceWeight) &lt; equalColorTolerance;
+<a name="l01151"></a>01151     }
+<a name="l01152"></a>01152     assert(<span class="keyword">false</span>);
+<a name="l01153"></a>01153     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01154"></a>01154 }
+<a name="l01155"></a>01155 
+<a name="l01156"></a>01156 
+<a name="l01157"></a>01157 <span class="keywordtype">void</span> xbrz::bilinearScale(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
+<a name="l01158"></a>01158                            uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
+<a name="l01159"></a>01159 {
+<a name="l01160"></a>01160     bilinearScale(src, srcWidth, srcHeight, srcWidth * (<span class="keywordtype">int</span>)<span class="keyword">sizeof</span>(uint32_t),
+<a name="l01161"></a>01161                   trg, trgWidth, trgHeight, trgWidth * (<span class="keywordtype">int</span>)<span class="keyword">sizeof</span>(uint32_t),
+<a name="l01162"></a>01162     0, trgHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l01163"></a>01163 }
+<a name="l01164"></a>01164 
+<a name="l01165"></a>01165 
+<a name="l01166"></a>01166 <span class="keywordtype">void</span> xbrz::nearestNeighborScale(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
+<a name="l01167"></a>01167                                   uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
+<a name="l01168"></a>01168 {
+<a name="l01169"></a>01169     nearestNeighborScale(src, srcWidth, srcHeight, srcWidth * (<span class="keywordtype">int</span>)<span class="keyword">sizeof</span>(uint32_t),
+<a name="l01170"></a>01170                          trg, trgWidth, trgHeight, trgWidth * (<span class="keywordtype">int</span>)<span class="keyword">sizeof</span>(uint32_t),
+<a name="l01171"></a>01171     0, trgHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l01172"></a>01172 }
+<a name="l01173"></a>01173 
+<a name="l01174"></a>01174 
+<a name="l01175"></a>01175 <span class="preprocessor">#if 0</span>
+<a name="l01176"></a>01176 <span class="preprocessor"></span><span class="comment">//#include &lt;ppl.h&gt;</span>
+<a name="l01177"></a>01177 <span class="keywordtype">void</span> bilinearScaleCpu(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight,
+<a name="l01178"></a>01178                         uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
+<a name="l01179"></a>01179 {
+<a name="l01180"></a>01180     <span class="keyword">const</span> <span class="keywordtype">int</span> TASK_GRANULARITY = 16;
+<a name="l01181"></a>01181 
+<a name="l01182"></a>01182     concurrency::task_group tg;
+<a name="l01183"></a>01183 
+<a name="l01184"></a>01184     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; trgHeight; i += TASK_GRANULARITY)
+<a name="l01185"></a>01185         tg.run([=]
+<a name="l01186"></a>01186     {
+<a name="l01187"></a>01187         <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = std::min(i + TASK_GRANULARITY, trgHeight);
+<a name="l01188"></a>01188         xbrz::bilinearScale(src, srcWidth, srcHeight, srcWidth * <span class="keyword">sizeof</span>(uint32_t),
+<a name="l01189"></a>01189                             trg, trgWidth, trgHeight, trgWidth * <span class="keyword">sizeof</span>(uint32_t),
+<a name="l01190"></a>01190         i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l01191"></a>01191     });
+<a name="l01192"></a>01192     tg.wait();
+<a name="l01193"></a>01193 }
+<a name="l01194"></a>01194 
+<a name="l01195"></a>01195 
+<a name="l01196"></a>01196 <span class="comment">//Perf: AMP vs CPU: merely ~10% shorter runtime (scaling 1280x800 -&gt; 1920x1080)</span>
+<a name="l01197"></a>01197 <span class="comment">//#include &lt;amp.h&gt;</span>
+<a name="l01198"></a>01198 <span class="keywordtype">void</span> bilinearScaleAmp(<span class="keyword">const</span> uint32_t* src, <span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, <span class="comment">//throw concurrency::runtime_exception</span>
+<a name="l01199"></a>01199                         uint32_t* trg, <span class="keywordtype">int</span> trgWidth, <span class="keywordtype">int</span> trgHeight)
+<a name="l01200"></a>01200 {
+<a name="l01201"></a>01201     <span class="comment">//C++ AMP reference:       https://msdn.microsoft.com/en-us/library/hh289390.aspx</span>
+<a name="l01202"></a>01202     <span class="comment">//introduction to C++ AMP: https://msdn.microsoft.com/en-us/magazine/hh882446.aspx</span>
+<a name="l01203"></a>01203     <span class="keyword">using namespace </span>concurrency;
+<a name="l01204"></a>01204     <span class="comment">//TODO: pitch</span>
+<a name="l01205"></a>01205 
+<a name="l01206"></a>01206     <span class="keywordflow">if</span> (srcHeight &lt;= 0 || srcWidth &lt;= 0) <span class="keywordflow">return</span>;
+<a name="l01207"></a>01207 
+<a name="l01208"></a>01208     <span class="keyword">const</span> <span class="keywordtype">float</span> scaleX = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(trgWidth ) / srcWidth;
+<a name="l01209"></a>01209     <span class="keyword">const</span> <span class="keywordtype">float</span> scaleY = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(trgHeight) / srcHeight;
 <a name="l01210"></a>01210 
-<a name="l01211"></a>01211     parallel_for_each(trgView.extent, [=](index&lt;2&gt; idx) restrict(amp) <span class="comment">//throw ?</span>
-<a name="l01212"></a>01212     {
-<a name="l01213"></a>01213         <span class="keyword">const</span> <span class="keywordtype">int</span> y = idx[0];
-<a name="l01214"></a>01214         <span class="keyword">const</span> <span class="keywordtype">int</span> x = idx[1];
-<a name="l01215"></a>01215         <span class="comment">//Perf notes:</span>
-<a name="l01216"></a>01216         <span class="comment">//    -&gt; float-based calculation is (almost 2x) faster than double!</span>
-<a name="l01217"></a>01217         <span class="comment">//    -&gt; no noticeable improvement via tiling: https://msdn.microsoft.com/en-us/magazine/hh882447.aspx</span>
-<a name="l01218"></a>01218         <span class="comment">//    -&gt; no noticeable improvement with restrict(amp,cpu)</span>
-<a name="l01219"></a>01219         <span class="comment">//    -&gt; iterating over y-axis only is significantly slower!</span>
-<a name="l01220"></a>01220         <span class="comment">//    -&gt; pre-calculating x,y-dependent variables in a buffer + array_view&lt;&gt; is ~ 20 % slower!</span>
-<a name="l01221"></a>01221         <span class="keyword">const</span> <span class="keywordtype">int</span> y1 = srcHeight * y / trgHeight;
-<a name="l01222"></a>01222         <span class="keywordtype">int</span> y2 = y1 + 1;
-<a name="l01223"></a>01223         <span class="keywordflow">if</span> (y2 == srcHeight) --y2;
-<a name="l01224"></a>01224 
-<a name="l01225"></a>01225         <span class="keyword">const</span> <span class="keywordtype">float</span> yy1 = y / scaleY - y1;
-<a name="l01226"></a>01226         <span class="keyword">const</span> <span class="keywordtype">float</span> y2y = 1 - yy1;
-<a name="l01227"></a>01227         <span class="comment">//-------------------------------------</span>
-<a name="l01228"></a>01228         <span class="keyword">const</span> <span class="keywordtype">int</span> x1 = srcWidth * x / trgWidth;
-<a name="l01229"></a>01229         <span class="keywordtype">int</span> x2 = x1 + 1;
-<a name="l01230"></a>01230         <span class="keywordflow">if</span> (x2 == srcWidth) --x2;
-<a name="l01231"></a>01231 
-<a name="l01232"></a>01232         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1 = x / scaleX - x1;
-<a name="l01233"></a>01233         <span class="keyword">const</span> <span class="keywordtype">float</span> x2x = 1 - xx1;
-<a name="l01234"></a>01234         <span class="comment">//-------------------------------------</span>
-<a name="l01235"></a>01235         <span class="keyword">const</span> <span class="keywordtype">float</span> x2xy2y = x2x * y2y;
-<a name="l01236"></a>01236         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1y2y = xx1 * y2y;
-<a name="l01237"></a>01237         <span class="keyword">const</span> <span class="keywordtype">float</span> x2xyy1 = x2x * yy1;
-<a name="l01238"></a>01238         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1yy1 = xx1 * yy1;
-<a name="l01239"></a>01239 
-<a name="l01240"></a>01240         <span class="keyword">auto</span> interpolate = [=](<span class="keywordtype">int</span> offset)
-<a name="l01241"></a>01241         {
-<a name="l01242"></a>01242             <span class="comment">/*</span>
-<a name="l01243"></a>01243 <span class="comment">                https://en.wikipedia.org/wiki/Bilinear_interpolation</span>
-<a name="l01244"></a>01244 <span class="comment">                (c11(x2 - x) + c21(x - x1)) * (y2 - y ) +</span>
-<a name="l01245"></a>01245 <span class="comment">                (c12(x2 - x) + c22(x - x1)) * (y  - y1)</span>
-<a name="l01246"></a>01246 <span class="comment">            */</span>
-<a name="l01247"></a>01247             <span class="keyword">const</span> <span class="keyword">auto</span> c11 = (srcView(y1, x1) &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l01248"></a>01248             <span class="keyword">const</span> <span class="keyword">auto</span> c21 = (srcView(y1, x2) &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l01249"></a>01249             <span class="keyword">const</span> <span class="keyword">auto</span> c12 = (srcView(y2, x1) &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l01250"></a>01250             <span class="keyword">const</span> <span class="keyword">auto</span> c22 = (srcView(y2, x2) &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l01251"></a>01251 
-<a name="l01252"></a>01252             <span class="keywordflow">return</span> c11 * x2xy2y + c21 * xx1y2y +
-<a name="l01253"></a>01253                    c12 * x2xyy1 + c22 * xx1yy1;
-<a name="l01254"></a>01254         };
+<a name="l01211"></a>01211     array_view&lt;const uint32_t, 2&gt; srcView(srcHeight, srcWidth, src);
+<a name="l01212"></a>01212     array_view&lt;      uint32_t, 2&gt; trgView(trgHeight, trgWidth, trg);
+<a name="l01213"></a>01213     trgView.discard_data();
+<a name="l01214"></a>01214 
+<a name="l01215"></a>01215     parallel_for_each(trgView.extent, [=](index&lt;2&gt; idx) restrict(amp) <span class="comment">//throw ?</span>
+<a name="l01216"></a>01216     {
+<a name="l01217"></a>01217         <span class="keyword">const</span> <span class="keywordtype">int</span> y = idx[0];
+<a name="l01218"></a>01218         <span class="keyword">const</span> <span class="keywordtype">int</span> x = idx[1];
+<a name="l01219"></a>01219         <span class="comment">//Perf notes:</span>
+<a name="l01220"></a>01220         <span class="comment">//    -&gt; float-based calculation is (almost 2x) faster than double!</span>
+<a name="l01221"></a>01221         <span class="comment">//    -&gt; no noticeable improvement via tiling: https://msdn.microsoft.com/en-us/magazine/hh882447.aspx</span>
+<a name="l01222"></a>01222         <span class="comment">//    -&gt; no noticeable improvement with restrict(amp,cpu)</span>
+<a name="l01223"></a>01223         <span class="comment">//    -&gt; iterating over y-axis only is significantly slower!</span>
+<a name="l01224"></a>01224         <span class="comment">//    -&gt; pre-calculating x,y-dependent variables in a buffer + array_view&lt;&gt; is ~ 20 % slower!</span>
+<a name="l01225"></a>01225         <span class="keyword">const</span> <span class="keywordtype">int</span> y1 = srcHeight * y / trgHeight;
+<a name="l01226"></a>01226         <span class="keywordtype">int</span> y2 = y1 + 1;
+<a name="l01227"></a>01227         <span class="keywordflow">if</span> (y2 == srcHeight) --y2;
+<a name="l01228"></a>01228 
+<a name="l01229"></a>01229         <span class="keyword">const</span> <span class="keywordtype">float</span> yy1 = y / scaleY - y1;
+<a name="l01230"></a>01230         <span class="keyword">const</span> <span class="keywordtype">float</span> y2y = 1 - yy1;
+<a name="l01231"></a>01231         <span class="comment">//-------------------------------------</span>
+<a name="l01232"></a>01232         <span class="keyword">const</span> <span class="keywordtype">int</span> x1 = srcWidth * x / trgWidth;
+<a name="l01233"></a>01233         <span class="keywordtype">int</span> x2 = x1 + 1;
+<a name="l01234"></a>01234         <span class="keywordflow">if</span> (x2 == srcWidth) --x2;
+<a name="l01235"></a>01235 
+<a name="l01236"></a>01236         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1 = x / scaleX - x1;
+<a name="l01237"></a>01237         <span class="keyword">const</span> <span class="keywordtype">float</span> x2x = 1 - xx1;
+<a name="l01238"></a>01238         <span class="comment">//-------------------------------------</span>
+<a name="l01239"></a>01239         <span class="keyword">const</span> <span class="keywordtype">float</span> x2xy2y = x2x * y2y;
+<a name="l01240"></a>01240         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1y2y = xx1 * y2y;
+<a name="l01241"></a>01241         <span class="keyword">const</span> <span class="keywordtype">float</span> x2xyy1 = x2x * yy1;
+<a name="l01242"></a>01242         <span class="keyword">const</span> <span class="keywordtype">float</span> xx1yy1 = xx1 * yy1;
+<a name="l01243"></a>01243 
+<a name="l01244"></a>01244         <span class="keyword">auto</span> interpolate = [=](<span class="keywordtype">int</span> offset)
+<a name="l01245"></a>01245         {
+<a name="l01246"></a>01246             <span class="comment">/*</span>
+<a name="l01247"></a>01247 <span class="comment">                https://en.wikipedia.org/wiki/Bilinear_interpolation</span>
+<a name="l01248"></a>01248 <span class="comment">                (c11(x2 - x) + c21(x - x1)) * (y2 - y ) +</span>
+<a name="l01249"></a>01249 <span class="comment">                (c12(x2 - x) + c22(x - x1)) * (y  - y1)</span>
+<a name="l01250"></a>01250 <span class="comment">            */</span>
+<a name="l01251"></a>01251             <span class="keyword">const</span> <span class="keyword">auto</span> c11 = (srcView(y1, x1) &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l01252"></a>01252             <span class="keyword">const</span> <span class="keyword">auto</span> c21 = (srcView(y1, x2) &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l01253"></a>01253             <span class="keyword">const</span> <span class="keyword">auto</span> c12 = (srcView(y2, x1) &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l01254"></a>01254             <span class="keyword">const</span> <span class="keyword">auto</span> c22 = (srcView(y2, x2) &gt;&gt; (8 * offset)) &amp; 0xff;
 <a name="l01255"></a>01255 
-<a name="l01256"></a>01256         <span class="keyword">const</span> <span class="keywordtype">float</span> bi = interpolate(0);
-<a name="l01257"></a>01257         <span class="keyword">const</span> <span class="keywordtype">float</span> gi = interpolate(1);
-<a name="l01258"></a>01258         <span class="keyword">const</span> <span class="keywordtype">float</span> ri = interpolate(2);
-<a name="l01259"></a>01259         <span class="keyword">const</span> <span class="keywordtype">float</span> ai = interpolate(3);
-<a name="l01260"></a>01260 
-<a name="l01261"></a>01261         <span class="keyword">const</span> <span class="keyword">auto</span> b = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(bi + 0.5f);
-<a name="l01262"></a>01262         <span class="keyword">const</span> <span class="keyword">auto</span> g = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(gi + 0.5f);
-<a name="l01263"></a>01263         <span class="keyword">const</span> <span class="keyword">auto</span> r = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ri + 0.5f);
-<a name="l01264"></a>01264         <span class="keyword">const</span> <span class="keyword">auto</span> a = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ai + 0.5f);
-<a name="l01265"></a>01265 
-<a name="l01266"></a>01266         trgView(y, x) = (a &lt;&lt; 24) | (r &lt;&lt; 16) | (g &lt;&lt; 8) | b;
-<a name="l01267"></a>01267     });
-<a name="l01268"></a>01268     trgView.synchronize(); <span class="comment">//throw ?</span>
-<a name="l01269"></a>01269 }
-<a name="l01270"></a>01270 <span class="preprocessor">#endif</span>
+<a name="l01256"></a>01256             <span class="keywordflow">return</span> c11 * x2xy2y + c21 * xx1y2y +
+<a name="l01257"></a>01257                    c12 * x2xyy1 + c22 * xx1yy1;
+<a name="l01258"></a>01258         };
+<a name="l01259"></a>01259 
+<a name="l01260"></a>01260         <span class="keyword">const</span> <span class="keywordtype">float</span> bi = interpolate(0);
+<a name="l01261"></a>01261         <span class="keyword">const</span> <span class="keywordtype">float</span> gi = interpolate(1);
+<a name="l01262"></a>01262         <span class="keyword">const</span> <span class="keywordtype">float</span> ri = interpolate(2);
+<a name="l01263"></a>01263         <span class="keyword">const</span> <span class="keywordtype">float</span> ai = interpolate(3);
+<a name="l01264"></a>01264 
+<a name="l01265"></a>01265         <span class="keyword">const</span> <span class="keyword">auto</span> b = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(bi + 0.5f);
+<a name="l01266"></a>01266         <span class="keyword">const</span> <span class="keyword">auto</span> g = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(gi + 0.5f);
+<a name="l01267"></a>01267         <span class="keyword">const</span> <span class="keyword">auto</span> r = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ri + 0.5f);
+<a name="l01268"></a>01268         <span class="keyword">const</span> <span class="keyword">auto</span> a = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ai + 0.5f);
+<a name="l01269"></a>01269 
+<a name="l01270"></a>01270         trgView(y, x) = (a &lt;&lt; 24) | (r &lt;&lt; 16) | (g &lt;&lt; 8) | b;
+<a name="l01271"></a>01271     });
+<a name="l01272"></a>01272     trgView.synchronize(); <span class="comment">//throw ?</span>
+<a name="l01273"></a>01273 }
+<a name="l01274"></a>01274 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

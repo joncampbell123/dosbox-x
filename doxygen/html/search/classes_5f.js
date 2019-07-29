@@ -9,6 +9,8 @@ var searchData=
   ['_5ffifo_5fstate',['_fifo_state',['../struct__fifo__state.html',1,'']]],
   ['_5ffmtimer',['_FMTIMER',['../struct__FMTIMER.html',1,'']]],
   ['_5fgetsnd',['_getsnd',['../struct__getsnd.html',1,'']]],
+  ['_5ficonv_5fcommonbase',['_Iconv_CommonBase',['../class__Iconv__CommonBase.html',1,'']]],
+  ['_5ficonvbase',['_IconvBase',['../class__IconvBase.html',1,'']]],
   ['_5flog',['_LOG',['../class__LOG.html',1,'']]],
   ['_5floggroup',['_LogGroup',['../struct__LogGroup.html',1,'']]],
   ['_5fncc_5ftable',['_ncc_table',['../struct__ncc__table.html',1,'']]],

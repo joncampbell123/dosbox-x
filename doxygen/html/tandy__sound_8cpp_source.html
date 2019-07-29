@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* </span>
@@ -189,11 +189,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00092"></a>00092 
 <a name="l00093"></a>00093         <span class="keywordflow">if</span> (data &amp; 0x80)
 <a name="l00094"></a>00094         {
-<a name="l00095"></a>00095                 <span class="keywordtype">int</span> r = (data &amp; 0x70) &gt;&gt; 4;
+<a name="l00095"></a>00095                 <span class="keywordtype">int</span> r = int((data &amp; 0x70u) &gt;&gt; 4u);
 <a name="l00096"></a>00096                 <span class="keywordtype">int</span> c = r/2;
 <a name="l00097"></a>00097 
 <a name="l00098"></a>00098                 R-&gt;LastRegister = r;
-<a name="l00099"></a>00099                 R-&gt;Register[r] = (R-&gt;Register[r] &amp; 0x3f0) | (data &amp; 0x0f);
+<a name="l00099"></a>00099                 R-&gt;Register[r] = int(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)R-&gt;Register[r] &amp; 0x3f0u) | (data &amp; 0x0fu));
 <a name="l00100"></a>00100                 <span class="keywordflow">switch</span> (r)
 <a name="l00101"></a>00101                 {
 <a name="l00102"></a>00102                         <span class="keywordflow">case</span> 0: <span class="comment">/* tone 0 : frequency */</span>
@@ -239,7 +239,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00142"></a>00142                         <span class="keywordflow">case</span> 0: <span class="comment">/* tone 0 : frequency */</span>
 <a name="l00143"></a>00143                         <span class="keywordflow">case</span> 2: <span class="comment">/* tone 1 : frequency */</span>
 <a name="l00144"></a>00144                         <span class="keywordflow">case</span> 4: <span class="comment">/* tone 2 : frequency */</span>
-<a name="l00145"></a>00145                                 R-&gt;Register[r] = (R-&gt;Register[r] &amp; 0x0f) | ((data &amp; 0x3f) &lt;&lt; 4);
+<a name="l00145"></a>00145                                 R-&gt;Register[r] = int(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)R-&gt;Register[r] &amp; 0x0fu) | ((data &amp; 0x3fu) &lt;&lt; 4u));
 <a name="l00146"></a>00146                                 R-&gt;Period[c] = (int)R-&gt;UpdateStep * R-&gt;Register[r];
 <a name="l00147"></a>00147                                 if (R-&gt;Period[c] == 0) R-&gt;Period[c] = 0x3fe;
 <a name="l00148"></a>00148                                 <span class="keywordflow">if</span> (r == 4)
@@ -414,8 +414,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00317"></a>00317 
 <a name="l00318"></a>00318 <span class="keywordtype">void</span> SN76496Reset(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R, Bitu Clock, Bitu sample_rate) {
 <a name="l00319"></a>00319         Bitu i;
-<a name="l00320"></a>00320         R-&gt;SampleRate = sample_rate;
-<a name="l00321"></a>00321         SN76496_set_clock(R,Clock);
+<a name="l00320"></a>00320         R-&gt;SampleRate = (int)sample_rate;
+<a name="l00321"></a>00321         SN76496_set_clock(R,(<span class="keywordtype">int</span>)Clock);
 <a name="l00322"></a>00322         <span class="keywordflow">for</span> (i = 0;i &lt; 4;i++) R-&gt;Volume[i] = 0;
 <a name="l00323"></a>00323         R-&gt;LastRegister = 0;
 <a name="l00324"></a>00324         for (i = 0;i &lt; 8;i+=2)
@@ -640,7 +640,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:21 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

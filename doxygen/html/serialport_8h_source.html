@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -321,237 +321,234 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00224"></a>00224         <span class="keywordtype">void</span> receiveByte(Bit8u data);
 <a name="l00225"></a>00225         <span class="keywordtype">void</span> receiveByteEx(Bit8u data, Bit8u error);
 <a name="l00226"></a>00226 
-<a name="l00227"></a>00227         <span class="comment">// If an error was received, put it here (in LSR register format)</span>
-<a name="l00228"></a>00228         <span class="keywordtype">void</span> receiveError(Bit8u errorword);
-<a name="l00229"></a>00229 
-<a name="l00230"></a>00230         <span class="comment">// depratched</span>
-<a name="l00231"></a>00231         <span class="comment">// connected device checks, if port can receive data:</span>
-<a name="l00232"></a>00232         <span class="keywordtype">bool</span> CanReceiveByte();
+<a name="l00227"></a>00227         <span class="comment">// depratched</span>
+<a name="l00228"></a>00228         <span class="comment">// connected device checks, if port can receive data:</span>
+<a name="l00229"></a>00229         <span class="keywordtype">bool</span> CanReceiveByte();
+<a name="l00230"></a>00230         
+<a name="l00231"></a>00231         <span class="comment">// when THR was shifted to TX</span>
+<a name="l00232"></a>00232         <span class="keywordtype">void</span> ByteTransmitting();
 <a name="l00233"></a>00233         
-<a name="l00234"></a>00234         <span class="comment">// when THR was shifted to TX</span>
-<a name="l00235"></a>00235         <span class="keywordtype">void</span> ByteTransmitting();
-<a name="l00236"></a>00236         
-<a name="l00237"></a>00237         <span class="comment">// When done sending, notify here</span>
-<a name="l00238"></a>00238         <span class="keywordtype">void</span> ByteTransmitted();
+<a name="l00234"></a>00234         <span class="comment">// When done sending, notify here</span>
+<a name="l00235"></a>00235         <span class="keywordtype">void</span> ByteTransmitted();
+<a name="l00236"></a>00236 
+<a name="l00237"></a>00237         <span class="comment">// Transmit byte to prepherial</span>
+<a name="l00238"></a>00238         <span class="keyword">virtual</span> <span class="keywordtype">void</span> transmitByte(Bit8u val, <span class="keywordtype">bool</span> first)=0;
 <a name="l00239"></a>00239 
-<a name="l00240"></a>00240         <span class="comment">// Transmit byte to prepherial</span>
-<a name="l00241"></a>00241         <span class="keyword">virtual</span> <span class="keywordtype">void</span> transmitByte(Bit8u val, <span class="keywordtype">bool</span> first)=0;
-<a name="l00242"></a>00242 
-<a name="l00243"></a>00243         <span class="comment">// switch break state to the passed value</span>
-<a name="l00244"></a>00244         <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBreak(<span class="keywordtype">bool</span> value)=0;
+<a name="l00240"></a>00240         <span class="comment">// switch break state to the passed value</span>
+<a name="l00241"></a>00241         <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBreak(<span class="keywordtype">bool</span> value)=0;
+<a name="l00242"></a>00242         
+<a name="l00243"></a>00243         <span class="comment">// change baudrate, number of bits, parity, word length al at once</span>
+<a name="l00244"></a>00244         <span class="keyword">virtual</span> <span class="keywordtype">void</span> updatePortConfig(Bit16u divider, Bit8u lcr)=0;
 <a name="l00245"></a>00245         
-<a name="l00246"></a>00246         <span class="comment">// change baudrate, number of bits, parity, word length al at once</span>
-<a name="l00247"></a>00247         <span class="keyword">virtual</span> <span class="keywordtype">void</span> updatePortConfig(Bit16u divider, Bit8u lcr)=0;
-<a name="l00248"></a>00248         
-<a name="l00249"></a>00249         <span class="keywordtype">void</span> Init_Registers();
-<a name="l00250"></a>00250         
-<a name="l00251"></a>00251         <span class="keywordtype">bool</span> Putchar(Bit8u data, <span class="keywordtype">bool</span> wait_dtr, <span class="keywordtype">bool</span> wait_rts, Bitu timeout);
-<a name="l00252"></a>00252         <span class="keywordtype">bool</span> Getchar(Bit8u* data, Bit8u* lsr, <span class="keywordtype">bool</span> wait_dsr, Bitu timeout);
-<a name="l00253"></a>00253 
-<a name="l00254"></a>00254         <a class="code" href="classDOS__Device.html">DOS_Device</a>* mydosdevice;
+<a name="l00246"></a>00246         <span class="keywordtype">void</span> Init_Registers();
+<a name="l00247"></a>00247         
+<a name="l00248"></a>00248         <span class="keywordtype">bool</span> Putchar(Bit8u data, <span class="keywordtype">bool</span> wait_dtr, <span class="keywordtype">bool</span> wait_rts, Bitu timeout);
+<a name="l00249"></a>00249         <span class="keywordtype">bool</span> Getchar(Bit8u* data, Bit8u* lsr, <span class="keywordtype">bool</span> wait_dsr, Bitu timeout);
+<a name="l00250"></a>00250 
+<a name="l00251"></a>00251         <a class="code" href="classDOS__Device.html">DOS_Device</a>* mydosdevice;
+<a name="l00252"></a>00252 
+<a name="l00253"></a>00253         <span class="keywordtype">void</span> registerDOSDevice();
+<a name="l00254"></a>00254         <span class="keywordtype">void</span> unregisterDOSDevice();
 <a name="l00255"></a>00255 
-<a name="l00256"></a>00256         <span class="keywordtype">void</span> registerDOSDevice();
-<a name="l00257"></a>00257         <span class="keywordtype">void</span> unregisterDOSDevice();
-<a name="l00258"></a>00258 
-<a name="l00259"></a>00259 <span class="keyword">private</span>:
-<a name="l00260"></a>00260 
-<a name="l00261"></a>00261         <span class="comment">// I used this spec: st16c450v420.pdf</span>
-<a name="l00262"></a>00262 
-<a name="l00263"></a>00263         <span class="keywordtype">void</span> ComputeInterrupts();
-<a name="l00264"></a>00264         
-<a name="l00265"></a>00265         <span class="comment">// a sub-interrupt is triggered</span>
-<a name="l00266"></a>00266         <span class="keywordtype">void</span> rise(Bit8u priority);
-<a name="l00267"></a>00267 
-<a name="l00268"></a>00268         <span class="comment">// clears the pending sub-interrupt</span>
-<a name="l00269"></a>00269         <span class="keywordtype">void</span> clear(Bit8u priority);
-<a name="l00270"></a>00270         
-<a name="l00271"></a>00271 <span class="preprocessor">        #define ERROR_PRIORITY 4        // overrun, parity error, frame error, break</span>
-<a name="l00272"></a>00272 <span class="preprocessor"></span><span class="preprocessor">        #define RX_PRIORITY 1           // a byte has been received</span>
-<a name="l00273"></a>00273 <span class="preprocessor"></span><span class="preprocessor">        #define TX_PRIORITY 2           // tx buffer has become empty</span>
-<a name="l00274"></a>00274 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_PRIORITY 8          // CRS, DSR, RI, DCD change </span>
-<a name="l00275"></a>00275 <span class="preprocessor"></span><span class="preprocessor">        #define TIMEOUT_PRIORITY 0x10</span>
-<a name="l00276"></a>00276 <span class="preprocessor"></span><span class="preprocessor">        #define NONE_PRIORITY 0</span>
-<a name="l00277"></a>00277 <span class="preprocessor"></span>
-<a name="l00278"></a>00278         Bit8u waiting_interrupts;       <span class="comment">// these are on, but maybe not enabled</span>
-<a name="l00279"></a>00279         
-<a name="l00280"></a>00280         <span class="comment">// 16C550</span>
-<a name="l00281"></a>00281         <span class="comment">//                              read/write              name</span>
-<a name="l00282"></a>00282 
-<a name="l00283"></a>00283         Bit16u baud_divider;
-<a name="l00284"></a>00284 <span class="preprocessor">        #define RHR_OFFSET 0    // r Receive Holding Register, also LSB of Divisor Latch (r/w)</span>
-<a name="l00285"></a>00285 <span class="preprocessor"></span>                                                        <span class="comment">// Data: whole byte</span>
-<a name="l00286"></a>00286 <span class="preprocessor">        #define THR_OFFSET 0    // w Transmit Holding Register</span>
-<a name="l00287"></a>00287 <span class="preprocessor"></span>                                                        <span class="comment">// Data: whole byte</span>
-<a name="l00288"></a>00288         Bit8u IER;      <span class="comment">//      r/w             Interrupt Enable Register, also MSB of Divisor Latch</span>
-<a name="l00289"></a>00289 <span class="preprocessor">        #define IER_OFFSET 1</span>
-<a name="l00290"></a>00290 <span class="preprocessor"></span>
-<a name="l00291"></a>00291         <span class="keywordtype">bool</span> irq_active;
-<a name="l00292"></a>00292                                 
-<a name="l00293"></a>00293 <span class="preprocessor">        #define RHR_INT_Enable_MASK                             0x1</span>
-<a name="l00294"></a>00294 <span class="preprocessor"></span><span class="preprocessor">        #define THR_INT_Enable_MASK                             0x2</span>
-<a name="l00295"></a>00295 <span class="preprocessor"></span><span class="preprocessor">        #define Receive_Line_INT_Enable_MASK    0x4</span>
-<a name="l00296"></a>00296 <span class="preprocessor"></span><span class="preprocessor">        #define Modem_Status_INT_Enable_MASK    0x8</span>
+<a name="l00256"></a>00256 <span class="keyword">private</span>:
+<a name="l00257"></a>00257 
+<a name="l00258"></a>00258         <span class="comment">// I used this spec: st16c450v420.pdf</span>
+<a name="l00259"></a>00259 
+<a name="l00260"></a>00260         <span class="keywordtype">void</span> ComputeInterrupts();
+<a name="l00261"></a>00261         
+<a name="l00262"></a>00262         <span class="comment">// a sub-interrupt is triggered</span>
+<a name="l00263"></a>00263         <span class="keywordtype">void</span> rise(Bit8u priority);
+<a name="l00264"></a>00264 
+<a name="l00265"></a>00265         <span class="comment">// clears the pending sub-interrupt</span>
+<a name="l00266"></a>00266         <span class="keywordtype">void</span> clear(Bit8u priority);
+<a name="l00267"></a>00267         
+<a name="l00268"></a>00268 <span class="preprocessor">        #define ERROR_PRIORITY 4        // overrun, parity error, frame error, break</span>
+<a name="l00269"></a>00269 <span class="preprocessor"></span><span class="preprocessor">        #define RX_PRIORITY 1           // a byte has been received</span>
+<a name="l00270"></a>00270 <span class="preprocessor"></span><span class="preprocessor">        #define TX_PRIORITY 2           // tx buffer has become empty</span>
+<a name="l00271"></a>00271 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_PRIORITY 8          // CRS, DSR, RI, DCD change </span>
+<a name="l00272"></a>00272 <span class="preprocessor"></span><span class="preprocessor">        #define TIMEOUT_PRIORITY 0x10</span>
+<a name="l00273"></a>00273 <span class="preprocessor"></span><span class="preprocessor">        #define NONE_PRIORITY 0</span>
+<a name="l00274"></a>00274 <span class="preprocessor"></span>
+<a name="l00275"></a>00275         Bit8u waiting_interrupts;       <span class="comment">// these are on, but maybe not enabled</span>
+<a name="l00276"></a>00276         
+<a name="l00277"></a>00277         <span class="comment">// 16C550</span>
+<a name="l00278"></a>00278         <span class="comment">//                              read/write              name</span>
+<a name="l00279"></a>00279 
+<a name="l00280"></a>00280         Bit16u baud_divider;
+<a name="l00281"></a>00281 <span class="preprocessor">        #define RHR_OFFSET 0    // r Receive Holding Register, also LSB of Divisor Latch (r/w)</span>
+<a name="l00282"></a>00282 <span class="preprocessor"></span>                                                        <span class="comment">// Data: whole byte</span>
+<a name="l00283"></a>00283 <span class="preprocessor">        #define THR_OFFSET 0    // w Transmit Holding Register</span>
+<a name="l00284"></a>00284 <span class="preprocessor"></span>                                                        <span class="comment">// Data: whole byte</span>
+<a name="l00285"></a>00285         Bit8u IER;      <span class="comment">//      r/w             Interrupt Enable Register, also MSB of Divisor Latch</span>
+<a name="l00286"></a>00286 <span class="preprocessor">        #define IER_OFFSET 1</span>
+<a name="l00287"></a>00287 <span class="preprocessor"></span>
+<a name="l00288"></a>00288         <span class="keywordtype">bool</span> irq_active;
+<a name="l00289"></a>00289                                 
+<a name="l00290"></a>00290 <span class="preprocessor">        #define RHR_INT_Enable_MASK                             0x1</span>
+<a name="l00291"></a>00291 <span class="preprocessor"></span><span class="preprocessor">        #define THR_INT_Enable_MASK                             0x2</span>
+<a name="l00292"></a>00292 <span class="preprocessor"></span><span class="preprocessor">        #define Receive_Line_INT_Enable_MASK    0x4</span>
+<a name="l00293"></a>00293 <span class="preprocessor"></span><span class="preprocessor">        #define Modem_Status_INT_Enable_MASK    0x8</span>
+<a name="l00294"></a>00294 <span class="preprocessor"></span>
+<a name="l00295"></a>00295         Bit8u ISR;      <span class="comment">//      r                               Interrupt Status Register</span>
+<a name="l00296"></a>00296 <span class="preprocessor">        #define ISR_OFFSET 2</span>
 <a name="l00297"></a>00297 <span class="preprocessor"></span>
-<a name="l00298"></a>00298         Bit8u ISR;      <span class="comment">//      r                               Interrupt Status Register</span>
-<a name="l00299"></a>00299 <span class="preprocessor">        #define ISR_OFFSET 2</span>
-<a name="l00300"></a>00300 <span class="preprocessor"></span>
-<a name="l00301"></a>00301 <span class="preprocessor">        #define ISR_CLEAR_VAL 0x1</span>
-<a name="l00302"></a>00302 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_FIFOTIMEOUT_VAL 0xc</span>
-<a name="l00303"></a>00303 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_ERROR_VAL 0x6</span>
-<a name="l00304"></a>00304 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_RX_VAL 0x4</span>
-<a name="l00305"></a>00305 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_TX_VAL 0x2</span>
-<a name="l00306"></a>00306 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_MSR_VAL 0x0</span>
-<a name="l00307"></a>00307 <span class="preprocessor"></span><span class="keyword">public</span>: 
-<a name="l00308"></a>00308         Bit8u LCR;      <span class="comment">//      r/w                             Line Control Register</span>
-<a name="l00309"></a>00309 <span class="keyword">private</span>:
-<a name="l00310"></a>00310 <span class="preprocessor">        #define LCR_OFFSET 3</span>
-<a name="l00311"></a>00311 <span class="preprocessor"></span>                                                <span class="comment">// bit0: word length bit0</span>
-<a name="l00312"></a>00312                                                 <span class="comment">// bit1: word length bit1</span>
-<a name="l00313"></a>00313                                                 <span class="comment">// bit2: stop bits</span>
-<a name="l00314"></a>00314                                                 <span class="comment">// bit3: parity enable</span>
-<a name="l00315"></a>00315                                                 <span class="comment">// bit4: even parity</span>
-<a name="l00316"></a>00316                                                 <span class="comment">// bit5: set parity</span>
-<a name="l00317"></a>00317                                                 <span class="comment">// bit6: set break</span>
-<a name="l00318"></a>00318                                                 <span class="comment">// bit7: divisor latch enable</span>
-<a name="l00319"></a>00319 
-<a name="l00320"></a>00320         
-<a name="l00321"></a>00321 <span class="preprocessor">        #define LCR_BREAK_MASK 0x40</span>
-<a name="l00322"></a>00322 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DIVISOR_Enable_MASK 0x80</span>
-<a name="l00323"></a>00323 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PORTCONFIG_MASK 0x3F</span>
-<a name="l00324"></a>00324 <span class="preprocessor"></span>        
-<a name="l00325"></a>00325 <span class="preprocessor">        #define LCR_PARITY_NONE         0x0</span>
-<a name="l00326"></a>00326 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_ODD          0x8</span>
-<a name="l00327"></a>00327 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_EVEN         0x18</span>
-<a name="l00328"></a>00328 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_MARK         0x28</span>
-<a name="l00329"></a>00329 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_SPACE        0x38</span>
-<a name="l00330"></a>00330 <span class="preprocessor"></span>
-<a name="l00331"></a>00331 <span class="preprocessor">        #define LCR_DATABITS_5          0x0</span>
-<a name="l00332"></a>00332 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_6          0x1</span>
-<a name="l00333"></a>00333 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_7          0x2</span>
-<a name="l00334"></a>00334 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_8          0x3</span>
+<a name="l00298"></a>00298 <span class="preprocessor">        #define ISR_CLEAR_VAL 0x1</span>
+<a name="l00299"></a>00299 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_FIFOTIMEOUT_VAL 0xc</span>
+<a name="l00300"></a>00300 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_ERROR_VAL 0x6</span>
+<a name="l00301"></a>00301 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_RX_VAL 0x4</span>
+<a name="l00302"></a>00302 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_TX_VAL 0x2</span>
+<a name="l00303"></a>00303 <span class="preprocessor"></span><span class="preprocessor">        #define ISR_MSR_VAL 0x0</span>
+<a name="l00304"></a>00304 <span class="preprocessor"></span><span class="keyword">public</span>: 
+<a name="l00305"></a>00305         Bit8u LCR;      <span class="comment">//      r/w                             Line Control Register</span>
+<a name="l00306"></a>00306 <span class="keyword">private</span>:
+<a name="l00307"></a>00307 <span class="preprocessor">        #define LCR_OFFSET 3</span>
+<a name="l00308"></a>00308 <span class="preprocessor"></span>                                                <span class="comment">// bit0: word length bit0</span>
+<a name="l00309"></a>00309                                                 <span class="comment">// bit1: word length bit1</span>
+<a name="l00310"></a>00310                                                 <span class="comment">// bit2: stop bits</span>
+<a name="l00311"></a>00311                                                 <span class="comment">// bit3: parity enable</span>
+<a name="l00312"></a>00312                                                 <span class="comment">// bit4: even parity</span>
+<a name="l00313"></a>00313                                                 <span class="comment">// bit5: set parity</span>
+<a name="l00314"></a>00314                                                 <span class="comment">// bit6: set break</span>
+<a name="l00315"></a>00315                                                 <span class="comment">// bit7: divisor latch enable</span>
+<a name="l00316"></a>00316 
+<a name="l00317"></a>00317         
+<a name="l00318"></a>00318 <span class="preprocessor">        #define LCR_BREAK_MASK 0x40</span>
+<a name="l00319"></a>00319 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DIVISOR_Enable_MASK 0x80</span>
+<a name="l00320"></a>00320 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PORTCONFIG_MASK 0x3F</span>
+<a name="l00321"></a>00321 <span class="preprocessor"></span>        
+<a name="l00322"></a>00322 <span class="preprocessor">        #define LCR_PARITY_NONE         0x0</span>
+<a name="l00323"></a>00323 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_ODD          0x8</span>
+<a name="l00324"></a>00324 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_EVEN         0x18</span>
+<a name="l00325"></a>00325 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_MARK         0x28</span>
+<a name="l00326"></a>00326 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_PARITY_SPACE        0x38</span>
+<a name="l00327"></a>00327 <span class="preprocessor"></span>
+<a name="l00328"></a>00328 <span class="preprocessor">        #define LCR_DATABITS_5          0x0</span>
+<a name="l00329"></a>00329 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_6          0x1</span>
+<a name="l00330"></a>00330 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_7          0x2</span>
+<a name="l00331"></a>00331 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_DATABITS_8          0x3</span>
+<a name="l00332"></a>00332 <span class="preprocessor"></span>
+<a name="l00333"></a>00333 <span class="preprocessor">        #define LCR_STOPBITS_1          0x0</span>
+<a name="l00334"></a>00334 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_STOPBITS_MORE_THAN_1 0x4</span>
 <a name="l00335"></a>00335 <span class="preprocessor"></span>
-<a name="l00336"></a>00336 <span class="preprocessor">        #define LCR_STOPBITS_1          0x0</span>
-<a name="l00337"></a>00337 <span class="preprocessor"></span><span class="preprocessor">        #define LCR_STOPBITS_MORE_THAN_1 0x4</span>
-<a name="l00338"></a>00338 <span class="preprocessor"></span>
-<a name="l00339"></a>00339         <span class="comment">// Modem Control Register</span>
-<a name="l00340"></a>00340         <span class="comment">// r/w                          </span>
-<a name="l00341"></a>00341 <span class="preprocessor">        #define MCR_OFFSET 4</span>
-<a name="l00342"></a>00342 <span class="preprocessor"></span>        <span class="keywordtype">bool</span> dtr;                       <span class="comment">// bit0: DTR</span>
-<a name="l00343"></a>00343         <span class="keywordtype">bool</span> rts;                       <span class="comment">// bit1: RTS</span>
-<a name="l00344"></a>00344         <span class="keywordtype">bool</span> op1;                       <span class="comment">// bit2: OP1</span>
-<a name="l00345"></a>00345         <span class="keywordtype">bool</span> op2;                       <span class="comment">// bit3: OP2</span>
-<a name="l00346"></a>00346         <span class="keywordtype">bool</span> loopback;          <span class="comment">// bit4: loop back enable</span>
-<a name="l00347"></a>00347 
-<a name="l00348"></a>00348 <span class="preprocessor">        #define MCR_DTR_MASK 0x1</span>
-<a name="l00349"></a>00349 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_RTS_MASK 0x2        </span>
-<a name="l00350"></a>00350 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_OP1_MASK 0x4        </span>
-<a name="l00351"></a>00351 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_OP2_MASK 0x8</span>
-<a name="l00352"></a>00352 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_LOOPBACK_Enable_MASK 0x10</span>
-<a name="l00353"></a>00353 <span class="preprocessor"></span><span class="keyword">public</span>: 
-<a name="l00354"></a>00354         Bit8u LSR;      <span class="comment">//      r                               Line Status Register</span>
-<a name="l00355"></a>00355 <span class="keyword">private</span>:
-<a name="l00356"></a>00356 
-<a name="l00357"></a>00357 <span class="preprocessor">        #define LSR_OFFSET 5</span>
-<a name="l00358"></a>00358 <span class="preprocessor"></span>
-<a name="l00359"></a>00359 <span class="preprocessor">        #define LSR_RX_DATA_READY_MASK 0x1</span>
-<a name="l00360"></a>00360 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_OVERRUN_ERROR_MASK 0x2</span>
-<a name="l00361"></a>00361 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_PARITY_ERROR_MASK 0x4</span>
-<a name="l00362"></a>00362 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_FRAMING_ERROR_MASK 0x8</span>
-<a name="l00363"></a>00363 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_RX_BREAK_MASK 0x10</span>
-<a name="l00364"></a>00364 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_TX_HOLDING_EMPTY_MASK 0x20</span>
-<a name="l00365"></a>00365 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_TX_EMPTY_MASK 0x40</span>
-<a name="l00366"></a>00366 <span class="preprocessor"></span>
-<a name="l00367"></a>00367 <span class="preprocessor">        #define LSR_ERROR_MASK 0x1e</span>
-<a name="l00368"></a>00368 <span class="preprocessor"></span>
-<a name="l00369"></a>00369         <span class="comment">// error printing</span>
-<a name="l00370"></a>00370         <span class="keywordtype">bool</span> errormsg_pending;
-<a name="l00371"></a>00371         Bitu framingErrors;
-<a name="l00372"></a>00372         Bitu parityErrors;
-<a name="l00373"></a>00373         Bitu overrunErrors;
-<a name="l00374"></a>00374         Bitu txOverrunErrors;
-<a name="l00375"></a>00375         Bitu overrunIF0;
-<a name="l00376"></a>00376         Bitu breakErrors;
-<a name="l00377"></a>00377 
-<a name="l00378"></a>00378 
-<a name="l00379"></a>00379         <span class="comment">// Modem Status Register</span>
-<a name="l00380"></a>00380         <span class="comment">//      r</span>
-<a name="l00381"></a>00381 <span class="preprocessor">        #define MSR_OFFSET 6</span>
-<a name="l00382"></a>00382 <span class="preprocessor"></span>        <span class="keywordtype">bool</span> d_cts;                     <span class="comment">// bit0: deltaCTS</span>
-<a name="l00383"></a>00383         <span class="keywordtype">bool</span> d_dsr;                     <span class="comment">// bit1: deltaDSR</span>
-<a name="l00384"></a>00384         <span class="keywordtype">bool</span> d_ri;                      <span class="comment">// bit2: deltaRI</span>
-<a name="l00385"></a>00385         <span class="keywordtype">bool</span> d_cd;                      <span class="comment">// bit3: deltaCD</span>
-<a name="l00386"></a>00386         <span class="keywordtype">bool</span> cts;                       <span class="comment">// bit4: CTS</span>
-<a name="l00387"></a>00387         <span class="keywordtype">bool</span> dsr;                       <span class="comment">// bit5: DSR</span>
-<a name="l00388"></a>00388         <span class="keywordtype">bool</span> ri;                        <span class="comment">// bit6: RI</span>
-<a name="l00389"></a>00389         <span class="keywordtype">bool</span> cd;                        <span class="comment">// bit7: CD</span>
-<a name="l00390"></a>00390         
-<a name="l00391"></a>00391 <span class="preprocessor">        #define MSR_delta_MASK 0xf</span>
-<a name="l00392"></a>00392 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_LINE_MASK 0xf0</span>
-<a name="l00393"></a>00393 <span class="preprocessor"></span>
-<a name="l00394"></a>00394 <span class="preprocessor">        #define MSR_dCTS_MASK 0x1</span>
-<a name="l00395"></a>00395 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dDSR_MASK 0x2</span>
-<a name="l00396"></a>00396 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dRI_MASK 0x4</span>
-<a name="l00397"></a>00397 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dCD_MASK 0x8</span>
-<a name="l00398"></a>00398 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_CTS_MASK 0x10</span>
-<a name="l00399"></a>00399 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_DSR_MASK 0x20</span>
-<a name="l00400"></a>00400 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_RI_MASK 0x40</span>
-<a name="l00401"></a>00401 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_CD_MASK 0x80</span>
+<a name="l00336"></a>00336         <span class="comment">// Modem Control Register</span>
+<a name="l00337"></a>00337         <span class="comment">// r/w                          </span>
+<a name="l00338"></a>00338 <span class="preprocessor">        #define MCR_OFFSET 4</span>
+<a name="l00339"></a>00339 <span class="preprocessor"></span>        <span class="keywordtype">bool</span> dtr;                       <span class="comment">// bit0: DTR</span>
+<a name="l00340"></a>00340         <span class="keywordtype">bool</span> rts;                       <span class="comment">// bit1: RTS</span>
+<a name="l00341"></a>00341         <span class="keywordtype">bool</span> op1;                       <span class="comment">// bit2: OP1</span>
+<a name="l00342"></a>00342         <span class="keywordtype">bool</span> op2;                       <span class="comment">// bit3: OP2</span>
+<a name="l00343"></a>00343         <span class="keywordtype">bool</span> loopback;          <span class="comment">// bit4: loop back enable</span>
+<a name="l00344"></a>00344 
+<a name="l00345"></a>00345 <span class="preprocessor">        #define MCR_DTR_MASK 0x1</span>
+<a name="l00346"></a>00346 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_RTS_MASK 0x2        </span>
+<a name="l00347"></a>00347 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_OP1_MASK 0x4        </span>
+<a name="l00348"></a>00348 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_OP2_MASK 0x8</span>
+<a name="l00349"></a>00349 <span class="preprocessor"></span><span class="preprocessor">        #define MCR_LOOPBACK_Enable_MASK 0x10</span>
+<a name="l00350"></a>00350 <span class="preprocessor"></span><span class="keyword">public</span>: 
+<a name="l00351"></a>00351         Bit8u LSR;      <span class="comment">//      r                               Line Status Register</span>
+<a name="l00352"></a>00352 <span class="keyword">private</span>:
+<a name="l00353"></a>00353 
+<a name="l00354"></a>00354 <span class="preprocessor">        #define LSR_OFFSET 5</span>
+<a name="l00355"></a>00355 <span class="preprocessor"></span>
+<a name="l00356"></a>00356 <span class="preprocessor">        #define LSR_RX_DATA_READY_MASK 0x1</span>
+<a name="l00357"></a>00357 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_OVERRUN_ERROR_MASK 0x2</span>
+<a name="l00358"></a>00358 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_PARITY_ERROR_MASK 0x4</span>
+<a name="l00359"></a>00359 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_FRAMING_ERROR_MASK 0x8</span>
+<a name="l00360"></a>00360 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_RX_BREAK_MASK 0x10</span>
+<a name="l00361"></a>00361 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_TX_HOLDING_EMPTY_MASK 0x20</span>
+<a name="l00362"></a>00362 <span class="preprocessor"></span><span class="preprocessor">        #define LSR_TX_EMPTY_MASK 0x40</span>
+<a name="l00363"></a>00363 <span class="preprocessor"></span>
+<a name="l00364"></a>00364 <span class="preprocessor">        #define LSR_ERROR_MASK 0x1e</span>
+<a name="l00365"></a>00365 <span class="preprocessor"></span>
+<a name="l00366"></a>00366         <span class="comment">// error printing</span>
+<a name="l00367"></a>00367         <span class="keywordtype">bool</span> errormsg_pending;
+<a name="l00368"></a>00368         Bitu framingErrors;
+<a name="l00369"></a>00369         Bitu parityErrors;
+<a name="l00370"></a>00370         Bitu overrunErrors;
+<a name="l00371"></a>00371         Bitu txOverrunErrors;
+<a name="l00372"></a>00372         Bitu overrunIF0;
+<a name="l00373"></a>00373         Bitu breakErrors;
+<a name="l00374"></a>00374 
+<a name="l00375"></a>00375 
+<a name="l00376"></a>00376         <span class="comment">// Modem Status Register</span>
+<a name="l00377"></a>00377         <span class="comment">//      r</span>
+<a name="l00378"></a>00378 <span class="preprocessor">        #define MSR_OFFSET 6</span>
+<a name="l00379"></a>00379 <span class="preprocessor"></span>        <span class="keywordtype">bool</span> d_cts;                     <span class="comment">// bit0: deltaCTS</span>
+<a name="l00380"></a>00380         <span class="keywordtype">bool</span> d_dsr;                     <span class="comment">// bit1: deltaDSR</span>
+<a name="l00381"></a>00381         <span class="keywordtype">bool</span> d_ri;                      <span class="comment">// bit2: deltaRI</span>
+<a name="l00382"></a>00382         <span class="keywordtype">bool</span> d_cd;                      <span class="comment">// bit3: deltaCD</span>
+<a name="l00383"></a>00383         <span class="keywordtype">bool</span> cts;                       <span class="comment">// bit4: CTS</span>
+<a name="l00384"></a>00384         <span class="keywordtype">bool</span> dsr;                       <span class="comment">// bit5: DSR</span>
+<a name="l00385"></a>00385         <span class="keywordtype">bool</span> ri;                        <span class="comment">// bit6: RI</span>
+<a name="l00386"></a>00386         <span class="keywordtype">bool</span> cd;                        <span class="comment">// bit7: CD</span>
+<a name="l00387"></a>00387         
+<a name="l00388"></a>00388 <span class="preprocessor">        #define MSR_delta_MASK 0xf</span>
+<a name="l00389"></a>00389 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_LINE_MASK 0xf0</span>
+<a name="l00390"></a>00390 <span class="preprocessor"></span>
+<a name="l00391"></a>00391 <span class="preprocessor">        #define MSR_dCTS_MASK 0x1</span>
+<a name="l00392"></a>00392 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dDSR_MASK 0x2</span>
+<a name="l00393"></a>00393 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dRI_MASK 0x4</span>
+<a name="l00394"></a>00394 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_dCD_MASK 0x8</span>
+<a name="l00395"></a>00395 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_CTS_MASK 0x10</span>
+<a name="l00396"></a>00396 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_DSR_MASK 0x20</span>
+<a name="l00397"></a>00397 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_RI_MASK 0x40</span>
+<a name="l00398"></a>00398 <span class="preprocessor"></span><span class="preprocessor">        #define MSR_CD_MASK 0x80</span>
+<a name="l00399"></a>00399 <span class="preprocessor"></span>
+<a name="l00400"></a>00400         Bit8u SPR;      <span class="comment">//      r/w                             Scratchpad Register</span>
+<a name="l00401"></a>00401 <span class="preprocessor">        #define SPR_OFFSET 7</span>
 <a name="l00402"></a>00402 <span class="preprocessor"></span>
-<a name="l00403"></a>00403         Bit8u SPR;      <span class="comment">//      r/w                             Scratchpad Register</span>
-<a name="l00404"></a>00404 <span class="preprocessor">        #define SPR_OFFSET 7</span>
-<a name="l00405"></a>00405 <span class="preprocessor"></span>
-<a name="l00406"></a>00406 
-<a name="l00407"></a>00407         <span class="comment">// For loopback purposes...</span>
-<a name="l00408"></a>00408         Bit8u loopback_data;
-<a name="l00409"></a>00409         <span class="keywordtype">void</span> transmitLoopbackByte(Bit8u val, <span class="keywordtype">bool</span> value);
-<a name="l00410"></a>00410 
-<a name="l00411"></a>00411         <span class="comment">// 16C550 (FIFO)</span>
-<a name="l00412"></a>00412         <span class="keyword">public</span>: <span class="comment">// todo remove</span>
-<a name="l00413"></a>00413         <a class="code" href="classMyFifo.html">MyFifo</a>* rxfifo;
-<a name="l00414"></a>00414         <span class="keyword">private</span>:
-<a name="l00415"></a>00415         <a class="code" href="classMyFifo.html">MyFifo</a>* txfifo;
-<a name="l00416"></a>00416         <a class="code" href="classMyFifo.html">MyFifo</a>* errorfifo;
-<a name="l00417"></a>00417         Bitu errors_in_fifo;
-<a name="l00418"></a>00418         Bitu rx_interrupt_threshold;
-<a name="l00419"></a>00419         Bitu fifosize;
-<a name="l00420"></a>00420         Bit8u FCR;
-<a name="l00421"></a>00421         <span class="keywordtype">bool</span> sync_guardtime;
-<a name="l00422"></a>00422 <span class="preprocessor">        #define FIFO_STATUS_ACTIVE 0xc0 // FIFO is active AND works ;)</span>
-<a name="l00423"></a>00423 <span class="preprocessor"></span><span class="preprocessor">        #define FIFO_ERROR 0x80</span>
-<a name="l00424"></a>00424 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_ACTIVATE 0x01</span>
-<a name="l00425"></a>00425 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_CLEAR_RX 0x02</span>
-<a name="l00426"></a>00426 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_CLEAR_TX 0x04</span>
-<a name="l00427"></a>00427 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_OFFSET 2</span>
-<a name="l00428"></a>00428 <span class="preprocessor"></span><span class="preprocessor">        #define FIFO_FLOWCONTROL 0x20</span>
-<a name="l00429"></a>00429 <span class="preprocessor"></span>};
-<a name="l00430"></a>00430 
-<a name="l00431"></a>00431 <span class="keyword">extern</span> <a class="code" href="classCSerial.html">CSerial</a>* serialports[];
-<a name="l00432"></a>00432 <span class="keyword">const</span> Bit8u serial_defaultirq[] = { 4, 3, 4, 3 };
-<a name="l00433"></a>00433 <span class="keyword">const</span> Bit16u serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
-<a name="l00434"></a>00434 <span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> serial_comname[]={<span class="stringliteral">&quot;COM1&quot;</span>,<span class="stringliteral">&quot;COM2&quot;</span>,<span class="stringliteral">&quot;COM3&quot;</span>,<span class="stringliteral">&quot;COM4&quot;</span>};
-<a name="l00435"></a>00435 
-<a name="l00436"></a>00436 <span class="comment">// the COM devices</span>
-<a name="l00437"></a>00437 
-<a name="l00438"></a><a class="code" href="classdevice__COM.html">00438</a> <span class="keyword">class </span><a class="code" href="classdevice__COM.html">device_COM</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
-<a name="l00439"></a>00439 <span class="keyword">public</span>:
-<a name="l00440"></a>00440         <span class="comment">// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum</span>
-<a name="l00441"></a>00441         <a class="code" href="classdevice__COM.html">device_COM</a>(<span class="keyword">class</span> <a class="code" href="classCSerial.html">CSerial</a>* sc);
-<a name="l00442"></a>00442         <span class="keyword">virtual</span> ~<a class="code" href="classdevice__COM.html">device_COM</a>();
-<a name="l00443"></a>00443         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size);
-<a name="l00444"></a>00444         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size);
-<a name="l00445"></a>00445         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type);
-<a name="l00446"></a>00446         <span class="keywordtype">bool</span> Close();
-<a name="l00447"></a>00447         Bit16u GetInformation(<span class="keywordtype">void</span>);
-<a name="l00448"></a>00448 <span class="keyword">private</span>:
-<a name="l00449"></a>00449         <a class="code" href="classCSerial.html">CSerial</a>* sclass;
-<a name="l00450"></a>00450 };
-<a name="l00451"></a>00451 
-<a name="l00452"></a>00452 <span class="preprocessor">#endif</span>
+<a name="l00403"></a>00403 
+<a name="l00404"></a>00404         <span class="comment">// For loopback purposes...</span>
+<a name="l00405"></a>00405         Bit8u loopback_data;
+<a name="l00406"></a>00406         <span class="keywordtype">void</span> transmitLoopbackByte(Bit8u val, <span class="keywordtype">bool</span> value);
+<a name="l00407"></a>00407 
+<a name="l00408"></a>00408         <span class="comment">// 16C550 (FIFO)</span>
+<a name="l00409"></a>00409         <span class="keyword">public</span>: <span class="comment">// todo remove</span>
+<a name="l00410"></a>00410         <a class="code" href="classMyFifo.html">MyFifo</a>* rxfifo;
+<a name="l00411"></a>00411         <span class="keyword">private</span>:
+<a name="l00412"></a>00412         <a class="code" href="classMyFifo.html">MyFifo</a>* txfifo;
+<a name="l00413"></a>00413         <a class="code" href="classMyFifo.html">MyFifo</a>* errorfifo;
+<a name="l00414"></a>00414         Bitu errors_in_fifo;
+<a name="l00415"></a>00415         Bitu rx_interrupt_threshold;
+<a name="l00416"></a>00416         Bitu fifosize;
+<a name="l00417"></a>00417         Bit8u FCR;
+<a name="l00418"></a>00418         <span class="keywordtype">bool</span> sync_guardtime;
+<a name="l00419"></a>00419 <span class="preprocessor">        #define FIFO_STATUS_ACTIVE 0xc0 // FIFO is active AND works ;)</span>
+<a name="l00420"></a>00420 <span class="preprocessor"></span><span class="preprocessor">        #define FIFO_ERROR 0x80</span>
+<a name="l00421"></a>00421 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_ACTIVATE 0x01</span>
+<a name="l00422"></a>00422 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_CLEAR_RX 0x02</span>
+<a name="l00423"></a>00423 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_CLEAR_TX 0x04</span>
+<a name="l00424"></a>00424 <span class="preprocessor"></span><span class="preprocessor">        #define FCR_OFFSET 2</span>
+<a name="l00425"></a>00425 <span class="preprocessor"></span><span class="preprocessor">        #define FIFO_FLOWCONTROL 0x20</span>
+<a name="l00426"></a>00426 <span class="preprocessor"></span>};
+<a name="l00427"></a>00427 
+<a name="l00428"></a>00428 <span class="keyword">extern</span> <a class="code" href="classCSerial.html">CSerial</a>* serialports[];
+<a name="l00429"></a>00429 <span class="keyword">const</span> Bit8u serial_defaultirq[] = { 4, 3, 4, 3 };
+<a name="l00430"></a>00430 <span class="keyword">const</span> Bit16u serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
+<a name="l00431"></a>00431 <span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> serial_comname[]={<span class="stringliteral">&quot;COM1&quot;</span>,<span class="stringliteral">&quot;COM2&quot;</span>,<span class="stringliteral">&quot;COM3&quot;</span>,<span class="stringliteral">&quot;COM4&quot;</span>};
+<a name="l00432"></a>00432 
+<a name="l00433"></a>00433 <span class="comment">// the COM devices</span>
+<a name="l00434"></a>00434 
+<a name="l00435"></a><a class="code" href="classdevice__COM.html">00435</a> <span class="keyword">class </span><a class="code" href="classdevice__COM.html">device_COM</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
+<a name="l00436"></a>00436 <span class="keyword">public</span>:
+<a name="l00437"></a>00437         <span class="comment">// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum</span>
+<a name="l00438"></a>00438         <a class="code" href="classdevice__COM.html">device_COM</a>(<span class="keyword">class</span> <a class="code" href="classCSerial.html">CSerial</a>* sc);
+<a name="l00439"></a>00439         <span class="keyword">virtual</span> ~<a class="code" href="classdevice__COM.html">device_COM</a>();
+<a name="l00440"></a>00440         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size);
+<a name="l00441"></a>00441         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size);
+<a name="l00442"></a>00442         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type);
+<a name="l00443"></a>00443         <span class="keywordtype">bool</span> Close();
+<a name="l00444"></a>00444         Bit16u GetInformation(<span class="keywordtype">void</span>);
+<a name="l00445"></a>00445 <span class="keyword">private</span>:
+<a name="l00446"></a>00446         <a class="code" href="classCSerial.html">CSerial</a>* sclass;
+<a name="l00447"></a>00447 };
+<a name="l00448"></a>00448 
+<a name="l00449"></a>00449 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

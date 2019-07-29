@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/*</span>
@@ -138,17 +138,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00041"></a>00041         Bit32u mask;
 <a name="l00042"></a>00042 
 <a name="l00043"></a>00043         diff = ((yuv1 &amp; Ymask) - (yuv2 &amp; Ymask));
-<a name="l00044"></a>00044         mask = diff &gt;&gt; 31; <span class="comment">// -1 if value &lt; 0, 0 otherwise</span>
+<a name="l00044"></a>00044         mask = (Bit32u)(((Bit32s)diff) &gt;&gt; 31); <span class="comment">// ~1/-1 if value &lt; 0, 0 otherwise</span>
 <a name="l00045"></a>00045         diff = (diff ^ mask) - mask; <span class="comment">//-1: ~value + 1; 0: value</span>
 <a name="l00046"></a>00046         <span class="keywordflow">if</span> (diff &gt; trY) <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00047"></a>00047 
 <a name="l00048"></a>00048         diff = ((yuv1 &amp; Umask) - (yuv2 &amp; Umask));
-<a name="l00049"></a>00049         mask = diff &gt;&gt; 31; <span class="comment">// -1 if value &lt; 0, 0 otherwise</span>
+<a name="l00049"></a>00049         mask = (Bit32u)(((Bit32s)diff) &gt;&gt; 31); <span class="comment">// ~1/-1 if value &lt; 0, 0 otherwise</span>
 <a name="l00050"></a>00050         diff = (diff ^ mask) - mask; <span class="comment">//-1: ~value + 1; 0: value</span>
 <a name="l00051"></a>00051         <span class="keywordflow">if</span> (diff &gt; trU) <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00052"></a>00052 
 <a name="l00053"></a>00053         diff = ((yuv1 &amp; Vmask) - (yuv2 &amp; Vmask));
-<a name="l00054"></a>00054         mask = diff &gt;&gt; 31; <span class="comment">// -1 if value &lt; 0, 0 otherwise</span>
+<a name="l00054"></a>00054         mask = (Bit32u)(((Bit32s)diff) &gt;&gt; 31); <span class="comment">// ~1/-1 if value &lt; 0, 0 otherwise</span>
 <a name="l00055"></a>00055         diff = (diff ^ mask) - mask; <span class="comment">//-1: ~value + 1; 0: value</span>
 <a name="l00056"></a>00056         <span class="keywordflow">if</span> (diff &gt; trV) <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00057"></a>00057 
@@ -188,7 +188,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

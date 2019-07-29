@@ -117,11 +117,12 @@ Inheritance diagram for GUI::MessageBox2:</div>
  <div class="center">
   <img src="classGUI_1_1MessageBox2.png" usemap="#GUI::MessageBox2_map" alt=""/>
   <map id="GUI::MessageBox2_map" name="GUI::MessageBox2_map">
-<area href="classGUI_1_1ToplevelWindow.html" title="An actual decorated window." alt="GUI::ToplevelWindow" shape="rect" coords="106,112,309,136"/>
-<area href="classGUI_1_1BorderedWindow.html" title="Internal class for windows whose child content should not span the entire area." alt="GUI::BorderedWindow" shape="rect" coords="0,56,203,80"/>
-<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="213,56,416,80"/>
-<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,0,203,24"/>
-<area href="classHelpWindow.html" alt="HelpWindow" shape="rect" coords="106,224,309,248"/>
+<area href="classGUI_1_1ToplevelWindow.html" title="An actual decorated window." alt="GUI::ToplevelWindow" shape="rect" coords="106,168,309,192"/>
+<area href="classGUI_1_1BorderedWindow.html" title="Internal class for windows whose child content should not span the entire area." alt="GUI::BorderedWindow" shape="rect" coords="0,112,203,136"/>
+<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="213,112,416,136"/>
+<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,56,203,80"/>
+<area href="classGUI_1_1Refcount.html" alt="GUI::Refcount" shape="rect" coords="0,0,203,24"/>
+<area href="classHelpWindow.html" alt="HelpWindow" shape="rect" coords="106,280,309,304"/>
 </map>
  </div></div>
 
@@ -137,6 +138,12 @@ template&lt;typename STR &gt; </td></tr>
 template&lt;typename STR &gt; </td></tr>
 <tr class="memitem:a00218125eac06f18b1c4c4c2447315bf"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classGUI_1_1MessageBox2.html#a00218125eac06f18b1c4c4c2447315bf">setText</a> (const STR text)</td></tr>
 <tr class="memdesc:a00218125eac06f18b1c4c4c2447315bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a new text. Size of the box is adjusted accordingly. <br/></td></tr>
+<tr class="memitem:a63da40bb97bf52f8c8fa9d26fccd99fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a63da40bb97bf52f8c8fa9d26fccd99fb"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1MessageBox2.html#a63da40bb97bf52f8c8fa9d26fccd99fb">keyDown</a> (const <a class="el" href="classGUI_1_1Key.html">GUI::Key</a> &amp;key)</td></tr>
+<tr class="memdesc:a63da40bb97bf52f8c8fa9d26fccd99fb"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGUI_1_1Key.html" title="Identifies a keyboard key.">Key</a> was pressed. Returns true if event was handled. <br/></td></tr>
+<tr class="memitem:a940ae400a85727bad23aee962a5ee31c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a940ae400a85727bad23aee962a5ee31c"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1MessageBox2.html#a940ae400a85727bad23aee962a5ee31c">keyUp</a> (const <a class="el" href="classGUI_1_1Key.html">GUI::Key</a> &amp;key)</td></tr>
+<tr class="memdesc:a940ae400a85727bad23aee962a5ee31c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGUI_1_1Key.html" title="Identifies a keyboard key.">Key</a> was released. Returns true if event was handled. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:ad92a769376304d84d69e90614b2b64d8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad92a769376304d84d69e90614b2b64d8"></a>
@@ -147,7 +154,7 @@ Protected Attributes</h2></td></tr>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>A message box with a single "Close" button. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02206">2206</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02409">2409</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/libs/gui_tk/<a class="el" href="gui__tk_8h_source.html">gui_tk.h</a></li>
 </ul>
@@ -155,7 +162,7 @@ Protected Attributes</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:28 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:58:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

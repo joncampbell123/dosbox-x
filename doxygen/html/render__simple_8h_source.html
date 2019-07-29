@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2015  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,160 +110,184 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
-<a name="l00019"></a>00019 
-<a name="l00020"></a>00020 <span class="preprocessor">#if defined (SCALERLINEAR)</span>
-<a name="l00021"></a>00021 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> conc4d(SCALERNAME,SBPP,DBPP,L)(<span class="keyword">const</span> <span class="keywordtype">void</span> *s) {
-<a name="l00022"></a>00022 <span class="preprocessor"># if !defined(_MSC_VER) </span><span class="comment">/* Microsoft C++ thinks this is a failed attempt at a function call---it&#39;s not */</span>
-<a name="l00023"></a>00023         (void)conc4d(SCALERNAME,SBPP,DBPP,L);
-<a name="l00024"></a>00024 <span class="preprocessor"># endif</span>
-<a name="l00025"></a>00025 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00026"></a>00026 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> conc4d(SCALERNAME,SBPP,DBPP,R)(<span class="keyword">const</span> <span class="keywordtype">void</span> *s) {
-<a name="l00027"></a>00027 <span class="preprocessor"># if !defined(_MSC_VER) </span><span class="comment">/* Microsoft C++ thinks this is a failed attempt at a function call---it&#39;s not */</span>
-<a name="l00028"></a>00028         (void)conc4d(SCALERNAME,SBPP,DBPP,R);
-<a name="l00029"></a>00029 <span class="preprocessor"># endif</span>
-<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00031"></a>00031 <span class="preprocessor"></span>
-<a name="l00032"></a>00032 <span class="preprocessor">#ifdef RENDER_NULL_INPUT</span>
-<a name="l00033"></a>00033 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (!s) {
-<a name="l00034"></a>00034                 render.scale.cacheRead += render.scale.cachePitch;
-<a name="l00035"></a>00035 <span class="preprocessor">#if defined(SCALERLINEAR) </span>
-<a name="l00036"></a>00036 <span class="preprocessor"></span>                Bitu skipLines = SCALERHEIGHT;
-<a name="l00037"></a>00037 <span class="preprocessor">#else</span>
-<a name="l00038"></a>00038 <span class="preprocessor"></span>                Bitu skipLines = Scaler_Aspect[ render.scale.outLine++ ];
-<a name="l00039"></a>00039 <span class="preprocessor">#endif</span>
-<a name="l00040"></a>00040 <span class="preprocessor"></span>                ScalerAddLines( 0, skipLines );
-<a name="l00041"></a>00041                 <span class="keywordflow">return</span>;
-<a name="l00042"></a>00042         }
-<a name="l00043"></a>00043 <span class="preprocessor">#endif</span>
-<a name="l00044"></a>00044 <span class="preprocessor"></span>        <span class="comment">/* Clear the complete line marker */</span>
-<a name="l00045"></a>00045         Bitu hadChange = 0;
-<a name="l00046"></a>00046         <span class="keyword">const</span> SRCTYPE *src = (SRCTYPE*)s;
-<a name="l00047"></a>00047         SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
-<a name="l00048"></a>00048         render.scale.cacheRead += render.scale.cachePitch;
-<a name="l00049"></a>00049         PTYPE * line0=(PTYPE *)(render.scale.outWrite);
-<a name="l00050"></a>00050 <span class="preprocessor">#if (SBPP == 9)</span>
-<a name="l00051"></a>00051 <span class="preprocessor"></span>        <span class="keywordflow">for</span> (Bits x=(Bits)render.src.width;x&gt;0;) {
-<a name="l00052"></a>00052                 <span class="keywordflow">if</span> (*(Bit32u <span class="keyword">const</span>*)src == *(Bit32u*)cache &amp;&amp; !(
-<a name="l00053"></a>00053                         render.pal.modified[src[0]] | 
-<a name="l00054"></a>00054                         render.pal.modified[src[1]] | 
-<a name="l00055"></a>00055                         render.pal.modified[src[2]] | 
-<a name="l00056"></a>00056                         render.pal.modified[src[3]] )) {
-<a name="l00057"></a>00057                         x-=4;
-<a name="l00058"></a>00058                         src+=4;
-<a name="l00059"></a>00059                         cache+=4;
-<a name="l00060"></a>00060                         line0+=4*SCALERWIDTH;
-<a name="l00061"></a>00061 <span class="preprocessor">#else </span>
-<a name="l00062"></a>00062 <span class="preprocessor"></span>        <span class="keywordflow">for</span> (Bits x=(Bits)render.src.width;x&gt;0;) {
-<a name="l00063"></a>00063                 <span class="keywordflow">if</span> (*(Bitu <span class="keyword">const</span>*)src == *(Bitu*)cache) {
-<a name="l00064"></a>00064                         x-=(Bits)(<span class="keyword">sizeof</span>(Bitu)/<span class="keyword">sizeof</span>(SRCTYPE));
-<a name="l00065"></a>00065                         src+=(Bits)(<span class="keyword">sizeof</span>(Bitu)/<span class="keyword">sizeof</span>(SRCTYPE));
-<a name="l00066"></a>00066                         cache+=(Bits)(<span class="keyword">sizeof</span>(Bitu)/<span class="keyword">sizeof</span>(SRCTYPE));
-<a name="l00067"></a>00067                         line0+=(Bits)(<span class="keyword">sizeof</span>(Bitu)/<span class="keyword">sizeof</span>(SRCTYPE))*SCALERWIDTH;
-<a name="l00068"></a>00068 <span class="preprocessor">#endif</span>
-<a name="l00069"></a>00069 <span class="preprocessor"></span>                } <span class="keywordflow">else</span> {
-<a name="l00070"></a>00070 <span class="preprocessor">#if defined(SCALERLINEAR)</span>
-<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
-<a name="l00072"></a>00072 <span class="preprocessor"></span>                        PTYPE *line1 = WC[0];
+<a name="l00019"></a>00019 <span class="preprocessor">#undef conc4d_func</span>
+<a name="l00020"></a>00020 <span class="preprocessor"></span><span class="preprocessor">#undef conc4d_sub_func</span>
+<a name="l00021"></a>00021 <span class="preprocessor"></span><span class="preprocessor">#if defined (SCALERLINEAR)</span>
+<a name="l00022"></a>00022 <span class="preprocessor"></span><span class="preprocessor"># define conc4d_func        conc4d(SCALERNAME,SBPP,DBPP,L)</span>
+<a name="l00023"></a>00023 <span class="preprocessor"></span><span class="preprocessor"># define conc4d_sub_func    conc4d(SCALERNAME,SBPP,DBPP,Lsub)</span>
+<a name="l00024"></a>00024 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+<a name="l00025"></a>00025 <span class="preprocessor"></span><span class="preprocessor"># define conc4d_func        conc4d(SCALERNAME,SBPP,DBPP,R)</span>
+<a name="l00026"></a>00026 <span class="preprocessor"></span><span class="preprocessor"># define conc4d_sub_func    conc4d(SCALERNAME,SBPP,DBPP,Rsub)</span>
+<a name="l00027"></a>00027 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00028"></a>00028 <span class="preprocessor"></span>
+<a name="l00029"></a>00029 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> conc4d_sub_func(<span class="keyword">const</span> SRCTYPE* &amp;src, SRCTYPE* &amp;cache, PTYPE* &amp;line0, <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> block_proc, Bitu &amp;hadChange) {
+<a name="l00030"></a>00030 <span class="preprocessor">#if !defined(C_SCALER_FULL_LINE)</span>
+<a name="l00031"></a>00031 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (memcmp(src,cache,block_proc * <span class="keyword">sizeof</span>(SRCTYPE)) == 0
+<a name="l00032"></a>00032 # <span class="keywordflow">if</span> (SBPP == 9)
+<a name="l00033"></a>00033             &amp;&amp; !(
+<a name="l00034"></a>00034                         render.pal.modified[src[0]] | 
+<a name="l00035"></a>00035                         render.pal.modified[src[1]] | 
+<a name="l00036"></a>00036                         render.pal.modified[src[2]] | 
+<a name="l00037"></a>00037                         render.pal.modified[src[3]] |
+<a name="l00038"></a>00038             render.pal.modified[src[4]] | 
+<a name="l00039"></a>00039             render.pal.modified[src[5]] | 
+<a name="l00040"></a>00040                         render.pal.modified[src[6]] | 
+<a name="l00041"></a>00041                         render.pal.modified[src[7]])
+<a name="l00042"></a>00042 # endif
+<a name="l00043"></a>00043             ) {
+<a name="l00044"></a>00044                         src   += block_proc;
+<a name="l00045"></a>00045                         cache += block_proc;
+<a name="l00046"></a>00046                         line0 += block_proc*SCALERWIDTH;
+<a name="l00047"></a>00047                 }
+<a name="l00048"></a>00048         <span class="keywordflow">else</span>
+<a name="l00049"></a>00049 <span class="preprocessor">#endif</span>
+<a name="l00050"></a>00050 <span class="preprocessor"></span>        {
+<a name="l00051"></a>00051 <span class="preprocessor">#if defined(SCALERLINEAR)</span>
+<a name="l00052"></a>00052 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
+<a name="l00053"></a>00053 <span class="preprocessor"></span>                        PTYPE *line1 = WC[0];
+<a name="l00054"></a>00054 <span class="preprocessor">#endif</span>
+<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
+<a name="l00056"></a>00056 <span class="preprocessor"></span>                        PTYPE *line2 = WC[1];
+<a name="l00057"></a>00057 <span class="preprocessor">#endif</span>
+<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
+<a name="l00059"></a>00059 <span class="preprocessor"></span>                        PTYPE *line3 = WC[2];
+<a name="l00060"></a>00060 <span class="preprocessor">#endif</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
+<a name="l00062"></a>00062 <span class="preprocessor"></span>                        PTYPE *line4 = WC[3];
+<a name="l00063"></a>00063 <span class="preprocessor">#endif</span>
+<a name="l00064"></a>00064 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
+<a name="l00065"></a>00065 <span class="preprocessor"></span>                        PTYPE *line5 = WC[4];
+<a name="l00066"></a>00066 <span class="preprocessor">#endif</span>
+<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+<a name="l00068"></a>00068 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
+<a name="l00069"></a>00069 <span class="preprocessor"></span>                PTYPE *line1 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch);
+<a name="l00070"></a>00070 <span class="preprocessor">#endif</span>
+<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
+<a name="l00072"></a>00072 <span class="preprocessor"></span>                PTYPE *line2 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 2);
 <a name="l00073"></a>00073 <span class="preprocessor">#endif</span>
-<a name="l00074"></a>00074 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
-<a name="l00075"></a>00075 <span class="preprocessor"></span>                        PTYPE *line2 = WC[1];
+<a name="l00074"></a>00074 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
+<a name="l00075"></a>00075 <span class="preprocessor"></span>                PTYPE *line3 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 3);
 <a name="l00076"></a>00076 <span class="preprocessor">#endif</span>
-<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
-<a name="l00078"></a>00078 <span class="preprocessor"></span>                        PTYPE *line3 = WC[2];
+<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span>                PTYPE *line4 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 4);
 <a name="l00079"></a>00079 <span class="preprocessor">#endif</span>
-<a name="l00080"></a>00080 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
-<a name="l00081"></a>00081 <span class="preprocessor"></span>                        PTYPE *line4 = WC[3];
+<a name="l00080"></a>00080 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
+<a name="l00081"></a>00081 <span class="preprocessor"></span>                PTYPE *line5 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 5);
 <a name="l00082"></a>00082 <span class="preprocessor">#endif</span>
-<a name="l00083"></a>00083 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
-<a name="l00084"></a>00084 <span class="preprocessor"></span>                        PTYPE *line5 = WC[4];
-<a name="l00085"></a>00085 <span class="preprocessor">#endif</span>
-<a name="l00086"></a>00086 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00087"></a>00087 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
-<a name="l00088"></a>00088 <span class="preprocessor"></span>                PTYPE *line1 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch);
-<a name="l00089"></a>00089 <span class="preprocessor">#endif</span>
-<a name="l00090"></a>00090 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
-<a name="l00091"></a>00091 <span class="preprocessor"></span>                PTYPE *line2 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 2);
-<a name="l00092"></a>00092 <span class="preprocessor">#endif</span>
-<a name="l00093"></a>00093 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
-<a name="l00094"></a>00094 <span class="preprocessor"></span>                PTYPE *line3 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 3);
-<a name="l00095"></a>00095 <span class="preprocessor">#endif</span>
-<a name="l00096"></a>00096 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
-<a name="l00097"></a>00097 <span class="preprocessor"></span>                PTYPE *line4 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 4);
-<a name="l00098"></a>00098 <span class="preprocessor">#endif</span>
-<a name="l00099"></a>00099 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
-<a name="l00100"></a>00100 <span class="preprocessor"></span>                PTYPE *line5 = (PTYPE *)(((Bit8u*)line0)+ render.scale.outPitch * 5);
-<a name="l00101"></a>00101 <span class="preprocessor">#endif</span>
-<a name="l00102"></a>00102 <span class="preprocessor"></span><span class="preprocessor">#endif //defined(SCALERLINEAR)</span>
-<a name="l00103"></a>00103 <span class="preprocessor"></span>                        hadChange = 1;
-<a name="l00104"></a>00104                         <span class="keywordflow">for</span> (Bitu i = x &gt; 32 ? 32 : (Bitu)x;i&gt;0;i--,x--) {
-<a name="l00105"></a>00105                                 <span class="keyword">const</span> SRCTYPE S = *src;
-<a name="l00106"></a>00106                                 *cache = S;
-<a name="l00107"></a>00107                                 src++;cache++;
-<a name="l00108"></a>00108                                 <span class="keyword">const</span> PTYPE P = PMAKE(S);
-<a name="l00109"></a>00109                                 SCALERFUNC;
-<a name="l00110"></a>00110                                 line0 += SCALERWIDTH;
-<a name="l00111"></a>00111 <span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
-<a name="l00112"></a>00112 <span class="preprocessor"></span>                                line1 += SCALERWIDTH;
-<a name="l00113"></a>00113 <span class="preprocessor">#endif</span>
-<a name="l00114"></a>00114 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
-<a name="l00115"></a>00115 <span class="preprocessor"></span>                                line2 += SCALERWIDTH;
-<a name="l00116"></a>00116 <span class="preprocessor">#endif</span>
-<a name="l00117"></a>00117 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
-<a name="l00118"></a>00118 <span class="preprocessor"></span>                                line3 += SCALERWIDTH;
-<a name="l00119"></a>00119 <span class="preprocessor">#endif</span>
-<a name="l00120"></a>00120 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
-<a name="l00121"></a>00121 <span class="preprocessor"></span>                                line4 += SCALERWIDTH;
-<a name="l00122"></a>00122 <span class="preprocessor">#endif</span>
-<a name="l00123"></a>00123 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
-<a name="l00124"></a>00124 <span class="preprocessor"></span>                                line5 += SCALERWIDTH;
-<a name="l00125"></a>00125 <span class="preprocessor">#endif</span>
-<a name="l00126"></a>00126 <span class="preprocessor"></span>                        }
-<a name="l00127"></a>00127 <span class="preprocessor">#if defined(SCALERLINEAR)</span>
-<a name="l00128"></a>00128 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1)</span>
-<a name="l00129"></a>00129 <span class="preprocessor"></span>                        Bitu copyLen = (Bitu)((Bit8u*)line1 - (Bit8u*)WC[0]);
-<a name="l00130"></a>00130                         BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch  ,WC[0], copyLen );
-<a name="l00131"></a>00131 <span class="preprocessor">#endif</span>
-<a name="l00132"></a>00132 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
-<a name="l00133"></a>00133 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*2,WC[1], copyLen );
-<a name="l00134"></a>00134 <span class="preprocessor">#endif</span>
-<a name="l00135"></a>00135 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
-<a name="l00136"></a>00136 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*3,WC[2], copyLen );
+<a name="l00083"></a>00083 <span class="preprocessor"></span><span class="preprocessor">#endif //defined(SCALERLINEAR)</span>
+<a name="l00084"></a>00084 <span class="preprocessor"></span>                        hadChange = 1;
+<a name="l00085"></a>00085             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = block_proc; <span class="comment">/* WARNING: assume block_proc != 0 */</span>
+<a name="l00086"></a>00086             <span class="keywordflow">do</span> {
+<a name="l00087"></a>00087                                 <span class="keyword">const</span> SRCTYPE S = *src++;
+<a name="l00088"></a>00088                                 *cache++ = S;
+<a name="l00089"></a>00089                                 <span class="keyword">const</span> PTYPE P = PMAKE(S);
+<a name="l00090"></a>00090                                 SCALERFUNC;
+<a name="l00091"></a>00091                                 line0 += SCALERWIDTH;
+<a name="l00092"></a>00092 <span class="preprocessor">#if (SCALERHEIGHT &gt; 1) </span>
+<a name="l00093"></a>00093 <span class="preprocessor"></span>                                line1 += SCALERWIDTH;
+<a name="l00094"></a>00094 <span class="preprocessor">#endif</span>
+<a name="l00095"></a>00095 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
+<a name="l00096"></a>00096 <span class="preprocessor"></span>                                line2 += SCALERWIDTH;
+<a name="l00097"></a>00097 <span class="preprocessor">#endif</span>
+<a name="l00098"></a>00098 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
+<a name="l00099"></a>00099 <span class="preprocessor"></span>                                line3 += SCALERWIDTH;
+<a name="l00100"></a>00100 <span class="preprocessor">#endif</span>
+<a name="l00101"></a>00101 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
+<a name="l00102"></a>00102 <span class="preprocessor"></span>                                line4 += SCALERWIDTH;
+<a name="l00103"></a>00103 <span class="preprocessor">#endif</span>
+<a name="l00104"></a>00104 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
+<a name="l00105"></a>00105 <span class="preprocessor"></span>                                line5 += SCALERWIDTH;
+<a name="l00106"></a>00106 <span class="preprocessor">#endif</span>
+<a name="l00107"></a>00107 <span class="preprocessor"></span>                        } <span class="keywordflow">while</span> (--i != 0u);
+<a name="l00108"></a>00108 <span class="preprocessor">#if defined(SCALERLINEAR)</span>
+<a name="l00109"></a>00109 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 1)</span>
+<a name="l00110"></a>00110 <span class="preprocessor"></span>                        Bitu copyLen = (Bitu)((Bit8u*)line1 - (Bit8u*)WC[0]);
+<a name="l00111"></a>00111                         BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch  ,WC[0], copyLen );
+<a name="l00112"></a>00112 <span class="preprocessor">#endif</span>
+<a name="l00113"></a>00113 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 2) </span>
+<a name="l00114"></a>00114 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*2,WC[1], copyLen );
+<a name="l00115"></a>00115 <span class="preprocessor">#endif</span>
+<a name="l00116"></a>00116 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 3) </span>
+<a name="l00117"></a>00117 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*3,WC[2], copyLen );
+<a name="l00118"></a>00118 <span class="preprocessor">#endif</span>
+<a name="l00119"></a>00119 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
+<a name="l00120"></a>00120 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*4,WC[3], copyLen );
+<a name="l00121"></a>00121 <span class="preprocessor">#endif</span>
+<a name="l00122"></a>00122 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
+<a name="l00123"></a>00123 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*5,WC[4], copyLen );
+<a name="l00124"></a>00124 <span class="preprocessor">#endif</span>
+<a name="l00125"></a>00125 <span class="preprocessor"></span><span class="preprocessor">#endif //defined(SCALERLINEAR)</span>
+<a name="l00126"></a>00126 <span class="preprocessor"></span>                }
+<a name="l00127"></a>00127 }
+<a name="l00128"></a>00128 
+<a name="l00129"></a>00129 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> conc4d_func(<span class="keyword">const</span> <span class="keywordtype">void</span> *s) {
+<a name="l00130"></a>00130 <span class="preprocessor">#ifdef RENDER_NULL_INPUT</span>
+<a name="l00131"></a>00131 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (!s) {
+<a name="l00132"></a>00132                 render.scale.cacheRead += render.scale.cachePitch;
+<a name="l00133"></a>00133 <span class="preprocessor">#if defined(SCALERLINEAR) </span>
+<a name="l00134"></a>00134 <span class="preprocessor"></span>                Bitu skipLines = SCALERHEIGHT;
+<a name="l00135"></a>00135 <span class="preprocessor">#else</span>
+<a name="l00136"></a>00136 <span class="preprocessor"></span>                Bitu skipLines = Scaler_Aspect[ render.scale.outLine++ ];
 <a name="l00137"></a>00137 <span class="preprocessor">#endif</span>
-<a name="l00138"></a>00138 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 4) </span>
-<a name="l00139"></a>00139 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*4,WC[3], copyLen );
-<a name="l00140"></a>00140 <span class="preprocessor">#endif</span>
-<a name="l00141"></a>00141 <span class="preprocessor"></span><span class="preprocessor">#if (SCALERHEIGHT &gt; 5) </span>
-<a name="l00142"></a>00142 <span class="preprocessor"></span>                        BituMove(((Bit8u*)line0)-copyLen+render.scale.outPitch*5,WC[4], copyLen );
-<a name="l00143"></a>00143 <span class="preprocessor">#endif</span>
-<a name="l00144"></a>00144 <span class="preprocessor"></span><span class="preprocessor">#endif //defined(SCALERLINEAR)</span>
-<a name="l00145"></a>00145 <span class="preprocessor"></span>                }
-<a name="l00146"></a>00146         }
-<a name="l00147"></a>00147 <span class="preprocessor">#if defined(SCALERLINEAR) </span>
-<a name="l00148"></a>00148 <span class="preprocessor"></span>        Bitu scaleLines = SCALERHEIGHT;
-<a name="l00149"></a>00149 <span class="preprocessor">#else</span>
-<a name="l00150"></a>00150 <span class="preprocessor"></span>        Bitu scaleLines = Scaler_Aspect[ render.scale.outLine++ ];
-<a name="l00151"></a>00151         <span class="keywordflow">if</span> ( scaleLines - SCALERHEIGHT &amp;&amp; hadChange ) {
-<a name="l00152"></a>00152                 BituMove( render.scale.outWrite + render.scale.outPitch * SCALERHEIGHT,
-<a name="l00153"></a>00153                         render.scale.outWrite + render.scale.outPitch * (SCALERHEIGHT-1),
-<a name="l00154"></a>00154                         render.src.width * SCALERWIDTH * PSIZE);
-<a name="l00155"></a>00155         }
-<a name="l00156"></a>00156 <span class="preprocessor">#endif</span>
-<a name="l00157"></a>00157 <span class="preprocessor"></span>        ScalerAddLines( hadChange, scaleLines );
-<a name="l00158"></a>00158 }
-<a name="l00159"></a>00159 
-<a name="l00160"></a>00160 <span class="preprocessor">#if !defined(SCALERLINEAR) </span>
-<a name="l00161"></a>00161 <span class="preprocessor"></span><span class="preprocessor">#define SCALERLINEAR 1</span>
-<a name="l00162"></a>00162 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00163"></a>00163 <span class="preprocessor">#undef SCALERLINEAR</span>
-<a name="l00164"></a>00164 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00138"></a>00138 <span class="preprocessor"></span>                ScalerAddLines( 0, skipLines );
+<a name="l00139"></a>00139                 <span class="keywordflow">return</span>;
+<a name="l00140"></a>00140         }
+<a name="l00141"></a>00141 <span class="preprocessor">#endif</span>
+<a name="l00142"></a>00142 <span class="preprocessor"></span>        <span class="comment">/* Clear the complete line marker */</span>
+<a name="l00143"></a>00143         Bitu hadChange = 0;
+<a name="l00144"></a>00144         <span class="keyword">const</span> SRCTYPE *src = (SRCTYPE*)s;
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146         SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
+<a name="l00147"></a>00147         render.scale.cacheRead += render.scale.cachePitch;
+<a name="l00148"></a>00148         PTYPE * line0=(PTYPE *)(render.scale.outWrite);
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150 <span class="preprocessor">#if defined(C_SCALER_FULL_LINE)</span>
+<a name="l00151"></a>00151 <span class="preprocessor"></span>    conc4d_sub_func(src,cache,line0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)render.src.width,hadChange);
+<a name="l00152"></a>00152 <span class="preprocessor">#else</span>
+<a name="l00153"></a>00153 <span class="preprocessor"></span><span class="preprocessor"># if (SBPP == 9)</span>
+<a name="l00154"></a>00154 <span class="preprocessor"></span>    <span class="comment">// the pal change code above limits this to 8 pixels only, see function above</span>
+<a name="l00155"></a>00155     <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> block_size = 8;
+<a name="l00156"></a>00156 <span class="preprocessor"># else</span>
+<a name="l00157"></a>00157 <span class="preprocessor"></span>    <span class="comment">// larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.</span>
+<a name="l00158"></a>00158     <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> block_size = 128;
+<a name="l00159"></a>00159 <span class="preprocessor"># endif</span>
+<a name="l00160"></a>00160 <span class="preprocessor"></span>
+<a name="l00161"></a>00161     Bitu x = (Bitu)render.src.width;
+<a name="l00162"></a>00162     while (x &gt;= block_size) {
+<a name="l00163"></a>00163         x -= block_size;
+<a name="l00164"></a>00164         conc4d_sub_func(src,cache,line0,block_size,hadChange);
+<a name="l00165"></a>00165     }
+<a name="l00166"></a>00166     <span class="keywordflow">if</span> (x &gt; 0) {
+<a name="l00167"></a>00167         conc4d_sub_func(src,cache,line0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)x,hadChange);
+<a name="l00168"></a>00168         }
+<a name="l00169"></a>00169 <span class="preprocessor">#endif</span>
+<a name="l00170"></a>00170 <span class="preprocessor"></span>
+<a name="l00171"></a>00171 <span class="preprocessor">#if defined(SCALERLINEAR) </span>
+<a name="l00172"></a>00172 <span class="preprocessor"></span>        Bitu scaleLines = SCALERHEIGHT;
+<a name="l00173"></a>00173 <span class="preprocessor">#else</span>
+<a name="l00174"></a>00174 <span class="preprocessor"></span>        Bitu scaleLines = Scaler_Aspect[ render.scale.outLine++ ];
+<a name="l00175"></a>00175         <span class="keywordflow">if</span> ( scaleLines - SCALERHEIGHT &amp;&amp; hadChange ) {
+<a name="l00176"></a>00176                 BituMove( render.scale.outWrite + render.scale.outPitch * SCALERHEIGHT,
+<a name="l00177"></a>00177                         render.scale.outWrite + render.scale.outPitch * (SCALERHEIGHT-1),
+<a name="l00178"></a>00178                         render.src.width * SCALERWIDTH * PSIZE);
+<a name="l00179"></a>00179         }
+<a name="l00180"></a>00180 <span class="preprocessor">#endif</span>
+<a name="l00181"></a>00181 <span class="preprocessor"></span>        ScalerAddLines( hadChange, scaleLines );
+<a name="l00182"></a>00182 }
+<a name="l00183"></a>00183 
+<a name="l00184"></a>00184 <span class="preprocessor">#if !defined(SCALERLINEAR) </span>
+<a name="l00185"></a>00185 <span class="preprocessor"></span><span class="preprocessor">#define SCALERLINEAR 1</span>
+<a name="l00186"></a>00186 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00187"></a>00187 <span class="preprocessor">#undef SCALERLINEAR</span>
+<a name="l00188"></a>00188 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

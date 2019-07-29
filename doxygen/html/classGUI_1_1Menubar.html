@@ -117,9 +117,10 @@ Inheritance diagram for GUI::Menubar:</div>
  <div class="center">
   <img src="classGUI_1_1Menubar.png" usemap="#GUI::Menubar_map" alt=""/>
   <map id="GUI::Menubar_map" name="GUI::Menubar_map">
-<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,0,203,24"/>
-<area href="classGUI_1_1ActionEventSource.html" title="Event class for action events." alt="GUI::ActionEventSource" shape="rect" coords="213,0,416,24"/>
-<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="426,0,629,24"/>
+<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,56,203,80"/>
+<area href="classGUI_1_1ActionEventSource.html" title="Event class for action events." alt="GUI::ActionEventSource" shape="rect" coords="213,56,416,80"/>
+<area href="structGUI_1_1ActionEventSource__Callback.html" title="Callback for action events." alt="GUI::ActionEventSource_Callback" shape="rect" coords="426,56,629,80"/>
+<area href="classGUI_1_1Refcount.html" alt="GUI::Refcount" shape="rect" coords="0,0,203,24"/>
 </map>
  </div></div>
 
@@ -172,7 +173,7 @@ std::vector&lt; <a class="el" href="classGUI_1_1Menu.html">Menu</a> * &gt;&#160;
 <p><a class="el" href="classGUI_1_1Menu.html" title="A popup menu.">Menu</a> bars aggregate several Menus. They have a simple border at the bottom. If your application has a work area with 3D sunken look, place it so that it overlaps the menu by one row.</p>
 <p>As with Menus, avoid the character <code>'&amp;'</code> in <a class="el" href="classGUI_1_1Menu.html" title="A popup menu.">Menu</a> names as it may have a special meaning in future versions. Menubars use the <a class="el" href="classGUI_1_1Font.html" title="A variable- or fixed-width fixed-size Font.">Font</a> named "menu". </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01992">1992</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02184">2184</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="aa7725739cae57cf805cd2db7060da701"></a>
 <div class="memitem">
@@ -214,7 +215,9 @@ std::vector&lt; <a class="el" href="classGUI_1_1Menu.html">Menu</a> * &gt;&#160;
 <p>Create a menubar with given position and size. </p>
 <p>Height is autocalculated from font size </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02006">2006</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02198">2198</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+
+<p>References <a class="el" href="gui__tk_8h_source.html#l00598">GUI::Window::tabbable</a>.</p>
 
 </div>
 </div>
@@ -249,9 +252,9 @@ std::vector&lt; <a class="el" href="classGUI_1_1Menu.html">Menu</a> * &gt;&#160;
 
 <p>Implements <a class="el" href="structGUI_1_1ActionEventSource__Callback.html#a36df23a424558a83b45e3e3d5c175cf2">GUI::ActionEventSource_Callback</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02045">2045</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02247">2247</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="structGUI_1_1ActionEventSource__Callback.html#a36df23a424558a83b45e3e3d5c175cf2">GUI::ActionEventSource_Callback::actionExecuted()</a>, and <a class="el" href="gui__tk_8h_source.html#l01316">GUI::ActionEventSource::actionHandlers</a>.</p>
+<p>References <a class="el" href="structGUI_1_1ActionEventSource__Callback.html#a36df23a424558a83b45e3e3d5c175cf2">GUI::ActionEventSource_Callback::actionExecuted()</a>, and <a class="el" href="gui__tk_8h_source.html#l01416">GUI::ActionEventSource::actionHandlers</a>.</p>
 
 </div>
 </div>
@@ -263,7 +266,7 @@ std::vector&lt; <a class="el" href="classGUI_1_1Menu.html">Menu</a> * &gt;&#160;
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:58:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

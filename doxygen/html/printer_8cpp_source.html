@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;printer.h&quot;</span>
@@ -177,7 +177,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00080"></a>00080                 defaultPageHeight = (Real64)height / (Real64)10;
 <a name="l00081"></a>00081 
 <a name="l00082"></a>00082                 <span class="comment">// Create page</span>
-<a name="l00083"></a>00083                 page = SDL_CreateRGBSurface(SDL_SWSURFACE, (Bitu)(defaultPageWidth*dpi), (Bitu)(defaultPageHeight*dpi), 8, 0, 0, 0, 0);
+<a name="l00083"></a>00083                 page = SDL_CreateRGBSurface(SDL_SWSURFACE, (<span class="keywordtype">int</span>)(defaultPageWidth*dpi), (<span class="keywordtype">int</span>)(defaultPageHeight*dpi), 8, 0, 0, 0, 0);
 <a name="l00084"></a>00084 
 <a name="l00085"></a>00085                 <span class="comment">// Set a grey palette</span>
 <a name="l00086"></a>00086                 SDL_Palette* palette = page-&gt;format-&gt;palette;
@@ -1352,7 +1352,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01255"></a>01255         <span class="comment">// Render a high-quality bitmap</span>
 <a name="l01256"></a>01256         FT_Render_Glyph(curFont-&gt;glyph, FT_RENDER_MODE_NORMAL);
 <a name="l01257"></a>01257 
-<a name="l01258"></a>01258         Bit16u penX = PIXX + curFont-&gt;glyph-&gt;bitmap_left;
+<a name="l01258"></a>01258         Bit16u penX = (Bit16u)(PIXX + curFont-&gt;glyph-&gt;bitmap_left);
 <a name="l01259"></a>01259         Bit16u penY = (Bit16u)(PIXY - curFont-&gt;glyph-&gt;bitmap_top + curFont-&gt;size-&gt;metrics.ascender / 64);
 <a name="l01260"></a>01260 
 <a name="l01261"></a>01261         <span class="keywordflow">if</span> (style &amp; STYLE_SUBSCRIPT) penY += curFont-&gt;glyph-&gt;bitmap.rows / 2;
@@ -1381,7 +1381,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01284"></a>01284         SDL_UnlockSurface(page);
 <a name="l01285"></a>01285 
 <a name="l01286"></a>01286         <span class="comment">// For line printing</span>
-<a name="l01287"></a>01287         Bit16u lineStart = PIXX;
+<a name="l01287"></a>01287         Bit16u lineStart = (Bit16u)PIXX;
 <a name="l01288"></a>01288 
 <a name="l01289"></a>01289         <span class="comment">// advance the cursor to the right</span>
 <a name="l01290"></a>01290         Real64 x_advance;
@@ -1401,15 +1401,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01304"></a>01304         <span class="keywordflow">if</span> ((score != SCORE_NONE) &amp;&amp; (style &amp; (STYLE_UNDERLINE|STYLE_STRIKETHROUGH|STYLE_OVERSCORE)))
 <a name="l01305"></a>01305         {
 <a name="l01306"></a>01306                 <span class="comment">// Find out where to put the line</span>
-<a name="l01307"></a>01307                 Bit16u lineY = PIXY;
+<a name="l01307"></a>01307                 Bit16u lineY = (Bit16u)PIXY;
 <a name="l01308"></a>01308                 <span class="keywordtype">double</span> height = (curFont-&gt;size-&gt;metrics.height &gt;&gt; 6); <span class="comment">// TODO height is fixed point madness...</span>
 <a name="l01309"></a>01309 
 <a name="l01310"></a>01310                 <span class="keywordflow">if</span> (style &amp; STYLE_UNDERLINE)
-<a name="l01311"></a>01311             lineY = PIXY + (Bit16u)(height * 0.9);
+<a name="l01311"></a>01311             lineY = (Bit16u)PIXY + (Bit16u)(height * 0.9);
 <a name="l01312"></a>01312                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (style &amp; STYLE_STRIKETHROUGH)
-<a name="l01313"></a>01313             lineY = PIXY + (Bit16u)(height * 0.45);
+<a name="l01313"></a>01313             lineY = (Bit16u)PIXY + (Bit16u)(height * 0.45);
 <a name="l01314"></a>01314                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (style &amp; STYLE_OVERSCORE)
-<a name="l01315"></a>01315                         lineY = PIXY - (((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
+<a name="l01315"></a>01315                         lineY = (Bit16u)PIXY - (Bit16u)(((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
 <a name="l01316"></a>01316 
 <a name="l01317"></a>01317                 drawLine(lineStart, PIXX, lineY, score == SCORE_SINGLEBROKEN || score == SCORE_DOUBLEBROKEN);
 <a name="l01318"></a>01318 
@@ -1668,7 +1668,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01571"></a>01571 
 <a name="l01572"></a>01572 <span class="keyword">static</span> <span class="keywordtype">void</span> findNextName(<span class="keywordtype">char</span>* front, <span class="keywordtype">char</span>* ext, <span class="keywordtype">char</span>* fname)
 <a name="l01573"></a>01573 {
-<a name="l01574"></a>01574         Bitu i = 1;
+<a name="l01574"></a>01574         <span class="keywordtype">int</span> i = 1;
 <a name="l01575"></a>01575         Bitu slen = (Bitu)strlen(document_path);
 <a name="l01576"></a>01576         <span class="keywordflow">if</span>(slen &gt; (200 - 15))
 <a name="l01577"></a>01577     {
@@ -2088,7 +2088,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01991"></a>01991 
 <a name="l01992"></a>01992 <span class="keywordtype">void</span> PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
 <a name="l01993"></a>01993 {
-<a name="l01994"></a>01994         dataregister = val;
+<a name="l01994"></a>01994         dataregister = (Bit8u)val;
 <a name="l01995"></a>01995 }
 <a name="l01996"></a>01996 Bit8u controlreg = 0x04;
 <a name="l01997"></a>01997 
@@ -2164,7 +2164,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02067"></a>02067                 }
 <a name="l02068"></a>02068         }
 <a name="l02069"></a>02069 
-<a name="l02070"></a>02070         controlreg = val;
+<a name="l02070"></a>02070         controlreg = (Bit8u)val;
 <a name="l02071"></a>02071         <span class="keywordflow">if</span> (defaultPrinter)
 <a name="l02072"></a>02072                 defaultPrinter-&gt;setAutofeed((val &amp; 0x02) &gt; 0);
 <a name="l02073"></a>02073 }
@@ -2232,7 +2232,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

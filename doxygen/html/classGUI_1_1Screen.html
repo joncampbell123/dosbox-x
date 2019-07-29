@@ -118,8 +118,9 @@ Inheritance diagram for GUI::Screen:</div>
  <div class="center">
   <img src="classGUI_1_1Screen.png" usemap="#GUI::Screen_map" alt=""/>
   <map id="GUI::Screen_map" name="GUI::Screen_map">
-<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,0,128,24"/>
-<area href="classGUI_1_1ScreenRGB32le.html" title="A 24 bit per pixel RGB framebuffer aligned to 32 bit per pixel." alt="GUI::ScreenRGB32le" shape="rect" coords="0,112,128,136"/>
+<area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,56,128,80"/>
+<area href="classGUI_1_1Refcount.html" alt="GUI::Refcount" shape="rect" coords="0,0,128,24"/>
+<area href="classGUI_1_1ScreenRGB32le.html" title="A 24 bit per pixel RGB framebuffer aligned to 32 bit per pixel." alt="GUI::ScreenRGB32le" shape="rect" coords="0,168,128,192"/>
 </map>
  </div></div>
 
@@ -173,6 +174,8 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a30b34167fe1aad767a0f7fcfd617ddfa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a30b34167fe1aad767a0f7fcfd617ddfa"></a>
 <a class="el" href="classGUI_1_1Drawable.html">Drawable</a> *const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Screen.html#a30b34167fe1aad767a0f7fcfd617ddfa">buffer</a></td></tr>
 <tr class="memdesc:a30b34167fe1aad767a0f7fcfd617ddfa"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGUI_1_1Screen.html" title="A Screen represents the framebuffer that is the final destination of the GUI.">Screen</a> buffer. <br/></td></tr>
+<tr class="memitem:aea9148e41c5bd314d068f879ed3e199f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aea9148e41c5bd314d068f879ed3e199f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>buffer_i_alloc</b></td></tr>
 <tr class="memitem:ae1bac72316cf4d07b19c2e4ae497e272"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae1bac72316cf4d07b19c2e4ae497e272"></a>
 <a class="el" href="classGUI_1_1String.html">String</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Screen.html#ae1bac72316cf4d07b19c2e4ae497e272">clipboard</a></td></tr>
 <tr class="memdesc:ae1bac72316cf4d07b19c2e4ae497e272"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clipboard. <br/></td></tr>
@@ -186,7 +189,7 @@ Protected Attributes</h2></td></tr>
 <p>This is an abstract base class. You need to use a subclass which implements rgbToSurface and surfaceToRGB.</p>
 <p>To make things work, <a class="el" href="classGUI_1_1Screen.html" title="A Screen represents the framebuffer that is the final destination of the GUI.">Screen</a> needs events. Call the mouse and key event functions (see <a class="el" href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window.">Window</a>) whenever such an event occurs. Call update(void *surface, int ticks) regularly, if possible about every 40msec (25 fps). If nothing has changed, screen updates are quite fast. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00694">694</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00780">780</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Member Function Documentation</h2>
 <a class="anchor" id="a921cee1496805709968c4e016a5af4e6"></a>
 <div class="memitem">
@@ -216,9 +219,9 @@ Protected Attributes</h2></td></tr>
 <p>Update the given surface with this screen's content, fully honouring the alpha channel. </p>
 <p><code>ticks</code> can be set to a different value depending on how much time has passed. Timing doesn't need to be perfect, but try to call this at least every 40 msec. Each tick amounts to about 10 msec. Returns the number of ticks until the next event is scheduled, or 0 if none. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l01278">1278</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l01426">1426</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00697">buffer</a>, <a class="el" href="gui__tk_8h_source.html#l00919">GUI::Drawable::buffer</a>, <a class="el" href="gui__tk_8h_source.html#l00170">GUI::Color::GreenMask</a>, <a class="el" href="gui__tk_8h_source.html#l00516">GUI::Window::height</a>, <a class="el" href="gui__tk_8h_source.html#l00191">GUI::Color::MagentaMask</a>, <a class="el" href="gui__tk_8cpp_source.html#l00495">GUI::Timer::next()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00593">GUI::Window::paintAll()</a>, <a class="el" href="classGUI_1_1Screen.html#a58999d2d77eb53b064b893e1c096c1c0">rgbToSurface()</a>, <a class="el" href="classGUI_1_1Screen.html#a0512d1dfadc6e7800b3c9c97fd6c733e">surfaceToRGB()</a>, <a class="el" href="gui__tk_8h_source.html#l00514">GUI::Window::width</a>, <a class="el" href="gui__tk_8h_source.html#l00518">GUI::Window::x</a>, and <a class="el" href="gui__tk_8h_source.html#l00520">GUI::Window::y</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00783">buffer</a>, <a class="el" href="gui__tk_8h_source.html#l01007">GUI::Drawable::buffer</a>, <a class="el" href="gui__tk_8h_source.html#l00170">GUI::Color::GreenMask</a>, <a class="el" href="gui__tk_8h_source.html#l00585">GUI::Window::height</a>, <a class="el" href="gui__tk_8h_source.html#l00191">GUI::Color::MagentaMask</a>, <a class="el" href="gui__tk_8cpp_source.html#l00544">GUI::Timer::next()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00661">GUI::Window::paintAll()</a>, <a class="el" href="classGUI_1_1Screen.html#a58999d2d77eb53b064b893e1c096c1c0">rgbToSurface()</a>, <a class="el" href="classGUI_1_1Screen.html#a0512d1dfadc6e7800b3c9c97fd6c733e">surfaceToRGB()</a>, <a class="el" href="gui__tk_8h_source.html#l00583">GUI::Window::width</a>, <a class="el" href="gui__tk_8h_source.html#l00587">GUI::Window::x</a>, and <a class="el" href="gui__tk_8h_source.html#l00589">GUI::Window::y</a>.</p>
 
 </div>
 </div>
@@ -230,7 +233,7 @@ Protected Attributes</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:58:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

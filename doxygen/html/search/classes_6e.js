@@ -12,6 +12,7 @@ var searchData=
   ['nativestring_3c_20std_3a_3astring_20_3e',['NativeString< std::string >',['../classGUI_1_1NativeString_3_01std_1_1string_01_4.html',1,'GUI']]],
   ['nativestring_3c_20str_20_2a_20_3e',['NativeString< STR * >',['../classGUI_1_1NativeString_3_01STR_01_5_01_4.html',1,'GUI']]],
   ['nativestring_3c_20str_5bn_5d_3e',['NativeString< STR[N]>',['../classGUI_1_1NativeString_3_01STR[N]_4.html',1,'GUI']]],
+  ['ncr8496_5fdevice',['ncr8496_device',['../classncr8496__device.html',1,'']]],
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
   ['nfdhdr',['NFDHDR',['../structNFDHDR.html',1,'']]],
   ['nfdhdr_5fentry',['NFDHDR_ENTRY',['../structNFDHDR__ENTRY.html',1,'']]],
@@ -21,5 +22,6 @@ var searchData=
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
   ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]],
   ['nsapplication',['NSApplication',['../classNSApplication.html',1,'']]],
-  ['nsapplication_28dosboxx_29',['NSApplication(DOSBoxX)',['../interfaceNSApplication_07DOSBoxX_08.html',1,'']]]
+  ['nsapplication_28dosboxx_29',['NSApplication(DOSBoxX)',['../interfaceNSApplication_07DOSBoxX_08.html',1,'']]],
+  ['nullint',['NullInt',['../classNullInt.html',1,'']]]
 ];

@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 279.720280
+%%BoundingBox: 0 0 500 303.030303
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,12 +19,12 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 1.787500 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 1.650000 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
-/rows 12 def
+/rows 13 def
 /cols 6 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
@@ -175,6 +175,7 @@ boxfont setfont
 1 boundaspect scale
 (GUI::BorderedWindow) cw
 (GUI::Window) cw
+(GUI::Refcount) cw
 (GUI::Button) cw
 (GUI::Checkbox) cw
 (GUI::Frame) cw
@@ -202,6 +203,7 @@ boundx scalefactor div boundy scalefactor div scale
 
  (GUI::BorderedWindow) 2.000000 10.000000 box
  (GUI::Window) 2.000000 11.000000 box
+ (GUI::Refcount) 2.000000 12.000000 box
  (GUI::Button) 0.000000 9.000000 box
  (GUI::Checkbox) 1.000000 9.000000 box
  (GUI::Frame) 2.000000 9.000000 box
@@ -224,6 +226,10 @@ solid
 0 2.000000 10.000000 out
 solid
 1 2.000000 11.000000 in
+solid
+0 2.000000 11.000000 out
+solid
+1 2.000000 12.000000 in
 solid
 1 2.000000 9.250000 out
 solid

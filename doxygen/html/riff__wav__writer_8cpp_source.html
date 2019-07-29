@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* Shut up! */</span>
@@ -192,7 +192,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00095"></a>00095                 <span class="keywordflow">return</span> 0;
 <a name="l00096"></a>00096 
 <a name="l00097"></a>00097         w-&gt;fmt_len = <span class="keyword">sizeof</span>(windows_WAVEFORMAT);
-<a name="l00098"></a>00098         <span class="keywordflow">if</span> (__le_u16(&amp;f-&gt;cbSize) != 0u) w-&gt;fmt_len += 2u + __le_u16(&amp;f-&gt;cbSize);
+<a name="l00098"></a>00098         <span class="keywordflow">if</span> (__le_u16(&amp;f-&gt;cbSize) != 0u) w-&gt;fmt_len += (<span class="keywordtype">size_t</span>)2u + __le_u16(&amp;f-&gt;cbSize);
 <a name="l00099"></a>00099         <span class="keywordflow">if</span> (w-&gt;fmt_len &gt; len)
 <a name="l00100"></a>00100                 <span class="keywordflow">return</span> 0;
 <a name="l00101"></a>00101         <span class="keywordflow">if</span> ((w-&gt;fmt = malloc(w-&gt;fmt_len)) == NULL)
@@ -360,7 +360,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

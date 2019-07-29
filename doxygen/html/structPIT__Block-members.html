@@ -100,24 +100,41 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 This is the complete list of members for <a class="el" href="structPIT__Block.html">PIT_Block</a>, including all inherited members.<table>
   <tr bgcolor="#f0f0f0"><td><b>bcd</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>cntr</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>cntr_cur</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>counterstatus_set</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>counting</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>cycle_base</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>delay</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>gate</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>get_output_from_counter</b>(const read_counter_result &amp;res) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>go_read_latch</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>latch_mode</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>last_counter</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>latch_next_counter</b>(void) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>mode</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>new_mode</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>now</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>output</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>read_counter</b>(void) const  (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_latch</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_state</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>reltime</b>(void) const  (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>reset_count_at</b>(pic_tickindex_t t) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>restart_counter_at</b>(pic_tickindex_t t, Bit16u counter) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>set_active_counter</b>(Bitu new_cntr) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>set_gate</b>(bool on) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>set_next_counter</b>(Bitu new_cntr) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>set_output</b>(bool on) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>start</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>track_time</b>(pic_tickindex_t t) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>update_count</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>update_output_from_counter</b>(const read_counter_result &amp;res) (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>write_latch</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>write_state</b> (defined in <a class="el" href="structPIT__Block.html">PIT_Block</a>)</td><td><a class="el" href="structPIT__Block.html">PIT_Block</a></td><td></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:58 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

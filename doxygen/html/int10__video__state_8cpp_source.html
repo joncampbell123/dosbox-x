@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -133,11 +133,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00036"></a>00036 }
 <a name="l00037"></a>00037 
 <a name="l00038"></a>00038 <span class="keywordtype">bool</span> INT10_VideoState_Save(Bitu state,RealPt buffer) {
-<a name="l00039"></a>00039         Bitu ct;
+<a name="l00039"></a>00039         Bit16u ct;
 <a name="l00040"></a>00040         <span class="keywordflow">if</span> ((state&amp;7)==0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00041"></a>00041 
-<a name="l00042"></a>00042         Bitu base_seg=RealSeg(buffer);
-<a name="l00043"></a>00043         Bitu base_dest=RealOff(buffer)+0x20u;
+<a name="l00042"></a>00042         Bit16u base_seg=RealSeg(buffer);
+<a name="l00043"></a>00043         Bit16u base_dest=RealOff(buffer)+0x20u;
 <a name="l00044"></a>00044 
 <a name="l00045"></a>00045         <span class="keywordflow">if</span> (state&amp;1)  {
 <a name="l00046"></a>00046                 real_writew(base_seg,RealOff(buffer),base_dest);
@@ -154,7 +154,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00057"></a>00057 
 <a name="l00058"></a>00058                 <span class="comment">// sequencer</span>
 <a name="l00059"></a>00059                 <span class="keywordflow">for</span> (ct=1; ct&lt;5; ct++) {
-<a name="l00060"></a>00060                         IO_WriteB(0x3c4,ct);
+<a name="l00060"></a>00060                         IO_WriteB(0x3c4,(Bit8u)ct);
 <a name="l00061"></a>00061                         real_writeb(base_seg,base_dest+0x04+ct,IO_ReadB(0x3c5));
 <a name="l00062"></a>00062                 }
 <a name="l00063"></a>00063 
@@ -162,20 +162,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00065"></a>00065 
 <a name="l00066"></a>00066                 <span class="comment">// crt controller</span>
 <a name="l00067"></a>00067                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x19; ct++) {
-<a name="l00068"></a>00068                         IO_WriteB(crt_reg,ct);
+<a name="l00068"></a>00068                         IO_WriteB(crt_reg,(Bit8u)ct);
 <a name="l00069"></a>00069                         real_writeb(base_seg,base_dest+0x0a+ct,IO_ReadB(crt_reg+1u));
 <a name="l00070"></a>00070                 }
 <a name="l00071"></a>00071 
 <a name="l00072"></a>00072                 <span class="comment">// attr registers</span>
 <a name="l00073"></a>00073                 <span class="keywordflow">for</span> (ct=0; ct&lt;4; ct++) {
 <a name="l00074"></a>00074                         IO_ReadB(crt_reg+6u);
-<a name="l00075"></a>00075                         IO_WriteB(0x3c0,0x10+ct);
+<a name="l00075"></a>00075                         IO_WriteB(0x3c0,(Bit8u)(0x10+ct));
 <a name="l00076"></a>00076                         real_writeb(base_seg,base_dest+0x33+ct,IO_ReadB(0x3c1));
 <a name="l00077"></a>00077                 }
 <a name="l00078"></a>00078 
 <a name="l00079"></a>00079                 <span class="comment">// graphics registers</span>
 <a name="l00080"></a>00080                 <span class="keywordflow">for</span> (ct=0; ct&lt;9; ct++) {
-<a name="l00081"></a>00081                         IO_WriteB(0x3ce,ct);
+<a name="l00081"></a>00081                         IO_WriteB(0x3ce,(Bit8u)ct);
 <a name="l00082"></a>00082                         real_writeb(base_seg,base_dest+0x37+ct,IO_ReadB(0x3cf));
 <a name="l00083"></a>00083                 }
 <a name="l00084"></a>00084 
@@ -212,7 +212,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00115"></a>00115 
 <a name="l00116"></a>00116                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x10; ct++) {
 <a name="l00117"></a>00117                         IO_ReadB(crt_reg+6u);
-<a name="l00118"></a>00118                         IO_WriteB(0x3c0,ct);
+<a name="l00118"></a>00118                         IO_WriteB(0x3c0,(Bit8u)ct);
 <a name="l00119"></a>00119                         real_writeb(base_seg,base_dest+0x23u+ct,IO_ReadB(0x3c1));
 <a name="l00120"></a>00120                 }
 <a name="l00121"></a>00121         IO_ReadB(crt_reg+6u);
@@ -227,10 +227,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00130"></a>00130 
 <a name="l00131"></a>00131                 real_writeb(base_seg,base_dest+0x00,mem_readb(0x410)&amp;0x30);
 <a name="l00132"></a>00132                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x1e; ct++) {
-<a name="l00133"></a>00133                         real_writeb(base_seg,base_dest+0x01+ct,mem_readb(0x449+ct));
+<a name="l00133"></a>00133                         real_writeb(base_seg,base_dest+0x01u+ct,mem_readb(0x449u+ct));
 <a name="l00134"></a>00134                 }
 <a name="l00135"></a>00135                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x07; ct++) {
-<a name="l00136"></a>00136                         real_writeb(base_seg,base_dest+0x1f+ct,mem_readb(0x484+ct));
+<a name="l00136"></a>00136                         real_writeb(base_seg,base_dest+0x1fu+ct,mem_readb(0x484u+ct));
 <a name="l00137"></a>00137                 }
 <a name="l00138"></a>00138                 real_writed(base_seg,base_dest+0x26,mem_readd(0x48a));
 <a name="l00139"></a>00139                 real_writed(base_seg,base_dest+0x2a,mem_readd(0x14));   <span class="comment">// int 5</span>
@@ -250,18 +250,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00153"></a>00153                 IO_WriteB(0x3c0,0x14);
 <a name="l00154"></a>00154                 real_writeb(base_seg,base_dest+0x303,IO_ReadB(0x3c1));
 <a name="l00155"></a>00155 
-<a name="l00156"></a>00156                 Bitu <a class="code" href="struct__dac__state.html">dac_state</a>=IO_ReadB(0x3c7)&amp;1u;
-<a name="l00157"></a>00157                 Bitu dac_windex=IO_ReadB(0x3c8);
+<a name="l00156"></a>00156                 Bit8u <a class="code" href="struct__dac__state.html">dac_state</a>=IO_ReadB(0x3c7)&amp;1u;
+<a name="l00157"></a>00157                 Bit8u dac_windex=IO_ReadB(0x3c8);
 <a name="l00158"></a>00158                 <span class="keywordflow">if</span> (dac_state!=0) dac_windex--;
 <a name="l00159"></a>00159                 real_writeb(base_seg,base_dest+0x000,dac_state);
 <a name="l00160"></a>00160                 real_writeb(base_seg,base_dest+0x001,dac_windex);
 <a name="l00161"></a>00161                 real_writeb(base_seg,base_dest+0x002,IO_ReadB(0x3c6));
 <a name="l00162"></a>00162 
 <a name="l00163"></a>00163                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x100; ct++) {
-<a name="l00164"></a>00164                         IO_WriteB(0x3c7,ct);
-<a name="l00165"></a>00165                         real_writeb(base_seg,base_dest+0x003+ct*3u+0,IO_ReadB(0x3c9));
-<a name="l00166"></a>00166                         real_writeb(base_seg,base_dest+0x003+ct*3u+1,IO_ReadB(0x3c9));
-<a name="l00167"></a>00167                         real_writeb(base_seg,base_dest+0x003+ct*3u+2,IO_ReadB(0x3c9));
+<a name="l00164"></a>00164                         IO_WriteB(0x3c7,(Bit8u)ct);
+<a name="l00165"></a>00165                         real_writeb(base_seg,base_dest+0x003u+ct*3u+0,IO_ReadB(0x3c9));
+<a name="l00166"></a>00166                         real_writeb(base_seg,base_dest+0x003u+ct*3u+1,IO_ReadB(0x3c9));
+<a name="l00167"></a>00167                         real_writeb(base_seg,base_dest+0x003u+ct*3u+2,IO_ReadB(0x3c9));
 <a name="l00168"></a>00168                 }
 <a name="l00169"></a>00169 
 <a name="l00170"></a>00170                 IO_ReadB(crt_reg+6u);
@@ -284,7 +284,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00187"></a>00187 
 <a name="l00188"></a>00188                 <span class="comment">// sequencer</span>
 <a name="l00189"></a>00189                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x13; ct++) {
-<a name="l00190"></a>00190                         IO_WriteB(0x3c4,0x09+ct);
+<a name="l00190"></a>00190                         IO_WriteB(0x3c4,(Bit8u)(0x09+ct));
 <a name="l00191"></a>00191                         real_writeb(base_seg,base_dest+0x00+ct,IO_ReadB(0x3c5));
 <a name="l00192"></a>00192                 }
 <a name="l00193"></a>00193 
@@ -293,12 +293,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00196"></a>00196                 IO_WriteW(crt_reg,0xa539);
 <a name="l00197"></a>00197 
 <a name="l00198"></a>00198                 <span class="comment">// crt controller</span>
-<a name="l00199"></a>00199                 Bitu ct_dest=0x13;
+<a name="l00199"></a>00199                 Bit8u ct_dest=0x13;
 <a name="l00200"></a>00200                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x40; ct++) {
 <a name="l00201"></a>00201                         <span class="keywordflow">if</span> ((ct==0x4a-0x30) || (ct==0x4b-0x30)) {
 <a name="l00202"></a>00202                                 IO_WriteB(crt_reg,0x45);
 <a name="l00203"></a>00203                                 IO_ReadB(crt_reg+1u);
-<a name="l00204"></a>00204                                 IO_WriteB(crt_reg,0x30+ct);
+<a name="l00204"></a>00204                                 IO_WriteB(crt_reg,(Bit8u)(0x30+ct));
 <a name="l00205"></a>00205                                 real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
 <a name="l00206"></a>00206                                 real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
 <a name="l00207"></a>00207                                 real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
@@ -312,7 +312,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00215"></a>00215 }
 <a name="l00216"></a>00216 
 <a name="l00217"></a>00217 <span class="keywordtype">bool</span> INT10_VideoState_Restore(Bitu state,RealPt buffer) {
-<a name="l00218"></a>00218         Bitu ct;
+<a name="l00218"></a>00218         Bit16u ct;
 <a name="l00219"></a>00219         <span class="keywordflow">if</span> ((state&amp;7u)==0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00220"></a>00220 
 <a name="l00221"></a>00221         Bit16u base_seg=RealSeg(buffer);
@@ -342,7 +342,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00245"></a>00245 
 <a name="l00246"></a>00246                 <span class="comment">// sequencer</span>
 <a name="l00247"></a>00247                 <span class="keywordflow">for</span> (ct=1; ct&lt;5; ct++) {
-<a name="l00248"></a>00248                         IO_WriteW(0x3c4,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x04+ct)&lt;&lt;8u));
+<a name="l00248"></a>00248                         IO_WriteW(0x3c4,(Bit16u)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x04+ct)&lt;&lt;8u)));
 <a name="l00249"></a>00249                 }
 <a name="l00250"></a>00250 
 <a name="l00251"></a>00251                 IO_WriteB(0x3c2,real_readb(base_seg,base_dest+0x09));
@@ -351,7 +351,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00254"></a>00254 
 <a name="l00255"></a>00255                 <span class="comment">// crt controller</span>
 <a name="l00256"></a>00256                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x19; ct++) {
-<a name="l00257"></a>00257                         IO_WriteW(crt_reg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x0a+ct)&lt;&lt;8u));
+<a name="l00257"></a>00257                         IO_WriteW(crt_reg,(Bit16u)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x0a+ct)&lt;&lt;8u)));
 <a name="l00258"></a>00258                 }
 <a name="l00259"></a>00259 
 <a name="l00260"></a>00260                 IO_ReadB(crt_reg+6u);
@@ -387,10 +387,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00290"></a>00290 
 <a name="l00291"></a>00291                 mem_writeb(0x410,(mem_readb(0x410)&amp;0xcf) | real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x00));
 <a name="l00292"></a>00292                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x1e; ct++) {
-<a name="l00293"></a>00293                         mem_writeb(0x449+ct,real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x01+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct));
+<a name="l00293"></a>00293                         mem_writeb(0x449u+ct,real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x01u+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct));
 <a name="l00294"></a>00294                 }
 <a name="l00295"></a>00295                 <span class="keywordflow">for</span> (ct=0; ct&lt;0x07; ct++) {
-<a name="l00296"></a>00296                         mem_writeb(0x484+ct,real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x1f+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct));
+<a name="l00296"></a>00296                         mem_writeb(0x484u+ct,real_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_seg,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)base_dest+0x1fu+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ct));
 <a name="l00297"></a>00297                 }
 <a name="l00298"></a>00298                 mem_writed(0x48a,real_readd(base_seg,base_dest+0x26));
 <a name="l00299"></a>00299                 mem_writed(0x14,real_readd(base_seg,base_dest+0x2a));   <span class="comment">// int 5</span>
@@ -434,7 +434,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00337"></a>00337 
 <a name="l00338"></a>00338                 Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 <a name="l00339"></a>00339 
-<a name="l00340"></a>00340                 Bitu seq_idx=IO_ReadB(0x3c4);
+<a name="l00340"></a>00340                 Bit8u seq_idx=IO_ReadB(0x3c4);
 <a name="l00341"></a>00341                 IO_WriteB(0x3c4,0x08);
 <a name="l00342"></a>00342 <span class="comment">//              Bitu seq_8=IO_ReadB(0x3c5);</span>
 <a name="l00343"></a>00343                 IO_ReadB(0x3c5);
@@ -489,7 +489,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:22 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2013  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment"> *</span>
 <a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
 <a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.</span>
+<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -191,110 +191,115 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00094"></a>00094                         snd_seq_ev_set_noteon(&amp;ev, chanID, msg[1], msg[2]);
 <a name="l00095"></a>00095                         send_event(1);
 <a name="l00096"></a>00096                         <span class="keywordflow">break</span>;
-<a name="l00097"></a>00097                 <span class="keywordflow">case</span> 0xB0:
-<a name="l00098"></a>00098                         snd_seq_ev_set_controller(&amp;ev, chanID, msg[1], msg[2]);
+<a name="l00097"></a>00097                 <span class="keywordflow">case</span> 0xA0:
+<a name="l00098"></a>00098                         snd_seq_ev_set_keypress(&amp;ev, chanID, msg[1], msg[2]);
 <a name="l00099"></a>00099                         send_event(1);
 <a name="l00100"></a>00100                         <span class="keywordflow">break</span>;
-<a name="l00101"></a>00101                 <span class="keywordflow">case</span> 0xC0:
-<a name="l00102"></a>00102                         snd_seq_ev_set_pgmchange(&amp;ev, chanID, msg[1]);
-<a name="l00103"></a>00103                         send_event(0);
+<a name="l00101"></a>00101                 <span class="keywordflow">case</span> 0xB0:
+<a name="l00102"></a>00102                         snd_seq_ev_set_controller(&amp;ev, chanID, msg[1], msg[2]);
+<a name="l00103"></a>00103                         send_event(1);
 <a name="l00104"></a>00104                         <span class="keywordflow">break</span>;
-<a name="l00105"></a>00105                 <span class="keywordflow">case</span> 0xD0:
-<a name="l00106"></a>00106                         snd_seq_ev_set_chanpress(&amp;ev, chanID, msg[1]);
+<a name="l00105"></a>00105                 <span class="keywordflow">case</span> 0xC0:
+<a name="l00106"></a>00106                         snd_seq_ev_set_pgmchange(&amp;ev, chanID, msg[1]);
 <a name="l00107"></a>00107                         send_event(0);
 <a name="l00108"></a>00108                         <span class="keywordflow">break</span>;
-<a name="l00109"></a>00109                 <span class="keywordflow">case</span> 0xE0:{
-<a name="l00110"></a>00110                                 <span class="keywordtype">long</span> theBend = ((long)msg[1] + (<span class="keywordtype">long</span>)(msg[2] &lt;&lt; 7)) - 0x2000;
-<a name="l00111"></a>00111                                 snd_seq_ev_set_pitchbend(&amp;ev, chanID, theBend);
-<a name="l00112"></a>00112                                 send_event(1);
-<a name="l00113"></a>00113                         }
-<a name="l00114"></a>00114                         <span class="keywordflow">break</span>;
-<a name="l00115"></a>00115                 <span class="keywordflow">default</span>:
-<a name="l00116"></a>00116                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;ALSA:Unknown Command: %08lx&quot;</span>, (long)msg);
-<a name="l00117"></a>00117                         send_event(1);
+<a name="l00109"></a>00109                 <span class="keywordflow">case</span> 0xD0:
+<a name="l00110"></a>00110                         snd_seq_ev_set_chanpress(&amp;ev, chanID, msg[1]);
+<a name="l00111"></a>00111                         send_event(0);
+<a name="l00112"></a>00112                         <span class="keywordflow">break</span>;
+<a name="l00113"></a>00113                 <span class="keywordflow">case</span> 0xE0:{
+<a name="l00114"></a>00114                                 <span class="keywordtype">long</span> theBend = ((long)msg[1] + (<span class="keywordtype">long</span>)(msg[2] &lt;&lt; 7)) - 0x2000;
+<a name="l00115"></a>00115                                 snd_seq_ev_set_pitchbend(&amp;ev, chanID, theBend);
+<a name="l00116"></a>00116                                 send_event(1);
+<a name="l00117"></a>00117                         }
 <a name="l00118"></a>00118                         <span class="keywordflow">break</span>;
-<a name="l00119"></a>00119                 }
-<a name="l00120"></a>00120         }       
-<a name="l00121"></a>00121 
-<a name="l00122"></a>00122         <span class="keywordtype">void</span> Close(<span class="keywordtype">void</span>) {
-<a name="l00123"></a>00123                 <span class="keywordflow">if</span> (seq_handle)
-<a name="l00124"></a>00124                         snd_seq_close(seq_handle);
-<a name="l00125"></a>00125         }
+<a name="l00119"></a>00119                 <span class="keywordflow">default</span>:
+<a name="l00120"></a>00120                         <span class="comment">//Maybe filter out FC as it leads for at least one user to crash, but the entire midi stream has not yet been checked.</span>
+<a name="l00121"></a>00121                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;ALSA:Unknown Command: %02X %02X %02X&quot;</span>, msg[0],msg[1],msg[2]);
+<a name="l00122"></a>00122                         send_event(1);
+<a name="l00123"></a>00123                         <span class="keywordflow">break</span>;
+<a name="l00124"></a>00124                 }
+<a name="l00125"></a>00125         }       
 <a name="l00126"></a>00126 
-<a name="l00127"></a>00127         <span class="keywordtype">bool</span> Open(<span class="keyword">const</span> <span class="keywordtype">char</span> * conf) {
-<a name="l00128"></a>00128                 <span class="keywordtype">char</span> var[10];
-<a name="l00129"></a>00129                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> caps;
-<a name="l00130"></a>00130                 <span class="keywordtype">bool</span> defaultport = <span class="keyword">true</span>; <span class="comment">//try 17:0. Seems to be default nowadays</span>
+<a name="l00127"></a>00127         <span class="keywordtype">void</span> Close(<span class="keywordtype">void</span>) {
+<a name="l00128"></a>00128                 <span class="keywordflow">if</span> (seq_handle)
+<a name="l00129"></a>00129                         snd_seq_close(seq_handle);
+<a name="l00130"></a>00130         }
 <a name="l00131"></a>00131 
-<a name="l00132"></a>00132                 <span class="comment">// try to use port specified in config file</span>
-<a name="l00133"></a>00133                 <span class="keywordflow">if</span> (conf &amp;&amp; conf[0]) { 
-<a name="l00134"></a>00134                         safe_strncpy(var, conf, 10);
-<a name="l00135"></a>00135                         <span class="keywordflow">if</span> (!parse_addr(var, &amp;seq_client, &amp;seq_port)) {
-<a name="l00136"></a>00136                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Invalid alsa port %s&quot;</span>, var);
-<a name="l00137"></a>00137                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00138"></a>00138                         }
-<a name="l00139"></a>00139                         defaultport = <span class="keyword">false</span>;
-<a name="l00140"></a>00140                 }
-<a name="l00141"></a>00141                 <span class="comment">// default port if none specified</span>
-<a name="l00142"></a>00142                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!parse_addr(<span class="stringliteral">&quot;65:0&quot;</span>, &amp;seq_client, &amp;seq_port)) {
-<a name="l00143"></a>00143                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Invalid alsa port 65:0&quot;</span>);
-<a name="l00144"></a>00144                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00132"></a>00132         <span class="keywordtype">bool</span> Open(<span class="keyword">const</span> <span class="keywordtype">char</span> * conf) {
+<a name="l00133"></a>00133                 <span class="keywordtype">char</span> var[10];
+<a name="l00134"></a>00134                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> caps;
+<a name="l00135"></a>00135                 <span class="keywordtype">bool</span> defaultport = <span class="keyword">true</span>; <span class="comment">//try 17:0. Seems to be default nowadays</span>
+<a name="l00136"></a>00136 
+<a name="l00137"></a>00137                 <span class="comment">// try to use port specified in config file</span>
+<a name="l00138"></a>00138                 <span class="keywordflow">if</span> (conf &amp;&amp; conf[0]) { 
+<a name="l00139"></a>00139                         safe_strncpy(var, conf, 10);
+<a name="l00140"></a>00140                         <span class="keywordflow">if</span> (!parse_addr(var, &amp;seq_client, &amp;seq_port)) {
+<a name="l00141"></a>00141                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Invalid alsa port %s&quot;</span>, var);
+<a name="l00142"></a>00142                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00143"></a>00143                         }
+<a name="l00144"></a>00144                         defaultport = <span class="keyword">false</span>;
 <a name="l00145"></a>00145                 }
-<a name="l00146"></a>00146 
-<a name="l00147"></a>00147                 <span class="keywordflow">if</span> (my_snd_seq_open(&amp;seq_handle)) {
-<a name="l00148"></a>00148                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t open sequencer&quot;</span>);
+<a name="l00146"></a>00146                 <span class="comment">// default port if none specified</span>
+<a name="l00147"></a>00147                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!parse_addr(<span class="stringliteral">&quot;65:0&quot;</span>, &amp;seq_client, &amp;seq_port)) {
+<a name="l00148"></a>00148                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Invalid alsa port 65:0&quot;</span>);
 <a name="l00149"></a>00149                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00150"></a>00150                 }
-<a name="l00151"></a>00151         
-<a name="l00152"></a>00152                 my_client = snd_seq_client_id(seq_handle);
-<a name="l00153"></a>00153                 snd_seq_set_client_name(seq_handle, <span class="stringliteral">&quot;DOSBOX&quot;</span>);
-<a name="l00154"></a>00154                 snd_seq_set_client_group(seq_handle, <span class="stringliteral">&quot;input&quot;</span>);
-<a name="l00155"></a>00155         
-<a name="l00156"></a>00156                 caps = SND_SEQ_PORT_CAP_READ;
-<a name="l00157"></a>00157                 <span class="keywordflow">if</span> (seq_client == SND_SEQ_ADDRESS_SUBSCRIBERS)
-<a name="l00158"></a>00158                         caps |= SND_SEQ_PORT_CAP_SUBS_READ;
-<a name="l00159"></a>00159                 my_port =
-<a name="l00160"></a>00160                           snd_seq_create_simple_port(seq_handle, <span class="stringliteral">&quot;DOSBOX&quot;</span>, caps,
-<a name="l00161"></a>00161                           SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_APPLICATION);
-<a name="l00162"></a>00162                 <span class="keywordflow">if</span> (my_port &lt; 0) {
-<a name="l00163"></a>00163                         snd_seq_close(seq_handle);
-<a name="l00164"></a>00164                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t create ALSA port&quot;</span>);
-<a name="l00165"></a>00165                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00166"></a>00166                 }
-<a name="l00167"></a>00167         
-<a name="l00168"></a>00168                 <span class="keywordflow">if</span> (seq_client != SND_SEQ_ADDRESS_SUBSCRIBERS) {
-<a name="l00169"></a>00169                         <span class="comment">/* subscribe to MIDI port */</span>
-<a name="l00170"></a>00170                         <span class="keywordflow">if</span> (snd_seq_connect_to(seq_handle, my_port, seq_client, seq_port) &lt; 0) {
-<a name="l00171"></a>00171                                 <span class="keywordflow">if</span> (defaultport) { <span class="comment">//if port &quot;65:0&quot; (default) try &quot;17:0&quot; as well</span>
-<a name="l00172"></a>00172                                         seq_client = 17; seq_port = 0; <span class="comment">//Update reported values</span>
-<a name="l00173"></a>00173                                         <span class="keywordflow">if</span>(snd_seq_connect_to(seq_handle,my_port,seq_client,seq_port) &lt; 0) { <span class="comment">//Try 128:0 Timidity port as well</span>
-<a name="l00174"></a>00174 <span class="comment">//                                              seq_client = 128; seq_port = 0; //Update reported values</span>
-<a name="l00175"></a>00175 <span class="comment">//                                              if(snd_seq_connect_to(seq_handle,my_port,seq_client,seq_port) &lt; 0) {</span>
-<a name="l00176"></a>00176                                                         snd_seq_close(seq_handle);
-<a name="l00177"></a>00177                                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t subscribe to MIDI port (65:0) nor (17:0)&quot;</span>);
-<a name="l00178"></a>00178                                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00179"></a>00179 <span class="comment">//                                              }</span>
-<a name="l00180"></a>00180                                         }
-<a name="l00181"></a>00181                                 } <span class="keywordflow">else</span> {
-<a name="l00182"></a>00182                                         snd_seq_close(seq_handle);
-<a name="l00183"></a>00183                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t subscribe to MIDI port (%d:%d)&quot;</span>, seq_client, seq_port);
-<a name="l00184"></a>00184                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00185"></a>00185                                 }
-<a name="l00186"></a>00186                         }
-<a name="l00187"></a>00187                 }
-<a name="l00188"></a>00188 
-<a name="l00189"></a>00189                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;ALSA:Client initialised [%d:%d]&quot;</span>, seq_client, seq_port);
-<a name="l00190"></a>00190                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00191"></a>00191         }
-<a name="l00192"></a>00192 
-<a name="l00193"></a>00193 };
-<a name="l00194"></a>00194 
-<a name="l00195"></a>00195 <a class="code" href="classMidiHandler__alsa.html">MidiHandler_alsa</a> Midi_alsa;
+<a name="l00151"></a>00151 
+<a name="l00152"></a>00152                 <span class="keywordflow">if</span> (my_snd_seq_open(&amp;seq_handle)) {
+<a name="l00153"></a>00153                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t open sequencer&quot;</span>);
+<a name="l00154"></a>00154                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00155"></a>00155                 }
+<a name="l00156"></a>00156         
+<a name="l00157"></a>00157                 my_client = snd_seq_client_id(seq_handle);
+<a name="l00158"></a>00158                 snd_seq_set_client_name(seq_handle, <span class="stringliteral">&quot;DOSBOX&quot;</span>);
+<a name="l00159"></a>00159                 snd_seq_set_client_group(seq_handle, <span class="stringliteral">&quot;input&quot;</span>);
+<a name="l00160"></a>00160         
+<a name="l00161"></a>00161                 caps = SND_SEQ_PORT_CAP_READ;
+<a name="l00162"></a>00162                 <span class="keywordflow">if</span> (seq_client == SND_SEQ_ADDRESS_SUBSCRIBERS)
+<a name="l00163"></a>00163                         caps |= SND_SEQ_PORT_CAP_SUBS_READ;
+<a name="l00164"></a>00164                 my_port =
+<a name="l00165"></a>00165                           snd_seq_create_simple_port(seq_handle, <span class="stringliteral">&quot;DOSBOX&quot;</span>, caps,
+<a name="l00166"></a>00166                           SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_APPLICATION);
+<a name="l00167"></a>00167                 <span class="keywordflow">if</span> (my_port &lt; 0) {
+<a name="l00168"></a>00168                         snd_seq_close(seq_handle);
+<a name="l00169"></a>00169                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t create ALSA port&quot;</span>);
+<a name="l00170"></a>00170                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00171"></a>00171                 }
+<a name="l00172"></a>00172         
+<a name="l00173"></a>00173                 <span class="keywordflow">if</span> (seq_client != SND_SEQ_ADDRESS_SUBSCRIBERS) {
+<a name="l00174"></a>00174                         <span class="comment">/* subscribe to MIDI port */</span>
+<a name="l00175"></a>00175                         <span class="keywordflow">if</span> (snd_seq_connect_to(seq_handle, my_port, seq_client, seq_port) &lt; 0) {
+<a name="l00176"></a>00176                                 <span class="keywordflow">if</span> (defaultport) { <span class="comment">//if port &quot;65:0&quot; (default) try &quot;17:0&quot; as well</span>
+<a name="l00177"></a>00177                                         seq_client = 17; seq_port = 0; <span class="comment">//Update reported values</span>
+<a name="l00178"></a>00178                                         <span class="keywordflow">if</span>(snd_seq_connect_to(seq_handle,my_port,seq_client,seq_port) &lt; 0) { <span class="comment">//Try 128:0 Timidity port as well</span>
+<a name="l00179"></a>00179 <span class="comment">//                                              seq_client = 128; seq_port = 0; //Update reported values</span>
+<a name="l00180"></a>00180 <span class="comment">//                                              if(snd_seq_connect_to(seq_handle,my_port,seq_client,seq_port) &lt; 0) {</span>
+<a name="l00181"></a>00181                                                         snd_seq_close(seq_handle);
+<a name="l00182"></a>00182                                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t subscribe to MIDI port (65:0) nor (17:0)&quot;</span>);
+<a name="l00183"></a>00183                                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00184"></a>00184 <span class="comment">//                                              }</span>
+<a name="l00185"></a>00185                                         }
+<a name="l00186"></a>00186                                 } <span class="keywordflow">else</span> {
+<a name="l00187"></a>00187                                         snd_seq_close(seq_handle);
+<a name="l00188"></a>00188                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;ALSA:Can&#39;t subscribe to MIDI port (%d:%d)&quot;</span>, seq_client, seq_port);
+<a name="l00189"></a>00189                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00190"></a>00190                                 }
+<a name="l00191"></a>00191                         }
+<a name="l00192"></a>00192                 }
+<a name="l00193"></a>00193 
+<a name="l00194"></a>00194                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;ALSA:Client initialised [%d:%d]&quot;</span>, seq_client, seq_port);
+<a name="l00195"></a>00195                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00196"></a>00196         }
+<a name="l00197"></a>00197 
+<a name="l00198"></a>00198 };
+<a name="l00199"></a>00199 
+<a name="l00200"></a>00200 <a class="code" href="classMidiHandler__alsa.html">MidiHandler_alsa</a> Midi_alsa;
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Nov 19 2018 07:54:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
