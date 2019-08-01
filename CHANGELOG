@@ -1,3 +1,5 @@
+0.82.21 (next)
+  - 
 0.82.20
   - Dynamic core IMUL instruction mistake fixed,
     signed multiply works properly again.
