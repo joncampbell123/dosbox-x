@@ -57,7 +57,7 @@ const char *Win_NameThatVXD(Bit16u devid) {
 		case 0x0487:	return "NWSUP";
 		case 0x28A1:	return "PHARLAP";
 		case 0x7A5F:	return "SIWVID";
-	};
+	}
 
 	return NULL;
 }

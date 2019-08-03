@@ -146,7 +146,7 @@ static Bit8u * VGA_Draw_AMS_4BPP_Line(Bitu vidstart, Bitu line) {
     const Bit8u *lbase;
     Bit32u *draw = (Bit32u *)TempLine;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
-        lbase = &base[ (vidstart & (8 * 1024 -1)) ];
+        lbase = &base[ vidstart & (8 * 1024 -1) ];
         Bitu val0 = lbase[ 0 ];
         Bitu val1 = lbase[ 16384 ];
         Bitu val2 = lbase[ 32768 ];
@@ -281,7 +281,7 @@ static Bit8u * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
     const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u *draw = (Bit32u *)TempLine;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
-        Bitu val = base[(vidstart & (8 * 1024 -1))];
+        Bitu val = base[vidstart & (8 * 1024 -1)];
         *draw++=CGA_2_Table[val >> 4];
         *draw++=CGA_2_Table[val & 0xf];
     }
@@ -293,7 +293,7 @@ static Bit8u * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
     Bit32u *draw = (Bit32u *)TempLine;
     Bitu carry = 0;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
-        Bitu val1 = base[(vidstart & (8 * 1024 -1))];
+        Bitu val1 = base[vidstart & (8 * 1024 -1)];
         Bitu val2 = (val1 >> 1) + carry;
         carry = (val1 & 1) << 7;
         *draw++=CGA_2_Table[val1 >> 4] + CGA_2_Table[val2 >> 4];

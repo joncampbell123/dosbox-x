@@ -255,7 +255,7 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
         if (val&0x20) {     // EOI commands
             if (GCC_UNLIKELY(val&0x80)) LOG_MSG("rotate mode not supported");
             if (val&0x40) {     // specific EOI
-                pic->isr &= ~(1<< ((val-0x60)));
+                pic->isr &= ~(1<< (val-0x60));
                 pic->isrr = (~pic->isr) | pic->isr_ignore;
                 pic->check_after_EOI();
 //              if (val&0x80);  // perform rotation

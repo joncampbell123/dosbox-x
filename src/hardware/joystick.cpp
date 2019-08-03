@@ -144,9 +144,9 @@ static void write_p201_timed(Bitu port,Bitu val,Bitu iolen) {
 	double currentTick = PIC_FullIndex();
 	if (stick[0].enabled) {
 		stick[0].xtick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *
-	                         (double)(((stick[0].xpos+1.0)* OHMS)) );
+	                         (double)((stick[0].xpos+1.0)* OHMS) );
 		stick[0].ytick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *
-		                 (double)(((stick[0].ypos+1.0)* OHMS)) );
+		                 (double)((stick[0].ypos+1.0)* OHMS) );
 	}
 	if (stick[1].enabled) {
 		stick[1].xtick = currentTick + 1000.0*( JOY_S_CONSTANT + S_PER_OHM *

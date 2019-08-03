@@ -540,7 +540,7 @@ static Bitu IRQ1_Handler(void) {
         }
         add_key(asciiscan);
         break;
-    };
+    }
 irq1_end:
     if(scancode !=0xe0) flags3 &=~0x02;                                 //Reset 0xE0 Flag
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
@@ -1472,7 +1472,7 @@ Bitu INT16_Handler(void) {
         LOG(LOG_BIOS,LOG_ERROR)("INT16:Unhandled call %02X",reg_ah);
         break;
 
-    };
+    }
 
     return CBRET_NONE;
 }

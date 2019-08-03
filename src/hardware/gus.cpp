@@ -268,7 +268,7 @@ public:
 	}
 	void WritePanPot(Bit8u val) {
 		PanPot = val;
-		PanLeft = pantable[(val & 0xf)];
+		PanLeft = pantable[val & 0xf];
 		PanRight = pantable[0x0f-(val & 0xf)];
 		UpdateVolumes();
 	}
@@ -367,7 +367,7 @@ public:
 				}
 			}
 		}
-		else if ((WaveCtrl & 0x20)/*IRQ enabled*/) {
+		else if (WaveCtrl & 0x20/*IRQ enabled*/) {
 			/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs
 			 * if IRQ enabled and current position <= start position OR current position >= end position */
 			if (WaveCtrl & 0x40/*backwards (direction)*/)
@@ -709,7 +709,7 @@ static Bit16u ExecuteReadRegister(void) {
 		else return 0x0300;
 	case 0x81:  // Channel frequency control register
 		if(curchan) return (Bit16u)(curchan->WaveFreq);
-		else return 0x0000;;
+		else return 0x0000;
 	case 0x82: // Channel MSB start address register
 		if (curchan) return (Bit16u)(curchan->WaveStart >> (WAVE_BITS+16));
 		else return 0x0000;
@@ -1038,7 +1038,7 @@ public:
 			case 3:	return "GF1 out";
 			case 4:	return "Pair 5, unused";
 			case 5:	return "Master output";
-		};
+		}
 
 		return "?";
 	}
@@ -1050,7 +1050,7 @@ public:
 			case 3:	return "Attenuator Right";	// 011
 			case 4: case 5:				// 10x
 				return "Pan/Balance";
-		};
+		}
 
 		return "?";
 	}

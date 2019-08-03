@@ -59,7 +59,7 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
             return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
         default:
             break;
-    };
+    }
 
     return ~0ul;
 }
@@ -124,6 +124,6 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
         default:
             LOG_MSG("A1 port %lx val %lx unexpected",(unsigned long)port,(unsigned long)val);
             break;
-    };
+    }
 }
 

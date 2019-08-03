@@ -253,7 +253,7 @@ Bits CPU_Core8086_Prefetch_Run(void) {
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
 			return (Bits)debugCallback;
-		};
+		}
 #endif
 		cycle_count++;
 #endif

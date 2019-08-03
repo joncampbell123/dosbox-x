@@ -278,7 +278,7 @@ public:
             WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
             for (int i=0; i<num; i++) {
                 WriteOut("%2d. %s\n",i,SDL_CDName(i));
-            };
+            }
 #endif
             return;
         }
@@ -511,7 +511,7 @@ public:
                     case 4  :   WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
                     case 5  :   WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
                     default :   WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));          break;
-                };
+                }
                 if (error && error!=5) {
                     delete newdrive;
                     return;
@@ -694,7 +694,7 @@ void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
         default:
             LOG_MSG("PC-98 43Dh BIOS bank switching write: 0x%02x unknown value",(unsigned int)val);
             break;
-    };
+    }
 }
 
 /*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
@@ -1192,7 +1192,7 @@ public:
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
                 WriteOut("Error reading drive");
                 return;
-            };
+            }
         }
 
         Bitu pcjr_hdr_length = 0;

@@ -482,13 +482,13 @@ Bitu XMS_Handler(void) {
 		Bit16u handle = 0;
 		SET_RESULT(XMS_AllocateMemory(reg_edx,handle));
 		reg_dx = handle;
-		}; break;
+		} break;
 	case XMS_ALLOCATE_EXTENDED_MEMORY:							/* 09 */
 		{
 		Bit16u handle = 0;
 		SET_RESULT(XMS_AllocateMemory(reg_dx,handle));
 		reg_dx = handle;
-		}; break;
+		} break;
 	case XMS_FREE_EXTENDED_MEMORY:								/* 0a */
 		SET_RESULT(XMS_FreeMemory(reg_dx));
 		break;
@@ -503,8 +503,8 @@ Bitu XMS_Handler(void) {
 		if (res==0) { // success
 			reg_bx=(Bit16u)(address & 0xFFFF);
 			reg_dx=(Bit16u)(address >> 16);
-		};
-		}; break;
+		}
+		} break;
 	case XMS_UNLOCK_EXTENDED_MEMORY_BLOCK:						/* 0d */
 		SET_RESULT(XMS_UnlockMemory(reg_dx));
 		break;

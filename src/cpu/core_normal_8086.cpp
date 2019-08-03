@@ -219,7 +219,7 @@ Bits CPU_Core8086_Normal_Run(void) {
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
 			return (Bits)debugCallback;
-		};
+		}
 #endif
 #endif
 		cycle_count++;

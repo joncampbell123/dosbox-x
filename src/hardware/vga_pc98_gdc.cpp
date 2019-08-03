@@ -367,7 +367,7 @@ void PC98_GDC_state::idle_proc(void) {
             default:
                 LOG_MSG("GDC: %s: Unknown command 0x%x",master_sync?"master":"slave",current_command);
                 break;
-        };
+        }
     }
     else {
         /* parameter parsing */
@@ -404,7 +404,7 @@ void PC98_GDC_state::idle_proc(void) {
                 param_ram[param_ram_wptr] = (uint8_t)val;
                 if ((++param_ram_wptr) >= 16) param_ram_wptr = 0;
                 break;
-        };
+        }
     }
 
     if (!fifo_empty())
@@ -804,7 +804,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             unknown:
             LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
             break;
-    };
+    }
 }
 
 Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
@@ -890,7 +890,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             unknown:
             LOG_MSG("GDC unexpected read from port 0x%x",(unsigned int)port);
             break;
-    };
+    }
 
     return ~0ul;
 }

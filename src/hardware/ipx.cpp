@@ -68,7 +68,7 @@ static Bit16u socketCount;
 static Bit16u opensockets[SOCKTABLESIZE]; 
 
 static Bit16u swapByte(Bit16u sockNum) {
-	return (((sockNum>> 8)) | (sockNum << 8));
+	return ((sockNum>> 8) | (sockNum << 8));
 }
 
 void UnpackIP(PackedIP ipPack, IPaddress * ipAddr) {

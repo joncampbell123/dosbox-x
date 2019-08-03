@@ -848,7 +848,7 @@ void INT10_WriteString(Bit8u row,Bit8u col,Bit8u flag,Bit8u attr,PhysPt string,B
         if (flag&2) {
             attr=mem_readb(string);
             string++;
-        };
+        }
         INT10_TeletypeOutputAttr(chr,attr,true,page);
         count--;
     }

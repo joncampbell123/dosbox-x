@@ -455,17 +455,17 @@ void ClipCursorArea(Bit16s& x1, Bit16s& x2, Bit16s& y1, Bit16s& y2,
     // Clip down
     if (y2>mouse.clipy) {
         y2 = mouse.clipy;       
-    };
+    }
     // Clip left
     if (x1<0) {
         addx1 += (-x1);
         x1 = 0;
-    };
+    }
     // Clip right
     if (x2>mouse.clipx) {
         addx2 = x2 - mouse.clipx;
         x2 = mouse.clipx;
-    };
+    }
 }
 
 void RestoreCursorBackground() {
@@ -489,11 +489,11 @@ void RestoreCursorBackground() {
             dataPos += addx1;
             for (x=x1; x<=x2; x++) {
                 INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,mouse.backData[dataPos++]);
-            };
+            }
             dataPos += addx2;
-        };
+        }
         mouse.background = false;
-    };
+    }
     RestoreVgaRegisters();
 }
 
@@ -552,9 +552,9 @@ void DrawCursor() {
         dataPos += addx1;
         for (x=x1; x<=x2; x++) {
             INT10_GetPixel((Bit16u)x,(Bit16u)y,mouse.page,&mouse.backData[dataPos++]);
-        };
+        }
         dataPos += addx2;
-    };
+    }
     mouse.background= true;
     mouse.backposx  = POS_X / xratio - mouse.hotx;
     mouse.backposy  = POS_Y - mouse.hoty;
@@ -564,7 +564,7 @@ void DrawCursor() {
     for (y=y1; y<=y2; y++) {
         Bit16u scMask = mouse.screenMask[addy+y-y1];
         Bit16u cuMask = mouse.cursorMask[addy+y-y1];
-        if (addx1>0) { scMask<<=addx1; cuMask<<=addx1; dataPos += addx1; };
+        if (addx1>0) { scMask<<=addx1; cuMask<<=addx1; dataPos += addx1; }
         for (x=x1; x<=x2; x++) {
             Bit8u pixel = 0;
             // ScreenMask
@@ -576,9 +576,9 @@ void DrawCursor() {
             // Set Pixel
             INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,pixel);
             dataPos++;
-        };
+        }
         dataPos += addx2;
-    };
+    }
     RestoreVgaRegisters();
 }
 

@@ -92,7 +92,7 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 				queue_filled=false;
 			else
 				out_idx--;
-		};
+		}
 
 		if (queue_filling==false && DI==1) // start bit
 		{                                
@@ -100,7 +100,7 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 			queue_filling=true;
 			queue_filled=false;
 			queue_idx=0;
-		};
+		}
 
 		if (queue_filling)
 		{
@@ -126,8 +126,8 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 			}
 			else
 				queue_idx++;
-		};
-	};
+		}
+	}
 
 	last_SK=SK;
 }

@@ -825,7 +825,7 @@ bool localDrive::TestDir(const char * dir) {
 		ht_stat_t test;
 		if (ht_stat(host_name,&test))		return false;
 		if ((test.st_mode & S_IFDIR)==0)	return false;
-	};
+	}
 	int temp=ht_access(host_name,F_OK);
 	return (temp==0);
 }
@@ -1131,7 +1131,7 @@ bool localFile::Seek(Bit32u * pos,Bit32u type) {
 		// Out of file range, pretend everythings ok 
 		// and move file pointer top end of file... ?! (Black Thorne)
 		fseek(fhandle,0,SEEK_END);
-	};
+	}
 #if 0
 	fpos_t temppos;
 	fgetpos(fhandle,&temppos);

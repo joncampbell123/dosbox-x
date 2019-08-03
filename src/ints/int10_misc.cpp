@@ -171,7 +171,7 @@ void INT10_GetFuncStateInformation(PhysPt save) {
 		mem_writeb(save+0x2a,2);break;
 	case 480:
 		mem_writeb(save+0x2a,3);break;
-	};
+	}
 	/* misc flags */
 	if (CurMode->type==M_TEXT) mem_writeb(save+0x2d,0x21);
 	else mem_writeb(save+0x2d,0x01);

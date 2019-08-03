@@ -418,7 +418,7 @@ Bits Operator::TemplateVolume(  ) {
 		}
 		//In sustain phase, but not sustaining, do regular release
 	case RELEASE: 
-		vol += RateForward( releaseAdd );;
+		vol += RateForward( releaseAdd );
 		if ( GCC_UNLIKELY(vol >= ENV_MAX) ) {
 			volume = ENV_MAX;
 			SetState( OFF );
@@ -792,7 +792,7 @@ template< bool opl3Mode>
 	Channel* chan = this;
 
 	//BassDrum
-	Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) >> feedback);
+	Bit32s mod = (Bit32s)((Bit32u)(old[0] + old[1]) >> feedback);
 	old[0] = old[1];
 	old[1] = (Bit32s)Op(0)->GetSample( mod );
 

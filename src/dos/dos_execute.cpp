@@ -451,7 +451,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		// Create psp after closing exe, to avoid dead file handle of exe in copied psp
 		SetupPSP(pspseg,memsize,envseg);
 		SetupCMDLine(pspseg,block);
-	};
+	}
 	CALLBACK_SCF(false);		/* Carry flag cleared for caller if successfull */
 	if (flags==OVERLAY) return true;			/* Everything done for overlays */
 	RealPt csip,sssp;

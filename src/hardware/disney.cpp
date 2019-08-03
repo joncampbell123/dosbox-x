@@ -335,7 +335,7 @@ static void DISNEY_CallBack(Bitu len) {
 			if(real_used) {
 				gapfiller0 = disney.da[0].buffer[real_used-1];
 				gapfiller1 = disney.da[1].buffer[real_used-1];
-			};
+			}
 
 			memset(disney.da[0].buffer+real_used,
 				gapfiller0,len-real_used);

@@ -437,7 +437,7 @@ void dosbox_integration_trigger_read() {
             dosbox_int_register = 0xAA55AA55;
             dosbox_int_error = true;
             break;
-    };
+    }
 
     LOG(LOG_MISC,LOG_DEBUG)("DOSBox integration read 0x%08lx got 0x%08lx (err=%u)\n",
         (unsigned long)dosbox_int_regsel,
@@ -722,7 +722,7 @@ void dosbox_integration_trigger_write() {
             dosbox_int_register = 0x55AA55AA;
             dosbox_int_error = true;
             break;
-    };
+    }
 }
 
 /* PORT 0x28: Index
@@ -1031,9 +1031,9 @@ void ISAPnPDevice::write_begin_LARGETAG(const ISAPnPDevice::LargeTags stag,unsig
 
 void ISAPnPDevice::write_Device_ID(const char c1,const char c2,const char c3,const char c4,const char c5,const char c6,const char c7) {
     write_byte((((unsigned char)c1 & 0x1FU) << 2) + (((unsigned char)c2 & 0x18U) >> 3));
-    write_byte((((unsigned char)c2 & 0x07U) << 5) + (((unsigned char)c3 & 0x1FU)     ));
-    write_byte((((unsigned char)c4 & 0x0FU) << 4) + (((unsigned char)c5 & 0x0FU)     ));
-    write_byte((((unsigned char)c6 & 0x0FU) << 4) + (((unsigned char)c7 & 0x0FU)     ));
+    write_byte((((unsigned char)c2 & 0x07U) << 5) + ((unsigned char)c3 & 0x1FU));
+    write_byte((((unsigned char)c4 & 0x0FU) << 4) + ((unsigned char)c5 & 0x0FU));
+    write_byte((((unsigned char)c6 & 0x0FU) << 4) + ((unsigned char)c7 & 0x0FU));
 }
 
 void ISAPnPDevice::write_Logical_Device_ID(const char c1,const char c2,const char c3,const char c4,const char c5,const char c6,const char c7) {
@@ -2038,7 +2038,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
             //LOG_MSG("Unsupported ISA PnP function 0x%04x\n",func);
             reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
             break;
-    };
+    }
 
     return 0;
 badBiosSelector:
@@ -3793,7 +3793,7 @@ static Bitu INT18_PC98_Handler(void) {
                 SegValue(ds),
                 SegValue(es));
             break;
-    };
+    }
 
     /* FIXME: What do actual BIOSes do when faced with an unknown INT 18h call? */
     return CBRET_NONE;
@@ -4001,7 +4001,7 @@ void PC98_BIOS_SCSI_CALL(void) {
                     SegValue(es));
             CALLBACK_SCF(true);
             break;
-    };
+    }
 }
 
 void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
@@ -4495,7 +4495,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     SegValue(es));
             CALLBACK_SCF(true);
             break;
-    };
+    }
 }
 
 static Bitu INT19_PC98_Handler(void) {
@@ -4571,7 +4571,7 @@ static Bitu INT1B_PC98_Handler(void) {
                     SegValue(es));
             CALLBACK_SCF(true);
             break;
-    };
+    }
 
     return CBRET_NONE;
 }
@@ -4732,7 +4732,7 @@ static Bitu INT1F_PC98_Handler(void) {
                     SegValue(es));
             CALLBACK_SCF(true);
             break;
-    };
+    }
 
     return CBRET_NONE;
 }
@@ -5149,7 +5149,7 @@ static Bitu INTDC_PC98_Handler(void) {
             goto unknown;
         default: /* some compilers don't like not having a default case */
             goto unknown;
-    };
+    }
 
 done:
     return CBRET_NONE;
@@ -5392,7 +5392,7 @@ static Bitu INT17_Handler(void) {
             reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
         //LOG_MSG("printer status: %x",reg_ah);
         break;
-    };
+    }
     return CBRET_NONE;
 }
 
@@ -6368,7 +6368,7 @@ static Bitu INT15_Handler(void) {
                                 case 1: base=0x0C0000; len=0x040000; type=2; break;
                                 case 2: base=0x100000; len=(MEM_TotalPages()*4096)-0x100000; type=1; break;
                                 default: E_Exit("Despite checks EBX is wrong value"); /* BUG! */
-                            };
+                            }
 
                             /* write to ES:DI */
                             real_writed(seg,reg_di+0x00,base);
@@ -8196,7 +8196,7 @@ private:
                 default:
                     abort(); // should not happen
                     break;
-            };
+            }
 
             sprintf(tmp,"Video card is %s\n",card);
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
@@ -8231,7 +8231,7 @@ private:
                 case CPU_ARCHTYPE_P55CSLOW:
                     cpu = "Pentium MMX";
                     break;
-            };
+            }
 
             extern bool enable_fpu;
 

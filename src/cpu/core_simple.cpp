@@ -187,7 +187,7 @@ Bits CPU_Core_Simple_Run(void) {
         if (DEBUG_HeavyIsBreakpoint()) {
             FillFlags();
             return (Bits)debugCallback;
-        };
+        }
 #endif
 #endif
         cycle_count++;

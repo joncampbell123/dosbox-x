@@ -59,7 +59,7 @@ bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) {
 	        cd = SDL_CDOpen(driveID);
 	        SDL_CDStatus(cd);
 	   	return true;
-	};	
+	}
 	
 	const char* cdname = 0;
 	for (int i=0; i<num; i++) {
@@ -69,8 +69,8 @@ bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) {
 			SDL_CDStatus(cd);
 			driveID = i;
 			return true;
-		};
-	};
+		}
+	}
 #endif
 
 	return false; 
@@ -242,7 +242,7 @@ int CDROM_GetMountType(char* path, int forceCD) {
 	for (int i=0; i<num; i++) {
 		cdName = SDL_CDName(i);
 		if (strcmp(buffer,cdName)==0) return 0;
-	};
+	}
 #endif
 	
 	// Detect ISO

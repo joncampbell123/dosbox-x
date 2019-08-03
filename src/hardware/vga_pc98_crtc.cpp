@@ -127,7 +127,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
         default:
             LOG_MSG("PC98 CRTC w: port=0x%02X val=0x%02X unknown",(unsigned int)port,(unsigned int)val);
             break;
-    };
+    }
 }
 
 Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
@@ -238,7 +238,7 @@ void pc98_port6A_command_write(unsigned char b) {
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
             break;
-    };
+    }
 }
 
 /* Port 0x68 command handling */
@@ -263,7 +263,7 @@ void pc98_port68_command_write(unsigned char b) {
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
-    };
+    }
 }
 
 unsigned char sel_9a0 = 0;
@@ -292,7 +292,7 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
         default:
             retval |= 0xFF;//FIXME: Is this true?
             break;
-    };
+    }
 
     /* bit 1: graphic GDC clock frequency as set in hardware at this moment */
     if (gdc_5mhz_mode)
