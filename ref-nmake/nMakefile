@@ -320,6 +320,10 @@ OBJS_MT32 =	$(DBX_PATH)\src\mt32\AReverbModel.obj \
 			$(DBX_PATH)\src\mt32\freeverb\revmodel.obj \
 			$(DBX_PATH)\src\mt32\sha1\sha1.obj 
 
+OBJS_D3D =	$(DBX_PATH)\src\output\direct3d\direct3d.obj \
+			$(DBX_PATH)\src\output\direct3d\hq2x_d3d.obj \
+			$(DBX_PATH)\src\output\direct3d\ScalingEffect.obj
+
 OBJS4 = $(OBJS4) $(OBJS_MT32)
 CXXFLAGS = $(CXXFLAGS) -I$(DBX_PATH)/src/mt32
 
@@ -333,6 +337,7 @@ LFLAGS = $(LFLAGS) -LTCG
 
 !IFDEF D3D9
 CXXFLAGS = -DHAVE_D3D9_H=1 $(CXXFLAGS)
+OBJS4 = $(OBJS4) $(OBJS_D3D)
 !ENDIF
 
 .SUFFIXES: .c.o
