@@ -36,7 +36,7 @@
 #endif
 
 /* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined (__MINGW32__)
 # ifdef NDEBUG
 #  undef assert
 #  define assert(x) x

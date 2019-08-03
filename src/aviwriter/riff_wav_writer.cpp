@@ -36,6 +36,14 @@
 # define O_BINARY 0
 #endif
 
+/* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */
+#if defined(_MSC_VER) || defined (__MINGW32__)
+# ifdef NDEBUG
+#  undef assert
+#  define assert(x) x
+# endif
+#endif
+
 #include "riff_wav_writer.h"
 #include "rawint.h"
 
