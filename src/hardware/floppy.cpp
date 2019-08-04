@@ -292,6 +292,9 @@ bool FloppyController::dma_enabled() {
 }
 
 bool FloppyController::irq_enabled() {
+    /* IRQ seems to be enabled, always, on PC-98. There does not seem to be an enable bit. */
+    if (IS_PC98_ARCH) return true;
+
 	return (digital_output_register & 0x08); /* bit 3 of DOR controls DMA/IRQ enable */
 }
 
