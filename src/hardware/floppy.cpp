@@ -97,6 +97,7 @@ public:
     void register_isapnp();
 	bool dma_enabled();
 	bool irq_enabled();
+    bool drive_motor_on(unsigned char index);
 	int drive_selected();
 	void reset_cmd();
 	void reset_res();
@@ -277,6 +278,11 @@ void FloppyDevice::motor_step(int dir) {
 //	if (current_track < 0) current_track = 0;
 	if (current_track > 84) current_track = 84;
 	track0 = (current_track == 0);
+}
+
+bool FloppyController::drive_motor_on(unsigned char index) {
+    if (index < 4) return !!((digital_output_register >> (4u + index)) & 1);
+    return false;
 }
 
 int FloppyController::drive_selected() {
