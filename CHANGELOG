@@ -1,5 +1,9 @@
 0.82.21 (next)
-  - 
+  - Floppy controller emulation fixed to support sector
+    sizes other than 512 bytes per sector.
+  - Floppy controller fixed to always set "seek completed"
+    status bit after seek/calibrate, not just when the
+    head hits track 0 (programming mistake).
 0.82.20
   - Dynamic core IMUL instruction mistake fixed,
     signed multiply works properly again.
