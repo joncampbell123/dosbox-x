@@ -685,6 +685,9 @@ void FloppyController::on_fdc_in_command() {
 				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
 
+                const unsigned int sector_size_bytes = (1u << (in_cmd[5]+7u));
+                assert(sector_size_bytes <= FLOPPY_MAX_SECTOR_SIZE);
+
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
 				reset_res();
 				ST[0] = 0x00 | devidx;
@@ -698,10 +701,10 @@ void FloppyController::on_fdc_in_command() {
 
 					/* DMA transfer */
 					dma->Register_Callback(0);
-					if (dma->Read(512,sector) != 512) break;
+					if (dma->Read(sector_size_bytes,sector) != sector_size_bytes) break;
 
 					/* write sector */
-					Bit8u err = image->Write_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector);
+					Bit8u err = image->Write_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector,sector_size_bytes);
 					if (err != 0x00) {
 						fail = true;
 						break;
@@ -774,6 +777,9 @@ void FloppyController::on_fdc_in_command() {
 				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
 
+                const unsigned int sector_size_bytes = (1u << (in_cmd[5]+7u));
+                assert(sector_size_bytes <= FLOPPY_MAX_SECTOR_SIZE);
+
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
 				reset_res();
 				ST[0] = 0x00 | devidx;
@@ -786,7 +792,7 @@ void FloppyController::on_fdc_in_command() {
 					}
 
 					/* read sector */
-					Bit8u err = image->Read_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector);
+					Bit8u err = image->Read_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector,sector_size_bytes);
 					if (err != 0x00) {
 						fail = true;
 						break;
@@ -794,7 +800,7 @@ void FloppyController::on_fdc_in_command() {
 
 					/* DMA transfer */
 					dma->Register_Callback(0);
-					if (dma->Write(512,sector) != 512) break;
+					if (dma->Write(sector_size_bytes,sector) != sector_size_bytes) break;
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
