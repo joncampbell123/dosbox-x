@@ -1411,6 +1411,8 @@ public:
             LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
             RunningProgram = "Guest OS";
  
+            /* NTS: IBM PC and PC-98 both use DMA channel 2 for the floppy, though according to
+             *      Neko Project II source code, DMA 3 is used for the double density drives (but we don't emulate that yet) */
             /* create appearance of floppy drive DMA usage (Demon's Forge) */
             if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
 
