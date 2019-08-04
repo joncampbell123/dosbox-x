@@ -181,27 +181,26 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 #endif
 
 	if (dev != NULL && dev->track0 && fdc->motor_dir < 0) {
-		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
 		fdc->motor_steps = 0;
 		fdc->current_cylinder[devidx] = 0;
 	}
 
-	if (fdc->motor_steps > 0) {
-		fdc->motor_steps--;
-		fdc->current_cylinder[devidx] += fdc->motor_dir;
-		if (fdc->current_cylinder[devidx] <= 0) {
-			fdc->current_cylinder[devidx] = 0;
-			fdc->motor_steps = 0;
-		}
-/* NTS: fdc->current_cylinder[] is unsigned char, will never exceed 255 */
-/*		else if (fdc->current_cylinder[devidx] > 255) {
-			fdc->current_cylinder[devidx] = 255;
-			fdc->motor_steps = 0;
-		} */
+    if (fdc->motor_steps > 0) {
+        fdc->motor_steps--;
+        fdc->current_cylinder[devidx] += fdc->motor_dir;
+        if (fdc->current_cylinder[devidx] <= 0) {
+            fdc->current_cylinder[devidx] = 0;
+            fdc->motor_steps = 0;
+        }
 
-		if (dev != NULL)
-			dev->motor_step(fdc->motor_dir);
-	}
+        if (dev != NULL) {
+            dev->motor_step(fdc->motor_dir);
+            if (dev->track0) {
+                fdc->motor_steps = 0;
+                fdc->current_cylinder[devidx] = 0;
+            }
+        }
+    }
 
 	fdc->update_ST3();
 	if (fdc->motor_steps != 0) {
