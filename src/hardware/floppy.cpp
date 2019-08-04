@@ -140,6 +140,11 @@ bool FDC_AssignINT13Disk(unsigned char drv) {
 	dev->int13_disk = drv;
 	dev->set_select(fdc->drive_selected() == drv);
 
+    if (IS_PC98_ARCH) {
+        // HACK: Enable motor by default, until motor enable port 0xBE is implemented
+        dev->set_motor(true);
+    }
+
 	LOG_MSG("FDC: Primary controller, drive %u assigned to INT 13h drive %u",drv,drv);
 	return true;
 }
