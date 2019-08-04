@@ -9,6 +9,10 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+// largest sector size supported here. Size code represents size as 2 << (7 + code) i.e. code == 2 is 2 << 9 = 512 bytes
+#define FLOPPY_MAX_SECTOR_SIZE              (2048u)
+#define FLOPPY_MAX_SECTOR_SIZE_SZCODE       (11u/*2^11=2048*/ - 7u)
+
 #include <math.h>
 #include <assert.h>
 #include "dosbox.h"
@@ -671,8 +675,8 @@ void FloppyController::on_fdc_in_command() {
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
 				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
-				in_cmd[5] == 2U/*512 bytes/sector*/ && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
-				unsigned char sector[512];
+				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
+				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
 
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
@@ -755,8 +759,8 @@ void FloppyController::on_fdc_in_command() {
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
 				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
-				in_cmd[5] == 2U/*512 bytes/sector*/ && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
-				unsigned char sector[512];
+				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
+				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
 
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
