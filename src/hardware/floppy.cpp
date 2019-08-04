@@ -690,6 +690,18 @@ void FloppyController::on_fdc_in_command() {
 				reset_res();
 				ST[0] = 0x00 | devidx;
 
+                out_res[3] = in_cmd[2];
+                out_res[4] = in_cmd[3];
+                out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
+                {
+                    unsigned int sz = (unsigned int)image->sector_size;
+                    out_res[6] = 0;			    /* 128 << 2 == 512 bytes/sector */
+                    while (sz > 128u && out_res[6] < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
+                        out_res[6]++;
+                        sz >>= 1u;
+                    }
+                }
+
 				while (!fail && !dma->tcount/*terminal count*/) {
 					/* if we're reading past the track, fail */
 					if (in_cmd[4] > image->sectors) {
@@ -728,10 +740,6 @@ void FloppyController::on_fdc_in_command() {
 					out_res[0] = ST[0];
 					out_res[1] = ST[1];
 					out_res[2] = ST[2];
-					out_res[3] = in_cmd[2];
-					out_res[4] = in_cmd[3];
-					out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
-					out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
 				}
 			}
 			else {
@@ -745,10 +753,6 @@ void FloppyController::on_fdc_in_command() {
                 out_res[0] = ST[0];
                 out_res[1] = ST[1];
                 out_res[2] = ST[2];
-                out_res[3] = in_cmd[2];
-                out_res[4] = in_cmd[3];
-                out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
-                out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
             }
 			raise_irq();
 			break;
@@ -781,6 +785,18 @@ void FloppyController::on_fdc_in_command() {
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
 				reset_res();
 				ST[0] = 0x00 | devidx;
+
+                out_res[3] = in_cmd[2];
+                out_res[4] = in_cmd[3];
+                out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
+                {
+                    unsigned int sz = (unsigned int)image->sector_size;
+                    out_res[6] = 0;			    /* 128 << 2 == 512 bytes/sector */
+                    while (sz > 128u && out_res[6] < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
+                        out_res[6]++;
+                        sz >>= 1u;
+                    }
+                }
 
 				while (!fail && !dma->tcount/*terminal count*/) {
 					/* if we're reading past the track, fail */
@@ -820,10 +836,6 @@ void FloppyController::on_fdc_in_command() {
 					out_res[0] = ST[0];
 					out_res[1] = ST[1];
 					out_res[2] = ST[2];
-					out_res[3] = in_cmd[2];
-					out_res[4] = in_cmd[3];
-					out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
-					out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
 				}
 			}
 			else {
@@ -837,10 +849,6 @@ void FloppyController::on_fdc_in_command() {
                 out_res[0] = ST[0];
                 out_res[1] = ST[1];
                 out_res[2] = ST[2];
-                out_res[3] = in_cmd[2];
-                out_res[4] = in_cmd[3];
-                out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
-                out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
             }
 			raise_irq();
 			break;
