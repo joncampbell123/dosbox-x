@@ -484,9 +484,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 
 	if (base_io == 0) {
 		if (index == 0) base_io = 0x3F0;
-	}
-	else if (base_io == 1) {
-		if (index == 0) base_io = 0x370;
+		if (index == 1) base_io = 0x370;
 	}
 }
 
