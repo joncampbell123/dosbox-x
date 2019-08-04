@@ -931,7 +931,14 @@ void FloppyController::on_fdc_in_command() {
 				out_res[3] = current_cylinder[devidx];
 				out_res[4] = (in_cmd[1]&4?1:0);
 				out_res[5] = ns + 1;		/* the sector passing under the head at this time */
-				out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
+                {
+                    unsigned int sz = (unsigned int)image->sector_size;
+                    out_res[6] = 0;			    /* 128 << 2 == 512 bytes/sector */
+                    while (sz > 128u && out_res[6] < FLOPPY_MAX_SECTOR_SIZE_SZCODE) {
+                        out_res[6]++;
+                        sz >>= 1u;
+                    }
+                }
 				prepare_res_phase(7);
 			}
 			else {
