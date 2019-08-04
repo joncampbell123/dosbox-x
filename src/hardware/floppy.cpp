@@ -778,7 +778,7 @@ void FloppyController::on_fdc_in_command() {
 			else {
 				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
 				reset_res();
-				ST[0] = (ST[0] & 0x3F) | 0x80;
+				ST[0] = (ST[0] & 0x1F) | 0x80;
 				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 				ST[2] = (1 << 0)/*missing data address mark*/;
 
@@ -874,7 +874,7 @@ void FloppyController::on_fdc_in_command() {
 			else {
 				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
 				reset_res();
-				ST[0] = (ST[0] & 0x3F) | 0x80;
+				ST[0] = (ST[0] & 0x1F) | 0x80;
 				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 				ST[2] = (1 << 0)/*missing data address mark*/;
 
@@ -953,6 +953,7 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+            ST[0] &= ~0x20;
 			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads) {
 				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
@@ -1000,7 +1001,7 @@ void FloppyController::on_fdc_in_command() {
 			 */
 			/* the raw images used by DOSBox cannot represent "deleted sectors", so always fail */
 			reset_res();
-			ST[0] = (ST[0] & 0x3F) | 0x80;
+			ST[0] = (ST[0] & 0x1F) | 0x80;
 			ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 			ST[2] = (1 << 0)/*missing data address mark*/;
 			prepare_res_phase(1);
