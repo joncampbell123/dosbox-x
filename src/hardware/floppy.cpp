@@ -160,6 +160,8 @@ bool FDC_UnassignINT13Disk(unsigned char drv) {
 	return true;
 }
 
+static void fdc_baseio98_w(Bitu port,Bitu val,Bitu iolen);
+static Bitu fdc_baseio98_r(Bitu port,Bitu iolen);
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
@@ -508,12 +510,22 @@ void FloppyController::install_io_port(){
 
 	if (base_io != 0) {
 		LOG_MSG("FDC installing to io=%03xh IRQ=%d DMA=%d\n",base_io,IRQ,DMA);
-		for (i=0;i < 8;i++) {
-			if (i != 6) { /* does not use port 0x3F6 */
-				WriteHandler[i].Install(base_io+i,fdc_baseio_w,IO_MA);
-				ReadHandler[i].Install(base_io+i,fdc_baseio_r,IO_MA);
-			}
-		}
+        if (IS_PC98_ARCH) {
+            WriteHandler[0].Install(base_io+0,fdc_baseio98_w,IO_MA);    // 0x90 / 0xC8
+            ReadHandler[0].Install(base_io+0,fdc_baseio98_r,IO_MA);     // 0x90 / 0xC8
+            WriteHandler[1].Install(base_io+2,fdc_baseio98_w,IO_MA);    // 0x92 / 0xCA
+            ReadHandler[1].Install(base_io+2,fdc_baseio98_r,IO_MA);     // 0x92 / 0xCA
+            WriteHandler[2].Install(base_io+4,fdc_baseio98_w,IO_MA);    // 0x94 / 0xCC
+            ReadHandler[2].Install(base_io+4,fdc_baseio98_r,IO_MA);     // 0x94 / 0xCC
+        }
+        else {
+            for (i=0;i < 8;i++) {
+                if (i != 6) { /* does not use port 0x3F6 */
+                    WriteHandler[i].Install(base_io+i,fdc_baseio_w,IO_MA);
+                    ReadHandler[i].Install(base_io+i,fdc_baseio_r,IO_MA);
+                }
+            }
+        }
 	}
 }
 
@@ -1249,6 +1261,85 @@ void FloppyController::fdc_data_write(uint8_t b) {
 		LOG_MSG("FDC: Unknown state!\n");
 		on_reset();
 	}
+}
+
+static void fdc_baseio98_w(Bitu port,Bitu val,Bitu iolen) {
+	FloppyController *fdc = match_fdc_controller(port);
+	if (fdc == NULL) {
+		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
+		return;
+	}
+
+//	LOG_MSG("FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n",port,val,fdc->irq_pending);
+
+	if (iolen > 1) {
+		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",(int)port,(int)val,(int)iolen);
+	}
+
+	switch (port&7) {
+		case 2: /* data */
+			if (!fdc->data_register_ready) {
+				LOG_MSG("WARNING: FDC data write when data port not ready\n");
+			}
+			else if (fdc->data_read_expected) {
+				LOG_MSG("WARNING: FDC data write when data port ready but expecting I/O read\n");
+			}
+			else {
+				fdc->fdc_data_write(val&0xFF);
+			}
+			break;
+		default:
+			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",(int)port,(int)val,(int)iolen);
+			break;
+	}
+}
+
+static Bitu fdc_baseio98_r(Bitu port,Bitu iolen) {
+	FloppyController *fdc = match_fdc_controller(port);
+	unsigned char b;
+
+	if (fdc == NULL) {
+		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
+		return ~(0UL);
+	}
+
+//	LOG_MSG("FDC: Read port 0x%03x irq_at_time=%u\n",port,fdc->irq_pending);
+
+	if (iolen > 1) {
+		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",(int)port,(int)iolen);
+	}
+
+	switch (port&7) {
+		case 0: /* main status */
+			b =	(fdc->data_register_ready ? 0x80 : 0x00) +
+				(fdc->data_read_expected ? 0x40 : 0x00) +
+				(fdc->non_dma_mode ? 0x20 : 0x00) +
+				(fdc->busy_status ? 0x10 : 0x00) +
+				(fdc->positioning[3] ? 0x08 : 0x00) +
+				(fdc->positioning[2] ? 0x04 : 0x00) +
+				(fdc->positioning[1] ? 0x02 : 0x00) +
+				(fdc->positioning[0] ? 0x01 : 0x00);
+//			LOG_MSG("FDC: read status 0x%02x\n",b);
+			return b;
+		case 2: /* data */
+			if (!fdc->data_register_ready) {
+				LOG_MSG("WARNING: FDC data read when data port not ready\n");
+				return ~(0UL);
+			}
+			else if (!fdc->data_read_expected) {
+				LOG_MSG("WARNING: FDC data read when data port ready but expecting I/O write\n");
+				return ~(0UL);
+			}
+
+			b = fdc->fdc_data_read();
+//			LOG_MSG("FDC: read data 0x%02x\n",b);
+			return b;
+		default:
+			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
+			break;
+	}
+
+	return ~(0UL);
 }
 
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
