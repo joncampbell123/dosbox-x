@@ -326,7 +326,7 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",fdc_interface);
 
-    if (!IS_PC98_ARCH) {
+    {
         fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
         fdc->install_io_port();
 
