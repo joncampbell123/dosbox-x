@@ -477,15 +477,30 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	i = section->Get_hex("io");
 	if (i >= 0x90 && i <= 0x3FF) base_io = i & ~7;
 
-	if (IRQ < 0) IRQ = 6;
-	if (DMA < 0) DMA = 2;
+    if (IS_PC98_ARCH) {
+        /* According to Neko Project II source code, and the Undocumented PC-98 reference:
+         *
+         * The primary controller at 0x90-0x94 is for 3.5" drives, uses IRQ 11 (INT42), and DMA channel 2.
+         * The secondary controller at 0xC8-0xCC is for 5.25" drives, uses IRQ 10 (INT41), and DMA channel 3. */
+        if (IRQ < 0) IRQ = (index == 1) ? 10/*INT41*/ : 11/*INT42*/;
+        if (DMA < 0) DMA = (index == 1) ? 3 : 2;
+
+        if (base_io == 0) {
+            if (index == 0) base_io = 0x90;
+            if (index == 1) base_io = 0xC8;
+        }
+    }
+    else {
+        if (IRQ < 0) IRQ = 6;
+        if (DMA < 0) DMA = 2;
+
+        if (base_io == 0) {
+            if (index == 0) base_io = 0x3F0;
+            if (index == 1) base_io = 0x370;
+        }
+    }
 
 	dma = GetDMAChannel(DMA);
-
-	if (base_io == 0) {
-		if (index == 0) base_io = 0x3F0;
-		if (index == 1) base_io = 0x370;
-	}
 }
 
 void FloppyController::install_io_port(){
