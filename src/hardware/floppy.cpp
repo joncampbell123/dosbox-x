@@ -804,10 +804,8 @@ void FloppyController::on_fdc_in_command() {
 					ST[0] = (ST[0] & 0x3F) | 0x80;
 					ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 					ST[2] = (1 << 0)/*missing data address mark*/;
-					prepare_res_phase(1);
-					out_res[0] = ST[0];
 				}
-				else {
+				{
 					prepare_res_phase(7);
 					out_res[0] = ST[0];
 					out_res[1] = ST[1];
@@ -824,9 +822,16 @@ void FloppyController::on_fdc_in_command() {
 				ST[0] = (ST[0] & 0x3F) | 0x80;
 				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 				ST[2] = (1 << 0)/*missing data address mark*/;
-				prepare_res_phase(1);
-				out_res[0] = ST[0];
-			}
+
+                prepare_res_phase(7);
+                out_res[0] = ST[0];
+                out_res[1] = ST[1];
+                out_res[2] = ST[2];
+                out_res[3] = in_cmd[2];
+                out_res[4] = in_cmd[3];
+                out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
+                out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
+            }
 			raise_irq();
 			break;
 		case 0x07: /* Calibrate drive */
