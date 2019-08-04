@@ -715,10 +715,8 @@ void FloppyController::on_fdc_in_command() {
 					ST[0] = (ST[0] & 0x3F) | 0x80;
 					ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 					ST[2] = (1 << 0)/*missing data address mark*/;
-					prepare_res_phase(1);
-					out_res[0] = ST[0];
 				}
-				else {
+				{
 					prepare_res_phase(7);
 					out_res[0] = ST[0];
 					out_res[1] = ST[1];
