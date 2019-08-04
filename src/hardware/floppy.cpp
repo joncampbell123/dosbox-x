@@ -858,8 +858,7 @@ void FloppyController::on_fdc_in_command() {
 			}
 			else {
 				/* delay due to stepping the head to the desired cylinder */
-				motor_steps = current_cylinder[devidx]; /* always to track 0 */
-				if (motor_steps > 79) motor_steps = 79; /* calibrate is said to max out at 79 */
+				motor_steps = 79; /* calibrate is said to max out at 79. motor step routine will STOP when drive sets track0 signal */
 				motor_dir = -1; /* always step backwards */
 
 				/* the command takes time to move the head */
