@@ -187,10 +187,9 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 
     if (fdc->motor_steps > 0) {
         fdc->motor_steps--;
-        fdc->current_cylinder[devidx] += fdc->motor_dir;
-        if (fdc->current_cylinder[devidx] <= 0) {
-            fdc->current_cylinder[devidx] = 0;
-            fdc->motor_steps = 0;
+        if ((fdc->motor_dir < 0 && fdc->current_cylinder[devidx] != 0x00) ||
+            (fdc->motor_dir > 0 && fdc->current_cylinder[devidx] != 0xFF)) {
+            fdc->current_cylinder[devidx] += fdc->motor_dir;
         }
 
         if (dev != NULL) {
