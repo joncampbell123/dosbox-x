@@ -91,7 +91,8 @@ public:
 	bool out_res_state;
 public:
     void register_isapnp();
-	bool dma_irq_enabled();
+	bool dma_enabled();
+	bool irq_enabled();
 	int drive_selected();
 	void reset_cmd();
 	void reset_res();
@@ -278,7 +279,11 @@ int FloppyController::drive_selected() {
 	return (digital_output_register & 3);
 }
 
-bool FloppyController::dma_irq_enabled() {
+bool FloppyController::dma_enabled() {
+	return (digital_output_register & 0x08); /* bit 3 of DOR controls DMA/IRQ enable */
+}
+
+bool FloppyController::irq_enabled() {
 	return (digital_output_register & 0x08); /* bit 3 of DOR controls DMA/IRQ enable */
 }
 
@@ -1276,7 +1281,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 
 void FloppyController::raise_irq() {
 	irq_pending = true;
-	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
+	if (irq_enabled() && IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
 }
 
 void FloppyController::lower_irq() {
