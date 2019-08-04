@@ -645,6 +645,7 @@ public:
 
 PC98ITFPageHandler          mem_itf_rom;
 
+bool FDC_AssignINT13Disk(unsigned char drv);
 void MEM_RegisterHandler(Bitu phys_page,PageHandler * handler,Bitu page_range);
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
@@ -1410,11 +1411,22 @@ public:
             /* debug */
             LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
             RunningProgram = "Guest OS";
- 
+
+            if (drive == 'A' || drive == 'B') {
+                FDC_AssignINT13Disk(drive - 'A');
+                if (!IS_PC98_ARCH) incrementFDD();
+            }
+
             /* NTS: IBM PC and PC-98 both use DMA channel 2 for the floppy, though according to
              *      Neko Project II source code, DMA 3 is used for the double density drives (but we don't emulate that yet) */
             /* create appearance of floppy drive DMA usage (Demon's Forge) */
-            if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
+            if (IS_PC98_ARCH) {
+                GetDMAChannel(2)->tcount=true;
+                GetDMAChannel(3)->tcount=true;
+            }
+            else {
+                if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
+            }
 
             /* standard method */
             if (IS_PC98_ARCH) {
