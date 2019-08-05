@@ -1168,13 +1168,15 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         bootbuffer.headcount,
         bootbuffer.bytespersector);
 
-    /* NTS: Some HDI images of PC-98 games do in fact have headcount == 0 */
-    /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
-    if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
-        (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
-        LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
-		created_successfully = false;
-        return;
+    /* NTS: Some HDI images of PC-98 games do in fact have headcount == 0. Some like "Amaranth 5" have sectorspertrack == 0 too! */
+    if (!IS_PC98_ARCH) {
+        /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
+        if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
+            (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
+            LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
+            created_successfully = false;
+            return;
+        }
     }
 
     /* work at this point in logical sectors */
