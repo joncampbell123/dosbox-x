@@ -4396,6 +4396,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 FDC_WAIT_TIMER_HACK();
             }
 
+            fdc_cyl[drive] = 0;
+
             reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
