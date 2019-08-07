@@ -2185,6 +2185,7 @@ interrupted_char_begin:
 
                 vidmem += 2;
                 gdcvidmem += 2;
+                if (blocks > 0) blocks--;
             }
         }
     }
