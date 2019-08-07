@@ -243,6 +243,7 @@ bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
 bool pc98_graphics_hide_odd_raster_200line = false;
 bool pc98_attr4_graphic = false;
+bool pc98_40col_text = false;
 bool gdc_analog = true;
 bool pc98_31khz_mode = false;
 bool int10_vesa_map_as_128kb = false;

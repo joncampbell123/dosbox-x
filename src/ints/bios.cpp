@@ -78,6 +78,7 @@ const unsigned char pc98_epson_check_2[0x27] = {
 bool enable_pc98_copyright_string = false;
 
 /* mouse.cpp */
+extern bool pc98_40col_text;
 extern bool en_bios_ps2mouse;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
@@ -3280,11 +3281,10 @@ static Bitu INT18_PC98_Handler(void) {
             //TODO: set 25/20 lines mode and 80/40 columns mode.
             //Attribute bit (bit 2)
             pc98_attr4_graphic = !!(reg_al & 0x04);
+            pc98_40col_text = !!(reg_al & 0x02);
 
             mem_writeb(0x53C,(mem_readb(0x53C) & 0xF0u) | (reg_al & 0x0Fu));
 
-            if (reg_al & 2)
-                LOG_MSG("INT 18H AH=0Ah warning: 40-column PC-98 text mode not supported");
             if (reg_al & 8)
                 LOG_MSG("INT 18H AH=0Ah warning: K-CG dot access mode not supported");
 
