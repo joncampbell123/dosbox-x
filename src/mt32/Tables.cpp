@@ -63,12 +63,12 @@ Tables::Tables() {
 	// CONFIRMED: Based on a table found by Mok in the MT-32 control ROM
 	masterVolToAmpSubtraction[0] = 255;
 	for (int masterVol = 1; masterVol <= 100; masterVol++) {
-		masterVolToAmpSubtraction[masterVol] = (int)(106.31 - 16.0f * LOG2F((float)masterVol));
+        masterVolToAmpSubtraction[masterVol] = (Bit8u)(106.31 - 16.0 * LOG2F((float)masterVol));
 	}
 #endif
 
 	for (int i = 0; i <= 100; i++) {
-		pulseWidth100To255[i] = (int)(i * 255 / 100.0f + 0.5f);
+		pulseWidth100To255[i] = (Bit8u)(i * 255 / 100.0f + 0.5f);
 		//synth->printDebug("%d: %d", i, pulseWidth100To255[i]);
 	}
 

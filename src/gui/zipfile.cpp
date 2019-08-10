@@ -63,7 +63,7 @@ int ZIPFileEntry::read(void *buffer,size_t count) {
     if (file == NULL || file_offset == (off_t)0) return -1;
     if (position >= file_length) return 0;
 
-    size_t mread = size_t(file_length - position);
+    size_t mread = (size_t)file_length - position;
     if (mread > count) mread = count;
 
     if (mread > 0) {

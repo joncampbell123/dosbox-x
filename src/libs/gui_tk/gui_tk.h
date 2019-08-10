@@ -1290,7 +1290,7 @@ public:
 	/** Can be used to provide kerning. */
 	virtual int getWidth(const String &s, Size start = 0, Size len = (Size)-1) const {
 		int width = 0;
-		if (start+len > s.size()) len = (Size)(s.size()-start);
+		if ((size_t)start+len > s.size()) len = (Size)(s.size()-start);
 		while (len--) width += getWidth(s[start++]);
 		return width;
 	}
