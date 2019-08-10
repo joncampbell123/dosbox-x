@@ -77,7 +77,7 @@ char *ltrim(char *str) {
 char *rtrim(char *str) {
 	char *p;
 	p = strchr(str, '\0');
-	while (--p >= str && isspace(*reinterpret_cast<unsigned char*>(p))) {};
+	while (--p >= str && isspace(*reinterpret_cast<unsigned char*>(p))) {}
 	p[1] = '\0';
 	return str;
 }
@@ -115,7 +115,7 @@ bool ScanCMDBool(char * cmd,char const * const check) {
 
 /* This scans the command line for a remaining switch and reports it else returns 0*/
 char * ScanCMDRemain(char * cmd) {
-	char * scan,*found;;
+	char * scan,*found;
 	if ((scan=found=strchr(cmd,'/'))) {
 		while ( *scan && !isspace(*reinterpret_cast<unsigned char*>(scan)) ) scan++;
 		*scan=0;

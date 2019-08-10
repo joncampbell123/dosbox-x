@@ -366,12 +366,7 @@ void close_directory(dir_information* dirp) {
 #endif
 
 FILE *fopen_wrap(const char *path, const char *mode) {
-#if defined(WIN32) || defined(OS2)
-	;
-#elif defined (MACOSX)
-	;
-#else  
-#if defined (HAVE_REALPATH)
+#if !defined(WIN32) && !defined(OS2) && !defined(MACOSX) && defined(HAVE_REALPATH)
 	char work[CROSS_LEN] = {0};
 	strncpy(work,path,CROSS_LEN-1);
 	char* last = strrchr(work,'/');
@@ -413,8 +408,6 @@ FILE *fopen_wrap(const char *path, const char *mode) {
 	}
 */
 #endif //0 
-
-#endif //HAVE_REALPATH
 #endif
 
 	return fopen(path,mode);
