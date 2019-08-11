@@ -1,16 +1,5 @@
 Commit#:	Reason for skipping:
 
-3847		Conflicts with https://github.com/joncampbell123/dosbox-x/commit/ac70b5599fb2fb824be7ed627ec4e70aa8b6bc79
-3857		Conflict
-3859		Conflict. Masking/wrapping is implemented in DOSBox-X by masking the array access per pixel.
-3863		Conflict
-3865		Conflict
-3867		Conflict
-3869		Not sure if this is needed for DOSBox-X
-3870		Conflict
-3871		Conflict
-3873		Conflict
-3891		Conflict
 3922		Conflict. "Use safe_strncpy for resolution lines" part is already in DOSBox-X.
 3930		Conflict
 3931		May not have effect or be wanted

@@ -5,6 +5,9 @@
     status bit after seek/calibrate, not just when the
     head hits track 0 (programming mistake).
   - PC-98 40-column text mode is now supported.
+  - Integrated commits from mainline (Allofich)
+    - In the mapper, display disabled items or events
+    with no binding in grey. 
 0.82.20
   - Dynamic core IMUL instruction mistake fixed,
     signed multiply works properly again.
