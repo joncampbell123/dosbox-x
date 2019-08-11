@@ -90,10 +90,11 @@ class CModEvent;
 
 enum {
     CLR_BLACK = 0,
-    CLR_WHITE = 1,
-    CLR_RED   = 2,
-    CLR_BLUE  = 3,
-    CLR_GREEN = 4
+    CLR_GREY = 1,
+    CLR_WHITE = 2,
+    CLR_RED = 3,
+    CLR_BLUE = 4,
+    CLR_GREEN = 5
 };
 
 enum BB_Types {
@@ -213,13 +214,14 @@ static CKeyEvent*                               num_lock_event = NULL;
 
 static std::map<std::string, size_t>            name_to_events;
 
-static SDL_Color                                map_pal[5] =
+static SDL_Color                                map_pal[6] =
 {
     {0x00,0x00,0x00,0x00},          //0=black
-    {0xff,0xff,0xff,0x00},          //1=white
-    {0xff,0x00,0x00,0x00},          //2=red
-    {0x10,0x30,0xff,0x00},          //3=blue
-    {0x00,0xff,0x20,0x00}           //4=green
+    {0x7f,0x7f,0x7f,0x00},          //1=grey
+    {0xff,0xff,0xff,0x00},          //2=white
+    {0xff,0x00,0x00,0x00},          //3=red
+    {0x10,0x30,0xff,0x00},          //4=blue
+    {0x00,0xff,0x20,0x00}           //5=green
 };
 
 static KeyBlock combo_f[12] =
@@ -250,38 +252,38 @@ static KeyBlock combo_1_pc98[14] =
 
 static KeyBlock combo_2[12] =
 {
-    {"q","q",KBD_q},            {"w","w",KBD_w},    {"e","e",KBD_e},
-    {"r","r",KBD_r},            {"t","t",KBD_t},    {"y","y",KBD_y},
-    {"u","u",KBD_u},            {"i","i",KBD_i},    {"o","o",KBD_o},
-    {"p","p",KBD_p},            {"[","lbracket",KBD_leftbracket},
-    {"]","rbracket",KBD_rightbracket},
+    {"Q","q",KBD_q},            {"W","w",KBD_w},    {"E","e",KBD_e},
+    {"R","r",KBD_r},            {"T","t",KBD_t},    {"Y","y",KBD_y},
+    {"U","u",KBD_u},            {"I","i",KBD_i},    {"O","o",KBD_o},
+    {"P","p",KBD_p},            {"[{","lbracket",KBD_leftbracket},
+    {"]}","rbracket",KBD_rightbracket},
 };
 
 static KeyBlock combo_3[12] =
 {
-    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
-    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
-    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
-    {";","semicolon",KBD_semicolon},                {"'","quote",KBD_quote},
-    {"\\","backslash",KBD_backslash},
+    {"A","a",KBD_a},            {"S","s",KBD_s},    {"D","d",KBD_d},
+    {"F","f",KBD_f},            {"G","g",KBD_g},    {"H","h",KBD_h},
+    {"J","j",KBD_j},            {"K","k",KBD_k},    {"L","l",KBD_l},
+    {";:","semicolon",KBD_semicolon},               {"'\"","quote",KBD_quote},
+    {"\\|","backslash",KBD_backslash},
 };
 
 static KeyBlock combo_3_pc98[12] =
 {
-    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
-    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
-    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
-    {";+","semicolon",KBD_semicolon},               {"'","quote",KBD_quote},
-    {"\\","backslash",KBD_backslash},
+    {"A","a",KBD_a},            {"S","s",KBD_s},    {"D","d",KBD_d},
+    {"F","f",KBD_f},            {"G","g",KBD_g},    {"H","h",KBD_h},
+    {"J","j",KBD_j},            {"K","k",KBD_k},    {"L","l",KBD_l},
+    {";:+","semicolon",KBD_semicolon},              {"'\"","quote",KBD_quote},
+    {"\\|","backslash",KBD_backslash},
 };
 
 static KeyBlock combo_4[11] =
 {
-    {"<","lessthan",KBD_extra_lt_gt},
-    {"z","z",KBD_z},            {"x","x",KBD_x},    {"c","c",KBD_c},
-    {"v","v",KBD_v},            {"b","b",KBD_b},    {"n","n",KBD_n},
-    {"m","m",KBD_m},            {",","comma",KBD_comma},
-    {".","period",KBD_period},                      {"/","slash",KBD_slash},
+    {"<>","lessthan",KBD_extra_lt_gt},
+    {"Z","z",KBD_z},            {"X","x",KBD_x},    {"C","c",KBD_c},
+    {"V","v",KBD_v},            {"B","b",KBD_b},    {"N","n",KBD_n},
+    {"M","m",KBD_m},            {",<","comma",KBD_comma},
+    {".>","period",KBD_period},                     {"/?","slash",KBD_slash},
 };
 
 static void                                     SetActiveEvent(CEvent * event);
@@ -1887,7 +1889,6 @@ void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
         }
     }
     for (it=list->begin();it!=list->end();it++) {
-    /*BUG:CRASH if keymapper key is removed*/
         if (validmod==(*it)->mods) (*it)->ActivateBind(value,ev_trigger);
     }
 }
@@ -2028,8 +2029,11 @@ public:
         event=_event;   
     }
     virtual ~CEventButton() {}
+    void BindColor(void) {
+        this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_GREY : CLR_WHITE);
+    }
     void Click(void) {
-        if (last_clicked) last_clicked->SetColor(CLR_WHITE);
+        if (last_clicked) last_clicked->BindColor();
         this->SetColor(CLR_GREEN);
         SetActiveEvent(event);
         last_clicked=this;
@@ -3060,14 +3064,17 @@ static void CreateLayout(void) {
     AddJHatButton(PX(XO+8+2),PY(YO+1),BW,BH,"RGT",0,0,1);
 
     /* Labels for the joystick */
+    CTextButton* btn;
     if (joytype ==JOY_2AXIS) {
         new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Joystick 1");
         new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Joystick 2");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Disabled");
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn->SetColor(CLR_GREY);
     } else if(joytype ==JOY_4AXIS || joytype == JOY_4AXIS_2) {
         new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Axis 1/2");
         new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3/4");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Disabled");
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn->SetColor(CLR_GREY);
     } else if(joytype == JOY_CH) {
         new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Axis 1/2");
         new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3/4");
@@ -3077,9 +3084,12 @@ static void CreateLayout(void) {
         new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3");
         new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Hat/D-pad");
     } else if(joytype == JOY_NONE) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Disabled");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Disabled");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Disabled");
+        btn = new CTextButton(PX(XO + 0), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn->SetColor(CLR_GREY);
+        btn = new CTextButton(PX(XO + 4), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn->SetColor(CLR_GREY);
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn->SetColor(CLR_GREY);
     }
    
    
@@ -3907,9 +3917,9 @@ void MAPPER_RunInternal() {
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
     /* Set some palette entries */
-    SDL_SetPalette(mapper.surface, SDL_LOGPAL|SDL_PHYSPAL, map_pal, 0, 5);
+    SDL_SetPalette(mapper.surface, SDL_LOGPAL|SDL_PHYSPAL, map_pal, 0, 6);
     if (last_clicked) {
-        last_clicked->SetColor(CLR_WHITE);
+        last_clicked->BindColor();
         last_clicked=NULL;
     }
 #endif
@@ -4055,6 +4065,9 @@ void MAPPER_Init(void) {
     CreateLayout();
     CreateBindGroups();
     if (!MAPPER_LoadBinds()) CreateDefaultBinds();
+    for (CButton_it but_it = buttons.begin(); but_it != buttons.end(); but_it++) {
+        (*but_it)->BindColor();
+    }
     if (SDL_GetModState()&KMOD_CAPS) {
         for (CBindList_it bit=caps_lock_event->bindlist.begin();bit!=caps_lock_event->bindlist.end();bit++) {
 #if SDL_VERSION_ATLEAST(1, 2, 14)
@@ -4090,7 +4103,6 @@ void MAPPER_StartUp() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     mapper.sticks.num=0;
     mapper.sticks.num_groups=0;
-    Bitu i;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     {
@@ -4134,18 +4146,7 @@ void MAPPER_StartUp() {
 
     LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
 
-    for (i=0; i<MAX_VJOY_BUTTONS; i++) {
-        virtual_joysticks[0].button_pressed[i]=false;
-        virtual_joysticks[1].button_pressed[i]=false;
-    }
-    for (i=0; i<MAX_VJOY_HATS; i++) {
-        virtual_joysticks[0].hat_pressed[i]=false;
-        virtual_joysticks[1].hat_pressed[i]=false;
-    }
-    for (i=0; i<MAX_VJOY_AXES; i++) {
-        virtual_joysticks[0].axis_pos[i]=0;
-        virtual_joysticks[1].axis_pos[i]=0;
-    }
+    memset(&virtual_joysticks,0,sizeof(virtual_joysticks));
 
 #if !defined(C_SDL2)
     usescancodes = false;
