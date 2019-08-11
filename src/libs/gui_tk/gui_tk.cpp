@@ -224,7 +224,7 @@ Drawable::Drawable(Drawable &src, RGB clear) :
 		this->clear(clear);
 	} else {
 		for (unsigned int h = 0; (int)h < src.ch; h++) {
-			memcpy(buffer+(unsigned int)src.cw*h,src.buffer+(unsigned int)src.width*(h+(unsigned int)src.ty)+src.tx,4u*(unsigned int)src.cw);
+			memcpy(buffer+(size_t)src.cw*h,src.buffer+src.width*(h+(size_t)src.ty)+src.tx,4u*(size_t)src.cw);
 		}
 	}
 }
@@ -430,8 +430,8 @@ void Drawable::drawDrawable(Drawable &d, unsigned char alpha)
 	RGB *src, *dest;
 
 	for (h = imax(d.cy,-ty-y); h < sch && y+h < ch; h++) {
-		src = d.buffer+d.width*(h+d.ty)+d.tx;
-		dest = buffer+width*(y+ty+h)+tx+x;
+		src = d.buffer+d.width*((size_t)h+d.ty)+d.tx;
+		dest = buffer+width*((size_t)y+ty+h)+tx+x;
 		for (w = imax(d.cx,-tx-x); w < scw && x+w < cw; w++) {
 			RGB srcb = src[w], destb = dest[w];
 			unsigned int sop = Color::A(srcb)*((unsigned int)alpha)/255;

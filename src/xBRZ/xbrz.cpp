@@ -482,7 +482,7 @@ void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight,
     //"use" space at the end of the image as temporary buffer for "on the fly preprocessing": we even could use larger area of
     //"sizeof(uint32_t) * srcWidth * (yLast - yFirst)" bytes without risk of accidental overwriting before accessing
     const int bufferSize = srcWidth;
-    unsigned char* preProcBuffer = reinterpret_cast<unsigned char*>(trg + yLast * Scaler::scale * trgWidth) - bufferSize;
+    unsigned char* preProcBuffer = reinterpret_cast<unsigned char*>(trg + (size_t)yLast * Scaler::scale * trgWidth) - bufferSize;
     std::fill(preProcBuffer, preProcBuffer + bufferSize, '\0');
     static_assert(BLEND_NONE == 0, "");
 
@@ -492,10 +492,10 @@ void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight,
     {
         const int y = yFirst - 1;
 
-        const uint32_t* s_m1 = src + srcWidth * std::max(y - 1, 0);
-        const uint32_t* s_0  = src + srcWidth * y; //center line
-        const uint32_t* s_p1 = src + srcWidth * std::min(y + 1, srcHeight - 1);
-        const uint32_t* s_p2 = src + srcWidth * std::min(y + 2, srcHeight - 1);
+        const uint32_t* s_m1 = src + (size_t)srcWidth * std::max(y - 1, 0);
+        const uint32_t* s_0  = src + (size_t)srcWidth * y; //center line
+        const uint32_t* s_p1 = src + (size_t)srcWidth * std::min(y + 1, srcHeight - 1);
+        const uint32_t* s_p2 = src + (size_t)srcWidth * std::min(y + 2, srcHeight - 1);
 
         for (int x = 0; x < srcWidth; ++x)
         {
@@ -543,12 +543,12 @@ void scaleImage(const uint32_t* src, uint32_t* trg, int srcWidth, int srcHeight,
 
     for (int y = yFirst; y < yLast; ++y)
     {
-        uint32_t* out = trg + Scaler::scale * y * trgWidth; //consider MT "striped" access
+        uint32_t* out = trg + (size_t)Scaler::scale * y * trgWidth; //consider MT "striped" access
 
-        const uint32_t* s_m1 = src + srcWidth * std::max(y - 1, 0);
-        const uint32_t* s_0  = src + srcWidth * y; //center line
-        const uint32_t* s_p1 = src + srcWidth * std::min(y + 1, srcHeight - 1);
-        const uint32_t* s_p2 = src + srcWidth * std::min(y + 2, srcHeight - 1);
+        const uint32_t* s_m1 = src + (size_t)srcWidth * std::max(y - 1, 0);
+        const uint32_t* s_0  = src + (size_t)srcWidth * y; //center line
+        const uint32_t* s_p1 = src + (size_t)srcWidth * std::min(y + 1, srcHeight - 1);
+        const uint32_t* s_p2 = src + (size_t)srcWidth * std::min(y + 2, srcHeight - 1);
 
         unsigned char blend_xy1 = 0; //corner blending for current (x, y + 1) position
 

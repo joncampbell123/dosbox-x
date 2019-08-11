@@ -3199,7 +3199,7 @@ int utf8_encode(char **ptr,char *fence,uint32_t code) {
             *p++ = (char)(0x80 | ((code >> 6) & 0x3F));
             *p++ = (char)(0x80 | (code & 0x3F));
             break;
-    };
+    }
 
     *ptr = p;
     return 0;
@@ -3268,7 +3268,7 @@ int utf8_decode(const char **ptr,const char *fence) {
             c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
             ret |= c&0x3F;
             break;
-    };
+    }
 
     *ptr = p;
     return ret;

@@ -359,7 +359,7 @@ bool Prop_double::CheckValue(Value const& in, bool warn)
 	return false;
 }
 
-bool Prop_int::SetValue(std::string const& input) {;
+bool Prop_int::SetValue(std::string const& input) {
     Value val;
     if (!val.SetValue(input,Value::V_INT)) return false;
     return SetVal(val,false,/*warn*/true);
@@ -451,7 +451,7 @@ bool Prop_multival_remain::SetValue(std::string const& input,bool init) {
     Value::Etype prevtype = Value::V_NONE;
     string prevargument = "";
     
-    while( (section->Get_prop(number_of_properties)) )
+    while(section->Get_prop(number_of_properties))
         number_of_properties++;
 
     string::size_type loc = string::npos;
@@ -1150,7 +1150,7 @@ bool CommandLine::FindStringRemainBegin(char const * const name,std::string & va
         size_t len = strlen(name);
             for (it=cmds.begin();it!=cmds.end();it++) {
                 if (strncasecmp(name,(*it).c_str(),len)==0) {
-                    std::string temp = ((*it).c_str() + len);
+                    std::string temp = (*it).c_str() + len;
                     //Restore quotes for correct parsing in later stages
                     if (temp.find(" ") != std::string::npos)
                         value = std::string("\"") + temp + std::string("\"");
@@ -1164,7 +1164,7 @@ bool CommandLine::FindStringRemainBegin(char const * const name,std::string & va
     it++;
     for (;it!=cmds.end();it++) {
         value += " ";
-        std::string temp = (*it);
+        std::string temp = *it;
         if (temp.find(" ") != std::string::npos)
             value += std::string("\"") + temp + std::string("\"");
         else
@@ -1436,7 +1436,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
 
 void CommandLine::Shift(unsigned int amount) {
     while(amount--) {
-        file_name = cmds.size()?(*(cmds.begin())):"";
+        file_name = cmds.size()?*(cmds.begin()):"";
         if (cmds.size()) cmds.erase(cmds.begin());
     }
 }
