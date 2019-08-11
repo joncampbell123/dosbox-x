@@ -386,8 +386,8 @@ void DOS_Shell::Run(void) {
 						ShowPrompt();
 						WriteOut_NoParsing(input_line);
 						WriteOut_NoParsing("\n");
-					};
-				};
+					}
+				}
 			} else input_line[0]='\0';
 		} else {
 			if (echo) ShowPrompt();

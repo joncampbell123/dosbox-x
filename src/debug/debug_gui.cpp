@@ -720,7 +720,7 @@ void LOG::operator() (char const* format, ...){
 		case LOG_ERROR: s_severity = " ERROR"; break;
 		case LOG_FATAL: s_severity = " FATAL"; break;
 		default: break;
-	};
+	}
 
 	va_start(msg,format);
 	vsnprintf(buf,sizeof(buf)-1,format,msg);

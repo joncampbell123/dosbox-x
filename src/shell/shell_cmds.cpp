@@ -616,15 +616,15 @@ static void FormatNumber(Bit32u num,char * buf) {
 	if (numg) {
 		sprintf(buf,"%d,%03d,%03d,%03d",numg,numm,numk,numb);
 		return;
-	};
+	}
 	if (numm) {
 		sprintf(buf,"%d,%03d,%03d",numm,numk,numb);
 		return;
-	};
+	}
 	if (numk) {
 		sprintf(buf,"%d,%03d",numk,numb);
 		return;
-	};
+	}
 	sprintf(buf,"%d",numb);
 }
 
@@ -959,7 +959,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
 		dos.dta(save_dta);
 		return;
-	};
+	}
 
 	copysource target;
 	// If more then one object exists and last target is not part of a 
@@ -1141,11 +1141,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 						WriteOut(MSG_Get("SHELL_CMD_COPY_FAILURE"),const_cast<char*>(target.filename.c_str()));
 					}
 				} else WriteOut(MSG_Get("SHELL_CMD_COPY_FAILURE"),const_cast<char*>(source.filename.c_str()));
-			};
+			}
 			//On to the next file if the previous one wasn't a device
 			if ((attr&DOS_ATTR_DEVICE) == 0) ret = DOS_FindNext();
 			else ret = false;
-		};
+		}
 	}
 
 	WriteOut(MSG_Get("SHELL_CMD_COPY_SUCCESS"),count);

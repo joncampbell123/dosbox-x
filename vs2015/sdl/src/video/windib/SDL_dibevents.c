@@ -676,7 +676,7 @@ void DIB_InitOSKeymapPriv(void) {
 			VK_keymap[VK_OEM_6] = SDLK_RIGHTBRACKET;
 			VK_keymap[VK_OEM_5] = SDLK_JP_YEN;
 			break;
-	};
+	}
 
 	Arrows_keymap[3] = 0x25;
 	Arrows_keymap[2] = 0x26;

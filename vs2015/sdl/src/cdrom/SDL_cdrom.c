@@ -157,7 +157,7 @@ CDstatus SDL_CDStatus(SDL_CD *cdrom)
 		/* If the drive is playing, get current play position */
 		if ( (status == CD_PLAYING) || (status == CD_PAUSED) ) {
 			for ( i=1; cdrom->track[i].offset <= position; ++i ) {
-				/* Keep looking */;
+				/* Keep looking */
 			}
 #ifdef DEBUG_CDROM
   fprintf(stderr, "Current position: %d, track = %d (offset is %d)\n",

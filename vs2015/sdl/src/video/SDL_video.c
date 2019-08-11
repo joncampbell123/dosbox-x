@@ -1245,7 +1245,6 @@ static int SetPalette_physical(SDL_Surface *screen,
 			   the video driver is responsible for copying back the
 			   correct colors into the video surface palette.
 			*/
-			;
 		}
 		SDL_CursorPaletteChanged();
 	}

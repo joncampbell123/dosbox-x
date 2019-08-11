@@ -103,7 +103,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	while (fullname[t]!=0) {
 		if ((fullname[t]=='\\') && (fullname[t+1]!=0)) lastdir=t;
 		t++;
-	};
+	}
 	r=0;w=0;
 	tempdir[0]=0;
 	bool stop=false;
@@ -364,11 +364,11 @@ bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_WRITE)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -390,11 +390,11 @@ bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_READ)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -412,11 +412,11 @@ bool DOS_SeekFile(Bit16u entry,Bit32u * pos,Bit32u type,bool fcb) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	return Files[handle]->Seek(pos,type);
 }
 
@@ -426,11 +426,11 @@ bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 #ifdef WIN32
 	return Files[handle]->LockFile(mode,pos,size);
 #else
@@ -450,11 +450,11 @@ bool DOS_CloseFile(Bit16u entry, bool fcb) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (Files[handle]->IsOpen()) {
 		Files[handle]->Close();
 	}
@@ -474,11 +474,11 @@ bool DOS_FlushFile(Bit16u entry) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	LOG(LOG_DOSMISC,LOG_NORMAL)("FFlush used.");
 	return true;
 }
@@ -738,11 +738,11 @@ bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	DOS_PSP psp(dos.psp());
 	*newentry = psp.FindFreeFileEntry();
 	if (*newentry==0xff) {
@@ -763,11 +763,11 @@ bool DOS_ForceDuplicateEntry(Bit16u entry,Bit16u newentry) {
 	if (orig >= DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[orig] || !Files[orig]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	Bit8u newone = RealHandle(newentry);
 	if (newone < DOS_FILES && Files[newone]) {
 		DOS_CloseFile(newentry);
@@ -1365,11 +1365,11 @@ bool DOS_GetFileDate(Bit16u entry, Bit16u* otime, Bit16u* odate) {
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle]->UpdateDateTimeFromHost()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false; 
@@ -1385,11 +1385,11 @@ bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate)
 	if (handle>=DOS_FILES) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
-	};
+	}
 	Files[handle]->time = ntime;
 	Files[handle]->date = ndate;
 	Files[handle]->newtime = true;

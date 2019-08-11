@@ -600,7 +600,7 @@ void DOS_Shell::InputCommand(char * line) {
                     }
                     line[++str_len]=0;//new end (as the internal buffer moved one place to the right
                     size--;
-                };
+                }
 
                 line[str_index]=(char)(cr&0xFF);
                 str_index ++;
@@ -786,7 +786,7 @@ bool DOS_Shell::Execute(char * name,char * args) {
 		}
 	}else{
 		line[0]=0;
-	};
+	}
 
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name))
