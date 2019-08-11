@@ -411,7 +411,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
             SDL_BlitSurface(background, NULL, sdlscreen, NULL);
             SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
             SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
-            while (SDL_PollEvent(&event)) {};
+            while (SDL_PollEvent(&event)) {}
             SDL_Delay(40); 
         }
     }

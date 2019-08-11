@@ -1756,9 +1756,7 @@ void voodoo_ogl_reset_videomode(void) {
 
 	GLint depth_csize;
 	glGetIntegerv(GL_DEPTH_BITS, &depth_csize);
-	if (depth_csize == 24) {
-	} else if (depth_csize == 16) {
-	} else if (depth_csize < 16) {
+	if (depth_csize < 16) {
 		LOG_MSG("VOODOO: OpenGL: invalid depth size %d",depth_csize);
 	}
 

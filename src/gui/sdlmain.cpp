@@ -216,7 +216,7 @@ const char *DKM_to_string(const unsigned int dkm) {
         case DKM_JPN_PC98:  return "jpn_pc98";
         case DKM_JPN:       return "jpn";
         default:            break;
-    };
+    }
 
     return "";
 }
@@ -228,7 +228,7 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
         case DKM_JPN_PC98:  return "Japanese (PC-98)";
         case DKM_JPN:       return "Japanese";
         default:            break;
-    };
+    }
 
     return "";
 }
@@ -313,7 +313,7 @@ void KeyboardLayoutDetect(void) {
         case 0x0409:    nlayout = DKM_US; break;
         case 0x0411:    nlayout = DKM_JPN; break;
         default:        break;
-    };
+    }
 #endif
 
     host_keyboard_layout = nlayout;
@@ -426,7 +426,7 @@ void PrintScreenSizeInfo(void) {
         case ScreenSizeInfo::METHOD_WIN98BASE:  method = "Win98base";   break;
         case ScreenSizeInfo::METHOD_COREGRAPHICS:method = "CoreGraphics";break;
         default:                                                        break;
-    };
+    }
 
     LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
             method,

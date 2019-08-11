@@ -363,7 +363,7 @@ static int IMA_ADPCM_decode(Uint8 **audio_buf, Uint32 *audio_len)
 			state[c].index = *encoded++;
 			/* Reserved byte in buffer header, should be 0 */
 			if ( *encoded++ != 0 ) {
-				/* Uh oh, corrupt data?  Buggy code? */;
+				/* Uh oh, corrupt data?  Buggy code? */
 			}
 
 			/* Store the initial sample we start with */

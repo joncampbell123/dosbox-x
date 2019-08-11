@@ -1429,7 +1429,7 @@ int SDL_BuildAudioCVT(SDL_AudioCVT *cvt,
 			cvt->len_ratio /= 2;
 		}
 		if ( src_channels != dst_channels ) {
-			/* Uh oh.. */;
+			/* Uh oh.. */
 		}
 	}
 

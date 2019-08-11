@@ -285,7 +285,7 @@ int SDL_ShowCursor (int toggle)
 			}
 		}
 	} else {
-		/* Query current state */ ;
+		/* Query current state */ 
 	}
 	return(showing ? 1 : 0);
 }

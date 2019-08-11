@@ -938,8 +938,6 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	if((time=localtime(&temp_stat.st_mtime))!=0) {
 		stat_block->time=DOS_PackTime((Bit16u)time->tm_hour,(Bit16u)time->tm_min,(Bit16u)time->tm_sec);
 		stat_block->date=DOS_PackDate((Bit16u)(time->tm_year+1900),(Bit16u)(time->tm_mon+1),(Bit16u)time->tm_mday);
-	} else {
-
 	}
 	stat_block->size=(Bit32u)temp_stat.st_size;
 	return true;

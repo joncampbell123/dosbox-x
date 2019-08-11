@@ -2828,9 +2828,7 @@ public:
         cmd->FindString("-ide",ideattach,true);
 
         if (ideattach == "auto") {
-            if (type == "floppy") {
-            }
-            else {
+            if (type != "floppy") {
                 IDE_Auto(ide_index,ide_slave);
             }
                 
