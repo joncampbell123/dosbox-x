@@ -1,18 +1,5 @@
 Commit#:	Reason for skipping:
 
-3922		Conflict. "Use safe_strncpy for resolution lines" part is already in DOSBox-X.
-3930		Conflict
-3931		May not have effect or be wanted
-3939		A commented-out log message.
-3960		Thought to be unneeded.
-3967		Conflict and may be unnecessary.
-3968		Conflict and may be unnecessary.
-3969		Related to 3968.
-3980		Conflict
-3981		Conflict
-3986		Conflict
-3989		Seems unnecessary, and DOSBox-X's GUI uses "Pause"
-3999		Formatting cleanup.
 4001		Conflict
 4002		Conflict
 4003		Conflict
