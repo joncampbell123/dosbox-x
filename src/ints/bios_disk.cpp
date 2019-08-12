@@ -949,18 +949,33 @@ static Bitu INT13_DiskHandler(void) {
     case 0x05: /* Format track */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
         LOG_MSG("WARNING: Format track ignored\n");
+        if (driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
         CALLBACK_SCF(false);
         reg_ah = 0x00;
         break;
     case 0x06: /* Format track set bad sector flags */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
         LOG_MSG("WARNING: Format track set bad sector flags ignored (6)\n");
+        if (driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
         CALLBACK_SCF(false);
         reg_ah = 0x00;
         break;
     case 0x07: /* Format track set bad sector flags */
         /* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
         LOG_MSG("WARNING: Format track set bad sector flags ignored (7)\n");
+        if (driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
         CALLBACK_SCF(false);
         reg_ah = 0x00;
         break;
