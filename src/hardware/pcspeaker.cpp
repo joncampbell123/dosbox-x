@@ -371,6 +371,14 @@ void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
 	}
 }
 
+static bool pit_raw_clock_gate_enabled = false;
+
+bool TIMER2_ClockGateEnabled(void);
+
+void PCSPEAKER_UpdateType(void) {
+    PCSPEAKER_SetType(pit_raw_clock_gate_enabled,spkr.pit_output_enabled);
+}
+
 void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
     if (spkr.chan == NULL)
         return;
@@ -457,12 +465,18 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 		return;
 	}
 	spkr.pit_mode = mode;
+
+    /* writing the counter enables the clock again */
+    PCSPEAKER_UpdateType();
+
     CheckPITSynchronization();
 }
 
 void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
     if (spkr.chan == NULL)
         return;
+
+    pit_raw_clock_gate_enabled = pit_clock_gate_enabled;
 
 #ifdef SPKR_DEBUGGING
 	fprintf(
@@ -489,9 +503,14 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 	pic_tickindex_t newindex=PIC_TickIndex();
 	ForwardPIT(newindex);
 	// pit clock gate enable rising edge is a trigger
-	bool pit_trigger = pit_clock_gate_enabled && !spkr.pit_clock_gate_enabled;
-	spkr.pit_clock_gate_enabled = pit_clock_gate_enabled;
+
+    bool p_cg_en = spkr.pit_clock_gate_enabled;
+
+	spkr.pit_clock_gate_enabled = pit_clock_gate_enabled && TIMER2_ClockGateEnabled();
 	spkr.pit_output_enabled     = pit_output_enabled;
+
+    bool pit_trigger = !p_cg_en && spkr.pit_clock_gate_enabled;
+
 	if (pit_trigger) {
 		switch (spkr.pit_mode) {
 		case 1:
@@ -517,7 +536,7 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 			// TODO: implement other modes
 			break;
 		}
-	} else if (!pit_clock_gate_enabled) {
+	} else if (!spkr.pit_clock_gate_enabled) {
 		switch (spkr.pit_mode) {
 		case 1:
 			// gate level does not affect mode1

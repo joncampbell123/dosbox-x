@@ -392,6 +392,15 @@ void speaker_pit_update(void) {
     pit[speaker_pit].track_time(PIC_FullIndex());
 }
 
+void PCSPEAKER_UpdateType(void);
+
+bool TIMER2_ClockGateEnabled(void) {
+    /* PC speaker emulation should treat "new mode" as if the clock gate is disabled.
+     * On real hardware, mode 3 does not cycle if you write a control word but then
+     * do not write a counter value. */
+    return !pit[IS_PC98_ARCH ? 1 : 2].new_mode;
+}
+
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 
@@ -475,6 +484,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
         p->reset_count_at(PIC_FullIndex());
         p->latch_next_counter();
 
+		p->new_mode=false;
 		switch (counter) {
 		case 0x00:			/* Timer hooked to IRQ 0 */
             PIC_RemoveEvents(PIT0_Event);
@@ -502,7 +512,6 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
         default:
 			LOG(LOG_PIT,LOG_ERROR)("PIT:Illegal timer selected for writing");
 		}
-		p->new_mode=false;
     }
     else { /* write state == 0 */
         /* If a new count is written to the Counter, it will be
@@ -632,8 +641,11 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			}
 			pit[latch].new_mode = true;
 			if (latch == (IS_PC98_ARCH ? 1 : 2)) {
-				// notify pc speaker code that the control word was written
-				PCSPEAKER_SetPITControl(mode);
+				// notify pc speaker code that the control word was written.
+                // until a counter value is written, the PC speaker should
+                // treat the timer as if the clock gate were disabled.
+                PCSPEAKER_UpdateType();
+                PCSPEAKER_SetPITControl(mode);
 			}
 		}
 		break;
