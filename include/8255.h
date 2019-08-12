@@ -115,28 +115,28 @@ public:
     }
 public:
     //! Port A write mask. Controls which bits are writeable
-    uint8_t             portAWriteMask;
+    uint8_t             portAWriteMask = 0;
     //! Port B write mask. Controls which bits are writeable
-    uint8_t             portBWriteMask;
+    uint8_t             portBWriteMask = 0;
     //! Port C write mask. Controls which bits are writeable
-    uint8_t             portCWriteMask;
+    uint8_t             portCWriteMask = 0;
 public:
     //! PPI chip name (for debug/UI purposes)
-    const char*         ppiName;                        
+    const char*         ppiName;
 public:
     //! Pin names (for debug/UI purposes)
-    const char*         pinNames[3/*port*/][8/*bit*/];  
+    const char*         pinNames[3/*port*/][8/*bit*/] = {};
     //! Port names (for debug/UI purposes)
-    const char*         portNames[3/*port*/];           
+    const char*         portNames[3/*port*/] = {};
 public:
     //! Port A output latch
-    uint8_t             latchOutPortA;
+    uint8_t             latchOutPortA = 0;
     //! Port B output latch
-    uint8_t             latchOutPortB;
+    uint8_t             latchOutPortB = 0;
     //! Port C output latch
-    uint8_t             latchOutPortC;  
+    uint8_t             latchOutPortC = 0;
     //! PPI mode byte
-    uint8_t             mode;                                       
+    uint8_t             mode = 0;
     /* bit[7:7] = 1             mode set flag
      * bit[6:5] = mode select   00=mode 0  01=mode 1  1x=mode 2
      * bit[4:4] = Port A        1=input  0=output
@@ -146,31 +146,31 @@ public:
      * bit[0:0] = Port C lower  1=input  0=output */
 public:
     //! Input Buffer Full, port A contains information (port A, Mode 1)
-    bool                IBF_A;
+    bool                IBF_A = false;
     //! Input Buffer Full, port B contains information (port B, Mode 1)
-    bool                IBF_B;
+    bool                IBF_B = false;
     //! Output Buffer Full, port A contains information for the external device (port A, Mode 1)
-    bool                OBF_A;
+    bool                OBF_A = false;
     //! Output Buffer Full, port B contains information for the external device (port B, Mode 1)
-    bool                OBF_B;
+    bool                OBF_B = false;
 public:
     //! Interrupt Request A (to the microprocessor)
-    bool                INTR_A;
+    bool                INTR_A = false;
     //! Interrupt Request B (to the microprocessor)
-    bool                INTR_B;
+    bool                INTR_B = false;
     //! Previous Interrupt Request A state (for change detection)
-    bool                pINTR_A;
+    bool                pINTR_A = false;
     //! Previous Interrupt Request B state (for change detection)
-    bool                pINTR_B;
+    bool                pINTR_B = false;
 public:
     //! Interrupt 1 enable (mode 2)
-    bool                INTE_1;
+    bool                INTE_1 = false;
     //! Interrupt 2 enable (mode 2)
-    bool                INTE_2; /* mode 2 */
+    bool                INTE_2 = false; /* mode 2 */
     //! Interrupt A enable
-    bool                INTE_A;
+    bool                INTE_A = false;
     //! Interrupt B enable
-    bool                INTE_B;
+    bool                INTE_B = false;
 protected:
     //! Return string "str", or "" (empty string) if str == NULL
     static inline const char *nil_if_null(const char *str) {

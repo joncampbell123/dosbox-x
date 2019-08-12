@@ -41,6 +41,7 @@ struct Timer {
 		enabled = false;
 		counter = 0;
 		delay = 0;
+        start = 0;
 	}
 	//Call update before making any further changes
 	void Update( double time ) {
@@ -140,7 +141,7 @@ class Module: public Module_base {
 		Bit8u lvol;
 		Bit8u rvol;
 		bool mixer;
-	} ctrl;
+    } ctrl = {};
 	void CacheWrite( Bit32u reg, Bit8u val );
 	void DualWrite( Bit8u index, Bit8u reg, Bit8u val );
 	void CtrlWrite( Bit8u val );
@@ -151,7 +152,7 @@ public:
 	Bit32u lastUsed;				//Ticks when adlib was last used to turn of mixing after a few second
 
 	Handler* handler;				//Handler that will generate the sound
-	RegisterCache cache;
+    RegisterCache cache = {};
 	Capture* capture;
 	Chip	chip[2];
 
