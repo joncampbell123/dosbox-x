@@ -1,4 +1,11 @@
 0.82.21 (next)
+  - PC speaker emulation now takes into consideration
+    the case when the 8254 timer has been given a control
+    word without a counter value, in which case no sound
+    is to be emitted until a control word is written.
+    This fixes "Titus the Fox: To Marrakech and Back"
+    when the game fails to detect Adlib (OPL2) hardware.
+  - Adlib polling hack no longer needed.
   - Floppy controller emulation fixed to support sector
     sizes other than 512 bytes per sector.
   - Floppy controller fixed to always set "seek completed"
