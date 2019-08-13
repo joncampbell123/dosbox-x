@@ -131,7 +131,7 @@ float AllpassFilter::process(const float in) {
 	return bufferOut + 0.5f * buffer[index];
 }
 
-CombFilter::CombFilter(const Bit32u useSize) : RingBuffer(useSize) {}
+CombFilter::CombFilter(const Bit32u useSize) : RingBuffer(useSize), feedbackFactor(0.0F), filterFactor(0.0F) {}
 
 void CombFilter::process(const float in) {
 	// This model corresponds to the comb filter implementation of the real CM-32L device
@@ -159,7 +159,7 @@ void CombFilter::setFilterFactor(const float useFilterFactor) {
 	filterFactor = useFilterFactor;
 }
 
-AReverbModel::AReverbModel(const ReverbMode mode) : allpasses(NULL), combs(NULL), currentSettings(*REVERB_SETTINGS[mode]) {}
+AReverbModel::AReverbModel(const ReverbMode mode) : allpasses(NULL), combs(NULL), currentSettings(*REVERB_SETTINGS[mode]), lpfAmp(0.0F), wetLevel(0.0F) {}
 
 AReverbModel::~AReverbModel() {
 	close();

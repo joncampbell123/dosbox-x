@@ -84,9 +84,8 @@ static CacheBlockDynRec link_blocks[2];		// default linking (specially marked)
 // cache blocks and intercepts writes to the code for special treatment
 class CodePageHandlerDynRec : public PageHandler {
 public:
-	CodePageHandlerDynRec() {
-		invalidation_map=NULL;
-	}
+    CodePageHandlerDynRec() {
+    }
 
 	void SetupAt(Bitu _phys_page,PageHandler * _old_pagehandler) {
 		// initialize this codepage handler
@@ -381,19 +380,20 @@ public:
 	}
 public:
 	// the write map, there are write_map[i] cache blocks that cover the byte at address i
-	Bit8u write_map[4096];
-	Bit8u * invalidation_map;
-	CodePageHandlerDynRec * next, * prev;	// page linking
+    Bit8u write_map[4096] = {};
+    Bit8u* invalidation_map = NULL;
+    CodePageHandlerDynRec* next = NULL; // page linking
+    CodePageHandlerDynRec* prev = NULL; // page linking
 private:
-	PageHandler * old_pagehandler;
+    PageHandler* old_pagehandler = NULL;
 
 	// hash map to quickly find the cache blocks in this page
-	CacheBlockDynRec * hash_map[1+DYN_PAGE_HASH];
+    CacheBlockDynRec* hash_map[1 + DYN_PAGE_HASH] = {};
 
-	Bitu active_blocks;		// the number of cache blocks in this page
-	Bitu active_count;		// delaying parameter to not immediately release a page
-	HostPt hostmem;	
-	Bitu phys_page;
+    Bitu active_blocks = 0;     // the number of cache blocks in this page
+    Bitu active_count = 0;      // delaying parameter to not immediately release a page
+    HostPt hostmem = NULL;
+    Bitu phys_page = 0;
 };
 
 

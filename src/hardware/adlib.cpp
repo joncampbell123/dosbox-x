@@ -102,7 +102,7 @@ namespace OPL3 {
 
 namespace NukedOPL {
 	struct Handler : public Adlib::Handler {
-		opl3_chip chip;
+        opl3_chip chip = {};
 		virtual void WriteReg( Bit32u reg, Bit8u val ) {
 			OPL3_WriteReg(&chip, reg, val);
 		}
@@ -134,7 +134,7 @@ namespace NukedOPL {
 namespace MAMEOPL2 {
 
 struct Handler : public Adlib::Handler {
-	void* chip;
+	void* chip = NULL;
 
 	virtual void WriteReg(Bit32u reg, Bit8u val) {
 		ym3812_write(chip, 0, (int)reg);
@@ -166,7 +166,7 @@ struct Handler : public Adlib::Handler {
 namespace MAMEOPL3 {
 
 struct Handler : public Adlib::Handler {
-	void* chip;
+	void* chip = NULL;
 
 	virtual void WriteReg(Bit32u reg, Bit8u val) {
 		ymf262_write(chip, 0, (int)reg);
@@ -854,6 +854,10 @@ namespace Adlib {
 Module::Module( Section* configuration ) : Module_base(configuration) {
     Bitu sb_addr=0,sb_irq=0,sb_dma=0;
 	DOSBoxMenu::item *item;
+    lastUsed = 0;
+    mode = MODE_OPL2;
+    capture = NULL;
+    handler = NULL;
 
     SB_Get_Address(sb_addr,sb_irq,sb_dma);
 

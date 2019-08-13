@@ -57,10 +57,10 @@ public:
 
         WINI_MAX_INDEX
     };
-    bool win_vis[WINI_MAX_INDEX];
+    bool win_vis[WINI_MAX_INDEX] = {};
     std::string win_title[WINI_MAX_INDEX];
-    unsigned char win_order[WINI_MAX_INDEX];
-    unsigned int win_height[WINI_MAX_INDEX];
+    unsigned char win_order[WINI_MAX_INDEX] = {};
+    unsigned int win_height[WINI_MAX_INDEX] = {};
 public:
 	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
 		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0), data_view(0xFF) {

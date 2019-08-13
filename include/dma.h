@@ -137,7 +137,7 @@ class DmaController {
 private:
 	Bit8u ctrlnum;
 	bool flipflop;
-	DmaChannel *DmaChannels[4];
+    DmaChannel* DmaChannels[4] = {};
 public:
 	IO_ReadHandleObject DMA_ReadHandler[0x15];
 	IO_WriteHandleObject DMA_WriteHandler[0x15];

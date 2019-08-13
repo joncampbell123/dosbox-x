@@ -611,7 +611,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
 
 void DOSBOX_UnlockSpeed2( bool pressed ) {
     if (pressed) {
-        ticksLocked =! ticksLocked;
+        ticksLocked = !ticksLocked;
         DOSBOX_UnlockSpeed(ticksLocked?true:false);
 
         /* make sure the menu item keeps up with our state */

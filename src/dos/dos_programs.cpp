@@ -721,7 +721,7 @@ public:
 public:
     /*! \brief      Array of disk images to add to floppy swaplist
      */
-    imageDisk *newDiskSwap[MAX_SWAPPABLE_DISKS];
+    imageDisk* newDiskSwap[MAX_SWAPPABLE_DISKS] = {};
 
 private:
 
