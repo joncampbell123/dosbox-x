@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Added pause at BIOS POST (after reset), with
+    dosbox.conf option to control, so that screen contents
+    at reset can be seen.
   - Writes to unmapped 0xE0000-0xE7FFF in PC-98 mode no
     longer print a "write to ROM" warning. PC-98 games
     and software like to zero that region whether or not
