@@ -101,6 +101,8 @@ bool int15_wait_force_unmask_irq = false;
 
 int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
 
+unsigned int reset_post_delay = 0;
+
 Bit16u biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
@@ -6890,6 +6892,8 @@ static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     return CBRET_NONE;
 }
 
+static int bios_post_counter = 0;
+
 class BIOS:public Module_base{
 private:
     static Bitu cb_bios_post__func(void) {
@@ -6904,6 +6908,27 @@ private:
         DEBUG_StopLog();
 # endif
 #endif
+
+        {
+            Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+            int val = section->Get_int("reboot delay");
+
+            if (val < 0)
+                val = IS_PC98_ARCH ? 1000 : 500;
+
+            reset_post_delay = (unsigned int)val;
+        }
+
+        if (bios_post_counter != 0 && reset_post_delay != 0) {
+            /* reboot delay, in case the guest OS/application had something to day before hitting the "reset" signal */
+            Bit32u lasttick=GetTicks();
+            while ((GetTicks()-lasttick) < reset_post_delay) {
+                void CALLBACK_Idle(void);
+                CALLBACK_Idle();
+            }
+        }
+
+        bios_post_counter++;
 
         if (bios_first_init) {
             /* clear the first 1KB-32KB */

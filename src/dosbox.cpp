@@ -1376,6 +1376,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("isa memory hole at 512kb",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
 
+    Pint = secprop->Add_int("reboot delay", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,10000);
+    Pint->Set_help(
+        "Reboot delay. How long to pause at BIOS POST after reboot in milliseconds.\n"
+        "This option is provided so that it is possible to see what the guest application\n"
+        "or OS might have written to the screen before resetting the system. A value of\n"
+        "-1 means to use a reasonable default.");
+
     Pint = secprop->Add_int("memalias", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,32);
     Pint->Set_help(
