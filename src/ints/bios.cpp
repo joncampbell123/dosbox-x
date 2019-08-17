@@ -6928,6 +6928,16 @@ private:
             }
         }
 
+        if (bios_post_counter != 0) {
+            /* turn off the PC speaker if the guest left it on at reset */
+            if (IS_PC98_ARCH) {
+                IO_Write(0x37,0x07);
+            }
+            else {
+                IO_Write(0x61,IO_Read(0x61) & (~3u));
+            }
+        }
+
         bios_post_counter++;
 
         if (bios_first_init) {
