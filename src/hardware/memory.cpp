@@ -185,13 +185,22 @@ public:
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
     void writeb(PhysPt addr,Bit8u val){
-        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+        if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
+            { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
+        else
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
     void writew(PhysPt addr,Bit16u val){
-        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+        if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
+            { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
+        else
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
     void writed(PhysPt addr,Bit32u val){
-        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+        if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
+            { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
+        else
+            LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
 };
 

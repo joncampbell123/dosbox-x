@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - Writes to unmapped 0xE0000-0xE7FFF in PC-98 mode no
+    longer print a "write to ROM" warning. PC-98 games
+    and software like to zero that region whether or not
+    the 4th bitplane is enabled.
   - PC speaker emulation now takes into consideration
     the case when the 8254 timer has been given a control
     word without a counter value, in which case no sound
