@@ -277,7 +277,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00180"></a>00180             <span class="keywordflow">case</span> MCH_MCGA:      m=<span class="stringliteral">&quot;MCGA&quot;</span>;       <span class="keywordflow">break</span>;
 <a name="l00181"></a>00181             <span class="keywordflow">case</span> MCH_MDA:       m=<span class="stringliteral">&quot;MDA&quot;</span>;        <span class="keywordflow">break</span>;
 <a name="l00182"></a>00182             <span class="keywordflow">default</span>:            <span class="keywordflow">break</span>;
-<a name="l00183"></a>00183         };
+<a name="l00183"></a>00183         }
 <a name="l00184"></a>00184 
 <a name="l00185"></a>00185         <span class="keywordflow">switch</span> (svgaCard) {
 <a name="l00186"></a>00186             <span class="keywordflow">case</span> SVGA_None:             svga=<span class="stringliteral">&quot;&quot;</span>;                <span class="keywordflow">break</span>;
@@ -285,7 +285,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00188"></a>00188             <span class="keywordflow">case</span> SVGA_TsengET4K:        svga=<span class="stringliteral">&quot;Tseng ET4000&quot;</span>;    <span class="keywordflow">break</span>;
 <a name="l00189"></a>00189             <span class="keywordflow">case</span> SVGA_TsengET3K:        svga=<span class="stringliteral">&quot;Tseng ET3000&quot;</span>;    <span class="keywordflow">break</span>;
 <a name="l00190"></a>00190             <span class="keywordflow">case</span> SVGA_ParadisePVGA1A:   svga=<span class="stringliteral">&quot;Paradise PVGA1A&quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00191"></a>00191         };
+<a name="l00191"></a>00191         }
 <a name="l00192"></a>00192 
 <a name="l00193"></a>00193         DEBUG_ShowMsg(<span class="stringliteral">&quot;Machine: %s %s&quot;</span>,m,svga);
 <a name="l00194"></a>00194     }
@@ -702,7 +702,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00605"></a>00605                 <span class="keywordflow">if</span> (bp-&gt;GetType() == BKPNT_PHYSICAL &amp;&amp; bp-&gt;GetLocation() == adr)
 <a name="l00606"></a>00606                         <span class="keywordflow">continue</span>;
 <a name="l00607"></a>00607                 bp-&gt;Activate(<span class="keyword">true</span>);
-<a name="l00608"></a>00608         };
+<a name="l00608"></a>00608         }
 <a name="l00609"></a>00609 }
 <a name="l00610"></a>00610 
 <a name="l00611"></a>00611 <span class="keywordtype">bool</span> CBreakpoint::CheckBreakpoint(Bit16u seg, Bit32u off)
@@ -903,7 +903,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00806"></a>00806                         DEBUG_ShowMsg(<span class="stringliteral">&quot;%02X. BPPM %04X:%08X (%02X)\n&quot;</span>,nr,bp-&gt;GetSegment(),bp-&gt;GetOffset(),bp-&gt;GetValue());
 <a name="l00807"></a>00807                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bp-&gt;GetType()==BKPNT_MEMORY_LINEAR ) {
 <a name="l00808"></a>00808                         DEBUG_ShowMsg(<span class="stringliteral">&quot;%02X. BPLM %08X (%02X)\n&quot;</span>,nr,bp-&gt;GetOffset(),bp-&gt;GetValue());
-<a name="l00809"></a>00809                 };
+<a name="l00809"></a>00809                 }
 <a name="l00810"></a>00810                 nr++;
 <a name="l00811"></a>00811         }
 <a name="l00812"></a>00812 }
@@ -1292,7 +1292,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01195"></a>01195         }
 <a name="l01196"></a>01196                 mvwprintw(dbg.win_code,i,0,<span class="stringliteral">&quot;%04X:%08X &quot;</span>,codeViewData.useCS,disEIP);
 <a name="l01197"></a>01197 
-<a name="l01198"></a>01198                 <span class="keywordflow">if</span> (drawsize&gt;10) { toolarge = <span class="keyword">true</span>; drawsize = 9; };
+<a name="l01198"></a>01198                 <span class="keywordflow">if</span> (drawsize&gt;10) { toolarge = <span class="keyword">true</span>; drawsize = 9; }
 <a name="l01199"></a>01199  
 <a name="l01200"></a>01200         <span class="keywordflow">if</span> (start != mem_no_address) {
 <a name="l01201"></a>01201             <span class="keywordflow">for</span> (c=0;c&lt;drawsize;c++) {
@@ -1314,7 +1314,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01217"></a>01217         }
 <a name="l01218"></a>01218 
 <a name="l01219"></a>01219         wattrset (dbg.win_code,0);
-<a name="l01220"></a>01220         <span class="keywordflow">if</span> (toolarge) { waddstr(dbg.win_code,<span class="stringliteral">&quot;..&quot;</span>); drawsize++; };
+<a name="l01220"></a>01220         <span class="keywordflow">if</span> (toolarge) { waddstr(dbg.win_code,<span class="stringliteral">&quot;..&quot;</span>); drawsize++; }
 <a name="l01221"></a>01221                 <span class="comment">// Spacepad up to 20 characters</span>
 <a name="l01222"></a>01222                 <span class="keywordflow">if</span>(drawsize &amp;&amp; (drawsize &lt; 11)) {
 <a name="l01223"></a>01223                         line20[20 - drawsize*2] = 0;
@@ -1525,7 +1525,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01428"></a>01428         <span class="keywordflow">if</span> (strncmp(hex,<span class="stringliteral">&quot;TF&quot;</span>,2) == 0) { hex+=2; SETFLAGBIT(TF,GetHexValue(hex,hex)); } <span class="keywordflow">else</span>
 <a name="l01429"></a>01429         <span class="comment">//             &quot;VM&quot;</span>
 <a name="l01430"></a>01430             <span class="keywordflow">if</span> (strncmp(hex,<span class="stringliteral">&quot;ZF&quot;</span>,2) == 0) { hex+=2; SETFLAGBIT(ZF,GetHexValue(hex,hex)); } <span class="keywordflow">else</span>
-<a name="l01431"></a>01431         { <span class="keywordflow">return</span> <span class="keyword">false</span>; };
+<a name="l01431"></a>01431         { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
 <a name="l01432"></a>01432     }
 <a name="l01433"></a>01433 
 <a name="l01434"></a>01434         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -1619,7 +1619,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01522"></a>01522                 Bit32u num = GetHexValue(found,found); found++;
 <a name="l01523"></a>01523                 SaveMemory(seg,ofs,num);
 <a name="l01524"></a>01524                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01525"></a>01525         };
+<a name="l01525"></a>01525         }
 <a name="l01526"></a>01526 
 <a name="l01527"></a>01527         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;MEMDUMPBIN&quot;</span>) { <span class="comment">// Dump memory to file binary</span>
 <a name="l01528"></a>01528                 Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
@@ -1627,7 +1627,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01530"></a>01530                 Bit32u num = GetHexValue(found,found); found++;
 <a name="l01531"></a>01531                 SaveMemoryBin(seg,ofs,num);
 <a name="l01532"></a>01532                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01533"></a>01533         };
+<a name="l01533"></a>01533         }
 <a name="l01534"></a>01534 
 <a name="l01535"></a>01535         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;IV&quot;</span>) { <span class="comment">// Insert variable</span>
 <a name="l01536"></a>01536                 Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
@@ -1635,39 +1635,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01538"></a>01538                 <span class="keywordtype">char</span> name[16];
 <a name="l01539"></a>01539                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;16; i++) {
 <a name="l01540"></a>01540                         <span class="keywordflow">if</span> (found[i] &amp;&amp; (found[i]!=<span class="charliteral">&#39; &#39;</span>)) name[i] = found[i]; 
-<a name="l01541"></a>01541                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; };
-<a name="l01542"></a>01542                 };
+<a name="l01541"></a>01541                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; }
+<a name="l01542"></a>01542                 }
 <a name="l01543"></a>01543                 name[15] = 0;
 <a name="l01544"></a>01544 
 <a name="l01545"></a>01545                 <span class="keywordflow">if</span>(!name[0]) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01546"></a>01546                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Created debug var %s at %04X:%04X\n&quot;</span>,name,seg,ofs);
 <a name="l01547"></a>01547                 CDebugVar::InsertVariable(name,(PhysPt)GetAddress(seg,ofs));
 <a name="l01548"></a>01548                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01549"></a>01549         };
+<a name="l01549"></a>01549         }
 <a name="l01550"></a>01550 
 <a name="l01551"></a>01551         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;SV&quot;</span>) { <span class="comment">// Save variables</span>
 <a name="l01552"></a>01552                 <span class="keywordtype">char</span> name[13];
 <a name="l01553"></a>01553                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;12; i++) {
 <a name="l01554"></a>01554                         <span class="keywordflow">if</span> (found[i] &amp;&amp; (found[i]!=<span class="charliteral">&#39; &#39;</span>)) name[i] = found[i]; 
-<a name="l01555"></a>01555                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; };
-<a name="l01556"></a>01556                 };
+<a name="l01555"></a>01555                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; }
+<a name="l01556"></a>01556                 }
 <a name="l01557"></a>01557                 name[12] = 0;
 <a name="l01558"></a>01558                 <span class="keywordflow">if</span>(!name[0]) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01559"></a>01559                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Variable list save (%s) : %s.\n&quot;</span>,name,(CDebugVar::SaveVars(name)?<span class="stringliteral">&quot;ok&quot;</span>:<span class="stringliteral">&quot;failure&quot;</span>));
 <a name="l01560"></a>01560                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01561"></a>01561         };
+<a name="l01561"></a>01561         }
 <a name="l01562"></a>01562 
 <a name="l01563"></a>01563         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;LV&quot;</span>) { <span class="comment">// load variables</span>
 <a name="l01564"></a>01564                 <span class="keywordtype">char</span> name[13];
 <a name="l01565"></a>01565                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;12; i++) {
 <a name="l01566"></a>01566                         <span class="keywordflow">if</span> (found[i] &amp;&amp; (found[i]!=<span class="charliteral">&#39; &#39;</span>)) name[i] = found[i]; 
-<a name="l01567"></a>01567                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; };
-<a name="l01568"></a>01568                 };
+<a name="l01567"></a>01567                         <span class="keywordflow">else</span> { name[i] = 0; <span class="keywordflow">break</span>; }
+<a name="l01568"></a>01568                 }
 <a name="l01569"></a>01569                 name[12] = 0;
 <a name="l01570"></a>01570                 <span class="keywordflow">if</span>(!name[0]) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01571"></a>01571                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Variable list load (%s) : %s.\n&quot;</span>,name,(CDebugVar::LoadVars(name)?<span class="stringliteral">&quot;ok&quot;</span>:<span class="stringliteral">&quot;failure&quot;</span>));
 <a name="l01572"></a>01572                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01573"></a>01573         };
+<a name="l01573"></a>01573         }
 <a name="l01574"></a>01574 
 <a name="l01575"></a>01575     <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;EV&quot;</span>) { <span class="comment">// echo value (for viewing contents through GetHexValue</span>
 <a name="l01576"></a>01576         std::string cpptmp;
@@ -1695,12 +1695,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01598"></a>01598         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;ADDLOG&quot;</span>) {
 <a name="l01599"></a>01599                 <span class="keywordflow">if</span>(found &amp;&amp; *found)     DEBUG_ShowMsg(<span class="stringliteral">&quot;NOTICE: %s\n&quot;</span>,found);
 <a name="l01600"></a>01600                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01601"></a>01601         };
+<a name="l01601"></a>01601         }
 <a name="l01602"></a>01602 
 <a name="l01603"></a>01603         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;SR&quot;</span>) { <span class="comment">// Set register value</span>
 <a name="l01604"></a>01604                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set Register %s.\n&quot;</span>,(ChangeRegister(found)?<span class="stringliteral">&quot;success&quot;</span>:<span class="stringliteral">&quot;failure&quot;</span>));
 <a name="l01605"></a>01605                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01606"></a>01606         };
+<a name="l01606"></a>01606         }
 <a name="l01607"></a>01607 
 <a name="l01608"></a>01608         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;SM&quot;</span>) { <span class="comment">// Set memory with following values</span>
 <a name="l01609"></a>01609                 Bit16u seg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
@@ -1739,13 +1739,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01642"></a>01642                 mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
 <a name="l01643"></a>01643                 count++;
 <a name="l01644"></a>01644             }
-<a name="l01645"></a>01645         };
+<a name="l01645"></a>01645         }
 <a name="l01646"></a>01646 
 <a name="l01647"></a>01647         <span class="keywordflow">if</span> (count &gt; 0)
 <a name="l01648"></a>01648             DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory changed (%u bytes)\n&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)count);
 <a name="l01649"></a>01649 
 <a name="l01650"></a>01650                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01651"></a>01651         };
+<a name="l01651"></a>01651         }
 <a name="l01652"></a>01652 
 <a name="l01653"></a>01653         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;BP&quot;</span>) { <span class="comment">// Add new breakpoint</span>
 <a name="l01654"></a>01654                 Bit16u seg = (Bit16u)GetHexValue(found,found);found++; <span class="comment">// skip &quot;:&quot;</span>
@@ -1753,7 +1753,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01656"></a>01656                 CBreakpoint::AddBreakpoint(seg,ofs,<span class="keyword">false</span>);
 <a name="l01657"></a>01657                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set breakpoint at %04X:%04X\n&quot;</span>,seg,ofs);
 <a name="l01658"></a>01658                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01659"></a>01659         };
+<a name="l01659"></a>01659         }
 <a name="l01660"></a>01660 
 <a name="l01661"></a>01661 <span class="preprocessor">#if C_HEAVY_DEBUG</span>
 <a name="l01662"></a>01662 <span class="preprocessor"></span>
@@ -1763,7 +1763,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01666"></a>01666                 CBreakpoint::AddMemBreakpoint(seg,ofs);
 <a name="l01667"></a>01667                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set memory breakpoint at %04X:%04X\n&quot;</span>,seg,ofs);
 <a name="l01668"></a>01668                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01669"></a>01669         };
+<a name="l01669"></a>01669         }
 <a name="l01670"></a>01670 
 <a name="l01671"></a>01671         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;BPPM&quot;</span>) { <span class="comment">// Add new breakpoint</span>
 <a name="l01672"></a>01672                 Bit16u seg = (Bit16u)GetHexValue(found,found);found++; <span class="comment">// skip &quot;:&quot;</span>
@@ -1774,7 +1774,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01677"></a>01677                         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set prot-mode memory breakpoint at %04X:%08X\n&quot;</span>,seg,ofs);
 <a name="l01678"></a>01678                 }
 <a name="l01679"></a>01679                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01680"></a>01680         };
+<a name="l01680"></a>01680         }
 <a name="l01681"></a>01681 
 <a name="l01682"></a>01682         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;BPLM&quot;</span>) { <span class="comment">// Add new breakpoint</span>
 <a name="l01683"></a>01683                 Bit32u ofs = GetHexValue(found,found);
@@ -1782,7 +1782,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01685"></a>01685                 <span class="keywordflow">if</span> (bp) bp-&gt;SetType(BKPNT_MEMORY_LINEAR);
 <a name="l01686"></a>01686                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set linear memory breakpoint at %08X\n&quot;</span>,ofs);
 <a name="l01687"></a>01687                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01688"></a>01688         };
+<a name="l01688"></a>01688         }
 <a name="l01689"></a>01689 
 <a name="l01690"></a>01690 <span class="preprocessor">#endif</span>
 <a name="l01691"></a>01691 <span class="preprocessor"></span>
@@ -1805,7 +1805,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01708"></a>01708                         }
 <a name="l01709"></a>01709                 }
 <a name="l01710"></a>01710                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01711"></a>01711         };
+<a name="l01711"></a>01711         }
 <a name="l01712"></a>01712 
 <a name="l01713"></a>01713         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;BPLIST&quot;</span>) {
 <a name="l01714"></a>01714         DEBUG_BeginPagedContent();
@@ -1814,7 +1814,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01717"></a>01717                 CBreakpoint::ShowList();
 <a name="l01718"></a>01718         DEBUG_EndPagedContent();
 <a name="l01719"></a>01719                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01720"></a>01720         };
+<a name="l01720"></a>01720         }
 <a name="l01721"></a>01721 
 <a name="l01722"></a>01722         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;BPDEL&quot;</span>) { <span class="comment">// Delete Breakpoints</span>
 <a name="l01723"></a>01723                 Bit8u bpNr      = (Bit8u)GetHexValue(found,found); 
@@ -1826,7 +1826,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01729"></a>01729                         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Breakpoint deletion %s.\n&quot;</span>,(CBreakpoint::DeleteByIndex(bpNr)?<span class="stringliteral">&quot;success&quot;</span>:<span class="stringliteral">&quot;failure&quot;</span>));
 <a name="l01730"></a>01730                 }
 <a name="l01731"></a>01731                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01732"></a>01732         };
+<a name="l01732"></a>01732         }
 <a name="l01733"></a>01733 
 <a name="l01734"></a>01734     <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;RUN&quot;</span>) {
 <a name="l01735"></a>01735         DrawRegistersUpdateOld();
@@ -1931,7 +1931,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01834"></a>01834                 codeViewData.useEIP = codeOfs;
 <a name="l01835"></a>01835                 codeViewData.cursorPos = 0;
 <a name="l01836"></a>01836                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01837"></a>01837         };
+<a name="l01837"></a>01837         }
 <a name="l01838"></a>01838 
 <a name="l01839"></a>01839         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;D&quot;</span>) { <span class="comment">// Set data overview</span>
 <a name="l01840"></a>01840                 dataSeg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
@@ -1943,7 +1943,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01846"></a>01846         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 <a name="l01847"></a>01847                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set data overview to %04X:%04X\n&quot;</span>,dataSeg,dataOfs);
 <a name="l01848"></a>01848                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01849"></a>01849         };
+<a name="l01849"></a>01849         }
 <a name="l01850"></a>01850 
 <a name="l01851"></a>01851         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;DV&quot;</span>) { <span class="comment">// Set data overview</span>
 <a name="l01852"></a>01852         dataSeg = 0;
@@ -1951,7 +1951,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01854"></a>01854         dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
 <a name="l01855"></a>01855                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set data overview to %04X:%04X\n&quot;</span>,dataSeg,dataOfs);
 <a name="l01856"></a>01856                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01857"></a>01857         };
+<a name="l01857"></a>01857         }
 <a name="l01858"></a>01858 
 <a name="l01859"></a>01859         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;DP&quot;</span>) { <span class="comment">// Set data overview</span>
 <a name="l01860"></a>01860         dataSeg = 0;
@@ -1959,7 +1959,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01862"></a>01862         dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 <a name="l01863"></a>01863                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set data overview to %04X:%04X\n&quot;</span>,dataSeg,dataOfs);
 <a name="l01864"></a>01864                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01865"></a>01865         };
+<a name="l01865"></a>01865         }
 <a name="l01866"></a>01866 
 <a name="l01867"></a>01867 <span class="preprocessor">#if C_HEAVY_DEBUG</span>
 <a name="l01868"></a>01868 <span class="preprocessor"></span>
@@ -1994,7 +1994,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01897"></a>01897                 CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 <a name="l01898"></a>01898                 DOSBOX_SetNormalLoop(); 
 <a name="l01899"></a>01899                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01900"></a>01900         };
+<a name="l01900"></a>01900         }
 <a name="l01901"></a>01901 
 <a name="l01902"></a>01902 <span class="preprocessor">#endif</span>
 <a name="l01903"></a>01903 <span class="preprocessor"></span>
@@ -2004,7 +2004,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01907"></a>01907                 CPU_HW_Interrupt(intNr);
 <a name="l01908"></a>01908                 SetCodeWinStart();
 <a name="l01909"></a>01909                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01910"></a>01910         };
+<a name="l01910"></a>01910         }
 <a name="l01911"></a>01911 
 <a name="l01912"></a>01912         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;INT&quot;</span>) { <span class="comment">// start int.</span>
 <a name="l01913"></a>01913                 Bit8u intNr = (Bit8u)GetHexValue(found,found);
@@ -2017,7 +2017,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01920"></a>01920                 DOSBOX_SetNormalLoop();
 <a name="l01921"></a>01921                 CPU_HW_Interrupt(intNr);
 <a name="l01922"></a>01922                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01923"></a>01923         };      
+<a name="l01923"></a>01923         }
 <a name="l01924"></a>01924 
 <a name="l01925"></a>01925         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;SELINFO&quot;</span>) {
 <a name="l01926"></a>01926                 <span class="keywordflow">while</span> (found[0] == <span class="charliteral">&#39; &#39;</span>) found++;
@@ -2025,7 +2025,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01928"></a>01928                 GetDescriptorInfo(found,out1,out2);
 <a name="l01929"></a>01929                 DEBUG_ShowMsg(<span class="stringliteral">&quot;SelectorInfo %s:\n%s\n%s\n&quot;</span>,found,out1,out2);
 <a name="l01930"></a>01930                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01931"></a>01931         };
+<a name="l01931"></a>01931         }
 <a name="l01932"></a>01932 
 <a name="l01933"></a>01933         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;DOS&quot;</span>) {
 <a name="l01934"></a>01934                 stream &gt;&gt; command;
@@ -2546,7 +2546,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02449"></a>02449                         OutputVecTable(found);
 <a name="l02450"></a>02450                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l02451"></a>02451                 }
-<a name="l02452"></a>02452         };
+<a name="l02452"></a>02452         }
 <a name="l02453"></a>02453 
 <a name="l02454"></a>02454         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;INTHAND&quot;</span>) {
 <a name="l02455"></a>02455                 <span class="keywordflow">if</span> (found[0] != 0) {
@@ -2569,18 +2569,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02472"></a>02472                         codeViewData.cursorPos = 0;
 <a name="l02473"></a>02473                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l02474"></a>02474                 }
-<a name="l02475"></a>02475         };
+<a name="l02475"></a>02475         }
 <a name="l02476"></a>02476 
 <a name="l02477"></a>02477         <span class="keywordflow">if</span>(command == <span class="stringliteral">&quot;EXTEND&quot;</span>) { <span class="comment">//Toggle additional data.     </span>
 <a name="l02478"></a>02478                 showExtend = !showExtend;
 <a name="l02479"></a>02479                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l02480"></a>02480         };
+<a name="l02480"></a>02480         }
 <a name="l02481"></a>02481 
 <a name="l02482"></a>02482         <span class="keywordflow">if</span>(command == <span class="stringliteral">&quot;TIMERIRQ&quot;</span>) { <span class="comment">//Start a timer irq</span>
 <a name="l02483"></a>02483                 DEBUG_RaiseTimerIrq(); 
 <a name="l02484"></a>02484                 DEBUG_ShowMsg(<span class="stringliteral">&quot;Debug: Timer Int started.\n&quot;</span>);
 <a name="l02485"></a>02485                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l02486"></a>02486         };
+<a name="l02486"></a>02486         }
 <a name="l02487"></a>02487 
 <a name="l02488"></a>02488 
 <a name="l02489"></a>02489 <span class="preprocessor">#if C_HEAVY_DEBUG</span>
@@ -2588,13 +2588,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02491"></a>02491                 logHeavy = !logHeavy;
 <a name="l02492"></a>02492                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Heavy cpu logging %s.\n&quot;</span>,logHeavy?<span class="stringliteral">&quot;on&quot;</span>:<span class="stringliteral">&quot;off&quot;</span>);
 <a name="l02493"></a>02493                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l02494"></a>02494         };
+<a name="l02494"></a>02494         }
 <a name="l02495"></a>02495 
 <a name="l02496"></a>02496         <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;ZEROPROTECT&quot;</span>) { <span class="comment">//toggle zero protection</span>
 <a name="l02497"></a>02497                 zeroProtect = !zeroProtect;
 <a name="l02498"></a>02498                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Zero code execution protection %s.\n&quot;</span>,zeroProtect?<span class="stringliteral">&quot;on&quot;</span>:<span class="stringliteral">&quot;off&quot;</span>);
 <a name="l02499"></a>02499                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l02500"></a>02500         };
+<a name="l02500"></a>02500         }
 <a name="l02501"></a>02501 
 <a name="l02502"></a>02502 <span class="preprocessor">#endif</span>
 <a name="l02503"></a>02503 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;HELP&quot;</span> || command == <span class="stringliteral">&quot;?&quot;</span>) {
@@ -2697,8 +2697,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02600"></a>02600                         } <span class="keywordflow">else</span> {
 <a name="l02601"></a>02601                                 seg = SegValue(ds);
 <a name="l02602"></a>02602                                 strcpy(prefix,<span class="stringliteral">&quot;ds&quot;</span>);
-<a name="l02603"></a>02603                         };
-<a name="l02604"></a>02604                 };
+<a name="l02603"></a>02603                         }
+<a name="l02604"></a>02604                 }
 <a name="l02605"></a>02605 
 <a name="l02606"></a>02606                 pos++;
 <a name="l02607"></a>02607                 Bit32u adr = GetHexValue(pos,pos);
@@ -2711,7 +2711,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02614"></a>02614                                 adr -= GetHexValue(pos,pos); 
 <a name="l02615"></a>02615                         } <span class="keywordflow">else</span> 
 <a name="l02616"></a>02616                                 pos++;
-<a name="l02617"></a>02617                 };
+<a name="l02617"></a>02617                 }
 <a name="l02618"></a>02618                 Bit32u address = (Bit32u)GetAddress(seg,adr);
 <a name="l02619"></a>02619                 <span class="keywordflow">if</span> (!(get_tlb_readhandler(address)-&gt;flags &amp; PFLAG_INIT)) {
 <a name="l02620"></a>02620                         <span class="keyword">static</span> <span class="keywordtype">char</span> outmask[] = <span class="stringliteral">&quot;%s:[%04X]=%02X&quot;</span>;
@@ -2746,13 +2746,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02649"></a>02649                                 pos1++; *pos1 = 0;                              <span class="comment">// cut after &#39;[&#39;</span>
 <a name="l02650"></a>02650                                 strcat(inst,var-&gt;GetName());    <span class="comment">// add var name</span>
 <a name="l02651"></a>02651                                 strcat(inst,temp);                              <span class="comment">// add end</span>
-<a name="l02652"></a>02652                         };
-<a name="l02653"></a>02653                 };
+<a name="l02652"></a>02652                         }
+<a name="l02653"></a>02653                 }
 <a name="l02654"></a>02654                 <span class="comment">// show descriptor info, if available</span>
 <a name="l02655"></a>02655                 <span class="keywordflow">if</span> ((cpu.pmode) &amp;&amp; saveSelector) {
 <a name="l02656"></a>02656                         strcpy(curSelectorName,prefix);
-<a name="l02657"></a>02657                 };
-<a name="l02658"></a>02658         };
+<a name="l02657"></a>02657                 }
+<a name="l02658"></a>02658         }
 <a name="l02659"></a>02659         <span class="comment">// If it is a callback add additional info</span>
 <a name="l02660"></a>02660         pos = strstr(inst,<span class="stringliteral">&quot;callback&quot;</span>);
 <a name="l02661"></a>02661         <span class="keywordflow">if</span> (pos) {
@@ -2762,7 +2762,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02665"></a>02665                 <span class="keywordflow">if</span> (descr) {
 <a name="l02666"></a>02666                         strcat(inst,<span class="stringliteral">&quot;  (&quot;</span>); strcat(inst,descr); strcat(inst,<span class="stringliteral">&quot;)&quot;</span>);
 <a name="l02667"></a>02667                 }
-<a name="l02668"></a>02668         };
+<a name="l02668"></a>02668         }
 <a name="l02669"></a>02669         <span class="comment">// Must be a jump</span>
 <a name="l02670"></a>02670         <span class="keywordflow">if</span> (instu[0] == <span class="charliteral">&#39;J&#39;</span>)
 <a name="l02671"></a>02671         {
@@ -3818,7 +3818,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03721"></a>03721         <span class="keywordflow">case</span> TAG_Zero:  <span class="keywordflow">return</span> <span class="stringliteral">&quot;Zero&quot;</span>;
 <a name="l03722"></a>03722         <span class="keywordflow">case</span> TAG_Weird: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Weird&quot;</span>;
 <a name="l03723"></a>03723         <span class="keywordflow">case</span> TAG_Empty: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Empty&quot;</span>;
-<a name="l03724"></a>03724     };
+<a name="l03724"></a>03724     }
 <a name="l03725"></a>03725 
 <a name="l03726"></a>03726     <span class="keywordflow">return</span> <span class="stringliteral">&quot;?&quot;</span>;
 <a name="l03727"></a>03727 }
@@ -3895,7 +3895,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03798"></a>03798                 <span class="keywordflow">if</span> (!res || !(*res)) res = empty;
 <a name="l03799"></a>03799                 Bitu reslen = strlen(res);
 <a name="l03800"></a>03800                 <span class="keywordflow">if</span> (reslen&lt;22) <span class="keywordflow">for</span> (Bitu i=0; i&lt;22-reslen; i++) res[reslen+i] = <span class="charliteral">&#39; &#39;</span>; res[22] = 0;
-<a name="l03801"></a>03801         };
+<a name="l03801"></a>03801         }
 <a name="l03802"></a>03802         Bitu len = strlen(dline);
 <a name="l03803"></a>03803         <span class="keywordflow">if</span> (len&lt;30) <span class="keywordflow">for</span> (Bitu i=0; i&lt;30-len; i++) dline[len + i] = <span class="charliteral">&#39; &#39;</span>; dline[30] = 0;
 <a name="l03804"></a>03804 
@@ -4186,7 +4186,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l04089"></a>04089                 <span class="comment">// adr</span>
 <a name="l04090"></a>04090                 PhysPt adr = bp-&gt;GetAdr();
 <a name="l04091"></a>04091                 fwrite(&amp;adr,1,<span class="keyword">sizeof</span>(adr),f);
-<a name="l04092"></a>04092         };
+<a name="l04092"></a>04092         }
 <a name="l04093"></a>04093         fclose(f);
 <a name="l04094"></a>04094         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l04095"></a>04095 }
@@ -4209,7 +4209,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l04112"></a>04112                 <span class="keywordflow">if</span> (fread(&amp;adr,<span class="keyword">sizeof</span>(adr),1,f) != 1) <span class="keywordflow">break</span>;
 <a name="l04113"></a>04113                 <span class="comment">// insert</span>
 <a name="l04114"></a>04114                 InsertVariable(name,adr);
-<a name="l04115"></a>04115         };
+<a name="l04115"></a>04115         }
 <a name="l04116"></a>04116         fclose(f);
 <a name="l04117"></a>04117         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l04118"></a>04118 }
@@ -4309,7 +4309,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l04212"></a>04212                         varchanges = <span class="keyword">true</span>;
 <a name="l04213"></a>04213                 } <span class="keywordflow">else</span> {
 <a name="l04214"></a>04214                         <span class="keywordflow">if</span> ( dv-&gt;HasValue() &amp;&amp; dv-&gt;GetValue() == value) {
-<a name="l04215"></a>04215                                 ; <span class="comment">//It already had a value and it didn&#39;t change (most likely case)</span>
+<a name="l04215"></a>04215                                 <span class="comment">//It already had a value and it didn&#39;t change (most likely case)</span>
 <a name="l04216"></a>04216                         } <span class="keywordflow">else</span> {
 <a name="l04217"></a>04217                                 dv-&gt;SetValue(<span class="keyword">true</span>,value);
 <a name="l04218"></a>04218                                 snprintf(buffer,DEBUG_VAR_BUF_LEN, <span class="stringliteral">&quot;0x%04x&quot;</span>, value);
@@ -4379,7 +4379,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l04282"></a>04282                 <span class="keywordflow">if</span> (!res || !(*res)) res = empty;
 <a name="l04283"></a>04283                 Bitu reslen = strlen(res);
 <a name="l04284"></a>04284                 <span class="keywordflow">if</span> (reslen&lt;22) <span class="keywordflow">for</span> (Bitu i=0; i&lt;22-reslen; i++) res[reslen+i] = <span class="charliteral">&#39; &#39;</span>; res[22] = 0;
-<a name="l04285"></a>04285         };
+<a name="l04285"></a>04285         }
 <a name="l04286"></a>04286 
 <a name="l04287"></a>04287         Bitu len = strlen(dline);
 <a name="l04288"></a>04288         <span class="keywordflow">if</span> (len &lt; 30) <span class="keywordflow">for</span> (Bitu i=0; i &lt; 30-len; i++) dline[len+i] = <span class="charliteral">&#39; &#39;</span>;
@@ -4510,7 +4510,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:50 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

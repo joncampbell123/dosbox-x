@@ -451,7 +451,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00356"></a>00356     BX_PANIC((<span class="stringliteral">&quot;unaligned chipmem word read&quot;</span>));
 <a name="l00357"></a>00357 
 <a name="l00358"></a>00358   <span class="comment">// ROM&#39;d MAC address</span>
-<a name="l00359"></a>00359   <span class="keywordflow">if</span> (<span class="comment">/*(address &gt;=0) &amp;&amp; */</span>(address &lt;= 31)) {
+<a name="l00359"></a>00359   <span class="keywordflow">if</span> (<span class="comment">/*(address &gt;=0) &amp;&amp; */</span>address &lt;= 31) {
 <a name="l00360"></a>00360     retval = BX_NE2K_THIS s.macaddr[address];
 <a name="l00361"></a>00361     <span class="keywordflow">if</span> ((io_len == 2u) || (io_len == 4u)) {
 <a name="l00362"></a>00362       retval |= (<span class="keywordtype">unsigned</span> int)(BX_NE2K_THIS s.macaddr[address + 1u] &lt;&lt; 8u);
@@ -1841,7 +1841,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

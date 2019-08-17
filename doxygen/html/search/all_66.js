@@ -18,7 +18,7 @@ var searchData=
   ['floppydevice',['FloppyDevice',['../classFloppyDevice.html',1,'']]],
   ['focuschanged',['focusChanged',['../classGUI_1_1Window.html#a3b22f685994ee18bdbf3b2b5ff6cc27c',1,'GUI::Window::focusChanged()'],['../classGUI_1_1TransientWindow.html#a233608f207df9a452281145e1086d31c',1,'GUI::TransientWindow::focusChanged()']]],
   ['font',['Font',['../classGUI_1_1Font.html',1,'GUI']]],
-  ['font',['font',['../classGUI_1_1Drawable.html#a4abfb3277538fc4f75b21aa15af748a1',1,'GUI::Drawable::font()'],['../classGUI_1_1Font.html#a34f6148432a4a9aae6861d7dc15e4322',1,'GUI::Font::Font()']]],
+  ['font',['Font',['../classGUI_1_1Font.html#a34f6148432a4a9aae6861d7dc15e4322',1,'GUI::Font::Font()'],['../classGUI_1_1Drawable.html#a4abfb3277538fc4f75b21aa15af748a1',1,'GUI::Drawable::font()']]],
   ['fpu_5fp_5freg',['FPU_P_Reg',['../structFPU__P__Reg.html',1,'']]],
   ['fpu_5frec',['FPU_rec',['../structFPU__rec.html',1,'']]],
   ['fpu_5freg',['FPU_Reg',['../unionFPU__Reg.html',1,'']]],

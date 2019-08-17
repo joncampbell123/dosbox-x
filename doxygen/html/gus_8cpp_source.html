@@ -365,7 +365,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00268"></a>00268         }
 <a name="l00269"></a>00269         <span class="keywordtype">void</span> WritePanPot(Bit8u val) {
 <a name="l00270"></a>00270                 PanPot = val;
-<a name="l00271"></a>00271                 PanLeft = pantable[(val &amp; 0xf)];
+<a name="l00271"></a>00271                 PanLeft = pantable[val &amp; 0xf];
 <a name="l00272"></a>00272                 PanRight = pantable[0x0f-(val &amp; 0xf)];
 <a name="l00273"></a>00273                 UpdateVolumes();
 <a name="l00274"></a>00274         }
@@ -464,7 +464,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00367"></a>00367                                 }
 <a name="l00368"></a>00368                         }
 <a name="l00369"></a>00369                 }
-<a name="l00370"></a>00370                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((WaveCtrl &amp; 0x20)<span class="comment">/*IRQ enabled*/</span>) {
+<a name="l00370"></a>00370                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (WaveCtrl &amp; 0x20<span class="comment">/*IRQ enabled*/</span>) {
 <a name="l00371"></a>00371                         <span class="comment">/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs</span>
 <a name="l00372"></a>00372 <span class="comment">                         * if IRQ enabled and current position &lt;= start position OR current position &gt;= end position */</span>
 <a name="l00373"></a>00373                         <span class="keywordflow">if</span> (WaveCtrl &amp; 0x40<span class="comment">/*backwards (direction)*/</span>)
@@ -806,7 +806,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00709"></a>00709                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0300;
 <a name="l00710"></a>00710         <span class="keywordflow">case</span> 0x81:  <span class="comment">// Channel frequency control register</span>
 <a name="l00711"></a>00711                 <span class="keywordflow">if</span>(curchan) <span class="keywordflow">return</span> (Bit16u)(curchan-&gt;WaveFreq);
-<a name="l00712"></a>00712                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0000;;
+<a name="l00712"></a>00712                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0000;
 <a name="l00713"></a>00713         <span class="keywordflow">case</span> 0x82: <span class="comment">// Channel MSB start address register</span>
 <a name="l00714"></a>00714                 <span class="keywordflow">if</span> (curchan) <span class="keywordflow">return</span> (Bit16u)(curchan-&gt;WaveStart &gt;&gt; (WAVE_BITS+16));
 <a name="l00715"></a>00715                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> 0x0000;
@@ -1135,7 +1135,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01038"></a>01038                         <span class="keywordflow">case</span> 3: <span class="keywordflow">return</span> <span class="stringliteral">&quot;GF1 out&quot;</span>;
 <a name="l01039"></a>01039                         <span class="keywordflow">case</span> 4: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Pair 5, unused&quot;</span>;
 <a name="l01040"></a>01040                         <span class="keywordflow">case</span> 5: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Master output&quot;</span>;
-<a name="l01041"></a>01041                 };
+<a name="l01041"></a>01041                 }
 <a name="l01042"></a>01042 
 <a name="l01043"></a>01043                 <span class="keywordflow">return</span> <span class="stringliteral">&quot;?&quot;</span>;
 <a name="l01044"></a>01044         }
@@ -1147,7 +1147,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01050"></a>01050                         <span class="keywordflow">case</span> 3: <span class="keywordflow">return</span> <span class="stringliteral">&quot;Attenuator Right&quot;</span>;      <span class="comment">// 011</span>
 <a name="l01051"></a>01051                         <span class="keywordflow">case</span> 4: <span class="keywordflow">case</span> 5:                         <span class="comment">// 10x</span>
 <a name="l01052"></a>01052                                 <span class="keywordflow">return</span> <span class="stringliteral">&quot;Pan/Balance&quot;</span>;
-<a name="l01053"></a>01053                 };
+<a name="l01053"></a>01053                 }
 <a name="l01054"></a>01054 
 <a name="l01055"></a>01055                 <span class="keywordflow">return</span> <span class="stringliteral">&quot;?&quot;</span>;
 <a name="l01056"></a>01056         }
@@ -2530,7 +2530,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -199,7 +199,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00102"></a>00102 
 <a name="l00103"></a>00103 <span class="keyword">namespace </span>NukedOPL {
 <a name="l00104"></a><a class="code" href="structNukedOPL_1_1Handler.html">00104</a>         <span class="keyword">struct </span><a class="code" href="structNukedOPL_1_1Handler.html">Handler</a> : <span class="keyword">public</span> <a class="code" href="classAdlib_1_1Handler.html">Adlib::Handler</a> {
-<a name="l00105"></a>00105                 <a class="code" href="structopl3__chip.html">opl3_chip</a> chip;
+<a name="l00105"></a>00105         <a class="code" href="structopl3__chip.html">opl3_chip</a> chip = {};
 <a name="l00106"></a>00106                 <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg( Bit32u reg, Bit8u val ) {
 <a name="l00107"></a>00107                         OPL3_WriteReg(&amp;chip, reg, val);
 <a name="l00108"></a>00108                 }
@@ -231,7 +231,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00134"></a>00134 <span class="keyword">namespace </span>MAMEOPL2 {
 <a name="l00135"></a>00135 
 <a name="l00136"></a><a class="code" href="structMAMEOPL2_1_1Handler.html">00136</a> <span class="keyword">struct </span><a class="code" href="structMAMEOPL2_1_1Handler.html">Handler</a> : <span class="keyword">public</span> <a class="code" href="classAdlib_1_1Handler.html">Adlib::Handler</a> {
-<a name="l00137"></a>00137         <span class="keywordtype">void</span>* chip;
+<a name="l00137"></a>00137         <span class="keywordtype">void</span>* chip = NULL;
 <a name="l00138"></a>00138 
 <a name="l00139"></a>00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg(Bit32u reg, Bit8u val) {
 <a name="l00140"></a>00140                 ym3812_write(chip, 0, (<span class="keywordtype">int</span>)reg);
@@ -263,7 +263,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00166"></a>00166 <span class="keyword">namespace </span>MAMEOPL3 {
 <a name="l00167"></a>00167 
 <a name="l00168"></a><a class="code" href="structMAMEOPL3_1_1Handler.html">00168</a> <span class="keyword">struct </span><a class="code" href="structMAMEOPL3_1_1Handler.html">Handler</a> : <span class="keyword">public</span> <a class="code" href="classAdlib_1_1Handler.html">Adlib::Handler</a> {
-<a name="l00169"></a>00169         <span class="keywordtype">void</span>* chip;
+<a name="l00169"></a>00169         <span class="keywordtype">void</span>* chip = NULL;
 <a name="l00170"></a>00170 
 <a name="l00171"></a>00171         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg(Bit32u reg, Bit8u val) {
 <a name="l00172"></a>00172                 ymf262_write(chip, 0, (<span class="keywordtype">int</span>)reg);
@@ -951,159 +951,163 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00854"></a>00854 Module::Module( <a class="code" href="classSection.html">Section</a>* configuration ) : <a class="code" href="classModule__base.html">Module_base</a>(configuration) {
 <a name="l00855"></a>00855     Bitu sb_addr=0,sb_irq=0,sb_dma=0;
 <a name="l00856"></a>00856         <a class="code" href="classDOSBoxMenu_1_1item.html">DOSBoxMenu::item</a> *item;
-<a name="l00857"></a>00857 
-<a name="l00858"></a>00858     SB_Get_Address(sb_addr,sb_irq,sb_dma);
-<a name="l00859"></a>00859 
-<a name="l00860"></a>00860     <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; sb_addr == 0) {
-<a name="l00861"></a>00861         LOG_MSG(<span class="stringliteral">&quot;Adlib: Rejected configuration, OPL3 disabled in PC-98 mode&quot;</span>);
-<a name="l00862"></a>00862         <span class="keywordflow">return</span>; <span class="comment">// OPL3 emulation must work alongside SB16 emulation</span>
-<a name="l00863"></a>00863     }
-<a name="l00864"></a>00864 
-<a name="l00865"></a>00865         reg.dual[0] = 0;
-<a name="l00866"></a>00866         reg.dual[1] = 0;
-<a name="l00867"></a>00867         reg.normal = 0;
-<a name="l00868"></a>00868         ctrl.active = <span class="keyword">false</span>;
-<a name="l00869"></a>00869         ctrl.index = 0;
-<a name="l00870"></a>00870         ctrl.lvol = 0xff;
-<a name="l00871"></a>00871         ctrl.rvol = 0xff;
-<a name="l00872"></a>00872         handler = 0;
-<a name="l00873"></a>00873         capture = 0;
-<a name="l00874"></a>00874 
-<a name="l00875"></a>00875         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
-<a name="l00876"></a>00876         Bitu base = (Bitu)section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
-<a name="l00877"></a>00877         Bitu rate = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
-<a name="l00878"></a>00878         <span class="comment">//Make sure we can&#39;t select lower than 8000 to prevent fixed point issues</span>
-<a name="l00879"></a>00879         <span class="keywordflow">if</span> ( rate &lt; 8000 )
-<a name="l00880"></a>00880                 rate = 8000;
-<a name="l00881"></a>00881         std::string oplemu( section-&gt;Get_string( <span class="stringliteral">&quot;oplemu&quot;</span> ) );
-<a name="l00882"></a>00882         ctrl.mixer = section-&gt;Get_bool(<span class="stringliteral">&quot;sbmixer&quot;</span>);
-<a name="l00883"></a>00883 
-<a name="l00884"></a>00884         adlib_force_timer_overflow_on_polling = section-&gt;Get_bool(<span class="stringliteral">&quot;adlib force timer overflow on detect&quot;</span>);
-<a name="l00885"></a>00885 
-<a name="l00886"></a>00886         mixerChan = mixerObject.Install(OPL_CallBack,rate,<span class="stringliteral">&quot;FM&quot;</span>);
-<a name="l00887"></a>00887         <span class="comment">//Used to be 2.0, which was measured to be too high. Exact value depends on card/clone.</span>
-<a name="l00888"></a>00888         mixerChan-&gt;SetScale( 1.5f );  
+<a name="l00857"></a>00857     lastUsed = 0;
+<a name="l00858"></a>00858     mode = MODE_OPL2;
+<a name="l00859"></a>00859     capture = NULL;
+<a name="l00860"></a>00860     handler = NULL;
+<a name="l00861"></a>00861 
+<a name="l00862"></a>00862     SB_Get_Address(sb_addr,sb_irq,sb_dma);
+<a name="l00863"></a>00863 
+<a name="l00864"></a>00864     <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; sb_addr == 0) {
+<a name="l00865"></a>00865         LOG_MSG(<span class="stringliteral">&quot;Adlib: Rejected configuration, OPL3 disabled in PC-98 mode&quot;</span>);
+<a name="l00866"></a>00866         <span class="keywordflow">return</span>; <span class="comment">// OPL3 emulation must work alongside SB16 emulation</span>
+<a name="l00867"></a>00867     }
+<a name="l00868"></a>00868 
+<a name="l00869"></a>00869         reg.dual[0] = 0;
+<a name="l00870"></a>00870         reg.dual[1] = 0;
+<a name="l00871"></a>00871         reg.normal = 0;
+<a name="l00872"></a>00872         ctrl.active = <span class="keyword">false</span>;
+<a name="l00873"></a>00873         ctrl.index = 0;
+<a name="l00874"></a>00874         ctrl.lvol = 0xff;
+<a name="l00875"></a>00875         ctrl.rvol = 0xff;
+<a name="l00876"></a>00876         handler = 0;
+<a name="l00877"></a>00877         capture = 0;
+<a name="l00878"></a>00878 
+<a name="l00879"></a>00879         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
+<a name="l00880"></a>00880         Bitu base = (Bitu)section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
+<a name="l00881"></a>00881         Bitu rate = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
+<a name="l00882"></a>00882         <span class="comment">//Make sure we can&#39;t select lower than 8000 to prevent fixed point issues</span>
+<a name="l00883"></a>00883         <span class="keywordflow">if</span> ( rate &lt; 8000 )
+<a name="l00884"></a>00884                 rate = 8000;
+<a name="l00885"></a>00885         std::string oplemu( section-&gt;Get_string( <span class="stringliteral">&quot;oplemu&quot;</span> ) );
+<a name="l00886"></a>00886         ctrl.mixer = section-&gt;Get_bool(<span class="stringliteral">&quot;sbmixer&quot;</span>);
+<a name="l00887"></a>00887 
+<a name="l00888"></a>00888         adlib_force_timer_overflow_on_polling = section-&gt;Get_bool(<span class="stringliteral">&quot;adlib force timer overflow on detect&quot;</span>);
 <a name="l00889"></a>00889 
-<a name="l00890"></a>00890         <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;fast&quot;</span>) {
-<a name="l00891"></a>00891                 handler = <span class="keyword">new</span> <a class="code" href="structDBOPL_1_1Handler.html">DBOPL::Handler</a>();
-<a name="l00892"></a>00892         }
-<a name="l00893"></a>00893         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;compat&quot;</span>) {
-<a name="l00894"></a>00894                 <span class="keywordflow">if</span> (oplmode == OPL_opl2) {
-<a name="l00895"></a>00895                         handler = <span class="keyword">new</span> <a class="code" href="structOPL2_1_1Handler.html">OPL2::Handler</a>();
-<a name="l00896"></a>00896                 }
-<a name="l00897"></a>00897                 <span class="keywordflow">else</span> {
-<a name="l00898"></a>00898                         handler = <span class="keyword">new</span> OPL3::Handler();
-<a name="l00899"></a>00899                 }
-<a name="l00900"></a>00900         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;nuked&quot;</span>) {
-<a name="l00901"></a>00901                 handler = <span class="keyword">new</span> <a class="code" href="structNukedOPL_1_1Handler.html">NukedOPL::Handler</a>();
-<a name="l00902"></a>00902         }
-<a name="l00903"></a>00903         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;mame&quot;</span>) {
-<a name="l00904"></a>00904                 <span class="keywordflow">if</span> (oplmode == OPL_opl2) {
-<a name="l00905"></a>00905                         handler = <span class="keyword">new</span> <a class="code" href="structMAMEOPL2_1_1Handler.html">MAMEOPL2::Handler</a>();
-<a name="l00906"></a>00906                 }
-<a name="l00907"></a>00907                 <span class="keywordflow">else</span> {
-<a name="l00908"></a>00908                         handler = <span class="keyword">new</span> <a class="code" href="structMAMEOPL3_1_1Handler.html">MAMEOPL3::Handler</a>();
-<a name="l00909"></a>00909                 }
-<a name="l00910"></a>00910         } <span class="keywordflow">else</span> {
-<a name="l00911"></a>00911                 handler = <span class="keyword">new</span> <a class="code" href="structDBOPL_1_1Handler.html">DBOPL::Handler</a>();
-<a name="l00912"></a>00912         }
-<a name="l00913"></a>00913         handler-&gt;Init( rate );
-<a name="l00914"></a>00914         <span class="keywordtype">bool</span> single = <span class="keyword">false</span>;
-<a name="l00915"></a>00915         <span class="keywordflow">switch</span> ( oplmode ) {
-<a name="l00916"></a>00916         <span class="keywordflow">case</span> OPL_opl2:
-<a name="l00917"></a>00917                 single = <span class="keyword">true</span>;
-<a name="l00918"></a>00918                 Init( Adlib::MODE_OPL2 );
-<a name="l00919"></a>00919                 <span class="keywordflow">break</span>;
-<a name="l00920"></a>00920         <span class="keywordflow">case</span> OPL_dualopl2:
-<a name="l00921"></a>00921                 Init( Adlib::MODE_DUALOPL2 );
-<a name="l00922"></a>00922                 <span class="keywordflow">break</span>;
-<a name="l00923"></a>00923         <span class="keywordflow">case</span> OPL_opl3:
-<a name="l00924"></a>00924                 Init( Adlib::MODE_OPL3 );
-<a name="l00925"></a>00925                 <span class="keywordflow">break</span>;
-<a name="l00926"></a>00926         <span class="keywordflow">case</span> OPL_opl3gold:
-<a name="l00927"></a>00927                 Init( Adlib::MODE_OPL3GOLD );
-<a name="l00928"></a>00928                 <span class="keywordflow">break</span>;
-<a name="l00929"></a>00929         <span class="keywordflow">default</span>:
-<a name="l00930"></a>00930                 <span class="keywordflow">break</span>;
-<a name="l00931"></a>00931         }
-<a name="l00932"></a>00932 
-<a name="l00933"></a>00933     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00934"></a>00934         <span class="comment">/* needs to match the low 8 bits */</span>
-<a name="l00935"></a>00935         assert(sb_addr != 0);
+<a name="l00890"></a>00890         mixerChan = mixerObject.Install(OPL_CallBack,rate,<span class="stringliteral">&quot;FM&quot;</span>);
+<a name="l00891"></a>00891         <span class="comment">//Used to be 2.0, which was measured to be too high. Exact value depends on card/clone.</span>
+<a name="l00892"></a>00892         mixerChan-&gt;SetScale( 1.5f );  
+<a name="l00893"></a>00893 
+<a name="l00894"></a>00894         <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;fast&quot;</span>) {
+<a name="l00895"></a>00895                 handler = <span class="keyword">new</span> <a class="code" href="structDBOPL_1_1Handler.html">DBOPL::Handler</a>();
+<a name="l00896"></a>00896         }
+<a name="l00897"></a>00897         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;compat&quot;</span>) {
+<a name="l00898"></a>00898                 <span class="keywordflow">if</span> (oplmode == OPL_opl2) {
+<a name="l00899"></a>00899                         handler = <span class="keyword">new</span> <a class="code" href="structOPL2_1_1Handler.html">OPL2::Handler</a>();
+<a name="l00900"></a>00900                 }
+<a name="l00901"></a>00901                 <span class="keywordflow">else</span> {
+<a name="l00902"></a>00902                         handler = <span class="keyword">new</span> OPL3::Handler();
+<a name="l00903"></a>00903                 }
+<a name="l00904"></a>00904         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;nuked&quot;</span>) {
+<a name="l00905"></a>00905                 handler = <span class="keyword">new</span> <a class="code" href="structNukedOPL_1_1Handler.html">NukedOPL::Handler</a>();
+<a name="l00906"></a>00906         }
+<a name="l00907"></a>00907         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (oplemu == <span class="stringliteral">&quot;mame&quot;</span>) {
+<a name="l00908"></a>00908                 <span class="keywordflow">if</span> (oplmode == OPL_opl2) {
+<a name="l00909"></a>00909                         handler = <span class="keyword">new</span> <a class="code" href="structMAMEOPL2_1_1Handler.html">MAMEOPL2::Handler</a>();
+<a name="l00910"></a>00910                 }
+<a name="l00911"></a>00911                 <span class="keywordflow">else</span> {
+<a name="l00912"></a>00912                         handler = <span class="keyword">new</span> <a class="code" href="structMAMEOPL3_1_1Handler.html">MAMEOPL3::Handler</a>();
+<a name="l00913"></a>00913                 }
+<a name="l00914"></a>00914         } <span class="keywordflow">else</span> {
+<a name="l00915"></a>00915                 handler = <span class="keyword">new</span> <a class="code" href="structDBOPL_1_1Handler.html">DBOPL::Handler</a>();
+<a name="l00916"></a>00916         }
+<a name="l00917"></a>00917         handler-&gt;Init( rate );
+<a name="l00918"></a>00918         <span class="keywordtype">bool</span> single = <span class="keyword">false</span>;
+<a name="l00919"></a>00919         <span class="keywordflow">switch</span> ( oplmode ) {
+<a name="l00920"></a>00920         <span class="keywordflow">case</span> OPL_opl2:
+<a name="l00921"></a>00921                 single = <span class="keyword">true</span>;
+<a name="l00922"></a>00922                 Init( Adlib::MODE_OPL2 );
+<a name="l00923"></a>00923                 <span class="keywordflow">break</span>;
+<a name="l00924"></a>00924         <span class="keywordflow">case</span> OPL_dualopl2:
+<a name="l00925"></a>00925                 Init( Adlib::MODE_DUALOPL2 );
+<a name="l00926"></a>00926                 <span class="keywordflow">break</span>;
+<a name="l00927"></a>00927         <span class="keywordflow">case</span> OPL_opl3:
+<a name="l00928"></a>00928                 Init( Adlib::MODE_OPL3 );
+<a name="l00929"></a>00929                 <span class="keywordflow">break</span>;
+<a name="l00930"></a>00930         <span class="keywordflow">case</span> OPL_opl3gold:
+<a name="l00931"></a>00931                 Init( Adlib::MODE_OPL3GOLD );
+<a name="l00932"></a>00932                 <span class="keywordflow">break</span>;
+<a name="l00933"></a>00933         <span class="keywordflow">default</span>:
+<a name="l00934"></a>00934                 <span class="keywordflow">break</span>;
+<a name="l00935"></a>00935         }
 <a name="l00936"></a>00936 
-<a name="l00937"></a>00937         <span class="comment">//0xC8XX range (ex. C8D2)</span>
-<a name="l00938"></a>00938         WriteHandler[0].Install(sb_addr+0xC800,OPL_Write,IO_MB, 1 );
-<a name="l00939"></a>00939         ReadHandler[0].Install(sb_addr+0xC800,OPL_Read,IO_MB, 1 );
-<a name="l00940"></a>00940         WriteHandler[1].Install(sb_addr+0xC900,OPL_Write,IO_MB, 1 );
-<a name="l00941"></a>00941         ReadHandler[1].Install(sb_addr+0xC900,OPL_Read,IO_MB, 1 );
-<a name="l00942"></a>00942         WriteHandler[2].Install(sb_addr+0xCA00,OPL_Write,IO_MB, 1 );
-<a name="l00943"></a>00943         ReadHandler[2].Install(sb_addr+0xCA00,OPL_Read,IO_MB, 1 );
-<a name="l00944"></a>00944         WriteHandler[3].Install(sb_addr+0xCB00,OPL_Write,IO_MB, 1 );
-<a name="l00945"></a>00945         ReadHandler[3].Install(sb_addr+0xCB00,OPL_Read,IO_MB, 1 );
-<a name="l00946"></a>00946         <span class="comment">//0x20XX range (ex. 20D2)</span>
-<a name="l00947"></a>00947         WriteHandler[4].Install(sb_addr+0x2000,OPL_Write,IO_MB, 1 );
-<a name="l00948"></a>00948         ReadHandler[4].Install(sb_addr+0x2000,OPL_Read,IO_MB, 1 );
-<a name="l00949"></a>00949         WriteHandler[5].Install(sb_addr+0x2100,OPL_Write,IO_MB, 1 );
-<a name="l00950"></a>00950         ReadHandler[5].Install(sb_addr+0x2100,OPL_Read,IO_MB, 1 );
-<a name="l00951"></a>00951         WriteHandler[6].Install(sb_addr+0x2200,OPL_Write,IO_MB, 1 );
-<a name="l00952"></a>00952         ReadHandler[6].Install(sb_addr+0x2200,OPL_Read,IO_MB, 1 );
-<a name="l00953"></a>00953         WriteHandler[7].Install(sb_addr+0x2300,OPL_Write,IO_MB, 1 );
-<a name="l00954"></a>00954         ReadHandler[7].Install(sb_addr+0x2300,OPL_Read,IO_MB, 1 );
-<a name="l00955"></a>00955         <span class="comment">//0x28XX range (ex. 28D2)</span>
-<a name="l00956"></a>00956         WriteHandler[8].Install(sb_addr+0x2800,OPL_Write,IO_MB, 1 );
-<a name="l00957"></a>00957         ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
-<a name="l00958"></a>00958         WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
-<a name="l00959"></a>00959 <span class="comment">//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );</span>
-<a name="l00960"></a>00960     }
-<a name="l00961"></a>00961     <span class="keywordflow">else</span> {
-<a name="l00962"></a>00962         <span class="comment">//0x388 range</span>
-<a name="l00963"></a>00963         WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
-<a name="l00964"></a>00964         ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
-<a name="l00965"></a>00965         <span class="comment">//0x220 range</span>
-<a name="l00966"></a>00966         <span class="keywordflow">if</span> ( !single ) {
-<a name="l00967"></a>00967             WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
-<a name="l00968"></a>00968             ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
-<a name="l00969"></a>00969         }
-<a name="l00970"></a>00970         <span class="comment">//0x228 range</span>
-<a name="l00971"></a>00971         WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
-<a name="l00972"></a>00972         ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
-<a name="l00973"></a>00973     }
-<a name="l00974"></a>00974 
-<a name="l00975"></a>00975         MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,<span class="stringliteral">&quot;caprawopl&quot;</span>,<span class="stringliteral">&quot;Cap OPL&quot;</span>,&amp;item);
-<a name="l00976"></a>00976         item-&gt;set_text(<span class="stringliteral">&quot;Record FM (OPL) output&quot;</span>);
-<a name="l00977"></a>00977 }
+<a name="l00937"></a>00937     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00938"></a>00938         <span class="comment">/* needs to match the low 8 bits */</span>
+<a name="l00939"></a>00939         assert(sb_addr != 0);
+<a name="l00940"></a>00940 
+<a name="l00941"></a>00941         <span class="comment">//0xC8XX range (ex. C8D2)</span>
+<a name="l00942"></a>00942         WriteHandler[0].Install(sb_addr+0xC800,OPL_Write,IO_MB, 1 );
+<a name="l00943"></a>00943         ReadHandler[0].Install(sb_addr+0xC800,OPL_Read,IO_MB, 1 );
+<a name="l00944"></a>00944         WriteHandler[1].Install(sb_addr+0xC900,OPL_Write,IO_MB, 1 );
+<a name="l00945"></a>00945         ReadHandler[1].Install(sb_addr+0xC900,OPL_Read,IO_MB, 1 );
+<a name="l00946"></a>00946         WriteHandler[2].Install(sb_addr+0xCA00,OPL_Write,IO_MB, 1 );
+<a name="l00947"></a>00947         ReadHandler[2].Install(sb_addr+0xCA00,OPL_Read,IO_MB, 1 );
+<a name="l00948"></a>00948         WriteHandler[3].Install(sb_addr+0xCB00,OPL_Write,IO_MB, 1 );
+<a name="l00949"></a>00949         ReadHandler[3].Install(sb_addr+0xCB00,OPL_Read,IO_MB, 1 );
+<a name="l00950"></a>00950         <span class="comment">//0x20XX range (ex. 20D2)</span>
+<a name="l00951"></a>00951         WriteHandler[4].Install(sb_addr+0x2000,OPL_Write,IO_MB, 1 );
+<a name="l00952"></a>00952         ReadHandler[4].Install(sb_addr+0x2000,OPL_Read,IO_MB, 1 );
+<a name="l00953"></a>00953         WriteHandler[5].Install(sb_addr+0x2100,OPL_Write,IO_MB, 1 );
+<a name="l00954"></a>00954         ReadHandler[5].Install(sb_addr+0x2100,OPL_Read,IO_MB, 1 );
+<a name="l00955"></a>00955         WriteHandler[6].Install(sb_addr+0x2200,OPL_Write,IO_MB, 1 );
+<a name="l00956"></a>00956         ReadHandler[6].Install(sb_addr+0x2200,OPL_Read,IO_MB, 1 );
+<a name="l00957"></a>00957         WriteHandler[7].Install(sb_addr+0x2300,OPL_Write,IO_MB, 1 );
+<a name="l00958"></a>00958         ReadHandler[7].Install(sb_addr+0x2300,OPL_Read,IO_MB, 1 );
+<a name="l00959"></a>00959         <span class="comment">//0x28XX range (ex. 28D2)</span>
+<a name="l00960"></a>00960         WriteHandler[8].Install(sb_addr+0x2800,OPL_Write,IO_MB, 1 );
+<a name="l00961"></a>00961         ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
+<a name="l00962"></a>00962         WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
+<a name="l00963"></a>00963 <span class="comment">//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );</span>
+<a name="l00964"></a>00964     }
+<a name="l00965"></a>00965     <span class="keywordflow">else</span> {
+<a name="l00966"></a>00966         <span class="comment">//0x388 range</span>
+<a name="l00967"></a>00967         WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
+<a name="l00968"></a>00968         ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
+<a name="l00969"></a>00969         <span class="comment">//0x220 range</span>
+<a name="l00970"></a>00970         <span class="keywordflow">if</span> ( !single ) {
+<a name="l00971"></a>00971             WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
+<a name="l00972"></a>00972             ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
+<a name="l00973"></a>00973         }
+<a name="l00974"></a>00974         <span class="comment">//0x228 range</span>
+<a name="l00975"></a>00975         WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
+<a name="l00976"></a>00976         ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
+<a name="l00977"></a>00977     }
 <a name="l00978"></a>00978 
-<a name="l00979"></a>00979 Module::~Module() {
-<a name="l00980"></a>00980         <span class="keywordflow">if</span> ( capture ) {
-<a name="l00981"></a>00981                 <span class="keyword">delete</span> capture;
-<a name="l00982"></a>00982         }
-<a name="l00983"></a>00983         <span class="keywordflow">if</span> ( handler ) {
-<a name="l00984"></a>00984                 <span class="keyword">delete</span> handler;
-<a name="l00985"></a>00985         }
-<a name="l00986"></a>00986 }
-<a name="l00987"></a>00987 
-<a name="l00988"></a>00988 <span class="comment">//Initialize static members</span>
-<a name="l00989"></a>00989 OPL_Mode Module::oplmode=OPL_none;
-<a name="l00990"></a>00990 
-<a name="l00991"></a>00991 }       <span class="comment">//Adlib Namespace</span>
-<a name="l00992"></a>00992 
-<a name="l00993"></a>00993 
-<a name="l00994"></a>00994 <span class="keywordtype">void</span> OPL_Init(<a class="code" href="classSection.html">Section</a>* sec,OPL_Mode oplmode) {
-<a name="l00995"></a>00995         Adlib::Module::oplmode = oplmode;
-<a name="l00996"></a>00996         module = <span class="keyword">new</span> <a class="code" href="classAdlib_1_1Module.html">Adlib::Module</a>( sec );
-<a name="l00997"></a>00997 }
-<a name="l00998"></a>00998 
-<a name="l00999"></a>00999 <span class="keywordtype">void</span> OPL_ShutDown(<a class="code" href="classSection.html">Section</a>* sec){
-<a name="l01000"></a>01000     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01001"></a>01001         <span class="keyword">delete</span> module;
-<a name="l01002"></a>01002         module = 0;
-<a name="l01003"></a>01003 }
-<a name="l01004"></a>01004 
+<a name="l00979"></a>00979         MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,<span class="stringliteral">&quot;caprawopl&quot;</span>,<span class="stringliteral">&quot;Cap OPL&quot;</span>,&amp;item);
+<a name="l00980"></a>00980         item-&gt;set_text(<span class="stringliteral">&quot;Record FM (OPL) output&quot;</span>);
+<a name="l00981"></a>00981 }
+<a name="l00982"></a>00982 
+<a name="l00983"></a>00983 Module::~Module() {
+<a name="l00984"></a>00984         <span class="keywordflow">if</span> ( capture ) {
+<a name="l00985"></a>00985                 <span class="keyword">delete</span> capture;
+<a name="l00986"></a>00986         }
+<a name="l00987"></a>00987         <span class="keywordflow">if</span> ( handler ) {
+<a name="l00988"></a>00988                 <span class="keyword">delete</span> handler;
+<a name="l00989"></a>00989         }
+<a name="l00990"></a>00990 }
+<a name="l00991"></a>00991 
+<a name="l00992"></a>00992 <span class="comment">//Initialize static members</span>
+<a name="l00993"></a>00993 OPL_Mode Module::oplmode=OPL_none;
+<a name="l00994"></a>00994 
+<a name="l00995"></a>00995 }       <span class="comment">//Adlib Namespace</span>
+<a name="l00996"></a>00996 
+<a name="l00997"></a>00997 
+<a name="l00998"></a>00998 <span class="keywordtype">void</span> OPL_Init(<a class="code" href="classSection.html">Section</a>* sec,OPL_Mode oplmode) {
+<a name="l00999"></a>00999         Adlib::Module::oplmode = oplmode;
+<a name="l01000"></a>01000         module = <span class="keyword">new</span> <a class="code" href="classAdlib_1_1Module.html">Adlib::Module</a>( sec );
+<a name="l01001"></a>01001 }
+<a name="l01002"></a>01002 
+<a name="l01003"></a>01003 <span class="keywordtype">void</span> OPL_ShutDown(<a class="code" href="classSection.html">Section</a>* sec){
+<a name="l01004"></a>01004     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01005"></a>01005         <span class="keyword">delete</span> module;
+<a name="l01006"></a>01006         module = 0;
+<a name="l01007"></a>01007 }
+<a name="l01008"></a>01008 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

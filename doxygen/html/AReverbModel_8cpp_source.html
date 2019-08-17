@@ -228,7 +228,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00131"></a>00131         <span class="keywordflow">return</span> bufferOut + 0.5f * buffer[index];
 <a name="l00132"></a>00132 }
 <a name="l00133"></a>00133 
-<a name="l00134"></a>00134 CombFilter::CombFilter(<span class="keyword">const</span> Bit32u useSize) : <a class="code" href="classRingBuffer.html">RingBuffer</a>(useSize) {}
+<a name="l00134"></a>00134 CombFilter::CombFilter(<span class="keyword">const</span> Bit32u useSize) : <a class="code" href="classRingBuffer.html">RingBuffer</a>(useSize), feedbackFactor(0.0F), filterFactor(0.0F) {}
 <a name="l00135"></a>00135 
 <a name="l00136"></a>00136 <span class="keywordtype">void</span> CombFilter::process(<span class="keyword">const</span> <span class="keywordtype">float</span> in) {
 <a name="l00137"></a>00137         <span class="comment">// This model corresponds to the comb filter implementation of the real CM-32L device</span>
@@ -256,7 +256,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00159"></a>00159         filterFactor = useFilterFactor;
 <a name="l00160"></a>00160 }
 <a name="l00161"></a>00161 
-<a name="l00162"></a>00162 AReverbModel::AReverbModel(<span class="keyword">const</span> ReverbMode mode) : allpasses(NULL), combs(NULL), currentSettings(*REVERB_SETTINGS[mode]) {}
+<a name="l00162"></a>00162 AReverbModel::AReverbModel(<span class="keyword">const</span> ReverbMode mode) : allpasses(NULL), combs(NULL), currentSettings(*REVERB_SETTINGS[mode]), lpfAmp(0.0F), wetLevel(0.0F) {}
 <a name="l00163"></a>00163 
 <a name="l00164"></a>00164 AReverbModel::~AReverbModel() {
 <a name="l00165"></a>00165         close();
@@ -376,7 +376,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

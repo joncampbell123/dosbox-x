@@ -1547,7 +1547,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01450"></a>01450         <span class="keywordflow">case</span> 0xBB: <span class="comment">/* Right Channel ADC Offset Adjust */</span>
 <a name="l01451"></a>01451             ESSreg(reg) = data;
 <a name="l01452"></a>01452             <span class="keywordflow">break</span>;
-<a name="l01453"></a>01453     };
+<a name="l01453"></a>01453     }
 <a name="l01454"></a>01454 }
 <a name="l01455"></a>01455 
 <a name="l01456"></a>01456 <span class="keyword">static</span> uint8_t ESS_DoRead(uint8_t reg) {
@@ -1556,7 +1556,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01459"></a>01459     <span class="keywordflow">switch</span> (reg) {
 <a name="l01460"></a>01460         <span class="keywordflow">default</span>:
 <a name="l01461"></a>01461             <span class="keywordflow">return</span> ESSreg(reg);
-<a name="l01462"></a>01462     };
+<a name="l01462"></a>01462     }
 <a name="l01463"></a>01463 
 <a name="l01464"></a>01464     <span class="keywordflow">return</span> 0xFF;
 <a name="l01465"></a>01465 }
@@ -2047,7 +2047,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01950"></a>01950         <span class="keywordflow">break</span>;
 <a name="l01951"></a>01951     <span class="keywordflow">case</span> 0xe8:  <span class="comment">/* Read Test Register */</span>
 <a name="l01952"></a>01952         DSP_FlushData();
-<a name="l01953"></a>01953         DSP_AddData(sb.dsp.test_register);;
+<a name="l01953"></a>01953         DSP_AddData(sb.dsp.test_register);
 <a name="l01954"></a>01954         <span class="keywordflow">break</span>;
 <a name="l01955"></a>01955     <span class="keywordflow">case</span> 0xf2:  <span class="comment">/* Trigger 8bit IRQ */</span>
 <a name="l01956"></a>01956         <span class="comment">//Small delay in order to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D</span>
@@ -2109,7 +2109,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02012"></a>02012             <span class="keywordflow">case</span> 1: sb.hw.dma8 =  0u; <span class="keywordflow">break</span>;
 <a name="l02013"></a>02013             <span class="keywordflow">case</span> 2: sb.hw.dma8 =  1u; <span class="keywordflow">break</span>;
 <a name="l02014"></a>02014             <span class="keywordflow">case</span> 3: sb.hw.dma8 =  3u; <span class="keywordflow">break</span>;
-<a name="l02015"></a>02015         };
+<a name="l02015"></a>02015         }
 <a name="l02016"></a>02016         sb.hw.dma16 = sb.hw.dma8;
 <a name="l02017"></a>02017         <span class="keywordflow">switch</span> ((sb.dsp.in.data[0]&gt;&gt;3)&amp;7) {
 <a name="l02018"></a>02018             <span class="keywordflow">case</span> 0: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
@@ -2120,7 +2120,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02023"></a>02023             <span class="keywordflow">case</span> 5: sb.hw.irq =  5u; <span class="keywordflow">break</span>;
 <a name="l02024"></a>02024             <span class="keywordflow">case</span> 6: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
 <a name="l02025"></a>02025             <span class="keywordflow">case</span> 7: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
-<a name="l02026"></a>02026         };
+<a name="l02026"></a>02026         }
 <a name="l02027"></a>02027         {
 <a name="l02028"></a>02028             <span class="keywordtype">int</span> irq;
 <a name="l02029"></a>02029 
@@ -3213,14 +3213,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03116"></a>03116                         ret = sb.hw.dma16 == 0xFF ? sb.hw.dma8 : sb.hw.dma16;
 <a name="l03117"></a>03117                         <span class="keywordflow">break</span>;
 <a name="l03118"></a>03118 
-<a name="l03119"></a>03119                 };
+<a name="l03119"></a>03119                 }
 <a name="l03120"></a>03120             }
 <a name="l03121"></a>03121             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (logical_device == 1) {
 <a name="l03122"></a>03122                 <span class="keywordflow">switch</span> (addr) {
 <a name="l03123"></a>03123                     <span class="keywordflow">case</span> 0x60: <span class="keywordflow">case</span> 0x61:   <span class="comment">/* I/O [0] gameport */</span>
 <a name="l03124"></a>03124                         ret = 0x200 &gt;&gt; ((addr &amp; 1) ? 0 : 8);
 <a name="l03125"></a>03125                         <span class="keywordflow">break</span>;
-<a name="l03126"></a>03126                 };
+<a name="l03126"></a>03126                 }
 <a name="l03127"></a>03127             }
 <a name="l03128"></a>03128 
 <a name="l03129"></a>03129             <span class="keywordflow">return</span> ret;
@@ -3262,7 +3262,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03165"></a>03165                             sb.hw.dma16 = val &amp; 7;
 <a name="l03166"></a>03166                         <span class="keywordflow">break</span>;
 <a name="l03167"></a>03167 
-<a name="l03168"></a>03168                 };
+<a name="l03168"></a>03168                 }
 <a name="l03169"></a>03169             }
 <a name="l03170"></a>03170             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (logical_device == 1) {
 <a name="l03171"></a>03171                 <span class="keywordflow">switch</span> (addr) {
@@ -3270,7 +3270,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03173"></a>03173                         <span class="comment">/* TODO: on-the-fly changing */</span>
 <a name="l03174"></a>03174                         <span class="comment">//LOG_MSG(&quot;ISA PnP Warning: Gameport I/O port changing not implemented yet\n&quot;);</span>
 <a name="l03175"></a>03175                         <span class="keywordflow">break</span>;
-<a name="l03176"></a>03176                 };
+<a name="l03176"></a>03176                 }
 <a name="l03177"></a>03177             }
 <a name="l03178"></a>03178         }
 <a name="l03179"></a>03179 };
@@ -3638,7 +3638,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03541"></a>03541                 <span class="keywordflow">case</span> 5:     t |= 0x5; <span class="keywordflow">break</span>;
 <a name="l03542"></a>03542                 <span class="keywordflow">case</span> 7:     t |= 0xA; <span class="keywordflow">break</span>;
 <a name="l03543"></a>03543                 <span class="keywordflow">case</span> 10:    t |= 0xF; <span class="keywordflow">break</span>;
-<a name="l03544"></a>03544             };
+<a name="l03544"></a>03544             }
 <a name="l03545"></a>03545             ESSreg(0xB1) = t;
 <a name="l03546"></a>03546 
 <a name="l03547"></a>03547             <span class="comment">/* DRQ control */</span>
@@ -3647,7 +3647,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03550"></a>03550                 <span class="keywordflow">case</span> 0:     t |= 0x5; <span class="keywordflow">break</span>;
 <a name="l03551"></a>03551                 <span class="keywordflow">case</span> 1:     t |= 0xA; <span class="keywordflow">break</span>;
 <a name="l03552"></a>03552                 <span class="keywordflow">case</span> 3:     t |= 0xF; <span class="keywordflow">break</span>;
-<a name="l03553"></a>03553             };
+<a name="l03553"></a>03553             }
 <a name="l03554"></a>03554             ESSreg(0xB2) = t;
 <a name="l03555"></a>03555         }
 <a name="l03556"></a>03556 
@@ -3691,19 +3691,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03594"></a>03594             <span class="keywordflow">case</span> 0: sb.sc400_cfg |= (1 &lt;&lt; 0); <span class="keywordflow">break</span>;
 <a name="l03595"></a>03595             <span class="keywordflow">case</span> 1: sb.sc400_cfg |= (2 &lt;&lt; 0); <span class="keywordflow">break</span>;
 <a name="l03596"></a>03596             <span class="keywordflow">case</span> 3: sb.sc400_cfg |= (3 &lt;&lt; 0); <span class="keywordflow">break</span>;
-<a name="l03597"></a>03597         };
+<a name="l03597"></a>03597         }
 <a name="l03598"></a>03598         <span class="keywordflow">switch</span> (sb.hw.irq) {
 <a name="l03599"></a>03599             <span class="keywordflow">case</span> 5: sb.sc400_cfg |= (5 &lt;&lt; 3); <span class="keywordflow">break</span>;
 <a name="l03600"></a>03600             <span class="keywordflow">case</span> 7: sb.sc400_cfg |= (1 &lt;&lt; 3); <span class="keywordflow">break</span>;
 <a name="l03601"></a>03601             <span class="keywordflow">case</span> 9: sb.sc400_cfg |= (2 &lt;&lt; 3); <span class="keywordflow">break</span>;
 <a name="l03602"></a>03602             <span class="keywordflow">case</span> 10:sb.sc400_cfg |= (3 &lt;&lt; 3); <span class="keywordflow">break</span>;
 <a name="l03603"></a>03603             <span class="keywordflow">case</span> 11:sb.sc400_cfg |= (4 &lt;&lt; 3); <span class="keywordflow">break</span>;
-<a name="l03604"></a>03604         };
+<a name="l03604"></a>03604         }
 <a name="l03605"></a>03605         <span class="keywordflow">switch</span> (MPU401_GetIRQ()) { <span class="comment">// SC400: bit 7 and bit 2 control MPU IRQ</span>
 <a name="l03606"></a>03606             <span class="keywordflow">case</span> 5: sb.sc400_cfg |= (0 &lt;&lt; 7) + (1 &lt;&lt; 2); <span class="keywordflow">break</span>; <span class="comment">// bit 7=0 bit 2=1   MPU IRQ 5</span>
 <a name="l03607"></a>03607             <span class="keywordflow">case</span> 9: sb.sc400_cfg |= (1 &lt;&lt; 7) + (1 &lt;&lt; 2); <span class="keywordflow">break</span>; <span class="comment">// bit 7=1 bit 2=1   MPU IRQ 9</span>
 <a name="l03608"></a>03608             <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;                     <span class="comment">// bit 7=0 bit 2=0   MPU IRQ disabled</span>
-<a name="l03609"></a>03609         };
+<a name="l03609"></a>03609         }
 <a name="l03610"></a>03610 
 <a name="l03611"></a>03611         <span class="keywordflow">if</span> (sb.reveal_sc_type != RSC_NONE) {
 <a name="l03612"></a>03612             <span class="comment">// SC400 cards always use 8-bit DMA even for 16-bit PCM</span>
@@ -3883,7 +3883,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

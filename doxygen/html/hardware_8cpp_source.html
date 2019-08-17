@@ -948,10 +948,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00851"></a>00851         <span class="keywordflow">if</span> (CaptureState &amp; CAPTURE_VIDEO) {
 <a name="l00852"></a>00852                 zmbv_format_t format;
 <a name="l00853"></a>00853                 <span class="comment">/* Disable capturing if any of the test fails */</span>
-<a name="l00854"></a>00854                 <span class="keywordflow">if</span> ((capture.video.width != width ||
+<a name="l00854"></a>00854                 <span class="keywordflow">if</span> (capture.video.width != width ||
 <a name="l00855"></a>00855                         capture.video.height != height ||
 <a name="l00856"></a>00856                         capture.video.bpp != bpp ||
-<a name="l00857"></a>00857                         capture.video.fps != fps)) {
+<a name="l00857"></a>00857                         capture.video.fps != fps) {
 <a name="l00858"></a>00858                         <span class="keywordflow">if</span> (native_zmbv &amp;&amp; capture.video.writer != NULL)
 <a name="l00859"></a>00859                                 CAPTURE_VideoEvent(<span class="keyword">true</span>);
 <a name="l00860"></a>00860 <span class="preprocessor">#if (C_AVCODEC)</span>
@@ -2029,7 +2029,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

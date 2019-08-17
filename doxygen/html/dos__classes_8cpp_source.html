@@ -428,7 +428,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00331"></a>00331         } <span class="keywordflow">else</span> {        <span class="comment">// empty</span>
 <a name="l00332"></a>00332                 sSave(sPSP,cmdtail.count,0x00);
 <a name="l00333"></a>00333                 mem_writeb(pt+offsetof(sPSP,cmdtail.buffer),0x0d);
-<a name="l00334"></a>00334         };
+<a name="l00334"></a>00334         }
 <a name="l00335"></a>00335 }
 <a name="l00336"></a>00336 
 <a name="l00337"></a>00337 <span class="keywordtype">void</span> DOS_PSP::SetFCB1(RealPt src) {
@@ -455,7 +455,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00358"></a>00358                 <span class="keywordflow">for</span> (i=20; i&lt;fileNum; i++)      SetFileHandle(i,0xFF);
 <a name="l00359"></a>00359         } <span class="keywordflow">else</span> {
 <a name="l00360"></a>00360                 sSave(sPSP,max_files,fileNum);
-<a name="l00361"></a>00361         };
+<a name="l00361"></a>00361         }
 <a name="l00362"></a>00362         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00363"></a>00363 }
 <a name="l00364"></a>00364 
@@ -658,7 +658,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

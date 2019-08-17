@@ -133,7 +133,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00036"></a>00036 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 <a name="l00037"></a>00037 <span class="preprocessor"></span>
 <a name="l00038"></a>00038 <span class="comment">/* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */</span>
-<a name="l00039"></a>00039 <span class="preprocessor">#ifdef _MSC_VER</span>
+<a name="l00039"></a>00039 <span class="preprocessor">#if defined(_MSC_VER) || defined (__MINGW32__)</span>
 <a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor"># ifdef NDEBUG</span>
 <a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#  undef assert</span>
 <a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#  define assert(x) x</span>
@@ -1038,7 +1038,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

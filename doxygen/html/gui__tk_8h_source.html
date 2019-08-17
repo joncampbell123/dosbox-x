@@ -875,7 +875,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01290"></a>01290 
 <a name="l01291"></a><a class="code" href="classGUI_1_1Font.html#ac75c6c35f9ad90779e346c0d3bbb0db2">01291</a>         <span class="keyword">virtual</span> <span class="keywordtype">int</span> <a class="code" href="classGUI_1_1Font.html#ac75c6c35f9ad90779e346c0d3bbb0db2" title="Retrieve width of a string of characters.">getWidth</a>(<span class="keyword">const</span> <a class="code" href="classGUI_1_1String.html" title="Simple STL-based string class.">String</a> &amp;s, <a class="code" href="namespaceGUI.html#a10b6232e08729baa0bd211a86a69ce36" title="A type which holds size values that can be very large.">Size</a> start = 0, <a class="code" href="namespaceGUI.html#a10b6232e08729baa0bd211a86a69ce36" title="A type which holds size values that can be very large.">Size</a> len = (<a class="code" href="namespaceGUI.html#a10b6232e08729baa0bd211a86a69ce36" title="A type which holds size values that can be very large.">Size</a>)-1)<span class="keyword"> const </span>{
 <a name="l01292"></a>01292                 <span class="keywordtype">int</span> width = 0;
-<a name="l01293"></a>01293                 <span class="keywordflow">if</span> (start+len &gt; s.size()) len = (<a class="code" href="namespaceGUI.html#a10b6232e08729baa0bd211a86a69ce36" title="A type which holds size values that can be very large.">Size</a>)(s.size()-start);
+<a name="l01293"></a>01293                 <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)start+len &gt; s.size()) len = (<a class="code" href="namespaceGUI.html#a10b6232e08729baa0bd211a86a69ce36" title="A type which holds size values that can be very large.">Size</a>)(s.size()-start);
 <a name="l01294"></a>01294                 <span class="keywordflow">while</span> (len--) width += <a class="code" href="classGUI_1_1Font.html#a89bd19d8ed02ad2894746b0de465950f" title="Return width of a string.">getWidth</a>(s[start++]);
 <a name="l01295"></a>01295                 <span class="keywordflow">return</span> width;
 <a name="l01296"></a>01296         }
@@ -1855,7 +1855,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

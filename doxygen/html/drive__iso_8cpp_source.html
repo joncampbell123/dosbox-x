@@ -596,7 +596,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00499"></a>00499         <span class="keywordflow">if</span> (de-&gt;fileUnitSize != 0 || de-&gt;interleaveGapSize != 0) <span class="keywordflow">return</span> -1;
 <a name="l00500"></a>00500         
 <a name="l00501"></a>00501         <span class="comment">// modify file identifier for use with dosbox</span>
-<a name="l00502"></a>00502         <span class="keywordflow">if</span> ((de-&gt;length &lt; 33 + de-&gt;fileIdentLength)) <span class="keywordflow">return</span> -1;
+<a name="l00502"></a>00502         <span class="keywordflow">if</span> (de-&gt;length &lt; 33 + de-&gt;fileIdentLength) <span class="keywordflow">return</span> -1;
 <a name="l00503"></a>00503         <span class="keywordflow">if</span> (IS_DIR(FLAGS2)) {
 <a name="l00504"></a>00504                 <span class="keywordflow">if</span> (de-&gt;fileIdentLength == 1 &amp;&amp; de-&gt;ident[0] == 0) strcpy((<span class="keywordtype">char</span>*)de-&gt;ident, <span class="stringliteral">&quot;.&quot;</span>);
 <a name="l00505"></a>00505                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (de-&gt;fileIdentLength == 1 &amp;&amp; de-&gt;ident[0] == 1) strcpy((<span class="keywordtype">char</span>*)de-&gt;ident, <span class="stringliteral">&quot;..&quot;</span>);
@@ -686,7 +686,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

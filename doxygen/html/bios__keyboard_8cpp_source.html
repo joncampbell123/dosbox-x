@@ -637,7 +637,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00540"></a>00540         }
 <a name="l00541"></a>00541         add_key(asciiscan);
 <a name="l00542"></a>00542         <span class="keywordflow">break</span>;
-<a name="l00543"></a>00543     };
+<a name="l00543"></a>00543     }
 <a name="l00544"></a>00544 irq1_end:
 <a name="l00545"></a>00545     <span class="keywordflow">if</span>(scancode !=0xe0) flags3 &amp;=~0x02;                                 <span class="comment">//Reset 0xE0 Flag</span>
 <a name="l00546"></a>00546     mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
@@ -1569,7 +1569,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01472"></a>01472         <a class="code" href="classLOG.html">LOG</a>(LOG_BIOS,LOG_ERROR)(<span class="stringliteral">&quot;INT16:Unhandled call %02X&quot;</span>,reg_ah);
 <a name="l01473"></a>01473         <span class="keywordflow">break</span>;
 <a name="l01474"></a>01474 
-<a name="l01475"></a>01475     };
+<a name="l01475"></a>01475     }
 <a name="l01476"></a>01476 
 <a name="l01477"></a>01477     <span class="keywordflow">return</span> CBRET_NONE;
 <a name="l01478"></a>01478 }
@@ -1744,7 +1744,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

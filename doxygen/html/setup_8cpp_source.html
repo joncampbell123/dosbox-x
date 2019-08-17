@@ -456,7 +456,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00359"></a>00359         <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00360"></a>00360 }
 <a name="l00361"></a>00361 
-<a name="l00362"></a>00362 <span class="keywordtype">bool</span> Prop_int::SetValue(std::string <span class="keyword">const</span>&amp; input) {;
+<a name="l00362"></a>00362 <span class="keywordtype">bool</span> Prop_int::SetValue(std::string <span class="keyword">const</span>&amp; input) {
 <a name="l00363"></a>00363     <a class="code" href="classValue.html">Value</a> val;
 <a name="l00364"></a>00364     <span class="keywordflow">if</span> (!val.SetValue(input,Value::V_INT)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00365"></a>00365     <span class="keywordflow">return</span> SetVal(val,<span class="keyword">false</span>,<span class="comment">/*warn*/</span><span class="keyword">true</span>);
@@ -548,7 +548,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00451"></a>00451     Value::Etype prevtype = Value::V_NONE;
 <a name="l00452"></a>00452     <span class="keywordtype">string</span> prevargument = <span class="stringliteral">&quot;&quot;</span>;
 <a name="l00453"></a>00453     
-<a name="l00454"></a>00454     <span class="keywordflow">while</span>( (section-&gt;Get_prop(number_of_properties)) )
+<a name="l00454"></a>00454     <span class="keywordflow">while</span>(section-&gt;Get_prop(number_of_properties))
 <a name="l00455"></a>00455         number_of_properties++;
 <a name="l00456"></a>00456 
 <a name="l00457"></a>00457     string::size_type loc = string::npos;
@@ -1247,7 +1247,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01150"></a>01150         <span class="keywordtype">size_t</span> len = strlen(name);
 <a name="l01151"></a>01151             <span class="keywordflow">for</span> (it=cmds.begin();it!=cmds.end();it++) {
 <a name="l01152"></a>01152                 <span class="keywordflow">if</span> (strncasecmp(name,(*it).c_str(),len)==0) {
-<a name="l01153"></a>01153                     std::string temp = ((*it).c_str() + len);
+<a name="l01153"></a>01153                     std::string temp = (*it).c_str() + len;
 <a name="l01154"></a>01154                     <span class="comment">//Restore quotes for correct parsing in later stages</span>
 <a name="l01155"></a>01155                     <span class="keywordflow">if</span> (temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
 <a name="l01156"></a>01156                         value = std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
@@ -1261,7 +1261,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01164"></a>01164     it++;
 <a name="l01165"></a>01165     <span class="keywordflow">for</span> (;it!=cmds.end();it++) {
 <a name="l01166"></a>01166         value += <span class="stringliteral">&quot; &quot;</span>;
-<a name="l01167"></a>01167         std::string temp = (*it);
+<a name="l01167"></a>01167         std::string temp = *it;
 <a name="l01168"></a>01168         <span class="keywordflow">if</span> (temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
 <a name="l01169"></a>01169             value += std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
 <a name="l01170"></a>01170         <span class="keywordflow">else</span>
@@ -1533,7 +1533,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01436"></a>01436 
 <a name="l01437"></a>01437 <span class="keywordtype">void</span> CommandLine::Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount) {
 <a name="l01438"></a>01438     <span class="keywordflow">while</span>(amount--) {
-<a name="l01439"></a>01439         file_name = cmds.size()?(*(cmds.begin())):<span class="stringliteral">&quot;&quot;</span>;
+<a name="l01439"></a>01439         file_name = cmds.size()?*(cmds.begin()):<span class="stringliteral">&quot;&quot;</span>;
 <a name="l01440"></a>01440         <span class="keywordflow">if</span> (cmds.size()) cmds.erase(cmds.begin());
 <a name="l01441"></a>01441     }
 <a name="l01442"></a>01442 }
@@ -1541,7 +1541,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

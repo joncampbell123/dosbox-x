@@ -515,7 +515,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00418"></a>00418                 }
 <a name="l00419"></a>00419                 <span class="comment">//In sustain phase, but not sustaining, do regular release</span>
 <a name="l00420"></a>00420         <span class="keywordflow">case</span> RELEASE: 
-<a name="l00421"></a>00421                 vol += RateForward( releaseAdd );;
+<a name="l00421"></a>00421                 vol += RateForward( releaseAdd );
 <a name="l00422"></a>00422                 <span class="keywordflow">if</span> ( GCC_UNLIKELY(vol &gt;= ENV_MAX) ) {
 <a name="l00423"></a>00423                         volume = ENV_MAX;
 <a name="l00424"></a>00424                         SetState( OFF );
@@ -889,7 +889,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00792"></a>00792         Channel* chan = <span class="keyword">this</span>;
 <a name="l00793"></a>00793 
 <a name="l00794"></a>00794         <span class="comment">//BassDrum</span>
-<a name="l00795"></a>00795         Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) &gt;&gt; feedback);
+<a name="l00795"></a>00795         Bit32s mod = (Bit32s)((Bit32u)(old[0] + old[1]) &gt;&gt; feedback);
 <a name="l00796"></a>00796         old[0] = old[1];
 <a name="l00797"></a>00797         old[1] = (Bit32s)Op(0)-&gt;GetSample( mod );
 <a name="l00798"></a>00798 
@@ -1622,7 +1622,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

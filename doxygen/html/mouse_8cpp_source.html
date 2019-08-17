@@ -552,17 +552,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00455"></a>00455     <span class="comment">// Clip down</span>
 <a name="l00456"></a>00456     <span class="keywordflow">if</span> (y2&gt;mouse.clipy) {
 <a name="l00457"></a>00457         y2 = mouse.clipy;       
-<a name="l00458"></a>00458     };
+<a name="l00458"></a>00458     }
 <a name="l00459"></a>00459     <span class="comment">// Clip left</span>
 <a name="l00460"></a>00460     <span class="keywordflow">if</span> (x1&lt;0) {
 <a name="l00461"></a>00461         addx1 += (-x1);
 <a name="l00462"></a>00462         x1 = 0;
-<a name="l00463"></a>00463     };
+<a name="l00463"></a>00463     }
 <a name="l00464"></a>00464     <span class="comment">// Clip right</span>
 <a name="l00465"></a>00465     <span class="keywordflow">if</span> (x2&gt;mouse.clipx) {
 <a name="l00466"></a>00466         addx2 = x2 - mouse.clipx;
 <a name="l00467"></a>00467         x2 = mouse.clipx;
-<a name="l00468"></a>00468     };
+<a name="l00468"></a>00468     }
 <a name="l00469"></a>00469 }
 <a name="l00470"></a>00470 
 <a name="l00471"></a>00471 <span class="keywordtype">void</span> RestoreCursorBackground() {
@@ -586,11 +586,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00489"></a>00489             dataPos += addx1;
 <a name="l00490"></a>00490             <span class="keywordflow">for</span> (x=x1; x&lt;=x2; x++) {
 <a name="l00491"></a>00491                 INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,mouse.backData[dataPos++]);
-<a name="l00492"></a>00492             };
+<a name="l00492"></a>00492             }
 <a name="l00493"></a>00493             dataPos += addx2;
-<a name="l00494"></a>00494         };
+<a name="l00494"></a>00494         }
 <a name="l00495"></a>00495         mouse.background = <span class="keyword">false</span>;
-<a name="l00496"></a>00496     };
+<a name="l00496"></a>00496     }
 <a name="l00497"></a>00497     RestoreVgaRegisters();
 <a name="l00498"></a>00498 }
 <a name="l00499"></a>00499 
@@ -649,9 +649,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00552"></a>00552         dataPos += addx1;
 <a name="l00553"></a>00553         <span class="keywordflow">for</span> (x=x1; x&lt;=x2; x++) {
 <a name="l00554"></a>00554             INT10_GetPixel((Bit16u)x,(Bit16u)y,mouse.page,&amp;mouse.backData[dataPos++]);
-<a name="l00555"></a>00555         };
+<a name="l00555"></a>00555         }
 <a name="l00556"></a>00556         dataPos += addx2;
-<a name="l00557"></a>00557     };
+<a name="l00557"></a>00557     }
 <a name="l00558"></a>00558     mouse.background= <span class="keyword">true</span>;
 <a name="l00559"></a>00559     mouse.backposx  = POS_X / xratio - mouse.hotx;
 <a name="l00560"></a>00560     mouse.backposy  = POS_Y - mouse.hoty;
@@ -661,7 +661,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00564"></a>00564     <span class="keywordflow">for</span> (y=y1; y&lt;=y2; y++) {
 <a name="l00565"></a>00565         Bit16u scMask = mouse.screenMask[addy+y-y1];
 <a name="l00566"></a>00566         Bit16u cuMask = mouse.cursorMask[addy+y-y1];
-<a name="l00567"></a>00567         <span class="keywordflow">if</span> (addx1&gt;0) { scMask&lt;&lt;=addx1; cuMask&lt;&lt;=addx1; dataPos += addx1; };
+<a name="l00567"></a>00567         <span class="keywordflow">if</span> (addx1&gt;0) { scMask&lt;&lt;=addx1; cuMask&lt;&lt;=addx1; dataPos += addx1; }
 <a name="l00568"></a>00568         <span class="keywordflow">for</span> (x=x1; x&lt;=x2; x++) {
 <a name="l00569"></a>00569             Bit8u pixel = 0;
 <a name="l00570"></a>00570             <span class="comment">// ScreenMask</span>
@@ -673,9 +673,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00576"></a>00576             <span class="comment">// Set Pixel</span>
 <a name="l00577"></a>00577             INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,pixel);
 <a name="l00578"></a>00578             dataPos++;
-<a name="l00579"></a>00579         };
+<a name="l00579"></a>00579         }
 <a name="l00580"></a>00580         dataPos += addx2;
-<a name="l00581"></a>00581     };
+<a name="l00581"></a>00581     }
 <a name="l00582"></a>00582     RestoreVgaRegisters();
 <a name="l00583"></a>00583 }
 <a name="l00584"></a>00584 
@@ -1745,7 +1745,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

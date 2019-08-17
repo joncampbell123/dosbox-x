@@ -275,7 +275,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00178"></a>00178         <span class="keywordflow">for</span> (Bit16u i=0; i&lt;GetNumDrives(); i++) {
 <a name="l00179"></a>00179                 <span class="keyword">delete</span> (cdrom)[i];
 <a name="l00180"></a>00180                 cdrom[i] = 0;
-<a name="l00181"></a>00181         };
+<a name="l00181"></a>00181         }
 <a name="l00182"></a>00182 }
 <a name="l00183"></a>00183 
 <a name="l00184"></a>00184 <span class="keywordtype">void</span> CMscdex::GetDrives(PhysPt data)
@@ -405,7 +405,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00308"></a>00308                 <span class="keywordflow">break</span>;
 <a name="l00309"></a>00309         <span class="keywordflow">default</span> :       <span class="comment">// weird result</span>
 <a name="l00310"></a>00310                 <span class="keywordflow">return</span> 6;
-<a name="l00311"></a>00311         };
+<a name="l00311"></a>00311         }
 <a name="l00312"></a>00312 
 <a name="l00313"></a>00313         <span class="keywordflow">if</span> (!cdrom[numDrives]-&gt;SetDevice(physicalPath,forceCD)) {
 <a name="l00314"></a>00314 <span class="comment">//              delete cdrom[numDrives] ; mount seems to delete it</span>
@@ -516,7 +516,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00419"></a>00419         <span class="keywordflow">if</span> (defaultBufSeg==0) {
 <a name="l00420"></a>00420                 Bit16u size = (2352*2+15)/16;
 <a name="l00421"></a>00421                 defaultBufSeg = DOS_GetMemory(size,<span class="stringliteral">&quot;MSCDEX default buffer&quot;</span>);
-<a name="l00422"></a>00422         };
+<a name="l00422"></a>00422         }
 <a name="l00423"></a>00423         <span class="keywordflow">return</span> PhysMake(defaultBufSeg,2352);
 <a name="l00424"></a>00424 }
 <a name="l00425"></a>00425 
@@ -524,7 +524,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00427"></a>00427         <span class="keywordflow">if</span> (defaultBufSeg==0) {
 <a name="l00428"></a>00428                 Bit16u size = (2352*2+15)/16;
 <a name="l00429"></a>00429                 defaultBufSeg = DOS_GetMemory(size,<span class="stringliteral">&quot;MSCDEX temp buffer&quot;</span>);
-<a name="l00430"></a>00430         };
+<a name="l00430"></a>00430         }
 <a name="l00431"></a>00431         <span class="keywordflow">return</span> PhysMake(defaultBufSeg,0);
 <a name="l00432"></a>00432 }
 <a name="l00433"></a>00433 
@@ -533,7 +533,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00436"></a>00436                 mem_writeb(data  ,(Bit8u)i);    <span class="comment">// subunit</span>
 <a name="l00437"></a>00437                 mem_writed(data+1,RealMake(rootDriverHeaderSeg,0));
 <a name="l00438"></a>00438                 data+=5;
-<a name="l00439"></a>00439         };
+<a name="l00439"></a>00439         }
 <a name="l00440"></a>00440 }
 <a name="l00441"></a>00441 
 <a name="l00442"></a>00442 <span class="keywordtype">bool</span> CMscdex::GetCDInfo(Bit8u subUnit, Bit8u&amp; tr1, Bit8u&amp; tr2, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; leadOut) {
@@ -713,7 +713,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00616"></a>00616                 MEM_StrCopy(ptoc+offset+40,data,31);
 <a name="l00617"></a>00617                 data[31] = 0;
 <a name="l00618"></a>00618                 rtrim(data);
-<a name="l00619"></a>00619         };
+<a name="l00619"></a>00619         }
 <a name="l00620"></a>00620 
 <a name="l00621"></a>00621         <span class="keywordflow">return</span> success; 
 <a name="l00622"></a>00622 }
@@ -731,7 +731,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00634"></a>00634                 }
 <a name="l00635"></a>00635                 MEM_BlockCopy(data,ptoc+offset+pos,len);
 <a name="l00636"></a>00636                 mem_writeb(data+len,0);
-<a name="l00637"></a>00637         };
+<a name="l00637"></a>00637         }
 <a name="l00638"></a>00638         <span class="keywordflow">return</span> success; 
 <a name="l00639"></a>00639 }
 <a name="l00640"></a>00640 
@@ -1084,7 +1084,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00987"></a>00987                                         mem_writeb(buffer+4,start.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
 <a name="l00988"></a>00988                                         mem_writeb(buffer+5,0x00);
 <a name="l00989"></a>00989                                         mem_writeb(buffer+6,attr);
-<a name="l00990"></a>00990                                         <span class="keywordflow">break</span>; };
+<a name="l00990"></a>00990                                         <span class="keywordflow">break</span>; }
 <a name="l00991"></a>00991                 <span class="keywordflow">case</span> 0x0C :{<span class="comment">/* Get Audio Sub Channel data */</span>
 <a name="l00992"></a>00992                                         Bit8u attr,track,index; 
 <a name="l00993"></a>00993                                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> abs,rel;
@@ -1100,7 +1100,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01003"></a>01003                                         mem_writeb(buffer+9,abs.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
 <a name="l01004"></a>01004                                         mem_writeb(buffer+10,abs.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01005"></a>01005                                         <span class="keywordflow">break</span>;
-<a name="l01006"></a>01006                                    };
+<a name="l01006"></a>01006                                    }
 <a name="l01007"></a>01007                 <span class="keywordflow">case</span> 0x0E :{ <span class="comment">/* Get UPC */</span>      
 <a name="l01008"></a>01008                                         Bit8u attr; <span class="keywordtype">char</span> upc[8];
 <a name="l01009"></a>01009                                         mscdex-&gt;GetUPC(drive_unit,attr,&amp;upc[0]);
@@ -1108,7 +1108,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01011"></a>01011                                         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;7; i++) mem_writeb(buffer+2u+i,(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)upc[i]);
 <a name="l01012"></a>01012                                         mem_writeb(buffer+9,0x00u);
 <a name="l01013"></a>01013                                         <span class="keywordflow">break</span>;
-<a name="l01014"></a>01014                                    };
+<a name="l01014"></a>01014                                    }
 <a name="l01015"></a>01015                 <span class="keywordflow">case</span> 0x0F :{ <span class="comment">/* Get Audio Status */</span>     
 <a name="l01016"></a>01016                                         <span class="keywordtype">bool</span> playing,pause;
 <a name="l01017"></a>01017                                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> resStart,resEnd;
@@ -1123,7 +1123,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01026"></a>01026                                         mem_writeb(buffer+9u,resEnd.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01027"></a>01027                                         mem_writeb(buffer+10u,0x00u);
 <a name="l01028"></a>01028                                         <span class="keywordflow">break</span>;
-<a name="l01029"></a>01029                                    };
+<a name="l01029"></a>01029                                    }
 <a name="l01030"></a>01030                 <span class="keywordflow">default</span> :       <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MSCDEX: Unsupported IOCTL INPUT Subfunction %02X&quot;</span>,(int)ioctl_fct);
 <a name="l01031"></a>01031                                         <span class="keywordflow">return</span> 0x03;    <span class="comment">// invalid function</span>
 <a name="l01032"></a>01032         }
@@ -1188,12 +1188,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01091"></a>01091                                                 Bit16u error=MSCDEX_IOCTL_Input(buffer,subUnit);
 <a name="l01092"></a>01092                                                 <span class="keywordflow">if</span> (error) errcode = error;
 <a name="l01093"></a>01093                                                 <span class="keywordflow">break</span>;
-<a name="l01094"></a>01094                                           };
+<a name="l01094"></a>01094                                           }
 <a name="l01095"></a>01095                 <span class="keywordflow">case</span> 0x0C       : {     <span class="comment">/* IOCTL OUTPUT */</span>
 <a name="l01096"></a>01096                                                 Bit16u error=MSCDEX_IOCTL_Optput(buffer,subUnit);
 <a name="l01097"></a>01097                                                 <span class="keywordflow">if</span> (error) errcode = error;
 <a name="l01098"></a>01098                                                 <span class="keywordflow">break</span>;
-<a name="l01099"></a>01099                                           };
+<a name="l01099"></a>01099                                           }
 <a name="l01100"></a>01100                 <span class="keywordflow">case</span> 0x0D       :       <span class="comment">// device open</span>
 <a name="l01101"></a>01101                 <span class="keywordflow">case</span> 0x0E       :       <span class="comment">// device close - dont care :)</span>
 <a name="l01102"></a>01102                                                 <span class="keywordflow">break</span>;
@@ -1207,7 +1207,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01110"></a>01110                                                 <span class="keywordflow">else</span> 
 <a name="l01111"></a>01111                                                         mscdex-&gt;ReadSectorsMSF(subUnit,raw,start,len,buffer);
 <a name="l01112"></a>01112                                                 <span class="keywordflow">break</span>;
-<a name="l01113"></a>01113                                           };
+<a name="l01113"></a>01113                                           }
 <a name="l01114"></a>01114                 <span class="keywordflow">case</span> 0x83       :       <span class="comment">// Seek - dont care :)</span>
 <a name="l01115"></a>01115                                                 <span class="keywordflow">break</span>;
 <a name="l01116"></a>01116                 <span class="keywordflow">case</span> 0x84       : {     <span class="comment">/* Play Audio Sectors */</span>
@@ -1218,7 +1218,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01121"></a>01121                                                 <span class="keywordflow">else</span> <span class="comment">// RED BOOK</span>
 <a name="l01122"></a>01122                                                         mscdex-&gt;PlayAudioMSF(subUnit,start,len);
 <a name="l01123"></a>01123                                                 <span class="keywordflow">break</span>;
-<a name="l01124"></a>01124                                           };
+<a name="l01124"></a>01124                                           }
 <a name="l01125"></a>01125                 <span class="keywordflow">case</span> 0x85       :       <span class="comment">/* Stop Audio */</span>
 <a name="l01126"></a>01126                                                 mscdex-&gt;StopAudio(subUnit);
 <a name="l01127"></a>01127                                                 <span class="keywordflow">break</span>;
@@ -1228,7 +1228,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01131"></a>01131                 <span class="keywordflow">default</span>         :       <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MSCDEX: Unsupported Driver Request %02X&quot;</span>,funcNr);
 <a name="l01132"></a>01132                                                 <span class="keywordflow">break</span>;
 <a name="l01133"></a>01133         
-<a name="l01134"></a>01134         };
+<a name="l01134"></a>01134         }
 <a name="l01135"></a>01135         
 <a name="l01136"></a>01136         <span class="comment">// Set Statusword</span>
 <a name="l01137"></a>01137         mem_writew(curReqheaderPtr+3,mscdex-&gt;GetStatusWord(subUnit,errcode));
@@ -1278,7 +1278,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01181"></a>01181                                                 } <span class="keywordflow">else</span> {
 <a name="l01182"></a>01182                                                         reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
 <a name="l01183"></a>01183                                                         CALLBACK_SCF(<span class="keyword">true</span>);                                                     
-<a name="l01184"></a>01184                                                 };
+<a name="l01184"></a>01184                                                 }
 <a name="l01185"></a>01185                                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;            
 <a name="l01186"></a>01186                 <span class="keywordflow">case</span> 0x1505: {  <span class="comment">// read vtoc </span>
 <a name="l01187"></a>01187                                                 Bit16u offset = 0, error = 0;
@@ -1288,8 +1288,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01191"></a>01191                                                 } <span class="keywordflow">else</span> {
 <a name="l01192"></a>01192                                                         reg_ax = error;
 <a name="l01193"></a>01193                                                         CALLBACK_SCF(<span class="keyword">true</span>);                                                     
-<a name="l01194"></a>01194                                                 };
-<a name="l01195"></a>01195                                          };
+<a name="l01194"></a>01194                                                 }
+<a name="l01195"></a>01195                                          }
 <a name="l01196"></a>01196                                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01197"></a>01197                 <span class="keywordflow">case</span> 0x1508: {  <span class="comment">// read sectors </span>
 <a name="l01198"></a>01198                                                 Bit32u sector = ((Bit32u)reg_si &lt;&lt; 16u) + (Bit32u)reg_di;
@@ -1300,9 +1300,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01203"></a>01203                                                         <span class="comment">// possibly: MSCDEX_ERROR_DRIVE_NOT_READY if sector is beyond total length</span>
 <a name="l01204"></a>01204                                                         reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
 <a name="l01205"></a>01205                                                         CALLBACK_SCF(<span class="keyword">true</span>);
-<a name="l01206"></a>01206                                                 };
+<a name="l01206"></a>01206                                                 }
 <a name="l01207"></a>01207                                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01208"></a>01208                                          };
+<a name="l01208"></a>01208                                          }
 <a name="l01209"></a>01209                 <span class="keywordflow">case</span> 0x1509:    <span class="comment">// write sectors - not supported </span>
 <a name="l01210"></a>01210                                                 reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
 <a name="l01211"></a>01211                                                 CALLBACK_SCF(<span class="keyword">true</span>);
@@ -1346,7 +1346,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01249"></a>01249                                                 <span class="keywordtype">bool</span> success = mscdex-&gt;GetDirectoryEntry(reg_cl,reg_ch&amp;1,data,PhysMake(reg_si,reg_di),error);
 <a name="l01250"></a>01250                                                 reg_ax = error;
 <a name="l01251"></a>01251                                                 CALLBACK_SCF(!success);
-<a name="l01252"></a>01252                                          };     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01252"></a>01252                                          }      <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01253"></a>01253                 <span class="keywordflow">case</span> 0x1510:    <span class="comment">/* Device driver request */</span>
 <a name="l01254"></a>01254                                                 <span class="keywordflow">if</span> (mscdex-&gt;SendDriverRequest(reg_cx,data)) {
 <a name="l01255"></a>01255                                                         CALLBACK_SCF(<span class="keyword">false</span>);
@@ -1355,7 +1355,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01258"></a>01258                                                         CALLBACK_SCF(<span class="keyword">true</span>);
 <a name="l01259"></a>01259                                                 }
 <a name="l01260"></a>01260                                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01261"></a>01261         };
+<a name="l01261"></a>01261         }
 <a name="l01262"></a>01262         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MSCDEX: Unknown call : %04X&quot;</span>,reg_ax);
 <a name="l01263"></a>01263         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01264"></a>01264 }
@@ -1440,7 +1440,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01343"></a>01343                         mscdex-&gt;InitNewMedia(subUnit);
 <a name="l01344"></a>01344                 }
 <a name="l01345"></a>01345                 <span class="keywordflow">return</span> changed;
-<a name="l01346"></a>01346         };
+<a name="l01346"></a>01346         }
 <a name="l01347"></a>01347         <span class="keywordflow">if</span> (subUnit&lt;MSCDEX_MAX_DRIVES) {
 <a name="l01348"></a>01348                 leadOut[subUnit].<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a> = 0;
 <a name="l01349"></a>01349                 leadOut[subUnit].<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a> = 0;
@@ -1500,7 +1500,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

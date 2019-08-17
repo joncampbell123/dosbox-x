@@ -604,7 +604,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00507"></a>00507             keyb.ps2mouse.resolution = val &amp; 3;
 <a name="l00508"></a>00508             <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;PS/2 mouse resolution set to %u&quot;</span>,(int)(1 &lt;&lt; (val&amp;3)));
 <a name="l00509"></a>00509             <span class="keywordflow">break</span>;
-<a name="l00510"></a>00510     };
+<a name="l00510"></a>00510     }
 <a name="l00511"></a>00511 }
 <a name="l00512"></a>00512 
 <a name="l00513"></a>00513 <span class="preprocessor">#include &quot;control.h&quot;</span>
@@ -1451,7 +1451,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01354"></a>01354         <span class="keywordflow">return</span>;
 <a name="l01355"></a>01355 
 <a name="l01356"></a>01356     <span class="keywordflow">default</span>: <span class="keywordflow">return</span>;
-<a name="l01357"></a>01357     };
+<a name="l01357"></a>01357     }
 <a name="l01358"></a>01358 
 <a name="l01359"></a>01359     <span class="comment">/* PC-98 keyboards appear to repeat make/break codes when the key is held down */</span>
 <a name="l01360"></a>01360     <span class="keywordflow">if</span> (pressed &amp;&amp; keyb.repeat.key == keytype)
@@ -1739,7 +1739,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01642"></a>01642             <span class="keywordflow">case</span> 2: KEYBOARD_AddKey2(keytype,pressed); <span class="keywordflow">break</span>;
 <a name="l01643"></a>01643             <span class="keywordflow">case</span> 3: KEYBOARD_AddKey3(keytype,pressed); <span class="keywordflow">break</span>;
 <a name="l01644"></a>01644         }
-<a name="l01645"></a>01645     };
+<a name="l01645"></a>01645     }
 <a name="l01646"></a>01646 }
 <a name="l01647"></a>01647     
 <a name="l01648"></a>01648 <span class="keyword">static</span> <span class="keywordtype">void</span> KEYBOARD_ShutDown(<a class="code" href="classSection.html">Section</a> * sec) {
@@ -2316,7 +2316,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02311"></a>02311             <span class="keywordflow">case</span> 3:
 <a name="l02312"></a>02312                 r |= (uint8_t)(p7fd9_8255_mouse_y_latch &gt;&gt; ((p7fd9_8255_mouse_sel &amp; 1U) * 4U)) &amp; 0xF; <span class="comment">// sign extend is intentional</span>
 <a name="l02313"></a>02313                 <span class="keywordflow">break</span>;
-<a name="l02314"></a>02314         };
+<a name="l02314"></a>02314         }
 <a name="l02315"></a>02315 
 <a name="l02316"></a>02316         <span class="keywordflow">return</span> r;
 <a name="l02317"></a>02317     }
@@ -2656,7 +2656,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

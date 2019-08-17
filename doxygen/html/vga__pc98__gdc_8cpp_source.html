@@ -464,7 +464,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00367"></a>00367             <span class="keywordflow">default</span>:
 <a name="l00368"></a>00368                 LOG_MSG(<span class="stringliteral">&quot;GDC: %s: Unknown command 0x%x&quot;</span>,master_sync?<span class="stringliteral">&quot;master&quot;</span>:<span class="stringliteral">&quot;slave&quot;</span>,current_command);
 <a name="l00369"></a>00369                 <span class="keywordflow">break</span>;
-<a name="l00370"></a>00370         };
+<a name="l00370"></a>00370         }
 <a name="l00371"></a>00371     }
 <a name="l00372"></a>00372     <span class="keywordflow">else</span> {
 <a name="l00373"></a>00373         <span class="comment">/* parameter parsing */</span>
@@ -501,7 +501,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00404"></a>00404                 param_ram[param_ram_wptr] = (uint8_t)val;
 <a name="l00405"></a>00405                 <span class="keywordflow">if</span> ((++param_ram_wptr) &gt;= 16) param_ram_wptr = 0;
 <a name="l00406"></a>00406                 <span class="keywordflow">break</span>;
-<a name="l00407"></a>00407         };
+<a name="l00407"></a>00407         }
 <a name="l00408"></a>00408     }
 <a name="l00409"></a>00409 
 <a name="l00410"></a>00410     <span class="keywordflow">if</span> (!fifo_empty())
@@ -901,7 +901,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00804"></a>00804             unknown:
 <a name="l00805"></a>00805             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected write to port 0x%x val=0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val);
 <a name="l00806"></a>00806             <span class="keywordflow">break</span>;
-<a name="l00807"></a>00807     };
+<a name="l00807"></a>00807     }
 <a name="l00808"></a>00808 }
 <a name="l00809"></a>00809 
 <a name="l00810"></a>00810 Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
@@ -987,7 +987,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00890"></a>00890             unknown:
 <a name="l00891"></a>00891             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected read from port 0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
 <a name="l00892"></a>00892             <span class="keywordflow">break</span>;
-<a name="l00893"></a>00893     };
+<a name="l00893"></a>00893     }
 <a name="l00894"></a>00894 
 <a name="l00895"></a>00895     <span class="keywordflow">return</span> ~0ul;
 <a name="l00896"></a>00896 }
@@ -996,7 +996,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

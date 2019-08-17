@@ -538,7 +538,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00441"></a>00441         <span class="keywordflow">if</span> (!(adlibreg[ARC_TVS_KSR_MUL+regbase]&amp;0x10)) op_pt-&gt;toff &gt;&gt;= 2;
 <a name="l00442"></a>00442 
 <a name="l00443"></a>00443         <span class="comment">// 20+a0+b0:</span>
-<a name="l00444"></a>00444         op_pt-&gt;tinc = (Bit32u)((((fltype)(frn&lt;&lt;oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&amp;15]));
+<a name="l00444"></a>00444         op_pt-&gt;tinc = (Bit32u)(((fltype)(frn&lt;&lt;oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&amp;15]);
 <a name="l00445"></a>00445         <span class="comment">// 40+a0+b0:</span>
 <a name="l00446"></a>00446         fltype vol_in = (fltype)((fltype)(adlibreg[ARC_KSL_OUTLEV+regbase]&amp;63) +
 <a name="l00447"></a>00447                                                         kslmul[adlibreg[ARC_KSL_OUTLEV+regbase]&gt;&gt;6]*kslev[oct][frn&gt;&gt;6]);
@@ -667,7 +667,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00570"></a>00570 
 <a name="l00571"></a>00571                 <span class="comment">// create waveform tables</span>
 <a name="l00572"></a>00572                 <span class="keywordflow">for</span> (i=0;i&lt;(WAVEPREC&gt;&gt;1);i++) {
-<a name="l00573"></a>00573                         wavtable[(i&lt;&lt;1)  +WAVEPREC]     = (Bit16s)(16384*sin((fltype)((i&lt;&lt;1)  )*PI*2/WAVEPREC));
+<a name="l00573"></a>00573                         wavtable[(i&lt;&lt;1)  +WAVEPREC]     = (Bit16s)(16384*sin((fltype)(i&lt;&lt;1)*PI*2/WAVEPREC));
 <a name="l00574"></a>00574                         wavtable[(i&lt;&lt;1)+1+WAVEPREC]     = (Bit16s)(16384*sin((fltype)((i&lt;&lt;1)+1)*PI*2/WAVEPREC));
 <a name="l00575"></a>00575                         wavtable[i]                                     = wavtable[(i&lt;&lt;1)  +WAVEPREC];
 <a name="l00576"></a>00576                         <span class="comment">// alternative: (zero-less)</span>
@@ -1567,7 +1567,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:53 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

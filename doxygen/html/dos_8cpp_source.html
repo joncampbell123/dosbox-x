@@ -637,7 +637,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00541"></a>00541                         reg_al=c;
 <a name="l00542"></a>00542                     }
 <a name="l00543"></a>00543                     <span class="keywordflow">break</span>;
-<a name="l00544"></a>00544             };
+<a name="l00544"></a>00544             }
 <a name="l00545"></a>00545             <span class="keywordflow">break</span>;
 <a name="l00546"></a>00546         <span class="keywordflow">case</span> 0x07:      <span class="comment">/* Character Input, without echo */</span>
 <a name="l00547"></a>00547             {
@@ -645,7 +645,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00549"></a>00549                 DOS_ReadFile (STDIN,&amp;c,&amp;n);
 <a name="l00550"></a>00550                 reg_al=c;
 <a name="l00551"></a>00551                 <span class="keywordflow">break</span>;
-<a name="l00552"></a>00552             };
+<a name="l00552"></a>00552             }
 <a name="l00553"></a>00553         <span class="keywordflow">case</span> 0x08:      <span class="comment">/* Direct Character Input, without echo (checks for breaks officially :)*/</span>
 <a name="l00554"></a>00554             {
 <a name="l00555"></a>00555                 Bit8u c;Bit16u n=1;
@@ -656,7 +656,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00560"></a>00560                 }
 <a name="l00561"></a>00561                 reg_al=c;
 <a name="l00562"></a>00562                 <span class="keywordflow">break</span>;
-<a name="l00563"></a>00563             };
+<a name="l00563"></a>00563             }
 <a name="l00564"></a>00564         <span class="keywordflow">case</span> 0x09:      <span class="comment">/* Write string to STDOUT */</span>
 <a name="l00565"></a>00565             {   
 <a name="l00566"></a>00566                 Bit8u c;Bit16u n=1;
@@ -706,10 +706,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00610"></a>00610                     <span class="keywordflow">if</span> (c==13) 
 <a name="l00611"></a>00611                         <span class="keywordflow">break</span>;
 <a name="l00612"></a>00612                     read++;
-<a name="l00613"></a>00613                 };
+<a name="l00613"></a>00613                 }
 <a name="l00614"></a>00614                 mem_writeb(data+1,read);
 <a name="l00615"></a>00615                 <span class="keywordflow">break</span>;
-<a name="l00616"></a>00616             };
+<a name="l00616"></a>00616             }
 <a name="l00617"></a>00617         <span class="keywordflow">case</span> 0x0b:      <span class="comment">/* Get STDIN Status */</span>
 <a name="l00618"></a>00618             <span class="keywordflow">if</span> (!DOS_GetSTDINStatus()) {reg_al=0x00;}
 <a name="l00619"></a>00619             <span class="keywordflow">else</span> {reg_al=0xFF;}
@@ -1199,7 +1199,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01103"></a>01103                     reg_al=0;reg_dl=0x2f;<span class="keywordflow">break</span>;
 <a name="l01104"></a>01104                 <span class="keywordflow">case</span> 3:
 <a name="l01105"></a>01105                     reg_al=0;<span class="keywordflow">break</span>;
-<a name="l01106"></a>01106             };
+<a name="l01106"></a>01106             }
 <a name="l01107"></a>01107             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:0x37:Call for not supported switchchar&quot;</span>);
 <a name="l01108"></a>01108             <span class="keywordflow">break</span>;
 <a name="l01109"></a>01109         <span class="keywordflow">case</span> 0x38:                  <span class="comment">/* Set Country Code */</span>  
@@ -1345,7 +1345,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01249"></a>01249                 }
 <a name="l01250"></a>01250                 diskio_delay(reg_ax);
 <a name="l01251"></a>01251                 <span class="keywordflow">break</span>;
-<a name="l01252"></a>01252             };
+<a name="l01252"></a>01252             }
 <a name="l01253"></a>01253         <span class="keywordflow">case</span> 0x41:                  <span class="comment">/* UNLINK Delete file */</span>
 <a name="l01254"></a>01254             unmask_irq0 |= disk_io_unmask_irq0;
 <a name="l01255"></a>01255             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
@@ -1388,7 +1388,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01292"></a>01292                             reg_ax=dos.errorcode;
 <a name="l01293"></a>01293                         }
 <a name="l01294"></a>01294                         <span class="keywordflow">break</span>;
-<a name="l01295"></a>01295                     };
+<a name="l01295"></a>01295                     }
 <a name="l01296"></a>01296                 <span class="keywordflow">case</span> 0x01:              <span class="comment">/* Set */</span>
 <a name="l01297"></a>01297                     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:Set File Attributes for %s not supported&quot;</span>,name1);
 <a name="l01298"></a>01298                     <span class="keywordflow">if</span> (DOS_SetFileAttr(name1,reg_cx)) {
@@ -1504,7 +1504,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01408"></a>01408             } <span class="keywordflow">else</span> {
 <a name="l01409"></a>01409                 reg_ax=dos.errorcode;
 <a name="l01410"></a>01410                 CALLBACK_SCF(<span class="keyword">true</span>);
-<a name="l01411"></a>01411             };
+<a name="l01411"></a>01411             }
 <a name="l01412"></a>01412             <span class="keywordflow">break</span>;       
 <a name="l01413"></a>01413         <span class="keywordflow">case</span> 0x4f:                  <span class="comment">/* FINDNEXT Find next matching file */</span>
 <a name="l01414"></a>01414             <span class="keywordflow">if</span> (DOS_FindNext()) {
@@ -1514,7 +1514,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01418"></a>01418             } <span class="keywordflow">else</span> {
 <a name="l01419"></a>01419                 reg_ax=dos.errorcode;
 <a name="l01420"></a>01420                 CALLBACK_SCF(<span class="keyword">true</span>);
-<a name="l01421"></a>01421             };
+<a name="l01421"></a>01421             }
 <a name="l01422"></a>01422             <span class="keywordflow">break</span>;      
 <a name="l01423"></a>01423         <span class="keywordflow">case</span> 0x50:                  <span class="comment">/* Set current PSP */</span>
 <a name="l01424"></a>01424             dos.psp(reg_bx);
@@ -1825,7 +1825,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01729"></a>01729                         <span class="keywordflow">break</span>;
 <a name="l01730"></a>01730                     <span class="keywordflow">default</span>:
 <a name="l01731"></a>01731                         E_Exit(<span class="stringliteral">&quot;DOS:0x65:Unhandled country information call %2X&quot;</span>,reg_al);   
-<a name="l01732"></a>01732                 };
+<a name="l01732"></a>01732                 }
 <a name="l01733"></a>01733                 <span class="keywordflow">break</span>;
 <a name="l01734"></a>01734             }
 <a name="l01735"></a>01735         <span class="keywordflow">case</span> 0x66:                  <span class="comment">/* Get/Set global code page table  */</span>
@@ -1844,7 +1844,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01748"></a>01748                 psp.SetNumFiles(reg_bx);
 <a name="l01749"></a>01749                 CALLBACK_SCF(<span class="keyword">false</span>);
 <a name="l01750"></a>01750                 <span class="keywordflow">break</span>;
-<a name="l01751"></a>01751             };
+<a name="l01751"></a>01751             }
 <a name="l01752"></a>01752         <span class="keywordflow">case</span> 0x68:                  <span class="comment">/* FFLUSH Commit file */</span>
 <a name="l01753"></a>01753             <span class="keywordflow">if</span>(DOS_FlushFile(reg_bl)) {
 <a name="l01754"></a>01754                 CALLBACK_SCF(<span class="keyword">false</span>);
@@ -1903,7 +1903,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01807"></a>01807             <span class="keywordflow">if</span> (reg_ah &lt; 0x6d) <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:Unhandled call %02X al=%02X. Set al to default of 0&quot;</span>,reg_ah,reg_al); <span class="comment">//Less errors. above 0x6c the functions are simply always skipped, only al is zeroed, all other registers untouched</span>
 <a name="l01808"></a>01808             reg_al=0x00; <span class="comment">/* default value */</span>
 <a name="l01809"></a>01809             <span class="keywordflow">break</span>;
-<a name="l01810"></a>01810     };
+<a name="l01810"></a>01810     }
 <a name="l01811"></a>01811 
 <a name="l01812"></a>01812     <span class="comment">/* if INT 21h involves any BIOS calls that need the timer, emulate the fact that tbe</span>
 <a name="l01813"></a>01813 <span class="comment">     * BIOS might unmask IRQ 0 as part of the job (especially INT 13h disk I/O).</span>
@@ -2588,7 +2588,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

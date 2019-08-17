@@ -514,7 +514,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00417"></a>00417             <span class="keywordflow">break</span>;
 <a name="l00418"></a>00418         <span class="keywordflow">default</span>:
 <a name="l00419"></a>00419             abort();
-<a name="l00420"></a>00420     };
+<a name="l00420"></a>00420     }
 <a name="l00421"></a>00421 
 <a name="l00422"></a>00422     <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00423"></a>00423 }
@@ -696,7 +696,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00599"></a>00599             memset(write,0,6); write += 6;
 <a name="l00600"></a>00600             LOG_MSG(<span class="stringliteral">&quot;WARNING: MODE SENSE on page 0x%02x not supported\n&quot;</span>,PAGE);
 <a name="l00601"></a>00601             <span class="keywordflow">break</span>;
-<a name="l00602"></a>00602     };
+<a name="l00602"></a>00602     }
 <a name="l00603"></a>00603 
 <a name="l00604"></a>00604     <span class="comment">/* fill in page length */</span>
 <a name="l00605"></a>00605     sector[1] = (<span class="keywordtype">unsigned</span> int)(write-sector) - 2;
@@ -1277,7 +1277,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01180"></a>01180             controller-&gt;raise_irq();
 <a name="l01181"></a>01181             allow_writing = <span class="keyword">true</span>;
 <a name="l01182"></a>01182             <span class="keywordflow">break</span>;
-<a name="l01183"></a>01183     };
+<a name="l01183"></a>01183     }
 <a name="l01184"></a>01184 
 <a name="l01185"></a>01185 }
 <a name="l01186"></a>01186 
@@ -1370,7 +1370,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01273"></a>01273             <span class="keywordflow">case</span> 0x55: <span class="comment">/* MODE SELECT(10) */</span>
 <a name="l01274"></a>01274                 on_mode_select_io_complete();
 <a name="l01275"></a>01275                 <span class="keywordflow">break</span>;
-<a name="l01276"></a>01276         };
+<a name="l01276"></a>01276         }
 <a name="l01277"></a>01277     }
 <a name="l01278"></a>01278 
 <a name="l01279"></a>01279     count = 0x03; <span class="comment">/* no more data (command/data=1, input/output=1) */</span>
@@ -1796,7 +1796,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01699"></a>01699             controller-&gt;raise_irq();
 <a name="l01700"></a>01700             allow_writing = <span class="keyword">true</span>;
 <a name="l01701"></a>01701             <span class="keywordflow">break</span>;
-<a name="l01702"></a>01702     };
+<a name="l01702"></a>01702     }
 <a name="l01703"></a>01703 }
 <a name="l01704"></a>01704 
 <a name="l01705"></a>01705 <span class="keywordtype">void</span> IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
@@ -4269,7 +4269,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:52 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

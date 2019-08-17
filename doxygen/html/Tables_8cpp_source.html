@@ -160,12 +160,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00063"></a>00063 <span class="preprocessor"></span>        <span class="comment">// CONFIRMED: Based on a table found by Mok in the MT-32 control ROM</span>
 <a name="l00064"></a>00064         masterVolToAmpSubtraction[0] = 255;
 <a name="l00065"></a>00065         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> masterVol = 1; masterVol &lt;= 100; masterVol++) {
-<a name="l00066"></a>00066                 masterVolToAmpSubtraction[masterVol] = (int)(106.31 - 16.0f * LOG2F((<span class="keywordtype">float</span>)masterVol));
+<a name="l00066"></a>00066         masterVolToAmpSubtraction[masterVol] = (Bit8u)(106.31 - 16.0 * LOG2F((<span class="keywordtype">float</span>)masterVol));
 <a name="l00067"></a>00067         }
 <a name="l00068"></a>00068 <span class="preprocessor">#endif</span>
 <a name="l00069"></a>00069 <span class="preprocessor"></span>
 <a name="l00070"></a>00070         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt;= 100; i++) {
-<a name="l00071"></a>00071                 pulseWidth100To255[i] = (int)(i * 255 / 100.0f + 0.5f);
+<a name="l00071"></a>00071                 pulseWidth100To255[i] = (Bit8u)(i * 255 / 100.0f + 0.5f);
 <a name="l00072"></a>00072                 <span class="comment">//synth-&gt;printDebug(&quot;%d: %d&quot;, i, pulseWidth100To255[i]);</span>
 <a name="l00073"></a>00073         }
 <a name="l00074"></a>00074 
@@ -195,7 +195,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

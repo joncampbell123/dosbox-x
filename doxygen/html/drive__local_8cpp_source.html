@@ -922,7 +922,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00825"></a>00825                 ht_stat_t test;
 <a name="l00826"></a>00826                 <span class="keywordflow">if</span> (ht_stat(host_name,&amp;test))           <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00827"></a>00827                 <span class="keywordflow">if</span> ((test.st_mode &amp; S_IFDIR)==0)        <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00828"></a>00828         };
+<a name="l00828"></a>00828         }
 <a name="l00829"></a>00829         <span class="keywordtype">int</span> temp=ht_access(host_name,F_OK);
 <a name="l00830"></a>00830         <span class="keywordflow">return</span> (temp==0);
 <a name="l00831"></a>00831 }
@@ -1035,429 +1035,427 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00938"></a>00938         <span class="keywordflow">if</span>((time=localtime(&amp;temp_stat.st_mtime))!=0) {
 <a name="l00939"></a>00939                 stat_block-&gt;time=DOS_PackTime((Bit16u)time-&gt;tm_hour,(Bit16u)time-&gt;tm_min,(Bit16u)time-&gt;tm_sec);
 <a name="l00940"></a>00940                 stat_block-&gt;date=DOS_PackDate((Bit16u)(time-&gt;tm_year+1900),(Bit16u)(time-&gt;tm_mon+1),(Bit16u)time-&gt;tm_mday);
-<a name="l00941"></a>00941         } <span class="keywordflow">else</span> {
-<a name="l00942"></a>00942 
-<a name="l00943"></a>00943         }
-<a name="l00944"></a>00944         stat_block-&gt;size=(Bit32u)temp_stat.st_size;
-<a name="l00945"></a>00945         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00946"></a>00946 }
-<a name="l00947"></a>00947 
-<a name="l00948"></a>00948 
-<a name="l00949"></a>00949 Bit8u localDrive::GetMediaByte(<span class="keywordtype">void</span>) {
-<a name="l00950"></a>00950         <span class="keywordflow">return</span> allocation.mediaid;
-<a name="l00951"></a>00951 }
-<a name="l00952"></a>00952 
-<a name="l00953"></a>00953 <span class="keywordtype">bool</span> localDrive::isRemote(<span class="keywordtype">void</span>) {
-<a name="l00954"></a>00954         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00955"></a>00955 }
-<a name="l00956"></a>00956 
-<a name="l00957"></a>00957 <span class="keywordtype">bool</span> localDrive::isRemovable(<span class="keywordtype">void</span>) {
-<a name="l00958"></a>00958         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00959"></a>00959 }
-<a name="l00960"></a>00960 
-<a name="l00961"></a>00961 Bits localDrive::UnMount(<span class="keywordtype">void</span>) { 
-<a name="l00962"></a>00962         <span class="keyword">delete</span> <span class="keyword">this</span>;
-<a name="l00963"></a>00963         <span class="keywordflow">return</span> 0; 
-<a name="l00964"></a>00964 }
-<a name="l00965"></a>00965 
-<a name="l00966"></a>00966 <span class="comment">/* helper functions for drive cache */</span>
-<a name="l00967"></a>00967 <span class="keywordtype">void</span> *localDrive::opendir(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
-<a name="l00968"></a>00968     <span class="comment">// guest to host code page translation</span>
-<a name="l00969"></a>00969     host_cnv_char_t *host_name = CodePageGuestToHost(name);
-<a name="l00970"></a>00970     <span class="keywordflow">if</span> (host_name == NULL) {
-<a name="l00971"></a>00971         LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from guest is non-representable on the host filesystem through code page conversion&quot;</span>,__FUNCTION__,name);
-<a name="l00972"></a>00972         <span class="keywordflow">return</span> NULL;
-<a name="l00973"></a>00973     }
-<a name="l00974"></a>00974 
-<a name="l00975"></a>00975         <span class="keywordflow">return</span> open_directoryw(host_name);
-<a name="l00976"></a>00976 }
-<a name="l00977"></a>00977 
-<a name="l00978"></a>00978 <span class="keywordtype">void</span> localDrive::closedir(<span class="keywordtype">void</span> *handle) {
-<a name="l00979"></a>00979         close_directory((<a class="code" href="structdir__struct.html">dir_information</a>*)handle);
-<a name="l00980"></a>00980 }
-<a name="l00981"></a>00981 
-<a name="l00982"></a>00982 <span class="keywordtype">bool</span> localDrive::read_directory_first(<span class="keywordtype">void</span> *handle, <span class="keywordtype">char</span>* entry_name, <span class="keywordtype">bool</span>&amp; is_directory) {
-<a name="l00983"></a>00983     host_cnv_char_t tmp[MAX_PATH+1];
-<a name="l00984"></a>00984 
-<a name="l00985"></a>00985     <span class="keywordflow">if</span> (::read_directory_firstw((<a class="code" href="structdir__struct.html">dir_information</a>*)handle, tmp, is_directory)) {
-<a name="l00986"></a>00986         <span class="comment">// guest to host code page translation</span>
-<a name="l00987"></a>00987         <span class="keywordtype">char</span> *n_temp_name = CodePageHostToGuest(tmp);
-<a name="l00988"></a>00988         <span class="keywordflow">if</span> (n_temp_name == NULL) {
-<a name="l00989"></a>00989 <span class="preprocessor">#ifdef host_cnv_use_wchar</span>
-<a name="l00990"></a>00990 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%ls&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
-<a name="l00991"></a>00991 <span class="preprocessor">#else</span>
-<a name="l00992"></a>00992 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
-<a name="l00993"></a>00993 <span class="preprocessor">#endif</span>
-<a name="l00994"></a>00994 <span class="preprocessor"></span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00995"></a>00995         }
-<a name="l00996"></a>00996         strcpy(entry_name,n_temp_name);
-<a name="l00997"></a>00997         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00998"></a>00998     }
-<a name="l00999"></a>00999 
-<a name="l01000"></a>01000     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01001"></a>01001 }
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003 <span class="keywordtype">bool</span> localDrive::read_directory_next(<span class="keywordtype">void</span> *handle, <span class="keywordtype">char</span>* entry_name, <span class="keywordtype">bool</span>&amp; is_directory) {
-<a name="l01004"></a>01004     host_cnv_char_t tmp[MAX_PATH+1];
-<a name="l01005"></a>01005 
-<a name="l01006"></a>01006 next:
-<a name="l01007"></a>01007     <span class="keywordflow">if</span> (::read_directory_nextw((<a class="code" href="structdir__struct.html">dir_information</a>*)handle, tmp, is_directory)) {
-<a name="l01008"></a>01008         <span class="comment">// guest to host code page translation</span>
-<a name="l01009"></a>01009         <span class="keywordtype">char</span> *n_temp_name = CodePageHostToGuest(tmp);
-<a name="l01010"></a>01010         <span class="keywordflow">if</span> (n_temp_name == NULL) {
-<a name="l01011"></a>01011 <span class="preprocessor">#ifdef host_cnv_use_wchar</span>
-<a name="l01012"></a>01012 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%ls&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
-<a name="l01013"></a>01013 <span class="preprocessor">#else</span>
-<a name="l01014"></a>01014 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
-<a name="l01015"></a>01015 <span class="preprocessor">#endif</span>
-<a name="l01016"></a>01016 <span class="preprocessor"></span>            <span class="keywordflow">goto</span> next;
-<a name="l01017"></a>01017         }
-<a name="l01018"></a>01018         strcpy(entry_name,n_temp_name);
-<a name="l01019"></a>01019         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01020"></a>01020     }
-<a name="l01021"></a>01021 
-<a name="l01022"></a>01022     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01023"></a>01023 }
-<a name="l01024"></a>01024 
-<a name="l01025"></a>01025 localDrive::localDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid) {
-<a name="l01026"></a>01026         strcpy(basedir,startdir);
-<a name="l01027"></a>01027         sprintf(info,<span class="stringliteral">&quot;local directory %s&quot;</span>,startdir);
-<a name="l01028"></a>01028         allocation.bytes_sector=_bytes_sector;
-<a name="l01029"></a>01029         allocation.sectors_cluster=_sectors_cluster;
-<a name="l01030"></a>01030         allocation.total_clusters=_total_clusters;
-<a name="l01031"></a>01031         allocation.free_clusters=_free_clusters;
-<a name="l01032"></a>01032         allocation.mediaid=_mediaid;
-<a name="l01033"></a>01033 
-<a name="l01034"></a>01034         dirCache.SetBaseDir(basedir,<span class="keyword">this</span>);
-<a name="l01035"></a>01035 }
-<a name="l01036"></a>01036 
-<a name="l01037"></a>01037 
-<a name="l01038"></a>01038 <span class="comment">//TODO Maybe use fflush, but that seemed to fuck up in visual c</span>
-<a name="l01039"></a>01039 <span class="keywordtype">bool</span> localFile::Read(Bit8u * data,Bit16u * size) {
-<a name="l01040"></a>01040         <span class="keywordflow">if</span> ((this-&gt;flags &amp; 0xf) == OPEN_WRITE) {        <span class="comment">// check if file opened in write-only mode</span>
-<a name="l01041"></a>01041                 DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01042"></a>01042                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01043"></a>01043         }
-<a name="l01044"></a>01044         <span class="keywordflow">if</span> (last_action==WRITE) fseek(fhandle,ftell(fhandle),SEEK_SET);
-<a name="l01045"></a>01045         last_action=READ;
-<a name="l01046"></a>01046         *size=(Bit16u)fread(data,1,*size,fhandle);
-<a name="l01047"></a>01047         <span class="comment">/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */</span>
-<a name="l01048"></a>01048         <span class="comment">/* Same for Igor */</span>
-<a name="l01049"></a>01049         <span class="comment">/* hardrive motion =&gt; unmask irq 2. Only do it when it&#39;s masked as unmasking is realitively heavy to emulate */</span>
-<a name="l01050"></a>01050     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
-<a name="l01051"></a>01051         Bit8u mask = IO_Read(0x21);
-<a name="l01052"></a>01052         <span class="keywordflow">if</span>(mask &amp; 0x4 ) IO_Write(0x21,mask&amp;0xfb);
-<a name="l01053"></a>01053     }
-<a name="l01054"></a>01054 
-<a name="l01055"></a>01055         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01056"></a>01056 }
-<a name="l01057"></a>01057 
-<a name="l01058"></a>01058 <span class="keywordtype">bool</span> localFile::Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
-<a name="l01059"></a>01059         Bit32u lastflags = this-&gt;flags &amp; 0xf;
-<a name="l01060"></a>01060         <span class="keywordflow">if</span> (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {  <span class="comment">// check if file opened in read-only mode</span>
-<a name="l01061"></a>01061                 DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01062"></a>01062                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01063"></a>01063         }
-<a name="l01064"></a>01064         <span class="keywordflow">if</span> (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
-<a name="l01065"></a>01065         last_action=WRITE;
-<a name="l01066"></a>01066         <span class="keywordflow">if</span>(*size==0){  
-<a name="l01067"></a>01067         <span class="keywordflow">return</span> (!ftruncate(fileno(fhandle),ftell(fhandle)));
-<a name="l01068"></a>01068     }
-<a name="l01069"></a>01069     <span class="keywordflow">else</span> 
-<a name="l01070"></a>01070     {
-<a name="l01071"></a>01071                 *size=(Bit16u)fwrite(data,1,*size,fhandle);
-<a name="l01072"></a>01072                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01073"></a>01073     }
-<a name="l01074"></a>01074 }
-<a name="l01075"></a>01075 
-<a name="l01076"></a>01076 <span class="comment">/* ert, 20100711: Locking extensions */</span>
-<a name="l01077"></a>01077 <span class="preprocessor">#ifdef WIN32</span>
-<a name="l01078"></a>01078 <span class="preprocessor"></span><span class="preprocessor">#include &lt;sys/locking.h&gt;</span>
-<a name="l01079"></a>01079 <span class="keywordtype">bool</span> localFile::LockFile(Bit8u mode, Bit32u pos, Bit16u size) {
-<a name="l01080"></a>01080         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-<a name="l01081"></a>01081         BOOL bRet;
-<a name="l01082"></a>01082 
-<a name="l01083"></a>01083         <span class="keywordflow">switch</span> (mode)
-<a name="l01084"></a>01084         {
-<a name="l01085"></a>01085         <span class="keywordflow">case</span> 0: bRet = ::LockFile (hFile, pos, 0, size, 0); <span class="keywordflow">break</span>;
-<a name="l01086"></a>01086         <span class="keywordflow">case</span> 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); <span class="keywordflow">break</span>;
-<a name="l01087"></a>01087         <span class="keywordflow">default</span>: 
-<a name="l01088"></a>01088                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l01089"></a>01089                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01090"></a>01090         }
-<a name="l01091"></a>01091         <span class="comment">//LOG_MSG(&quot;::LockFile %s&quot;, name);</span>
-<a name="l01092"></a>01092 
-<a name="l01093"></a>01093         <span class="keywordflow">if</span> (!bRet)
-<a name="l01094"></a>01094         {
-<a name="l01095"></a>01095                 <span class="keywordflow">switch</span> (GetLastError())
-<a name="l01096"></a>01096                 {
-<a name="l01097"></a>01097                 <span class="keywordflow">case</span> ERROR_ACCESS_DENIED:
-<a name="l01098"></a>01098                 <span class="keywordflow">case</span> ERROR_LOCK_VIOLATION:
-<a name="l01099"></a>01099                 <span class="keywordflow">case</span> ERROR_NETWORK_ACCESS_DENIED:
-<a name="l01100"></a>01100                 <span class="keywordflow">case</span> ERROR_DRIVE_LOCKED:
-<a name="l01101"></a>01101                 <span class="keywordflow">case</span> ERROR_SEEK_ON_DEVICE:
-<a name="l01102"></a>01102                 <span class="keywordflow">case</span> ERROR_NOT_LOCKED:
-<a name="l01103"></a>01103                 <span class="keywordflow">case</span> ERROR_LOCK_FAILED:
-<a name="l01104"></a>01104                         DOS_SetError(0x21);
-<a name="l01105"></a>01105                         <span class="keywordflow">break</span>;
-<a name="l01106"></a>01106                 <span class="keywordflow">case</span> ERROR_INVALID_HANDLE:
-<a name="l01107"></a>01107                         DOS_SetError(DOSERR_INVALID_HANDLE);
-<a name="l01108"></a>01108                         <span class="keywordflow">break</span>;
-<a name="l01109"></a>01109                 <span class="keywordflow">case</span> ERROR_INVALID_FUNCTION:
-<a name="l01110"></a>01110                 <span class="keywordflow">default</span>:
-<a name="l01111"></a>01111                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l01112"></a>01112                         <span class="keywordflow">break</span>;
-<a name="l01113"></a>01113                 }
-<a name="l01114"></a>01114         }
-<a name="l01115"></a>01115         <span class="keywordflow">return</span> bRet;
-<a name="l01116"></a>01116 }
-<a name="l01117"></a>01117 <span class="preprocessor">#endif</span>
-<a name="l01118"></a>01118 <span class="preprocessor"></span>
-<a name="l01119"></a>01119 <span class="keywordtype">bool</span> localFile::Seek(Bit32u * pos,Bit32u type) {
-<a name="l01120"></a>01120         <span class="keywordtype">int</span> seektype;
-<a name="l01121"></a>01121         <span class="keywordflow">switch</span> (type) {
-<a name="l01122"></a>01122         <span class="keywordflow">case</span> DOS_SEEK_SET:seektype=SEEK_SET;<span class="keywordflow">break</span>;
-<a name="l01123"></a>01123         <span class="keywordflow">case</span> DOS_SEEK_CUR:seektype=SEEK_CUR;<span class="keywordflow">break</span>;
-<a name="l01124"></a>01124         <span class="keywordflow">case</span> DOS_SEEK_END:seektype=SEEK_END;<span class="keywordflow">break</span>;
-<a name="l01125"></a>01125         <span class="keywordflow">default</span>:
-<a name="l01126"></a>01126         <span class="comment">//TODO Give some doserrorcode;</span>
-<a name="l01127"></a>01127                 <span class="keywordflow">return</span> <span class="keyword">false</span>;<span class="comment">//ERROR</span>
-<a name="l01128"></a>01128         }
-<a name="l01129"></a>01129         <span class="keywordtype">int</span> ret=fseek(fhandle,*reinterpret_cast&lt;Bit32s*&gt;(pos),seektype);
-<a name="l01130"></a>01130         <span class="keywordflow">if</span> (ret!=0) {
-<a name="l01131"></a>01131                 <span class="comment">// Out of file range, pretend everythings ok </span>
-<a name="l01132"></a>01132                 <span class="comment">// and move file pointer top end of file... ?! (Black Thorne)</span>
-<a name="l01133"></a>01133                 fseek(fhandle,0,SEEK_END);
-<a name="l01134"></a>01134         };
-<a name="l01135"></a>01135 <span class="preprocessor">#if 0</span>
-<a name="l01136"></a>01136 <span class="preprocessor"></span>        fpos_t temppos;
-<a name="l01137"></a>01137         fgetpos(fhandle,&amp;temppos);
-<a name="l01138"></a>01138         Bit32u * fake_pos=(Bit32u*)&amp;temppos;
-<a name="l01139"></a>01139         *pos=*fake_pos;
-<a name="l01140"></a>01140 <span class="preprocessor">#endif</span>
-<a name="l01141"></a>01141 <span class="preprocessor"></span>        *pos=(Bit32u)ftell(fhandle);
-<a name="l01142"></a>01142         last_action=NONE;
-<a name="l01143"></a>01143         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01144"></a>01144 }
-<a name="l01145"></a>01145 
-<a name="l01146"></a>01146 <span class="keywordtype">bool</span> localFile::Close() {
-<a name="l01147"></a>01147         <span class="keywordflow">if</span> (newtime &amp;&amp; fhandle) {
-<a name="l01148"></a>01148         <span class="comment">// force STDIO to flush buffers on this file handle, or else fclose() will write buffered data</span>
-<a name="l01149"></a>01149         <span class="comment">// and cause mtime to reset back to current time.</span>
-<a name="l01150"></a>01150         fflush(fhandle);
-<a name="l01151"></a>01151 
-<a name="l01152"></a>01152                 <span class="comment">// backport from DOS_PackDate() and DOS_PackTime()</span>
-<a name="l01153"></a>01153                 <span class="keyword">struct </span>tm tim = { 0 };
-<a name="l01154"></a>01154                 tim.tm_sec  = (time&amp;0x1f)*2;
-<a name="l01155"></a>01155                 tim.tm_min  = (time&gt;&gt;5)&amp;0x3f;
-<a name="l01156"></a>01156                 tim.tm_hour = (time&gt;&gt;11)&amp;0x1f;
-<a name="l01157"></a>01157                 tim.tm_mday = date&amp;0x1f;
-<a name="l01158"></a>01158                 tim.tm_mon  = ((date&gt;&gt;5)&amp;0x0f)-1;
-<a name="l01159"></a>01159                 tim.tm_year = (date&gt;&gt;9)+1980-1900;
-<a name="l01160"></a>01160         <span class="comment">// sanitize the date in case of invalid timestamps (such as 0x0000 date/time fields)</span>
-<a name="l01161"></a>01161         <span class="keywordflow">if</span> (tim.tm_mon &lt; 0) tim.tm_mon = 0;
-<a name="l01162"></a>01162         <span class="keywordflow">if</span> (tim.tm_mday == 0) tim.tm_mday = 1;
-<a name="l01163"></a>01163                 <span class="comment">//  have the C run-time library code compute whether standard time or daylight saving time is in effect.</span>
-<a name="l01164"></a>01164                 tim.tm_isdst = -1;
-<a name="l01165"></a>01165                 <span class="comment">// serialize time</span>
-<a name="l01166"></a>01166                 mktime(&amp;tim);
-<a name="l01167"></a>01167 
-<a name="l01168"></a>01168         <span class="comment">// change file time by file handle (while we still have it open)</span>
-<a name="l01169"></a>01169         <span class="comment">// so that we do not have to duplicate guest to host filename conversion here.</span>
-<a name="l01170"></a>01170         <span class="comment">// This should help Yksoft1 with file date/time, PC-98, and Shift-JIS Japanese filenames as well on Windows.</span>
-<a name="l01171"></a>01171 
-<a name="l01172"></a>01172 <span class="preprocessor">#if defined(WIN32) </span><span class="comment">/* TODO: What about MinGW? */</span>
-<a name="l01173"></a>01173         <span class="keyword">struct </span>_utimbuf ftim;
-<a name="l01174"></a>01174         ftim.actime = ftim.modtime = mktime(&amp;tim);
-<a name="l01175"></a>01175 
-<a name="l01176"></a>01176         <span class="keywordflow">if</span> (_futime(fileno(fhandle), &amp;ftim)) {
-<a name="l01177"></a>01177             <span class="keyword">extern</span> <span class="keywordtype">int</span> errno; 
-<a name="l01178"></a>01178             LOG_MSG(<span class="stringliteral">&quot;Set time failed (%s)&quot;</span>, strerror(errno));
-<a name="l01179"></a>01179         }
-<a name="l01180"></a>01180 <span class="preprocessor">#elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)</span>
-<a name="l01181"></a>01181 <span class="preprocessor"></span>        <span class="comment">// NTS: Do not attempt futime, Linux doesn&#39;t have it.</span>
-<a name="l01182"></a>01182         <span class="comment">//      Do not attempt futimes, Linux man pages LIE about having it. It&#39;s even there in the freaking header, but not recognized!</span>
-<a name="l01183"></a>01183         <span class="comment">//      Use futimens. Modern stuff should have it. [https://pubs.opengroup.org/onlinepubs/9699919799/functions/futimens.html]</span>
-<a name="l01184"></a>01184         <span class="keyword">struct </span>timespec ftsp[2];
-<a name="l01185"></a>01185         ftsp[0].tv_sec =  ftsp[1].tv_sec =  mktime(&amp;tim);
-<a name="l01186"></a>01186         ftsp[0].tv_nsec = ftsp[1].tv_nsec = 0;
-<a name="l01187"></a>01187 
-<a name="l01188"></a>01188         <span class="keywordflow">if</span> (futimens(fileno(fhandle), ftsp)) {
-<a name="l01189"></a>01189             <span class="keyword">extern</span> <span class="keywordtype">int</span> errno; 
-<a name="l01190"></a>01190             LOG_MSG(<span class="stringliteral">&quot;Set time failed (%s)&quot;</span>, strerror(errno));
-<a name="l01191"></a>01191         }
-<a name="l01192"></a>01192 <span class="preprocessor">#endif</span>
-<a name="l01193"></a>01193 <span class="preprocessor"></span>        }
-<a name="l01194"></a>01194 
-<a name="l01195"></a>01195         <span class="comment">// only close if one reference left</span>
-<a name="l01196"></a>01196         <span class="keywordflow">if</span> (refCtr==1) {
-<a name="l01197"></a>01197                 <span class="keywordflow">if</span>(fhandle) fclose(fhandle); 
-<a name="l01198"></a>01198                 fhandle = 0;
-<a name="l01199"></a>01199                 open = <span class="keyword">false</span>;
-<a name="l01200"></a>01200         }
-<a name="l01201"></a>01201 
-<a name="l01202"></a>01202         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01203"></a>01203 }
-<a name="l01204"></a>01204 
-<a name="l01205"></a>01205 Bit16u localFile::GetInformation(<span class="keywordtype">void</span>) {
-<a name="l01206"></a>01206         <span class="keywordflow">return</span> read_only_medium?0x40:0;
-<a name="l01207"></a>01207 }
-<a name="l01208"></a>01208         
-<a name="l01209"></a>01209 
-<a name="l01210"></a>01210 Bit32u localFile::GetSeekPos() {
-<a name="l01211"></a>01211         <span class="keywordflow">return</span> (Bit32u)ftell( fhandle );
-<a name="l01212"></a>01212 }
-<a name="l01213"></a>01213 
-<a name="l01214"></a>01214 
-<a name="l01215"></a>01215 localFile::localFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* _name, FILE * handle) {
-<a name="l01216"></a>01216         fhandle=handle;
-<a name="l01217"></a>01217         open=<span class="keyword">true</span>;
-<a name="l01218"></a>01218         UpdateDateTimeFromHost();
-<a name="l01219"></a>01219 
-<a name="l01220"></a>01220         attr=DOS_ATTR_ARCHIVE;
-<a name="l01221"></a>01221         last_action=NONE;
-<a name="l01222"></a>01222         read_only_medium=<span class="keyword">false</span>;
-<a name="l01223"></a>01223 
-<a name="l01224"></a>01224         name=0;
-<a name="l01225"></a>01225         SetName(_name);
-<a name="l01226"></a>01226 }
-<a name="l01227"></a>01227 
-<a name="l01228"></a>01228 <span class="keywordtype">void</span> localFile::FlagReadOnlyMedium(<span class="keywordtype">void</span>) {
-<a name="l01229"></a>01229         read_only_medium = <span class="keyword">true</span>;
-<a name="l01230"></a>01230 }
-<a name="l01231"></a>01231 
-<a name="l01232"></a>01232 <span class="keywordtype">bool</span> localFile::UpdateDateTimeFromHost(<span class="keywordtype">void</span>) {
-<a name="l01233"></a>01233         <span class="keywordflow">if</span>(!open) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01234"></a>01234         <span class="keyword">struct </span>stat temp_stat;
-<a name="l01235"></a>01235         fstat(fileno(fhandle),&amp;temp_stat);
-<a name="l01236"></a>01236         <span class="keyword">struct </span>tm * ltime;
-<a name="l01237"></a>01237         <span class="keywordflow">if</span>((ltime=localtime(&amp;temp_stat.st_mtime))!=0) {
-<a name="l01238"></a>01238                 time=DOS_PackTime((Bit16u)ltime-&gt;tm_hour,(Bit16u)ltime-&gt;tm_min,(Bit16u)ltime-&gt;tm_sec);
-<a name="l01239"></a>01239                 date=DOS_PackDate((Bit16u)(ltime-&gt;tm_year+1900),(Bit16u)(ltime-&gt;tm_mon+1),(Bit16u)ltime-&gt;tm_mday);
-<a name="l01240"></a>01240         } <span class="keywordflow">else</span> {
-<a name="l01241"></a>01241                 time=1;date=1;
-<a name="l01242"></a>01242         }
-<a name="l01243"></a>01243         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01244"></a>01244 }
-<a name="l01245"></a>01245 
-<a name="l01246"></a>01246 <span class="keywordtype">void</span> localFile::Flush(<span class="keywordtype">void</span>) {
-<a name="l01247"></a>01247         <span class="keywordflow">if</span> (last_action==WRITE) {
-<a name="l01248"></a>01248                 fseek(fhandle,ftell(fhandle),SEEK_SET);
-<a name="l01249"></a>01249                 last_action=NONE;
-<a name="l01250"></a>01250         }
-<a name="l01251"></a>01251 }
-<a name="l01252"></a>01252 
-<a name="l01253"></a>01253 
+<a name="l00941"></a>00941         }
+<a name="l00942"></a>00942         stat_block-&gt;size=(Bit32u)temp_stat.st_size;
+<a name="l00943"></a>00943         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00944"></a>00944 }
+<a name="l00945"></a>00945 
+<a name="l00946"></a>00946 
+<a name="l00947"></a>00947 Bit8u localDrive::GetMediaByte(<span class="keywordtype">void</span>) {
+<a name="l00948"></a>00948         <span class="keywordflow">return</span> allocation.mediaid;
+<a name="l00949"></a>00949 }
+<a name="l00950"></a>00950 
+<a name="l00951"></a>00951 <span class="keywordtype">bool</span> localDrive::isRemote(<span class="keywordtype">void</span>) {
+<a name="l00952"></a>00952         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00953"></a>00953 }
+<a name="l00954"></a>00954 
+<a name="l00955"></a>00955 <span class="keywordtype">bool</span> localDrive::isRemovable(<span class="keywordtype">void</span>) {
+<a name="l00956"></a>00956         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00957"></a>00957 }
+<a name="l00958"></a>00958 
+<a name="l00959"></a>00959 Bits localDrive::UnMount(<span class="keywordtype">void</span>) { 
+<a name="l00960"></a>00960         <span class="keyword">delete</span> <span class="keyword">this</span>;
+<a name="l00961"></a>00961         <span class="keywordflow">return</span> 0; 
+<a name="l00962"></a>00962 }
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964 <span class="comment">/* helper functions for drive cache */</span>
+<a name="l00965"></a>00965 <span class="keywordtype">void</span> *localDrive::opendir(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
+<a name="l00966"></a>00966     <span class="comment">// guest to host code page translation</span>
+<a name="l00967"></a>00967     host_cnv_char_t *host_name = CodePageGuestToHost(name);
+<a name="l00968"></a>00968     <span class="keywordflow">if</span> (host_name == NULL) {
+<a name="l00969"></a>00969         LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from guest is non-representable on the host filesystem through code page conversion&quot;</span>,__FUNCTION__,name);
+<a name="l00970"></a>00970         <span class="keywordflow">return</span> NULL;
+<a name="l00971"></a>00971     }
+<a name="l00972"></a>00972 
+<a name="l00973"></a>00973         <span class="keywordflow">return</span> open_directoryw(host_name);
+<a name="l00974"></a>00974 }
+<a name="l00975"></a>00975 
+<a name="l00976"></a>00976 <span class="keywordtype">void</span> localDrive::closedir(<span class="keywordtype">void</span> *handle) {
+<a name="l00977"></a>00977         close_directory((<a class="code" href="structdir__struct.html">dir_information</a>*)handle);
+<a name="l00978"></a>00978 }
+<a name="l00979"></a>00979 
+<a name="l00980"></a>00980 <span class="keywordtype">bool</span> localDrive::read_directory_first(<span class="keywordtype">void</span> *handle, <span class="keywordtype">char</span>* entry_name, <span class="keywordtype">bool</span>&amp; is_directory) {
+<a name="l00981"></a>00981     host_cnv_char_t tmp[MAX_PATH+1];
+<a name="l00982"></a>00982 
+<a name="l00983"></a>00983     <span class="keywordflow">if</span> (::read_directory_firstw((<a class="code" href="structdir__struct.html">dir_information</a>*)handle, tmp, is_directory)) {
+<a name="l00984"></a>00984         <span class="comment">// guest to host code page translation</span>
+<a name="l00985"></a>00985         <span class="keywordtype">char</span> *n_temp_name = CodePageHostToGuest(tmp);
+<a name="l00986"></a>00986         <span class="keywordflow">if</span> (n_temp_name == NULL) {
+<a name="l00987"></a>00987 <span class="preprocessor">#ifdef host_cnv_use_wchar</span>
+<a name="l00988"></a>00988 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%ls&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
+<a name="l00989"></a>00989 <span class="preprocessor">#else</span>
+<a name="l00990"></a>00990 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
+<a name="l00991"></a>00991 <span class="preprocessor">#endif</span>
+<a name="l00992"></a>00992 <span class="preprocessor"></span>            <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00993"></a>00993         }
+<a name="l00994"></a>00994         strcpy(entry_name,n_temp_name);
+<a name="l00995"></a>00995         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00996"></a>00996     }
+<a name="l00997"></a>00997 
+<a name="l00998"></a>00998     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00999"></a>00999 }
+<a name="l01000"></a>01000 
+<a name="l01001"></a>01001 <span class="keywordtype">bool</span> localDrive::read_directory_next(<span class="keywordtype">void</span> *handle, <span class="keywordtype">char</span>* entry_name, <span class="keywordtype">bool</span>&amp; is_directory) {
+<a name="l01002"></a>01002     host_cnv_char_t tmp[MAX_PATH+1];
+<a name="l01003"></a>01003 
+<a name="l01004"></a>01004 next:
+<a name="l01005"></a>01005     <span class="keywordflow">if</span> (::read_directory_nextw((<a class="code" href="structdir__struct.html">dir_information</a>*)handle, tmp, is_directory)) {
+<a name="l01006"></a>01006         <span class="comment">// guest to host code page translation</span>
+<a name="l01007"></a>01007         <span class="keywordtype">char</span> *n_temp_name = CodePageHostToGuest(tmp);
+<a name="l01008"></a>01008         <span class="keywordflow">if</span> (n_temp_name == NULL) {
+<a name="l01009"></a>01009 <span class="preprocessor">#ifdef host_cnv_use_wchar</span>
+<a name="l01010"></a>01010 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%ls&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
+<a name="l01011"></a>01011 <span class="preprocessor">#else</span>
+<a name="l01012"></a>01012 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;%s: Filename &#39;%s&#39; from host is non-representable on the guest filesystem through code page conversion&quot;</span>,__FUNCTION__,tmp);
+<a name="l01013"></a>01013 <span class="preprocessor">#endif</span>
+<a name="l01014"></a>01014 <span class="preprocessor"></span>            <span class="keywordflow">goto</span> next;
+<a name="l01015"></a>01015         }
+<a name="l01016"></a>01016         strcpy(entry_name,n_temp_name);
+<a name="l01017"></a>01017         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01018"></a>01018     }
+<a name="l01019"></a>01019 
+<a name="l01020"></a>01020     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01021"></a>01021 }
+<a name="l01022"></a>01022 
+<a name="l01023"></a>01023 localDrive::localDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid) {
+<a name="l01024"></a>01024         strcpy(basedir,startdir);
+<a name="l01025"></a>01025         sprintf(info,<span class="stringliteral">&quot;local directory %s&quot;</span>,startdir);
+<a name="l01026"></a>01026         allocation.bytes_sector=_bytes_sector;
+<a name="l01027"></a>01027         allocation.sectors_cluster=_sectors_cluster;
+<a name="l01028"></a>01028         allocation.total_clusters=_total_clusters;
+<a name="l01029"></a>01029         allocation.free_clusters=_free_clusters;
+<a name="l01030"></a>01030         allocation.mediaid=_mediaid;
+<a name="l01031"></a>01031 
+<a name="l01032"></a>01032         dirCache.SetBaseDir(basedir,<span class="keyword">this</span>);
+<a name="l01033"></a>01033 }
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035 
+<a name="l01036"></a>01036 <span class="comment">//TODO Maybe use fflush, but that seemed to fuck up in visual c</span>
+<a name="l01037"></a>01037 <span class="keywordtype">bool</span> localFile::Read(Bit8u * data,Bit16u * size) {
+<a name="l01038"></a>01038         <span class="keywordflow">if</span> ((this-&gt;flags &amp; 0xf) == OPEN_WRITE) {        <span class="comment">// check if file opened in write-only mode</span>
+<a name="l01039"></a>01039                 DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01040"></a>01040                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01041"></a>01041         }
+<a name="l01042"></a>01042         <span class="keywordflow">if</span> (last_action==WRITE) fseek(fhandle,ftell(fhandle),SEEK_SET);
+<a name="l01043"></a>01043         last_action=READ;
+<a name="l01044"></a>01044         *size=(Bit16u)fread(data,1,*size,fhandle);
+<a name="l01045"></a>01045         <span class="comment">/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */</span>
+<a name="l01046"></a>01046         <span class="comment">/* Same for Igor */</span>
+<a name="l01047"></a>01047         <span class="comment">/* hardrive motion =&gt; unmask irq 2. Only do it when it&#39;s masked as unmasking is realitively heavy to emulate */</span>
+<a name="l01048"></a>01048     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
+<a name="l01049"></a>01049         Bit8u mask = IO_Read(0x21);
+<a name="l01050"></a>01050         <span class="keywordflow">if</span>(mask &amp; 0x4 ) IO_Write(0x21,mask&amp;0xfb);
+<a name="l01051"></a>01051     }
+<a name="l01052"></a>01052 
+<a name="l01053"></a>01053         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01054"></a>01054 }
+<a name="l01055"></a>01055 
+<a name="l01056"></a>01056 <span class="keywordtype">bool</span> localFile::Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
+<a name="l01057"></a>01057         Bit32u lastflags = this-&gt;flags &amp; 0xf;
+<a name="l01058"></a>01058         <span class="keywordflow">if</span> (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {  <span class="comment">// check if file opened in read-only mode</span>
+<a name="l01059"></a>01059                 DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01060"></a>01060                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01061"></a>01061         }
+<a name="l01062"></a>01062         <span class="keywordflow">if</span> (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
+<a name="l01063"></a>01063         last_action=WRITE;
+<a name="l01064"></a>01064         <span class="keywordflow">if</span>(*size==0){  
+<a name="l01065"></a>01065         <span class="keywordflow">return</span> (!ftruncate(fileno(fhandle),ftell(fhandle)));
+<a name="l01066"></a>01066     }
+<a name="l01067"></a>01067     <span class="keywordflow">else</span> 
+<a name="l01068"></a>01068     {
+<a name="l01069"></a>01069                 *size=(Bit16u)fwrite(data,1,*size,fhandle);
+<a name="l01070"></a>01070                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01071"></a>01071     }
+<a name="l01072"></a>01072 }
+<a name="l01073"></a>01073 
+<a name="l01074"></a>01074 <span class="comment">/* ert, 20100711: Locking extensions */</span>
+<a name="l01075"></a>01075 <span class="preprocessor">#ifdef WIN32</span>
+<a name="l01076"></a>01076 <span class="preprocessor"></span><span class="preprocessor">#include &lt;sys/locking.h&gt;</span>
+<a name="l01077"></a>01077 <span class="keywordtype">bool</span> localFile::LockFile(Bit8u mode, Bit32u pos, Bit16u size) {
+<a name="l01078"></a>01078         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
+<a name="l01079"></a>01079         BOOL bRet;
+<a name="l01080"></a>01080 
+<a name="l01081"></a>01081         <span class="keywordflow">switch</span> (mode)
+<a name="l01082"></a>01082         {
+<a name="l01083"></a>01083         <span class="keywordflow">case</span> 0: bRet = ::LockFile (hFile, pos, 0, size, 0); <span class="keywordflow">break</span>;
+<a name="l01084"></a>01084         <span class="keywordflow">case</span> 1: bRet = ::UnlockFile(hFile, pos, 0, size, 0); <span class="keywordflow">break</span>;
+<a name="l01085"></a>01085         <span class="keywordflow">default</span>: 
+<a name="l01086"></a>01086                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l01087"></a>01087                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01088"></a>01088         }
+<a name="l01089"></a>01089         <span class="comment">//LOG_MSG(&quot;::LockFile %s&quot;, name);</span>
+<a name="l01090"></a>01090 
+<a name="l01091"></a>01091         <span class="keywordflow">if</span> (!bRet)
+<a name="l01092"></a>01092         {
+<a name="l01093"></a>01093                 <span class="keywordflow">switch</span> (GetLastError())
+<a name="l01094"></a>01094                 {
+<a name="l01095"></a>01095                 <span class="keywordflow">case</span> ERROR_ACCESS_DENIED:
+<a name="l01096"></a>01096                 <span class="keywordflow">case</span> ERROR_LOCK_VIOLATION:
+<a name="l01097"></a>01097                 <span class="keywordflow">case</span> ERROR_NETWORK_ACCESS_DENIED:
+<a name="l01098"></a>01098                 <span class="keywordflow">case</span> ERROR_DRIVE_LOCKED:
+<a name="l01099"></a>01099                 <span class="keywordflow">case</span> ERROR_SEEK_ON_DEVICE:
+<a name="l01100"></a>01100                 <span class="keywordflow">case</span> ERROR_NOT_LOCKED:
+<a name="l01101"></a>01101                 <span class="keywordflow">case</span> ERROR_LOCK_FAILED:
+<a name="l01102"></a>01102                         DOS_SetError(0x21);
+<a name="l01103"></a>01103                         <span class="keywordflow">break</span>;
+<a name="l01104"></a>01104                 <span class="keywordflow">case</span> ERROR_INVALID_HANDLE:
+<a name="l01105"></a>01105                         DOS_SetError(DOSERR_INVALID_HANDLE);
+<a name="l01106"></a>01106                         <span class="keywordflow">break</span>;
+<a name="l01107"></a>01107                 <span class="keywordflow">case</span> ERROR_INVALID_FUNCTION:
+<a name="l01108"></a>01108                 <span class="keywordflow">default</span>:
+<a name="l01109"></a>01109                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l01110"></a>01110                         <span class="keywordflow">break</span>;
+<a name="l01111"></a>01111                 }
+<a name="l01112"></a>01112         }
+<a name="l01113"></a>01113         <span class="keywordflow">return</span> bRet;
+<a name="l01114"></a>01114 }
+<a name="l01115"></a>01115 <span class="preprocessor">#endif</span>
+<a name="l01116"></a>01116 <span class="preprocessor"></span>
+<a name="l01117"></a>01117 <span class="keywordtype">bool</span> localFile::Seek(Bit32u * pos,Bit32u type) {
+<a name="l01118"></a>01118         <span class="keywordtype">int</span> seektype;
+<a name="l01119"></a>01119         <span class="keywordflow">switch</span> (type) {
+<a name="l01120"></a>01120         <span class="keywordflow">case</span> DOS_SEEK_SET:seektype=SEEK_SET;<span class="keywordflow">break</span>;
+<a name="l01121"></a>01121         <span class="keywordflow">case</span> DOS_SEEK_CUR:seektype=SEEK_CUR;<span class="keywordflow">break</span>;
+<a name="l01122"></a>01122         <span class="keywordflow">case</span> DOS_SEEK_END:seektype=SEEK_END;<span class="keywordflow">break</span>;
+<a name="l01123"></a>01123         <span class="keywordflow">default</span>:
+<a name="l01124"></a>01124         <span class="comment">//TODO Give some doserrorcode;</span>
+<a name="l01125"></a>01125                 <span class="keywordflow">return</span> <span class="keyword">false</span>;<span class="comment">//ERROR</span>
+<a name="l01126"></a>01126         }
+<a name="l01127"></a>01127         <span class="keywordtype">int</span> ret=fseek(fhandle,*reinterpret_cast&lt;Bit32s*&gt;(pos),seektype);
+<a name="l01128"></a>01128         <span class="keywordflow">if</span> (ret!=0) {
+<a name="l01129"></a>01129                 <span class="comment">// Out of file range, pretend everythings ok </span>
+<a name="l01130"></a>01130                 <span class="comment">// and move file pointer top end of file... ?! (Black Thorne)</span>
+<a name="l01131"></a>01131                 fseek(fhandle,0,SEEK_END);
+<a name="l01132"></a>01132         }
+<a name="l01133"></a>01133 <span class="preprocessor">#if 0</span>
+<a name="l01134"></a>01134 <span class="preprocessor"></span>        fpos_t temppos;
+<a name="l01135"></a>01135         fgetpos(fhandle,&amp;temppos);
+<a name="l01136"></a>01136         Bit32u * fake_pos=(Bit32u*)&amp;temppos;
+<a name="l01137"></a>01137         *pos=*fake_pos;
+<a name="l01138"></a>01138 <span class="preprocessor">#endif</span>
+<a name="l01139"></a>01139 <span class="preprocessor"></span>        *pos=(Bit32u)ftell(fhandle);
+<a name="l01140"></a>01140         last_action=NONE;
+<a name="l01141"></a>01141         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01142"></a>01142 }
+<a name="l01143"></a>01143 
+<a name="l01144"></a>01144 <span class="keywordtype">bool</span> localFile::Close() {
+<a name="l01145"></a>01145         <span class="keywordflow">if</span> (newtime &amp;&amp; fhandle) {
+<a name="l01146"></a>01146         <span class="comment">// force STDIO to flush buffers on this file handle, or else fclose() will write buffered data</span>
+<a name="l01147"></a>01147         <span class="comment">// and cause mtime to reset back to current time.</span>
+<a name="l01148"></a>01148         fflush(fhandle);
+<a name="l01149"></a>01149 
+<a name="l01150"></a>01150                 <span class="comment">// backport from DOS_PackDate() and DOS_PackTime()</span>
+<a name="l01151"></a>01151                 <span class="keyword">struct </span>tm tim = { 0 };
+<a name="l01152"></a>01152                 tim.tm_sec  = (time&amp;0x1f)*2;
+<a name="l01153"></a>01153                 tim.tm_min  = (time&gt;&gt;5)&amp;0x3f;
+<a name="l01154"></a>01154                 tim.tm_hour = (time&gt;&gt;11)&amp;0x1f;
+<a name="l01155"></a>01155                 tim.tm_mday = date&amp;0x1f;
+<a name="l01156"></a>01156                 tim.tm_mon  = ((date&gt;&gt;5)&amp;0x0f)-1;
+<a name="l01157"></a>01157                 tim.tm_year = (date&gt;&gt;9)+1980-1900;
+<a name="l01158"></a>01158         <span class="comment">// sanitize the date in case of invalid timestamps (such as 0x0000 date/time fields)</span>
+<a name="l01159"></a>01159         <span class="keywordflow">if</span> (tim.tm_mon &lt; 0) tim.tm_mon = 0;
+<a name="l01160"></a>01160         <span class="keywordflow">if</span> (tim.tm_mday == 0) tim.tm_mday = 1;
+<a name="l01161"></a>01161                 <span class="comment">//  have the C run-time library code compute whether standard time or daylight saving time is in effect.</span>
+<a name="l01162"></a>01162                 tim.tm_isdst = -1;
+<a name="l01163"></a>01163                 <span class="comment">// serialize time</span>
+<a name="l01164"></a>01164                 mktime(&amp;tim);
+<a name="l01165"></a>01165 
+<a name="l01166"></a>01166         <span class="comment">// change file time by file handle (while we still have it open)</span>
+<a name="l01167"></a>01167         <span class="comment">// so that we do not have to duplicate guest to host filename conversion here.</span>
+<a name="l01168"></a>01168         <span class="comment">// This should help Yksoft1 with file date/time, PC-98, and Shift-JIS Japanese filenames as well on Windows.</span>
+<a name="l01169"></a>01169 
+<a name="l01170"></a>01170 <span class="preprocessor">#if defined(WIN32) </span><span class="comment">/* TODO: What about MinGW? */</span>
+<a name="l01171"></a>01171         <span class="keyword">struct </span>_utimbuf ftim;
+<a name="l01172"></a>01172         ftim.actime = ftim.modtime = mktime(&amp;tim);
+<a name="l01173"></a>01173 
+<a name="l01174"></a>01174         <span class="keywordflow">if</span> (_futime(fileno(fhandle), &amp;ftim)) {
+<a name="l01175"></a>01175             <span class="keyword">extern</span> <span class="keywordtype">int</span> errno; 
+<a name="l01176"></a>01176             LOG_MSG(<span class="stringliteral">&quot;Set time failed (%s)&quot;</span>, strerror(errno));
+<a name="l01177"></a>01177         }
+<a name="l01178"></a>01178 <span class="preprocessor">#elif !defined(RISCOS) // Linux (TODO: What about Mac OS X/Darwin?)</span>
+<a name="l01179"></a>01179 <span class="preprocessor"></span>        <span class="comment">// NTS: Do not attempt futime, Linux doesn&#39;t have it.</span>
+<a name="l01180"></a>01180         <span class="comment">//      Do not attempt futimes, Linux man pages LIE about having it. It&#39;s even there in the freaking header, but not recognized!</span>
+<a name="l01181"></a>01181         <span class="comment">//      Use futimens. Modern stuff should have it. [https://pubs.opengroup.org/onlinepubs/9699919799/functions/futimens.html]</span>
+<a name="l01182"></a>01182         <span class="keyword">struct </span>timespec ftsp[2];
+<a name="l01183"></a>01183         ftsp[0].tv_sec =  ftsp[1].tv_sec =  mktime(&amp;tim);
+<a name="l01184"></a>01184         ftsp[0].tv_nsec = ftsp[1].tv_nsec = 0;
+<a name="l01185"></a>01185 
+<a name="l01186"></a>01186         <span class="keywordflow">if</span> (futimens(fileno(fhandle), ftsp)) {
+<a name="l01187"></a>01187             <span class="keyword">extern</span> <span class="keywordtype">int</span> errno; 
+<a name="l01188"></a>01188             LOG_MSG(<span class="stringliteral">&quot;Set time failed (%s)&quot;</span>, strerror(errno));
+<a name="l01189"></a>01189         }
+<a name="l01190"></a>01190 <span class="preprocessor">#endif</span>
+<a name="l01191"></a>01191 <span class="preprocessor"></span>        }
+<a name="l01192"></a>01192 
+<a name="l01193"></a>01193         <span class="comment">// only close if one reference left</span>
+<a name="l01194"></a>01194         <span class="keywordflow">if</span> (refCtr==1) {
+<a name="l01195"></a>01195                 <span class="keywordflow">if</span>(fhandle) fclose(fhandle); 
+<a name="l01196"></a>01196                 fhandle = 0;
+<a name="l01197"></a>01197                 open = <span class="keyword">false</span>;
+<a name="l01198"></a>01198         }
+<a name="l01199"></a>01199 
+<a name="l01200"></a>01200         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01201"></a>01201 }
+<a name="l01202"></a>01202 
+<a name="l01203"></a>01203 Bit16u localFile::GetInformation(<span class="keywordtype">void</span>) {
+<a name="l01204"></a>01204         <span class="keywordflow">return</span> read_only_medium?0x40:0;
+<a name="l01205"></a>01205 }
+<a name="l01206"></a>01206         
+<a name="l01207"></a>01207 
+<a name="l01208"></a>01208 Bit32u localFile::GetSeekPos() {
+<a name="l01209"></a>01209         <span class="keywordflow">return</span> (Bit32u)ftell( fhandle );
+<a name="l01210"></a>01210 }
+<a name="l01211"></a>01211 
+<a name="l01212"></a>01212 
+<a name="l01213"></a>01213 localFile::localFile(<span class="keyword">const</span> <span class="keywordtype">char</span>* _name, FILE * handle) {
+<a name="l01214"></a>01214         fhandle=handle;
+<a name="l01215"></a>01215         open=<span class="keyword">true</span>;
+<a name="l01216"></a>01216         UpdateDateTimeFromHost();
+<a name="l01217"></a>01217 
+<a name="l01218"></a>01218         attr=DOS_ATTR_ARCHIVE;
+<a name="l01219"></a>01219         last_action=NONE;
+<a name="l01220"></a>01220         read_only_medium=<span class="keyword">false</span>;
+<a name="l01221"></a>01221 
+<a name="l01222"></a>01222         name=0;
+<a name="l01223"></a>01223         SetName(_name);
+<a name="l01224"></a>01224 }
+<a name="l01225"></a>01225 
+<a name="l01226"></a>01226 <span class="keywordtype">void</span> localFile::FlagReadOnlyMedium(<span class="keywordtype">void</span>) {
+<a name="l01227"></a>01227         read_only_medium = <span class="keyword">true</span>;
+<a name="l01228"></a>01228 }
+<a name="l01229"></a>01229 
+<a name="l01230"></a>01230 <span class="keywordtype">bool</span> localFile::UpdateDateTimeFromHost(<span class="keywordtype">void</span>) {
+<a name="l01231"></a>01231         <span class="keywordflow">if</span>(!open) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01232"></a>01232         <span class="keyword">struct </span>stat temp_stat;
+<a name="l01233"></a>01233         fstat(fileno(fhandle),&amp;temp_stat);
+<a name="l01234"></a>01234         <span class="keyword">struct </span>tm * ltime;
+<a name="l01235"></a>01235         <span class="keywordflow">if</span>((ltime=localtime(&amp;temp_stat.st_mtime))!=0) {
+<a name="l01236"></a>01236                 time=DOS_PackTime((Bit16u)ltime-&gt;tm_hour,(Bit16u)ltime-&gt;tm_min,(Bit16u)ltime-&gt;tm_sec);
+<a name="l01237"></a>01237                 date=DOS_PackDate((Bit16u)(ltime-&gt;tm_year+1900),(Bit16u)(ltime-&gt;tm_mon+1),(Bit16u)ltime-&gt;tm_mday);
+<a name="l01238"></a>01238         } <span class="keywordflow">else</span> {
+<a name="l01239"></a>01239                 time=1;date=1;
+<a name="l01240"></a>01240         }
+<a name="l01241"></a>01241         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01242"></a>01242 }
+<a name="l01243"></a>01243 
+<a name="l01244"></a>01244 <span class="keywordtype">void</span> localFile::Flush(<span class="keywordtype">void</span>) {
+<a name="l01245"></a>01245         <span class="keywordflow">if</span> (last_action==WRITE) {
+<a name="l01246"></a>01246                 fseek(fhandle,ftell(fhandle),SEEK_SET);
+<a name="l01247"></a>01247                 last_action=NONE;
+<a name="l01248"></a>01248         }
+<a name="l01249"></a>01249 }
+<a name="l01250"></a>01250 
+<a name="l01251"></a>01251 
+<a name="l01252"></a>01252 <span class="comment">// ********************************************</span>
+<a name="l01253"></a>01253 <span class="comment">// CDROM DRIVE</span>
 <a name="l01254"></a>01254 <span class="comment">// ********************************************</span>
-<a name="l01255"></a>01255 <span class="comment">// CDROM DRIVE</span>
-<a name="l01256"></a>01256 <span class="comment">// ********************************************</span>
-<a name="l01257"></a>01257 
-<a name="l01258"></a>01258 <span class="keywordtype">int</span>  MSCDEX_RemoveDrive(<span class="keywordtype">char</span> driveLetter);
-<a name="l01259"></a>01259 <span class="keywordtype">int</span>  MSCDEX_AddDrive(<span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span>* physicalPath, Bit8u&amp; subUnit);
-<a name="l01260"></a>01260 <span class="keywordtype">bool</span> MSCDEX_HasMediaChanged(Bit8u subUnit);
-<a name="l01261"></a>01261 <span class="keywordtype">bool</span> MSCDEX_GetVolumeName(Bit8u subUnit, <span class="keywordtype">char</span>* name);
-<a name="l01262"></a>01262 
-<a name="l01263"></a>01263 
-<a name="l01264"></a>01264 cdromDrive::cdromDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span> * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, <span class="keywordtype">int</span>&amp; error)
-<a name="l01265"></a>01265                    :<a class="code" href="classlocalDrive.html">localDrive</a>(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid),
-<a name="l01266"></a>01266                     subUnit(0),
-<a name="l01267"></a>01267                     driveLetter(<span class="stringliteral">&#39;\0&#39;</span>)
-<a name="l01268"></a>01268 {
-<a name="l01269"></a>01269         <span class="comment">// Init mscdex</span>
-<a name="l01270"></a>01270         error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
-<a name="l01271"></a>01271         strcpy(info, <span class="stringliteral">&quot;CDRom &quot;</span>);
-<a name="l01272"></a>01272         strcat(info, startdir);
-<a name="l01273"></a>01273         this-&gt;driveLetter = driveLetter;
-<a name="l01274"></a>01274         <span class="comment">// Get Volume Label</span>
-<a name="l01275"></a>01275         <span class="keywordtype">char</span> name[32];
-<a name="l01276"></a>01276         <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
-<a name="l01277"></a>01277 }
-<a name="l01278"></a>01278 
-<a name="l01279"></a>01279 <span class="keywordtype">bool</span> cdromDrive::FileOpen(<a class="code" href="classDOS__File.html">DOS_File</a> * * file,<span class="keyword">const</span> <span class="keywordtype">char</span> * name,Bit32u flags) {
-<a name="l01280"></a>01280         <span class="keywordflow">if</span> ((flags&amp;0xf)==OPEN_READWRITE) {
-<a name="l01281"></a>01281                 flags &amp;= ~((<span class="keywordtype">unsigned</span> int)OPEN_READWRITE);
-<a name="l01282"></a>01282         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((flags&amp;0xf)==OPEN_WRITE) {
-<a name="l01283"></a>01283                 DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01284"></a>01284                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01285"></a>01285         }
-<a name="l01286"></a>01286         <span class="keywordtype">bool</span> retcode = localDrive::FileOpen(file,name,flags);
-<a name="l01287"></a>01287         <span class="keywordflow">if</span>(retcode) (<span class="keyword">dynamic_cast&lt;</span><a class="code" href="classlocalFile.html">localFile</a>*<span class="keyword">&gt;</span>(*file))-&gt;FlagReadOnlyMedium();
-<a name="l01288"></a>01288         <span class="keywordflow">return</span> retcode;
-<a name="l01289"></a>01289 }
-<a name="l01290"></a>01290 
-<a name="l01291"></a>01291 <span class="keywordtype">bool</span> cdromDrive::FileCreate(<a class="code" href="classDOS__File.html">DOS_File</a> * * <span class="comment">/*file*/</span>,<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>,Bit16u <span class="comment">/*attributes*/</span>) {
-<a name="l01292"></a>01292         DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01293"></a>01293         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01294"></a>01294 }
-<a name="l01295"></a>01295 
-<a name="l01296"></a>01296 <span class="keywordtype">bool</span> cdromDrive::FileUnlink(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>) {
-<a name="l01297"></a>01297         DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01298"></a>01298         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01299"></a>01299 }
-<a name="l01300"></a>01300 
-<a name="l01301"></a>01301 <span class="keywordtype">bool</span> cdromDrive::RemoveDir(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*dir*/</span>) {
-<a name="l01302"></a>01302         DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01303"></a>01303         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01304"></a>01304 }
-<a name="l01305"></a>01305 
-<a name="l01306"></a>01306 <span class="keywordtype">bool</span> cdromDrive::MakeDir(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*dir*/</span>) {
-<a name="l01307"></a>01307         DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01308"></a>01308         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01309"></a>01309 }
-<a name="l01310"></a>01310 
-<a name="l01311"></a>01311 <span class="keywordtype">bool</span> cdromDrive::Rename(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*oldname*/</span>,<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*newname*/</span>) {
-<a name="l01312"></a>01312         DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l01313"></a>01313         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01314"></a>01314 }
-<a name="l01315"></a>01315 
-<a name="l01316"></a>01316 <span class="keywordtype">bool</span> cdromDrive::GetFileAttr(<span class="keyword">const</span> <span class="keywordtype">char</span> * name,Bit16u * attr) {
-<a name="l01317"></a>01317         <span class="keywordtype">bool</span> result = localDrive::GetFileAttr(name,attr);
-<a name="l01318"></a>01318         <span class="keywordflow">if</span> (result) *attr |= DOS_ATTR_READ_ONLY;
-<a name="l01319"></a>01319         <span class="keywordflow">return</span> result;
-<a name="l01320"></a>01320 }
-<a name="l01321"></a>01321 
-<a name="l01322"></a>01322 <span class="keywordtype">bool</span> cdromDrive::FindFirst(<span class="keyword">const</span> <span class="keywordtype">char</span> * _dir,<a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp; dta,<span class="keywordtype">bool</span> <span class="comment">/*fcb_findfirst*/</span>) {
-<a name="l01323"></a>01323         <span class="comment">// If media has changed, reInit drivecache.</span>
-<a name="l01324"></a>01324         <span class="keywordflow">if</span> (MSCDEX_HasMediaChanged(subUnit)) {
-<a name="l01325"></a>01325                 dirCache.EmptyCache();
-<a name="l01326"></a>01326                 <span class="comment">// Get Volume Label</span>
-<a name="l01327"></a>01327                 <span class="keywordtype">char</span> name[32];
-<a name="l01328"></a>01328                 <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
-<a name="l01329"></a>01329         }
-<a name="l01330"></a>01330         <span class="keywordflow">return</span> localDrive::FindFirst(_dir,dta);
-<a name="l01331"></a>01331 }
-<a name="l01332"></a>01332 
-<a name="l01333"></a>01333 <span class="keywordtype">void</span> cdromDrive::SetDir(<span class="keyword">const</span> <span class="keywordtype">char</span>* path) {
-<a name="l01334"></a>01334         <span class="comment">// If media has changed, reInit drivecache.</span>
-<a name="l01335"></a>01335         <span class="keywordflow">if</span> (MSCDEX_HasMediaChanged(subUnit)) {
-<a name="l01336"></a>01336                 dirCache.EmptyCache();
-<a name="l01337"></a>01337                 <span class="comment">// Get Volume Label</span>
-<a name="l01338"></a>01338                 <span class="keywordtype">char</span> name[32];
-<a name="l01339"></a>01339                 <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
-<a name="l01340"></a>01340         }
-<a name="l01341"></a>01341         localDrive::SetDir(path);
-<a name="l01342"></a>01342 }
-<a name="l01343"></a>01343 
-<a name="l01344"></a>01344 <span class="keywordtype">bool</span> cdromDrive::isRemote(<span class="keywordtype">void</span>) {
-<a name="l01345"></a>01345         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01346"></a>01346 }
-<a name="l01347"></a>01347 
-<a name="l01348"></a>01348 <span class="keywordtype">bool</span> cdromDrive::isRemovable(<span class="keywordtype">void</span>) {
-<a name="l01349"></a>01349         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01350"></a>01350 }
-<a name="l01351"></a>01351 
-<a name="l01352"></a>01352 Bits cdromDrive::UnMount(<span class="keywordtype">void</span>) {
-<a name="l01353"></a>01353         <span class="keywordflow">if</span>(MSCDEX_RemoveDrive(driveLetter)) {
-<a name="l01354"></a>01354                 <span class="keyword">delete</span> <span class="keyword">this</span>;
-<a name="l01355"></a>01355                 <span class="keywordflow">return</span> 0;
-<a name="l01356"></a>01356         }
-<a name="l01357"></a>01357         <span class="keywordflow">return</span> 2;
-<a name="l01358"></a>01358 }
+<a name="l01255"></a>01255 
+<a name="l01256"></a>01256 <span class="keywordtype">int</span>  MSCDEX_RemoveDrive(<span class="keywordtype">char</span> driveLetter);
+<a name="l01257"></a>01257 <span class="keywordtype">int</span>  MSCDEX_AddDrive(<span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span>* physicalPath, Bit8u&amp; subUnit);
+<a name="l01258"></a>01258 <span class="keywordtype">bool</span> MSCDEX_HasMediaChanged(Bit8u subUnit);
+<a name="l01259"></a>01259 <span class="keywordtype">bool</span> MSCDEX_GetVolumeName(Bit8u subUnit, <span class="keywordtype">char</span>* name);
+<a name="l01260"></a>01260 
+<a name="l01261"></a>01261 
+<a name="l01262"></a>01262 cdromDrive::cdromDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span> * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, <span class="keywordtype">int</span>&amp; error)
+<a name="l01263"></a>01263                    :<a class="code" href="classlocalDrive.html">localDrive</a>(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid),
+<a name="l01264"></a>01264                     subUnit(0),
+<a name="l01265"></a>01265                     driveLetter(<span class="stringliteral">&#39;\0&#39;</span>)
+<a name="l01266"></a>01266 {
+<a name="l01267"></a>01267         <span class="comment">// Init mscdex</span>
+<a name="l01268"></a>01268         error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
+<a name="l01269"></a>01269         strcpy(info, <span class="stringliteral">&quot;CDRom &quot;</span>);
+<a name="l01270"></a>01270         strcat(info, startdir);
+<a name="l01271"></a>01271         this-&gt;driveLetter = driveLetter;
+<a name="l01272"></a>01272         <span class="comment">// Get Volume Label</span>
+<a name="l01273"></a>01273         <span class="keywordtype">char</span> name[32];
+<a name="l01274"></a>01274         <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
+<a name="l01275"></a>01275 }
+<a name="l01276"></a>01276 
+<a name="l01277"></a>01277 <span class="keywordtype">bool</span> cdromDrive::FileOpen(<a class="code" href="classDOS__File.html">DOS_File</a> * * file,<span class="keyword">const</span> <span class="keywordtype">char</span> * name,Bit32u flags) {
+<a name="l01278"></a>01278         <span class="keywordflow">if</span> ((flags&amp;0xf)==OPEN_READWRITE) {
+<a name="l01279"></a>01279                 flags &amp;= ~((<span class="keywordtype">unsigned</span> int)OPEN_READWRITE);
+<a name="l01280"></a>01280         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((flags&amp;0xf)==OPEN_WRITE) {
+<a name="l01281"></a>01281                 DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01282"></a>01282                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01283"></a>01283         }
+<a name="l01284"></a>01284         <span class="keywordtype">bool</span> retcode = localDrive::FileOpen(file,name,flags);
+<a name="l01285"></a>01285         <span class="keywordflow">if</span>(retcode) (<span class="keyword">dynamic_cast&lt;</span><a class="code" href="classlocalFile.html">localFile</a>*<span class="keyword">&gt;</span>(*file))-&gt;FlagReadOnlyMedium();
+<a name="l01286"></a>01286         <span class="keywordflow">return</span> retcode;
+<a name="l01287"></a>01287 }
+<a name="l01288"></a>01288 
+<a name="l01289"></a>01289 <span class="keywordtype">bool</span> cdromDrive::FileCreate(<a class="code" href="classDOS__File.html">DOS_File</a> * * <span class="comment">/*file*/</span>,<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>,Bit16u <span class="comment">/*attributes*/</span>) {
+<a name="l01290"></a>01290         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01291"></a>01291         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01292"></a>01292 }
+<a name="l01293"></a>01293 
+<a name="l01294"></a>01294 <span class="keywordtype">bool</span> cdromDrive::FileUnlink(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>) {
+<a name="l01295"></a>01295         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01296"></a>01296         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01297"></a>01297 }
+<a name="l01298"></a>01298 
+<a name="l01299"></a>01299 <span class="keywordtype">bool</span> cdromDrive::RemoveDir(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*dir*/</span>) {
+<a name="l01300"></a>01300         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01301"></a>01301         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01302"></a>01302 }
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304 <span class="keywordtype">bool</span> cdromDrive::MakeDir(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*dir*/</span>) {
+<a name="l01305"></a>01305         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01306"></a>01306         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01307"></a>01307 }
+<a name="l01308"></a>01308 
+<a name="l01309"></a>01309 <span class="keywordtype">bool</span> cdromDrive::Rename(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*oldname*/</span>,<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*newname*/</span>) {
+<a name="l01310"></a>01310         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l01311"></a>01311         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01312"></a>01312 }
+<a name="l01313"></a>01313 
+<a name="l01314"></a>01314 <span class="keywordtype">bool</span> cdromDrive::GetFileAttr(<span class="keyword">const</span> <span class="keywordtype">char</span> * name,Bit16u * attr) {
+<a name="l01315"></a>01315         <span class="keywordtype">bool</span> result = localDrive::GetFileAttr(name,attr);
+<a name="l01316"></a>01316         <span class="keywordflow">if</span> (result) *attr |= DOS_ATTR_READ_ONLY;
+<a name="l01317"></a>01317         <span class="keywordflow">return</span> result;
+<a name="l01318"></a>01318 }
+<a name="l01319"></a>01319 
+<a name="l01320"></a>01320 <span class="keywordtype">bool</span> cdromDrive::FindFirst(<span class="keyword">const</span> <span class="keywordtype">char</span> * _dir,<a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp; dta,<span class="keywordtype">bool</span> <span class="comment">/*fcb_findfirst*/</span>) {
+<a name="l01321"></a>01321         <span class="comment">// If media has changed, reInit drivecache.</span>
+<a name="l01322"></a>01322         <span class="keywordflow">if</span> (MSCDEX_HasMediaChanged(subUnit)) {
+<a name="l01323"></a>01323                 dirCache.EmptyCache();
+<a name="l01324"></a>01324                 <span class="comment">// Get Volume Label</span>
+<a name="l01325"></a>01325                 <span class="keywordtype">char</span> name[32];
+<a name="l01326"></a>01326                 <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
+<a name="l01327"></a>01327         }
+<a name="l01328"></a>01328         <span class="keywordflow">return</span> localDrive::FindFirst(_dir,dta);
+<a name="l01329"></a>01329 }
+<a name="l01330"></a>01330 
+<a name="l01331"></a>01331 <span class="keywordtype">void</span> cdromDrive::SetDir(<span class="keyword">const</span> <span class="keywordtype">char</span>* path) {
+<a name="l01332"></a>01332         <span class="comment">// If media has changed, reInit drivecache.</span>
+<a name="l01333"></a>01333         <span class="keywordflow">if</span> (MSCDEX_HasMediaChanged(subUnit)) {
+<a name="l01334"></a>01334                 dirCache.EmptyCache();
+<a name="l01335"></a>01335                 <span class="comment">// Get Volume Label</span>
+<a name="l01336"></a>01336                 <span class="keywordtype">char</span> name[32];
+<a name="l01337"></a>01337                 <span class="keywordflow">if</span> (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,<span class="keyword">true</span>,<span class="keyword">true</span>);
+<a name="l01338"></a>01338         }
+<a name="l01339"></a>01339         localDrive::SetDir(path);
+<a name="l01340"></a>01340 }
+<a name="l01341"></a>01341 
+<a name="l01342"></a>01342 <span class="keywordtype">bool</span> cdromDrive::isRemote(<span class="keywordtype">void</span>) {
+<a name="l01343"></a>01343         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01344"></a>01344 }
+<a name="l01345"></a>01345 
+<a name="l01346"></a>01346 <span class="keywordtype">bool</span> cdromDrive::isRemovable(<span class="keywordtype">void</span>) {
+<a name="l01347"></a>01347         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01348"></a>01348 }
+<a name="l01349"></a>01349 
+<a name="l01350"></a>01350 Bits cdromDrive::UnMount(<span class="keywordtype">void</span>) {
+<a name="l01351"></a>01351         <span class="keywordflow">if</span>(MSCDEX_RemoveDrive(driveLetter)) {
+<a name="l01352"></a>01352                 <span class="keyword">delete</span> <span class="keyword">this</span>;
+<a name="l01353"></a>01353                 <span class="keywordflow">return</span> 0;
+<a name="l01354"></a>01354         }
+<a name="l01355"></a>01355         <span class="keywordflow">return</span> 2;
+<a name="l01356"></a>01356 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -105,59 +105,62 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00008"></a>00008 
 <a name="l00009"></a>00009 allpass::allpass()
 <a name="l00010"></a>00010 {
-<a name="l00011"></a>00011         bufidx = 0;
-<a name="l00012"></a>00012 }
-<a name="l00013"></a>00013 
-<a name="l00014"></a>00014 <span class="keywordtype">void</span> allpass::setbuffer(<span class="keywordtype">float</span> *buf, <span class="keywordtype">int</span> size)
-<a name="l00015"></a>00015 {
-<a name="l00016"></a>00016         buffer = buf;
-<a name="l00017"></a>00017         bufsize = size;
-<a name="l00018"></a>00018 }
-<a name="l00019"></a>00019 
-<a name="l00020"></a>00020 <span class="keywordtype">void</span> allpass::mute()
-<a name="l00021"></a>00021 {
-<a name="l00022"></a>00022         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;bufsize; i++)
-<a name="l00023"></a>00023                 buffer[i]=0;
-<a name="l00024"></a>00024 }
-<a name="l00025"></a>00025 
-<a name="l00026"></a>00026 <span class="keywordtype">void</span> allpass::setfeedback(<span class="keywordtype">float</span> val)
-<a name="l00027"></a>00027 {
-<a name="l00028"></a>00028         feedback = val;
-<a name="l00029"></a>00029 }
-<a name="l00030"></a>00030 
-<a name="l00031"></a>00031 <span class="keywordtype">float</span> allpass::getfeedback()
-<a name="l00032"></a>00032 {
-<a name="l00033"></a>00033         <span class="keywordflow">return</span> feedback;
-<a name="l00034"></a>00034 }
-<a name="l00035"></a>00035 
-<a name="l00036"></a>00036 <span class="keywordtype">void</span> allpass::deletebuffer()
-<a name="l00037"></a>00037 {
-<a name="l00038"></a>00038         <span class="keyword">delete</span>[] buffer;
-<a name="l00039"></a>00039         buffer = 0;
-<a name="l00040"></a>00040 }
-<a name="l00041"></a>00041 
-<a name="l00042"></a>00042 
-<a name="l00043"></a>00043 <span class="keywordtype">void</span> allpass::saveState( std::ostream &amp;stream )
-<a name="l00044"></a>00044 {
-<a name="l00045"></a>00045         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;feedback), <span class="keyword">sizeof</span>(feedback) );
-<a name="l00046"></a>00046         stream.write(reinterpret_cast&lt;const char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
-<a name="l00047"></a>00047         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
-<a name="l00048"></a>00048         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
-<a name="l00049"></a>00049 }
-<a name="l00050"></a>00050 
-<a name="l00051"></a>00051 
-<a name="l00052"></a>00052 <span class="keywordtype">void</span> allpass::loadState( std::istream &amp;stream )
-<a name="l00053"></a>00053 {
-<a name="l00054"></a>00054         stream.read(reinterpret_cast&lt;char*&gt;(&amp;feedback), <span class="keyword">sizeof</span>(feedback) );
-<a name="l00055"></a>00055         stream.read(reinterpret_cast&lt;char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
-<a name="l00056"></a>00056         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
-<a name="l00057"></a>00057         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
-<a name="l00058"></a>00058 }
+<a name="l00011"></a>00011     bufidx = 0;
+<a name="l00012"></a>00012     buffer = NULL;
+<a name="l00013"></a>00013     bufsize = 0;
+<a name="l00014"></a>00014     feedback = 0.0F;
+<a name="l00015"></a>00015 }
+<a name="l00016"></a>00016 
+<a name="l00017"></a>00017 <span class="keywordtype">void</span> allpass::setbuffer(<span class="keywordtype">float</span> *buf, <span class="keywordtype">int</span> size)
+<a name="l00018"></a>00018 {
+<a name="l00019"></a>00019         buffer = buf;
+<a name="l00020"></a>00020         bufsize = size;
+<a name="l00021"></a>00021 }
+<a name="l00022"></a>00022 
+<a name="l00023"></a>00023 <span class="keywordtype">void</span> allpass::mute()
+<a name="l00024"></a>00024 {
+<a name="l00025"></a>00025         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;bufsize; i++)
+<a name="l00026"></a>00026                 buffer[i]=0;
+<a name="l00027"></a>00027 }
+<a name="l00028"></a>00028 
+<a name="l00029"></a>00029 <span class="keywordtype">void</span> allpass::setfeedback(<span class="keywordtype">float</span> val)
+<a name="l00030"></a>00030 {
+<a name="l00031"></a>00031         feedback = val;
+<a name="l00032"></a>00032 }
+<a name="l00033"></a>00033 
+<a name="l00034"></a>00034 <span class="keywordtype">float</span> allpass::getfeedback()
+<a name="l00035"></a>00035 {
+<a name="l00036"></a>00036         <span class="keywordflow">return</span> feedback;
+<a name="l00037"></a>00037 }
+<a name="l00038"></a>00038 
+<a name="l00039"></a>00039 <span class="keywordtype">void</span> allpass::deletebuffer()
+<a name="l00040"></a>00040 {
+<a name="l00041"></a>00041         <span class="keyword">delete</span>[] buffer;
+<a name="l00042"></a>00042         buffer = 0;
+<a name="l00043"></a>00043 }
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045 
+<a name="l00046"></a>00046 <span class="keywordtype">void</span> allpass::saveState( std::ostream &amp;stream )
+<a name="l00047"></a>00047 {
+<a name="l00048"></a>00048         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;feedback), <span class="keyword">sizeof</span>(feedback) );
+<a name="l00049"></a>00049         stream.write(reinterpret_cast&lt;const char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
+<a name="l00050"></a>00050         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
+<a name="l00051"></a>00051         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
+<a name="l00052"></a>00052 }
+<a name="l00053"></a>00053 
+<a name="l00054"></a>00054 
+<a name="l00055"></a>00055 <span class="keywordtype">void</span> allpass::loadState( std::istream &amp;stream )
+<a name="l00056"></a>00056 {
+<a name="l00057"></a>00057         stream.read(reinterpret_cast&lt;char*&gt;(&amp;feedback), <span class="keyword">sizeof</span>(feedback) );
+<a name="l00058"></a>00058         stream.read(reinterpret_cast&lt;char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
+<a name="l00059"></a>00059         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
+<a name="l00060"></a>00060         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
+<a name="l00061"></a>00061 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:55 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -1853,245 +1853,243 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01756"></a>01756 
 <a name="l01757"></a>01757         GLint depth_csize;
 <a name="l01758"></a>01758         glGetIntegerv(GL_DEPTH_BITS, &amp;depth_csize);
-<a name="l01759"></a>01759         <span class="keywordflow">if</span> (depth_csize == 24) {
-<a name="l01760"></a>01760         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (depth_csize == 16) {
-<a name="l01761"></a>01761         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (depth_csize &lt; 16) {
-<a name="l01762"></a>01762                 LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: invalid depth size %d&quot;</span>,depth_csize);
-<a name="l01763"></a>01763         }
-<a name="l01764"></a>01764 
-<a name="l01765"></a>01765 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
-<a name="l01766"></a>01766 <span class="preprocessor"></span>        <span class="comment">// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.</span>
-<a name="l01767"></a>01767         <span class="comment">// make sure to put it back.</span>
-<a name="l01768"></a>01768         <span class="keywordtype">void</span> DOSBox_SetMenu(<span class="keywordtype">void</span>);
-<a name="l01769"></a>01769         DOSBox_SetMenu();
-<a name="l01770"></a>01770 <span class="preprocessor">#endif</span>
-<a name="l01771"></a>01771 <span class="preprocessor"></span>
-<a name="l01772"></a>01772         <span class="comment">/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */</span>
-<a name="l01773"></a>01773         glShadeModel(GL_SMOOTH);
-<a name="l01774"></a>01774 
-<a name="l01775"></a>01775         LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: mode set, resolution %d:%d %s&quot;</span>, v-&gt;fbi.width, v-&gt;fbi.height, (sdl_flags &amp; SDL_FULLSCREEN) ? <span class="stringliteral">&quot;(fullscreen)&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
-<a name="l01776"></a>01776 <span class="preprocessor">#endif</span>
-<a name="l01777"></a>01777 <span class="preprocessor"></span>}
-<a name="l01778"></a>01778 
-<a name="l01779"></a>01779 <span class="keywordtype">void</span> voodoo_ogl_update_dimensions(<span class="keywordtype">void</span>) {
-<a name="l01780"></a>01780         voodoo_ogl_leave(<span class="keyword">false</span>);
+<a name="l01759"></a>01759         <span class="keywordflow">if</span> (depth_csize &lt; 16) {
+<a name="l01760"></a>01760                 LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: invalid depth size %d&quot;</span>,depth_csize);
+<a name="l01761"></a>01761         }
+<a name="l01762"></a>01762 
+<a name="l01763"></a>01763 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
+<a name="l01764"></a>01764 <span class="preprocessor"></span>        <span class="comment">// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.</span>
+<a name="l01765"></a>01765         <span class="comment">// make sure to put it back.</span>
+<a name="l01766"></a>01766         <span class="keywordtype">void</span> DOSBox_SetMenu(<span class="keywordtype">void</span>);
+<a name="l01767"></a>01767         DOSBox_SetMenu();
+<a name="l01768"></a>01768 <span class="preprocessor">#endif</span>
+<a name="l01769"></a>01769 <span class="preprocessor"></span>
+<a name="l01770"></a>01770         <span class="comment">/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */</span>
+<a name="l01771"></a>01771         glShadeModel(GL_SMOOTH);
+<a name="l01772"></a>01772 
+<a name="l01773"></a>01773         LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: mode set, resolution %d:%d %s&quot;</span>, v-&gt;fbi.width, v-&gt;fbi.height, (sdl_flags &amp; SDL_FULLSCREEN) ? <span class="stringliteral">&quot;(fullscreen)&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
+<a name="l01774"></a>01774 <span class="preprocessor">#endif</span>
+<a name="l01775"></a>01775 <span class="preprocessor"></span>}
+<a name="l01776"></a>01776 
+<a name="l01777"></a>01777 <span class="keywordtype">void</span> voodoo_ogl_update_dimensions(<span class="keywordtype">void</span>) {
+<a name="l01778"></a>01778         voodoo_ogl_leave(<span class="keyword">false</span>);
+<a name="l01779"></a>01779 
+<a name="l01780"></a>01780         voodoo_ogl_reset_videomode();
 <a name="l01781"></a>01781 
-<a name="l01782"></a>01782         voodoo_ogl_reset_videomode();
-<a name="l01783"></a>01783 
-<a name="l01784"></a>01784         glMatrixMode( GL_PROJECTION );
-<a name="l01785"></a>01785         voodoo_ogl_set_window(v);
+<a name="l01782"></a>01782         glMatrixMode( GL_PROJECTION );
+<a name="l01783"></a>01783         voodoo_ogl_set_window(v);
+<a name="l01784"></a>01784 
+<a name="l01785"></a>01785         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 <a name="l01786"></a>01786 
-<a name="l01787"></a>01787         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-<a name="l01788"></a>01788 
-<a name="l01789"></a>01789         glMatrixMode( GL_MODELVIEW );
-<a name="l01790"></a>01790         glLoadIdentity( );
-<a name="l01791"></a>01791         glMatrixMode( GL_PROJECTION );
-<a name="l01792"></a>01792 }
-<a name="l01793"></a>01793 
-<a name="l01794"></a>01794 <span class="keywordtype">bool</span> voodoo_ogl_init(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01795"></a>01795         <span class="keyword">extern</span> <span class="keywordtype">void</span> CPU_Core_Dyn_X86_SetFPUMode(<span class="keywordtype">bool</span> dh_fpu);
-<a name="l01796"></a>01796 <span class="comment">//      CPU_Core_Dyn_X86_SetFPUMode(false);</span>
-<a name="l01797"></a>01797 
-<a name="l01798"></a>01798         <span class="keyword">extern</span> <span class="keywordtype">void</span> CPU_Core_Dyn_X86_Cache_Reset(<span class="keywordtype">void</span>);
-<a name="l01799"></a>01799 <span class="comment">//      CPU_Core_Dyn_X86_Cache_Reset();</span>
-<a name="l01800"></a>01800 
+<a name="l01787"></a>01787         glMatrixMode( GL_MODELVIEW );
+<a name="l01788"></a>01788         glLoadIdentity( );
+<a name="l01789"></a>01789         glMatrixMode( GL_PROJECTION );
+<a name="l01790"></a>01790 }
+<a name="l01791"></a>01791 
+<a name="l01792"></a>01792 <span class="keywordtype">bool</span> voodoo_ogl_init(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01793"></a>01793         <span class="keyword">extern</span> <span class="keywordtype">void</span> CPU_Core_Dyn_X86_SetFPUMode(<span class="keywordtype">bool</span> dh_fpu);
+<a name="l01794"></a>01794 <span class="comment">//      CPU_Core_Dyn_X86_SetFPUMode(false);</span>
+<a name="l01795"></a>01795 
+<a name="l01796"></a>01796         <span class="keyword">extern</span> <span class="keywordtype">void</span> CPU_Core_Dyn_X86_Cache_Reset(<span class="keywordtype">void</span>);
+<a name="l01797"></a>01797 <span class="comment">//      CPU_Core_Dyn_X86_Cache_Reset();</span>
+<a name="l01798"></a>01798 
+<a name="l01799"></a>01799 
+<a name="l01800"></a>01800         voodoo_ogl_reset_videomode();
 <a name="l01801"></a>01801 
-<a name="l01802"></a>01802         voodoo_ogl_reset_videomode();
-<a name="l01803"></a>01803 
-<a name="l01804"></a>01804         <span class="keywordflow">if</span> (!VOGL_Initialize()) {
-<a name="l01805"></a>01805                 VOGL_Reset();
-<a name="l01806"></a>01806                 <span class="comment">// reset video mode etc.</span>
-<a name="l01807"></a>01807                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01808"></a>01808         }
-<a name="l01809"></a>01809 
-<a name="l01810"></a>01810 <span class="comment">/*      std::string features = &quot;&quot;;</span>
-<a name="l01811"></a>01811 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_SHADERS)) features += &quot; shader&quot;;</span>
-<a name="l01812"></a>01812 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_ALPHA_PLANE)) features += &quot; alpha-plane&quot;;</span>
-<a name="l01813"></a>01813 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_STENCIL_BUFFER)) features += &quot; stencil-buffer&quot;;</span>
+<a name="l01802"></a>01802         <span class="keywordflow">if</span> (!VOGL_Initialize()) {
+<a name="l01803"></a>01803                 VOGL_Reset();
+<a name="l01804"></a>01804                 <span class="comment">// reset video mode etc.</span>
+<a name="l01805"></a>01805                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01806"></a>01806         }
+<a name="l01807"></a>01807 
+<a name="l01808"></a>01808 <span class="comment">/*      std::string features = &quot;&quot;;</span>
+<a name="l01809"></a>01809 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_SHADERS)) features += &quot; shader&quot;;</span>
+<a name="l01810"></a>01810 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_ALPHA_PLANE)) features += &quot; alpha-plane&quot;;</span>
+<a name="l01811"></a>01811 <span class="comment">        if (VOGL_CheckFeature(VOGL_HAS_STENCIL_BUFFER)) features += &quot; stencil-buffer&quot;;</span>
+<a name="l01812"></a>01812 <span class="comment"></span>
+<a name="l01813"></a>01813 <span class="comment">        if (features == &quot;&quot;) features = &quot; none&quot;;</span>
 <a name="l01814"></a>01814 <span class="comment"></span>
-<a name="l01815"></a>01815 <span class="comment">        if (features == &quot;&quot;) features = &quot; none&quot;;</span>
-<a name="l01816"></a>01816 <span class="comment"></span>
-<a name="l01817"></a>01817 <span class="comment">        LOG_MSG(&quot;VOODOO: OpenGL: features enabled:%s&quot;,features.c_str()); */</span>
-<a name="l01818"></a>01818 
-<a name="l01819"></a>01819 
-<a name="l01820"></a>01820         glMatrixMode( GL_PROJECTION );
-<a name="l01821"></a>01821         voodoo_ogl_set_window(v);
+<a name="l01815"></a>01815 <span class="comment">        LOG_MSG(&quot;VOODOO: OpenGL: features enabled:%s&quot;,features.c_str()); */</span>
+<a name="l01816"></a>01816 
+<a name="l01817"></a>01817 
+<a name="l01818"></a>01818         glMatrixMode( GL_PROJECTION );
+<a name="l01819"></a>01819         voodoo_ogl_set_window(v);
+<a name="l01820"></a>01820 
+<a name="l01821"></a>01821         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 <a name="l01822"></a>01822 
-<a name="l01823"></a>01823         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-<a name="l01824"></a>01824 
-<a name="l01825"></a>01825         glMatrixMode( GL_MODELVIEW );
-<a name="l01826"></a>01826         glLoadIdentity( );
-<a name="l01827"></a>01827         glMatrixMode( GL_PROJECTION );
-<a name="l01828"></a>01828 
-<a name="l01829"></a>01829         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01830"></a>01830 }
-<a name="l01831"></a>01831 
-<a name="l01832"></a>01832 <span class="keywordtype">void</span> voodoo_ogl_leave(<span class="keywordtype">bool</span> leavemode) {
-<a name="l01833"></a>01833         VOGL_ClearBeginMode();
-<a name="l01834"></a>01834 
-<a name="l01835"></a>01835         std::map&lt;const UINT32, ogl_texmap&gt;::iterator t;
-<a name="l01836"></a>01836         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j=0; j&lt;2; j++) {
-<a name="l01837"></a>01837                 <span class="keywordflow">for</span> (t=textures[j].begin(); t!=textures[j].end(); t++) {
-<a name="l01838"></a>01838                         <span class="keywordflow">if</span> (t-&gt;second.ids != NULL) {
-<a name="l01839"></a>01839                                 std::map&lt;const UINT32, GLuint&gt;::iterator u;
-<a name="l01840"></a>01840                                 <span class="keywordflow">for</span> (u=t-&gt;second.ids-&gt;begin(); u!=t-&gt;second.ids-&gt;end(); u++) {
-<a name="l01841"></a>01841                                         glDeleteTextures(1,&amp;u-&gt;second);
-<a name="l01842"></a>01842                                 }
-<a name="l01843"></a>01843                                 <span class="keywordflow">if</span> (!t-&gt;second.ids-&gt;empty()) t-&gt;second.ids-&gt;clear();
-<a name="l01844"></a>01844                                 <span class="keyword">delete</span> t-&gt;second.ids;
-<a name="l01845"></a>01845                                 t-&gt;second.ids = NULL;
-<a name="l01846"></a>01846                         } <span class="keywordflow">else</span> {
-<a name="l01847"></a>01847                                 glDeleteTextures(1,&amp;t-&gt;second.current_id);
-<a name="l01848"></a>01848                         }
-<a name="l01849"></a>01849                 }
-<a name="l01850"></a>01850                 <span class="keywordflow">if</span> (!textures[j].empty()) textures[j].clear();
-<a name="l01851"></a>01851         }
-<a name="l01852"></a>01852 
-<a name="l01853"></a>01853 
-<a name="l01854"></a>01854         <span class="keywordflow">if</span> (m_hProgramObject != 0) {
-<a name="l01855"></a>01855                 glUseProgramObjectARB(0);
-<a name="l01856"></a>01856                 m_hProgramObject = 0;
-<a name="l01857"></a>01857         }
-<a name="l01858"></a>01858 
-<a name="l01859"></a>01859         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> hct=0; hct&lt;RASTER_HASH_SIZE; hct++) {
-<a name="l01860"></a>01860                 <a class="code" href="struct__raster__info.html">raster_info</a> *info = v-&gt;raster_hash[hct];
-<a name="l01861"></a>01861                 <span class="keywordflow">for</span> (; info; info = info-&gt;next) {
-<a name="l01862"></a>01862                         <span class="keywordflow">if</span> (info-&gt;shader_ready) {
-<a name="l01863"></a>01863                                 <span class="keyword">delete</span>[] info-&gt;shader_ulocations;
-<a name="l01864"></a>01864                                 info-&gt;shader_ulocations=NULL;
-<a name="l01865"></a>01865 
-<a name="l01866"></a>01866                                 <span class="keywordflow">if</span> (info-&gt;so_shader_program &gt; 0) {
-<a name="l01867"></a>01867                                         <span class="keywordflow">if</span> (info-&gt;so_vertex_shader &gt; 0) glDetachObjectARB((GLhandleARB)info-&gt;so_shader_program, (GLhandleARB)info-&gt;so_vertex_shader);
-<a name="l01868"></a>01868                                         <span class="keywordflow">if</span> (info-&gt;so_fragment_shader &gt; 0) glDetachObjectARB((GLhandleARB)info-&gt;so_shader_program, (GLhandleARB)info-&gt;so_fragment_shader);
-<a name="l01869"></a>01869                                         <span class="keywordflow">if</span> (info-&gt;so_vertex_shader &gt; 0) glDeleteObjectARB((GLhandleARB)info-&gt;so_vertex_shader);
-<a name="l01870"></a>01870                                         <span class="keywordflow">if</span> (info-&gt;so_fragment_shader &gt; 0) glDeleteObjectARB((GLhandleARB)info-&gt;so_fragment_shader);
-<a name="l01871"></a>01871                                         glDeleteObjectARB((GLhandleARB)info-&gt;so_shader_program);
-<a name="l01872"></a>01872                                 }
-<a name="l01873"></a>01873 
-<a name="l01874"></a>01874                                 info-&gt;shader_ready=<span class="keyword">false</span>;
-<a name="l01875"></a>01875                         }
-<a name="l01876"></a>01876                 }
-<a name="l01877"></a>01877         }
-<a name="l01878"></a>01878 
-<a name="l01879"></a>01879 
-<a name="l01880"></a>01880         cached_line_front_y=-1;
-<a name="l01881"></a>01881         cached_line_back_y=-1;
-<a name="l01882"></a>01882 
-<a name="l01883"></a>01883         <span class="keywordflow">if</span> (leavemode) {
-<a name="l01884"></a>01884                 LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: quit&quot;</span>);
-<a name="l01885"></a>01885 
-<a name="l01886"></a>01886         ogl_surface = NULL;
-<a name="l01887"></a>01887         GFX_PreventFullscreen(<span class="keyword">false</span>);
-<a name="l01888"></a>01888         GFX_RestoreMode();
-<a name="l01889"></a>01889     }
-<a name="l01890"></a>01890 }
-<a name="l01891"></a>01891 
-<a name="l01892"></a>01892 <span class="keywordtype">void</span> voodoo_ogl_shutdown(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01893"></a>01893         <span class="comment">// TODO revert to previous video mode //</span>
+<a name="l01823"></a>01823         glMatrixMode( GL_MODELVIEW );
+<a name="l01824"></a>01824         glLoadIdentity( );
+<a name="l01825"></a>01825         glMatrixMode( GL_PROJECTION );
+<a name="l01826"></a>01826 
+<a name="l01827"></a>01827         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01828"></a>01828 }
+<a name="l01829"></a>01829 
+<a name="l01830"></a>01830 <span class="keywordtype">void</span> voodoo_ogl_leave(<span class="keywordtype">bool</span> leavemode) {
+<a name="l01831"></a>01831         VOGL_ClearBeginMode();
+<a name="l01832"></a>01832 
+<a name="l01833"></a>01833         std::map&lt;const UINT32, ogl_texmap&gt;::iterator t;
+<a name="l01834"></a>01834         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j=0; j&lt;2; j++) {
+<a name="l01835"></a>01835                 <span class="keywordflow">for</span> (t=textures[j].begin(); t!=textures[j].end(); t++) {
+<a name="l01836"></a>01836                         <span class="keywordflow">if</span> (t-&gt;second.ids != NULL) {
+<a name="l01837"></a>01837                                 std::map&lt;const UINT32, GLuint&gt;::iterator u;
+<a name="l01838"></a>01838                                 <span class="keywordflow">for</span> (u=t-&gt;second.ids-&gt;begin(); u!=t-&gt;second.ids-&gt;end(); u++) {
+<a name="l01839"></a>01839                                         glDeleteTextures(1,&amp;u-&gt;second);
+<a name="l01840"></a>01840                                 }
+<a name="l01841"></a>01841                                 <span class="keywordflow">if</span> (!t-&gt;second.ids-&gt;empty()) t-&gt;second.ids-&gt;clear();
+<a name="l01842"></a>01842                                 <span class="keyword">delete</span> t-&gt;second.ids;
+<a name="l01843"></a>01843                                 t-&gt;second.ids = NULL;
+<a name="l01844"></a>01844                         } <span class="keywordflow">else</span> {
+<a name="l01845"></a>01845                                 glDeleteTextures(1,&amp;t-&gt;second.current_id);
+<a name="l01846"></a>01846                         }
+<a name="l01847"></a>01847                 }
+<a name="l01848"></a>01848                 <span class="keywordflow">if</span> (!textures[j].empty()) textures[j].clear();
+<a name="l01849"></a>01849         }
+<a name="l01850"></a>01850 
+<a name="l01851"></a>01851 
+<a name="l01852"></a>01852         <span class="keywordflow">if</span> (m_hProgramObject != 0) {
+<a name="l01853"></a>01853                 glUseProgramObjectARB(0);
+<a name="l01854"></a>01854                 m_hProgramObject = 0;
+<a name="l01855"></a>01855         }
+<a name="l01856"></a>01856 
+<a name="l01857"></a>01857         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> hct=0; hct&lt;RASTER_HASH_SIZE; hct++) {
+<a name="l01858"></a>01858                 <a class="code" href="struct__raster__info.html">raster_info</a> *info = v-&gt;raster_hash[hct];
+<a name="l01859"></a>01859                 <span class="keywordflow">for</span> (; info; info = info-&gt;next) {
+<a name="l01860"></a>01860                         <span class="keywordflow">if</span> (info-&gt;shader_ready) {
+<a name="l01861"></a>01861                                 <span class="keyword">delete</span>[] info-&gt;shader_ulocations;
+<a name="l01862"></a>01862                                 info-&gt;shader_ulocations=NULL;
+<a name="l01863"></a>01863 
+<a name="l01864"></a>01864                                 <span class="keywordflow">if</span> (info-&gt;so_shader_program &gt; 0) {
+<a name="l01865"></a>01865                                         <span class="keywordflow">if</span> (info-&gt;so_vertex_shader &gt; 0) glDetachObjectARB((GLhandleARB)info-&gt;so_shader_program, (GLhandleARB)info-&gt;so_vertex_shader);
+<a name="l01866"></a>01866                                         <span class="keywordflow">if</span> (info-&gt;so_fragment_shader &gt; 0) glDetachObjectARB((GLhandleARB)info-&gt;so_shader_program, (GLhandleARB)info-&gt;so_fragment_shader);
+<a name="l01867"></a>01867                                         <span class="keywordflow">if</span> (info-&gt;so_vertex_shader &gt; 0) glDeleteObjectARB((GLhandleARB)info-&gt;so_vertex_shader);
+<a name="l01868"></a>01868                                         <span class="keywordflow">if</span> (info-&gt;so_fragment_shader &gt; 0) glDeleteObjectARB((GLhandleARB)info-&gt;so_fragment_shader);
+<a name="l01869"></a>01869                                         glDeleteObjectARB((GLhandleARB)info-&gt;so_shader_program);
+<a name="l01870"></a>01870                                 }
+<a name="l01871"></a>01871 
+<a name="l01872"></a>01872                                 info-&gt;shader_ready=<span class="keyword">false</span>;
+<a name="l01873"></a>01873                         }
+<a name="l01874"></a>01874                 }
+<a name="l01875"></a>01875         }
+<a name="l01876"></a>01876 
+<a name="l01877"></a>01877 
+<a name="l01878"></a>01878         cached_line_front_y=-1;
+<a name="l01879"></a>01879         cached_line_back_y=-1;
+<a name="l01880"></a>01880 
+<a name="l01881"></a>01881         <span class="keywordflow">if</span> (leavemode) {
+<a name="l01882"></a>01882                 LOG_MSG(<span class="stringliteral">&quot;VOODOO: OpenGL: quit&quot;</span>);
+<a name="l01883"></a>01883 
+<a name="l01884"></a>01884         ogl_surface = NULL;
+<a name="l01885"></a>01885         GFX_PreventFullscreen(<span class="keyword">false</span>);
+<a name="l01886"></a>01886         GFX_RestoreMode();
+<a name="l01887"></a>01887     }
+<a name="l01888"></a>01888 }
+<a name="l01889"></a>01889 
+<a name="l01890"></a>01890 <span class="keywordtype">void</span> voodoo_ogl_shutdown(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01891"></a>01891         <span class="comment">// TODO revert to previous video mode //</span>
+<a name="l01892"></a>01892 
+<a name="l01893"></a>01893         voodoo_ogl_leave(<span class="keyword">false</span>);
 <a name="l01894"></a>01894 
-<a name="l01895"></a>01895         voodoo_ogl_leave(<span class="keyword">false</span>);
-<a name="l01896"></a>01896 
-<a name="l01897"></a>01897         v-&gt;active = <span class="keyword">false</span>;
-<a name="l01898"></a>01898 }
-<a name="l01899"></a>01899 
-<a name="l01900"></a>01900 <span class="preprocessor">#else</span>
-<a name="l01901"></a>01901 <span class="preprocessor"></span>
-<a name="l01902"></a>01902 
-<a name="l01903"></a>01903 <span class="keywordtype">bool</span> voodoo_ogl_init(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01904"></a>01904     (void)v;
-<a name="l01905"></a>01905         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01906"></a>01906 }
-<a name="l01907"></a>01907 
-<a name="l01908"></a>01908 <span class="keywordtype">void</span> voodoo_ogl_leave(<span class="keywordtype">void</span>) {
-<a name="l01909"></a>01909 }
-<a name="l01910"></a>01910 
-<a name="l01911"></a>01911 <span class="keywordtype">void</span> voodoo_ogl_shutdown(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01912"></a>01912     (void)v;
-<a name="l01913"></a>01913 }
-<a name="l01914"></a>01914 
-<a name="l01915"></a>01915 <span class="keywordtype">void</span> voodoo_ogl_set_window(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01916"></a>01916     (void)v;
-<a name="l01917"></a>01917         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_set_window&quot;</span>);
-<a name="l01918"></a>01918 }
-<a name="l01919"></a>01919 
-<a name="l01920"></a>01920 <span class="keywordtype">void</span> voodoo_ogl_swap_buffer(<span class="keywordtype">void</span>) {
-<a name="l01921"></a>01921         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_swap_buffer&quot;</span>);
-<a name="l01922"></a>01922 }
-<a name="l01923"></a>01923 
-<a name="l01924"></a>01924 <span class="keywordtype">void</span> voodoo_ogl_vblank_flush(<span class="keywordtype">void</span>) {
-<a name="l01925"></a>01925         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_vblank_flush&quot;</span>);
-<a name="l01926"></a>01926 }
-<a name="l01927"></a>01927 
-<a name="l01928"></a>01928 <span class="keywordtype">void</span> voodoo_ogl_clear(<span class="keywordtype">void</span>) {
-<a name="l01929"></a>01929         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_clear&quot;</span>);
-<a name="l01930"></a>01930 }
-<a name="l01931"></a>01931 
-<a name="l01932"></a>01932 <span class="keywordtype">void</span> voodoo_ogl_fastfill(<span class="keywordtype">void</span>) {
-<a name="l01933"></a>01933         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_fastfill&quot;</span>);
-<a name="l01934"></a>01934 }
-<a name="l01935"></a>01935 
-<a name="l01936"></a>01936 <span class="keywordtype">void</span> voodoo_ogl_clip_window(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
-<a name="l01937"></a>01937     (void)v;
-<a name="l01938"></a>01938         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_clip_window&quot;</span>);
-<a name="l01939"></a>01939 }
-<a name="l01940"></a>01940 
-<a name="l01941"></a>01941 <span class="keywordtype">void</span> voodoo_ogl_texture_clear(UINT32 texbase, <span class="keywordtype">int</span> TMU) {
-<a name="l01942"></a>01942     (void)texbase;
-<a name="l01943"></a>01943     (void)TMU;
-<a name="l01944"></a>01944         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_texture_clear&quot;</span>);
-<a name="l01945"></a>01945 }
-<a name="l01946"></a>01946 
-<a name="l01947"></a>01947 <span class="keywordtype">void</span> voodoo_ogl_invalidate_paltex(<span class="keywordtype">void</span>) {
-<a name="l01948"></a>01948         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_invalidate_paltex&quot;</span>);
-<a name="l01949"></a>01949 }
-<a name="l01950"></a>01950 
-<a name="l01951"></a>01951 <span class="keywordtype">void</span> voodoo_ogl_draw_pixel(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">bool</span> has_rgb, <span class="keywordtype">bool</span> has_alpha, <span class="keywordtype">int</span> r, <span class="keywordtype">int</span> g, <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> a) {
-<a name="l01952"></a>01952     (void)has_alpha;
-<a name="l01953"></a>01953     (void)has_rgb;
-<a name="l01954"></a>01954     (void)x;
-<a name="l01955"></a>01955     (void)y;
-<a name="l01956"></a>01956     (void)r;
-<a name="l01957"></a>01957     (void)g;
-<a name="l01958"></a>01958     (void)b;
-<a name="l01959"></a>01959     (void)a;
-<a name="l01960"></a>01960         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_pixel&quot;</span>);
-<a name="l01961"></a>01961 }
-<a name="l01962"></a>01962 
-<a name="l01963"></a>01963 <span class="keywordtype">void</span> voodoo_ogl_draw_z(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> z1, <span class="keywordtype">int</span> z2) {
-<a name="l01964"></a>01964     (void)z1;
-<a name="l01965"></a>01965     (void)z2;
-<a name="l01966"></a>01966     (void)x;
-<a name="l01967"></a>01967     (void)y;
-<a name="l01968"></a>01968         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_z&quot;</span>);
-<a name="l01969"></a>01969 }
-<a name="l01970"></a>01970 
-<a name="l01971"></a>01971 <span class="keywordtype">void</span> voodoo_ogl_draw_pixel_pipeline(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> r, <span class="keywordtype">int</span> g, <span class="keywordtype">int</span> b) {
-<a name="l01972"></a>01972     (void)x;
-<a name="l01973"></a>01973     (void)y;
-<a name="l01974"></a>01974     (void)r;
-<a name="l01975"></a>01975     (void)g;
-<a name="l01976"></a>01976     (void)b;
-<a name="l01977"></a>01977         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_pixel_pipeline&quot;</span>);
-<a name="l01978"></a>01978 }
-<a name="l01979"></a>01979 
-<a name="l01980"></a>01980 UINT32 voodoo_ogl_read_pixel(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y) {
-<a name="l01981"></a>01981     (void)x;
-<a name="l01982"></a>01982     (void)y;
-<a name="l01983"></a>01983         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_read_pixel&quot;</span>);
-<a name="l01984"></a>01984         <span class="keywordflow">return</span> 0;
-<a name="l01985"></a>01985 }
-<a name="l01986"></a>01986 
-<a name="l01987"></a>01987 <span class="keywordtype">void</span> voodoo_ogl_draw_triangle(<a class="code" href="struct__poly__extra__data.html">poly_extra_data</a> *extra) {
-<a name="l01988"></a>01988     (void)extra;
-<a name="l01989"></a>01989         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_triangle&quot;</span>);
-<a name="l01990"></a>01990 }
-<a name="l01991"></a>01991 
-<a name="l01992"></a>01992 <span class="preprocessor">#endif</span>
+<a name="l01895"></a>01895         v-&gt;active = <span class="keyword">false</span>;
+<a name="l01896"></a>01896 }
+<a name="l01897"></a>01897 
+<a name="l01898"></a>01898 <span class="preprocessor">#else</span>
+<a name="l01899"></a>01899 <span class="preprocessor"></span>
+<a name="l01900"></a>01900 
+<a name="l01901"></a>01901 <span class="keywordtype">bool</span> voodoo_ogl_init(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01902"></a>01902     (void)v;
+<a name="l01903"></a>01903         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01904"></a>01904 }
+<a name="l01905"></a>01905 
+<a name="l01906"></a>01906 <span class="keywordtype">void</span> voodoo_ogl_leave(<span class="keywordtype">void</span>) {
+<a name="l01907"></a>01907 }
+<a name="l01908"></a>01908 
+<a name="l01909"></a>01909 <span class="keywordtype">void</span> voodoo_ogl_shutdown(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01910"></a>01910     (void)v;
+<a name="l01911"></a>01911 }
+<a name="l01912"></a>01912 
+<a name="l01913"></a>01913 <span class="keywordtype">void</span> voodoo_ogl_set_window(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01914"></a>01914     (void)v;
+<a name="l01915"></a>01915         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_set_window&quot;</span>);
+<a name="l01916"></a>01916 }
+<a name="l01917"></a>01917 
+<a name="l01918"></a>01918 <span class="keywordtype">void</span> voodoo_ogl_swap_buffer(<span class="keywordtype">void</span>) {
+<a name="l01919"></a>01919         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_swap_buffer&quot;</span>);
+<a name="l01920"></a>01920 }
+<a name="l01921"></a>01921 
+<a name="l01922"></a>01922 <span class="keywordtype">void</span> voodoo_ogl_vblank_flush(<span class="keywordtype">void</span>) {
+<a name="l01923"></a>01923         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_vblank_flush&quot;</span>);
+<a name="l01924"></a>01924 }
+<a name="l01925"></a>01925 
+<a name="l01926"></a>01926 <span class="keywordtype">void</span> voodoo_ogl_clear(<span class="keywordtype">void</span>) {
+<a name="l01927"></a>01927         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_clear&quot;</span>);
+<a name="l01928"></a>01928 }
+<a name="l01929"></a>01929 
+<a name="l01930"></a>01930 <span class="keywordtype">void</span> voodoo_ogl_fastfill(<span class="keywordtype">void</span>) {
+<a name="l01931"></a>01931         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_fastfill&quot;</span>);
+<a name="l01932"></a>01932 }
+<a name="l01933"></a>01933 
+<a name="l01934"></a>01934 <span class="keywordtype">void</span> voodoo_ogl_clip_window(<a class="code" href="struct__voodoo__state.html">voodoo_state</a> *v) {
+<a name="l01935"></a>01935     (void)v;
+<a name="l01936"></a>01936         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_clip_window&quot;</span>);
+<a name="l01937"></a>01937 }
+<a name="l01938"></a>01938 
+<a name="l01939"></a>01939 <span class="keywordtype">void</span> voodoo_ogl_texture_clear(UINT32 texbase, <span class="keywordtype">int</span> TMU) {
+<a name="l01940"></a>01940     (void)texbase;
+<a name="l01941"></a>01941     (void)TMU;
+<a name="l01942"></a>01942         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_texture_clear&quot;</span>);
+<a name="l01943"></a>01943 }
+<a name="l01944"></a>01944 
+<a name="l01945"></a>01945 <span class="keywordtype">void</span> voodoo_ogl_invalidate_paltex(<span class="keywordtype">void</span>) {
+<a name="l01946"></a>01946         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_invalidate_paltex&quot;</span>);
+<a name="l01947"></a>01947 }
+<a name="l01948"></a>01948 
+<a name="l01949"></a>01949 <span class="keywordtype">void</span> voodoo_ogl_draw_pixel(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">bool</span> has_rgb, <span class="keywordtype">bool</span> has_alpha, <span class="keywordtype">int</span> r, <span class="keywordtype">int</span> g, <span class="keywordtype">int</span> b, <span class="keywordtype">int</span> a) {
+<a name="l01950"></a>01950     (void)has_alpha;
+<a name="l01951"></a>01951     (void)has_rgb;
+<a name="l01952"></a>01952     (void)x;
+<a name="l01953"></a>01953     (void)y;
+<a name="l01954"></a>01954     (void)r;
+<a name="l01955"></a>01955     (void)g;
+<a name="l01956"></a>01956     (void)b;
+<a name="l01957"></a>01957     (void)a;
+<a name="l01958"></a>01958         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_pixel&quot;</span>);
+<a name="l01959"></a>01959 }
+<a name="l01960"></a>01960 
+<a name="l01961"></a>01961 <span class="keywordtype">void</span> voodoo_ogl_draw_z(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> z1, <span class="keywordtype">int</span> z2) {
+<a name="l01962"></a>01962     (void)z1;
+<a name="l01963"></a>01963     (void)z2;
+<a name="l01964"></a>01964     (void)x;
+<a name="l01965"></a>01965     (void)y;
+<a name="l01966"></a>01966         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_z&quot;</span>);
+<a name="l01967"></a>01967 }
+<a name="l01968"></a>01968 
+<a name="l01969"></a>01969 <span class="keywordtype">void</span> voodoo_ogl_draw_pixel_pipeline(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> r, <span class="keywordtype">int</span> g, <span class="keywordtype">int</span> b) {
+<a name="l01970"></a>01970     (void)x;
+<a name="l01971"></a>01971     (void)y;
+<a name="l01972"></a>01972     (void)r;
+<a name="l01973"></a>01973     (void)g;
+<a name="l01974"></a>01974     (void)b;
+<a name="l01975"></a>01975         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_pixel_pipeline&quot;</span>);
+<a name="l01976"></a>01976 }
+<a name="l01977"></a>01977 
+<a name="l01978"></a>01978 UINT32 voodoo_ogl_read_pixel(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y) {
+<a name="l01979"></a>01979     (void)x;
+<a name="l01980"></a>01980     (void)y;
+<a name="l01981"></a>01981         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_read_pixel&quot;</span>);
+<a name="l01982"></a>01982         <span class="keywordflow">return</span> 0;
+<a name="l01983"></a>01983 }
+<a name="l01984"></a>01984 
+<a name="l01985"></a>01985 <span class="keywordtype">void</span> voodoo_ogl_draw_triangle(<a class="code" href="struct__poly__extra__data.html">poly_extra_data</a> *extra) {
+<a name="l01986"></a>01986     (void)extra;
+<a name="l01987"></a>01987         E_Exit(<span class="stringliteral">&quot;invalid call to voodoo_ogl_draw_triangle&quot;</span>);
+<a name="l01988"></a>01988 }
+<a name="l01989"></a>01989 
+<a name="l01990"></a>01990 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 29 2019 15:57:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 17 2019 12:06:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
