@@ -43,10 +43,9 @@ enum GUSType {
 };
 
 //Extra bits of precision over normal gus
-#define WAVE_BITS 2
-#define WAVE_FRACT (9+WAVE_BITS)
+#define WAVE_FRACT 9
 #define WAVE_FRACT_MASK ((1 << WAVE_FRACT)-1)
-#define WAVE_MSWMASK ((1 << (16+WAVE_BITS))-1)
+#define WAVE_MSWMASK ((1 << 16)-1)
 #define WAVE_LSWMASK (0xffffffff ^ WAVE_MSWMASK)
 
 //Amount of precision the volume has
@@ -56,6 +55,17 @@ enum GUSType {
 #define GUS_BASE myGUS.portbase
 #define GUS_RATE myGUS.rate
 #define LOG_GUS 0
+
+#define VOL_SHIFT 14
+
+#define WCTRL_STOPPED           0x01
+#define WCTRL_STOP              0x02
+#define WCTRL_16BIT             0x04
+#define WCTRL_LOOP              0x08
+#define WCTRL_BIDIRECTIONAL     0x10
+#define WCTRL_IRQENABLED        0x20
+#define WCTRL_DECREASING        0x40
+#define WCTRL_IRQPENDING        0x80
 
 // fixed panning table (avx)
 static Bit16u const pantablePDF[16] = { 0, 13, 26, 41, 57, 72, 94, 116, 141, 169, 203, 244, 297, 372, 500, 4095 };
@@ -151,41 +161,6 @@ struct GFGus {
 
 Bitu DEBUG_EnableDebugger(void);
 
-// Returns a single 16-bit sample from the Gravis's RAM
-static INLINE Bit32s GetSample(Bit32u Delta, Bit32u CurAddr, bool eightbit) {
-	Bit32u useAddr;
-	Bit32u holdAddr;
-	useAddr = CurAddr >> WAVE_FRACT;
-	if (eightbit) {
-		if (Delta >= (1 << WAVE_FRACT)) {
-			Bit32s tmpsmall = (Bit8s)GUSRam[useAddr];
-			return tmpsmall << 8;
-		} else {
-			// Interpolate
-			Bit32s w1 = ((Bit8s)GUSRam[useAddr+0]) << 8;
-			Bit32s w2 = ((Bit8s)GUSRam[useAddr+1]) << 8;
-			Bit32s diff = w2 - w1;
-			return (w1+((diff*(Bit32s)(CurAddr&WAVE_FRACT_MASK ))>>WAVE_FRACT));
-		}
-	} else {
-		// Formula used to convert addresses for use with 16-bit samples
-		holdAddr = useAddr & 0xc0000L;
-		useAddr = useAddr & 0x1ffffL;
-		useAddr = useAddr << 1;
-		useAddr = (holdAddr | useAddr);
-
-		if(Delta >= (1 << WAVE_FRACT)) {
-			return (GUSRam[useAddr+0] | (((Bit8s)GUSRam[useAddr+1]) << 8));
-		} else {
-			// Interpolate
-			Bit32s w1 = (GUSRam[useAddr+0] | (((Bit8s)GUSRam[useAddr+1]) << 8));
-			Bit32s w2 = (GUSRam[useAddr+2] | (((Bit8s)GUSRam[useAddr+3]) << 8));
-			Bit32s diff = w2 - w1;
-			return (w1+((diff*(Bit32s)(CurAddr&WAVE_FRACT_MASK ))>>WAVE_FRACT));
-		}
-	}
-}
-
 static uint8_t GUS_reset_reg = 0;
 
 static inline uint8_t read_GF1_mapping_control(const unsigned int ch);
@@ -235,7 +210,45 @@ public:
 		PanLeft = 0;
 		PanRight = 0;
 		PanPot = 0x7;
-	};
+	}
+
+    // Returns a single 16-bit sample from the Gravis's RAM
+    INLINE Bit32s GetSample8() const {
+        Bit32u useAddr = WaveAddr >> WAVE_FRACT;
+        if (WaveAdd >= (1 << WAVE_FRACT)) {
+            Bit32s tmpsmall = (Bit8s)GUSRam[useAddr];
+            return tmpsmall << 8;
+        }
+        else {
+            Bit32u nextAddr = (useAddr + 1) & (1024 * 1024 - 1);
+            // Interpolate
+            Bit32s w1 = ((Bit8s)GUSRam[useAddr]) << 8;
+            Bit32s w2 = ((Bit8s)GUSRam[nextAddr]) << 8;
+            Bit32s diff = w2 - w1;
+            Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
+            return (w1 + ((diff * scale) >> WAVE_FRACT));
+        }
+    }
+
+    INLINE Bit32s GetSample16() const {
+        // Formula used to convert addresses for use with 16-bit samples
+        Bit32u holdAddr = WaveAddr & 0xc0000L;
+        Bit32u useAddr = WaveAddr & 0x1ffffL;
+        useAddr = useAddr << 1;
+        useAddr = (holdAddr | useAddr);
+        if (WaveAdd >= (1 << WAVE_FRACT)) {
+            return (GUSRam[useAddr + 0] | (((Bit8s)GUSRam[useAddr + 1]) << 8));
+        }
+        else {
+            // Interpolate
+            Bit32s w1 = (GUSRam[useAddr + 0] | (((Bit8s)GUSRam[useAddr + 1]) << 8));
+            Bit32s w2 = (GUSRam[useAddr + 2] | (((Bit8s)GUSRam[useAddr + 3]) << 8));
+            Bit32s diff = w2 - w1;
+            Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
+            return (w1 + ((diff * scale) >> WAVE_FRACT));
+        }
+    }
+
 	void WriteWaveFreq(Bit16u val) {
 		WaveFreq = val;
 		if (myGUS.fixed_sample_rate_output) {
@@ -278,9 +291,13 @@ public:
 	void WriteRampCtrl(Bit8u val) {
 		Bit32u old=myGUS.RampIRQ;
 		RampCtrl = val & 0x7f;
-		if ((val & 0xa0)==0xa0) myGUS.RampIRQ|=irqmask;
-		else myGUS.RampIRQ&=~irqmask;
-		if (old != myGUS.RampIRQ) CheckVoiceIrq();
+        //Manually set the irq
+        if ((val & 0xa0) == 0xa0)
+            myGUS.RampIRQ |= irqmask;
+        else
+            myGUS.RampIRQ &= ~irqmask;
+        if (old != myGUS.RampIRQ)
+            CheckVoiceIrq();
 	}
 	INLINE Bit8u ReadRampCtrl(void) {
 		Bit8u ret=RampCtrl;
@@ -313,7 +330,7 @@ public:
 		Bit32u WaveExtra = 0;
 		bool endcondition;
 
-		if ((WaveCtrl & 0x3) == 0/*voice is running*/) {
+		if ((WaveCtrl & (WCTRL_STOP | WCTRL_STOPPED)) == 0/*voice is running*/) {
 			/* NTS: WaveAddr and WaveAdd are unsigned.
 			 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
 			 *      means carrying down from the highest possible value of the integer type. Which means that if the
@@ -321,7 +338,7 @@ public:
 			 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
 			 *
 			 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
-			if (WaveCtrl & 0x40/*backwards (direction)*/) {
+			if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/) {
 				/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
 				 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
 				WaveAddr -= WaveAdd;
@@ -337,10 +354,10 @@ public:
 			}
 
 			if (endcondition) {
-				if (WaveCtrl & 0x20) /* generate an IRQ if requested */
+				if (WaveCtrl & WCTRL_IRQENABLED) /* generate an IRQ if requested */
 					myGUS.WaveIRQ |= irqmask;
 
-				if ((RampCtrl & 0x04/*roll over*/) && !(WaveCtrl & 0x08/*looping*/)) {
+				if ((RampCtrl & WCTRL_16BIT/*roll over*/) && !(WaveCtrl & WCTRL_LOOP)) {
 					/* "3.11. Rollover feature
 					 * 
 					 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
@@ -357,20 +374,20 @@ public:
 					 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
 				}
 				else {
-					if (WaveCtrl & 0x08/*loop*/) {
-						if (WaveCtrl & 0x10/*bi-directional*/) WaveCtrl ^= 0x40/*change direction*/;
-						WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
+					if (WaveCtrl & WCTRL_LOOP) {
+						if (WaveCtrl & WCTRL_BIDIRECTIONAL) WaveCtrl ^= WCTRL_DECREASING/*change direction*/;
+						WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
 					} else {
 						WaveCtrl |= 1; /* stop the channel */
-						WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+						WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? WaveStart : WaveEnd;
 					}
 				}
 			}
 		}
-		else if (WaveCtrl & 0x20/*IRQ enabled*/) {
+		else if (WaveCtrl & WCTRL_IRQENABLED) {
 			/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs
 			 * if IRQ enabled and current position <= start position OR current position >= end position */
-			if (WaveCtrl & 0x40/*backwards (direction)*/)
+			if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/)
 				endcondition = (WaveAddr <= WaveStart)?true:false;
 			else
 				endcondition = (WaveAddr >= WaveEnd)?true:false;
@@ -421,61 +438,66 @@ public:
 		if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
 		UpdateVolumes();
 	}
-	void generateSamples(Bit32s * stream,Bit32u len) {
-		bool eightbit = ((WaveCtrl & 0x4) == 0);
-		Bit32s tmpsamp;
-		int i;
 
-		/* NTS: The GUS is *always* rendering the audio sample at the current position,
-		 *      even if the voice is stopped. This can be confirmed using DOSLIB, loading
-		 *      the Ultrasound test program, loading a WAV file into memory, then using
-		 *      the Ultrasound test program's voice control dialog to single-step the
-		 *      voice through RAM (abruptly change the current position) while the voice
-		 *      is stopped. You will hear "popping" noises come out the GUS audio output
-		 *      as the current position changes and the piece of the sample rendered
-		 *      abruptly changes as well. */
-		if (gus_ics_mixer) {
-			const unsigned char Lc = read_GF1_mapping_control(0);
-			const unsigned char Rc = read_GF1_mapping_control(1);
+    void generateSamples(Bit32s* stream, Bit32u len) {
+        Bit32s tmpsamp;
+        int i;
 
-			// output mapped through ICS mixer including channel remapping
-			for(i=0;i<(int)len;i++) {
-				// Get sample
-				tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
+        /* NTS: The GUS is *always* rendering the audio sample at the current position,
+         *      even if the voice is stopped. This can be confirmed using DOSLIB, loading
+         *      the Ultrasound test program, loading a WAV file into memory, then using
+         *      the Ultrasound test program's voice control dialog to single-step the
+         *      voice through RAM (abruptly change the current position) while the voice
+         *      is stopped. You will hear "popping" noises come out the GUS audio output
+         *      as the current position changes and the piece of the sample rendered
+         *      abruptly changes as well. */
+        if (gus_ics_mixer) {
+            const unsigned char Lc = read_GF1_mapping_control(0);
+            const unsigned char Rc = read_GF1_mapping_control(1);
 
-				// Output stereo sample if DAC enable on
-				if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-					Bit32s * const sp = stream + (i << 1);
-					const Bit32s L = tmpsamp * VolLeft;
-					const Bit32s R = tmpsamp * VolRight;
+            // output mapped through ICS mixer including channel remapping
+            for (i = 0; i < (int)len; i++) {
+                // Get sample
+                if (WaveCtrl & WCTRL_16BIT)
+                    tmpsamp = GetSample16();
+                else
+                    tmpsamp = GetSample8();
+                // Output stereo sample if DAC enable on
+                if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+                    Bit32s* const sp = stream + (i << 1);
+                    const Bit32s L = tmpsamp * VolLeft;
+                    const Bit32s R = tmpsamp * VolRight;
 
-					if (Lc&1) sp[0] += L;
-					if (Lc&2) sp[1] += L;
-					if (Rc&1) sp[0] += R;
-					if (Rc&2) sp[1] += R;
-
-                    WaveUpdate();
-                    RampUpdate();
-                }
-			}
-		}
-		else {
-			// normal output
-			for(i=0;i<(int)len;i++) {
-				// Get sample
-				tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
-
-				// Output stereo sample if DAC enable on
-				if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-					stream[i<<1]+= tmpsamp * VolLeft;
-					stream[(i<<1)+1]+= tmpsamp * VolRight;
+                    if (Lc & 1) sp[0] += L;
+                    if (Lc & 2) sp[1] += L;
+                    if (Rc & 1) sp[0] += R;
+                    if (Rc & 2) sp[1] += R;
 
                     WaveUpdate();
                     RampUpdate();
                 }
-			}
-		}
-	}
+            }
+        }
+        else {
+            // normal output
+            for (i = 0; i < (int)len; i++) {
+                // Get sample
+                if (WaveCtrl & WCTRL_16BIT)
+                    tmpsamp = GetSample16();
+                else
+                    tmpsamp = GetSample8();
+
+                // Output stereo sample if DAC enable on
+                if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+                    stream[i << 1] += tmpsamp * VolLeft;
+                    stream[(i << 1) + 1] += tmpsamp * VolRight;
+
+                    WaveUpdate();
+                    RampUpdate();
+                }
+            }
+        }
+    }
 };
 
 static GUSChannels *guschan[32] = {NULL};
@@ -711,26 +733,26 @@ static Bit16u ExecuteReadRegister(void) {
 		if(curchan) return (Bit16u)(curchan->WaveFreq);
 		else return 0x0000;
 	case 0x82: // Channel MSB start address register
-		if (curchan) return (Bit16u)(curchan->WaveStart >> (WAVE_BITS+16));
+		if (curchan) return (Bit16u)(curchan->WaveStart >> 16);
 		else return 0x0000;
 	case 0x83: // Channel LSW start address register
-		if (curchan) return (Bit16u)(curchan->WaveStart >> WAVE_BITS);
+		if (curchan) return (Bit16u)(curchan->WaveStart);
 		else return 0x0000;
 	case 0x84: // Channel MSB end address register
-		if (curchan) return (Bit16u)(curchan->WaveEnd >> (WAVE_BITS+16));
+		if (curchan) return (Bit16u)(curchan->WaveEnd >> 16);
 		else return 0x0000;
 	case 0x85: // Channel LSW end address register
-		if (curchan) return (Bit16u)(curchan->WaveEnd >> WAVE_BITS);
+		if (curchan) return (Bit16u)(curchan->WaveEnd);
 		else return 0x0000;
 
 	case 0x89: // Channel volume register
 		if (curchan) return (Bit16u)((curchan->RampVol >> RAMP_FRACT) << 4);
 		else return 0x0000;
 	case 0x8a: // Channel MSB current address register
-		if (curchan) return (Bit16u)(curchan->WaveAddr >> (WAVE_BITS+16));
+		if (curchan) return (Bit16u)(curchan->WaveAddr >> 16);
 		else return 0x0000;
 	case 0x8b: // Channel LSW current address register
-		if (curchan) return (Bit16u)(curchan->WaveAddr >> WAVE_BITS);
+		if (curchan) return (Bit16u)(curchan->WaveAddr);
 		else return 0x0000;
 	case 0x8c: // Channel pan pot register
         if (curchan) return (Bit16u)(curchan->PanPot << 8);
@@ -782,25 +804,25 @@ static void ExecuteGlobRegister(void) {
 		break;
 	case 0x2:  // Channel MSW start address register
 		if (curchan) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << 16; /* upper 13 bits of integer portion */
 			curchan->WaveStart = (curchan->WaveStart & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x3:  // Channel LSW start address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS; /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0); /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
 			curchan->WaveStart = (curchan->WaveStart & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x4:  // Channel MSW end address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << 16; /* upper 13 bits of integer portion */
 			curchan->WaveEnd = (curchan->WaveEnd & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x5:  // Channel MSW end address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS; /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0); /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
 			curchan->WaveEnd = (curchan->WaveEnd & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
@@ -834,14 +856,14 @@ static void ExecuteGlobRegister(void) {
 	case 0xA:  // Channel MSW current address register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << 16; /* upper 13 bits of integer portion */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0xB:  // Channel LSW current address register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffff) << (WAVE_BITS); /* lower 7 bits of integer portion, and all 9 bits of fractional portion */
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffff); /* lower 7 bits of integer portion, and all 9 bits of fractional portion */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
@@ -903,7 +925,7 @@ static void ExecuteGlobRegister(void) {
 		}
 
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
-		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
+        myGUS.basefreq = (Bit32u)(0.5 + 1000000.0 / (1.619695497 * (double)(myGUS.ActiveChannels)));
 
 		if (!myGUS.fixed_sample_rate_output)	gus_chan->SetFreq(myGUS.basefreq);
 		else					gus_chan->SetFreq(GUS_RATE);
@@ -1898,15 +1920,14 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 }
 
 static void GUS_CallBack(Bitu len) {
-	memset(&MixTemp,0,len*8);
-	Bitu i;
-	Bit16s * buf16 = (Bit16s *)MixTemp;
-	Bit32s * buf32 = (Bit32s *)MixTemp;
+    Bit32s buffer[MIXER_BUFSIZE][2];
+    memset(buffer, 0, len * sizeof(buffer[0]));
 
-	if ((GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {
-		for(i=0;i<myGUS.ActiveChannels;i++)
-			guschan[i]->generateSamples(buf32,len);
-	}
+    if ((GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {
+        for (Bitu i = 0; i < myGUS.ActiveChannels; i++) {
+            guschan[i]->generateSamples(buffer[0], len);
+        }
+    }
 
     // FIXME: I wonder if the GF1 chip DAC had more than 16 bits precision
     //        to render louder than 100% volume without clipping, and if so,
@@ -1933,24 +1954,48 @@ static void GUS_CallBack(Bitu len) {
     //
     //        --J.C.
 
-    for(i=0;i<len*2;i++) {
-        Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
-        if (sample>32767) {
-            sample=32767;
-            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
-        } else if (sample<-32768) {
-            sample=-32768;
-            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
+    for (Bitu i = 0; i < len; i++) {
+        buffer[i][0] >>= (VOL_SHIFT * AutoAmp) >> 9;
+        buffer[i][1] >>= (VOL_SHIFT * AutoAmp) >> 9;
+        bool dampenedAutoAmp = false;
+
+        if (buffer[i][0] > 32767) {
+            buffer[i][0] = 32767;
+            if (enable_autoamp) {
+                AutoAmp -= 4; /* dampen faster than recovery */
+                dampenedAutoAmp = true;
+            }
         }
-        else if (AutoAmp < myGUS.masterVolumeMul) {
+        else if (buffer[i][0] < -32768) {
+            buffer[i][0] = -32768;
+            if (enable_autoamp) {
+                AutoAmp -= 4; /* dampen faster than recovery */
+                dampenedAutoAmp = true;
+            }
+        }
+
+        if (buffer[i][1] > 32767) {
+            buffer[i][1] = 32767;
+            if (enable_autoamp && !dampenedAutoAmp) {
+                AutoAmp -= 4; /* dampen faster than recovery */
+                dampenedAutoAmp = true;
+            }
+        }
+        else if (buffer[i][1] < -32768) {
+            buffer[i][1] = -32768;
+            if (enable_autoamp && !dampenedAutoAmp) {
+                AutoAmp -= 4; /* dampen faster than recovery */
+                dampenedAutoAmp = true;
+            }
+        }
+
+        if (AutoAmp < myGUS.masterVolumeMul && !dampenedAutoAmp) {
             AutoAmp++; /* recovery back to 100% normal volume */
         }
-
-        buf16[i] = (Bit16s)(sample);
     }
 
-	gus_chan->AddSamples_s16(len,buf16);
-	CheckVoiceIrq();
+    gus_chan->AddSamples_s32(len, buffer[0]);
+    CheckVoiceIrq();
 }
 
 // Generate logarithmic to linear volume conversion tables
@@ -1960,6 +2005,8 @@ static void MakeTables(void) {
 	for (i=4095;i>=0;i--) {
 		vol16bit[i]=(Bit16u)((Bit16s)out);
 		out/=1.002709201;		/* 0.0235 dB Steps */
+        //Original amplification routine in the hardware
+        //vol16bit[i] = ((256 + i & 0xff) << VOL_SHIFT) / (1 << (24 - (i >> 8)));
 	}
 	/* FIX: DOSBox 0.74 had code here that produced a pantable which
 	 *      had nothing to do with actual panning control variables.
