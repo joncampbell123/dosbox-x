@@ -212,18 +212,23 @@ public:
 		PanPot = 0x7;
 	}
 
+    INLINE Bit32s LoadSample8(const Bit32u addr/*memory address without fractional bits*/) const {
+        return (Bit8s)GUSRam[addr & 0xFFFFFu/*1MB*/] << Bit32s(8); /* typecast to sign extend 8-bit value */
+    }
+
+    INLINE Bit32s LoadSample16(const Bit32u addr/*memory address without fractional bits*/) const {
+        const Bit32u adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
+        return (Bit16s)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
+    }
+
     // Returns a single 16-bit sample from the Gravis's RAM
     INLINE Bit32s GetSample8() const {
-        Bit32u useAddr = WaveAddr >> WAVE_FRACT;
-        if (WaveAdd >= (1 << WAVE_FRACT)) {
-            Bit32s tmpsmall = (Bit8s)GUSRam[useAddr];
-            return tmpsmall << 8;
-        }
-        else {
-            Bit32u nextAddr = (useAddr + 1) & (1024 * 1024 - 1);
+        /* LoadSample*() will take care of wrapping to 1MB */
+        const Bit32u useAddr = WaveAddr >> WAVE_FRACT;
+        {
             // Interpolate
-            Bit32s w1 = ((Bit8s)GUSRam[useAddr]) << 8;
-            Bit32s w2 = ((Bit8s)GUSRam[nextAddr]) << 8;
+            Bit32s w1 = LoadSample8(useAddr);
+            Bit32s w2 = LoadSample8(useAddr + 1u);
             Bit32s diff = w2 - w1;
             Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
             return (w1 + ((diff * scale) >> WAVE_FRACT));
@@ -231,18 +236,12 @@ public:
     }
 
     INLINE Bit32s GetSample16() const {
-        // Formula used to convert addresses for use with 16-bit samples
-        Bit32u holdAddr = WaveAddr & 0xc0000L;
-        Bit32u useAddr = WaveAddr & 0x1ffffL;
-        useAddr = useAddr << 1;
-        useAddr = (holdAddr | useAddr);
-        if (WaveAdd >= (1 << WAVE_FRACT)) {
-            return (GUSRam[useAddr + 0] | (((Bit8s)GUSRam[useAddr + 1]) << 8));
-        }
-        else {
+        /* Load Sample*() will take care of wrapping to 1MB and funky bank/sample conversion */
+        const Bit32u useAddr = WaveAddr >> WAVE_FRACT;
+        {
             // Interpolate
-            Bit32s w1 = (GUSRam[useAddr + 0] | (((Bit8s)GUSRam[useAddr + 1]) << 8));
-            Bit32s w2 = (GUSRam[useAddr + 2] | (((Bit8s)GUSRam[useAddr + 3]) << 8));
+            Bit32s w1 = LoadSample16(useAddr);
+            Bit32s w2 = LoadSample16(useAddr + 1u);
             Bit32s diff = w2 - w1;
             Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
             return (w1 + ((diff * scale) >> WAVE_FRACT));
