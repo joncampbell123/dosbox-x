@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - INT 10h AH=12h BL=10h no longer responds in
+    machine=mcga mode, which allows Thexder to run in
+    256-color mode properly when emulating MCGA.
   - Added code to silence the PC speaker, if it was left
     on at reset, at BIOS POST.
   - Added pause at BIOS POST (after reset), with

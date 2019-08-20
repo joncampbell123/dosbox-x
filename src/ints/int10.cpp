@@ -334,25 +334,52 @@ graphics_chars:
 			break;
 		switch (reg_bl) {
 		case 0x10:							/* Get EGA Information */
-			reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);
-            if (IS_EGA_ARCH) {
-                     if (vga.mem.memsize >= (256*1024))
+            if (machine != MCH_MCGA) {
+                /* This call makes no sense on MCGA systems because it's designed to return EGA information.
+                 *
+                 * Furthermore the MS-DOS port of Thexder calls this function and validates the values
+                 * returned from this call in a way that suggests MCGA BIOSes do not respond to this call:
+                 *
+                 * 0302:00000377 32C0                xor  al,al
+                 * 0302:00000379 B310                mov  bl,10
+                 * 0302:0000037B B7FF                mov  bh,FF
+                 * 0302:0000037D B10F                mov  cl,0F
+                 * 0302:0000037F B412                mov  ah,12
+                 * 0302:00000381 CD10                int  10
+                 * 0302:00000383 80F90C              cmp  cl,0C
+                 * 0302:00000386 730D                jnc  00000395 ($+d)         (down)
+                 * 0302:00000388 80FB03              cmp  bl,03
+                 * 0302:0000038B 7708                ja   00000395 ($+8)         (no jmp)
+                 * 0302:0000038D 0AFF                or   bh,bh
+                 * 0302:0000038F 7504                jne  00000395 ($+4)         (no jmp)
+                 * 0302:00000391 8D16CD02            lea  dx,[02CD]              ds:[02CD]=616D
+                 * 0302:00000395 E82C00              call 000003C4 ($+2c)
+                 *
+                 * Basically all checks confirm the returned values are out of range and invalid for what
+                 * the BIOS call would normally return for EGA. Either MCGA BIOS leaves them unchanged
+                 * or changes them to some other value entirely.
+                 *
+                 * [see also: http://www.ctyme.com/intr/rb-0162.htm]
+                 * [see also: https://github.com/joncampbell123/dosbox-x/issues/1207]
+                 *
+                 * TODO: What does actual MCGA hardware/BIOS do? CHECK */
+                reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);
+                if (IS_EGA_ARCH) {
+                    if (vga.mem.memsize >= (256*1024))
+                        reg_bl=3;	//256 kb
+                    else if (vga.mem.memsize >= (192*1024))
+                        reg_bl=2;	//192 kb
+                    else if (vga.mem.memsize >= (128*1024))
+                        reg_bl=1;	//128 kb
+                    else
+                        reg_bl=0;	//64 kb
+                }
+                else {
                     reg_bl=3;	//256 kb
-                else if (vga.mem.memsize >= (192*1024))
-                    reg_bl=2;	//192 kb
-                else if (vga.mem.memsize >= (128*1024))
-                    reg_bl=1;	//128 kb
-                else
-                    reg_bl=0;	//64 kb
+                }
+                reg_cl=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) & 0x0F;
+                reg_ch=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) >> 4;
             }
-            else if (machine == MCH_MCGA) {
-                reg_bl=0;	//64 kb
-            }
-            else {
-                reg_bl=3;	//256 kb
-            }
-			reg_cl=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) & 0x0F;
-			reg_ch=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) >> 4;
 			break;
 		case 0x20:							/* Set alternate printscreen */
 			break;
