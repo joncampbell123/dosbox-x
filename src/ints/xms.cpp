@@ -277,6 +277,10 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		srcpt=((unsigned int)xms_handles[src_handle].mem*4096U)+src.offset;
 	} else {
 		srcpt=Real2Phys(src.realpt);
+
+        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+         * extend past the end of the 8086-accessible conventional memory area. */
+        if ((srcpt+length) > 0x10FFEFu) return XMS_INVALID_SOURCE_OFFSET;
 	}
 	if (dest_handle) {
 		if (InvalidHandle(dest_handle)) {
@@ -291,6 +295,10 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		destpt=((unsigned int)xms_handles[dest_handle].mem*4096U)+dest.offset;
 	} else {
 		destpt=Real2Phys(dest.realpt);
+
+        /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
+         * extend past the end of the 8086-accessible conventional memory area. */
+        if ((destpt+length) > 0x10FFEFu) return XMS_INVALID_SOURCE_OFFSET;
 	}
 //	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
 
