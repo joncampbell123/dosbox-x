@@ -129,6 +129,7 @@ typedef struct {
 		RealPt font_16_alternate;
 		RealPt static_state;
 		RealPt video_save_pointers;
+        RealPt video_dynamic_save_area;
 		RealPt video_parameter_table;
 		RealPt video_save_pointer_table;
 		RealPt video_dcc_table;

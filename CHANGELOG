@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - EGA/VGA: Allocate "dynamic parameter save area" and
+    refer to it in the Video Parameter Control Block.
+    This is needed to run "Get Saddam!" in VGA mode
+    without crashing.
   - INT 10h AH=12h BL=10h no longer responds in
     machine=mcga mode, which allows Thexder to run in
     256-color mode properly when emulating MCGA.

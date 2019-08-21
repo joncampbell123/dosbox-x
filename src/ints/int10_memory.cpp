@@ -327,10 +327,13 @@ void INT10_SetupRomMemory(void) {
 			phys_writed(rom_base+int10.rom.used,0);		int10.rom.used+=4;
 		}
 
+        int10.rom.video_dynamic_save_area=RealMake(0xC000,int10.rom.used);
+        int10.rom.used+=256;    // table is 16+1+239 = 256 bytes large
+
 		int10.rom.video_save_pointers=RealMake(0xC000,int10.rom.used);
 		phys_writed(rom_base+int10.rom.used,int10.rom.video_parameter_table);
 		int10.rom.used+=4;
-		phys_writed(rom_base+int10.rom.used,0);		// dynamic save area pointer
+		phys_writed(rom_base+int10.rom.used,int10.rom.video_dynamic_save_area);		// dynamic save area pointer
 		int10.rom.used+=4;
 		phys_writed(rom_base+int10.rom.used,0);		// alphanumeric character set override
 		int10.rom.used+=4;
