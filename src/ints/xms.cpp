@@ -280,7 +280,7 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 
         /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
          * extend past the end of the 8086-accessible conventional memory area. */
-        if ((srcpt+length) > 0x10FFEFu) return XMS_INVALID_SOURCE_OFFSET;
+        if ((srcpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 	if (dest_handle) {
 		if (InvalidHandle(dest_handle)) {
@@ -298,7 +298,7 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 
         /* Microsoft TEST.C considers it an error to allow real mode pointers + length to
          * extend past the end of the 8086-accessible conventional memory area. */
-        if ((destpt+length) > 0x10FFEFu) return XMS_INVALID_DEST_OFFSET;
+        if ((destpt+length) > 0x10FFF0u) return XMS_INVALID_LENGTH;
 	}
 //	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
 
