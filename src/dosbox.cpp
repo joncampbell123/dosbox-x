@@ -2826,6 +2826,12 @@ void DOSBOX_SetupConfigSections(void) {
             "This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.\n"
             "This option also affects whether INT 67h is zeroed when booting a guest OS");
 
+    Pbool = secprop->Add_bool("zero unused int 68h",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Leave INT 68h zero at startup.\n"
+            "Set this to true for certain games that use INT 68h in unusual ways that require a zero value.\n"
+            "Note that the vector is left at zero anyway when machine=cga.\n"
+            "This is needed to properly run 1988 game 'PopCorn'.");
+
     /* FIXME: The vm86 monitor in src/ints/ems.cpp is not very stable! Option is default OFF until stabilized! */
     Pbool = secprop->Add_bool("emm386 startup active",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set and expanded memory is set to emulate emm386, start the DOS machine with EMM386.EXE active\n"

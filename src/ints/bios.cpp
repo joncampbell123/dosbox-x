@@ -7469,9 +7469,17 @@ private:
             PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
         }
 
+        bool null_68h = false;
+
+        {
+            Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+
+            null_68h = section->Get_bool("zero unused int 68h");
+        }
+
         real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));   //war2d
         real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
-        if (machine==MCH_CGA) real_writed(0,0x68*4,0);              //Popcorn
+        if (machine==MCH_CGA || null_68h) real_writed(0,0x68*4,0);  //Popcorn
         real_writed(0,0x5c*4,CALLBACK_RealPointer(call_default));   //Network stuff
         //real_writed(0,0xf*4,0); some games don't like it
 

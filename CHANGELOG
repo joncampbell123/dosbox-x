@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - Enhance existing INT 68h fix for "PopCorn" by adding
+    a dosbox.conf option to always keep INT 68h NULL,
+    so that it's possible to run the game in machine
+    configurations other than CGA.
   - EGA/VGA: Allocate "dynamic parameter save area" and
     refer to it in the Video Parameter Control Block.
     This is needed to run "Get Saddam!" in VGA mode
