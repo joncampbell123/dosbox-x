@@ -379,7 +379,7 @@ INLINE void SET_RESULT(Bitu res,bool touch_bl_on_succes=true) {
 }
 
 Bitu XMS_LocalEnableA20(void) {
-    /* This appears to be how Microsoft HIMEM.SYS implements this */
+    /* This appears to be how Microsoft HIMEM.SYS implements this. A20 is only enabled if the local enable count was == 0 at entry to this call. */
     if ((xms_local_enable_count++) == 0)
         XMS_EnableA20(true);
 
@@ -387,13 +387,13 @@ Bitu XMS_LocalEnableA20(void) {
 }
 
 Bitu XMS_LocalDisableA20(void) {
-    /* This appears to be how Microsoft HIMEM.SYS implements this */
+    /* This appears to be how Microsoft HIMEM.SYS implements this. A20 is only disabled if the local enable count was == 1 at entry to this call. */
     if (xms_local_enable_count > 0) {
         if (--xms_local_enable_count == 0)
             XMS_EnableA20(false);
     }
     else {
-        return 0x82; // A20 error
+        return 0x82; // A20 error (HIMEM.SYS behavior)
     }
 
     return 0;
