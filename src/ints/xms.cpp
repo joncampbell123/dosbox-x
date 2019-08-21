@@ -399,6 +399,14 @@ Bitu XMS_LocalDisableA20(void) {
     return 0;
 }
 
+void XMS_DOS_LocalA20EnableIfNotEnabled(void) {
+    /* Confirmed MS-DOS behavior if DOS=HIGH */
+    if (!XMS_GetEnabledA20()) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("DOS=HIGH, XMS enabled, A20 gate disabled. Reenabling A20 gate on INT 21h call.");
+        XMS_LocalEnableA20();
+    }
+}
+
 Bitu XMS_Handler(void) {
     Bitu r;
 

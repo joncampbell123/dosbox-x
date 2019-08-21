@@ -1,4 +1,9 @@
 0.82.21 (next)
+  - INT 21h fixed to always enable the A20 gate through
+    HIMEM.SYS if dosbox.conf indicates a configuration where
+    XMS is enabled, the HMA is enabled, and DOS is loaded
+    high (DOS=HIGH), which is the default configuration
+    for DOSBox-X.
   - XMS emulation fixed not to allow conventional memory
     block addresses (source or dest) if it extends past
     the 1MB+64KB-16 range normally accessible from real

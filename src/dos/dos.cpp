@@ -407,9 +407,18 @@ bool disk_io_unmask_irq0 = true;
 //! \brief Is a DOS program running ? (set by INT21 4B/4C)
 bool dos_program_running = false;
 
+void XMS_DOS_LocalA20EnableIfNotEnabled(void);
+
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
+
+    /* Real MS-DOS behavior:
+     *   If HIMEM.SYS is loaded and CONFIG.SYS says DOS=HIGH, DOS will load itself into the HMA area.
+     *   To prevent crashes, the INT 21h handler down below will enable the A20 gate before executing
+     *   the DOS kernel. */
+    if (DOS_IS_IN_HMA())
+        XMS_DOS_LocalA20EnableIfNotEnabled();
 
     if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
         DOS_PSP psp(dos.psp());
