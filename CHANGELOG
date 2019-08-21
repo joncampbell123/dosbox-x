@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - XMS emulation fixed to disallow XMS block move/copy
+    with an odd length byte count, per Microsoft XMS
+    specification.
   - XMS emulation no longer allows freeing a XMS block
     handle that is still locked, as per Microsoft XMS
     specification and testing software.

@@ -251,6 +251,10 @@ Bitu XMS_FreeMemory(Bitu handle) {
 Bitu XMS_MoveMemory(PhysPt bpt) {
 	/* Read the block with mem_read's */
 	Bitu length=mem_readd(bpt+offsetof(XMS_MemMove,length));
+
+    /* "Length must be even" --Microsoft XMS Spec 3.0 */
+    if (length & 1u) return XMS_INVALID_LENGTH;
+
 	Bitu src_handle=mem_readw(bpt+offsetof(XMS_MemMove,src_handle));
 	union {
 		RealPt realpt;
