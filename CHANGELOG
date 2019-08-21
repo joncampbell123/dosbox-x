@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - XMS emulation no longer allows freeing a XMS block
+    handle that is still locked, as per Microsoft XMS
+    specification and testing software.
   - Enhance existing INT 68h fix for "PopCorn" by adding
     a dosbox.conf option to always keep INT 68h NULL,
     so that it's possible to run the game in machine
