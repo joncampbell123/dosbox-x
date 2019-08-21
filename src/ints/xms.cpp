@@ -240,6 +240,7 @@ Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 
 Bitu XMS_FreeMemory(Bitu handle) {
 	if (InvalidHandle(handle)) return XMS_INVALID_HANDLE;
+    if (xms_handles[handle].locked != 0) return XMS_BLOCK_LOCKED;
 	MEM_ReleasePages(xms_handles[handle].mem);
 	xms_handles[handle].mem=-1;
 	xms_handles[handle].size=0;
