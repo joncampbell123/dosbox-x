@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - XMS emulation fixed not to allow conventional memory
+    block addresses (source or dest) if it extends past
+    the 1MB+64KB-16 range normally accessible from real
+    mode, as per Microsoft XMS test program.
   - XMS emulation fixed to disallow XMS block move/copy
     with an odd length byte count, per Microsoft XMS
     specification.
