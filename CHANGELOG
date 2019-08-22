@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - OpenGL output now clears 3 frames instead of 2 after
+    mode change to deal with nVidia hardware that
+    reportedly triple buffers OpenGL rendering in
+    Windows.
   - INT 21h fixed to always enable the A20 gate through
     HIMEM.SYS if dosbox.conf indicates a configuration where
     XMS is enabled, the HMA is enabled, and DOS is loaded
