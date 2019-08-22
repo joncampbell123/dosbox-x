@@ -329,8 +329,11 @@ Bitu OUTPUT_OPENGL_SetSize()
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
-    sdl_opengl.menudraw_countdown = 2; // two GL buffers
-    sdl_opengl.clear_countdown = 2; // two GL buffers
+    // NTS: I'm told that nVidia hardware seems to triple buffer despite our
+    //      request to double buffer (according to @pixelmusement), therefore
+    //      the next 3 frames, instead of 2, need to be cleared.
+    sdl_opengl.menudraw_countdown = 3; // two GL buffers with possible triple buffering behind our back
+    sdl_opengl.clear_countdown = 3; // two GL buffers with possible triple buffering behind our back
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
