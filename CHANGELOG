@@ -1,4 +1,6 @@
 0.82.21 (next)
+  - VESA BIOS modelist now includes S3 OEM video modes
+    as documented by the RBIL, and needed by Line Wars II.
   - OpenGL output now clears 3 frames instead of 2 after
     mode change to deal with nVidia hardware that
     reportedly triple buffers OpenGL rendering in
