@@ -499,7 +499,8 @@ void MEM_FreeCallout(MEM_Callout_t c) {
         obj.Uninstall();
 
     obj.alloc = false;
-    vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
+    if (vec.alloc_from > idx)
+        vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
 }
 
 MEM_CalloutObject *MEM_GetCallout(MEM_Callout_t c) {
