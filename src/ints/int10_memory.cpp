@@ -327,8 +327,8 @@ void INT10_SetupRomMemory(void) {
 			phys_writed(rom_base+int10.rom.used,0);		int10.rom.used+=4;
 		}
 
-        int10.rom.video_dynamic_save_area=RealMake(0xC000,int10.rom.used);
-        int10.rom.used+=256;    // table is 16+1+239 = 256 bytes large
+        // The dynamic save area should be in RAM, it cannot exist in ROM
+        int10.rom.video_dynamic_save_area=0;
 
 		int10.rom.video_save_pointers=RealMake(0xC000,int10.rom.used);
 		phys_writed(rom_base+int10.rom.used,int10.rom.video_parameter_table);
