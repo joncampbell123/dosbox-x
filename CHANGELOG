@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - INT 2Fh updated to explicitly mention SMARTDRV or
+    DBLSPACE if values of AX are known to match their
+    API.
   - VESA BIOS modelist now includes S3 OEM video modes
     as documented by the RBIL, and needed by Line Wars II.
   - OpenGL output now clears 3 frames instead of 2 after
