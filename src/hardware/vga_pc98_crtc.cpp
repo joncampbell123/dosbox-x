@@ -303,7 +303,7 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
     if (gdc_5mhz_mode)
         retval |= 0x02;
 
-	return retval;
+    return retval;
 }
 
 void pc98_write_9a0(Bitu port,Bitu val,Bitu iolen) {
@@ -325,7 +325,7 @@ Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/) {
     if (pc98_31khz_mode)
         retval |= 0x01;/*31khz*/
 
-	return retval;
+    return retval;
 }
 
 void pc98_write_9a8(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {

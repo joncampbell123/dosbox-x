@@ -1086,8 +1086,8 @@ void SHELL_Init() {
     else
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
 
-	/* don't register 28.com unless EGA/VGA */
-	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+    /* don't register 28.com unless EGA/VGA */
+    if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
 
 	/* don't register 50 unless VGA */
 	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);

@@ -280,7 +280,7 @@ void PCSPEAKER_SetPITControl(Bitu mode) {
     if (spkr.chan == NULL)
         return;
 
-	pic_tickindex_t newindex = PIC_TickIndex();
+    pic_tickindex_t newindex = PIC_TickIndex();
 	ForwardPIT(newindex);
 #ifdef SPKR_DEBUGGING
 	fprintf(PCSpeakerLog, "%f pit command: %u\n", PIC_FullIndex(), mode);
@@ -319,7 +319,7 @@ void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
     if (spkr.chan == NULL)
         return;
 
-	if (!spkr.last_ticks) {
+    if (!spkr.last_ticks) {
 		if(spkr.chan) spkr.chan->Enable(true);
 		spkr.last_index=0;
 	}

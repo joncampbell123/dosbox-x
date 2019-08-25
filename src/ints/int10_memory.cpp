@@ -59,9 +59,9 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
         m64k=0x02;
     else
-        m64k=0x00;
+        m64k = 0x00;
 
-	PhysPt ftwhere=PhysMake(0xa000,map_offset[map & 0x7]+(Bit16u)(offset*32));
+    PhysPt ftwhere = PhysMake(0xa000, map_offset[map & 0x7] + (Bit16u)(offset * 32));
 	Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 	bool mono=(base==VGAREG_MDA_CRTC_ADDRESS);
 	

@@ -843,18 +843,18 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		if (machine==MCH_HERC || machine==MCH_MDA) scanline=14;
 		else scanline=8;
 		break;
-	case M_CGA2: // graphics mode: even/odd banks interleaved
+    case M_CGA2: // graphics mode: even/odd banks interleaved
         if (machine == MCH_MCGA && CurMode->mode >= 0x11)
-    		scanline=1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
+            scanline = 1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
         else
-    		scanline=2;
-		break;
-	case M_VGA: // MCGA
+            scanline = 2;
+        break;
+    case M_VGA: // MCGA
         if (machine == MCH_MCGA)
-    		scanline=1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
+            scanline = 1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
         else
-    		scanline=2;
-		break;
+            scanline = 2;
+        break;
 	case M_CGA4:
 		if (CurMode->mode!=0xa) scanline=2;
 		else scanline=4;
@@ -1488,7 +1488,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
     if (IS_EGA_ARCH && vga.mem.memsize < 0x20000)
         mode_control &= ~0x20; // address wrap bit 13
 
-	IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
+    IO_Write(crtc_base, 0x17); IO_Write(crtc_base + 1u, mode_control);
 	/* Renable write protection */
 	IO_Write(crtc_base,0x11);
 	IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)|0x80);
@@ -1545,12 +1545,12 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN24:
 	case M_LIN32:
     case M_PACKED4:
-		gfx_data[0x5]|=0x40;		//256 color mode
+        gfx_data[0x5] |= 0x40;		//256 color mode
         if (int10_vesa_map_as_128kb)
-    		gfx_data[0x6]|=0x01;	//graphics mode at 0xa000-bffff
+            gfx_data[0x6] |= 0x01;	//graphics mode at 0xa000-bffff
         else
-    		gfx_data[0x6]|=0x05;	//graphics mode at 0xa000-affff
-		break;
+            gfx_data[0x6] |= 0x05;	//graphics mode at 0xa000-affff
+        break;
 	case M_VGA:
 		gfx_data[0x5]|=0x40;		//256 color mode
 		gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff

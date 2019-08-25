@@ -487,7 +487,7 @@ static void write_cga_color_select(Bitu val) {
     if (vga.other.mcga_mode_control & 1) /* ignore COMPLETELY in 256-color MCGA mode */
         return;
 
-	switch(vga.mode) {
+    switch (vga.mode) {
 	case  M_TANDY4: {
 		Bit8u base = (val & 0x10) ? 0x08 : 0;
 		Bit8u bg = val & 0xf;
