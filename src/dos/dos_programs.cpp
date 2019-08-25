@@ -4747,5 +4747,5 @@ void DOS_SetupPrograms(void) {
     if (IS_PC98_ARCH)
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
 
-	PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
+    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
 }

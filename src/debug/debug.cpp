@@ -1232,7 +1232,10 @@ static void DrawCode(void) {
 		// Spacepad it up to 28 characters
         if (no_bytes) dline[0] = 0;
 		size_t dline_len = strlen(dline);
-		if(dline_len < 28) for (c = (Bitu)dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
+        if (dline_len < 28) {
+            for (c = (Bitu)dline_len; c < 28; c++) dline[c] = ' ';
+            dline[28] = 0;
+        }
 		waddstr(dbg.win_code,dline);
 		// Spacepad it up to 20 characters
 		size_t res_len = strlen(res);
@@ -1284,86 +1287,79 @@ void SkipSpace(char*& hex) {
 
 Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
 {
-	Bit32u	value = 0;
-	Bit32u regval = 0;
-	hex = str;
-	while (*hex == ' ') hex++;
+    Bit32u	value = 0;
+    Bit32u regval = 0;
+    hex = str;
+    while (*hex == ' ') hex++;
 
-	if (strncmp(hex,"EFLAGS",6) == 0) { hex+=6; regval = (Bit32u)reg_flags; } else
-	if (strncmp(hex,"FLAGS",5) == 0) { hex+=5; regval = (Bit32u)reg_flags; } else
+    if (strncmp(hex, "EFLAGS", 6) == 0) { hex += 6; regval = (Bit32u)reg_flags; }
+    else if (strncmp(hex, "FLAGS", 5) == 0) { hex += 5; regval = (Bit32u)reg_flags; }
+    else if (strncmp(hex, "IOPL", 4) == 0) { hex += 4; regval = (reg_flags & FLAG_IOPL) >> 12u; }
+    else if (strncmp(hex, "CR0", 3) == 0) { hex += 3; regval = (Bit32u)cpu.cr0; }
+    else if (strncmp(hex, "CR2", 3) == 0) { hex += 3; regval = (Bit32u)paging.cr2; }
+    else if (strncmp(hex, "CR3", 3) == 0) { hex += 3; regval = (Bit32u)paging.cr3; }
+    else if (strncmp(hex, "EAX", 3) == 0) { hex += 3; regval = reg_eax; }
+    else if (strncmp(hex, "EBX", 3) == 0) { hex += 3; regval = reg_ebx; }
+    else if (strncmp(hex, "ECX", 3) == 0) { hex += 3; regval = reg_ecx; }
+    else if (strncmp(hex, "EDX", 3) == 0) { hex += 3; regval = reg_edx; }
+    else if (strncmp(hex, "ESI", 3) == 0) { hex += 3; regval = reg_esi; }
+    else if (strncmp(hex, "EDI", 3) == 0) { hex += 3; regval = reg_edi; }
+    else if (strncmp(hex, "EBP", 3) == 0) { hex += 3; regval = reg_ebp; }
+    else if (strncmp(hex, "ESP", 3) == 0) { hex += 3; regval = reg_esp; }
+    else if (strncmp(hex, "EIP", 3) == 0) { hex += 3; regval = reg_eip; }
+    else if (strncmp(hex, "AX", 2) == 0) { hex += 2; regval = reg_ax; }
+    else if (strncmp(hex, "BX", 2) == 0) { hex += 2; regval = reg_bx; }
+    else if (strncmp(hex, "CX", 2) == 0) { hex += 2; regval = reg_cx; }
+    else if (strncmp(hex, "DX", 2) == 0) { hex += 2; regval = reg_dx; }
+    else if (strncmp(hex, "SI", 2) == 0) { hex += 2; regval = reg_si; }
+    else if (strncmp(hex, "DI", 2) == 0) { hex += 2; regval = reg_di; }
+    else if (strncmp(hex, "BP", 2) == 0) { hex += 2; regval = reg_bp; }
+    else if (strncmp(hex, "SP", 2) == 0) { hex += 2; regval = reg_sp; }
+    else if (strncmp(hex, "IP", 2) == 0) { hex += 2; regval = reg_ip; }
+    else if (strncmp(hex, "AL", 2) == 0) { hex += 2; regval = reg_al; }
+    else if (strncmp(hex, "BL", 2) == 0) { hex += 2; regval = reg_bl; }
+    else if (strncmp(hex, "CL", 2) == 0) { hex += 2; regval = reg_cl; }
+    else if (strncmp(hex, "DL", 2) == 0) { hex += 2; regval = reg_dl; }
+    else if (strncmp(hex, "AH", 2) == 0) { hex += 2; regval = reg_ah; }
+    else if (strncmp(hex, "BH", 2) == 0) { hex += 2; regval = reg_bh; }
+    else if (strncmp(hex, "CH", 2) == 0) { hex += 2; regval = reg_ch; }
+    else if (strncmp(hex, "DH", 2) == 0) { hex += 2; regval = reg_dh; }
+    else if (strncmp(hex, "CS", 2) == 0) { hex += 2; regval = SegValue(cs); }
+    else if (strncmp(hex, "DS", 2) == 0) { hex += 2; regval = SegValue(ds); }
+    else if (strncmp(hex, "ES", 2) == 0) { hex += 2; regval = SegValue(es); }
+    else if (strncmp(hex, "FS", 2) == 0) { hex += 2; regval = SegValue(fs); }
+    else if (strncmp(hex, "GS", 2) == 0) { hex += 2; regval = SegValue(gs); }
+    else if (strncmp(hex, "SS", 2) == 0) { hex += 2; regval = SegValue(ss); }
+    else if (strncmp(hex, "AC", 2) == 0) { hex += 2; regval = GETFLAG(AC); }
+    else if (strncmp(hex, "AF", 2) == 0) { hex += 2; regval = GETFLAG(AF); }
+    else if (strncmp(hex, "CF", 2) == 0) { hex += 2; regval = GETFLAG(CF); }
+    else if (strncmp(hex, "DF", 2) == 0) { hex += 2; regval = GETFLAG(DF); }
+    else if (strncmp(hex, "ID", 2) == 0) { hex += 2; regval = GETFLAG(ID); }
+    else if (strncmp(hex, "IF", 2) == 0) { hex += 2; regval = GETFLAG(IF); }
+    else if (strncmp(hex, "NT", 2) == 0) { hex += 2; regval = GETFLAG(NT); }
+    else if (strncmp(hex, "OF", 2) == 0) { hex += 2; regval = GETFLAG(OF); }
+    else if (strncmp(hex, "PF", 2) == 0) { hex += 2; regval = GETFLAG(PF); }
+    else if (strncmp(hex, "SF", 2) == 0) { hex += 2; regval = GETFLAG(SF); }
+    else if (strncmp(hex, "TF", 2) == 0) { hex += 2; regval = GETFLAG(TF); }
+    else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
+    else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
 
-	if (strncmp(hex,"IOPL",4) == 0) { hex+=4; regval = (reg_flags & FLAG_IOPL) >> 12u; } else
-
-	if (strncmp(hex,"CR0",3) == 0) { hex+=3; regval = (Bit32u)cpu.cr0; } else
-	if (strncmp(hex,"CR2",3) == 0) { hex+=3; regval = (Bit32u)paging.cr2; } else
-	if (strncmp(hex,"CR3",3) == 0) { hex+=3; regval = (Bit32u)paging.cr3; } else
-
-	if (strncmp(hex,"EAX",3) == 0) { hex+=3; regval = reg_eax; } else
-	if (strncmp(hex,"EBX",3) == 0) { hex+=3; regval = reg_ebx; } else
-	if (strncmp(hex,"ECX",3) == 0) { hex+=3; regval = reg_ecx; } else
-	if (strncmp(hex,"EDX",3) == 0) { hex+=3; regval = reg_edx; } else
-	if (strncmp(hex,"ESI",3) == 0) { hex+=3; regval = reg_esi; } else
-	if (strncmp(hex,"EDI",3) == 0) { hex+=3; regval = reg_edi; } else
-	if (strncmp(hex,"EBP",3) == 0) { hex+=3; regval = reg_ebp; } else
-	if (strncmp(hex,"ESP",3) == 0) { hex+=3; regval = reg_esp; } else
-	if (strncmp(hex,"EIP",3) == 0) { hex+=3; regval = reg_eip; } else
-
-	if (strncmp(hex,"AX",2) == 0)  { hex+=2; regval = reg_ax; } else
-	if (strncmp(hex,"BX",2) == 0)  { hex+=2; regval = reg_bx; } else
-	if (strncmp(hex,"CX",2) == 0)  { hex+=2; regval = reg_cx; } else
-	if (strncmp(hex,"DX",2) == 0)  { hex+=2; regval = reg_dx; } else
-	if (strncmp(hex,"SI",2) == 0)  { hex+=2; regval = reg_si; } else
-	if (strncmp(hex,"DI",2) == 0)  { hex+=2; regval = reg_di; } else
-	if (strncmp(hex,"BP",2) == 0)  { hex+=2; regval = reg_bp; } else
-	if (strncmp(hex,"SP",2) == 0)  { hex+=2; regval = reg_sp; } else
-	if (strncmp(hex,"IP",2) == 0)  { hex+=2; regval = reg_ip; } else
-
-	if (strncmp(hex,"AL",2) == 0) { hex+=2; regval = reg_al; } else
-	if (strncmp(hex,"BL",2) == 0) { hex+=2; regval = reg_bl; } else
-	if (strncmp(hex,"CL",2) == 0) { hex+=2; regval = reg_cl; } else
-	if (strncmp(hex,"DL",2) == 0) { hex+=2; regval = reg_dl; } else
-
-	if (strncmp(hex,"AH",2) == 0) { hex+=2; regval = reg_ah; } else
-	if (strncmp(hex,"BH",2) == 0) { hex+=2; regval = reg_bh; } else
-	if (strncmp(hex,"CH",2) == 0) { hex+=2; regval = reg_ch; } else
-	if (strncmp(hex,"DH",2) == 0) { hex+=2; regval = reg_dh; } else
-
-	if (strncmp(hex,"CS",2) == 0)  { hex+=2; regval = SegValue(cs); } else
-	if (strncmp(hex,"DS",2) == 0)  { hex+=2; regval = SegValue(ds); } else
-	if (strncmp(hex,"ES",2) == 0)  { hex+=2; regval = SegValue(es); } else
-	if (strncmp(hex,"FS",2) == 0)  { hex+=2; regval = SegValue(fs); } else
-	if (strncmp(hex,"GS",2) == 0)  { hex+=2; regval = SegValue(gs); } else
-	if (strncmp(hex,"SS",2) == 0)  { hex+=2; regval = SegValue(ss); } else
-
-	if (strncmp(hex,"AC",2) == 0) { hex+=2; regval = GETFLAG(AC); } else
-    if (strncmp(hex,"AF",2) == 0) { hex+=2; regval = GETFLAG(AF); } else
-	if (strncmp(hex,"CF",2) == 0) { hex+=2; regval = GETFLAG(CF); } else
-	if (strncmp(hex,"DF",2) == 0) { hex+=2; regval = GETFLAG(DF); } else
-	if (strncmp(hex,"ID",2) == 0) { hex+=2; regval = GETFLAG(ID); } else
-	if (strncmp(hex,"IF",2) == 0) { hex+=2; regval = GETFLAG(IF); } else
-	if (strncmp(hex,"NT",2) == 0) { hex+=2; regval = GETFLAG(NT); } else
-	if (strncmp(hex,"OF",2) == 0) { hex+=2; regval = GETFLAG(OF); } else
-	if (strncmp(hex,"PF",2) == 0) { hex+=2; regval = GETFLAG(PF); } else
-	if (strncmp(hex,"SF",2) == 0) { hex+=2; regval = GETFLAG(SF); } else
-	if (strncmp(hex,"TF",2) == 0) { hex+=2; regval = GETFLAG(TF); } else
-	if (strncmp(hex,"VM",2) == 0) { hex+=2; regval = GETFLAG(VM); } else
-	if (strncmp(hex,"ZF",2) == 0) { hex+=2; regval = GETFLAG(ZF); }
-
-	while (*hex) {
-		if 		((*hex >= '0') && (*hex <= '9')) value = (value<<4u) + ((Bit32u)(*hex)) - '0';
-		else if ((*hex >= 'A') && (*hex <= 'F')) value = (value<<4u) + ((Bit32u)(*hex)) - 'A' + 10u;
-		else { 
-			if (*hex == '+') {hex++;return regval + value + GetHexValue(hex,hex,parsed); } else
-			if (*hex == '-') {hex++;return regval + value - GetHexValue(hex,hex,parsed); }
-			else break; // No valid char
-		}
-		hex++;
-	}
+    while (*hex) {
+        if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((Bit32u)(*hex)) - '0';
+        else if ((*hex >= 'A') && (*hex <= 'F')) value = (value << 4u) + ((Bit32u)(*hex)) - 'A' + 10u;
+        else {
+            if (*hex == '+') { hex++; return regval + value + GetHexValue(hex, hex, parsed); }
+            else
+                if (*hex == '-') { hex++; return regval + value - GetHexValue(hex, hex, parsed); }
+                else break; // No valid char
+        }
+        hex++;
+    }
 
     if (parsed != NULL)
         *parsed = (hex != str);
 
-	return regval + value;
+    return regval + value;
 }
 
 bool ChangeRegister(char* const str)
@@ -3797,10 +3793,16 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 		res = AnalyzeInstruction(dline,false);
 		if (!res || !(*res)) res = empty;
 		Bitu reslen = strlen(res);
-		if (reslen<22) for (Bitu i=0; i<22-reslen; i++) res[reslen+i] = ' '; res[22] = 0;
+        if (reslen < 22) {
+            for (Bitu i = 0; i < 22 - reslen; i++) res[reslen + i] = ' ';
+            res[22] = 0;
+        }
 	}
 	Bitu len = strlen(dline);
-	if (len<30) for (Bitu i=0; i<30-len; i++) dline[len + i] = ' '; dline[30] = 0;
+    if (len < 30) {
+        for (Bitu i = 0; i < 30 - len; i++) dline[len + i] = ' ';
+        dline[30] = 0;
+    }
 
 	// Get register values
 
@@ -3817,7 +3819,10 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 			strcat(ibytes,tmpc);
 		}
 		len = strlen(ibytes);
-		if (len<21) { for (Bitu i=0; i<21-len; i++) ibytes[len + i] =' '; ibytes[21]=0;} //NOTE THE BRACKETS
+        if (len < 21) {
+            for (Bitu i = 0; i < 21 - len; i++) ibytes[len + i] = ' ';
+            ibytes[21] = 0;
+        }
 		out << setw(4) << SegValue(cs) << ":" << setw(8) << reg_eip << "  " << dline << "  " << res << "  " << ibytes;
 	}
    
@@ -4281,7 +4286,10 @@ void DEBUG_HeavyLogInstruction(void) {
 		res = AnalyzeInstruction(dline,false);
 		if (!res || !(*res)) res = empty;
 		Bitu reslen = strlen(res);
-		if (reslen<22) for (Bitu i=0; i<22-reslen; i++) res[reslen+i] = ' '; res[22] = 0;
+        if (reslen < 22) {
+            for (Bitu i = 0; i < 22 - reslen; i++) res[reslen + i] = ' ';
+            res[22] = 0;
+        }
 	}
 
 	Bitu len = strlen(dline);
