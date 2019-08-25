@@ -353,10 +353,10 @@ static bool DOS_MultiplexFunctions(void) {
 		DOS_HMA_CLAIMED(reg_bx);
 		} return true;
     case 0x4a10: { /* Microsoft SmartDrive (SMARTDRV) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x",reg_ax,reg_bx,reg_cx,reg_dx);
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     case 0x4a11: { /* Microsoft DoubleSpace (DBLSPACE.BIN) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x",reg_ax,reg_bx,reg_cx,reg_dx);
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     }
 
