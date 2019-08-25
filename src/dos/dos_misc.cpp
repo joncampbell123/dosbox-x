@@ -91,6 +91,12 @@ static Bitu INT2A_Handler(void) {
 // INT 2F
 static bool DOS_MultiplexFunctions(void) {
 	switch (reg_ax) {
+    case 0x0800:    /* DRIVER.SYS function */
+    case 0x0801:    /* DRIVER.SYS function */
+    case 0x0802:    /* DRIVER.SYS function */
+    case 0x0803:    /* DRIVER.SYS function */
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        break;
 	/* ert, 20100711: Locking extensions */
 	case 0x1000:	/* SHARE.EXE installation check */
 		if (enable_share_exe_fake) {
