@@ -352,7 +352,13 @@ static bool DOS_MultiplexFunctions(void) {
 		LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
 		DOS_HMA_CLAIMED(reg_bx);
 		} return true;
-	}
+    case 0x4a10: { /* Microsoft SmartDrive (SMARTDRV) API */
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x",reg_ax,reg_bx,reg_cx,reg_dx);
+	    } return true;
+    case 0x4a11: { /* Microsoft DoubleSpace (DBLSPACE.BIN) API */
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x",reg_ax,reg_bx,reg_cx,reg_dx);
+	    } return true;
+    }
 
 	return false;
 }
