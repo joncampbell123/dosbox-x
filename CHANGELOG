@@ -1,4 +1,13 @@
 0.82.21 (next)
+  - Added dosbox.conf option to control whether INT 10h
+    VESA BIOS function AX=4F00h (Get SVGA information)
+    zeros the entire 256-byte or 512-byte structure or
+    not. Turning the option off (no zeroing) allows
+    "Get Saddam!" to run with SVGA and VESA BIOS
+    extensions enabled without crashing. The developer
+    calls INT AX=4F00h but does not provide enough
+    storage space for the full 256 byte structure,
+    only enough for the base structure defined by VESA.
   - INT 2Fh updated to explicitly mention SMARTDRV or
     DBLSPACE if values of AX are known to match their
     API.
