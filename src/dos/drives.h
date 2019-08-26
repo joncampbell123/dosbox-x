@@ -293,6 +293,7 @@ public:
     virtual Bit32u GetSectorSize(void);
 	virtual Bit8u Read_AbsoluteSector_INT25(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector_INT25(Bit32u sectnum, void * data);
+    virtual void UpdateDPB(unsigned char dos_drive);
 };
 
 

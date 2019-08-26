@@ -908,6 +908,10 @@ Bit32u fatDrive::getSectSize(void) {
     return sector_size;
 }
 
+void fatDrive::UpdateDPB(unsigned char dos_drive) {
+    // TODO
+}
+
 void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
