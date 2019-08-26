@@ -198,6 +198,13 @@ extern bool enable_dbcs_tables;
 extern bool enable_filenamechar;
 extern bool enable_collating_uppercase;
 
+PhysPt DOS_Get_DPB(unsigned int dos_drive) {
+    if (dos_drive >= DOS_DRIVES)
+        return 0;
+
+    return PhysMake(dos.tables.dpb,dos_drive*dos.tables.dpb_size);
+}
+
 void DOS_SetupTables(void) {
 	Bit16u seg;Bit16u i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);

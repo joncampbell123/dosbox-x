@@ -296,6 +296,7 @@ public:
     virtual void UpdateDPB(unsigned char dos_drive);
 };
 
+PhysPt DOS_Get_DPB(unsigned int dos_drive);
 
 class cdromDrive : public localDrive
 {
