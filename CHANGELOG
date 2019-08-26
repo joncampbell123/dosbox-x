@@ -1,4 +1,6 @@
 0.82.21 (next)
+  - Fake disk paramter table fixed to indicate one
+    reserved sector.
   - Fixed INT 25h/INT 26h to return an error rather than
     silently fail with success. Emulation of these calls
     exist currently only as stubs and, according to
