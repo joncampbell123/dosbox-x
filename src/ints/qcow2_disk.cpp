@@ -70,7 +70,11 @@ using namespace std;
 			char* backing_file_name = new char[header.backing_file_size + 1];
 			backing_file_name[header.backing_file_size] = 0;
 			fseeko64(file, (off_t)header.backing_file_offset, SEEK_SET);
-			fread(backing_file_name, header.backing_file_size, 1, file);
+            size_t readResult = fread(backing_file_name, header.backing_file_size, 1, file);
+            if (readResult != 1) {
+                LOG(LOG_IO, LOG_ERROR) ("Reading error in QCow2Image constructor\n");
+                return;
+            }
 			if (backing_file_name[0] != 0x2F){
 				for (int image_name_index = (int)strlen(imageName); image_name_index > -1; image_name_index--){
 					if (imageName[image_name_index] == 0x2F){

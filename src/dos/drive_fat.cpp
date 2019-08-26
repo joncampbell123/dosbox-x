@@ -807,7 +807,11 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
         assert(sizeof(bootbuffer.bootcode) >= 256);
-        fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
+        size_t readResult = fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
+        if (readResult != 1) {
+            LOG(LOG_IO, LOG_ERROR) ("Reading error in fatDrive constructor\n");
+            return;
+        }
 
         const char *ext = strrchr(sysFilename,'.');
 

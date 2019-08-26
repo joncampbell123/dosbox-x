@@ -1471,7 +1471,11 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     //  +0x8: absolute data offset (32-bit integer) or 0xFFFFFFFF if the entire sector is that fill byte
     fseek(diskimg,0,SEEK_SET);
     memset(tmp,0,8);
-    fread(tmp,1,8,diskimg);
+    size_t readResult = fread(tmp,1,8,diskimg);
+    if (readResult != 8) {
+            LOG(LOG_IO, LOG_ERROR) ("Reading error in imageDiskVFD constructor\n");
+            return;
+    }
 
     if (!memcmp(tmp,"VFD1.",5)) {
         Bit8u i=0;
@@ -1488,7 +1492,11 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         fseek(diskimg,0xDC,SEEK_SET);
         while ((entof=((unsigned long)ftell(diskimg)+12ul)) <= stop_at) {
             memset(tmp,0xFF,12);
-            fread(tmp,12,1,diskimg);
+            readResult = fread(tmp,12,1,diskimg);
+            if (readResult != 1) {
+                LOG(LOG_IO, LOG_ERROR) ("Reading error in imageDiskVFD constructor\n");
+                return;
+            }
 
             if (!memcmp(tmp,"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",12))
                 continue;

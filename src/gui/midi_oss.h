@@ -55,7 +55,10 @@ public:
 			buf[pos++] = 0;
 			msg++;
 		}
-		write(device,buf,pos);
+        ssize_t writeResult = write(device, buf, pos);
+        if (writeResult == -1) {
+            LOG(LOG_IO, LOG_ERROR) ("Writing error in PlayMsg\n");
+        }
 	};
 	void PlaySysex(Bit8u * sysex,Bitu len) {
 		Bit8u buf[SYSEX_SIZE*4];Bitu pos=0;
@@ -65,7 +68,10 @@ public:
 			buf[pos++] = device_num;
 			buf[pos++] = 0;
 		}
-		write(device,buf,pos);	
+        ssize_t writeResult = write(device, buf, pos);
+        if (writeResult == -1) {
+            LOG(LOG_IO, LOG_ERROR) ("Writing error in PlaySysex\n");
+        }
 	}
 };
 
