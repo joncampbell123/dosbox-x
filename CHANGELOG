@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Disk Parameter Block is now the proper full
+    size. The limited 9 bytes/block hackery has
+    been removed.
   - Added INT 25h/INT 26h emulation for FAT drives
     mounted with IMGMOUNT.
   - Fake disk paramter table fixed to indicate one
