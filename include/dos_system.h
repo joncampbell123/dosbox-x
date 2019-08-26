@@ -300,6 +300,7 @@ public:
 	virtual void MediaChange() {};
 	// disk cycling functionality (request resources)
 	virtual void Activate(void) {};
+	virtual void UpdateDPB(unsigned char dos_drive) { (void)dos_drive; };
 
     // INT 25h/INT 26h
     virtual Bit32u GetSectorCount(void) { return 0; }
