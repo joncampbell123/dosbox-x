@@ -715,6 +715,8 @@ struct DOS_Block {
 		RealPt upcase;
 		Bit8u* country;//Will be copied to dos memory. resides in real mem
 		Bit16u dpb; //Fake Disk parameter system using only the first entry so the drive letter matches
+        Bit16u dpb_size = 0x21; // bytes per DPB entry (MS-DOS 4.x-6.x size)
+        Bit16u mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
 	} tables;
 	Bit16u loaded_codepage;
 };

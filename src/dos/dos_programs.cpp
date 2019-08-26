@@ -148,7 +148,7 @@ static const char* UnmountHelper(char umount) {
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
         Drives[i_drive] = 0;
-        mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*9u,0);
+        mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive()) {
             DOS_SetDrive(ZDRIVE_NUM);
         }
@@ -545,7 +545,7 @@ public:
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
         /* Set the correct media byte in the table */
-        mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*9u,newdrive->GetMediaByte());
+        mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
         if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
         /* check if volume label is given and don't allow it to updated in the future */
         if (cmd->FindString("-label",label,true)) newdrive->SetLabel(label.c_str(),iscdrom,false);
@@ -3733,7 +3733,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 9u, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -3907,7 +3907,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 9u, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
 
         // If instructed, attach to IDE controller as ATAPI CD-ROM device
         if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');

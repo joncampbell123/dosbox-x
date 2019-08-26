@@ -303,13 +303,14 @@ void DOS_SetupTables(void) {
 
 	/* Create a fake DPB */
 	dos.tables.dpb=DOS_GetMemory(16,"dos.tables.dpb");
-	dos.tables.mediaid=RealMake(dos.tables.dpb,0x17);	//Media ID offset in DPB
+    dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
+	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
-		real_writeb(dos.tables.dpb,i*9,(Bit8u)i);				// drive number
-		real_writeb(dos.tables.dpb,i*9+1,(Bit8u)i);			// unit number
-		real_writew(dos.tables.dpb,i*9+2,0x0200);		// bytes per sector
-		real_writew(dos.tables.dpb,i*9+6,0x0001);		// reserved sectors at the beginning of the drive
-		mem_writew(Real2Phys(dos.tables.mediaid)+i*9u,0u);
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(Bit8u)i);             // drive number
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size+1,(Bit8u)i);           // unit number
+        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+2,0x0200);     // bytes per sector
+        real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
+        mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
 	}
 
 	/* Create a fake disk buffer head */

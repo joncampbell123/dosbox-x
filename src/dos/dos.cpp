@@ -1039,7 +1039,7 @@ static Bitu DOS_21Handler(void) {
                 if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable()) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
-                    reg_bx = drive*9;
+                    reg_bx = drive*dos.tables.dpb_size;
                     LOG(LOG_DOSMISC,LOG_ERROR)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;

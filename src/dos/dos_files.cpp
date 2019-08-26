@@ -1347,7 +1347,7 @@ bool DOS_GetAllocationInfo(Bit8u drive,Bit16u * _bytes_sector,Bit8u * _sectors_c
 	Bit16u _free_clusters;
 	Drives[drive]->AllocationInfo(_bytes_sector,_sectors_cluster,_total_clusters,&_free_clusters);
 	SegSet16(ds,RealSeg(dos.tables.mediaid));
-	reg_bx=RealOff(dos.tables.mediaid+drive*9u);
+	reg_bx=RealOff(dos.tables.mediaid+drive*dos.tables.dpb_size);
 	return true;
 }
 
