@@ -1880,21 +1880,22 @@ static Bitu DOS_27Handler(void) {
 
 static Bitu DOS_25Handler(void) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {
-		reg_ax = 0x8002;
-		SETFLAGBIT(CF,true);
-	} else {
-		if (reg_cx == 1 && reg_dx == 0) {
-			if (reg_al >= 2) {
-				PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
-				// write some BPB data into buffer for MicroProse installers
-				mem_writew(ptr+0x1c,0x3f); // hidden sectors
-			}
-		} else {
-			LOG(LOG_DOSMISC,LOG_NORMAL)("int 25 called but not as disk detection drive %u",reg_al);
-			}
-		SETFLAGBIT(CF,false);
-		reg_ax = 0;
-	}
+        reg_ax = 0x8002;
+        SETFLAGBIT(CF,true);
+    } else {
+        /* MicroProse installer hack, inherited from DOSBox SVN, as a fallback if INT 25h emulation is not available for the drive. */
+        if (reg_cx == 1 && reg_dx == 0 && reg_al >= 2) {
+            PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
+            // write some BPB data into buffer for MicroProse installers
+            mem_writew(ptr+0x1c,0x3f); // hidden sectors
+            SETFLAGBIT(CF,false);
+            reg_ax = 0;
+        } else {
+            LOG(LOG_DOSMISC,LOG_NORMAL)("int 25 called but not as disk detection drive %u",reg_al);
+            reg_ax = 0x8002;
+            SETFLAGBIT(CF,true);
+        }
+    }
     return CBRET_NONE;
 }
 static Bitu DOS_26Handler(void) {
@@ -1902,10 +1903,10 @@ static Bitu DOS_26Handler(void) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
-	} else {
-		SETFLAGBIT(CF,false);
-		reg_ax = 0;
-	}
+    } else {
+        reg_ax = 0x8002;
+        SETFLAGBIT(CF,true);
+    }
     return CBRET_NONE;
 }
 

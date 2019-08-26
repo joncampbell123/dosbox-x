@@ -1,4 +1,11 @@
 0.82.21 (next)
+  - Fixed INT 25h/INT 26h to return an error rather than
+    silently fail with success. Emulation of these calls
+    exist currently only as stubs and, according to
+    source comments, as a workaround for MicroProse
+    installers. For disk diagnostic software like
+    Microsoft ScanDisk it is better to signal an error
+    until INT 25h/INT 26h are fully implemented.
   - Added dosbox.conf option to control whether INT 10h
     VESA BIOS function AX=4F00h (Get SVGA information)
     zeros the entire 256-byte or 512-byte structure or
