@@ -1605,6 +1605,16 @@ void DOSBOX_SetupConfigSections(void) {
             "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
             "This allows you to emulate PC/XT style memory extensions.");
 
+    Pbool = secprop->Add_bool("vesa zero buffer on get information",Property::Changeable::Always,true);
+    Pbool->Set_help("This setting affects VESA BIOS function INT 10h AX=4F00h. If set, the VESA BIOS will zero the\n"
+                    "256-byte buffer defined by the standard at ES:DI, then fill in the structure. If clear, only\n"
+                    "the structure members will be filled in, and memory outside the initial 20-32 bytes will remain\n"
+                    "unmodified. This setting is ON by default. Some very early 1990s DOS games that support VESA\n"
+                    "BIOS standards may need this setting turned OFF if the programmer did not provide enough space\n"
+                    "for the entire 256 byte structure and the game crashes if it detects VESA BIOS extensions.\n"
+                    "Needed for:\n"
+                    "  GETSADAM.EXE");
+
     /* should be set to zero unless for very specific demos:
      *  - "Melvindale" by MFX (1996): Set this to 2, the nightmarish visual rendering code appears to draw 2 scanlines
      *    upward from the VESA linear framebuffer base we return, causing DOSBox to emit warnings about illegal read/writes

@@ -30,6 +30,8 @@
 
 int hack_lfb_yadjust = 0;
 
+bool vesa_zero_on_get_information = true;
+
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
 extern bool enable_vga_8bit_dac;
@@ -136,11 +138,19 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	bool vbe2=false;Bit16u vbe2_pos;
 	Bitu id=mem_readd(buffer);
 	if (((id==0x56424532)||(id==0x32454256)) && (!int10.vesa_oldvbe)) vbe2=true;
-	if (vbe2) {
-		for (i=0;i<0x200;i++) mem_writeb((PhysPt)(buffer+i),0);		
-	} else {
-		for (i=0;i<0x100;i++) mem_writeb((PhysPt)(buffer+i),0);
-	}
+
+    /* The reason this is an option is that there are some old DOS games that assume the BIOS
+     * fills in only the structure members. These games do not provide enough room for the
+     * full 256-byte block. If we zero the entire block, unrelated data next to the buffer
+     * gets wiped and the game crashes. */
+    if (vesa_zero_on_get_information) {
+        if (vbe2) {
+            for (i=0;i<0x200;i++) mem_writeb((PhysPt)(buffer+i),0);		
+        } else {
+            for (i=0;i<0x100;i++) mem_writeb((PhysPt)(buffer+i),0);
+        }
+    }
+
 	/* Fill common data */
 	MEM_BlockWrite(buffer,(void *)"VESA",4);				//Identification
 	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
