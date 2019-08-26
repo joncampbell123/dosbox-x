@@ -300,6 +300,12 @@ public:
 	virtual void MediaChange() {};
 	// disk cycling functionality (request resources)
 	virtual void Activate(void) {};
+
+    // INT 25h/INT 26h
+    virtual Bit32u GetSectorCount(void) { return 0; }
+    virtual Bit32u GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
+	virtual Bit8u Read_AbsoluteSector_INT25(Bit32u sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
+	virtual Bit8u Write_AbsoluteSector_INT25(Bit32u sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 };
 
 enum { OPEN_READ=0, OPEN_WRITE=1, OPEN_READWRITE=2, OPEN_READ_NO_MOD=4, DOS_NOT_INHERIT=128};

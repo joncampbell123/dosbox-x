@@ -1883,9 +1883,88 @@ static Bitu DOS_25Handler(void) {
         reg_ax = 0x8002;
         SETFLAGBIT(CF,true);
     } else {
+        DOS_Drive *drv = Drives[reg_al];
+        /* assume drv != NULL */
+        Bit32u sector_size = drv->GetSectorSize();
+        Bit32u sector_count = drv->GetSectorCount();
+        PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
+        Bit32u req_count = reg_cx;
+        Bit32u sector_num = reg_dx;
+
+        /* For < 32MB drives.
+         *  AL = drive
+         *  CX = sector count (not 0xFFFF)
+         *  DX = sector number
+         *  DS:BX = pointer to disk transfer area
+         *
+         * For >= 32MB drives.
+         *
+         *  AL = drive
+         *  CX = 0xFFFF
+         *  DS:BX = disk read packet
+         *
+         *  Disk read packet:
+         *    +0 DWORD = sector number
+         *    +4 WORD = sector count
+         *    +6 DWORD = disk tranfer area
+         */
+        if (sector_count != 0 && sector_size != 0) {
+            unsigned char tmp[2048];
+            const char *method;
+
+            if (sector_size > sizeof(tmp)) {
+                reg_ax = 0x8002;
+                SETFLAGBIT(CF,true);
+                return CBRET_NONE;
+            }
+
+            if (sector_count > 0xFFFF && req_count != 0xFFFF) {
+                reg_ax = 0x0207; // must use CX=0xFFFF API for > 64KB segment partitions
+                SETFLAGBIT(CF,true);
+                return CBRET_NONE;
+            }
+
+            if (req_count == 0xFFFF) {
+                sector_num = mem_readd(ptr+0);
+                req_count = mem_readw(ptr+4);
+                Bit32u p = mem_readd(ptr+6);
+                ptr = PhysMake(p >> 16u,p & 0xFFFFu);
+                method = ">=32MB";
+            }
+            else {
+                method = "<32MB";
+            }
+
+            LOG(LOG_MISC,LOG_DEBUG)("INT 25h READ: sector=%lu count=%lu ptr=%lx method='%s'",
+                (unsigned long)sector_num,
+                (unsigned long)req_count,
+                (unsigned long)ptr,
+                method);
+
+            SETFLAGBIT(CF,false);
+            reg_ax = 0;
+
+            while (req_count > 0) {
+                Bit8u res = drv->Read_AbsoluteSector_INT25(sector_num,tmp);
+                if (res != 0) {
+                    reg_ax = 0x8002;
+                    SETFLAGBIT(CF,true);
+                    break;
+                }
+
+                for (unsigned int i=0;i < (unsigned int)sector_size;i++)
+                    mem_writeb(ptr+i,tmp[i]);
+
+                req_count--;
+                sector_num++;
+                ptr += sector_size;
+            }
+
+            return CBRET_NONE;
+        }
+
         /* MicroProse installer hack, inherited from DOSBox SVN, as a fallback if INT 25h emulation is not available for the drive. */
         if (reg_cx == 1 && reg_dx == 0 && reg_al >= 2) {
-            PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
             // write some BPB data into buffer for MicroProse installers
             mem_writew(ptr+0x1c,0x3f); // hidden sectors
             SETFLAGBIT(CF,false);
