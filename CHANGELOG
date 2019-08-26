@@ -1,4 +1,10 @@
 0.82.21 (next)
+  - FAT driver now updates the Disk Parameter
+    Block when activated, and provides as much
+    from the FAT filesystem as possible. It is now
+    possible to run Microsoft MS-DOS 6.22
+    SCANDISK.EXE on a drive letter attached from
+    a disk image.
   - Disk Parameter Block is now the proper full
     size. The limited 9 bytes/block hackery has
     been removed.
