@@ -1978,7 +1978,6 @@ static Bitu DOS_25Handler(void) {
     return CBRET_NONE;
 }
 static Bitu DOS_26Handler(void) {
-	LOG(LOG_DOSMISC,LOG_NORMAL)("int 26 called: hope for the best!");
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
