@@ -918,10 +918,10 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
         mem_writew(ptr+0x06,bootbuffer.reservedsectors);            // +6 = number of reserved sectors at start of partition
         mem_writeb(ptr+0x08,bootbuffer.fatcopies);                  // +8 = number of FATs (file allocation tables)
         mem_writew(ptr+0x09,bootbuffer.rootdirentries);             // +9 = number of root directory entries
-        mem_writew(ptr+0x0B,(uint16_t)firstDataSector);             // +11 = number of first sector containing user data
+        mem_writew(ptr+0x0B,(uint16_t)(firstDataSector-partSectOff));// +11 = number of first sector containing user data
         mem_writew(ptr+0x0D,(uint16_t)CountOfClusters + 1);         // +13 = highest cluster number
         mem_writew(ptr+0x0F,(uint16_t)bootbuffer.sectorsperfat);    // +15 = sectors per FAT
-        mem_writew(ptr+0x11,(uint16_t)firstRootDirSect);            // +17 = sector number of first directory sector
+        mem_writew(ptr+0x11,(uint16_t)(firstRootDirSect-partSectOff));// +17 = sector number of first directory sector
         mem_writed(ptr+0x13,0);                                     // +19 = address of device driver header (NOT IMPLEMENTED)
         mem_writeb(ptr+0x17,GetMediaByte());                        // +23 = media ID byte
         mem_writeb(ptr+0x18,0x00);                                  // +24 = disk accessed
