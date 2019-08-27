@@ -924,7 +924,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
         mem_writew(ptr+0x11,(uint16_t)firstRootDirSect);            // +17 = sector number of first directory sector
         mem_writed(ptr+0x13,0);                                     // +19 = address of device driver header (NOT IMPLEMENTED)
         mem_writeb(ptr+0x17,GetMediaByte());                        // +23 = media ID byte
-        mem_writeb(ptr+0x19,0x00);                                  // +24 = disk accessed
+        mem_writeb(ptr+0x18,0x00);                                  // +24 = disk accessed
         mem_writew(ptr+0x1F,0xFFFF);                                // +31 = number of free clusters or 0xFFFF if unknown
         // other fields, not implemented
     }
