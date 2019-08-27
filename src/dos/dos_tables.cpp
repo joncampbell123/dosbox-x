@@ -327,6 +327,7 @@ void DOS_SetupTables(void) {
         else
             real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0);
 	}
+    dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");

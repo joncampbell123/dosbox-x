@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - INT AH=52h List of Lists now points to the Disk
+    Parameter Block as well, which allows some PC-98
+    games that enumerate the list to work.
   - Video parameter list and table at BIOS DATA AREA
     40:A8 added to MCGA mode, to match real PS/2 MCGA
     hardware.

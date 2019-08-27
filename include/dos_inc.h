@@ -455,6 +455,7 @@ class DOS_InfoBlock:public MemStruct {
 public:
     DOS_InfoBlock() : seg(0) {};
 	void SetLocation(Bit16u  seg);
+    void SetFirstDPB(Bit32u _first_dpb);
 	void SetFirstMCB(Bit16u _first_mcb);
 	void SetBuffers(Bit16u x,Bit16u y);
 	void SetCurDirStruct(Bit32u _curdirstruct);

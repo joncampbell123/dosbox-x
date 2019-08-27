@@ -162,6 +162,10 @@ void DOS_InfoBlock::SetBlockDevices(Bit8u _count) {
 	sSave(sDIB,blockDevices,_count);
 }
 
+void DOS_InfoBlock::SetFirstDPB(Bit32u _first_dpb) {
+    sSave(sDIB,firstDPB,_first_dpb);
+}
+
 RealPt DOS_InfoBlock::GetPointer(void) {
 	return RealMake(seg,offsetof(sDIB,firstDPB));
 }
