@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Increased the DTA segment size of the DOS FAT driver
+    to fix problems with directory searches corrupting
+    adjacent memory.
   - Disk Parameter Block linked list now terminates
     with next pointer at FFFF:FFFF instead of 0000:0000
     to match general DOS pattern and satisfy some
