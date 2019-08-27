@@ -779,7 +779,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	Bit32u filesize;
 	
 	if(imgDTASeg == 0) {
-		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
+		imgDTASeg = DOS_GetMemory(4,"imgDTASeg");
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
@@ -849,7 +849,7 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
 	created_successfully = true;
 	
 	if(imgDTASeg == 0) {
-		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
+		imgDTASeg = DOS_GetMemory(4,"imgDTASeg");
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
