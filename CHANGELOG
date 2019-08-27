@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Video parameter list and table at BIOS DATA AREA
+    40:A8 added to MCGA mode, to match real PS/2 MCGA
+    hardware.
   - FAT driver now updates the Disk Parameter
     Block when activated, and provides as much
     from the FAT filesystem as possible. It is now
