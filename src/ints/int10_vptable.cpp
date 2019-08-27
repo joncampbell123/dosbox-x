@@ -520,6 +520,46 @@ static Bit8u video_parameter_table_ega[0x40*0x17]={
   0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0e, 0x0f, 0xff // graphics registers 0-8
 };
 
+// TODO: Apparent MCGA video parameter table
+//
+// +0x0000-0x002F = ??
+// +0x0030-0x006F = Video mode 0/1 params
+// +0x0070-0x00AF = Video mode 2/3 params
+// +0x00B0-0x00EF = Video mode 4/5 params
+// +0x00F0-0x012F = Video mode 6 params
+// +0x0130-0x014F = Video mode 17 (0x11) params
+// +0x0150-0x016F = Video mode 19 (0x13) params
+//
+// BIOS code:
+//
+// ES:BX = [40:A8]          READ TABLE LOCATION FROM 40:A8
+// ES:BX = [ES:BX]          READ FROM FIRST POINTER IN TABLE
+// BX += 0x30               TABLE ENTRIES OFFSET BY 0x30 BYTES (?)
+// IF AH <= 6 THEN
+//   CX = VIDEO MODE
+//   IF CX != 0 THEN
+//     DO
+//       IF (CX & 1) == 0 THEN
+//         BX += 0x40
+//       ENDIF
+//       CX--
+//     WHILE CX != 0
+//   ENDIF
+//   GOTO END
+// ENDIF
+// IF AH != 0x11
+//   IF AH != 0x13
+//     GOTO END
+//   ENDIF
+//   BX += 0x120            AH = 0x13 HERE
+//   GOTO END
+// ENDIF
+// BX += 0x100              AH = 0x11 HERE
+// GOTO END
+// END:
+//   (RETURN)
+//
+// TODO: Copy 0x170 bytes of video parameter table from MCGA BIOS
 
 Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
 	if (IS_VGA_ARCH) {
