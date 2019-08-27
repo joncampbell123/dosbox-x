@@ -559,7 +559,8 @@ static Bit8u video_parameter_table_ega[0x40*0x17]={
 // END:
 //   (RETURN)
 //
-// TODO: Copy 0x170 bytes of video parameter table from MCGA BIOS
+// TODO: Copy 0x170 bytes of video parameter table from MCGA BIOS.
+//       Refer to NOTES, which has a snapshot of the MCGA BIOS within it.
 
 Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
 	if (IS_VGA_ARCH) {
