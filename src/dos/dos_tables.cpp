@@ -325,7 +325,7 @@ void DOS_SetupTables(void) {
         if ((i+1) < DOS_DRIVES)
             real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
         else
-            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0);
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0xFFFFFFFF); // ED4.EXE (provided by Yksoft1) expects this, or else loops forever
 	}
     dos_infoblock.SetFirstDPB(RealMake(dos.tables.dpb,0));
 

@@ -1,4 +1,8 @@
 0.82.21 (next)
+  - Disk Parameter Block linked list now terminates
+    with next pointer at FFFF:FFFF instead of 0000:0000
+    to match general DOS pattern and satisfy some
+    PC-98 games that enumerate the list.
   - INT AH=52h List of Lists now points to the Disk
     Parameter Block as well, which allows some PC-98
     games that enumerate the list to work.
