@@ -309,7 +309,7 @@ void DOS_SetupTables(void) {
 	dos_infoblock.SetFCBTable(RealMake(seg,0));
 
 	/* Create a fake DPB */
-	dos.tables.dpb=DOS_GetMemory(16,"dos.tables.dpb");
+	dos.tables.dpb=DOS_GetMemory(((DOS_DRIVES*dos.tables.dpb_size)+15u)/16u,"dos.tables.dpb");
     dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
 	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
@@ -319,6 +319,12 @@ void DOS_SetupTables(void) {
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
         mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+0x1F,0xFFFF);      // number of free clusters or 0xFFFF if unknown
+
+        // next DPB pointer
+        if ((i+1) < DOS_DRIVES)
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,RealMake(dos.tables.dpb,(i+1)*dos.tables.dpb_size));
+        else
+            real_writed(dos.tables.dpb,i*dos.tables.dpb_size+0x19,0);
 	}
 
 	/* Create a fake disk buffer head */
