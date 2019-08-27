@@ -88,6 +88,8 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
+extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
+
 // INT 2F
 static bool DOS_MultiplexFunctions(void) {
 	switch (reg_ax) {
@@ -101,10 +103,12 @@ static bool DOS_MultiplexFunctions(void) {
         // FIXME: Windows 95 SCANDISK.EXE relies on the drive data table list pointer provided by this call.
         //        Returning DS:DI unmodified or set to 0:0 will only send it off into the weeds chasing random data
         //        as a linked list. However looking at the code DI=0xFFFF is sufficient to prevent that until
-        //        DOSBox-X emulates DRIVER.SYS functions and provides the information it expects according to RBIL
+        //        DOSBox-X emulates DRIVER.SYS functions and provides the information it expects according to RBIL.
+        //        BUT, Windows 95 setup checks if the pointer is NULL, and considers 0:FFFF valid >_<.
+        //        It's just easier to return a pointer to a dummy table.
         //        [http://www.ctyme.com/intr/rb-4283.htm]
-        SegSet16(ds,0);
-        reg_di = 0xFFFF;
+        SegSet16(ds,DOS_DriveDataListHead >> 16);
+        reg_di = DOS_DriveDataListHead;
         break;
 	/* ert, 20100711: Locking extensions */
 	case 0x1000:	/* SHARE.EXE installation check */

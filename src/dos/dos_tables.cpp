@@ -42,6 +42,7 @@ GCC_ATTRIBUTE (packed);
 #pragma pack ()
 #endif
 
+RealPt DOS_DriveDataListHead=0;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
 
@@ -352,5 +353,17 @@ void DOS_SetupTables(void) {
         host_writed(country_info + 0x12, CALLBACK_RealPointer(call_casemap));
         dos.tables.country=country_info;
     }
+
+    /* fake DRIVER.SYS data table list, to satisfy Windows 95 setup.
+     * The list is supposed to be a linked list of drive BPBs, INT 13h info, etc.
+     * terminated by offset 0xFFFF. For now, just point at a 0xFFFF.
+     * Note that Windows 95 setup and SCANDISK.EXE have different criteria on
+     * the return value of INT 2Fh AX=803h and returning without a pointer
+     * really isn't an option. According to RBIL this interface is built into
+     * MS-DOS. */
+    DOS_DriveDataListHead = RealMake(DOS_GetMemory(1/*paragraph*/,"driver.sys.data.list"),0);
+    mem_writew(Real2Phys(DOS_DriveDataListHead)+0x00,0xFFFF); /* list termination */
+    mem_writew(Real2Phys(DOS_DriveDataListHead)+0x02,0xFFFF);
+    mem_writew(Real2Phys(DOS_DriveDataListHead)+0x04,0x0000);
 }
 
