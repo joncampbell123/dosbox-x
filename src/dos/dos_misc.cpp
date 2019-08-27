@@ -94,8 +94,17 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x0800:    /* DRIVER.SYS function */
     case 0x0801:    /* DRIVER.SYS function */
     case 0x0802:    /* DRIVER.SYS function */
+        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        break;
     case 0x0803:    /* DRIVER.SYS function */
         LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        // FIXME: Windows 95 SCANDISK.EXE relies on the drive data table list pointer provided by this call.
+        //        Returning DS:DI unmodified or set to 0:0 will only send it off into the weeds chasing random data
+        //        as a linked list. However looking at the code DI=0xFFFF is sufficient to prevent that until
+        //        DOSBox-X emulates DRIVER.SYS functions and provides the information it expects according to RBIL
+        //        [http://www.ctyme.com/intr/rb-4283.htm]
+        SegSet16(ds,0);
+        reg_di = 0xFFFF;
         break;
 	/* ert, 20100711: Locking extensions */
 	case 0x1000:	/* SHARE.EXE installation check */
