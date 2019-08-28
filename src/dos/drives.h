@@ -273,7 +273,6 @@ private:
 	Bit32u firstRootDirSect;
 
 	Bit32u cwdDirCluster;
-	Bit32u dirPosition; /* Position in directory search */
 
 	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
