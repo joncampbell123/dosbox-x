@@ -1,4 +1,6 @@
 0.82.21 (next)
+  - FAT driver now assigns current date/time when
+    creating directories.
   - Increased the DTA segment size of the DOS FAT driver
     to fix problems with directory searches corrupting
     adjacent memory.
