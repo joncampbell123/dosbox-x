@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Added INT 21h AX=6523h, for Microsoft software
+    that uses it after prompting the user for a Y/N
+    answer such as FORMAT.COM and FDISK.EXE
   - PC-98 MS-DOS kernel now writes fake INT 1Bh device
     list to 60:6C to satisfy certain games that need
     it for their "master disk" detection.
