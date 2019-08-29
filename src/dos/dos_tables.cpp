@@ -355,6 +355,20 @@ void DOS_SetupTables(void) {
         dos.tables.country=country_info;
     }
 
+    /* PC-98 INT 1Bh device list (60:6Ch-7Bh).
+     * For now, just write a fake list to satisfy any PC-98 game that
+     * requires a "master disk" to run even if running from an HDI.
+     * See also: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%202%20%28webtech.co.jp%29/memdos%2etxt]
+     * This is needed to run "Legend of Heroes III" */
+    if (IS_PC98_ARCH) {
+        // FIXME: This is just a fake list. At some point in the future, this
+        //        list needs to reflect the state of all MOUNT/IMGMOUNT commands
+        //        while in the DOS environment provided by this emulation.
+        for (unsigned int i=0;i < 0x10;i++) real_writeb(0x60,0x6C+i,0);
+        real_writeb(0x60,0x6C,0xA0);    /* hard drive */
+        real_writeb(0x60,0x6D,0x90);    /* floppy drive */
+    }
+
     /* fake DRIVER.SYS data table list, to satisfy Windows 95 setup.
      * The list is supposed to be a linked list of drive BPBs, INT 13h info, etc.
      * terminated by offset 0xFFFF. For now, just point at a 0xFFFF.
