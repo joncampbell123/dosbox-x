@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Fixed FAT driver bug that caused the allocation
+    of an extra cluster if writing a file that is
+    exactly a multiple of the cluster size long.
   - FAT driver now assigns current date/time when
     creating directories.
   - Increased the DTA segment size of the DOS FAT driver
