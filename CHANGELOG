@@ -1,4 +1,6 @@
 0.82.21 (next)
+  - Fixed sizing and positions of some Help menu dialog
+    boxes in the Configuration GUI.
   - Configuration GUI issues with help text and word
     wrap running off the edge of the window have been
     fixed.

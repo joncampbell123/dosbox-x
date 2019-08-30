@@ -1202,7 +1202,7 @@ public:
             const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
             new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
         } else if (arg == "Introduction") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO"));
+            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", MSG_Get("PROGRAM_INTRO"));
         } else if (arg == "Getting Started") {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -1212,9 +1212,9 @@ public:
 #endif
             msg += MSG_Get("PROGRAM_INTRO_MOUNT_END");
 
-            new GUI::MessageBox2(getScreen(), 20, 50, 600, std::string("Introduction"), msg);
+            new GUI::MessageBox2(getScreen(), 0, 50, 680, std::string("Getting Started"), msg);
         } else if (arg == "CD-ROM Support") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO_CDROM"));
+            new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
         } else if (arg == "Save...") {
             new SaveDialog(getScreen(), 90, 100, "Save Configuration...");
         } else if (arg == "Save Language File...") {
