@@ -121,11 +121,13 @@ fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatD
 }
 
 void fatFile::Flush(void) {
+#if 0//UNTESTED: THIS MAY CAUSE FURTHER PROBLEMS
     // FIXME: Copy-pasta from Close
 	if (loadedSector) {
         myDrive->writeSector(currentSector, sectorBuffer);
         loadedSector = false;
     }
+#endif
 
     if (modified || newtime) {
         direntry tmpentry;
