@@ -1031,6 +1031,10 @@ protected:
 	const int cw;
 	/// clip height.
 	const int ch;
+	/// functional width.
+	const int fw;
+	/// functional height.
+	const int fh;
 
 	/// Current position x coordinate.
 	int x;
@@ -2414,8 +2418,8 @@ public:
 	/// Create a new message box
 	template <typename STR> MessageBox2(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
-		message = new Label(this, 5, 5, text, width-10);
-		close = new GUI::Button(this, width/2-40, 10, "Close", 70);
+		message = new Label(this, 5, 5, text, width-border_left-border_right-10);
+		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, "Close", 70);
 		close->addActionHandler(this);
 		setText(text);
 
@@ -2426,7 +2430,7 @@ public:
 	/// Set a new text. Size of the box is adjusted accordingly.
 	template <typename STR> void setText(const STR text) {
 		message->setText(text);
-		close->move(width/2-40, 20+message->getHeight());
+		close->move((width-border_left-border_right-70)/2, 20+message->getHeight());
 		resize(width, message->getHeight()+100);
 	}
 
