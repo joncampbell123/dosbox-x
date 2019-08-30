@@ -1,4 +1,7 @@
 0.82.21 (next)
+  - Configuration GUI issues with help text and word
+    wrap running off the edge of the window have been
+    fixed.
   - INT 21h AX=3702h AVAILDEV returns DL=FFh to match
     MS-DOS behavior.
   - Added INT 21h AX=6523h, for Microsoft software
