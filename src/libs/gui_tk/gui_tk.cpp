@@ -164,7 +164,7 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 				} while (0);
 			default:
 				width += font->getWidth(text[start]);
-				if (x > 0 && x+width > this->width) gotoXY(0,y+font->getHeight());
+				if (x > 0 && x+width > getClipWidth()) gotoXY(0,y+font->getHeight());
 			}
 			start++;
 		}
