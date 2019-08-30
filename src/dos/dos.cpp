@@ -1107,13 +1107,14 @@ static Bitu DOS_21Handler(void) {
                 case 0:
                     reg_al=0;reg_dl=0x2f;break;  /* always return '/' like dos 5.0+ */
                 case 1:
+                    LOG(LOG_MISC,LOG_DEBUG)("DOS:0x37:Attempted to set switch char");
                     reg_al=0;break;
                 case 2:
-                    reg_al=0;reg_dl=0x2f;break;
+                    reg_al=0;reg_dl=0xff;break;  /* AVAILDEV \DEV\ prefix optional */
                 case 3:
+                    LOG(LOG_MISC,LOG_DEBUG)("DOS:0x37:Attempted to set AVAILDEV \\DEV\\ prefix use");
                     reg_al=0;break;
             }
-            LOG(LOG_MISC,LOG_ERROR)("DOS:0x37:Call for not supported switchchar");
             break;
         case 0x38:                  /* Set Country Code */  
             if (reg_al==0) {        /* Get country specidic information */
