@@ -1,4 +1,6 @@
 0.82.21 (next)
+  - INT 21h AX=3702h AVAILDEV returns DL=FFh to match
+    MS-DOS behavior.
   - Added INT 21h AX=6523h, for Microsoft software
     that uses it after prompting the user for a Y/N
     answer such as FORMAT.COM and FDISK.EXE
