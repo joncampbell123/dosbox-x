@@ -111,7 +111,7 @@ char *(*pXGetICValues)(XIC, ...) = NULL;
 #undef SDL_X11_MODULE
 #undef SDL_X11_SYM
 
-
+#ifdef SDL_VIDEO_DRIVER_X11_DYNAMIC
 static void *SDL_XGetRequest_workaround(Display* dpy, CARD8 type, size_t len)
 {
 	xReq *req;
@@ -128,6 +128,7 @@ static void *SDL_XGetRequest_workaround(Display* dpy, CARD8 type, size_t len)
 }
 
 static int x11_load_refcount = 0;
+#endif
 
 void SDL_X11_UnloadSymbols(void)
 {
