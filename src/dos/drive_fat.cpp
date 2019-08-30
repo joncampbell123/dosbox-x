@@ -49,6 +49,7 @@ public:
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
+    void Flush(void);
 	bool UpdateDateTimeFromHost(void);   
 	Bit32u GetSeekPos(void);
 public:
@@ -117,6 +118,37 @@ fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatD
 	if(filelength > 0) {
 		Seek(&seekto, DOS_SEEK_SET);
 	}
+}
+
+void fatFile::Flush(void) {
+    // FIXME: Copy-pasta from Close
+	if (loadedSector) {
+        myDrive->writeSector(currentSector, sectorBuffer);
+        loadedSector = false;
+    }
+
+    if (modified || newtime) {
+        direntry tmpentry;
+
+        myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
+
+        if (newtime) {
+            tmpentry.modTime = time;
+            tmpentry.modDate = date;
+        }
+        else {
+            Bit16u ct,cd;
+
+            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+
+            tmpentry.modTime = ct;
+            tmpentry.modDate = cd;
+        }
+
+        myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        modified = false;
+        newtime = false;
+    }
 }
 
 bool fatFile::Read(Bit8u * data, Bit16u *size) {

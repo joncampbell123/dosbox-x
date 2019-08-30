@@ -94,6 +94,7 @@ public:
 	virtual Bit32u	GetSeekPos()	{ return 0xffffffff; }
 	void SetDrive(Bit8u drv) { hdrive=drv;}
 	Bit8u GetDrive(void) { return hdrive;}
+    virtual void    Flush(void) { }
 
 	char* name;
 	Bit8u drive;

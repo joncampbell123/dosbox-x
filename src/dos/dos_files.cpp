@@ -479,7 +479,10 @@ bool DOS_FlushFile(Bit16u entry) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-	LOG(LOG_DOSMISC,LOG_NORMAL)("FFlush used.");
+
+	LOG(LOG_DOSMISC,LOG_DEBUG)("FFlush used.");
+
+    Files[handle]->Flush();
 	return true;
 }
 
