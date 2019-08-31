@@ -920,7 +920,7 @@ void ToplevelWindow::paint(Drawable &d) const
     }
 
 	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
-	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-39,titlebox_y_height-2);
+	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-(6+titlebox_sysmenu_width+6),titlebox_y_height-2);
 
 	const Font *font = Font::getFont("title");
 	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
