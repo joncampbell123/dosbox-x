@@ -39,11 +39,11 @@ namespace GUI {
 
 /* start <= y < stop, region reserved for top level window title bar */
 int titlebar_y_start = 5;
-int titlebar_y_stop = 33;
+int titlebar_y_stop = 25;
 
 /* region where title bar is drawn */
 int titlebox_y_start = 4;
-int titlebox_y_height = 28;
+int titlebox_y_height = 20;
 
 namespace Color {
 	RGB Background3D =		0xffc0c0c0;
