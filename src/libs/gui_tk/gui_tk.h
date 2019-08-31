@@ -2430,8 +2430,8 @@ public:
 	/// Set a new text. Size of the box is adjusted accordingly.
 	template <typename STR> void setText(const STR text) {
 		message->setText(text);
-		close->move((width-border_left-border_right-70)/2, 20+message->getHeight());
-		resize(width, message->getHeight()+100);
+		close->move((width-border_left-border_right-70)/2, 15+message->getHeight());
+		resize(width, message->getHeight()+15+close->getHeight()+border_bottom+border_top+15);
 	}
 
 	virtual bool keyDown(const GUI::Key &key) {
