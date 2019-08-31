@@ -905,7 +905,7 @@ protected:
     GUI::Input *name;
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter filename for configuration file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         extern std::string capturedir;
@@ -919,8 +919,8 @@ public:
         } else
             fullpath = "dosbox.conf";
         name->setText(fullpath.c_str());
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -938,12 +938,12 @@ protected:
     GUI::Input *name;
 public:
     SaveLangDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter filename for language file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         name->setText("messages.txt");
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
