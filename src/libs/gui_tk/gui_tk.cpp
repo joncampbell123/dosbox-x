@@ -862,8 +862,8 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(0,height-2,width-2,height-2);
 	d.drawLine(width-2,0,width-2,height-2);
 
-	d.drawLine(5,4,width-7,4);
-	d.drawLine(5,4,5,30);
+	d.drawLine(5,titlebox_y_start,width-7,titlebox_y_start);
+	d.drawLine(5,titlebox_y_start,5,titlebox_y_start+titlebox_y_height-2);
 
 	d.setColor(Color::Light3D);
 	d.drawLine(1,1,width-3,1);
