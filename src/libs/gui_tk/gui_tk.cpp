@@ -45,6 +45,9 @@ int titlebar_y_stop = 25;
 int titlebox_y_start = 4;
 int titlebox_y_height = 20;
 
+/* width of the system menu */
+int titlebox_sysmenu_width = 27; // includes black divider line
+
 namespace Color {
 	RGB Background3D =		0xffc0c0c0;
 	RGB Light3D =			0xfffcfcfc;
@@ -873,21 +876,23 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
 
 	d.setColor(Color::Background3D^mask);
-	d.fillRect(6,titlebox_y_start+1,26,titlebox_y_height-2);
+	d.fillRect(6,titlebox_y_start+1,titlebox_sysmenu_width-1,titlebox_y_height-2);
     {
         int y = titlebox_y_start+((titlebox_y_height-4)/2);
         int x = 8;
+        int w = (titlebox_sysmenu_width * 20) / 26;
+        int h = 4;
 
         d.setColor(Color::Grey50^mask);
-        d.fillRect(x+1,y+1,20,4);
+        d.fillRect(x+1,y+1,w,  h);
         d.setColor(Color::Black^mask);
-        d.fillRect(x,  y,  20,4);
+        d.fillRect(x,  y,  w,  h);
         d.setColor(Color::White^mask);
-        d.fillRect(x+1,y+1,18,2);
+        d.fillRect(x+1,y+1,w-2,h-2);
     }
 
 	d.setColor(Color::Border);
-	d.drawLine(32,titlebox_y_start+1,32,titlebox_y_start+titlebox_y_height-2);
+	d.drawLine(6+titlebox_sysmenu_width-1,titlebox_y_start+1,6+titlebox_sysmenu_width-1,titlebox_y_start+titlebox_y_height-2);
 
     bool active = hasFocus();
 
@@ -915,7 +920,7 @@ void ToplevelWindow::paint(Drawable &d) const
     }
 
 	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
-	d.fillRect(33,titlebox_y_start+1,width-39,titlebox_y_height-2);
+	d.fillRect(6+titlebox_sysmenu_width,titlebox_y_start+1,width-39,titlebox_y_height-2);
 
 	const Font *font = Font::getFont("title");
 	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
