@@ -726,7 +726,7 @@ public:
         int button_w = 70;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
-        int button_row_cx = first_column_x + (((columns * column_width) + first_column_x - button_row_w) / 2);
+        int button_row_cx = (((columns * column_width) - button_row_w) / 2);
 
         resize((columns * column_width) + border_left + border_right,
                button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
