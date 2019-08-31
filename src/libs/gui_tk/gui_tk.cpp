@@ -873,7 +873,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(width-6,5,width-6,titlebox_y_start+titlebox_y_height-1);
 
 	d.setColor(Color::Background3D^mask);
-	d.fillRect(6,5,26,26);
+	d.fillRect(6,titlebox_y_start+1,26,titlebox_y_height-2);
 	d.setColor(Color::Grey50^mask);
 	d.fillRect(9,17,20,4);
 	d.setColor(Color::Black^mask);
