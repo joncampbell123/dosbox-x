@@ -880,7 +880,7 @@ void ToplevelWindow::paint(Drawable &d) const
     {
         int y = titlebox_y_start+((titlebox_y_height-4)/2);
         int x = 8;
-        int w = (titlebox_sysmenu_width * 20) / 26;
+        int w = (titlebox_sysmenu_width * 20) / 27;
         int h = 4;
 
         d.setColor(Color::Grey50^mask);
