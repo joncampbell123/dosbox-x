@@ -67,7 +67,7 @@ namespace Color {
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
-	if (button == Left && x < 32 && x > 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
+	if (button == Left && x < (6+titlebox_sysmenu_width) && x > 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
 		systemMenu->executeAction("Close");
 		return true;
 	}
@@ -187,13 +187,13 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 }
 
 bool ToplevelWindow::mouseDown(int x, int y, MouseButton button) {
-	if (button == Left && x > 32 && x < width-6 && y >= titlebar_y_start && y < titlebar_y_stop) {
+	if (button == Left && x >= (6+titlebox_sysmenu_width) && x < width-6 && y >= titlebar_y_start && y < titlebar_y_stop) {
 		dragx = x;
 		dragy = y;
 		mouseChild = NULL;
 		systemMenu->setVisible(false);
 		return true;
-	} else if (button == Left && x < 32 && x > 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
+	} else if (button == Left && x < (6+titlebox_sysmenu_width) && x >= 6 && y >= titlebar_y_start && y < titlebar_y_stop) {
 		mouseChild = NULL;
 		raise();
 		systemMenu->setVisible(!systemMenu->isVisible());
