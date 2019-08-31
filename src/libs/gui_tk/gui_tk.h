@@ -1678,6 +1678,8 @@ public:
 		virtual ~ToplevelWindow_Callback() {}
 };
 
+extern int titlebar_height;
+
 /// An actual decorated window.
 class ToplevelWindow : public BorderedWindow, public ActionEventSource_Callback {
 protected:
@@ -2452,7 +2454,7 @@ public:
 };
 
 template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, int y, int w, int h, const STR title) :
-	BorderedWindow(parent, x, y, w, h, 6, 33, 6, 3), title(title),
+	BorderedWindow(parent, x, y, w, h, 6, titlebar_height, 6, 3), title(title),
 	dragx(-1), dragy(-1), closehandlers(), systemMenu(new Menu(this,-1,-2,"System Menu")) {
 /* If these commands don't do anything, then why have them there?? --J.C. */
 #if 0 /* TODO: Allow selective enabling these if the Window object wants us to */

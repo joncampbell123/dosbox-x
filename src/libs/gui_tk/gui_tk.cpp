@@ -37,6 +37,8 @@
 
 namespace GUI {
 
+int titlebar_height = 33;
+
 namespace Color {
 	RGB Background3D =		0xffc0c0c0;
 	RGB Light3D =			0xfffcfcfc;
@@ -56,7 +58,7 @@ namespace Color {
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
-	if (button == Left && x < 32 && x > 6 && y > 4 && y < 31) {
+	if (button == Left && x < 32 && x > 6 && y > 4 && y < titlebar_height) {
 		systemMenu->executeAction("Close");
 		return true;
 	}
@@ -176,13 +178,13 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 }
 
 bool ToplevelWindow::mouseDown(int x, int y, MouseButton button) {
-	if (button == Left && x > 32 && x < width-6 && y > 4 && y < 31) {
+	if (button == Left && x > 32 && x < width-6 && y > 4 && y < titlebar_height) {
 		dragx = x;
 		dragy = y;
 		mouseChild = NULL;
 		systemMenu->setVisible(false);
 		return true;
-	} else if (button == Left && x < 32 && x > 6 && y > 4 && y < 31) {
+	} else if (button == Left && x < 32 && x > 6 && y > 4 && y < titlebar_height) {
 		mouseChild = NULL;
 		raise();
 		systemMenu->setVisible(!systemMenu->isVisible());
