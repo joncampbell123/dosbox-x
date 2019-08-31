@@ -46,7 +46,7 @@ int titlebox_y_start = 4;
 int titlebox_y_height = 20;
 
 /* width of the system menu */
-int titlebox_sysmenu_width = 27; // includes black divider line
+int titlebox_sysmenu_width = 20; // includes black divider line
 
 namespace Color {
 	RGB Background3D =		0xffc0c0c0;
