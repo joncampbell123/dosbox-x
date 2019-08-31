@@ -364,6 +364,9 @@ void DOS_SetupTables(void) {
         // FIXME: This is just a fake list. At some point in the future, this
         //        list needs to reflect the state of all MOUNT/IMGMOUNT commands
         //        while in the DOS environment provided by this emulation.
+        //
+        //        The byte values seem to match drive letter assignment, as noted:
+        //        [https://github.com/joncampbell123/dosbox-x/issues/1226]
         for (unsigned int i=0;i < 0x10;i++) real_writeb(0x60,0x6C+i,0);
         real_writeb(0x60,0x6C,0xA0);    /* hard drive */
         real_writeb(0x60,0x6D,0x90);    /* floppy drive */
