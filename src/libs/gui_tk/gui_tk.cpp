@@ -882,7 +882,7 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.fillRect(9,17,18,2);
 
 	d.setColor(Color::Border);
-	d.drawLine(32,5,32,30);
+	d.drawLine(32,titlebox_y_start+1,32,titlebox_y_start+titlebox_y_height-2);
 
     bool active = hasFocus();
 
@@ -910,12 +910,12 @@ void ToplevelWindow::paint(Drawable &d) const
     }
 
 	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
-	d.fillRect(33,5,width-39,26);
+	d.fillRect(33,titlebox_y_start+1,width-39,titlebox_y_height-2);
 
 	const Font *font = Font::getFont("title");
 	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
 	d.setFont(font);
-	d.drawText(31+(width-39-font->getWidth(title))/2,5+(26-font->getHeight())/2+font->getAscent(),title,false,0);
+	d.drawText(31+(width-39-font->getWidth(title))/2,titlebox_y_start+(titlebox_y_height-font->getHeight())/2+font->getAscent(),title,false,0);
 }
 
 void Input::posToEnd(void) {
