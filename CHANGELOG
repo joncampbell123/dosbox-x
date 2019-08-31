@@ -1,4 +1,5 @@
 0.82.21 (next)
+  - Reduced title bar size of the Configuration GUI.
   - Fixed sizing and positions of some Help menu dialog
     boxes in the Configuration GUI.
   - Configuration GUI issues with help text and word
