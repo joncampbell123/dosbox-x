@@ -840,7 +840,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
-        ToplevelWindow(parent, x, y, 450, 300, ""), section(section) {
+        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
             return;
@@ -850,7 +850,7 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Edit "+title);
         new GUI::Label(this, 5, 10, "Content:");
-        content = new GUI::Input(this, 5, 30, 420, 185);
+        content = new GUI::Input(this, 5, 30, 450 - 10 - border_left - border_right, 185);
         content->setText(section->data);
         if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
         if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
