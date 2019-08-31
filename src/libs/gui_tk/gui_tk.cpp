@@ -874,12 +874,17 @@ void ToplevelWindow::paint(Drawable &d) const
 
 	d.setColor(Color::Background3D^mask);
 	d.fillRect(6,titlebox_y_start+1,26,titlebox_y_height-2);
-	d.setColor(Color::Grey50^mask);
-	d.fillRect(9,17,20,4);
-	d.setColor(Color::Black^mask);
-	d.fillRect(8,16,20,4);
-	d.setColor(Color::White^mask);
-	d.fillRect(9,17,18,2);
+    {
+        int y = titlebox_y_start+((titlebox_y_height-4)/2);
+        int x = 8;
+
+        d.setColor(Color::Grey50^mask);
+        d.fillRect(x+1,y+1,20,4);
+        d.setColor(Color::Black^mask);
+        d.fillRect(x,  y,  20,4);
+        d.setColor(Color::White^mask);
+        d.fillRect(x+1,y+1,18,2);
+    }
 
 	d.setColor(Color::Border);
 	d.drawLine(32,titlebox_y_start+1,32,titlebox_y_start+titlebox_y_height-2);
