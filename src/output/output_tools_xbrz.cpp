@@ -13,8 +13,6 @@ struct SDL_xBRZ sdl_xbrz;
 
 void xBRZ_Initialize()
 {
-    memset(&sdl_xbrz, 0, sizeof(sdl_xbrz));
-
     Section_prop* section = static_cast<Section_prop *>(control->GetSection("render"));
 
     LOG(LOG_MISC, LOG_DEBUG)("Early init (renderer): xBRZ options");

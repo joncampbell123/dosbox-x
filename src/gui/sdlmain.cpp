@@ -7193,8 +7193,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     bitop::self_test();
     ptrop::self_test();
 
-    memset(&sdl, 0, sizeof(sdl));
-
     // initialize output libraries
     OUTPUT_SURFACE_Initialize();
 #if C_OPENGL
