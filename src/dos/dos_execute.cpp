@@ -287,7 +287,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	Bit16u minsize,maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-    Bit32u headersize, imagesize = 0;
+    Bit32u headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
 
 	block.LoadData();

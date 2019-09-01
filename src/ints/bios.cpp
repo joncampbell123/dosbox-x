@@ -9157,8 +9157,12 @@ void ROMBIOS_Init() {
                      *      depends on it. */
                     assert(GetMemBase() != NULL);
                     assert((base+(Bitu)st.st_size) <= 0x100000ul);
-                    fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
+                    size_t readResult = fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
                     fclose(fp);
+                    if (readResult != 1) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in ROMBIOS_Init\n");
+                        return;
+                    }
 
                     LOG_MSG("User reset vector binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
                     bios_user_reset_vector_blob = base;
@@ -9192,8 +9196,12 @@ void ROMBIOS_Init() {
                      *      depends on it. */
                     assert(GetMemBase() != NULL);
                     assert((base+(Bitu)st.st_size) <= 0x100000ul);
-                    fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
+                    size_t readResult = fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
                     fclose(fp);
+                    if (readResult != 1) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in ROMBIOS_Init\n");
+                        return;
+                    }
 
                     LOG_MSG("User boot hook binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
                     bios_user_boot_hook = base;

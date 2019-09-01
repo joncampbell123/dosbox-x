@@ -176,12 +176,20 @@ static Bit32u read_kcl_file(const char* kcl_file_name, const char* layout_id, bo
 		fseek(tempfile, -2, SEEK_CUR);
 		// get all language codes for this layout
 		for (Bitu i=0; i<data_len;) {
-			fread(rbuf, sizeof(Bit8u), 2, tempfile);
+            size_t readResult = fread(rbuf, sizeof(Bit8u), 2, tempfile);
+            if (readResult != 2) {
+                LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
+                return 0;
+            }
 			Bit16u lcnum=host_readw(&rbuf[0]);
 			i+=2;
 			Bitu lcpos=0;
 			for (;i<data_len;) {
-				fread(rbuf, sizeof(Bit8u), 1, tempfile);
+                readResult = fread(rbuf, sizeof(Bit8u), 1, tempfile);
+                if (readResult != 1) {
+                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_kcl_file\n");
+                    return 0;
+                }
 				i++;
 				if (((char)rbuf[0])==',') break;
 				lng_codes[lcpos++]=(char)rbuf[0];
@@ -801,16 +809,35 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 			// check if compressed cpi file
 			Bit8u next_byte=0;
 			for (Bitu i=0; i<100; i++) {
-				fread(&next_byte, sizeof(Bit8u), 1, tempfile);	found_at_pos++;
-				while (next_byte==0x55) {
-					fread(&next_byte, sizeof(Bit8u), 1, tempfile);	found_at_pos++;
-					if (next_byte==0x50) {
-						fread(&next_byte, sizeof(Bit8u), 1, tempfile);	found_at_pos++;
-						if (next_byte==0x58) {
-							fread(&next_byte, sizeof(Bit8u), 1, tempfile);	found_at_pos++;
-							if (next_byte==0x21) {
-								// read version ID
-								fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                size_t readResult = fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                if (readResult != 1) {
+                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+                }
+                found_at_pos++;
+                while (next_byte == 0x55) {
+                    readResult = fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                    if (readResult != 1) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+                    }
+                    found_at_pos++;
+                    if (next_byte == 0x50) {
+                        readResult = fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                        if (readResult != 1) {
+                            LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+                        }
+                        found_at_pos++;
+                        if (next_byte == 0x58) {
+                            readResult = fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                            if (readResult != 1) {
+                                LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+                            }
+                            found_at_pos++;
+                            if (next_byte == 0x21) {
+                                // read version ID
+                                readResult = fread(&next_byte, sizeof(Bit8u), 1, tempfile);
+                                if (readResult != 1) {
+                                    LOG(LOG_IO, LOG_ERROR) ("Reading error in read_codepage_file\n");
+                                }
 								found_at_pos++;
 								upxfound=true;
 								break;

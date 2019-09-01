@@ -905,8 +905,12 @@ public:
             Bitu segbase = 0x100000 - loadsz;
             LOG_MSG("Loading BIOS image %s to 0x%lx, 0x%lx bytes",bios.c_str(),(unsigned long)segbase,(unsigned long)loadsz);
             fseek(romfp, 0, SEEK_SET);
-            fread(GetMemBase()+segbase,loadsz,1,romfp);
+            size_t readResult = fread(GetMemBase()+segbase,loadsz,1,romfp);
             fclose(romfp);
+            if (readResult != 1) {
+                LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                return;
+            }
 
             // The PC-98 BIOS has a bank switching system where at least the last 32KB
             // can be switched to an Initial Firmware Test BIOS, which initializes the
@@ -928,10 +932,13 @@ public:
                 LOG_MSG("Found ITF (initial firmware test) BIOS image (0x%lx bytes)",(unsigned long)isz2);
 
                 memset(PC98_ITF_ROM,0xFF,sizeof(PC98_ITF_ROM));
-                fread(PC98_ITF_ROM,isz2,1,itffp);
-                PC98_ITF_ROM_init = true;
-
+                readResult = fread(PC98_ITF_ROM,isz2,1,itffp);
                 fclose(itffp);
+                if (readResult != 1) {
+                    LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                    return;
+                }
+                PC98_ITF_ROM_init = true;
             }
 
             IO_RegisterWriteHandler(0x43D,pc98_43d_write,IO_MB);
@@ -1027,7 +1034,11 @@ public:
                     }
 
                     fseeko64(usefile, 0L, SEEK_SET);
-                    fread(tmp,256,1,usefile); // look for magic signatures
+                    size_t readResult = fread(tmp,256,1,usefile); // look for magic signatures
+                    if (readResult != 1) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                        return;
+                    }
 
                     const char *ext = strrchr(temp_line.c_str(),'.');
 
@@ -1214,7 +1225,11 @@ public:
                 if (cart_cmd!="") {
                     /* read cartridge data into buffer */
                     fseek(usefile_1, (long)pcjr_hdr_length, SEEK_SET);
-                    fread(rombuf, 1, rombytesize_1-pcjr_hdr_length, usefile_1);
+                    size_t readResult = fread(rombuf, 1, rombytesize_1-pcjr_hdr_length, usefile_1);
+                    if (readResult != rombytesize_1 - pcjr_hdr_length) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                        return;
+                    }
 
                     char cmdlist[1024];
                     cmdlist[0]=0;
@@ -1302,16 +1317,29 @@ public:
                     unsigned int romseg_pt=0;
 
                     fseek(usefile_2, 0x0L, SEEK_SET);
-                    fread(rombuf, 1, pcjr_hdr_length, usefile_2);
+                    size_t readResult = fread(rombuf, 1, pcjr_hdr_length, usefile_2);
+                    if (readResult != pcjr_hdr_length) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                        return;
+                    }
+
                     if (pcjr_hdr_type == 1) {
                         romseg_pt=host_readw(&rombuf[0x1ce]);
                     } else {
                         fseek(usefile_2, 0x61L, SEEK_SET);
-                        fscanf(usefile_2, "%4x", &romseg_pt);
+                        int scanResult = fscanf(usefile_2, "%4x", &romseg_pt);
+                        if (scanResult == 0) {
+                            LOG(LOG_IO, LOG_ERROR) ("Scanning error in Run\n");
+                            return;
+                        }
                     }
                     /* read cartridge data into buffer */
                     fseek(usefile_2, (long)pcjr_hdr_length, SEEK_SET);
-                    fread(rombuf, 1, rombytesize_2-pcjr_hdr_length, usefile_2);
+                    readResult = fread(rombuf, 1, rombytesize_2-pcjr_hdr_length, usefile_2);
+                    if (readResult != rombytesize_2 - pcjr_hdr_length) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                        return;
+                    }
                     //fclose(usefile_2); //usefile_2 is in diskSwap structure which should be deleted to close the file
 
                     /* write cartridge data into ROM */
@@ -1321,16 +1349,30 @@ public:
                 unsigned int romseg=0;
 
                 fseek(usefile_1, 0x0L, SEEK_SET);
-                fread(rombuf, 1, pcjr_hdr_length, usefile_1);
+                size_t readResult = fread(rombuf, 1, pcjr_hdr_length, usefile_1);
+                if (readResult != pcjr_hdr_length) {
+                    LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                    return;
+                }
+
                 if (pcjr_hdr_type == 1) {
                     romseg=host_readw(&rombuf[0x1ce]);
                 } else {
                     fseek(usefile_1, 0x61L, SEEK_SET);
-                    fscanf(usefile_1, "%4x", &romseg);
+                    int scanResult = fscanf(usefile_1, "%4x", &romseg);
+                    if (scanResult == 0) {
+                        LOG(LOG_IO, LOG_ERROR) ("Scanning error in Run\n");
+                        return;
+                    }
                 }
                 /* read cartridge data into buffer */
                 fseek(usefile_1,(long)pcjr_hdr_length, SEEK_SET);
-                fread(rombuf, 1, rombytesize_1-pcjr_hdr_length, usefile_1);
+                readResult = fread(rombuf, 1, rombytesize_1-pcjr_hdr_length, usefile_1);
+                if (readResult != rombytesize_1 - pcjr_hdr_length) {
+                    LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                    return;
+                }
+
                 //fclose(usefile_1); //usefile_1 is in diskSwap structure which should be deleted to close the file
                 /* write cartridge data into ROM */
                 for(i=0;i<rombytesize_1-pcjr_hdr_length;i++) phys_writeb((PhysPt)((romseg<<4)+i),rombuf[i]);
@@ -3979,7 +4021,11 @@ private:
             char tmp[256];
 
             fseeko64(newDisk, 0L, SEEK_SET);
-            fread(tmp, 256, 1, newDisk); // look for magic signatures
+            size_t readResult = fread(tmp, 256, 1, newDisk); // look for magic signatures
+            if (readResult != 1) {
+                LOG(LOG_IO, LOG_ERROR) ("Reading error in MountImageNone\n");
+                return NULL;
+            }
 
             const char *ext = strrchr(fileName,'.');
 
