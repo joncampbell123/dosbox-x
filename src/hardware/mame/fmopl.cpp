@@ -922,7 +922,6 @@ struct FM_OPL
 
 	void WriteReg(int r, int v);
 	void ResetChip();
-	void postload();
 
 
 	/* lock/unlock for common table */
@@ -1793,59 +1792,6 @@ void FM_OPL::ResetChip()
 		DELTAT->portshift = 5;
 		DELTAT->output_range = 1<<23;
 		DELTAT->ADPCM_Reset(0,YM_DELTAT::EMULATION_MODE_NORMAL,device);
-	}
-#endif
-}
-
-
-void FM_OPL::postload()
-{
-	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
-	{
-		OPL_CH &CH = P_CH[ch];
-		/* Look up key scale level */
-		uint32_t const block_fnum = CH.block_fnum;
-		CH.ksl_base = static_cast<uint32_t>(ksl_tab[block_fnum >> 6]);
-		CH.fc       = fn_tab[block_fnum & 0x03ff] >> (7 - (block_fnum >> 10));
-
-		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
-		{
-			OPL_SLOT &SLOT = CH.SLOT[slot];
-			/* Calculate key scale rate */
-			SLOT.ksr = CH.kcode >> SLOT.KSR;
-
-			/* Calculate attack, decay and release rates */
-			if ((SLOT.ar + SLOT.ksr) < 16+62)
-			{
-				SLOT.eg_sh_ar  = eg_rate_shift [SLOT.ar + SLOT.ksr ];
-				SLOT.eg_sel_ar = eg_rate_select[SLOT.ar + SLOT.ksr ];
-			}
-			else
-			{
-				SLOT.eg_sh_ar  = 0;
-				SLOT.eg_sel_ar = 13*RATE_STEPS;
-			}
-			SLOT.eg_sh_dr  = eg_rate_shift [SLOT.dr + SLOT.ksr ];
-			SLOT.eg_sel_dr = eg_rate_select[SLOT.dr + SLOT.ksr ];
-			SLOT.eg_sh_rr  = eg_rate_shift [SLOT.rr + SLOT.ksr ];
-			SLOT.eg_sel_rr = eg_rate_select[SLOT.rr + SLOT.ksr ];
-
-			/* Calculate phase increment */
-			SLOT.Incr = CH.fc * SLOT.mul;
-
-			/* Total level */
-			SLOT.TLL = SLOT.TL + (CH.ksl_base >> SLOT.ksl);
-
-			/* Connect output */
-			SLOT.connect1 = SLOT.CON ? &output[0] : &phase_modulation;
-		}
-	}
-#if BUILD_Y8950
-	if ( (type & OPL_TYPE_ADPCM) && (deltat) )
-	{
-		// We really should call the postlod function for the YM_DELTAT, but it's hard without registers
-		// (see the way the YM2610 does it)
-		//deltat->postload(REGS);
 	}
 #endif
 }

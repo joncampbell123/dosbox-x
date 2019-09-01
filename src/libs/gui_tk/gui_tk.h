@@ -493,6 +493,9 @@ public:
 	template <typename T> bool operator!=(const T &src) const { return *this != String(src); }
 	/// Compare with other Strings.
 	bool operator!=(const String &src) const { return *(std::vector<Char>*)this != src; }
+
+    /// Explicit declaration of default = operator
+    String& operator=(const String&) = default;
 };
 
 template <typename STR> void NativeString<STR*>::getString(String &dest, const STR* src) {

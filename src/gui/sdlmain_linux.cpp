@@ -526,6 +526,10 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
         XRRFreeScreenResources(xr_screen);
         xr_screen = NULL;
     }
+#else
+    (void)info;    //UNUSED
+    (void)display; //UNUSED
+    (void)window;  //UNUSED
 # endif
 
     return result;

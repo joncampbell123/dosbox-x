@@ -24,7 +24,7 @@
 /* Handle the event stream, converting X11 events into SDL events */
 
 #include <setjmp.h>
-#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #ifdef __SVR4
@@ -1160,7 +1160,7 @@ SDLKey X11_TranslateKeycode(Display *display, KeyCode kc)
 	KeySym xsym;
 	SDLKey key;
 
-	xsym = xlate_last = XKeycodeToKeysym(display, kc, 0);
+	xsym = xlate_last = XkbKeycodeToKeysym(display, kc, 0, 0);
 #ifdef DEBUG_KEYS
 	fprintf(stderr, "Translating key code %d -> 0x%.4x\n", kc, xsym);
 #endif
@@ -1261,7 +1261,7 @@ static void get_modifier_masks(Display *display)
 	for(i = 3; i < 8; i++) {
 		for(j = 0; j < n; j++) {
 			KeyCode kc = xmods->modifiermap[i * n + j];
-			KeySym ks = XKeycodeToKeysym(display, kc, 0);
+			KeySym ks = XkbKeycodeToKeysym(display, kc, 0, 0);
 			unsigned mask = 1 << i;
 			switch(ks) {
 			case XK_Num_Lock:
