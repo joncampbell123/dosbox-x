@@ -99,7 +99,7 @@ am__aclocal_m4_deps = $(top_srcdir)/acinclude/libtool.m4 \
 	$(top_srcdir)/acinclude/ltversion.m4 \
 	$(top_srcdir)/acinclude/lt~obsolete.m4 \
 	$(top_srcdir)/acinclude/pkg.m4 $(top_srcdir)/acinclude/sdl.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \

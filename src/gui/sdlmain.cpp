@@ -3112,7 +3112,7 @@ static void GUI_StartUp() {
     sdl.desktop.full.height = 0;
     if(fullresolution && *fullresolution) {
         char res[100];
-        strncpy( res, fullresolution, sizeof( res ));
+        safe_strncpy(res, fullresolution, sizeof(res));
         fullresolution = lowcase (res);//so x and X are allowed
         if (strcmp(fullresolution,"original")) {
             sdl.desktop.full.fixed = true;
@@ -3132,7 +3132,7 @@ static void GUI_StartUp() {
     const char* windowresolution=section->Get_string("windowresolution");
     if(windowresolution && *windowresolution) {
         char res[100];
-        strncpy( res,windowresolution, sizeof( res ));
+        safe_strncpy(res, windowresolution, sizeof(res));
         windowresolution = lowcase (res);//so x and X are allowed
         if(strcmp(windowresolution,"original")) {
             char* height = const_cast<char*>(strchr(windowresolution,'x'));
@@ -7192,8 +7192,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
     bitop::self_test();
     ptrop::self_test();
-
-    memset(&sdl, 0, sizeof(sdl));
 
     // initialize output libraries
     OUTPUT_SURFACE_Initialize();

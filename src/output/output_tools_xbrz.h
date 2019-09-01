@@ -19,17 +19,17 @@
 
 struct SDL_xBRZ {
     // configuration
-    bool enable;
-    bool postscale_bilinear;
-    int task_granularity;
-    int fixed_scale_factor;
-    int max_scale_factor;
+    bool enable = false;
+    bool postscale_bilinear = false;
+    int task_granularity = 0;
+    int fixed_scale_factor = 0;
+    int max_scale_factor = 0;
 
     // runtime
-    bool scale_on;
-    int scale_factor;
-    std::vector<uint32_t> renderbuf;
-    std::vector<uint32_t> pixbuf;
+    bool scale_on = false;
+    int scale_factor = 0;
+    std::vector<uint32_t> renderbuf = {};
+    std::vector<uint32_t> pixbuf = {};
 };
 
 extern SDL_xBRZ sdl_xbrz;

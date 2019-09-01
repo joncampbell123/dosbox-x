@@ -2833,7 +2833,7 @@ case "$host" in
         ;;
     *)
         AC_MSG_ERROR([
-*** Unsupported host:  Please add to configure.in
+*** Unsupported host:  Please add to configure.ac
         ])
         ;;
 esac

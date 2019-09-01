@@ -83,8 +83,6 @@ private:
 	bool	_isOpen;
 	int	_device_num;
 
-	int	_control_fd;
-
 	/* buffer for partial data read from _control_fd - from timidity-io.c, see fdgets() */
 	char	_controlbuffer[BUFSIZ];
 	int	_controlbuffer_count;	/* beginning of read pointer */

@@ -315,8 +315,6 @@ unsigned int Linux_GetKeyboardLayout(void) {
 }
 
 void UpdateWindowDimensions_Linux(void) {
-    bool GFX_IsFullscreen();
-
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);
