@@ -199,25 +199,25 @@ void INT10_SetupRomMemory(void) {
             vptr -= vptroff;
             Bitu vptroff_limit = vptroff + 0x600;
 
-            int10.rom.video_parameter_table=RealMake(vptrseg,vptroff);
-            vptroff+=INT10_SetupVideoParameterTable(vptr+vptroff);
+            int10.rom.video_parameter_table=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            vptroff+=INT10_SetupVideoParameterTable((PhysPt)(vptr+vptroff));
 
             // The dynamic save area should be in RAM, it cannot exist in ROM
             int10.rom.video_dynamic_save_area=0;
 
-            int10.rom.video_save_pointers=RealMake(vptrseg,vptroff);
-            phys_writed(vptr+vptroff,int10.rom.video_parameter_table);
+            int10.rom.video_save_pointers=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_parameter_table);
             vptroff+=4;
-            phys_writed(vptr+vptroff,int10.rom.video_dynamic_save_area);		// dynamic save area pointer
+            phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_dynamic_save_area);		// dynamic save area pointer
             vptroff+=4;
-            phys_writed(vptr+vptroff,0);		// alphanumeric character set override
+            phys_writed((PhysPt)(vptr+vptroff),0);		// alphanumeric character set override
             vptroff+=4;
-            phys_writed(vptr+vptroff,0);		// graphics character set override
+            phys_writed((PhysPt)(vptr+vptroff),0);		// graphics character set override
             vptroff+=4;
-            phys_writed(vptr+vptroff,0);		// secondary save pointer table
+            phys_writed((PhysPt)(vptr+vptroff),0);		// secondary save pointer table
             vptroff+=4;
-            phys_writed(vptr+vptroff,0); vptroff+=4;
-            phys_writed(vptr+vptroff,0); vptroff+=4;
+            phys_writed((PhysPt)(vptr+vptroff),0); vptroff+=4;
+            phys_writed((PhysPt)(vptr+vptroff),0); vptroff+=4;
 
             if (vptroff > vptroff_limit) E_Exit("MCGA ptr overrun");
         }
