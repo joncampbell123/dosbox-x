@@ -4003,7 +4003,7 @@ AC_HELP_STRING([--enable-render-d3d], [enable the Direct3D render driver [[defau
         ;;
     *)
         AC_MSG_ERROR([
-*** Unsupported host:  Please add to configure.in
+*** Unsupported host:  Please add to configure.ac
         ])
         ;;
 esac
