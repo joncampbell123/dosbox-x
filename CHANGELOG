@@ -1,3 +1,5 @@
+0.82.22 (next)
+  - File I/O checking and cleanup (Allofich)
 0.82.21
   - Reduced title bar size of the Configuration GUI.
   - Fixed sizing and positions of some Help menu dialog
