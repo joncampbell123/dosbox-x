@@ -297,7 +297,7 @@ public:
     virtual void UpdateDPB(unsigned char dos_drive);
 
 	virtual char const * GetLabel(){return labelCache.GetLabel();};
-//	virtual void SetLabel(const char *label, bool iscdrom, bool updatable);
+	virtual void SetLabel(const char *label, bool iscdrom, bool updatable);
 };
 
 PhysPt DOS_Get_DPB(unsigned int dos_drive);

@@ -518,6 +518,10 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	return true;
 }
 
+void fatDrive::SetLabel(const char *label, bool iscdrom, bool updatable) {
+    // TODO
+}
+
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry) {
 	size_t len = strlen(filename);
 	char dirtoken[DOS_PATHLENGTH];
