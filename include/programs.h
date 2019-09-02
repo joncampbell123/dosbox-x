@@ -76,6 +76,8 @@ public:
     bool CurrentArgvEnd(void);
     void EatCurrentArgv(void);
     void NextArgv(void);
+
+    const std::string &GetRawCmdline(void);
 private:
 	typedef std::list<std::string>::iterator cmd_it;
 	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
@@ -83,6 +85,7 @@ private:
 	bool opt_eat_argv;
 	std::list<std::string> cmds;
 	std::string file_name;
+    std::string raw_cmdline;
 	enum opt_style opt_style;
 	bool FindEntry(char const * const name,cmd_it & it,bool neednext=false);
 };

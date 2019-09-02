@@ -1389,9 +1389,16 @@ CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) 
     int i=1;
     opt_style = opt;
     while (i<argc) {
+        if (!raw_cmdline.empty()) raw_cmdline += " ";
+        raw_cmdline += argv[i];
+
         cmds.push_back(argv[i]);
         i++;
     }
+}
+
+const std::string& CommandLine::GetRawCmdline(void) {
+    return raw_cmdline;
 }
 
 Bit16u CommandLine::Get_arglength() {
@@ -1409,6 +1416,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
     bool inword,inquote;char c;
     inword=false;inquote=false;
     std::string str;
+    raw_cmdline = cmdline;
     const char * c_cmdline=cmdline;
     opt_style = opt;
     while ((c=*c_cmdline)!=0) {
