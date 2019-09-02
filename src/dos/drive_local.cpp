@@ -348,7 +348,10 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u attribute
         //
         // Emulate this behavior by setting the volume label ONLY IF there is no
         // volume label. If the DOS application knows how to do it properly it will
-        // first issue an FCB delete with attr = DOS_ATTR_VOLUME and ????????.???.
+        // first issue an FCB delete with attr = DOS_ATTR_VOLUME and ????????.???
+        // OR (more common in MS-DOS 6.22 and later) an FCB delete with
+        // attr = DOS_ATTR_VOLUME and an explicit copy of the volume label obtained
+        // from FCB FindFirst.
         //
         // Volume label handling always affects the root directory.
         //
