@@ -331,13 +331,35 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
     return (char*)cpcnv_temp;
 }
 
-bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
+bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
     if (nocachedir) EmptyCache();
 
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
+
+    if (attributes & DOS_ATTR_VOLUME) {
+        // Real MS-DOS 6.22 and earlier behavior says that creating a volume label
+        // without first deleting the existing volume label does nothing but add
+        // yet another volume label entry to the root directory and the reported
+        // volume label does not change. MS-DOS 7.0 and later appear to have fixed
+        // this considering the re-use of bits [3:0] == 0xF to carry LFN entries.
+        //
+        // Emulate this behavior by setting the volume label ONLY IF there is no
+        // volume label. If the DOS application knows how to do it properly it will
+        // first issue an FCB delete with attr = DOS_ATTR_VOLUME and ????????.???.
+        //
+        // Volume label handling always affects the root directory.
+        //
+        // This function is called with file == NULL for volume labels.
+        if (*GetLabel() == 0)
+            SetLabel(name,false,true);
+
+        return true;
+    }
+
+    assert(file != NULL);
 
 //TODO Maybe care for attributes but not likely
 	char newname[CROSS_LEN];

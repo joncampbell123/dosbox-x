@@ -1025,8 +1025,7 @@ bool DOS_FCBCreate(Bit16u seg,Bit16u offset) {
 
     if (attr & DOS_ATTR_VOLUME) {
 	    fcb.GetVolumeName(shortname);
-        Drives[fcb.GetDrive()]->SetLabel(shortname,false,true);
-        return true;
+        return Drives[fcb.GetDrive()]->FileCreate(NULL,shortname,attr);
     }
 
 	fcb.GetName(shortname);
