@@ -57,6 +57,10 @@
   - LABEL reimplemented to imitate MS-DOS behavior
     with regard to how it handles the command line.
   - File I/O checking and cleanup (Allofich)
+  - Integrated commits from mainline (Allofich)
+    - Handle errant IRQs as a real BIOS does. Also
+    remove r3263 workaround, as it's no longer
+    needed.	
 0.82.21
   - Reduced title bar size of the Configuration GUI.
   - Fixed sizing and positions of some Help menu dialog
