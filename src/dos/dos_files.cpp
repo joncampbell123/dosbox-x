@@ -1348,6 +1348,18 @@ bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
 	char newname[DOS_FCBNAME];
 	fcbold.GetName(oldname);fcbnew.GetName(newname);
 
+    {
+        Bit8u attr = 0;
+
+        fcbold.GetAttr(attr);
+        /* According to RBIL and confirmed with SETLABEL.ASM in DOSLIB2, you can rename a volume label dirent as well with this function */
+        if (attr & DOS_ATTR_VOLUME) {
+            // TODO
+            LOG(LOG_DOSMISC,LOG_NORMAL)("WARNING: volume label change by rename not yet implemented");
+            return false;
+        }
+    }
+
 	/* Check, if sourcefile is still open. This was possible in DOS, but modern oses don't like this */
 	Bit8u drive; char fullname[DOS_PATHLENGTH];
 	if (!DOS_MakeName(oldname,fullname,&drive)) return false;
