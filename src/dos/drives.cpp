@@ -90,6 +90,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
             output[labelPos] = toupper(input[vnamePos]);
             labelPos++;
             vnamePos++;
+            togo--;
         }
         output[labelPos] = 0;
         return;
