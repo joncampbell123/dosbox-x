@@ -985,6 +985,19 @@ savefcb:
 	return ret;
 }
 
+static void DTAExtendNameVolumeLabel(char * const name,char * const filename,char * const ext) {
+    size_t i,s;
+
+    i=0;
+    s=0;
+    while (i < 8 && name[s] != 0) filename[i++] = name[s++];
+    while (i < 8) filename[i++] = ' ';
+
+    i=0;
+    while (i < 3 && name[s] != 0) ext[i++] = name[s++];
+    while (i < 3) ext[i++] = ' ';
+}
+
 static void DTAExtendName(char * const name,char * const filename,char * const ext) {
 	char * find=strchr(name,'.');
 	if (find && find!=name) {
@@ -1008,7 +1021,11 @@ static void SaveFindResult(DOS_FCB & find_fcb) {
 	Bit8u find_attr = DOS_ATTR_ARCHIVE;
 	find_fcb.GetAttr(find_attr); /* Gets search attributes if extended */
 	/* Create a correct file and extention */
-	DTAExtendName(name,file_name,ext);	
+    if (attr & DOS_ATTR_VOLUME)
+        DTAExtendNameVolumeLabel(name,file_name,ext);
+    else
+        DTAExtendName(name,file_name,ext);	
+
 	DOS_FCB fcb(RealSeg(dos.dta()),RealOff(dos.dta()));//TODO
 	fcb.Create(find_fcb.Extended());
 	fcb.SetName(drive,file_name,ext);
