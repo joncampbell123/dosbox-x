@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - FAT filesystem driver now allows LABEL command
+    to change the FAT volume label of mounted disk
+    images.
   - DOS kernel updated to support basic FCB methods
     of deleting/setting the volume label, at least
     on local folder mounts.
