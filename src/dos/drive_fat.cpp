@@ -1626,17 +1626,23 @@ nextfile:
 	memset(find_name,0,DOS_NAMELENGTH_ASCII);
 	memset(extension,0,4);
 	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
-	memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
-	trimString(&find_name[0]);
-	trimString(&extension[0]);
-	
-	//if(!(sectbuf[entryoffset].attrib & DOS_ATTR_DIRECTORY))
-	if (extension[0]!=0) {
+    memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
+
+    if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+        trimString(&find_name[0]);
+        trimString(&extension[0]);
+    }
+
+    //if(!(sectbuf[entryoffset].attrib & DOS_ATTR_DIRECTORY))
+    if (extension[0]!=0) {
         if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME))
             strcat(find_name, ".");
 
-		strcat(find_name, extension);
-	}
+        strcat(find_name, extension);
+    }
+
+    if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
+        trimString(find_name);
 
 	/* Compare attributes to search attributes */
 
