@@ -4348,6 +4348,57 @@ void CAPMOUSE_ProgramStart(Program** make)
 	*make = new CAPMOUSE;
 }
 
+class LABEL : public Program
+{
+public:
+	void Run() override
+    {
+        /* MS-DOS behavior: If no label provided at the command line, prompt for one.
+         *
+         * LABEL [drive:] [label]
+         *
+         * No options are supported in MS-DOS, and the label can have spaces in it.
+         * This is valid, apparently:
+         *
+         * LABEL H E L L O
+         *
+         * Will set the volume label to "H E L L O"
+         */
+        std::string label;
+    	Bit8u drive = DOS_GetDefaultDrive();
+        const char *raw = cmd->GetRawCmdline().c_str();
+
+        /* skip space */
+        while (*raw == ' ') raw++;
+
+        /* perhaps at this point options can be parsed here */
+
+        /* is the next part a drive letter? */
+        if (raw[0] != 0 && raw[1] != 0) {
+            if (isalpha(raw[0]) && raw[1] == ':') {
+                drive = tolower(raw[0]) - 'a';
+                raw += 2;
+                while (*raw == ' ') raw++;
+            }
+        }
+
+        /* then the label. MS-DOS behavior is to treat the rest of the command line, spaces and all, as the label */
+        if (*raw != 0) {
+            label = raw;
+        }
+
+        /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label.
+         * If no label is provided, MS-DOS will prompt the user whether to delete the label. */
+        /* TODO */
+		Drives[drive]->SetLabel(label.c_str(),false,true);
+    }
+};
+
+void LABEL_ProgramStart(Program** make)
+{
+	*make = new LABEL;
+}
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -4793,4 +4844,5 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
+    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
 }

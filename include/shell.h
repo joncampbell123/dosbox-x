@@ -255,10 +255,6 @@ public:
      */
 	void CMD_PROMPT(char * args);
 
-    /*! \brief      Change volume label (LABEL)
-     */
-	void CMD_LABEL(char * args);
-
     /*! \brief      Text pager (MORE)
      */
 	void CMD_MORE(char * args);

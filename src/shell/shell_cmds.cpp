@@ -81,7 +81,6 @@ static SHELL_Cmd cmd_list[]={
 {	"ADDKEY",	1,			&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
 {	"VOL",	0,			&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"PROMPT",	0,			&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
-{	"LABEL",	0,			&DOS_Shell::CMD_LABEL,		"SHELL_CMD_LABEL_HELP"},
 {	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
@@ -1693,21 +1692,6 @@ void DOS_Shell::CMD_PROMPT(char *args){
 		SetEnv("PROMPT",args);
 	} else
 		SetEnv("PROMPT","$P$G");
-	return;
-}
-
-void DOS_Shell::CMD_LABEL(char *args){
-	HELP("LABEL");
-	Bit8u drive = DOS_GetDefaultDrive();
-	if(args && *args) {
-		std::string label;
-		args++;
-		label = args;
-		Drives[drive]->SetLabel(label.c_str(),false,true);
-		return;
-	}
-	WriteOut(MSG_Get("SHELL_CMD_LABEL_HELP")); WriteOut("\n");
-	WriteOut(MSG_Get("SHELL_CMD_LABEL_HELP_LONG"));
 	return;
 }
 
