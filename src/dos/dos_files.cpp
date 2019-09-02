@@ -1281,6 +1281,43 @@ bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset) {
 }
 
 bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset){
+/* Special case: ????????.??? and DOS_ATTR_VOLUME */
+    {
+        char shortname[DOS_FCBNAME];
+        DOS_FCB fcb(seg,offset);
+        Bit8u attr = 0;
+        fcb.GetAttr(attr);
+        Bit8u drive = fcb.GetDrive();
+        std::string label = Drives[drive]->GetLabel();
+
+        if (attr & DOS_ATTR_VOLUME) {
+            fcb.GetVolumeName(shortname);
+
+            if (!strcmp(shortname,"???????????")) {
+                if (!label.empty()) {
+                    Drives[drive]->SetLabel("",false,true);
+                    LOG(LOG_DOSMISC,LOG_NORMAL)("FCB delete volume label");
+                    return true;
+                }
+            }
+            else {
+                /* MS-DOS 6.22 LABEL.EXE will explicitly request to delete the volume label by the volume label not ????????.???? */
+                if (!label.empty()) {
+                    while (label.length() < 11) label += ' ';
+                    if (!memcmp(label.c_str(),shortname,11)) {
+                        Drives[drive]->SetLabel("",false,true);
+                        LOG(LOG_DOSMISC,LOG_NORMAL)("FCB delete volume label deleted");
+                        return true;
+                    }
+                }
+            }
+
+            LOG(LOG_DOSMISC,LOG_NORMAL)("FCB delete volume label not found (current='%s' asking='%s')",label.c_str(),shortname);
+            DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
+            return false;
+        }
+    }
+
 /* FCB DELETE honours wildcards. it will return true if one or more
  * files get deleted. 
  * To get this: the dta is set to temporary dta in which found files are
