@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - LABEL is no longer a builtin shell command and
+    appears on drive Z: as LABEL.COM
+  - LABEL reimplemented to imitate MS-DOS behavior
+    with regard to how it handles the command line.
   - File I/O checking and cleanup (Allofich)
 0.82.21
   - Reduced title bar size of the Configuration GUI.
