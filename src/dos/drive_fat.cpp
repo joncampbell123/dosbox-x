@@ -1632,7 +1632,9 @@ nextfile:
 	
 	//if(!(sectbuf[entryoffset].attrib & DOS_ATTR_DIRECTORY))
 	if (extension[0]!=0) {
-		strcat(find_name, ".");
+        if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME))
+            strcat(find_name, ".");
+
 		strcat(find_name, extension);
 	}
 
@@ -1641,8 +1643,7 @@ nextfile:
 	//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
-		DOS_Drive_Cache dirCache;
-		dirCache.SetLabel(find_name, false, true);
+		labelCache.SetLabel(find_name, false, true);
 	} else {
 		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME | DOS_ATTR_SYSTEM | DOS_ATTR_HIDDEN) ) goto nextfile;
 	}
