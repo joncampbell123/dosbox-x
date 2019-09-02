@@ -4397,9 +4397,26 @@ public:
             label.clear();
         }
 
-        /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label.
-         * If no label is provided, MS-DOS will prompt the user whether to delete the label. */
-        /* TODO */
+        /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label. */
+        // TODO
+
+        /* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
+        if (label.empty()) {
+            Bit8u c,ans=0;
+            Bit16u s;
+
+            do {
+                WriteOut("Delete the volume label (Y/N)? ");
+                s = 1;
+                DOS_ReadFile(STDIN,&c,&s);
+                WriteOut("\n");
+                if (s != 1) return;
+                ans = Bit8u(tolower(char(c)));
+            } while (!(ans == 'y' || ans == 'n'));
+
+            if (ans != 'y') return;
+        }
+
 		Drives[drive]->SetLabel(label.c_str(),false,true);
     }
 };
