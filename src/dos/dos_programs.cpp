@@ -4411,7 +4411,14 @@ public:
         }
 
         /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label. */
-        // TODO
+        if (label.empty()) {
+            std::string clabel = Drives[drive]->GetLabel();
+
+            if (!clabel.empty())
+                WriteOut("Volume in drive %c is %s\n",drive+'A',clabel.c_str());
+            else
+                WriteOut("Volume in drive %c has no label\n",drive+'A');
+        }
 
         /* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
         if (label.empty()) {
