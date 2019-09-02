@@ -79,6 +79,22 @@ checkext:
 }
 
 void Set_Label(char const * const input, char * const output, bool cdrom) {
+    /* I don't know what MSCDEX.EXE does but don't put dots in the 11-char volume label for non-CD-ROM drives */
+    if (!cdrom) {
+        Bitu togo     = 11;
+        Bitu vnamePos = 0;
+        Bitu labelPos = 0;
+
+        while (togo > 0) {
+            if (input[vnamePos]==0) break;
+            output[labelPos] = toupper(input[vnamePos]);
+            labelPos++;
+            vnamePos++;
+        }
+        output[labelPos] = 0;
+        return;
+    }
+
 	Bitu togo     = 8;
 	Bitu vnamePos = 0;
 	Bitu labelPos = 0;
