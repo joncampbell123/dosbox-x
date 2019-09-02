@@ -575,6 +575,7 @@ public:
 	void SetName(Bit8u _drive,char * _fname,char * _ext);
 	void SetSizeDateTime(Bit32u _size,Bit16u _date,Bit16u _time);
 	void GetSizeDateTime(Bit32u & _size,Bit16u & _date,Bit16u & _time);
+    void GetVolumeName(char * fillname);
 	void GetName(char * fillname);
 	void FileOpen(Bit8u _fhandle);
 	void FileClose(Bit8u & _fhandle);

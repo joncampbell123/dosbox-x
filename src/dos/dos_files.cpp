@@ -1019,10 +1019,17 @@ static void SaveFindResult(DOS_FCB & find_fcb) {
 bool DOS_FCBCreate(Bit16u seg,Bit16u offset) { 
 	DOS_FCB fcb(seg,offset);
 	char shortname[DOS_FCBNAME];Bit16u handle;
-	fcb.GetName(shortname);
 	Bit8u attr = DOS_ATTR_ARCHIVE;
 	fcb.GetAttr(attr);
 	if (!attr) attr = DOS_ATTR_ARCHIVE; //Better safe than sorry 
+
+    if (attr & DOS_ATTR_VOLUME) {
+	    fcb.GetVolumeName(shortname);
+        Drives[fcb.GetDrive()]->SetLabel(shortname,false,true);
+        return true;
+    }
+
+	fcb.GetName(shortname);
 	if (!DOS_CreateFile(shortname,attr,&handle,true)) return false;
 	fcb.FileOpen((Bit8u)handle);
 	return true;

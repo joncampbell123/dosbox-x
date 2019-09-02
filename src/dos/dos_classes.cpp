@@ -532,6 +532,12 @@ Bit8u DOS_FCB::GetDrive(void) {
 	else return drive-1;
 }
 
+void DOS_FCB::GetVolumeName(char * fillname) {
+	MEM_BlockRead(pt+offsetof(sFCB,filename),&fillname[0],8);
+	MEM_BlockRead(pt+offsetof(sFCB,ext),&fillname[8],3);
+    fillname[11]=0;
+}
+
 void DOS_FCB::GetName(char * fillname) {
 	fillname[0]=GetDrive()+'A';
 	fillname[1]=':';
