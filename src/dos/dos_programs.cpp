@@ -4437,6 +4437,8 @@ public:
             if (ans != 'y') return;
         }
 
+        /* delete then create the label */
+		Drives[drive]->SetLabel("",false,true);
 		Drives[drive]->SetLabel(label.c_str(),false,true);
     }
 };

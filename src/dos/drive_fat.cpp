@@ -518,8 +518,70 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	return true;
 }
 
-void fatDrive::SetLabel(const char *label, bool iscdrom, bool updatable) {
-    // TODO
+void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/) {
+    direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
+    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+
+    if (fattype == FAT32) return;
+
+    if (*label != 0) {
+        /* Add a volume label entry, by appending to the root directory.
+         * The DOS program calling this entry is supposed to delete the
+         * existing volume label. MS-DOS 7.0 and higher appear to automatically
+         * rewrite the volume label and manage them tighter obviously due
+         * to the way LFNs are stored in the filesystem. */
+        for (unsigned int i=0;i < bootbuffer.rootdirentries;i++) {
+            unsigned int di = i % dirent_per_sector;
+
+            if (di == 0) {
+                memset(sectbuf,0,sizeof(sectbuf));
+		        readSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+            }
+
+            if (sectbuf[di].entryname[0] == 0x00 ||
+                sectbuf[di].entryname[0] == 0xe5) {
+                memset(&sectbuf[di],0,sizeof(sectbuf[di]));
+                sectbuf[di].attrib = DOS_ATTR_VOLUME;
+                {
+                    unsigned int i = 0;
+                    const char *s = label;
+                    while (i < 11 && *s != 0) sectbuf[di].entryname[i++] = *s++;
+                    while (i < 11)            sectbuf[di].entryname[i++] = ' ';
+                }
+                writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+		        labelCache.SetLabel(label, false, true);
+                break;
+            }
+        }
+    }
+    else {
+        /* erase ONE volume label from the root directory */
+        for (unsigned int i=0;i < bootbuffer.rootdirentries;i++) {
+            unsigned int di = i % dirent_per_sector;
+
+            if (di == 0) {
+                memset(sectbuf,0,sizeof(sectbuf));
+		        readSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+            }
+
+            if (sectbuf[di].entryname[0] == 0x00 ||
+                sectbuf[di].entryname[0] == 0xe5)
+                continue;
+
+            // TODO: If MS-DOS 7.0 or higher skip anything with attrib == 0x0F to avoid erasing LFNs
+            if (sectbuf[di].attrib & DOS_ATTR_VOLUME) {
+                /* TODO: There needs to be a way for FCB delete to erase the volume label by name instead
+                 *       of just picking the first one */
+                /* found one */
+                sectbuf[di].entryname[0] = 0xe5;
+                writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+		        labelCache.SetLabel("", false, true);
+                break;
+            }
+        }
+    }
 }
 
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry) {
