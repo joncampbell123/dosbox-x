@@ -1,4 +1,9 @@
 0.82.22 (next)
+  - DOS kernel updated to support basic FCB methods
+    of deleting/setting the volume label, at least
+    on local folder mounts.
+  - DOS kernel will now return the volume label of
+    FAT filesystems mounted from disk images.
   - LABEL setting code fixed not to treat label as
     if an 8.3 filename.
   - LABEL is no longer a builtin shell command and
