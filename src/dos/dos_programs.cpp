@@ -4351,6 +4351,9 @@ void CAPMOUSE_ProgramStart(Program** make)
 class LABEL : public Program
 {
 public:
+    void Help() {
+        WriteOut("LABEL [drive:][label]\n");
+    }
 	void Run() override
     {
         /* MS-DOS behavior: If no label provided at the command line, prompt for one.
@@ -4363,6 +4366,8 @@ public:
          * LABEL H E L L O
          *
          * Will set the volume label to "H E L L O"
+         *
+         * Label /? will print help.
          */
         std::string label;
     	Bit8u drive = DOS_GetDefaultDrive();
@@ -4371,7 +4376,15 @@ public:
         /* skip space */
         while (*raw == ' ') raw++;
 
-        /* perhaps at this point options can be parsed here */
+        /* options */
+        if (raw[0] == '/') {
+            raw++;
+            if (raw[0] == '?') {
+                raw++;
+                Help();
+                return;
+            }
+        }
 
         /* is the next part a drive letter? */
         if (raw[0] != 0 && raw[1] != 0) {
