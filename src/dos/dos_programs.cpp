@@ -4387,6 +4387,16 @@ public:
             label = raw;
         }
 
+        /* if the label is longer than 11 chars or contains a dot, MS-DOS will reject it and then prompt for another label */
+        if (label.length() > 11) {
+            WriteOut("Label is too long (more than 11 chars)\n");
+            label.clear();
+        }
+        else if (label.find_first_of(".:/\\") != std::string::npos) {
+            WriteOut("Label has invalid chars.\n");
+            label.clear();
+        }
+
         /* if no label provided, MS-DOS will display the current label and serial number and prompt the user to type in a new label.
          * If no label is provided, MS-DOS will prompt the user whether to delete the label. */
         /* TODO */
