@@ -1356,6 +1356,7 @@ bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
         if (attr & DOS_ATTR_VOLUME) {
             // TODO
             LOG(LOG_DOSMISC,LOG_NORMAL)("WARNING: volume label change by rename not yet implemented");
+            DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
             return false;
         }
     }
