@@ -547,6 +547,7 @@ public:
 	void	SetDirIDCluster(Bit16u entry)	{ sSave(sDTA,dirCluster,entry); };
 	Bit16u	GetDirID(void)				{ return (Bit16u)sGet(sDTA,dirID); };
 	Bit16u	GetDirIDCluster(void)		{ return (Bit16u)sGet(sDTA,dirCluster); };
+    Bit8u   GetAttr(void)               { return (Bit8u)sGet(sDTA,sattr); }
 private:
 	#ifdef _MSC_VER
 	#pragma pack(1)
