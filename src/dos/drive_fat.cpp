@@ -518,6 +518,20 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	return true;
 }
 
+void fatDrive::UpdateBootVolumeLabel(const char *label) {
+    /* if the extended boot signature is 0x29 there is a copy of the volume label at 0x2B */
+    unsigned char *p = (unsigned char*)(&bootbuffer);
+
+    if (p[0x26] == 0x29) {
+        unsigned int i = 0;
+
+        while (i < 11 && *label != 0) p[0x2B+(i++)] = *label++;
+        while (i < 11)                p[0x2B+(i++)] = ' ';
+
+        loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
+    }
+}
+
 void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/) {
     direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
     size_t dirent_per_sector = getSectSize() / sizeof(direntry);
@@ -552,6 +566,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                 }
                 writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
 		        labelCache.SetLabel(label, false, true);
+                UpdateBootVolumeLabel(label);
                 break;
             }
         }
@@ -578,6 +593,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                 sectbuf[di].entryname[0] = 0xe5;
                 writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
 		        labelCache.SetLabel("", false, true);
+                UpdateBootVolumeLabel("NO NAME");
                 break;
             }
         }
