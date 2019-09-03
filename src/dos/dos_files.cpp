@@ -1367,15 +1367,25 @@ bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
 	fcbold.GetName(oldname);fcbnew.GetName(newname);
 
     {
+        Bit8u drive = fcbold.GetDrive();
+        std::string label = Drives[drive]->GetLabel();
         Bit8u attr = 0;
 
         fcbold.GetAttr(attr);
         /* According to RBIL and confirmed with SETLABEL.ASM in DOSLIB2, you can rename a volume label dirent as well with this function */
         if (attr & DOS_ATTR_VOLUME) {
-            // TODO
-            LOG(LOG_DOSMISC,LOG_NORMAL)("WARNING: volume label change by rename not yet implemented");
-            DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
-            return false;
+            if (!label.empty()) {
+	            fcbold.GetVolumeName(oldname);
+	            fcbnew.GetVolumeName(newname);
+                Drives[drive]->SetLabel(newname,false,true);
+                LOG(LOG_DOSMISC,LOG_NORMAL)("FCB rename volume label to '%s' from '%s'",newname,oldname);
+                return true;
+            }
+            else {
+                LOG(LOG_DOSMISC,LOG_NORMAL)("FCB rename volume label rejected, no label set");
+                DOS_SetError(DOSERR_FILE_NOT_FOUND); // right?
+                return false;
+            }
         }
     }
 
