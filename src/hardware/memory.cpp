@@ -1086,10 +1086,11 @@ bool MEM_A20_Enabled(void) {
 }
 
 void MEM_A20_Enable(bool enabled) {
+    if (memory.a20.enabled != enabled)
+        LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
+
     if (a20_guest_changeable || a20_fake_changeable)
         memory.a20.enabled = enabled;
-
-    LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
     if (!a20_fake_changeable && (memory.mem_alias_pagemask & 0x100ul)) {
         if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
