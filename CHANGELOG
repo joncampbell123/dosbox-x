@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - DOS FCB rename now supports renaming the
+    volume label as MS-DOS does.
+  - Fixed bug that prevented proper DOS FCB rename
+    if the FCB used to rename is extended.
   - FAT filesystem driver updated to also store
     updated volume label in the boot sector of the
     partition, as per MS-DOS FAT standards.
