@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - FAT filesystem driver updated to also store
+    updated volume label in the boot sector of the
+    partition, as per MS-DOS FAT standards.
   - FCB create can now be used to set a FAT
     filesystem label. MS-DOS LABEL.EXE works
     correctly now.
