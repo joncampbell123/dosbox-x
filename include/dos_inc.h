@@ -350,6 +350,8 @@ public:
     inline void SetPt(const Bit16u seg) { pt=PhysMake(seg,0);}
     inline void SetPt(const Bit16u seg, const Bit16u off) { pt=PhysMake(seg,off);}
     inline void SetPt(const RealPt addr) { pt=Real2Phys(addr);}
+    inline PhysPt GetPtPhys(void) const { return pt; }
+    inline void SetPtPhys(const PhysPt _pt) { pt=_pt; }
 protected:
 	PhysPt pt;
 };
