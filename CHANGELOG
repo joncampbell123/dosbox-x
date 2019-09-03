@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - FCB create can now be used to set a FAT
+    filesystem label. MS-DOS LABEL.EXE works
+    correctly now.
   - FAT filesystem driver now allows LABEL command
     to change the FAT volume label of mounted disk
     images.
