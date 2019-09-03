@@ -262,16 +262,82 @@ void pc98_set_msw4_soundbios(void)
 
 static CALLBACK_HandlerObject soundbios_callback;
 
+// for more information see chapter 13 of [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf]
 static Bitu SOUNDROM_INTD2_PC98_Handler(void) {
-    LOG_MSG("PC-98 SOUND BIOS (INT D2h) call with AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    const char *call_name = "?";
+
+    switch (reg_ah) {
+        case 0x00:  // INITIALIZE
+            call_name = "INITIALIZE";
+            goto unknown;
+        case 0x01:  // PLAY
+            call_name = "PLAY";
+            goto unknown;
+        case 0x02:  // CLEAR
+            call_name = "CLEAR";
+            goto unknown;
+        case 0x10:  // READ REG
+            call_name = "READ REG";
+            goto unknown;
+        case 0x11:  // WRITE REG
+            call_name = "WRITE REG";
+            goto unknown;
+        case 0x12:  // SET TOUCH
+            call_name = "SET TOUCH";
+            goto unknown;
+        case 0x13:  // NOTE
+            call_name = "NOTE";
+            goto unknown;
+        case 0x14:  // SET LENGTH
+            call_name = "SET LENGTH";
+            goto unknown;
+        case 0x15:  // SET TEMPO
+            call_name = "SET TEMPO";
+            goto unknown;
+        case 0x16:  // SET PARA BLOCK
+            call_name = "SET PARA BLOCK";
+            goto unknown;
+        case 0x17:  // READ PARA
+            call_name = "READ PARA";
+            goto unknown;
+        case 0x18:  // WRITE PARA
+            call_name = "WRITE PARA";
+            goto unknown;
+        case 0x19:  // ALL STOP
+            call_name = "ALL STOP";
+            goto unknown;
+        case 0x1A:  // CONT PLAY
+            call_name = "CONT PLAY";
+            goto unknown;
+        case 0x1B:  // MODU ON
+            call_name = "MODU ON";
+            goto unknown;
+        case 0x1C:  // MODU OFF
+            call_name = "MODU OFF";
+            goto unknown;
+        case 0x1D:  // SET INT COND
+            call_name = "SET INT COND";
+            goto unknown;
+        case 0x1E:  // HOLD STATE
+            call_name = "HOLD STATE";
+            goto unknown;
+        case 0x1F:  // SET VOLUME
+            call_name = "SET VOLUME";
+            goto unknown;
+        default:
+        unknown:
+            LOG_MSG("PC-98 SOUND BIOS (INT D2h) call '%s' with AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    call_name,
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            break;
+    }
 
     // guessing, from Yksoft1's patch
     reg_ah = 0;
