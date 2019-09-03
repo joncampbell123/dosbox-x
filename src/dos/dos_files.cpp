@@ -1359,8 +1359,9 @@ bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset){
 
 bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset){
 	DOS_FCB fcbold(seg,offset);
-	DOS_FCB fcbnew(seg,offset+16u);
-	if(!fcbold.Valid()) return false;
+    DOS_FCB fcbnew(seg,offset);
+    fcbnew.SetPtPhys(fcbnew.GetPtPhys()+0x10u);//HACK: FCB NEW memory offset is affected by whether FCB OLD is extended
+    if(!fcbold.Valid()) return false;
 	char oldname[DOS_FCBNAME];
 	char newname[DOS_FCBNAME];
 	fcbold.GetName(oldname);fcbnew.GetName(newname);
