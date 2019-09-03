@@ -4666,6 +4666,8 @@ static Bitu INT1C_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+// NTS: According to this PDF, chapter 5, INT 1Dh has additional functions on "High Resolution" PC-98 systems.
+//      [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf]
 static Bitu INT1D_PC98_Handler(void) {
     LOG_MSG("PC-98 INT 1Dh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
         reg_ax,
