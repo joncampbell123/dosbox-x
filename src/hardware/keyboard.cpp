@@ -2386,6 +2386,9 @@ static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
 
 static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
     (void)port;
+
+    unsigned int p_pc98_mouse_rate_hz = pc98_mouse_rate_hz;
+
     /* bits [7:2] = ??
      * bits [1:0] = 120hz clock divider
      *              00 = 120hz (at reset)
@@ -2393,7 +2396,9 @@ static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
      *              10 = 30hz
      *              11 = 15hz */
     pc98_mouse_rate_hz = 120u >> (val & 3u);
-    LOG(LOG_MISC,LOG_DEBUG)("PC-98 mouse interrupt rate: %u",pc98_mouse_rate_hz);
+
+    if (pc98_mouse_rate_hz != p_pc98_mouse_rate_hz)
+        LOG(LOG_MISC,LOG_DEBUG)("PC-98 mouse interrupt rate: %u",pc98_mouse_rate_hz);
 }
 //////////
 
