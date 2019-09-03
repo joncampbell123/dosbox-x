@@ -28,6 +28,11 @@ static Bit8u cga_masks2[8]={0x7f,0xbf,0xdf,0xef,0xf7,0xfb,0xfd,0xfe};
 void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	static bool putpixelwarned = false;
 
+    if (IS_PC98_ARCH) {
+        // TODO: Not supported yet
+        return;
+    }
+
 	switch (CurMode->type) {
 	case M_CGA4:
 	{
@@ -195,6 +200,11 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 }
 
 void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
+    if (IS_PC98_ARCH) {
+        // TODO: Not supported yet
+        return;
+    }
+
 	switch (CurMode->type) {
 	case M_CGA4:
 		{
