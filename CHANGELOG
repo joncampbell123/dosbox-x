@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - PC-98 LIO and SOUND BIOS entry points, while
+    still not implemented, have been updated to
+    print the name of the call according to an
+    online reference.
   - DOS FCB rename now supports renaming the
     volume label as MS-DOS does.
   - Fixed bug that prevented proper DOS FCB rename
