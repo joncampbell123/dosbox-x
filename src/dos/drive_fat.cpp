@@ -1614,10 +1614,21 @@ bool fatDrive::FileUnlink(const char * name) {
 bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) {
 	direntry dummyClust;
 	if(fattype==FAT32) return false;
-	if(!getDirClustNum(_dir, &cwdDirCluster, false)) {
-		DOS_SetError(DOSERR_PATH_NOT_FOUND);
-		return false;
-	}
+
+    // volume label searches always affect root directory, no matter the current directory, at least with FCBs
+    if (dta.GetAttr() & DOS_ATTR_VOLUME) {
+        if(!getDirClustNum("\\", &cwdDirCluster, false)) {
+            DOS_SetError(DOSERR_PATH_NOT_FOUND);
+            return false;
+        }
+    }
+    else {
+        if(!getDirClustNum(_dir, &cwdDirCluster, false)) {
+            DOS_SetError(DOSERR_PATH_NOT_FOUND);
+            return false;
+        }
+    }
+
 	dta.SetDirID(0);
 	dta.SetDirIDCluster((Bit16u)(cwdDirCluster&0xffff));
 	return FindNextInternal(cwdDirCluster, dta, &dummyClust);
