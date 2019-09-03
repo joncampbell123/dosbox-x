@@ -547,7 +547,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                 {
                     unsigned int i = 0;
                     const char *s = label;
-                    while (i < 11 && *s != 0) sectbuf[di].entryname[i++] = *s++;
+                    while (i < 11 && *s != 0) sectbuf[di].entryname[i++] = toupper(*s++);
                     while (i < 11)            sectbuf[di].entryname[i++] = ' ';
                 }
                 writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
