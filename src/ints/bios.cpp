@@ -7523,19 +7523,6 @@ private:
                     phys_writed(ins_ofs+3,final_addr);
                     // total:   ins_ofs+7
                 }
-                {
-                    /* final entry according to PDF (TODO: Please confirm this actually exists) */
-                    unsigned int ent = entrypoints;
-                    unsigned int ins_ofs = ofs + 0x50 + (ent * 7);
-
-                    phys_writew(ofs+4+(ent*4)+0,0x00);
-                    phys_writew(ofs+4+(ent*4)+2,ins_ofs - ofs);
-
-                    phys_writeb(ins_ofs+0,0xB0);                        // MOV AL,(entrypoint index)
-                    phys_writeb(ins_ofs+1,0x00);
-                    phys_writeb(ins_ofs+2,0xEA);                        // JMP FAR <callback>
-                    phys_writed(ins_ofs+3,final_addr);
-                }
             }
         }
 
