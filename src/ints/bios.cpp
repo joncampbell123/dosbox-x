@@ -7420,6 +7420,7 @@ private:
                 RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
 
             // LIO graphics interface (number of entry points, unknown WORD value and offset into the segment).
+            // For more information see Chapter 6 of this PDF [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf]
             {
                 callback_pc98_lio.Install(&PC98_BIOS_LIO,CB_IRET,"LIO graphics library");
 
@@ -7456,6 +7457,19 @@ private:
                     phys_writeb(ins_ofs+2,0xEA);                        // JMP FAR <callback>
                     phys_writed(ins_ofs+3,final_addr);
                     // total:   ins_ofs+7
+                }
+                {
+                    /* final entry according to PDF (TODO: Please confirm this actually exists) */
+                    unsigned int ent = entrypoints;
+                    unsigned int ins_ofs = ofs + 0x50 + (ent * 7);
+
+                    phys_writew(ofs+4+(ent*4)+0,0x00);
+                    phys_writew(ofs+4+(ent*4)+2,ins_ofs - ofs);
+
+                    phys_writeb(ins_ofs+0,0xB0);                        // MOV AL,(entrypoint index)
+                    phys_writeb(ins_ofs+1,0x00);
+                    phys_writeb(ins_ofs+2,0xEA);                        // JMP FAR <callback>
+                    phys_writed(ins_ofs+3,final_addr);
                 }
             }
         }
