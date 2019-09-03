@@ -3309,6 +3309,7 @@ static Bitu INT18_PC98_Handler(void) {
             reg_al = mem_readb(0x53C);
             break;
         // TODO: "Edge" is using INT 18h AH=06h, what is that?
+        //       (Something to do with the buffer [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf])
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
             pc98_gdc[GDC_MASTER].force_fifo_complete();
