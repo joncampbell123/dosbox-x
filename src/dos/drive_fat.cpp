@@ -525,7 +525,7 @@ void fatDrive::UpdateBootVolumeLabel(const char *label) {
     if (p[0x26] == 0x29) {
         unsigned int i = 0;
 
-        while (i < 11 && *label != 0) p[0x2B+(i++)] = *label++;
+        while (i < 11 && *label != 0) p[0x2B+(i++)] = toupper(*label++);
         while (i < 11)                p[0x2B+(i++)] = ' ';
 
         loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
