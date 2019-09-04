@@ -2462,7 +2462,9 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
             if (dev->type == IDE_TYPE_HDD) {
                 IDEATADevice *ata = (IDEATADevice*)dev;
                 static bool vm86_warned = false;
+#if 0
                 static bool int13_fix_wrap_warned = false;
+#endif
                 bool vm86 = IDE_CPU_Is_Vm86();
 
                 if ((ata->bios_disk_index-2) == (disk-0x80)) {
@@ -2483,12 +2485,14 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                      *       sectors starting at C/H/S 30/9/42 without regard for
                      *       track boundaries. */
                     if (sect > dsk->sectors) {
+#if 0 /* this warning is pointless */
                         if (!int13_fix_wrap_warned) {
                             LOG_MSG("INT 13h implementation warning: we were given over-large sector number.\n");
                             LOG_MSG("This is normally the fault of DOSBox INT 13h emulation that counts sectors\n");
                             LOG_MSG("without consideration of track boundaries\n");
                             int13_fix_wrap_warned = true;
                         }
+#endif
 
                         do {
                             sect -= dsk->sectors;
