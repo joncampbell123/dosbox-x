@@ -1175,7 +1175,7 @@ void INT10_Startup(Section *sec) {
         mem_writeb(0x71F,0x01); /* scrolling speed is normal */
 
         /* init text RAM */
-        for (unsigned int i=0;i < 0x2000;i += 2) {
+        for (unsigned int i=0;i < 0x1FE0;i += 2) {
             mem_writew(0xA0000+i,0);
             mem_writeb(0xA2000+i,0xE1);
         }
@@ -1184,6 +1184,7 @@ void INT10_Startup(Section *sec) {
             mem_writew(0xA8000+i,0);
             mem_writew(0xB0000+i,0);
             mem_writew(0xB8000+i,0);
+            mem_writew(0xE0000+i,0);
         }
     }
 }
