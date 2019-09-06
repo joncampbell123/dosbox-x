@@ -1,4 +1,9 @@
 0.82.22 (next)
+  - PC-98 INT 18h AH=30h updated to return AH=05h
+    AL=00h BH=00h if success, AH=00h AL=01h BH=01h
+    if failure. This is needed to get Puyo Puyo 2
+    to work, which for some reason fails if a call
+    to set 15KHz mode works.
   - PC-98 LIO and SOUND BIOS entry points, while
     still not implemented, have been updated to
     print the name of the call according to an
