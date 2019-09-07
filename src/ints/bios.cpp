@@ -3590,7 +3590,9 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_update_text_lineheight_from_bda();
                 pc98_update_text_layer_lineheight_from_bda();
 
-                reg_ah = ret;
+                // according to real hardware (PC-9821Lt2), AH=5 on success (same as NP2)
+                // or AH is unchanged on failure and AL=1 and BH=1 (NOT the same as NP2)
+                if (ret == 0x05) reg_ah = ret;
                 reg_al = (ret == 0x05) ? 0x00 : 0x01; // according to NP2
                 reg_bh = (ret == 0x05) ? 0x00 : 0x01; // according to NP2
             }
