@@ -1424,6 +1424,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
                     "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
 
+    Pbool = secprop->Add_bool("pc-98 load sound bios rom file",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, load SOUND.ROM if available and prsent that to the guest instead of trying to emulate directly.\n"
+                    "This is strongly recommended, and is default enabled.\n"
+                    "SOUND.ROM is a snapshot of the FM board BIOS taken from real PC-98 hardware.");
+
     Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
                     "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");

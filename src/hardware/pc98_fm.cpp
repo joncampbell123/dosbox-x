@@ -41,6 +41,7 @@ MixerChannel *pc98_mixer = NULL;
 NP2CFG pccore;
 
 extern unsigned char pc98_mem_msw_m[8];
+bool pc98_soundbios_rom_load = true;
 bool pc98_soundbios_enabled = false;
 
 extern "C" unsigned char *CGetMemBase() {
@@ -348,6 +349,8 @@ static Bitu SOUNDROM_INTD2_PC98_Handler(void) {
 bool LoadSoundBIOS(void) {
     FILE *fp;
 
+    if (!pc98_soundbios_rom_load) return false;
+
     fp = fopen("SOUND.ROM","rb");
     if (!fp) fp = fopen("sound.rom","rb");
     if (!fp) return false;
@@ -392,6 +395,7 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         baseio = (unsigned int)section->Get_hex("pc-98 fm board io port");
 
         pc98_soundbios_enabled = section->Get_bool("pc-98 sound bios");
+        pc98_soundbios_rom_load = section->Get_bool("pc-98 load sound bios rom file");
         pc98_set_msw4_soundbios();
 
         if (pc98_soundbios_enabled) {
