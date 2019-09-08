@@ -1,4 +1,12 @@
 0.82.22 (next)
+  - cascade interrupt ignore in service setting now
+    accepts true, false, and auto. "auto" is now the
+    default, and will choose true or false depending
+    on machine type for correct emulation either way.
+    It should no longer be necessary to add
+    "cascade interrupt ignore in service=true" to
+    your dosbox.conf every time you want to run a
+    PC-98 game properly.
   - PC-98 FM board emulation will now load SOUND.ROM
     into segment CC00h if available, if FM board
     emulation is enabled.
