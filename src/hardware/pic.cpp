@@ -877,7 +877,24 @@ void PIC_Reset(Section *sec) {
     enable_slave_pic = section->Get_bool("enable slave pic");
     enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
     never_mark_cascade_in_service = section->Get_bool("cascade interrupt never in service");
-    ignore_cascade_in_service = section->Get_bool("cascade interrupt ignore in service");
+
+    {
+        std::string x = section->Get_string("cascade interrupt ignore in service");
+
+        if (x == "1" || x == "true")
+            ignore_cascade_in_service = true;
+        else if (x == "0" || x == "false")
+            ignore_cascade_in_service = false;
+        else {
+            // auto
+            if (IS_PC98_ARCH)
+                ignore_cascade_in_service = true;
+            else
+                ignore_cascade_in_service = false;
+        }
+
+        LOG(LOG_MISC,LOG_DEBUG)("PIC: Ignore cascade in service=%u",ignore_cascade_in_service);
+    }
 
     if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
         LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");

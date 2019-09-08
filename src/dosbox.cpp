@@ -1590,8 +1590,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("cascade interrupt never in service",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, PIC emulation will never mark cascade interrupt as in service. This is OFF by default. It is a hack for troublesome games.");
 
-    Pbool = secprop->Add_bool("cascade interrupt ignore in service",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, PIC emulation will allow slave pic interrupts even if the cascade interrupt is still \"in service\". This is OFF by default. It is a hack for troublesome games.");
+    // TODO: "Special mode" which apparently triggers this alternate behavior and used by default on PC-98, is configurable
+    //       by software through the PIC control words, and should control this setting if this is "auto".
+    //       It's time for "auto" default setting to end once and for all the running gag that PC-98 games will not run
+    //       properly without having to add "cascade interrupt ignore in service=true" to your dosbox.conf all the time.
+    Pstring = secprop->Add_string("cascade interrupt ignore in service",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If true, PIC emulation will allow slave pic interrupts even if the cascade interrupt is still \"in service\" (common PC-98 behavior)\n"
+                    "If false, PIC emulation will consider cascade in-service state when deciding which interrupt to signal (common IBM PC behavior)\n"
+                    "If auto, setting is chosen based on machine type and other configuration.");
 
     Pbool = secprop->Add_bool("enable slave pic",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable slave PIC (IRQ 8-15). Set this to 0 if you want to emulate a PC/XT type arrangement with IRQ 0-7 and no IRQ 2 cascade.");
