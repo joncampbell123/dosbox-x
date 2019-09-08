@@ -1108,10 +1108,13 @@ public:
         bar->addItem(0,"Close");
         bar->addMenu("Settings");
         bar->addMenu("Help");
-        bar->addItem(2,"Introduction");
-        bar->addItem(2,"Getting Started");
-        bar->addItem(2,"CD-ROM Support");
-        bar->addItem(2,"");
+        if (!dos_kernel_disabled) {
+            /* these do not work until shell help text is registerd */
+            bar->addItem(2,"Introduction");
+            bar->addItem(2,"Getting Started");
+            bar->addItem(2,"CD-ROM Support");
+            bar->addItem(2,"");
+        }
         bar->addItem(2,"About");
         bar->addActionHandler(this);
 
