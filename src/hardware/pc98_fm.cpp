@@ -345,6 +345,24 @@ static Bitu SOUNDROM_INTD2_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+bool LoadSoundBIOS(void) {
+    FILE *fp;
+
+    fp = fopen("SOUND.ROM","rb");
+    if (!fp) fp = fopen("sound.rom","rb");
+    if (!fp) return false;
+
+    if (fread(MemBase+0xCC000,0x4000,1,fp) != 1) {
+        LOG_MSG("PC-98 SOUND.ROM failed to read 16k");
+        fclose(fp);
+        return false;
+    }
+
+    LOG_MSG("PC-98 SOUND.ROM loaded into memory");
+    fclose(fp);
+    return true;
+}
+
 bool PC98_FM_SoundBios_Enabled(void) {
     return pc98_soundbios_enabled;
 }
@@ -379,8 +397,8 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         if (pc98_soundbios_enabled) {
             /* TODO: Load SOUND.ROM to CC000h - CFFFFh when Sound BIOS is enabled? 
              * Or simulate Sound BIOS calls ourselves? */
-            if (false/*TODO: Loaded SOUND.ROM*/) {
-                /* TODO */
+            if (LoadSoundBIOS()) {
+                /* good! */
             }
             else {
                 soundbios_callback.Install(&SOUNDROM_INTD2_PC98_Handler,CB_IRET,"Sound ROM INT D2h");

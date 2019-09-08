@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - PC-98 FM board emulation will now load SOUND.ROM
+    into segment CC00h if available, if FM board
+    emulation is enabled.
   - PC-98 INT 18h AH=30h updated to return AH=05h
     AL=00h BH=00h if success, AH=00h AL=01h BH=01h
     if failure. This is needed to get Puyo Puyo 2
