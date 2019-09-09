@@ -1901,7 +1901,6 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
-    fprintf(stderr,"mousedrag %d,%d\n",x,y);
     if (dragging) {
         scroll_pos_x -= x - drag_x;
         scroll_pos_y -= y - drag_y;
