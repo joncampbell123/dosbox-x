@@ -2510,7 +2510,7 @@ public:
 
 		close->move((width-border_left-border_right-70)/2, sfh);
         wiw->resize(width-border_left-border_right-10, sfh-10);
-		resize(width, sfh+close->getHeight()+border_bottom+border_top+15);
+		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}
 
 	virtual bool keyDown(const GUI::Key &key) {
