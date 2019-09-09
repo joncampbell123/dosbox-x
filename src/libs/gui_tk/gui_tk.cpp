@@ -1944,6 +1944,9 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 
 void WindowInWindow::resize(int w, int h) {
     int mw = 0,mh = 0;
+    int cmpw = w;
+
+    if (vscroll) cmpw -= vscroll_display_width;
 
 	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
 		Window *child = *i;
@@ -1953,7 +1956,7 @@ void WindowInWindow::resize(int w, int h) {
         if (mh < my) mh = my;
 	}
 
-    mw -= w;
+    mw -= cmpw;
     mh -= h;
     if (mw < 0) mw = 0;
     if (mh < 0) mh = 0;
