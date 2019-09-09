@@ -1542,6 +1542,9 @@ class Label : public Window {
 	bool interpret;
 
 public:
+
+    bool allow_focus = false;
+
 	/// Create a text label with given position, \p text, \p font and \p color.
 	/** If \p width is given, the resulting label is a word-wrapped multiline label */
 	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = Color::Text) :
@@ -1574,6 +1577,9 @@ public:
 		if (interpret) Window::resize(w, d.getY()-font->getAscent()+font->getHeight());
 		else Window::resize(d.getX(), font->getHeight());
 	}
+
+	/// Returns \c true if this window has currently the keyboard focus.
+	virtual bool hasFocus() const { return allow_focus && Window::hasFocus(); }
 
 	/// Paint label
 	virtual void paint(Drawable &d) const { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
@@ -2550,6 +2556,7 @@ template <typename STR> Button::Button(Window *parent, int x, int y, const STR t
 {
 
 	Label *l = new Label(this,0,0,text);
+    l->allow_focus = true;
 	if (width < 0) resize(l->getWidth()+border_left+border_right+10,height);
 	if (height < 0) resize(width,l->getHeight()+border_top+border_bottom+6);
 	l->move((width-border_left-border_right-l->getWidth())/2,
