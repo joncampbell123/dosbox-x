@@ -1,4 +1,6 @@
 0.82.22 (next)
+  - Configuration GUI property settings are now
+    shown in a single column wide list with scrolling.
   - In the configuration GUI, help dialogs will now
     present the help text as a scrollable region if
     there is too much to fit on screen.
