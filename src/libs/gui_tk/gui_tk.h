@@ -2496,7 +2496,7 @@ public:
         }
 
 		close->move((width-border_left-border_right-70)/2, sfh);
-        wiw->resize(width, sfh);
+        wiw->resize(width-border_left-border_right, sfh);
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+15);
 	}
 
