@@ -535,10 +535,11 @@ public:
 
 class PropertyEditorBool : public PropertyEditor {
     GUI::Checkbox *input;
+    GUI::Label *label;
 public:
     PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        new GUI::Label(this, 0, 5, prop->propname);
+        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Checkbox(this, 480, 3, "");
         input->setChecked(static_cast<bool>(prop->GetValue()));
     }
@@ -553,10 +554,11 @@ public:
 class PropertyEditorString : public PropertyEditor {
 protected:
     GUI::Input *input;
+    GUI::Label *label;
 public:
     PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        new GUI::Label(this, 0, 5, prop->propname);
+        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 270, 0, 230);
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
@@ -573,10 +575,11 @@ public:
 class PropertyEditorFloat : public PropertyEditor {
 protected:
     GUI::Input *input;
+    GUI::Label *label;
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        new GUI::Label(this, 0, 5, prop->propname);
+        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, 120);
         input->setText(stringify((double)prop->GetValue()));
     }
@@ -593,10 +596,11 @@ public:
 class PropertyEditorHex : public PropertyEditor {
 protected:
     GUI::Input *input;
+    GUI::Label *label;
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        new GUI::Label(this, 0, 5, prop->propname);
+        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, 120);
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
@@ -614,10 +618,11 @@ public:
 class PropertyEditorInt : public PropertyEditor {
 protected:
     GUI::Input *input;
+    GUI::Label *label;
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        new GUI::Label(this, 0, 5, prop->propname);
+        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, 120);
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
