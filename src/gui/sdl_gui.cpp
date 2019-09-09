@@ -518,7 +518,7 @@ protected:
     Property *prop;
 public:
     PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        Window(parent, x, y, 240, 30), section(section), prop(prop) { }
+        Window(parent, x, y, 500, 25), section(section), prop(prop) { }
 
     virtual bool prepare(std::string &buffer) = 0;
 
