@@ -786,6 +786,8 @@ public:
 
 	virtual void resize(int w, int h);
 
+    virtual void enableScrollBars(bool hs,bool vs);
+
     bool    dragging = false;
     int     drag_x,drag_y;
 
@@ -793,6 +795,14 @@ public:
     int     scroll_pos_y = 0;
     int     scroll_pos_w = 0;
     int     scroll_pos_h = 0;
+
+    bool    hscroll = false;
+    bool    vscroll = false;
+
+    int     hscroll_display_width = 16;
+    int     vscroll_display_width = 16;
+
+	int     border_right = 0, border_bottom = 0;
 };
 
 /** \brief A Screen represents the framebuffer that is the final destination of the GUI.
@@ -2463,14 +2473,26 @@ public:
 	/// Set a new text. Size of the box is adjusted accordingly.
 	template <typename STR> void setText(const STR text) {
         int sfh;
+        int msgw;
+        bool scroll = true;
 
+        msgw = width-border_left-border_right-10;
+        message->resize(msgw, message->getHeight());
 		message->setText(text);
 
         {
             Screen *s = getScreen();
-            sfh = int(s->getHeight() - 70 - border_top - border_bottom);
-            if (sfh > (15+message->getHeight()))
+            sfh = s->getHeight() - 70 - border_top - border_bottom;
+            if (sfh > (15+message->getHeight())) {
                 sfh = (15+message->getHeight());
+                scroll = false;
+            }
+        }
+
+        wiw->enableScrollBars(false/*h*/,scroll/*v*/);
+        if (scroll) {
+            msgw -= wiw->vscroll_display_width;
+            message->resize(msgw, message->getHeight());
         }
 
 		close->move((width-border_left-border_right-70)/2, sfh);

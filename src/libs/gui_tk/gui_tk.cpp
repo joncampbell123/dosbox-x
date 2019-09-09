@@ -1963,4 +1963,12 @@ void WindowInWindow::resize(int w, int h) {
     Window::resize(w,h);
 }
 
+void WindowInWindow::enableScrollBars(bool hs,bool vs) {
+    if (hs != hscroll || vs != vscroll) {
+        hscroll = hs;
+        vscroll = vs;
+        resize(width, height);
+    }
+}
+
 } /* end namespace GUI */
