@@ -1897,6 +1897,49 @@ void WindowInWindow::paintAll(Drawable &d) const {
 			child->paintAll(cd);
 		}
 	}
+
+    if (vscroll && vscroll_display_width >= 4) {
+        // TODO: Need a vertical scrollbar window object
+
+        Drawable dscroll(d,width - vscroll_display_width,0,vscroll_display_width,height);
+
+        /* scroll bar border, gray background */
+        dscroll.setColor(Color::Black);
+        dscroll.drawRect(0,0,vscroll_display_width-1,height-1);
+
+        dscroll.setColor(Color::Background3D);
+        dscroll.fillRect(1,1,vscroll_display_width-2,height-2);
+
+        /* the "thumb". make it fixed size, Windows 3.1 style.
+         * this code could adapt to the more range-aware visual style of Windows 95 later. */
+        int thumbwidth = vscroll_display_width - 2;
+        int thumbheight = vscroll_display_width - 2;
+        int thumbtravel = height - 2 - thumbheight;
+        if (thumbtravel < 0) thumbtravel = 0;
+        int xleft = 1;
+        int ytop = 1 + ((scroll_pos_h > 0) ?
+            ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
+            0);
+
+        if (thumbheight <= (height + 2)) {
+            dscroll.setColor(Color::Light3D);
+            dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
+            dscroll.drawLine(xleft,ytop,xleft,ytop+thumbheight-1);
+
+            // Windows 3.1 renders the shadow two pixels wide
+            dscroll.setColor(Color::Shadow3D);
+            dscroll.drawLine(xleft,ytop+thumbheight-1,xleft+thumbwidth-1,ytop+thumbheight-1);
+            dscroll.drawLine(xleft+thumbwidth-1,ytop,xleft+thumbwidth-1,ytop+thumbheight-1);
+
+            dscroll.drawLine(xleft+1,ytop+thumbheight-2,xleft+thumbwidth-2,ytop+thumbheight-2);
+            dscroll.drawLine(xleft+thumbwidth-2,ytop+1,xleft+thumbwidth-2,ytop+thumbheight-2);
+
+            // Windows 3.1 also draws a hard black line around the thumb that can coincide with the border
+            dscroll.setColor(Color::Black);
+            dscroll.drawLine(xleft,ytop-1,xleft+thumbwidth-1,ytop-1);
+            dscroll.drawLine(xleft,ytop+thumbheight,xleft+thumbwidth-1,ytop+thumbheight);
+        }
+    }
 }
 
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
