@@ -2001,7 +2001,15 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
         return true;
     }
 
-    return Window::mouseDragged(x,y,button);
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    return Window::mouseDragged(x-xadj,y-yadj,button);
 }
 
 bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
@@ -2025,7 +2033,15 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
         return true;
     }
 
-    bool ret = Window::mouseDown(x,y,button);
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    bool ret = Window::mouseDown(x-xadj,y-yadj,button);
 
     if (!ret && mouseChild == NULL && button == GUI::Left) {
         drag_x = x;
@@ -2068,7 +2084,15 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
         return true;
     }
 
-    return Window::mouseUp(x,y,button);
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    return Window::mouseUp(x-xadj,y-xadj,button);
 }
 
 void WindowInWindow::resize(int w, int h) {
