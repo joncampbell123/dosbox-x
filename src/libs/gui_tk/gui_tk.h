@@ -767,6 +767,17 @@ public:
 
 };
 
+/* Window wrapper to make scrollable regions */
+class WindowInWindow : public Window {
+protected:
+
+public:
+	WindowInWindow(Window *parent, int x, int y, int w, int h) :
+		Window(parent,x,y,w,h) {}
+
+	virtual void paintAll(Drawable &d) const;
+};
+
 /** \brief A Screen represents the framebuffer that is the final destination of the GUI.
  *
  *  It's main purpose is to manage the current contents of the surface and to combine
@@ -2417,11 +2428,13 @@ class MessageBox2 : public GUI::ToplevelWindow {
 protected:
 	Label *message;
 	Button *close;
+    WindowInWindow *wiw;
 public:
 	/// Create a new message box
 	template <typename STR> MessageBox2(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
-		message = new Label(this, 5, 5, text, width-border_left-border_right-10);
+        wiw = new WindowInWindow(this, 0, 0, width, 70);
+		message = new Label(wiw, 5, 5, text, width-border_left-border_right-10);
 		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, "Close", 70);
 		close->addActionHandler(this);
 		setText(text);
@@ -2434,6 +2447,7 @@ public:
 	template <typename STR> void setText(const STR text) {
 		message->setText(text);
 		close->move((width-border_left-border_right-70)/2, 15+message->getHeight());
+        wiw->resize(width, 15+message->getHeight());
 		resize(width, message->getHeight()+15+close->getHeight()+border_bottom+border_top+15);
 	}
 

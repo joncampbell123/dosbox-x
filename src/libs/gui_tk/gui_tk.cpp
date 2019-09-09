@@ -1888,4 +1888,15 @@ bool ScreenSDL::event(const SDL_Event &event) {
 	return false;
 }
 
+void WindowInWindow::paintAll(Drawable &d) const {
+	Drawable dchild(d,0,0,width,height);
+	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
+		Window *child = *i;
+		if (child->isVisible()) {
+			Drawable cd(dchild,child->getX(),child->getY(),child->getWidth(),child->getHeight());
+			child->paintAll(cd);
+		}
+	}
+}
+
 } /* end namespace GUI */
