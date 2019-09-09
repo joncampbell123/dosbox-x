@@ -1942,4 +1942,23 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
     return Window::mouseUp(x,y,button);
 }
 
+void WindowInWindow::resize(int w, int h) {
+    int mw = 0,mh = 0;
+
+	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
+		Window *child = *i;
+        int mx = child->getX() + child->getWidth();
+        int my = child->getY() + child->getHeight();
+        if (mw < mx) mw = mx;
+        if (mh < my) mh = my;
+	}
+
+    mw -= w;
+    mh -= h;
+    if (mw < 0) mw = 0;
+    if (mh < 0) mh = 0;
+    scroll_pos_w = mw;
+    scroll_pos_h = mh;
+}
+
 } /* end namespace GUI */

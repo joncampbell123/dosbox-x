@@ -784,6 +784,8 @@ public:
 
 	virtual void paintAll(Drawable &d) const;
 
+	virtual void resize(int w, int h);
+
     bool    dragging = false;
     int     drag_x,drag_y;
 
