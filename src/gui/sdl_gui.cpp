@@ -706,6 +706,8 @@ public:
         if (scroll_h > allowed_dialog_y)
             scroll_h = allowed_dialog_y;
 
+        scroll_h += 2; /* border */
+
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
         int button_row_y = first_row_y + scroll_h + 5;
