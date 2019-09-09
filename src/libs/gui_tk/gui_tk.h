@@ -2460,8 +2460,8 @@ public:
 	/// Create a new message box
 	template <typename STR> MessageBox2(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
-        wiw = new WindowInWindow(this, 0, 0, width-border_left-border_right, 70);
-		message = new Label(wiw, 5, 5, text, width-border_left-border_right-10);
+        wiw = new WindowInWindow(this, 5, 5, width-border_left-border_right-10, 70);
+		message = new Label(wiw, 0, 0, text, width-border_left-border_right-10);
 		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, "Close", 70);
 		close->addActionHandler(this);
 		setText(text);
@@ -2496,7 +2496,7 @@ public:
         }
 
 		close->move((width-border_left-border_right-70)/2, sfh);
-        wiw->resize(width-border_left-border_right, sfh);
+        wiw->resize(width-border_left-border_right-10, sfh-10);
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+15);
 	}
 
