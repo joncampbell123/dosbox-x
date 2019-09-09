@@ -556,7 +556,7 @@ public:
     PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
         new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 130, 0, 110);
+        input = new GUI::Input(this, 270, 0, 230);
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
     }
@@ -576,7 +576,7 @@ public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
         new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 130, 0, 50);
+        input = new GUI::Input(this, 380, 0, 120);
         input->setText(stringify((double)prop->GetValue()));
     }
 
@@ -596,7 +596,7 @@ public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
         new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 130, 0, 50);
+        input = new GUI::Input(this, 380, 0, 120);
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
     }
@@ -617,7 +617,7 @@ public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
         new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 130, 0, 50);
+        input = new GUI::Input(this, 380, 0, 120);
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
     };
