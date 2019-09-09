@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - In the configuration GUI, help dialogs will now
+    present the help text as a scrollable region if
+    there is too much to fit on screen.
   - dosbox.conf mixer rate will now accept any
     sample rate from 4KHz to 192KHz instead of only
     fixed specific sample rates.
