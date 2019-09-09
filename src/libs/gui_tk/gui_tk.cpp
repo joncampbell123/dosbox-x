@@ -1934,8 +1934,10 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
         Drawable dscroll(d,width - vscroll_display_width,0,vscroll_display_width,height);
 
+        bool disabled = (scroll_pos_h == 0);
+
         /* scroll bar border, gray background */
-        dscroll.setColor(Color::Black);
+        dscroll.setColor(disabled ? Color::Shadow3D : Color::Black);
         dscroll.drawRect(0,0,vscroll_display_width-1,height-1);
 
         dscroll.setColor(Color::Background3D);
@@ -1952,7 +1954,7 @@ void WindowInWindow::paintAll(Drawable &d) const {
             ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
             0);
 
-        if (thumbheight <= (height + 2)) {
+        if (thumbheight <= (height + 2) && !disabled) {
             dscroll.setColor(Color::Light3D);
             dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
             dscroll.drawLine(xleft,ytop,xleft,ytop+thumbheight-1);
