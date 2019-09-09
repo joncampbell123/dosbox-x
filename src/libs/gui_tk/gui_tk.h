@@ -2454,7 +2454,7 @@ public:
 
         {
             Screen *s = getScreen();
-            sfh = int(s->getHeight() * 0.8);
+            sfh = int(s->getHeight() - 70 - border_top - border_bottom);
             if (sfh > (15+message->getHeight()))
                 sfh = (15+message->getHeight());
         }
