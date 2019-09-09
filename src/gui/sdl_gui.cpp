@@ -690,7 +690,7 @@ public:
         int first_row_y = 40;
         int row_height = 30;
         int first_column_x = 5;
-        int column_width = 250;
+        int column_width = 500;
         int button_row_h = 26;
         int button_row_padding_y = 5 + 5;
         bool showSettingsText = true;
@@ -707,20 +707,8 @@ public:
 
         int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom);
 
-        int items_per_col_max =
-            (allowed_dialog_y - (button_row_h + button_row_padding_y + row_height - 1)) / row_height;
-        if (items_per_col_max < 4) items_per_col_max = 4;
-        int items_per_col = 1;
+        int items_per_col = num_prop;
         int columns = 1;
-
-        /* HACK: The titlebar doesn't look very good if the dialog is one column wide
-         *       and the text spills over the nearby UI elements... */
-        if ((strlen(section->GetName())+18) > 26)
-            columns++;
-
-        /* NTS: Notice assign from compute then compare */
-        while ((items_per_col=((num_prop+columns-1)/columns)) > items_per_col_max)
-            columns++;
 
         int button_row_y = first_row_y + (items_per_col * row_height);
         int button_w = 70;
