@@ -1518,6 +1518,7 @@ public:
 	virtual bool mouseMoved(int x, int y);
 	virtual bool mouseDown(int x, int y, MouseButton button);
 	virtual bool mouseDragged(int x, int y, MouseButton button);
+	virtual bool mouseUp(int x, int y, MouseButton button);
 	virtual int getScreenX() const { return Window::getScreenX()+border_left; }
 	virtual int getScreenY() const { return Window::getScreenY()+border_top; }
 };

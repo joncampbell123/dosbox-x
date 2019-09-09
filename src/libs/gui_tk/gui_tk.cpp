@@ -834,6 +834,13 @@ bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
 	return Window::mouseDown(x,y,button);
 }
 
+bool BorderedWindow::mouseUp(int x, int y, MouseButton button) {
+	if (mouseChild == NULL && (x > width-border_right || y > height-border_bottom)) return false;
+	x -= border_left; y -= border_top;
+    if (mouseChild == NULL && (x < 0 || y < 0)) return false;
+	return Window::mouseUp(x,y,button);
+}
+
 bool BorderedWindow::mouseMoved(int x, int y)
 {
 	if (x > width-border_right || y > height-border_bottom) return false;
