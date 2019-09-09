@@ -1896,11 +1896,19 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 void WindowInWindow::paintAll(Drawable &d) const {
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
 	Drawable dchild(d,0,0,width,height);
 	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
 		Window *child = *i;
 		if (child->isVisible()) {
-			Drawable cd(dchild,child->getX() - scroll_pos_x,child->getY() - scroll_pos_y,child->getWidth(),child->getHeight());
+			Drawable cd(dchild,child->getX() + xadj,child->getY() + yadj,child->getWidth(),child->getHeight());
 			child->paintAll(cd);
 		}
 	}
@@ -2066,8 +2074,13 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 void WindowInWindow::resize(int w, int h) {
     int mw = 0,mh = 0;
     int cmpw = w;
+    int cmph = h;
 
     if (vscroll) cmpw -= vscroll_display_width;
+    if (border) {
+        cmpw -= 2;
+        cmph -= 2;
+    }
 
 	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
 		Window *child = *i;
@@ -2078,7 +2091,7 @@ void WindowInWindow::resize(int w, int h) {
 	}
 
     mw -= cmpw;
-    mh -= h;
+    mh -= cmph;
     if (mw < 0) mw = 0;
     if (mh < 0) mh = 0;
     scroll_pos_w = mw;
