@@ -844,9 +844,9 @@ bool BorderedWindow::mouseMoved(int x, int y)
 
 bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 {
-	if (x > width-border_right || y > height-border_bottom) return false;
+	if (mouseChild == NULL && (x > width-border_right || y > height-border_bottom)) return false;
 	x -= border_left; y -= border_top;
-	if (x < 0 || y < 0) return false;
+    if (mouseChild == NULL && (x < 0 || y < 0)) return false;
 	return Window::mouseDragged(x,y,button);
 }
 
