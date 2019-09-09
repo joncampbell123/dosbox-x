@@ -538,7 +538,8 @@ class PropertyEditorBool : public PropertyEditor {
 public:
     PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
-        input = new GUI::Checkbox(this, 0, 3, prop->propname.c_str());
+        new GUI::Label(this, 0, 5, prop->propname);
+        input = new GUI::Checkbox(this, 480, 3, "");
         input->setChecked(static_cast<bool>(prop->GetValue()));
     }
 
