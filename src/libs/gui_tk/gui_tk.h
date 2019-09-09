@@ -775,7 +775,17 @@ public:
 	WindowInWindow(Window *parent, int x, int y, int w, int h) :
 		Window(parent,x,y,w,h) {}
 
+    /// Mouse was moved while a button was pressed. Returns true if event was handled.
+	virtual bool mouseDragged(int x, int y, MouseButton button);
+	/// Mouse was pressed. Returns true if event was handled.
+	virtual bool mouseDown(int x, int y, MouseButton button);
+	/// Mouse was released. Returns true if event was handled.
+	virtual bool mouseUp(int x, int y, MouseButton button);
+
 	virtual void paintAll(Drawable &d) const;
+
+    bool    dragging = false;
+    int     drag_x,drag_y;
 
     int     scroll_pos_x = 0;
     int     scroll_pos_y = 0;

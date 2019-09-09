@@ -1899,4 +1899,44 @@ void WindowInWindow::paintAll(Drawable &d) const {
 	}
 }
 
+bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
+{
+    fprintf(stderr,"mousedrag %d,%d\n",x,y);
+    if (dragging) {
+        scroll_pos_x -= x - drag_x;
+        scroll_pos_y -= y - drag_y;
+        drag_x = x;
+        drag_y = y;
+        return true;
+    }
+
+    return Window::mouseDragged(x,y,button);
+}
+
+bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
+{
+    bool ret = Window::mouseDown(x,y,button);
+
+    if (!ret && mouseChild == NULL && button == GUI::Left) {
+        drag_x = x;
+        drag_y = y;
+        mouseChild = this;
+        dragging = true;
+        ret = true;
+    }
+
+    return ret;
+}
+
+bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
+{
+    if (dragging) {
+        mouseChild = NULL;
+        dragging = false;
+        return true;
+    }
+
+    return Window::mouseUp(x,y,button);
+}
+
 } /* end namespace GUI */
