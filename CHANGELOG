@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - dosbox.conf mixer rate will now accept any
+    sample rate from 4KHz to 192KHz instead of only
+    fixed specific sample rates.
   - cascade interrupt ignore in service setting now
     accepts true, false, and auto. "auto" is now the
     default, and will choose true or false depending
