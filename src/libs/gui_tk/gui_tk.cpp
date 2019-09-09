@@ -2095,6 +2095,48 @@ bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
     return Window::mouseUp(x-xadj,y-xadj,button);
 }
 
+bool WindowInWindow::mouseMoved(int x, int y) {
+    if (dragging) return true;
+
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    return Window::mouseMoved(x-xadj,y-xadj);
+}
+
+bool WindowInWindow::mouseClicked(int x, int y, MouseButton button) {
+    if (dragging) return true;
+
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    return Window::mouseClicked(x-xadj,y-xadj,button);
+}
+
+bool WindowInWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
+    if (dragging) return true;
+
+    int xadj = -scroll_pos_x;
+    int yadj = -scroll_pos_y;
+
+    if (border) {
+        xadj++;
+        yadj++;
+    }
+
+    return Window::mouseDoubleClicked(x-xadj,y-xadj,button);
+}
+
 void WindowInWindow::resize(int w, int h) {
     int mw = 0,mh = 0;
     int cmpw = w;

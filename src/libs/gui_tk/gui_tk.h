@@ -782,6 +782,14 @@ public:
 	/// Mouse was released. Returns true if event was handled.
 	virtual bool mouseUp(int x, int y, MouseButton button);
 
+	/// Mouse was moved. Returns true if event was handled.
+	virtual bool mouseMoved(int x, int y);
+	/// Mouse was clicked. Returns true if event was handled.
+	/** Clicking means pressing and releasing the mouse button while not moving it. */
+	virtual bool mouseClicked(int x, int y, MouseButton button);
+	/// Mouse was double-clicked. Returns true if event was handled.
+	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
+
 	virtual void paintAll(Drawable &d) const;
 
 	virtual void resize(int w, int h);
