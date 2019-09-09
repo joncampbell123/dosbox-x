@@ -787,6 +787,7 @@ public:
 	virtual void resize(int w, int h);
 
     virtual void enableScrollBars(bool hs,bool vs);
+    virtual void enableBorder(bool en);
 
     bool    hscroll_dragging = false;
     bool    vscroll_dragging = false;
@@ -805,7 +806,7 @@ public:
     int     hscroll_display_width = 16;
     int     vscroll_display_width = 16;
 
-	int     border_right = 0, border_bottom = 0;
+    bool    border = false;
 };
 
 /** \brief A Screen represents the framebuffer that is the final destination of the GUI.
@@ -2499,6 +2500,7 @@ public:
             }
         }
 
+        wiw->enableBorder(scroll);
         wiw->enableScrollBars(false/*h*/,scroll/*v*/);
         if (scroll) {
             msgw -= wiw->vscroll_display_width;

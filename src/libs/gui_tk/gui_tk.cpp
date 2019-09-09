@@ -1905,6 +1905,19 @@ void WindowInWindow::paintAll(Drawable &d) const {
 		}
 	}
 
+    if (border) {
+        int w = width-1;
+        int h = height-1;
+
+        if (vscroll)
+            w++;
+        if (vscroll)
+            w -= (vscroll?vscroll_display_width:0);
+
+        dchild.setColor(Color::Black);
+        dchild.drawRect(0,0,w,h);
+    }
+
     if (vscroll && vscroll_display_width >= 4) {
         // TODO: Need a vertical scrollbar window object
 
@@ -2069,6 +2082,13 @@ void WindowInWindow::resize(int w, int h) {
     scroll_pos_h = mh;
 
     Window::resize(w,h);
+}
+
+void WindowInWindow::enableBorder(bool en) {
+    if (border != en) {
+        border = en;
+        resize(width, height);
+    }
 }
 
 void WindowInWindow::enableScrollBars(bool hs,bool vs) {
