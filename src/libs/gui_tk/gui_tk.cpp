@@ -1904,6 +1904,10 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
     if (dragging) {
         scroll_pos_x -= x - drag_x;
         scroll_pos_y -= y - drag_y;
+        if (scroll_pos_x < 0) scroll_pos_x = 0;
+        if (scroll_pos_y < 0) scroll_pos_y = 0;
+        if (scroll_pos_x > scroll_pos_w) scroll_pos_x = scroll_pos_w;
+        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
         drag_x = x;
         drag_y = y;
         return true;

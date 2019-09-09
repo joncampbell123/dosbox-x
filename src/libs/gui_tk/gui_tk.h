@@ -789,6 +789,8 @@ public:
 
     int     scroll_pos_x = 0;
     int     scroll_pos_y = 0;
+    int     scroll_pos_w = 0;
+    int     scroll_pos_h = 0;
 };
 
 /** \brief A Screen represents the framebuffer that is the final destination of the GUI.
