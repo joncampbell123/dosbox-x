@@ -677,6 +677,7 @@ public:
 class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
     GUI::Button * closeButton;
+    GUI::WindowInWindow * wiw;
 public:
     std::vector<GUI::Char> cfg_sname;
 public:
@@ -687,36 +688,33 @@ public:
             return;
         }
 
-        int first_row_y = 40;
-        int row_height = 30;
-        int first_column_x = 5;
+        int first_row_y = 5;
+        int row_height = 25;
         int column_width = 500;
         int button_row_h = 26;
         int button_row_padding_y = 5 + 5;
-        bool showSettingsText = true;
-
-        if (parent->getHeight() < 550) {
-            first_row_y = 5;
-            row_height = 25;
-            showSettingsText = false;
-            button_row_padding_y = 3 + 3;
-        }
 
         int num_prop = 0;
         while (section->Get_prop(num_prop) != NULL) num_prop++;
 
-        int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom);
+        int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom) - 50;
 
         int items_per_col = num_prop;
         int columns = 1;
 
-        int button_row_y = first_row_y + (items_per_col * row_height);
+        int scroll_h = items_per_col * row_height;
+        if (scroll_h > allowed_dialog_y)
+            scroll_h = allowed_dialog_y;
+
+        wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
+
+        int button_row_y = first_row_y + scroll_h + 5;
         int button_w = 70;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
         int button_row_cx = (((columns * column_width) - button_row_w) / 2);
 
-        resize((columns * column_width) + border_left + border_right,
+        resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + wiw->vscroll_display_width/*scrollbar*/,
                button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
 
         if ((this->y + this->getHeight()) > parent->getHeight())
@@ -725,9 +723,6 @@ public:
         std::string title(section->GetName());
         title[0] = std::toupper(title[0]);
         setTitle("Configuration for "+title);
-
-        if (showSettingsText)
-            new GUI::Label(this, 5, 10, "Settings:");
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
@@ -750,18 +745,21 @@ public:
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;
         }
         b->addActionHandler(this);
+
+        wiw->enableScrollBars(false/*h*/,true/*v*/);
+        wiw->enableBorder(true);
     }
 
     ~SectionEditor() {
