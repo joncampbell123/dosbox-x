@@ -1910,12 +1910,15 @@ void WindowInWindow::paintAll(Drawable &d) const {
         int h = height-1;
 
         if (vscroll)
-            w++;
-        if (vscroll)
             w -= (vscroll?vscroll_display_width:0);
 
-        dchild.setColor(Color::Black);
-        dchild.drawRect(0,0,w,h);
+        dchild.setColor(Color::Shadow3D);
+        dchild.drawLine(0,0,w,0);
+        dchild.drawLine(0,0,0,h);
+
+        dchild.setColor(Color::Light3D);
+        dchild.drawLine(0,h,w,h);
+        dchild.drawLine(w,0,w,h);
     }
 
     if (vscroll && vscroll_display_width >= 4) {
