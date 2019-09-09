@@ -1889,7 +1889,7 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 void WindowInWindow::paintAll(Drawable &d) const {
-	Drawable dchild(d,0,0,width,height);
+	Drawable dchild(d,-scroll_pos_x,-scroll_pos_y,width,height);
 	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
 		Window *child = *i;
 		if (child->isVisible()) {
