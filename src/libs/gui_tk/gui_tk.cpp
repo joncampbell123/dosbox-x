@@ -1959,6 +1959,8 @@ void WindowInWindow::resize(int w, int h) {
     if (mh < 0) mh = 0;
     scroll_pos_w = mw;
     scroll_pos_h = mh;
+
+    Window::resize(w,h);
 }
 
 } /* end namespace GUI */
