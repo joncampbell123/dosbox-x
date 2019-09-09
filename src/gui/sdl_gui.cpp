@@ -801,7 +801,11 @@ public:
 
             auto lookup = cfg_windows_active.find(new_cfg_sname);
             if (lookup == cfg_windows_active.end()) {
-                auto *np = new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
+                int nx = getX() - 10;
+                int ny = getY() - 10;
+                if (nx < 0) nx = 0;
+                if (ny < 0) ny = 0;
+                auto *np = new HelpWindow(static_cast<GUI::Screen*>(parent), nx, ny, section);
                 cfg_windows_active[new_cfg_sname] = np;
                 np->cfg_sname = new_cfg_sname;
                 np->raise();
