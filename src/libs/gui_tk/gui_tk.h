@@ -2436,7 +2436,7 @@ public:
 	/// Create a new message box
 	template <typename STR> MessageBox2(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
-        wiw = new WindowInWindow(this, 0, 0, width, 70);
+        wiw = new WindowInWindow(this, 0, 0, width-border_left-border_right, 70);
 		message = new Label(wiw, 5, 5, text, width-border_left-border_right-10);
 		close = new GUI::Button(this, (width-border_left-border_right-70)/2, 10, "Close", 70);
 		close->addActionHandler(this);
@@ -2448,10 +2448,20 @@ public:
 
 	/// Set a new text. Size of the box is adjusted accordingly.
 	template <typename STR> void setText(const STR text) {
+        int sfh;
+
 		message->setText(text);
-		close->move((width-border_left-border_right-70)/2, 15+message->getHeight());
-        wiw->resize(width, 15+message->getHeight());
-		resize(width, message->getHeight()+15+close->getHeight()+border_bottom+border_top+15);
+
+        {
+            Screen *s = getScreen();
+            sfh = int(s->getHeight() * 0.8);
+            if (sfh > (15+message->getHeight()))
+                sfh = (15+message->getHeight());
+        }
+
+		close->move((width-border_left-border_right-70)/2, sfh);
+        wiw->resize(width, sfh);
+		resize(width, sfh+close->getHeight()+border_bottom+border_top+15);
 	}
 
 	virtual bool keyDown(const GUI::Key &key) {
