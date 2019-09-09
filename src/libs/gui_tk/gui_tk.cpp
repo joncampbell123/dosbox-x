@@ -1889,11 +1889,11 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 void WindowInWindow::paintAll(Drawable &d) const {
-	Drawable dchild(d,-scroll_pos_x,-scroll_pos_y,width,height);
+	Drawable dchild(d,0,0,width,height);
 	for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
 		Window *child = *i;
 		if (child->isVisible()) {
-			Drawable cd(dchild,child->getX(),child->getY(),child->getWidth(),child->getHeight());
+			Drawable cd(dchild,child->getX() - scroll_pos_x,child->getY() - scroll_pos_y,child->getWidth(),child->getHeight());
 			child->paintAll(cd);
 		}
 	}
