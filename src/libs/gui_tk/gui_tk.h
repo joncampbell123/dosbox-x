@@ -2504,6 +2504,7 @@ public:
         wiw->enableScrollBars(false/*h*/,scroll/*v*/);
         if (scroll) {
             msgw -= wiw->vscroll_display_width;
+            msgw -= 2/*border*/;
             message->resize(msgw, message->getHeight());
         }
 
