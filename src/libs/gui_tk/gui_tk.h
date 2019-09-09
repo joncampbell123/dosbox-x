@@ -788,6 +788,9 @@ public:
 
     virtual void enableScrollBars(bool hs,bool vs);
 
+    bool    hscroll_dragging = false;
+    bool    vscroll_dragging = false;
+
     bool    dragging = false;
     int     drag_x,drag_y;
 

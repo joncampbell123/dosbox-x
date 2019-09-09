@@ -1944,6 +1944,20 @@ void WindowInWindow::paintAll(Drawable &d) const {
 
 bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 {
+    if (vscroll_dragging) {
+        int thumbheight = vscroll_display_width - 2;
+        int thumbtravel = height - 2 - thumbheight;
+        if (thumbtravel < 0) thumbtravel = 0;
+
+        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
+        int nipos = int(floor(npos + 0.5));
+        if (nipos < 0) nipos = 0;
+        if (nipos > scroll_pos_h) nipos = scroll_pos_h;
+        scroll_pos_y = nipos;
+
+        return true;
+    }
+
     if (dragging) {
         scroll_pos_x -= x - drag_x;
         scroll_pos_y -= y - drag_y;
@@ -1961,6 +1975,25 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
 
 bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 {
+    if (vscroll && x >= (width - vscroll_display_width)) {
+        mouseChild = this;
+        vscroll_dragging = true;
+        drag_x = x;
+        drag_y = y;
+
+        int thumbheight = vscroll_display_width - 2;
+        int thumbtravel = height - 2 - thumbheight;
+        if (thumbtravel < 0) thumbtravel = 0;
+
+        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
+        int nipos = int(floor(npos + 0.5));
+        if (nipos < 0) nipos = 0;
+        if (nipos > scroll_pos_h) nipos = scroll_pos_h;
+        scroll_pos_y = nipos;
+
+        return true;
+    }
+
     bool ret = Window::mouseDown(x,y,button);
 
     if (!ret && mouseChild == NULL && button == GUI::Left) {
@@ -1976,6 +2009,28 @@ bool WindowInWindow::mouseDown(int x, int y, MouseButton button)
 
 bool WindowInWindow::mouseUp(int x, int y, MouseButton button)
 {
+    if (vscroll_dragging) {
+        int thumbheight = vscroll_display_width - 2;
+        int thumbtravel = height - 2 - thumbheight;
+        if (thumbtravel < 0) thumbtravel = 0;
+
+        double npos = (double(y - 1 - (thumbheight / 2)) * scroll_pos_h) / thumbtravel;
+        int nipos = int(floor(npos + 0.5));
+        if (nipos < 0) nipos = 0;
+        if (nipos > scroll_pos_h) nipos = scroll_pos_h;
+        scroll_pos_y = nipos;
+
+        vscroll_dragging = false;
+        mouseChild = NULL;
+        return true;
+    }
+
+    if (hscroll_dragging) {
+        hscroll_dragging = false;
+        mouseChild = NULL;
+        return true;
+    }
+
     if (dragging) {
         mouseChild = NULL;
         dragging = false;
