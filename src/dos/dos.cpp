@@ -1691,6 +1691,7 @@ static Bitu DOS_21Handler(void) {
                         CALLBACK_SCF(false);
                         break;
                     case 0x02: // Get pointer to uppercase table
+                    case 0x04: // Get pointer to filename uppercase table
                         mem_writeb(data + 0x00, reg_al);
                         mem_writed(data + 0x01, dos.tables.upcase);
                         reg_cx = 5;
@@ -1703,7 +1704,6 @@ static Bitu DOS_21Handler(void) {
                         CALLBACK_SCF(false);
                         break;
                     case 0x03: // Get pointer to lowercase table
-                    case 0x04: // Get pointer to filename uppercase table
                     case 0x07: // Get pointer to double byte char set table
                         if (dos.tables.dbcs != 0) {
                             mem_writeb(data + 0x00, reg_al);
