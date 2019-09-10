@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - Fixed INT 21h AH=65h bug that returns DBCS table
+    for AH=4h that should return filename uppercase
+    table.
   - Configuration GUI property settings are now
     shown in a single column wide list with scrolling.
   - In the configuration GUI, help dialogs will now
