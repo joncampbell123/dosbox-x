@@ -1,4 +1,6 @@
 0.82.22 (next)
+  - Debugger "SM" command now accepts segment:offset
+    syntax for memory location to write.
   - Fixed INT 21h AH=65h bug that returns DBCS table
     for AH=4h that should return filename uppercase
     table.
