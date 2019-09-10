@@ -1602,7 +1602,11 @@ bool ParseCommand(char* str) {
 	}
 
 	if (command == "SM") { // Set memory with following values
-		Bit16u seg = (Bit16u)GetHexValue(found,found); SkipSpace(found);
+		Bit16u seg = (Bit16u)GetHexValue(found,found);
+        if (*found == ':') { // allow seg:off syntax
+            found++;
+            SkipSpace(found);
+        }
 		Bit32u ofs = GetHexValue(found,found); SkipSpace(found);
 		Bit16u count = 0;
         bool parsed;
