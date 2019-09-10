@@ -1971,6 +1971,17 @@ void WindowInWindow::paintAll(Drawable &d) const {
             dscroll.setColor(Color::Black);
             dscroll.drawLine(xleft,ytop-1,xleft+thumbwidth-1,ytop-1);
             dscroll.drawLine(xleft,ytop+thumbheight,xleft+thumbwidth-1,ytop+thumbheight);
+
+            // Windows 3.1 also draws an inverted dotted rectangle around the thumb where it WOULD be
+            // before quantization to scroll position.
+            if (vscroll_dragging) {
+                xleft = 0;
+                ytop = drag_y - ((thumbheight + 2) / 2);
+                if (ytop < 0) ytop = 0;
+                if (ytop > thumbtravel) ytop = thumbtravel;
+                dscroll.setColor(Color::Light3D);
+                dscroll.drawDotRect(xleft,ytop,thumbwidth+1,thumbheight+1);
+            }
         }
     }
 }
@@ -1988,6 +1999,8 @@ bool WindowInWindow::mouseDragged(int x, int y, MouseButton button)
         if (nipos > scroll_pos_h) nipos = scroll_pos_h;
         scroll_pos_y = nipos;
 
+        drag_x = x;
+        drag_y = y;
         return true;
     }
 
