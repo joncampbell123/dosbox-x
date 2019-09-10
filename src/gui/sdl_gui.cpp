@@ -531,6 +531,18 @@ public:
             prop->SetValue(GUI::String(line));
         }
     }
+
+    void paintVisGuideLineBetween(GUI::Drawable &d,const GUI::Window *lm,const GUI::Window *rm,const GUI::Window *pm) const {
+        int sx = lm->getX() + lm->getWidth();
+        int ex = rm->getX();
+        int y = pm->getHeight() / 2;
+
+        sx += 4;
+        ex -= 4;
+
+        d.setColor(GUI::Color::Shadow3D);
+        d.drawDotLine(sx,y,ex,y);
+    }
 };
 
 class PropertyEditorBool : public PropertyEditor {
@@ -548,6 +560,11 @@ public:
         if (input->isChecked() == static_cast<bool>(prop->GetValue())) return false;
         buffer.append(input->isChecked()?"true":"false");
         return true;
+    }
+
+    /// Paint label
+	virtual void paint(GUI::Drawable &d) const {
+        paintVisGuideLineBetween(d,label,input,this);
     }
 };
 
@@ -570,6 +587,11 @@ public:
         buffer.append(static_cast<const std::string&>(input->getText()));
         return true;
     }
+
+    /// Paint label
+	virtual void paint(GUI::Drawable &d) const {
+        paintVisGuideLineBetween(d,label,input,this);
+    }
 };
 
 class PropertyEditorFloat : public PropertyEditor {
@@ -590,6 +612,11 @@ public:
         if (val == (double)prop->GetValue()) return false;
         buffer.append(stringify(val));
         return true;
+    }
+
+    /// Paint label
+	virtual void paint(GUI::Drawable &d) const {
+        paintVisGuideLineBetween(d,label,input,this);
     }
 };
 
@@ -613,6 +640,11 @@ public:
         buffer.append(stringify(val, std::hex));
         return true;
     }
+
+    /// Paint label
+	virtual void paint(GUI::Drawable &d) const {
+        paintVisGuideLineBetween(d,label,input,this);
+    }
 };
 
 class PropertyEditorInt : public PropertyEditor {
@@ -635,6 +667,11 @@ public:
         buffer.append(stringify(val));
         return true;
     };
+
+    /// Paint label
+	virtual void paint(GUI::Drawable &d) const {
+        paintVisGuideLineBetween(d,label,input,this);
+    }
 };
 
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
