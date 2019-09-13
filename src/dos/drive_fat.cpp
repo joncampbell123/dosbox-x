@@ -1742,10 +1742,10 @@ nextfile:
     if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
         trimString(find_name);
 
-	/* Compare attributes to search attributes */
+    /* Compare attributes to search attributes */
 
-	//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
-	if (attrs == DOS_ATTR_VOLUME) {
+    //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
+    if (attrs == DOS_ATTR_VOLUME) {
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else {

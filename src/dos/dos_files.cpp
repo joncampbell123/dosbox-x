@@ -1026,7 +1026,7 @@ static void SaveFindResult(DOS_FCB & find_fcb) {
     else
         DTAExtendName(name,file_name,ext);	
 
-	DOS_FCB fcb(RealSeg(dos.dta()),RealOff(dos.dta()));//TODO
+    DOS_FCB fcb(RealSeg(dos.dta()),RealOff(dos.dta()));//TODO
 	fcb.Create(find_fcb.Extended());
 	fcb.SetName(drive,file_name,ext);
 	fcb.SetAttr(find_attr);      /* Only adds attribute if fcb is extended */
