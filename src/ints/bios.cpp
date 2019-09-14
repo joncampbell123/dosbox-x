@@ -7310,7 +7310,7 @@ private:
             ISAPNP_PNP_READ_PORT=NULL;
         }
 
-        extern Bitu call_default,call_default2;
+        extern Bitu call_default;
 
         if (IS_PC98_ARCH) {
             /* INT 00h-FFh generic stub routine */
@@ -7577,8 +7577,10 @@ private:
         RealSetVec(0x0c, CALLBACK_RealPointer(call_irq_default)); // IRQ 4
         RealSetVec(0x0d, CALLBACK_RealPointer(call_irq_default)); // IRQ 5
         RealSetVec(0x0f, CALLBACK_RealPointer(call_irq_default)); // IRQ 7
-        RealSetVec(0x72, CALLBACK_RealPointer(call_irq_default)); // IRQ 10
-        RealSetVec(0x73, CALLBACK_RealPointer(call_irq_default)); // IRQ 11
+        if (!IS_PC98_ARCH) {
+            RealSetVec(0x72, CALLBACK_RealPointer(call_irq_default)); // IRQ 10
+            RealSetVec(0x73, CALLBACK_RealPointer(call_irq_default)); // IRQ 11
+        }
 
         // setup a few interrupt handlers that point to bios IRETs by default
         real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));   //war2d
