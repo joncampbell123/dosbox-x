@@ -45,7 +45,7 @@ unsigned int last_callback = 0;
 CallBack_Handler CallBack_Handlers[CB_MAX] = {NULL};
 char* CallBack_Description[CB_MAX] = {NULL};
 
-Bitu call_stop,call_default,call_default2;
+Bitu call_stop,call_default;
 Bit8u call_idle;
 Bitu call_priv_io;
 
@@ -887,8 +887,6 @@ void CALLBACK_Init() {
 	/* Default handlers for unhandled interrupts that have to be non-null */
 	call_default=CALLBACK_Allocate();
 	CALLBACK_Setup(call_default,&default_handler,CB_IRET,"default");
-	call_default2=CALLBACK_Allocate();
-	CALLBACK_Setup(call_default2,&default_handler,CB_IRET,"default");
 
 	/* Setup block of 0xCD 0xxx instructions */
 	PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;

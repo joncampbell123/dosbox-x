@@ -85,6 +85,7 @@
 #define BIOS_VDU_CONTROL                0x465
 #define BIOS_VDU_COLOR_REGISTER         0x466
 /* 0x467-0x468 is reserved */
+#define BIOS_LAST_UNEXPECTED_IRQ        0x46b
 #define BIOS_TIMER                      0x46c
 #define BIOS_24_HOURS_FLAG              0x470
 #define BIOS_CTRL_BREAK_FLAG            0x471

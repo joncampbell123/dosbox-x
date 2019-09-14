@@ -6496,6 +6496,31 @@ void BIOS_SetupDisks(void);
 void CPU_Snap_Back_To_Real_Mode();
 void CPU_Snap_Back_Restore();
 
+static Bitu Default_IRQ_Handler(void) {
+    IO_WriteB(0x20, 0x0b);
+    Bit8u master_isr = IO_ReadB(0x20);
+    if (master_isr) {
+        IO_WriteB(0xa0, 0x0b);
+        Bit8u slave_isr = IO_ReadB(0xa0);
+        if (slave_isr) {
+            IO_WriteB(0xa1, IO_ReadB(0xa1) | slave_isr);
+            IO_WriteB(0xa0, 0x20);
+        }
+        else IO_WriteB(0x21, IO_ReadB(0x21) | (master_isr & ~4));
+        IO_WriteB(0x20, 0x20);
+#if C_DEBUG
+        Bit16u irq = 0;
+        Bit16u isr = master_isr;
+        if (slave_isr) isr = slave_isr << 8;
+        while (isr >>= 1) irq++;
+        LOG(LOG_BIOS, LOG_WARN)("Unexpected IRQ %u", irq);
+#endif 
+    }
+    else master_isr = 0xff;
+    mem_writeb(BIOS_LAST_UNEXPECTED_IRQ, master_isr);
+    return CBRET_NONE;
+}
+
 static Bitu IRQ14_Dummy(void) {
     /* FIXME: That's it? Don't I EOI the PIC? */
     return CBRET_NONE;
@@ -7532,10 +7557,6 @@ private:
             }
         }
 
-        // setup a few interrupt handlers that point to bios IRETs by default
-        if (!IS_PC98_ARCH)
-            real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));  //design your own railroad
-
         if (IS_PC98_ARCH) {
             real_writew(0,0x58A,0x0000U); // countdown timer value
             PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
@@ -7549,6 +7570,17 @@ private:
             null_68h = section->Get_bool("zero unused int 68h");
         }
 
+        /* Default IRQ handler */
+        Bitu call_irq_default = CALLBACK_Allocate();
+        CALLBACK_Setup(call_irq_default, &Default_IRQ_Handler, CB_IRET, "irq default");
+        RealSetVec(0x0b, CALLBACK_RealPointer(call_irq_default)); // IRQ 3
+        RealSetVec(0x0c, CALLBACK_RealPointer(call_irq_default)); // IRQ 4
+        RealSetVec(0x0d, CALLBACK_RealPointer(call_irq_default)); // IRQ 5
+        RealSetVec(0x0f, CALLBACK_RealPointer(call_irq_default)); // IRQ 7
+        RealSetVec(0x72, CALLBACK_RealPointer(call_irq_default)); // IRQ 10
+        RealSetVec(0x73, CALLBACK_RealPointer(call_irq_default)); // IRQ 11
+
+        // setup a few interrupt handlers that point to bios IRETs by default
         real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));   //war2d
         real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
         if (machine==MCH_CGA || null_68h) real_writed(0,0x68*4,0);  //Popcorn
