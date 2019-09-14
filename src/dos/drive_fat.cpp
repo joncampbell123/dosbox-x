@@ -551,7 +551,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
 
             if (di == 0) {
                 memset(sectbuf,0,sizeof(sectbuf));
-		        readSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+		        readSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
             }
 
             if (sectbuf[di].entryname[0] == 0x00 ||
@@ -564,7 +564,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                     while (i < 11 && *s != 0) sectbuf[di].entryname[i++] = toupper(*s++);
                     while (i < 11)            sectbuf[di].entryname[i++] = ' ';
                 }
-                writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+                writeSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
 		        labelCache.SetLabel(label, false, true);
                 UpdateBootVolumeLabel(label);
                 break;
@@ -578,7 +578,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
 
             if (di == 0) {
                 memset(sectbuf,0,sizeof(sectbuf));
-		        readSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+		        readSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
             }
 
             if (sectbuf[di].entryname[0] == 0x00 ||
@@ -591,7 +591,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                  *       of just picking the first one */
                 /* found one */
                 sectbuf[di].entryname[0] = 0xe5;
-                writeSector(firstRootDirSect+(i/dirent_per_sector),sectbuf);
+                writeSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
 		        labelCache.SetLabel("", false, true);
                 UpdateBootVolumeLabel("NO NAME");
                 break;
@@ -1742,10 +1742,10 @@ nextfile:
     if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
         trimString(find_name);
 
-	/* Compare attributes to search attributes */
+    /* Compare attributes to search attributes */
 
-	//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
-	if (attrs == DOS_ATTR_VOLUME) {
+    //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
+    if (attrs == DOS_ATTR_VOLUME) {
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else {

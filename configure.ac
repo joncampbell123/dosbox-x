@@ -319,8 +319,6 @@ if test x$host = xi386-pc-os2-emx ; then
     LDFLAGS="$LDFLAGS -Zomf -Zmt"
 fi
 
-AC_CHECK_CXXFLAGS([ -Wno-unknown-warning ])
-
 dnl I would like to know of any concerns given by the C++ compiler.
 dnl Clang/LLVM already does this to some degree, let's get GCC to do it too.
 AC_CHECK_CXXFLAGS([ -Wall ])
@@ -350,8 +348,6 @@ dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unl
 AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
 dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
 AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
-dnl Clang/LLVM warning: extended field designator
-AC_CHECK_CXXFLAGS([ -Wno-extended-offsetof ])
 
 dnl Some stuff for the icon.
 case "$host" in
