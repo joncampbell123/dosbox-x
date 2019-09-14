@@ -60,7 +60,10 @@
   - Integrated commits from mainline (Allofich)
     - Handle errant IRQs as a real BIOS does. Also
     remove r3263 workaround, as it's no longer
-    needed.	
+    needed.
+    - Fix flag behavior of several shift/rotate
+    instructions, cause exceptions and fix
+    potential 'pop ss' problems
 0.82.21
   - Reduced title bar size of the Configuration GUI.
   - Fixed sizing and positions of some Help menu dialog
