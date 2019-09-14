@@ -185,6 +185,22 @@ virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_Absolut
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
 <tr class="memitem:a8eec794d6977defe23a899c4ced8344d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8eec794d6977defe23a899c4ced8344d"></a>
 virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getSectSize</b> (void)</td></tr>
+<tr class="memitem:a68587a6fcf5718c6af4c1d38b2ffffbc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a68587a6fcf5718c6af4c1d38b2ffffbc"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSectorCount</b> (void)</td></tr>
+<tr class="memitem:ae5e0569a9aaf93936cd6e10d393ac458"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae5e0569a9aaf93936cd6e10d393ac458"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSectorSize</b> (void)</td></tr>
+<tr class="memitem:a32675e2309c76b1433827bc84449c080"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a32675e2309c76b1433827bc84449c080"></a>
+virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_AbsoluteSector_INT25</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:abc3063d8c0750657c05fea9f1591b5b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc3063d8c0750657c05fea9f1591b5b0"></a>
+virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector_INT25</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:a454ea0d8d8d235cb56b79854608342db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a454ea0d8d8d235cb56b79854608342db"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateDPB</b> (unsigned char dos_drive)</td></tr>
+<tr class="memitem:ada5c0b37156b6bd321abd7df5aeb5c9c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada5c0b37156b6bd321abd7df5aeb5c9c"></a>
+virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLabel</b> ()</td></tr>
+<tr class="memitem:ac30ac6871b0c1e0e60d2a4dda761fd1d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac30ac6871b0c1e0e60d2a4dda761fd1d"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetLabel</b> (const char *label, bool iscdrom, bool updatable)</td></tr>
+<tr class="memitem:ae44dc4ad74a126a3dee16c68a25dbb60"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae44dc4ad74a126a3dee16c68a25dbb60"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateBootVolumeLabel</b> (const char *label)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3a263d1b8a02f7aff910fe9ab2347b4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a263d1b8a02f7aff910fe9ab2347b4f"></a>
@@ -221,7 +237,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

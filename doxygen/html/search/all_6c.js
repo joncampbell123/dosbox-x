@@ -4,7 +4,7 @@ var searchData=
   ['la32ramp',['LA32Ramp',['../classMT32Emu_1_1LA32Ramp.html',1,'MT32Emu']]],
   ['la32utilites',['LA32Utilites',['../classMT32Emu_1_1LA32Utilites.html',1,'MT32Emu']]],
   ['la32wavegenerator',['LA32WaveGenerator',['../classMT32Emu_1_1LA32WaveGenerator.html',1,'MT32Emu']]],
-  ['label',['label',['../classGUI_1_1Frame.html#ac00ab97e44e2a591ad115e21503d5a48',1,'GUI::Frame::label()'],['../classGUI_1_1Label.html#af2c6be489755244854911c2c5d3b2ee2',1,'GUI::Label::Label()']]],
+  ['label',['LABEL',['../classLABEL.html',1,'LABEL'],['../classGUI_1_1Frame.html#ac00ab97e44e2a591ad115e21503d5a48',1,'GUI::Frame::label()'],['../classGUI_1_1Label.html#af2c6be489755244854911c2c5d3b2ee2',1,'GUI::Label::Label()']]],
   ['label',['Label',['../classGUI_1_1Label.html',1,'GUI']]],
   ['last',['last',['../classGUI_1_1BitmapFont.html#a3c992d29bbd0d35087365a8e5474686c',1,'GUI::BitmapFont']]],
   ['lastpos',['lastpos',['../classGUI_1_1Input.html#a1072ce4e75ed8ca4a2b96af63f43a0cd',1,'GUI::Input']]],

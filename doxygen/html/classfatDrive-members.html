@@ -130,8 +130,10 @@ This is the complete list of members for <a class="el" href="classfatDrive.html"
   <tr bgcolor="#f0f0f0"><td><b>GetFileAttr</b>(const char *name, Bit16u *attr) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>getFirstFreeClust</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetInfo</b>(void) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [virtual]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>GetLabel</b>() (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetLabel</b>() (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetMediaByte</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetSectorCount</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetSectorSize</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>getSectorSize</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>getSectSize</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>info</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
@@ -144,6 +146,7 @@ This is the complete list of members for <a class="el" href="classfatDrive.html"
   <tr bgcolor="#f0f0f0"><td><b>nocachedir</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>opendir</b>(const char *dir) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Read_AbsoluteSector</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Read_AbsoluteSector_INT25</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_directory_first</b>(void *handle, char *entry_name, bool &amp;is_directory) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_directory_next</b>(void *handle, char *entry_name, bool &amp;is_directory) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>readonly</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
@@ -153,12 +156,15 @@ This is the complete list of members for <a class="el" href="classfatDrive.html"
   <tr bgcolor="#f0f0f0"><td><b>sector_size</b> (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>sectors_cluster</b> (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetDir</b>(const char *path) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetLabel</b>(const char *label, bool iscdrom, bool updatable) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetLabel</b>(const char *label, bool iscdrom, bool updatable) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>srch_dir</b> (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>TestDir</b>(const char *dir) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>total_clusters</b> (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>UnMount</b>(void) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>UpdateBootVolumeLabel</b>(const char *label) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>UpdateDPB</b>(unsigned char dos_drive) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Write_AbsoluteSector</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Write_AbsoluteSector_INT25</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>writeSector</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~DOS_Drive</b>() (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~fatDrive</b>() (defined in <a class="el" href="classfatDrive.html">fatDrive</a>)</td><td><a class="el" href="classfatDrive.html">fatDrive</a></td><td><code> [virtual]</code></td></tr>
@@ -166,7 +172,7 @@ This is the complete list of members for <a class="el" href="classfatDrive.html"
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

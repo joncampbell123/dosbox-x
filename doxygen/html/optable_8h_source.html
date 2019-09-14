@@ -252,7 +252,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00155"></a>00155 {L_Iw           ,0                      ,S_REGw ,REGI_SI},{L_Iw ,0                      ,S_REGw ,REGI_DI},
 <a name="l00156"></a>00156 
 <a name="l00157"></a>00157 <span class="comment">/* 0xc0 - 0xc7 */</span>
-<a name="l00158"></a>00158 {L_MODRM        ,5                      ,0      ,M_GRP_Ib       },{L_MODRM      ,6                      ,0      ,M_GRP_Ib       },
+<a name="l00158"></a>00158 {L_MODRM        ,5                      ,0      ,M_SHIFT_Ib     },{L_MODRM      ,6                      ,0      ,M_SHIFT_Ib     },
 <a name="l00159"></a>00159 {L_POPw         ,0                      ,S_IPIw ,0              },{L_POPw       ,0                      ,S_IP   ,0              },
 <a name="l00160"></a>00160 {L_MODRM        ,O_SEGES        ,S_SEGGw,M_Efw  },{L_MODRM      ,O_SEGDS        ,S_SEGGw,M_Efw  },
 <a name="l00161"></a>00161 {L_MODRM        ,0                      ,S_Eb   ,M_Ib   },{L_MODRM      ,0                      ,S_Ew   ,M_Iw   },
@@ -263,8 +263,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00166"></a>00166 {L_INTO         ,O_INT          ,0              ,0              },{D_IRETw      ,0                      ,0              ,0              },
 <a name="l00167"></a>00167 
 <a name="l00168"></a>00168 <span class="comment">/* 0xd0 - 0xd7 */</span>
-<a name="l00169"></a>00169 {L_MODRM        ,5                      ,0      ,M_GRP_1        },{L_MODRM      ,6                      ,0      ,M_GRP_1        },
-<a name="l00170"></a>00170 {L_MODRM        ,5                      ,0      ,M_GRP_CL       },{L_MODRM      ,6                      ,0      ,M_GRP_CL       },
+<a name="l00169"></a>00169 {L_MODRM        ,5                      ,0      ,M_SHIFT_1      },{L_MODRM      ,6                      ,0      ,M_SHIFT_1      },
+<a name="l00170"></a>00170 {L_MODRM        ,5                      ,0      ,M_SHIFT_CL     },{L_MODRM      ,6                      ,0      ,M_SHIFT_CL     },
 <a name="l00171"></a>00171 {L_Ib           ,O_AAM          ,0              ,0              },{L_Ib         ,O_AAD          ,0              ,0              },
 <a name="l00172"></a>00172 {D_SETALC       ,0                      ,0              ,0              },{D_XLAT       ,0                      ,0              ,0              },
 <a name="l00173"></a>00173 <span class="comment">//TODO FPU</span>
@@ -608,7 +608,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00511"></a>00511 {L_Id           ,0                      ,S_REGd ,REGI_SI},{L_Id ,0                      ,S_REGd ,REGI_DI},
 <a name="l00512"></a>00512 
 <a name="l00513"></a>00513 <span class="comment">/* 0x2c0 - 0x2c7 */</span>
-<a name="l00514"></a>00514 {L_MODRM        ,5                      ,0      ,M_GRP_Ib       },{L_MODRM      ,7                      ,0      ,M_GRP_Ib       },
+<a name="l00514"></a>00514 {L_MODRM        ,5                      ,0      ,M_SHIFT_Ib     },{L_MODRM      ,7                      ,0      ,M_SHIFT_Ib     },
 <a name="l00515"></a>00515 {L_POPd         ,0                      ,S_IPIw ,0              },{L_POPd       ,0                      ,S_IP   ,0              },
 <a name="l00516"></a>00516 {L_MODRM        ,O_SEGES        ,S_SEGGd,M_Efd  },{L_MODRM      ,O_SEGDS        ,S_SEGGd,M_Efd  },
 <a name="l00517"></a>00517 {L_MODRM        ,0                      ,S_Eb   ,M_Ib   },{L_MODRM      ,0                      ,S_Ed   ,M_Id   },
@@ -619,8 +619,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00522"></a>00522 {L_INTO         ,O_INT          ,0              ,0              },{D_IRETd      ,0                      ,0              ,0              },
 <a name="l00523"></a>00523 
 <a name="l00524"></a>00524 <span class="comment">/* 0x2d0 - 0x2d7 */</span>
-<a name="l00525"></a>00525 {L_MODRM        ,5                      ,0      ,M_GRP_1        },{L_MODRM      ,7                      ,0      ,M_GRP_1        },
-<a name="l00526"></a>00526 {L_MODRM        ,5                      ,0      ,M_GRP_CL       },{L_MODRM      ,7                      ,0      ,M_GRP_CL       },
+<a name="l00525"></a>00525 {L_MODRM        ,5                      ,0      ,M_SHIFT_1      },{L_MODRM      ,7                      ,0      ,M_SHIFT_1      },
+<a name="l00526"></a>00526 {L_MODRM        ,5                      ,0      ,M_SHIFT_CL     },{L_MODRM      ,7                      ,0      ,M_SHIFT_CL     },
 <a name="l00527"></a>00527 {L_Ib           ,O_AAM          ,0              ,0              },{L_Ib         ,O_AAD          ,0              ,0              },
 <a name="l00528"></a>00528 {D_SETALC       ,0                      ,0              ,0              },{D_XLAT       ,0                      ,0              ,0              },
 <a name="l00529"></a>00529 <span class="comment">/* 0x2d8 - 0x2df */</span>
@@ -931,7 +931,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

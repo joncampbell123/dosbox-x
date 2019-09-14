@@ -897,39 +897,40 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00800"></a>00800         obj.Uninstall();
 <a name="l00801"></a>00801 
 <a name="l00802"></a>00802     obj.alloc = <span class="keyword">false</span>;
-<a name="l00803"></a>00803     vec.alloc_from = idx; <span class="comment">/* an empty slot just opened up, you can alloc from there */</span>
-<a name="l00804"></a>00804 }
-<a name="l00805"></a>00805 
-<a name="l00806"></a>00806 <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> *IO_GetCallout(IO_Callout_t c) {
-<a name="l00807"></a>00807     <span class="keyword">enum</span> IO_Type_t t = IO_Callout_t_type(c);
-<a name="l00808"></a>00808 
-<a name="l00809"></a>00809     <span class="keywordflow">if</span> (t &lt; IO_TYPE_MIN || t &gt;= IO_TYPE_MAX)
-<a name="l00810"></a>00810         <span class="keywordflow">return</span> NULL;
-<a name="l00811"></a>00811 
-<a name="l00812"></a>00812     <a class="code" href="classIO__callout__vector.html">IO_callout_vector</a> &amp;vec = IO_callouts[t - IO_TYPE_MIN];
-<a name="l00813"></a>00813     uint32_t idx = IO_Callout_t_index(c);
-<a name="l00814"></a>00814 
-<a name="l00815"></a>00815     <span class="keywordflow">if</span> (idx &gt;= vec.size())
-<a name="l00816"></a>00816         <span class="keywordflow">return</span> NULL;
-<a name="l00817"></a>00817 
-<a name="l00818"></a>00818     <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> &amp;obj = vec[idx];
-<a name="l00819"></a>00819     <span class="keywordflow">if</span> (!obj.alloc) <span class="keywordflow">return</span> NULL;
-<a name="l00820"></a>00820     obj.getcounter++;
-<a name="l00821"></a>00821 
-<a name="l00822"></a>00822     <span class="keywordflow">return</span> &amp;obj;
-<a name="l00823"></a>00823 }
-<a name="l00824"></a>00824 
-<a name="l00825"></a>00825 <span class="keywordtype">void</span> IO_PutCallout(<a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> *obj) {
-<a name="l00826"></a>00826     <span class="keywordflow">if</span> (obj == NULL) <span class="keywordflow">return</span>;
-<a name="l00827"></a>00827     <span class="keywordflow">if</span> (obj-&gt;getcounter == 0) <span class="keywordflow">return</span>;
-<a name="l00828"></a>00828     obj-&gt;getcounter--;
-<a name="l00829"></a>00829 }
-<a name="l00830"></a>00830 
+<a name="l00803"></a>00803     <span class="keywordflow">if</span> (vec.alloc_from &gt; idx)
+<a name="l00804"></a>00804         vec.alloc_from = idx; <span class="comment">/* an empty slot just opened up, you can alloc from there */</span>
+<a name="l00805"></a>00805 }
+<a name="l00806"></a>00806 
+<a name="l00807"></a>00807 <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> *IO_GetCallout(IO_Callout_t c) {
+<a name="l00808"></a>00808     <span class="keyword">enum</span> IO_Type_t t = IO_Callout_t_type(c);
+<a name="l00809"></a>00809 
+<a name="l00810"></a>00810     <span class="keywordflow">if</span> (t &lt; IO_TYPE_MIN || t &gt;= IO_TYPE_MAX)
+<a name="l00811"></a>00811         <span class="keywordflow">return</span> NULL;
+<a name="l00812"></a>00812 
+<a name="l00813"></a>00813     <a class="code" href="classIO__callout__vector.html">IO_callout_vector</a> &amp;vec = IO_callouts[t - IO_TYPE_MIN];
+<a name="l00814"></a>00814     uint32_t idx = IO_Callout_t_index(c);
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816     <span class="keywordflow">if</span> (idx &gt;= vec.size())
+<a name="l00817"></a>00817         <span class="keywordflow">return</span> NULL;
+<a name="l00818"></a>00818 
+<a name="l00819"></a>00819     <a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> &amp;obj = vec[idx];
+<a name="l00820"></a>00820     <span class="keywordflow">if</span> (!obj.alloc) <span class="keywordflow">return</span> NULL;
+<a name="l00821"></a>00821     obj.getcounter++;
+<a name="l00822"></a>00822 
+<a name="l00823"></a>00823     <span class="keywordflow">return</span> &amp;obj;
+<a name="l00824"></a>00824 }
+<a name="l00825"></a>00825 
+<a name="l00826"></a>00826 <span class="keywordtype">void</span> IO_PutCallout(<a class="code" href="classIO__CalloutObject.html">IO_CalloutObject</a> *obj) {
+<a name="l00827"></a>00827     <span class="keywordflow">if</span> (obj == NULL) <span class="keywordflow">return</span>;
+<a name="l00828"></a>00828     <span class="keywordflow">if</span> (obj-&gt;getcounter == 0) <span class="keywordflow">return</span>;
+<a name="l00829"></a>00829     obj-&gt;getcounter--;
+<a name="l00830"></a>00830 }
+<a name="l00831"></a>00831 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -122,6 +122,8 @@ This is the complete list of members for <a class="el" href="classlocalDrive.htm
   <tr bgcolor="#f0f0f0"><td><b>GetInfo</b>(void) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetLabel</b>() (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetMediaByte</b>(void) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetSectorCount</b>(void) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetSectorSize</b>(void) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetSystemFilename</b>(char *sysName, char const *const dosName) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetSystemFilePtr</b>(char const *const name, char const *const type) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>info</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
@@ -133,6 +135,7 @@ This is the complete list of members for <a class="el" href="classlocalDrive.htm
   <tr bgcolor="#f0f0f0"><td><b>mediaid</b> (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>nocachedir</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>opendir</b>(const char *dir) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Read_AbsoluteSector_INT25</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_directory_first</b>(void *handle, char *entry_name, bool &amp;is_directory) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>read_directory_next</b>(void *handle, char *entry_name, bool &amp;is_directory) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>readonly</b> (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td></td></tr>
@@ -146,12 +149,14 @@ This is the complete list of members for <a class="el" href="classlocalDrive.htm
   <tr bgcolor="#f0f0f0"><td><b>TestDir</b>(const char *dir) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>total_clusters</b> (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>UnMount</b>(void) (defined in <a class="el" href="classlocalDrive.html">localDrive</a>)</td><td><a class="el" href="classlocalDrive.html">localDrive</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>UpdateDPB</b>(unsigned char dos_drive) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Write_AbsoluteSector_INT25</b>(Bit32u sectnum, void *data) (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~DOS_Drive</b>() (defined in <a class="el" href="classDOS__Drive.html">DOS_Drive</a>)</td><td><a class="el" href="classDOS__Drive.html">DOS_Drive</a></td><td><code> [inline, virtual]</code></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

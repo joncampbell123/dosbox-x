@@ -116,17 +116,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00019"></a>00019 
 <a name="l00020"></a>00020 <span class="keyword">struct </span>SDL_xBRZ {
 <a name="l00021"></a>00021     <span class="comment">// configuration</span>
-<a name="l00022"></a>00022     <span class="keywordtype">bool</span> enable;
-<a name="l00023"></a>00023     <span class="keywordtype">bool</span> postscale_bilinear;
-<a name="l00024"></a>00024     <span class="keywordtype">int</span> task_granularity;
-<a name="l00025"></a>00025     <span class="keywordtype">int</span> fixed_scale_factor;
-<a name="l00026"></a>00026     <span class="keywordtype">int</span> max_scale_factor;
+<a name="l00022"></a>00022     <span class="keywordtype">bool</span> enable = <span class="keyword">false</span>;
+<a name="l00023"></a>00023     <span class="keywordtype">bool</span> postscale_bilinear = <span class="keyword">false</span>;
+<a name="l00024"></a>00024     <span class="keywordtype">int</span> task_granularity = 0;
+<a name="l00025"></a>00025     <span class="keywordtype">int</span> fixed_scale_factor = 0;
+<a name="l00026"></a>00026     <span class="keywordtype">int</span> max_scale_factor = 0;
 <a name="l00027"></a>00027 
 <a name="l00028"></a>00028     <span class="comment">// runtime</span>
-<a name="l00029"></a>00029     <span class="keywordtype">bool</span> scale_on;
-<a name="l00030"></a>00030     <span class="keywordtype">int</span> scale_factor;
-<a name="l00031"></a>00031     std::vector&lt;uint32_t&gt; renderbuf;
-<a name="l00032"></a>00032     std::vector&lt;uint32_t&gt; pixbuf;
+<a name="l00029"></a>00029     <span class="keywordtype">bool</span> scale_on = <span class="keyword">false</span>;
+<a name="l00030"></a>00030     <span class="keywordtype">int</span> scale_factor = 0;
+<a name="l00031"></a>00031     std::vector&lt;uint32_t&gt; renderbuf = {};
+<a name="l00032"></a>00032     std::vector&lt;uint32_t&gt; pixbuf = {};
 <a name="l00033"></a>00033 };
 <a name="l00034"></a>00034 
 <a name="l00035"></a>00035 <span class="keyword">extern</span> SDL_xBRZ sdl_xbrz;
@@ -146,7 +146,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

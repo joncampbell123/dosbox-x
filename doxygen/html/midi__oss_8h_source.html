@@ -152,30 +152,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00055"></a>00055                         buf[pos++] = 0;
 <a name="l00056"></a>00056                         msg++;
 <a name="l00057"></a>00057                 }
-<a name="l00058"></a>00058                 write(device,buf,pos);
-<a name="l00059"></a>00059         };
-<a name="l00060"></a>00060         <span class="keywordtype">void</span> PlaySysex(Bit8u * sysex,Bitu len) {
-<a name="l00061"></a>00061                 Bit8u buf[SYSEX_SIZE*4];Bitu pos=0;
-<a name="l00062"></a>00062                 <span class="keywordflow">for</span> (;len&gt;0;len--) {
-<a name="l00063"></a>00063                         buf[pos++] = SEQ_MIDIPUTC;
-<a name="l00064"></a>00064                         buf[pos++] = *sysex++;
-<a name="l00065"></a>00065                         buf[pos++] = device_num;
-<a name="l00066"></a>00066                         buf[pos++] = 0;
-<a name="l00067"></a>00067                 }
-<a name="l00068"></a>00068                 write(device,buf,pos);  
-<a name="l00069"></a>00069         }
-<a name="l00070"></a>00070 };
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072 <a class="code" href="classMidiHandler__oss.html">MidiHandler_oss</a> Midi_oss;
-<a name="l00073"></a>00073 
-<a name="l00074"></a>00074 
-<a name="l00075"></a>00075 
-<a name="l00076"></a>00076 
+<a name="l00058"></a>00058         ssize_t writeResult = write(device, buf, pos);
+<a name="l00059"></a>00059         <span class="keywordflow">if</span> (writeResult == -1) {
+<a name="l00060"></a>00060             <a class="code" href="classLOG.html">LOG</a>(LOG_IO, LOG_ERROR) (<span class="stringliteral">&quot;Writing error in PlayMsg\n&quot;</span>);
+<a name="l00061"></a>00061         }
+<a name="l00062"></a>00062         };
+<a name="l00063"></a>00063         <span class="keywordtype">void</span> PlaySysex(Bit8u * sysex,Bitu len) {
+<a name="l00064"></a>00064                 Bit8u buf[SYSEX_SIZE*4];Bitu pos=0;
+<a name="l00065"></a>00065                 <span class="keywordflow">for</span> (;len&gt;0;len--) {
+<a name="l00066"></a>00066                         buf[pos++] = SEQ_MIDIPUTC;
+<a name="l00067"></a>00067                         buf[pos++] = *sysex++;
+<a name="l00068"></a>00068                         buf[pos++] = device_num;
+<a name="l00069"></a>00069                         buf[pos++] = 0;
+<a name="l00070"></a>00070                 }
+<a name="l00071"></a>00071         ssize_t writeResult = write(device, buf, pos);
+<a name="l00072"></a>00072         <span class="keywordflow">if</span> (writeResult == -1) {
+<a name="l00073"></a>00073             <a class="code" href="classLOG.html">LOG</a>(LOG_IO, LOG_ERROR) (<span class="stringliteral">&quot;Writing error in PlaySysex\n&quot;</span>);
+<a name="l00074"></a>00074         }
+<a name="l00075"></a>00075         }
+<a name="l00076"></a>00076 };
+<a name="l00077"></a>00077 
+<a name="l00078"></a>00078 <a class="code" href="classMidiHandler__oss.html">MidiHandler_oss</a> Midi_oss;
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080 
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

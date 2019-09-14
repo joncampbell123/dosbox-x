@@ -974,182 +974,199 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00877"></a>00877     enable_slave_pic = section-&gt;Get_bool(<span class="stringliteral">&quot;enable slave pic&quot;</span>);
 <a name="l00878"></a>00878     enable_pc_xt_nmi_mask = section-&gt;Get_bool(<span class="stringliteral">&quot;enable pc nmi mask&quot;</span>);
 <a name="l00879"></a>00879     never_mark_cascade_in_service = section-&gt;Get_bool(<span class="stringliteral">&quot;cascade interrupt never in service&quot;</span>);
-<a name="l00880"></a>00880     ignore_cascade_in_service = section-&gt;Get_bool(<span class="stringliteral">&quot;cascade interrupt ignore in service&quot;</span>);
-<a name="l00881"></a>00881 
-<a name="l00882"></a>00882     <span class="keywordflow">if</span> (enable_slave_pic &amp;&amp; machine == MCH_PCJR &amp;&amp; enable_pc_xt_nmi_mask) {
-<a name="l00883"></a>00883         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)&quot;</span>);
-<a name="l00884"></a>00884         enable_slave_pic = <span class="keyword">false</span>;
-<a name="l00885"></a>00885     }
-<a name="l00886"></a>00886 
-<a name="l00887"></a>00887     <span class="keywordflow">if</span> (!enable_slave_pic &amp;&amp; IS_PC98_ARCH)
-<a name="l00888"></a>00888         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual&quot;</span>);
-<a name="l00889"></a>00889 
-<a name="l00890"></a>00890     <span class="comment">/* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.</span>
-<a name="l00891"></a>00891 <span class="comment">     *      But the ability to respond to interrupts is limited by the CPU, too. */</span>
-<a name="l00892"></a>00892     PIC_irq_delay_ns = 1000000000UL / (<span class="keywordtype">unsigned</span> long)PIT_TICK_RATE;
-<a name="l00893"></a>00893     {
-<a name="l00894"></a>00894         <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;irq delay ns&quot;</span>);
-<a name="l00895"></a>00895         <span class="keywordflow">if</span> (x &gt;= 0) PIC_irq_delay_ns = (<span class="keywordtype">unsigned</span> int)x;
-<a name="l00896"></a>00896     }
-<a name="l00897"></a>00897 
-<a name="l00898"></a>00898     <span class="keywordflow">if</span> (enable_slave_pic)
-<a name="l00899"></a>00899         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
-<a name="l00900"></a>00900     <span class="keywordflow">else</span>
-<a name="l00901"></a>00901         master_cascade_irq = -1;
-<a name="l00902"></a>00902 
-<a name="l00903"></a>00903     <span class="comment">// LOG</span>
-<a name="l00904"></a>00904     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): reinitializing PIC controller (cascade=%d)&quot;</span>,master_cascade_irq);
-<a name="l00905"></a>00905 
-<a name="l00906"></a>00906     <span class="comment">/* Setup pic0 and pic1 with initial values like DOS has normally */</span>
-<a name="l00907"></a>00907     PIC_Ticks=0;
-<a name="l00908"></a>00908     PIC_IRQCheck=0;
-<a name="l00909"></a>00909     <span class="keywordflow">for</span> (i=0;i&lt;2;i++) {
-<a name="l00910"></a>00910         pics[i].auto_eoi=<span class="keyword">false</span>;
-<a name="l00911"></a>00911         pics[i].rotate_on_auto_eoi=<span class="keyword">false</span>;
-<a name="l00912"></a>00912         pics[i].request_issr=<span class="keyword">false</span>;
-<a name="l00913"></a>00913         pics[i].special=<span class="keyword">false</span>;
-<a name="l00914"></a>00914         pics[i].single=<span class="keyword">false</span>;
-<a name="l00915"></a>00915         pics[i].icw_index=0;
-<a name="l00916"></a>00916         pics[i].icw_words=0;
-<a name="l00917"></a>00917         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
-<a name="l00918"></a>00918         pics[i].isrr = pics[i].imr = 0xff;
-<a name="l00919"></a>00919         pics[i].isr_ignore = 0x00;
-<a name="l00920"></a>00920         pics[i].active_irq = 8;
-<a name="l00921"></a>00921     }
+<a name="l00880"></a>00880 
+<a name="l00881"></a>00881     {
+<a name="l00882"></a>00882         std::string x = section-&gt;Get_string(<span class="stringliteral">&quot;cascade interrupt ignore in service&quot;</span>);
+<a name="l00883"></a>00883 
+<a name="l00884"></a>00884         <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;1&quot;</span> || x == <span class="stringliteral">&quot;true&quot;</span>)
+<a name="l00885"></a>00885             ignore_cascade_in_service = <span class="keyword">true</span>;
+<a name="l00886"></a>00886         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;0&quot;</span> || x == <span class="stringliteral">&quot;false&quot;</span>)
+<a name="l00887"></a>00887             ignore_cascade_in_service = <span class="keyword">false</span>;
+<a name="l00888"></a>00888         <span class="keywordflow">else</span> {
+<a name="l00889"></a>00889             <span class="comment">// auto</span>
+<a name="l00890"></a>00890             <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00891"></a>00891                 ignore_cascade_in_service = <span class="keyword">true</span>;
+<a name="l00892"></a>00892             <span class="keywordflow">else</span>
+<a name="l00893"></a>00893                 ignore_cascade_in_service = <span class="keyword">false</span>;
+<a name="l00894"></a>00894         }
+<a name="l00895"></a>00895 
+<a name="l00896"></a>00896         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC: Ignore cascade in service=%u&quot;</span>,ignore_cascade_in_service);
+<a name="l00897"></a>00897     }
+<a name="l00898"></a>00898 
+<a name="l00899"></a>00899     <span class="keywordflow">if</span> (enable_slave_pic &amp;&amp; machine == MCH_PCJR &amp;&amp; enable_pc_xt_nmi_mask) {
+<a name="l00900"></a>00900         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)&quot;</span>);
+<a name="l00901"></a>00901         enable_slave_pic = <span class="keyword">false</span>;
+<a name="l00902"></a>00902     }
+<a name="l00903"></a>00903 
+<a name="l00904"></a>00904     <span class="keywordflow">if</span> (!enable_slave_pic &amp;&amp; IS_PC98_ARCH)
+<a name="l00905"></a>00905         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual&quot;</span>);
+<a name="l00906"></a>00906 
+<a name="l00907"></a>00907     <span class="comment">/* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.</span>
+<a name="l00908"></a>00908 <span class="comment">     *      But the ability to respond to interrupts is limited by the CPU, too. */</span>
+<a name="l00909"></a>00909     PIC_irq_delay_ns = 1000000000UL / (<span class="keywordtype">unsigned</span> long)PIT_TICK_RATE;
+<a name="l00910"></a>00910     {
+<a name="l00911"></a>00911         <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;irq delay ns&quot;</span>);
+<a name="l00912"></a>00912         <span class="keywordflow">if</span> (x &gt;= 0) PIC_irq_delay_ns = (<span class="keywordtype">unsigned</span> int)x;
+<a name="l00913"></a>00913     }
+<a name="l00914"></a>00914 
+<a name="l00915"></a>00915     <span class="keywordflow">if</span> (enable_slave_pic)
+<a name="l00916"></a>00916         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
+<a name="l00917"></a>00917     <span class="keywordflow">else</span>
+<a name="l00918"></a>00918         master_cascade_irq = -1;
+<a name="l00919"></a>00919 
+<a name="l00920"></a>00920     <span class="comment">// LOG</span>
+<a name="l00921"></a>00921     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): reinitializing PIC controller (cascade=%d)&quot;</span>,master_cascade_irq);
 <a name="l00922"></a>00922 
-<a name="l00923"></a>00923     <span class="comment">/* PC-98: By default (but an option otherwise)</span>
-<a name="l00924"></a>00924 <span class="comment">     *        initialize the PIC so that reading the command port</span>
-<a name="l00925"></a>00925 <span class="comment">     *        produces the ISR status not the IRR status.</span>
-<a name="l00926"></a>00926 <span class="comment">     *</span>
-<a name="l00927"></a>00927 <span class="comment">     *        The reason the option is on by default, is that there</span>
-<a name="l00928"></a>00928 <span class="comment">     *        is PC-98 programming literature that recommends reading</span>
-<a name="l00929"></a>00929 <span class="comment">     *        ISR status before acknowledging interrupts (to avoid</span>
-<a name="l00930"></a>00930 <span class="comment">     *        conflicts with other ISR handlers perhaps). So it&#39;s</span>
-<a name="l00931"></a>00931 <span class="comment">     *        probably a common convention.</span>
-<a name="l00932"></a>00932 <span class="comment">     *</span>
-<a name="l00933"></a>00933 <span class="comment">     * Notes: &quot;Blackbird&quot; by Vivian needs this in order for the FM interrupt</span>
-<a name="l00934"></a>00934 <span class="comment">     *        to continue working. A bug in the FM interrupt routine programs</span>
-<a name="l00935"></a>00935 <span class="comment">     *        only the master PIC into this mode but then reads from the slave</span>
-<a name="l00936"></a>00936 <span class="comment">     *        which is not necessarily initialized into this mode and may return</span>
-<a name="l00937"></a>00937 <span class="comment">     *        the IRR register instead, causing the game to misinterpret</span>
-<a name="l00938"></a>00938 <span class="comment">     *        incoming interrupts as in-service. */</span>
-<a name="l00939"></a>00939     <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; section-&gt;Get_bool(<span class="stringliteral">&quot;pc-98 pic init to read isr&quot;</span>))
-<a name="l00940"></a>00940         pics[0].request_issr = pics[1].request_issr = <span class="keyword">true</span>;
-<a name="l00941"></a>00941 
-<a name="l00942"></a>00942     <span class="comment">/* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F</span>
-<a name="l00943"></a>00943 <span class="comment">     * PC-98: IRQ 0-15 is INT 0x08-0x17 */</span>
-<a name="l00944"></a>00944     master.vector_base = 0x08;
-<a name="l00945"></a>00945     slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
-<a name="l00946"></a>00946 
-<a name="l00947"></a>00947     <span class="keywordflow">for</span> (Bitu i=0;i &lt; 16;i++)
-<a name="l00948"></a>00948         PIC_SetIRQMask(i,<span class="keyword">true</span>);
-<a name="l00949"></a>00949 
-<a name="l00950"></a>00950     PIC_SetIRQMask(0,<span class="keyword">false</span>);                    <span class="comment">/* Enable system timer */</span>
-<a name="l00951"></a>00951     PIC_SetIRQMask(1,<span class="keyword">false</span>);                    <span class="comment">/* Enable keyboard interrupt */</span>
-<a name="l00952"></a>00952     PIC_SetIRQMask(8,<span class="keyword">false</span>);                    <span class="comment">/* Enable RTC IRQ */</span>
-<a name="l00953"></a>00953 
-<a name="l00954"></a>00954     <span class="keywordflow">if</span> (master_cascade_irq &gt;= 0) {
-<a name="l00955"></a>00955         PIC_SetIRQMask((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq,<span class="keyword">false</span>);<span class="comment">/* Enable second pic */</span>
-<a name="l00956"></a>00956 
-<a name="l00957"></a>00957         <span class="keywordflow">if</span> (ignore_cascade_in_service)
-<a name="l00958"></a>00958             pics[0].isr_ignore |= 1u &lt;&lt; (<span class="keywordtype">unsigned</span> char)master_cascade_irq;
-<a name="l00959"></a>00959     }
-<a name="l00960"></a>00960 
-<a name="l00961"></a>00961     <span class="comment">/* I/O port map</span>
-<a name="l00962"></a>00962 <span class="comment">     *</span>
-<a name="l00963"></a>00963 <span class="comment">     * IBM PC/XT/AT     NEC PC-98        A0</span>
-<a name="l00964"></a>00964 <span class="comment">     * ---------------------------------------</span>
-<a name="l00965"></a>00965 <span class="comment">     * 0x20             0x00             0</span>
-<a name="l00966"></a>00966 <span class="comment">     * 0x21             0x02             1</span>
-<a name="l00967"></a>00967 <span class="comment">     * 0xA0             0x08             0</span>
-<a name="l00968"></a>00968 <span class="comment">     * 0xA1             0x0A             1</span>
-<a name="l00969"></a>00969 <span class="comment">     */</span>
+<a name="l00923"></a>00923     <span class="comment">/* Setup pic0 and pic1 with initial values like DOS has normally */</span>
+<a name="l00924"></a>00924     PIC_Ticks=0;
+<a name="l00925"></a>00925     PIC_IRQCheck=0;
+<a name="l00926"></a>00926     <span class="keywordflow">for</span> (i=0;i&lt;2;i++) {
+<a name="l00927"></a>00927         pics[i].auto_eoi=<span class="keyword">false</span>;
+<a name="l00928"></a>00928         pics[i].rotate_on_auto_eoi=<span class="keyword">false</span>;
+<a name="l00929"></a>00929         pics[i].request_issr=<span class="keyword">false</span>;
+<a name="l00930"></a>00930         pics[i].special=<span class="keyword">false</span>;
+<a name="l00931"></a>00931         pics[i].single=<span class="keyword">false</span>;
+<a name="l00932"></a>00932         pics[i].icw_index=0;
+<a name="l00933"></a>00933         pics[i].icw_words=0;
+<a name="l00934"></a>00934         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
+<a name="l00935"></a>00935         pics[i].isrr = pics[i].imr = 0xff;
+<a name="l00936"></a>00936         pics[i].isr_ignore = 0x00;
+<a name="l00937"></a>00937         pics[i].active_irq = 8;
+<a name="l00938"></a>00938     }
+<a name="l00939"></a>00939 
+<a name="l00940"></a>00940     <span class="comment">/* PC-98: By default (but an option otherwise)</span>
+<a name="l00941"></a>00941 <span class="comment">     *        initialize the PIC so that reading the command port</span>
+<a name="l00942"></a>00942 <span class="comment">     *        produces the ISR status not the IRR status.</span>
+<a name="l00943"></a>00943 <span class="comment">     *</span>
+<a name="l00944"></a>00944 <span class="comment">     *        The reason the option is on by default, is that there</span>
+<a name="l00945"></a>00945 <span class="comment">     *        is PC-98 programming literature that recommends reading</span>
+<a name="l00946"></a>00946 <span class="comment">     *        ISR status before acknowledging interrupts (to avoid</span>
+<a name="l00947"></a>00947 <span class="comment">     *        conflicts with other ISR handlers perhaps). So it&#39;s</span>
+<a name="l00948"></a>00948 <span class="comment">     *        probably a common convention.</span>
+<a name="l00949"></a>00949 <span class="comment">     *</span>
+<a name="l00950"></a>00950 <span class="comment">     * Notes: &quot;Blackbird&quot; by Vivian needs this in order for the FM interrupt</span>
+<a name="l00951"></a>00951 <span class="comment">     *        to continue working. A bug in the FM interrupt routine programs</span>
+<a name="l00952"></a>00952 <span class="comment">     *        only the master PIC into this mode but then reads from the slave</span>
+<a name="l00953"></a>00953 <span class="comment">     *        which is not necessarily initialized into this mode and may return</span>
+<a name="l00954"></a>00954 <span class="comment">     *        the IRR register instead, causing the game to misinterpret</span>
+<a name="l00955"></a>00955 <span class="comment">     *        incoming interrupts as in-service. */</span>
+<a name="l00956"></a>00956     <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; section-&gt;Get_bool(<span class="stringliteral">&quot;pc-98 pic init to read isr&quot;</span>))
+<a name="l00957"></a>00957         pics[0].request_issr = pics[1].request_issr = <span class="keyword">true</span>;
+<a name="l00958"></a>00958 
+<a name="l00959"></a>00959     <span class="comment">/* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F</span>
+<a name="l00960"></a>00960 <span class="comment">     * PC-98: IRQ 0-15 is INT 0x08-0x17 */</span>
+<a name="l00961"></a>00961     master.vector_base = 0x08;
+<a name="l00962"></a>00962     slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964     <span class="keywordflow">for</span> (Bitu i=0;i &lt; 16;i++)
+<a name="l00965"></a>00965         PIC_SetIRQMask(i,<span class="keyword">true</span>);
+<a name="l00966"></a>00966 
+<a name="l00967"></a>00967     PIC_SetIRQMask(0,<span class="keyword">false</span>);                    <span class="comment">/* Enable system timer */</span>
+<a name="l00968"></a>00968     PIC_SetIRQMask(1,<span class="keyword">false</span>);                    <span class="comment">/* Enable keyboard interrupt */</span>
+<a name="l00969"></a>00969     PIC_SetIRQMask(8,<span class="keyword">false</span>);                    <span class="comment">/* Enable RTC IRQ */</span>
 <a name="l00970"></a>00970 
-<a name="l00971"></a>00971     ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
-<a name="l00972"></a>00972     ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
-<a name="l00973"></a>00973     WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
-<a name="l00974"></a>00974     WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
-<a name="l00975"></a>00975 
-<a name="l00976"></a>00976     <span class="comment">/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */</span>
-<a name="l00977"></a>00977     <span class="keywordflow">if</span> (enable_slave_pic) {
-<a name="l00978"></a>00978         ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
-<a name="l00979"></a>00979         ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
-<a name="l00980"></a>00980         WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
-<a name="l00981"></a>00981         WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
-<a name="l00982"></a>00982     }
-<a name="l00983"></a>00983     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; enable_pc_xt_nmi_mask) {
-<a name="l00984"></a>00984         PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
-<a name="l00985"></a>00985     }
-<a name="l00986"></a>00986 }
+<a name="l00971"></a>00971     <span class="keywordflow">if</span> (master_cascade_irq &gt;= 0) {
+<a name="l00972"></a>00972         PIC_SetIRQMask((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq,<span class="keyword">false</span>);<span class="comment">/* Enable second pic */</span>
+<a name="l00973"></a>00973 
+<a name="l00974"></a>00974         <span class="keywordflow">if</span> (ignore_cascade_in_service)
+<a name="l00975"></a>00975             pics[0].isr_ignore |= 1u &lt;&lt; (<span class="keywordtype">unsigned</span> char)master_cascade_irq;
+<a name="l00976"></a>00976     }
+<a name="l00977"></a>00977 
+<a name="l00978"></a>00978     <span class="comment">/* I/O port map</span>
+<a name="l00979"></a>00979 <span class="comment">     *</span>
+<a name="l00980"></a>00980 <span class="comment">     * IBM PC/XT/AT     NEC PC-98        A0</span>
+<a name="l00981"></a>00981 <span class="comment">     * ---------------------------------------</span>
+<a name="l00982"></a>00982 <span class="comment">     * 0x20             0x00             0</span>
+<a name="l00983"></a>00983 <span class="comment">     * 0x21             0x02             1</span>
+<a name="l00984"></a>00984 <span class="comment">     * 0xA0             0x08             0</span>
+<a name="l00985"></a>00985 <span class="comment">     * 0xA1             0x0A             1</span>
+<a name="l00986"></a>00986 <span class="comment">     */</span>
 <a name="l00987"></a>00987 
-<a name="l00988"></a>00988 <span class="keywordtype">void</span> PIC_Destroy(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l00989"></a>00989     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00990"></a>00990 }
-<a name="l00991"></a>00991 
-<a name="l00992"></a>00992 <span class="keywordtype">void</span> Init_PIC() {
-<a name="l00993"></a>00993     Bitu i;
-<a name="l00994"></a>00994 
-<a name="l00995"></a>00995     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Init_PIC()&quot;</span>);
-<a name="l00996"></a>00996 
-<a name="l00997"></a>00997     <span class="comment">/* Initialize the pic queue */</span>
-<a name="l00998"></a>00998     <span class="keywordflow">for</span> (i=0;i&lt;PIC_QUEUESIZE-1;i++) {
-<a name="l00999"></a>00999         pic_queue.entries[i].next=&amp;pic_queue.entries[i+1];
-<a name="l01000"></a>01000 
-<a name="l01001"></a>01001         <span class="comment">// savestate compatibility</span>
-<a name="l01002"></a>01002         pic_queue.entries[i].pic_event = 0;
-<a name="l01003"></a>01003     }
-<a name="l01004"></a>01004     pic_queue.entries[PIC_QUEUESIZE-1].next=0;
-<a name="l01005"></a>01005     pic_queue.free_entry=&amp;pic_queue.entries[0];
-<a name="l01006"></a>01006     pic_queue.next_entry=0;
-<a name="l01007"></a>01007 
-<a name="l01008"></a>01008     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
-<a name="l01009"></a>01009     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
-<a name="l01010"></a>01010 }
+<a name="l00988"></a>00988     ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
+<a name="l00989"></a>00989     ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
+<a name="l00990"></a>00990     WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
+<a name="l00991"></a>00991     WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
+<a name="l00992"></a>00992 
+<a name="l00993"></a>00993     <span class="comment">/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */</span>
+<a name="l00994"></a>00994     <span class="keywordflow">if</span> (enable_slave_pic) {
+<a name="l00995"></a>00995         ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
+<a name="l00996"></a>00996         ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
+<a name="l00997"></a>00997         WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
+<a name="l00998"></a>00998         WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
+<a name="l00999"></a>00999     }
+<a name="l01000"></a>01000     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; enable_pc_xt_nmi_mask) {
+<a name="l01001"></a>01001         PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
+<a name="l01002"></a>01002     }
+<a name="l01003"></a>01003 }
+<a name="l01004"></a>01004 
+<a name="l01005"></a>01005 <span class="keywordtype">void</span> PIC_Destroy(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l01006"></a>01006     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01007"></a>01007 }
+<a name="l01008"></a>01008 
+<a name="l01009"></a>01009 <span class="keywordtype">void</span> Init_PIC() {
+<a name="l01010"></a>01010     Bitu i;
 <a name="l01011"></a>01011 
-<a name="l01012"></a>01012 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l01013"></a>01013 <span class="preprocessor"></span><span class="keywordtype">void</span> DEBUG_LogPIC_C(<a class="code" href="structPIC__Controller.html">PIC_Controller</a> &amp;pic) {
-<a name="l01014"></a>01014     LOG_MSG(<span class="stringliteral">&quot;%s interrupt controller state&quot;</span>,&amp;pic == &amp;master ? <span class="stringliteral">&quot;Master&quot;</span> : <span class="stringliteral">&quot;Slave&quot;</span>);
-<a name="l01015"></a>01015     LOG_MSG(<span class="stringliteral">&quot;ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u isr=%02x isrr=%02x isrignore=%02x&quot;</span>,
-<a name="l01016"></a>01016         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_index,
-<a name="l01017"></a>01017         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_words,
-<a name="l01018"></a>01018         pic.special?1:0,
-<a name="l01019"></a>01019         pic.auto_eoi?1:0,
-<a name="l01020"></a>01020         pic.rotate_on_auto_eoi?1:0,
-<a name="l01021"></a>01021         pic.single?1:0,
-<a name="l01022"></a>01022         pic.request_issr?1:0,
-<a name="l01023"></a>01023         pic.vector_base,
-<a name="l01024"></a>01024         pic.active_irq,
-<a name="l01025"></a>01025         pic.isr,
-<a name="l01026"></a>01026         pic.isrr,
-<a name="l01027"></a>01027         pic.isr_ignore);
+<a name="l01012"></a>01012     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Init_PIC()&quot;</span>);
+<a name="l01013"></a>01013 
+<a name="l01014"></a>01014     <span class="comment">/* Initialize the pic queue */</span>
+<a name="l01015"></a>01015     <span class="keywordflow">for</span> (i=0;i&lt;PIC_QUEUESIZE-1;i++) {
+<a name="l01016"></a>01016         pic_queue.entries[i].next=&amp;pic_queue.entries[i+1];
+<a name="l01017"></a>01017 
+<a name="l01018"></a>01018         <span class="comment">// savestate compatibility</span>
+<a name="l01019"></a>01019         pic_queue.entries[i].pic_event = 0;
+<a name="l01020"></a>01020     }
+<a name="l01021"></a>01021     pic_queue.entries[PIC_QUEUESIZE-1].next=0;
+<a name="l01022"></a>01022     pic_queue.free_entry=&amp;pic_queue.entries[0];
+<a name="l01023"></a>01023     pic_queue.next_entry=0;
+<a name="l01024"></a>01024 
+<a name="l01025"></a>01025     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
+<a name="l01026"></a>01026     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
+<a name="l01027"></a>01027 }
 <a name="l01028"></a>01028 
-<a name="l01029"></a>01029     LOG_MSG(<span class="stringliteral">&quot;IRQ INT#  Req /Mask/Serv&quot;</span>);
-<a name="l01030"></a>01030     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> si=0;si &lt; 8;si++) {
-<a name="l01031"></a>01031         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> IRQ = si + (&amp;pic == &amp;slave ? 8 : 0);
-<a name="l01032"></a>01032         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CPUINT = pic.vector_base + si;
-<a name="l01033"></a>01033 
-<a name="l01034"></a>01034         LOG_MSG(<span class="stringliteral">&quot;%3u 0x%02X   %c    %c    %c   %s&quot;</span>,
-<a name="l01035"></a>01035             IRQ,
-<a name="l01036"></a>01036             CPUINT,
-<a name="l01037"></a>01037             (pic.irr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;R&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01038"></a>01038             (pic.imr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;M&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01039"></a>01039             (pic.isr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;S&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01040"></a>01040             ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)IRQ == (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq) ? <span class="stringliteral">&quot;CASCADE&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
-<a name="l01041"></a>01041     }
-<a name="l01042"></a>01042 }
-<a name="l01043"></a>01043 
-<a name="l01044"></a>01044 <span class="keywordtype">void</span> DEBUG_LogPIC(<span class="keywordtype">void</span>) {
-<a name="l01045"></a>01045     DEBUG_LogPIC_C(master);
-<a name="l01046"></a>01046     <span class="keywordflow">if</span> (enable_slave_pic) DEBUG_LogPIC_C(slave);
-<a name="l01047"></a>01047 }
-<a name="l01048"></a>01048 <span class="preprocessor">#endif</span>
-<a name="l01049"></a>01049 <span class="preprocessor"></span>
+<a name="l01029"></a>01029 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l01030"></a>01030 <span class="preprocessor"></span><span class="keywordtype">void</span> DEBUG_LogPIC_C(<a class="code" href="structPIC__Controller.html">PIC_Controller</a> &amp;pic) {
+<a name="l01031"></a>01031     LOG_MSG(<span class="stringliteral">&quot;%s interrupt controller state&quot;</span>,&amp;pic == &amp;master ? <span class="stringliteral">&quot;Master&quot;</span> : <span class="stringliteral">&quot;Slave&quot;</span>);
+<a name="l01032"></a>01032     LOG_MSG(<span class="stringliteral">&quot;ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u isr=%02x isrr=%02x isrignore=%02x&quot;</span>,
+<a name="l01033"></a>01033         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_index,
+<a name="l01034"></a>01034         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_words,
+<a name="l01035"></a>01035         pic.special?1:0,
+<a name="l01036"></a>01036         pic.auto_eoi?1:0,
+<a name="l01037"></a>01037         pic.rotate_on_auto_eoi?1:0,
+<a name="l01038"></a>01038         pic.single?1:0,
+<a name="l01039"></a>01039         pic.request_issr?1:0,
+<a name="l01040"></a>01040         pic.vector_base,
+<a name="l01041"></a>01041         pic.active_irq,
+<a name="l01042"></a>01042         pic.isr,
+<a name="l01043"></a>01043         pic.isrr,
+<a name="l01044"></a>01044         pic.isr_ignore);
+<a name="l01045"></a>01045 
+<a name="l01046"></a>01046     LOG_MSG(<span class="stringliteral">&quot;IRQ INT#  Req /Mask/Serv&quot;</span>);
+<a name="l01047"></a>01047     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> si=0;si &lt; 8;si++) {
+<a name="l01048"></a>01048         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> IRQ = si + (&amp;pic == &amp;slave ? 8 : 0);
+<a name="l01049"></a>01049         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CPUINT = pic.vector_base + si;
 <a name="l01050"></a>01050 
+<a name="l01051"></a>01051         LOG_MSG(<span class="stringliteral">&quot;%3u 0x%02X   %c    %c    %c   %s&quot;</span>,
+<a name="l01052"></a>01052             IRQ,
+<a name="l01053"></a>01053             CPUINT,
+<a name="l01054"></a>01054             (pic.irr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;R&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01055"></a>01055             (pic.imr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;M&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01056"></a>01056             (pic.isr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;S&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01057"></a>01057             ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)IRQ == (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq) ? <span class="stringliteral">&quot;CASCADE&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
+<a name="l01058"></a>01058     }
+<a name="l01059"></a>01059 }
+<a name="l01060"></a>01060 
+<a name="l01061"></a>01061 <span class="keywordtype">void</span> DEBUG_LogPIC(<span class="keywordtype">void</span>) {
+<a name="l01062"></a>01062     DEBUG_LogPIC_C(master);
+<a name="l01063"></a>01063     <span class="keywordflow">if</span> (enable_slave_pic) DEBUG_LogPIC_C(slave);
+<a name="l01064"></a>01064 }
+<a name="l01065"></a>01065 <span class="preprocessor">#endif</span>
+<a name="l01066"></a>01066 <span class="preprocessor"></span>
+<a name="l01067"></a>01067 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -3,6 +3,7 @@ var searchData=
   ['fatdrive',['fatDrive',['../classfatDrive.html',1,'']]],
   ['fatfile',['fatFile',['../classfatFile.html',1,'']]],
   ['fdihdr',['FDIHDR',['../structFDIHDR.html',1,'']]],
+  ['fh',['fh',['../classGUI_1_1Drawable.html#a85855fdc961b5c3d135a95127f03fb28',1,'GUI::Drawable']]],
   ['file',['File',['../classMT32Emu_1_1File.html',1,'MT32Emu']]],
   ['filestat_5fblock',['FileStat_Block',['../structFileStat__Block.html',1,'']]],
   ['filestream',['FileStream',['../classMT32Emu_1_1FileStream.html',1,'MT32Emu']]],
@@ -17,8 +18,8 @@ var searchData=
   ['floppycontroller',['FloppyController',['../classFloppyController.html',1,'']]],
   ['floppydevice',['FloppyDevice',['../classFloppyDevice.html',1,'']]],
   ['focuschanged',['focusChanged',['../classGUI_1_1Window.html#a3b22f685994ee18bdbf3b2b5ff6cc27c',1,'GUI::Window::focusChanged()'],['../classGUI_1_1TransientWindow.html#a233608f207df9a452281145e1086d31c',1,'GUI::TransientWindow::focusChanged()']]],
+  ['font',['font',['../classGUI_1_1Drawable.html#a4abfb3277538fc4f75b21aa15af748a1',1,'GUI::Drawable::font()'],['../classGUI_1_1Font.html#a34f6148432a4a9aae6861d7dc15e4322',1,'GUI::Font::Font()']]],
   ['font',['Font',['../classGUI_1_1Font.html',1,'GUI']]],
-  ['font',['Font',['../classGUI_1_1Font.html#a34f6148432a4a9aae6861d7dc15e4322',1,'GUI::Font::Font()'],['../classGUI_1_1Drawable.html#a4abfb3277538fc4f75b21aa15af748a1',1,'GUI::Drawable::font()']]],
   ['fpu_5fp_5freg',['FPU_P_Reg',['../structFPU__P__Reg.html',1,'']]],
   ['fpu_5frec',['FPU_rec',['../structFPU__rec.html',1,'']]],
   ['fpu_5freg',['FPU_Reg',['../unionFPU__Reg.html',1,'']]],
@@ -27,10 +28,11 @@ var searchData=
   ['fpu_5freg_5f80',['FPU_Reg_80',['../unionFPU__Reg__80.html',1,'']]],
   ['fr',['fr',['../structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5',1,'SMSF']]],
   ['fragmentdescriptor',['fragmentDescriptor',['../structfragmentDescriptor.html',1,'']]],
-  ['frame',['Frame',['../classGUI_1_1Frame.html',1,'GUI']]],
   ['frame',['Frame',['../classGUI_1_1Frame.html#a6e6473b283cab944efdbcdf9b4c88957',1,'GUI::Frame::Frame(Window *parent, int x, int y, int w, int h)'],['../classGUI_1_1Frame.html#a7d181489b0aa94eda947cd0600a17980',1,'GUI::Frame::Frame(Window *parent, int x, int y, int w, int h, const T text)']]],
+  ['frame',['Frame',['../classGUI_1_1Frame.html',1,'GUI']]],
   ['freeverbmodel',['FreeverbModel',['../classMT32Emu_1_1FreeverbModel.html',1,'MT32Emu']]],
   ['fromspecial',['fromSpecial',['../classGUI_1_1Font.html#a202180fd7d82ab4ada066526776432d7',1,'GUI::Font::fromSpecial()'],['../classGUI_1_1BitmapFont.html#a38227a28f83e1c3e0fc01f26161c74ed',1,'GUI::BitmapFont::fromSpecial()']]],
   ['fulldata',['FullData',['../structFullData.html',1,'']]],
-  ['function_5fwrapper',['Function_wrapper',['../structFunction__wrapper.html',1,'']]]
+  ['function_5fwrapper',['Function_wrapper',['../structFunction__wrapper.html',1,'']]],
+  ['fw',['fw',['../classGUI_1_1Drawable.html#a7f18b48889290acc30d7f4ba60e0bfd1',1,'GUI::Drawable']]]
 ];

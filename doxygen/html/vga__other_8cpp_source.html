@@ -584,7 +584,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00487"></a>00487     <span class="keywordflow">if</span> (vga.other.mcga_mode_control &amp; 1) <span class="comment">/* ignore COMPLETELY in 256-color MCGA mode */</span>
 <a name="l00488"></a>00488         <span class="keywordflow">return</span>;
 <a name="l00489"></a>00489 
-<a name="l00490"></a>00490         <span class="keywordflow">switch</span>(vga.mode) {
+<a name="l00490"></a>00490     <span class="keywordflow">switch</span> (vga.mode) {
 <a name="l00491"></a>00491         <span class="keywordflow">case</span>  M_TANDY4: {
 <a name="l00492"></a>00492                 Bit8u base = (val &amp; 0x10) ? 0x08 : 0;
 <a name="l00493"></a>00493                 Bit8u bg = val &amp; 0xf;
@@ -1256,7 +1256,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -100,7 +100,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a>  </div>
   <div class="headertitle">
 <div class="title">GUI::Label Class Reference</div>  </div>
 </div><!--header-->
@@ -150,17 +151,24 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a0a19005bc37fac28c857036e8dc48b2e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a19005bc37fac28c857036e8dc48b2e"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Label.html#a0a19005bc37fac28c857036e8dc48b2e">resize</a> (int w=-1, int h=-1)</td></tr>
 <tr class="memdesc:a0a19005bc37fac28c857036e8dc48b2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate label size. Parameters are ignored. <br/></td></tr>
+<tr class="memitem:a84714f868d1ada9134f58804097cef3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a84714f868d1ada9134f58804097cef3b"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Label.html#a84714f868d1ada9134f58804097cef3b">hasFocus</a> () const </td></tr>
+<tr class="memdesc:a84714f868d1ada9134f58804097cef3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <code>true</code> if this window has currently the keyboard focus. <br/></td></tr>
 <tr class="memitem:a797c2ce94314014b2775114a046c67b7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a797c2ce94314014b2775114a046c67b7"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Label.html#a797c2ce94314014b2775114a046c67b7">paint</a> (<a class="el" href="classGUI_1_1Drawable.html">Drawable</a> &amp;d) const </td></tr>
 <tr class="memdesc:a797c2ce94314014b2775114a046c67b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Paint label. <br/></td></tr>
 <tr class="memitem:ae974cb75928cf5fcb0574d59d3b41a43"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Label.html#ae974cb75928cf5fcb0574d59d3b41a43">raise</a> ()</td></tr>
 <tr class="memdesc:ae974cb75928cf5fcb0574d59d3b41a43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Put this window on top of all it's siblings. Preserves relative order.  <a href="#ae974cb75928cf5fcb0574d59d3b41a43"></a><br/></td></tr>
+<tr><td colspan="2"><h2><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a1b99913d11d7041a667648c395d5231f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b99913d11d7041a667648c395d5231f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>allow_focus</b> = false</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>A text label. </p>
 <p>Text labels are positioned relative to the top left corner of their bounding box. They size themselves automatically and display their text in non-interpreted mode. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01482">1482</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01540">1540</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="af2c6be489755244854911c2c5d3b2ee2"></a>
 <div class="memitem">
@@ -222,9 +230,9 @@ template&lt;typename STR &gt; </div>
 <p>Create a text label with given position, <code>text</code>, <code>font</code> and <code>color</code>. </p>
 <p>If <code>width</code> is given, the resulting label is a word-wrapped multiline label </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01498">1498</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01559">1559</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l01518">resize()</a>, and <a class="el" href="gui__tk_8h_source.html#l00598">GUI::Window::tabbable</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l01579">resize()</a>, and <a class="el" href="gui__tk_8h_source.html#l00601">GUI::Window::tabbable</a>.</p>
 
 </div>
 </div>
@@ -248,7 +256,7 @@ template&lt;typename STR &gt; </div>
 
 <p>Reimplemented from <a class="el" href="classGUI_1_1Window.html#a90890951f6ce5f043657756b2691e754">GUI::Window</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01532">1532</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01596">1596</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
 </div>
 </div>
@@ -259,7 +267,7 @@ template&lt;typename STR &gt; </div>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

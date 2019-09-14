@@ -1486,62 +1486,70 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01389"></a>01389     <span class="keywordtype">int</span> i=1;
 <a name="l01390"></a>01390     opt_style = opt;
 <a name="l01391"></a>01391     <span class="keywordflow">while</span> (i&lt;argc) {
-<a name="l01392"></a>01392         cmds.push_back(argv[i]);
-<a name="l01393"></a>01393         i++;
-<a name="l01394"></a>01394     }
-<a name="l01395"></a>01395 }
-<a name="l01396"></a>01396 
-<a name="l01397"></a>01397 Bit16u CommandLine::Get_arglength() {
-<a name="l01398"></a>01398     <span class="keywordflow">if</span> (cmds.empty()) <span class="keywordflow">return</span> 0;
-<a name="l01399"></a>01399     Bit16u i=1;
-<a name="l01400"></a>01400     <span class="keywordflow">for</span>(cmd_it it=cmds.begin();it != cmds.end();it++)
-<a name="l01401"></a>01401         i+=(*it).size() + 1;
-<a name="l01402"></a>01402     <span class="keywordflow">return</span> --i;
-<a name="l01403"></a>01403 }
-<a name="l01404"></a>01404 
-<a name="l01405"></a>01405 
-<a name="l01406"></a>01406 CommandLine::CommandLine(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt) {
-<a name="l01407"></a>01407     <span class="keywordflow">if</span> (name) file_name=name;
-<a name="l01408"></a>01408     <span class="comment">/* Parse the cmds and put them in the list */</span>
-<a name="l01409"></a>01409     <span class="keywordtype">bool</span> inword,inquote;<span class="keywordtype">char</span> c;
-<a name="l01410"></a>01410     inword=<span class="keyword">false</span>;inquote=<span class="keyword">false</span>;
-<a name="l01411"></a>01411     std::string str;
-<a name="l01412"></a>01412     <span class="keyword">const</span> <span class="keywordtype">char</span> * c_cmdline=cmdline;
-<a name="l01413"></a>01413     opt_style = opt;
-<a name="l01414"></a>01414     <span class="keywordflow">while</span> ((c=*c_cmdline)!=0) {
-<a name="l01415"></a>01415         <span class="keywordflow">if</span> (inquote) {
-<a name="l01416"></a>01416             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39;&quot;&#39;</span>) str+=c;
-<a name="l01417"></a>01417             <span class="keywordflow">else</span> {
-<a name="l01418"></a>01418                 inquote=<span class="keyword">false</span>;
-<a name="l01419"></a>01419                 cmds.push_back(str);
-<a name="l01420"></a>01420                 str.erase();
-<a name="l01421"></a>01421             }
-<a name="l01422"></a>01422         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (inword) {
-<a name="l01423"></a>01423             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) str+=c;
-<a name="l01424"></a>01424             <span class="keywordflow">else</span> {
-<a name="l01425"></a>01425                 inword=<span class="keyword">false</span>;
-<a name="l01426"></a>01426                 cmds.push_back(str);
-<a name="l01427"></a>01427                 str.erase();
-<a name="l01428"></a>01428             }
-<a name="l01429"></a>01429         }
-<a name="l01430"></a>01430         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c==<span class="charliteral">&#39;\&quot;&#39;</span>) { inquote=<span class="keyword">true</span>;}
-<a name="l01431"></a>01431         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) { str+=c;inword=<span class="keyword">true</span>;}
-<a name="l01432"></a>01432         c_cmdline++;
-<a name="l01433"></a>01433     }
-<a name="l01434"></a>01434     <span class="keywordflow">if</span> (inword || inquote) cmds.push_back(str);
-<a name="l01435"></a>01435 }
-<a name="l01436"></a>01436 
-<a name="l01437"></a>01437 <span class="keywordtype">void</span> CommandLine::Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount) {
-<a name="l01438"></a>01438     <span class="keywordflow">while</span>(amount--) {
-<a name="l01439"></a>01439         file_name = cmds.size()?*(cmds.begin()):<span class="stringliteral">&quot;&quot;</span>;
-<a name="l01440"></a>01440         <span class="keywordflow">if</span> (cmds.size()) cmds.erase(cmds.begin());
+<a name="l01392"></a>01392         <span class="keywordflow">if</span> (!raw_cmdline.empty()) raw_cmdline += <span class="stringliteral">&quot; &quot;</span>;
+<a name="l01393"></a>01393         raw_cmdline += argv[i];
+<a name="l01394"></a>01394 
+<a name="l01395"></a>01395         cmds.push_back(argv[i]);
+<a name="l01396"></a>01396         i++;
+<a name="l01397"></a>01397     }
+<a name="l01398"></a>01398 }
+<a name="l01399"></a>01399 
+<a name="l01400"></a>01400 <span class="keyword">const</span> std::string&amp; CommandLine::GetRawCmdline(<span class="keywordtype">void</span>) {
+<a name="l01401"></a>01401     <span class="keywordflow">return</span> raw_cmdline;
+<a name="l01402"></a>01402 }
+<a name="l01403"></a>01403 
+<a name="l01404"></a>01404 Bit16u CommandLine::Get_arglength() {
+<a name="l01405"></a>01405     <span class="keywordflow">if</span> (cmds.empty()) <span class="keywordflow">return</span> 0;
+<a name="l01406"></a>01406     Bit16u i=1;
+<a name="l01407"></a>01407     <span class="keywordflow">for</span>(cmd_it it=cmds.begin();it != cmds.end();it++)
+<a name="l01408"></a>01408         i+=(*it).size() + 1;
+<a name="l01409"></a>01409     <span class="keywordflow">return</span> --i;
+<a name="l01410"></a>01410 }
+<a name="l01411"></a>01411 
+<a name="l01412"></a>01412 
+<a name="l01413"></a>01413 CommandLine::CommandLine(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt) {
+<a name="l01414"></a>01414     <span class="keywordflow">if</span> (name) file_name=name;
+<a name="l01415"></a>01415     <span class="comment">/* Parse the cmds and put them in the list */</span>
+<a name="l01416"></a>01416     <span class="keywordtype">bool</span> inword,inquote;<span class="keywordtype">char</span> c;
+<a name="l01417"></a>01417     inword=<span class="keyword">false</span>;inquote=<span class="keyword">false</span>;
+<a name="l01418"></a>01418     std::string str;
+<a name="l01419"></a>01419     raw_cmdline = cmdline;
+<a name="l01420"></a>01420     <span class="keyword">const</span> <span class="keywordtype">char</span> * c_cmdline=cmdline;
+<a name="l01421"></a>01421     opt_style = opt;
+<a name="l01422"></a>01422     <span class="keywordflow">while</span> ((c=*c_cmdline)!=0) {
+<a name="l01423"></a>01423         <span class="keywordflow">if</span> (inquote) {
+<a name="l01424"></a>01424             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39;&quot;&#39;</span>) str+=c;
+<a name="l01425"></a>01425             <span class="keywordflow">else</span> {
+<a name="l01426"></a>01426                 inquote=<span class="keyword">false</span>;
+<a name="l01427"></a>01427                 cmds.push_back(str);
+<a name="l01428"></a>01428                 str.erase();
+<a name="l01429"></a>01429             }
+<a name="l01430"></a>01430         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (inword) {
+<a name="l01431"></a>01431             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) str+=c;
+<a name="l01432"></a>01432             <span class="keywordflow">else</span> {
+<a name="l01433"></a>01433                 inword=<span class="keyword">false</span>;
+<a name="l01434"></a>01434                 cmds.push_back(str);
+<a name="l01435"></a>01435                 str.erase();
+<a name="l01436"></a>01436             }
+<a name="l01437"></a>01437         }
+<a name="l01438"></a>01438         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c==<span class="charliteral">&#39;\&quot;&#39;</span>) { inquote=<span class="keyword">true</span>;}
+<a name="l01439"></a>01439         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) { str+=c;inword=<span class="keyword">true</span>;}
+<a name="l01440"></a>01440         c_cmdline++;
 <a name="l01441"></a>01441     }
-<a name="l01442"></a>01442 }
+<a name="l01442"></a>01442     <span class="keywordflow">if</span> (inword || inquote) cmds.push_back(str);
+<a name="l01443"></a>01443 }
+<a name="l01444"></a>01444 
+<a name="l01445"></a>01445 <span class="keywordtype">void</span> CommandLine::Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount) {
+<a name="l01446"></a>01446     <span class="keywordflow">while</span>(amount--) {
+<a name="l01447"></a>01447         file_name = cmds.size()?*(cmds.begin()):<span class="stringliteral">&quot;&quot;</span>;
+<a name="l01448"></a>01448         <span class="keywordflow">if</span> (cmds.size()) cmds.erase(cmds.begin());
+<a name="l01449"></a>01449     }
+<a name="l01450"></a>01450 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

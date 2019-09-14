@@ -84,7 +84,6 @@ var searchData=
   ['cmd_5fhelp',['CMD_HELP',['../classDOS__Shell.html#a5bd467ce4762cd07c612b39bf788968d',1,'DOS_Shell']]],
   ['cmd_5fif',['CMD_IF',['../classDOS__Shell.html#a9c7b48b6688fc5aeb0badb2833c5c476',1,'DOS_Shell']]],
   ['cmd_5fint2fdbg',['CMD_INT2FDBG',['../classDOS__Shell.html#afbae9c2b8f7002fe029296b381bb7903',1,'DOS_Shell']]],
-  ['cmd_5flabel',['CMD_LABEL',['../classDOS__Shell.html#adcca6e4501250456d1a04a9eac322be6',1,'DOS_Shell']]],
   ['cmd_5floadhigh',['CMD_LOADHIGH',['../classDOS__Shell.html#a579342df494d3257531fcabcc424b614',1,'DOS_Shell']]],
   ['cmd_5fmkdir',['CMD_MKDIR',['../classDOS__Shell.html#a585866333c2d3953164701b55c6e981b',1,'DOS_Shell']]],
   ['cmd_5fmore',['CMD_MORE',['../classDOS__Shell.html#a31d3f8107e9fc6bf368b02f5b15c861e',1,'DOS_Shell']]],

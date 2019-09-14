@@ -142,7 +142,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00045"></a>00045 CallBack_Handler CallBack_Handlers[CB_MAX] = {NULL};
 <a name="l00046"></a>00046 <span class="keywordtype">char</span>* CallBack_Description[CB_MAX] = {NULL};
 <a name="l00047"></a>00047 
-<a name="l00048"></a>00048 Bitu call_stop,call_default,call_default2;
+<a name="l00048"></a>00048 Bitu call_stop,call_default;
 <a name="l00049"></a>00049 Bit8u call_idle;
 <a name="l00050"></a>00050 Bitu call_priv_io;
 <a name="l00051"></a>00051 
@@ -984,45 +984,43 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00887"></a>00887         <span class="comment">/* Default handlers for unhandled interrupts that have to be non-null */</span>
 <a name="l00888"></a>00888         call_default=CALLBACK_Allocate();
 <a name="l00889"></a>00889         CALLBACK_Setup(call_default,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
-<a name="l00890"></a>00890         call_default2=CALLBACK_Allocate();
-<a name="l00891"></a>00891         CALLBACK_Setup(call_default2,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
-<a name="l00892"></a>00892 
-<a name="l00893"></a>00893         <span class="comment">/* Setup block of 0xCD 0xxx instructions */</span>
-<a name="l00894"></a>00894         PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;
-<a name="l00895"></a>00895         <span class="keywordflow">for</span> (i=0;i&lt;=0xff;i++) {
-<a name="l00896"></a>00896                 phys_writeb(rint_base,0xCD);
-<a name="l00897"></a>00897                 phys_writeb(rint_base+1,(Bit8u)i);
-<a name="l00898"></a>00898                 phys_writeb(rint_base+2,0xFE);
-<a name="l00899"></a>00899                 phys_writeb(rint_base+3,0x38);
-<a name="l00900"></a>00900                 phys_writew(rint_base+4,(Bit16u)call_stop);
-<a name="l00901"></a>00901                 rint_base+=6;
+<a name="l00890"></a>00890 
+<a name="l00891"></a>00891         <span class="comment">/* Setup block of 0xCD 0xxx instructions */</span>
+<a name="l00892"></a>00892         PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;
+<a name="l00893"></a>00893         <span class="keywordflow">for</span> (i=0;i&lt;=0xff;i++) {
+<a name="l00894"></a>00894                 phys_writeb(rint_base,0xCD);
+<a name="l00895"></a>00895                 phys_writeb(rint_base+1,(Bit8u)i);
+<a name="l00896"></a>00896                 phys_writeb(rint_base+2,0xFE);
+<a name="l00897"></a>00897                 phys_writeb(rint_base+3,0x38);
+<a name="l00898"></a>00898                 phys_writew(rint_base+4,(Bit16u)call_stop);
+<a name="l00899"></a>00899                 rint_base+=6;
+<a name="l00900"></a>00900 
+<a name="l00901"></a>00901         }
 <a name="l00902"></a>00902 
-<a name="l00903"></a>00903         }
+<a name="l00903"></a>00903         call_priv_io=CALLBACK_Allocate();
 <a name="l00904"></a>00904 
-<a name="l00905"></a>00905         call_priv_io=CALLBACK_Allocate();
-<a name="l00906"></a>00906 
-<a name="l00907"></a>00907         <span class="comment">// virtualizable in-out opcodes</span>
-<a name="l00908"></a>00908         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x00,(Bit8u)0xec);       <span class="comment">// in al, dx</span>
-<a name="l00909"></a>00909         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x01,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00910"></a>00910         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x02,(Bit8u)0xed);       <span class="comment">// in ax, dx</span>
-<a name="l00911"></a>00911         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x03,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00912"></a>00912         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x04,(Bit8u)0x66);       <span class="comment">// in eax, dx</span>
-<a name="l00913"></a>00913         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x05,(Bit8u)0xed);
-<a name="l00914"></a>00914         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x06,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00915"></a>00915 
-<a name="l00916"></a>00916         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x08,(Bit8u)0xee);       <span class="comment">// out dx, al</span>
-<a name="l00917"></a>00917         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x09,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00918"></a>00918         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0a,(Bit8u)0xef);       <span class="comment">// out dx, ax</span>
-<a name="l00919"></a>00919         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0b,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00920"></a>00920         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0c,(Bit8u)0x66);       <span class="comment">// out dx, eax</span>
-<a name="l00921"></a>00921         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0d,(Bit8u)0xef);
-<a name="l00922"></a>00922         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0e,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00923"></a>00923 }
+<a name="l00905"></a>00905         <span class="comment">// virtualizable in-out opcodes</span>
+<a name="l00906"></a>00906         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x00,(Bit8u)0xec);       <span class="comment">// in al, dx</span>
+<a name="l00907"></a>00907         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x01,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00908"></a>00908         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x02,(Bit8u)0xed);       <span class="comment">// in ax, dx</span>
+<a name="l00909"></a>00909         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x03,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00910"></a>00910         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x04,(Bit8u)0x66);       <span class="comment">// in eax, dx</span>
+<a name="l00911"></a>00911         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x05,(Bit8u)0xed);
+<a name="l00912"></a>00912         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x06,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00913"></a>00913 
+<a name="l00914"></a>00914         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x08,(Bit8u)0xee);       <span class="comment">// out dx, al</span>
+<a name="l00915"></a>00915         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x09,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00916"></a>00916         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0a,(Bit8u)0xef);       <span class="comment">// out dx, ax</span>
+<a name="l00917"></a>00917         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0b,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00918"></a>00918         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0c,(Bit8u)0x66);       <span class="comment">// out dx, eax</span>
+<a name="l00919"></a>00919         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0d,(Bit8u)0xef);
+<a name="l00920"></a>00920         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0e,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00921"></a>00921 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

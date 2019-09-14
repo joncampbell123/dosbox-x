@@ -110,183 +110,181 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 
 <a name="l00014"></a>00014 <span class="keywordtype">void</span> xBRZ_Initialize()
 <a name="l00015"></a>00015 {
-<a name="l00016"></a>00016     memset(&amp;sdl_xbrz, 0, <span class="keyword">sizeof</span>(sdl_xbrz));
+<a name="l00016"></a>00016     <a class="code" href="classSection__prop.html">Section_prop</a>* section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;render&quot;</span>));
 <a name="l00017"></a>00017 
-<a name="l00018"></a>00018     <a class="code" href="classSection__prop.html">Section_prop</a>* section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;render&quot;</span>));
+<a name="l00018"></a>00018     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC, LOG_DEBUG)(<span class="stringliteral">&quot;Early init (renderer): xBRZ options&quot;</span>);
 <a name="l00019"></a>00019 
-<a name="l00020"></a>00020     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC, LOG_DEBUG)(<span class="stringliteral">&quot;Early init (renderer): xBRZ options&quot;</span>);
-<a name="l00021"></a>00021 
-<a name="l00022"></a>00022     <span class="comment">// set some defaults</span>
-<a name="l00023"></a>00023     sdl_xbrz.task_granularity = 16;
-<a name="l00024"></a>00024     sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
-<a name="l00025"></a>00025 
-<a name="l00026"></a>00026     <span class="comment">// read options related to xBRZ here</span>
-<a name="l00027"></a>00027     <a class="code" href="classProp__multival.html">Prop_multival</a>* prop = section-&gt;Get_multival(<span class="stringliteral">&quot;scaler&quot;</span>);
-<a name="l00028"></a>00028     std::string scaler = prop-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;type&quot;</span>);
-<a name="l00029"></a>00029     sdl_xbrz.enable = ((scaler == <span class="stringliteral">&quot;xbrz&quot;</span>) || (scaler == <span class="stringliteral">&quot;xbrz_bilinear&quot;</span>));
-<a name="l00030"></a>00030     sdl_xbrz.postscale_bilinear = (scaler == <span class="stringliteral">&quot;xbrz_bilinear&quot;</span>);
-<a name="l00031"></a>00031     xBRZ_Change_Options(section);
-<a name="l00032"></a>00032 }
-<a name="l00033"></a>00033 
-<a name="l00034"></a>00034 <span class="keywordtype">void</span> xBRZ_Change_Options(<a class="code" href="classSection__prop.html">Section_prop</a>* section)
-<a name="l00035"></a>00035 {
-<a name="l00036"></a>00036     sdl_xbrz.task_granularity = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz slice&quot;</span>);
-<a name="l00037"></a>00037     sdl_xbrz.fixed_scale_factor = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz fixed scale factor&quot;</span>);
-<a name="l00038"></a>00038     sdl_xbrz.max_scale_factor = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz max scale factor&quot;</span>);
-<a name="l00039"></a>00039     <span class="keywordflow">if</span> ((sdl_xbrz.max_scale_factor &lt; 2) || (sdl_xbrz.max_scale_factor &gt; xbrz::SCALE_FACTOR_MAX))
-<a name="l00040"></a>00040         sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
-<a name="l00041"></a>00041     <span class="keywordflow">if</span> ((sdl_xbrz.fixed_scale_factor &lt; 2) || (sdl_xbrz.fixed_scale_factor &gt; xbrz::SCALE_FACTOR_MAX))
-<a name="l00042"></a>00042         sdl_xbrz.fixed_scale_factor = 0;
-<a name="l00043"></a>00043 }
-<a name="l00044"></a>00044 
-<a name="l00045"></a>00045 <span class="comment">// returns true if scaling possible/enabled, false otherwise</span>
-<a name="l00046"></a>00046 <span class="keywordtype">bool</span> xBRZ_SetScaleParameters(<span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, <span class="keywordtype">int</span> dstWidth, <span class="keywordtype">int</span> dstHeight)
-<a name="l00047"></a>00047 {
-<a name="l00048"></a>00048     sdl_xbrz.scale_factor = (sdl_xbrz.fixed_scale_factor == 0) ?
-<a name="l00049"></a>00049         static_cast&lt;int&gt;(std::sqrt((<span class="keywordtype">double</span>)dstWidth * dstHeight / (srcWidth * srcHeight)) + 0.5) :
-<a name="l00050"></a>00050         sdl_xbrz.fixed_scale_factor;
-<a name="l00051"></a>00051 
-<a name="l00052"></a>00052     <span class="comment">// enable minimal scaling if upscale is still possible but requires post-downscale</span>
-<a name="l00053"></a>00053     <span class="comment">// having aspect ratio correction on always implies enabled scaler because it gives better quality than DOSBox own method</span>
-<a name="l00054"></a>00054     <span class="keywordflow">if</span> (sdl_xbrz.scale_factor == 1 &amp;&amp; (render.aspect || dstWidth &gt; srcWidth || dstHeight &gt; srcHeight))
-<a name="l00055"></a>00055         sdl_xbrz.scale_factor = 2;
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057     if (sdl_xbrz.scale_factor &gt;= 2)
-<a name="l00058"></a>00058     {
-<a name="l00059"></a>00059         <span class="comment">// ok to scale, now clamp scale factor if corresponding max option is set</span>
-<a name="l00060"></a>00060         sdl_xbrz.scale_factor = min(sdl_xbrz.scale_factor, sdl_xbrz.max_scale_factor);
-<a name="l00061"></a>00061         sdl_xbrz.scale_on = <span class="keyword">true</span>;
-<a name="l00062"></a>00062     }
-<a name="l00063"></a>00063     <span class="keywordflow">else</span>
-<a name="l00064"></a>00064     {
-<a name="l00065"></a>00065         <span class="comment">// scaling impossible</span>
-<a name="l00066"></a>00066         sdl_xbrz.scale_on = <span class="keyword">false</span>;
-<a name="l00067"></a>00067     }
-<a name="l00068"></a>00068 
-<a name="l00069"></a>00069     <span class="keywordflow">return</span> sdl_xbrz.scale_on;
-<a name="l00070"></a>00070 }
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072 <span class="keywordtype">void</span> xBRZ_Render(<span class="keyword">const</span> uint32_t* renderBuf, uint32_t* xbrzBuf, <span class="keyword">const</span> Bit16u *changedLines, <span class="keyword">const</span> <span class="keywordtype">int</span> srcWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> srcHeight, <span class="keywordtype">int</span> scalingFactor)
-<a name="l00073"></a>00073 {
-<a name="l00074"></a>00074 <span class="preprocessor">#ifdef XBRZ_PPL</span>
-<a name="l00075"></a>00075 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (changedLines) <span class="comment">// perf: in worst case similar to full input scaling</span>
-<a name="l00076"></a>00076     {
-<a name="l00077"></a>00077         concurrency::task_group tg; <span class="comment">// perf: task_group is slightly faster than pure parallel_for</span>
-<a name="l00078"></a>00078 
-<a name="l00079"></a>00079         <span class="keywordtype">int</span> yLast = 0;
-<a name="l00080"></a>00080         Bitu y = 0, index = 0;
-<a name="l00081"></a>00081         <span class="keywordflow">while</span> (y &lt; sdl.draw.height)
-<a name="l00082"></a>00082         {
-<a name="l00083"></a>00083             <span class="keywordflow">if</span> (!(index &amp; 1))
-<a name="l00084"></a>00084                 y += changedLines[index];
-<a name="l00085"></a>00085             <span class="keywordflow">else</span>
-<a name="l00086"></a>00086             {
-<a name="l00087"></a>00087                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceFirst = (int)y;
-<a name="l00088"></a>00088                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceLast = (int)y + changedLines[index];
-<a name="l00089"></a>00089                 y += changedLines[index];
-<a name="l00090"></a>00090 
-<a name="l00091"></a>00091                 <span class="keywordtype">int</span> yFirst = max(yLast, sliceFirst - 2); <span class="comment">// we need to update two adjacent lines as well since they are analyzed by xBRZ!</span>
-<a name="l00092"></a>00092                 yLast = min(srcHeight, sliceLast + 2);   <span class="comment">// (and make sure to not overlap with last slice!)</span>
-<a name="l00093"></a>00093                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = yFirst; i &lt; yLast; i += sdl_xbrz.task_granularity)
-<a name="l00094"></a>00094                 {
-<a name="l00095"></a>00095                     tg.run([=] { 
-<a name="l00096"></a>00096                         <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + sdl_xbrz.task_granularity, yLast);
-<a name="l00097"></a>00097                         xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), i, iLast);
-<a name="l00098"></a>00098                     });
-<a name="l00099"></a>00099                 }
-<a name="l00100"></a>00100             }
-<a name="l00101"></a>00101             index++;
-<a name="l00102"></a>00102         }
-<a name="l00103"></a>00103         tg.wait();
-<a name="l00104"></a>00104     }
-<a name="l00105"></a>00105     <span class="keywordflow">else</span> <span class="comment">// process complete input image</span>
-<a name="l00106"></a>00106     {
-<a name="l00107"></a>00107         concurrency::task_group tg;
-<a name="l00108"></a>00108         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; srcHeight; i += sdl_xbrz.task_granularity)
-<a name="l00109"></a>00109         {
-<a name="l00110"></a>00110             tg.run([=] { 
-<a name="l00111"></a>00111                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + sdl_xbrz.task_granularity, srcHeight);
-<a name="l00112"></a>00112                 xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), i, iLast);
-<a name="l00113"></a>00113             });
-<a name="l00114"></a>00114         }
-<a name="l00115"></a>00115         tg.wait();
-<a name="l00116"></a>00116     }
-<a name="l00117"></a>00117 <span class="preprocessor">#else</span>
-<a name="l00118"></a>00118 <span class="preprocessor"></span>    <span class="comment">/* non-PPL for non-Windows.</span>
-<a name="l00119"></a>00119 <span class="comment">    * combine the code above, cleanly, if possible. */</span>
-<a name="l00120"></a>00120     <span class="keywordflow">if</span> (changedLines)
-<a name="l00121"></a>00121     {
-<a name="l00122"></a>00122         <span class="keywordtype">int</span> yLast = 0;
-<a name="l00123"></a>00123         Bitu y = 0, index = 0;
-<a name="l00124"></a>00124         <span class="keywordflow">while</span> (y &lt; sdl.draw.height)
-<a name="l00125"></a>00125         {
-<a name="l00126"></a>00126             <span class="keywordflow">if</span> (!(index &amp; 1))
-<a name="l00127"></a>00127                 y += changedLines[index];
-<a name="l00128"></a>00128             <span class="keywordflow">else</span>
-<a name="l00129"></a>00129             {
-<a name="l00130"></a>00130                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceFirst = int(y);
-<a name="l00131"></a>00131                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceLast = int(y + changedLines[index]);
-<a name="l00132"></a>00132                 y += changedLines[index];
-<a name="l00133"></a>00133 
-<a name="l00134"></a>00134                 <span class="keywordtype">int</span> yFirst = max(yLast, sliceFirst - 2); <span class="comment">// we need to update two adjacent lines as well since they are analyzed by xBRZ!</span>
-<a name="l00135"></a>00135                 yLast = min(srcHeight, sliceLast + 2);  <span class="comment">// (and make sure to not overlap with last slice!)</span>
-<a name="l00136"></a>00136                 xbrz::scale((<span class="keywordtype">size_t</span>)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), yFirst, yLast);
-<a name="l00137"></a>00137             }
-<a name="l00138"></a>00138             index++;
-<a name="l00139"></a>00139         }
-<a name="l00140"></a>00140     }
-<a name="l00141"></a>00141     <span class="keywordflow">else</span> <span class="comment">// process complete input image</span>
-<a name="l00142"></a>00142     {
-<a name="l00143"></a>00143         xbrz::scale((<span class="keywordtype">size_t</span>)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), 0, srcHeight);
-<a name="l00144"></a>00144     }
-<a name="l00145"></a>00145 <span class="preprocessor">#endif </span><span class="comment">/*XBRZ_PPL*/</span>
-<a name="l00146"></a>00146 }
+<a name="l00020"></a>00020     <span class="comment">// set some defaults</span>
+<a name="l00021"></a>00021     sdl_xbrz.task_granularity = 16;
+<a name="l00022"></a>00022     sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+<a name="l00023"></a>00023 
+<a name="l00024"></a>00024     <span class="comment">// read options related to xBRZ here</span>
+<a name="l00025"></a>00025     <a class="code" href="classProp__multival.html">Prop_multival</a>* prop = section-&gt;Get_multival(<span class="stringliteral">&quot;scaler&quot;</span>);
+<a name="l00026"></a>00026     std::string scaler = prop-&gt;GetSection()-&gt;Get_string(<span class="stringliteral">&quot;type&quot;</span>);
+<a name="l00027"></a>00027     sdl_xbrz.enable = ((scaler == <span class="stringliteral">&quot;xbrz&quot;</span>) || (scaler == <span class="stringliteral">&quot;xbrz_bilinear&quot;</span>));
+<a name="l00028"></a>00028     sdl_xbrz.postscale_bilinear = (scaler == <span class="stringliteral">&quot;xbrz_bilinear&quot;</span>);
+<a name="l00029"></a>00029     xBRZ_Change_Options(section);
+<a name="l00030"></a>00030 }
+<a name="l00031"></a>00031 
+<a name="l00032"></a>00032 <span class="keywordtype">void</span> xBRZ_Change_Options(<a class="code" href="classSection__prop.html">Section_prop</a>* section)
+<a name="l00033"></a>00033 {
+<a name="l00034"></a>00034     sdl_xbrz.task_granularity = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz slice&quot;</span>);
+<a name="l00035"></a>00035     sdl_xbrz.fixed_scale_factor = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz fixed scale factor&quot;</span>);
+<a name="l00036"></a>00036     sdl_xbrz.max_scale_factor = section-&gt;Get_int(<span class="stringliteral">&quot;xbrz max scale factor&quot;</span>);
+<a name="l00037"></a>00037     <span class="keywordflow">if</span> ((sdl_xbrz.max_scale_factor &lt; 2) || (sdl_xbrz.max_scale_factor &gt; xbrz::SCALE_FACTOR_MAX))
+<a name="l00038"></a>00038         sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+<a name="l00039"></a>00039     <span class="keywordflow">if</span> ((sdl_xbrz.fixed_scale_factor &lt; 2) || (sdl_xbrz.fixed_scale_factor &gt; xbrz::SCALE_FACTOR_MAX))
+<a name="l00040"></a>00040         sdl_xbrz.fixed_scale_factor = 0;
+<a name="l00041"></a>00041 }
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043 <span class="comment">// returns true if scaling possible/enabled, false otherwise</span>
+<a name="l00044"></a>00044 <span class="keywordtype">bool</span> xBRZ_SetScaleParameters(<span class="keywordtype">int</span> srcWidth, <span class="keywordtype">int</span> srcHeight, <span class="keywordtype">int</span> dstWidth, <span class="keywordtype">int</span> dstHeight)
+<a name="l00045"></a>00045 {
+<a name="l00046"></a>00046     sdl_xbrz.scale_factor = (sdl_xbrz.fixed_scale_factor == 0) ?
+<a name="l00047"></a>00047         static_cast&lt;int&gt;(std::sqrt((<span class="keywordtype">double</span>)dstWidth * dstHeight / (srcWidth * srcHeight)) + 0.5) :
+<a name="l00048"></a>00048         sdl_xbrz.fixed_scale_factor;
+<a name="l00049"></a>00049 
+<a name="l00050"></a>00050     <span class="comment">// enable minimal scaling if upscale is still possible but requires post-downscale</span>
+<a name="l00051"></a>00051     <span class="comment">// having aspect ratio correction on always implies enabled scaler because it gives better quality than DOSBox own method</span>
+<a name="l00052"></a>00052     <span class="keywordflow">if</span> (sdl_xbrz.scale_factor == 1 &amp;&amp; (render.aspect || dstWidth &gt; srcWidth || dstHeight &gt; srcHeight))
+<a name="l00053"></a>00053         sdl_xbrz.scale_factor = 2;
+<a name="l00054"></a>00054 
+<a name="l00055"></a>00055     if (sdl_xbrz.scale_factor &gt;= 2)
+<a name="l00056"></a>00056     {
+<a name="l00057"></a>00057         <span class="comment">// ok to scale, now clamp scale factor if corresponding max option is set</span>
+<a name="l00058"></a>00058         sdl_xbrz.scale_factor = min(sdl_xbrz.scale_factor, sdl_xbrz.max_scale_factor);
+<a name="l00059"></a>00059         sdl_xbrz.scale_on = <span class="keyword">true</span>;
+<a name="l00060"></a>00060     }
+<a name="l00061"></a>00061     <span class="keywordflow">else</span>
+<a name="l00062"></a>00062     {
+<a name="l00063"></a>00063         <span class="comment">// scaling impossible</span>
+<a name="l00064"></a>00064         sdl_xbrz.scale_on = <span class="keyword">false</span>;
+<a name="l00065"></a>00065     }
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067     <span class="keywordflow">return</span> sdl_xbrz.scale_on;
+<a name="l00068"></a>00068 }
+<a name="l00069"></a>00069 
+<a name="l00070"></a>00070 <span class="keywordtype">void</span> xBRZ_Render(<span class="keyword">const</span> uint32_t* renderBuf, uint32_t* xbrzBuf, <span class="keyword">const</span> Bit16u *changedLines, <span class="keyword">const</span> <span class="keywordtype">int</span> srcWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> srcHeight, <span class="keywordtype">int</span> scalingFactor)
+<a name="l00071"></a>00071 {
+<a name="l00072"></a>00072 <span class="preprocessor">#ifdef XBRZ_PPL</span>
+<a name="l00073"></a>00073 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (changedLines) <span class="comment">// perf: in worst case similar to full input scaling</span>
+<a name="l00074"></a>00074     {
+<a name="l00075"></a>00075         concurrency::task_group tg; <span class="comment">// perf: task_group is slightly faster than pure parallel_for</span>
+<a name="l00076"></a>00076 
+<a name="l00077"></a>00077         <span class="keywordtype">int</span> yLast = 0;
+<a name="l00078"></a>00078         Bitu y = 0, index = 0;
+<a name="l00079"></a>00079         <span class="keywordflow">while</span> (y &lt; sdl.draw.height)
+<a name="l00080"></a>00080         {
+<a name="l00081"></a>00081             <span class="keywordflow">if</span> (!(index &amp; 1))
+<a name="l00082"></a>00082                 y += changedLines[index];
+<a name="l00083"></a>00083             <span class="keywordflow">else</span>
+<a name="l00084"></a>00084             {
+<a name="l00085"></a>00085                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceFirst = (int)y;
+<a name="l00086"></a>00086                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceLast = (int)y + changedLines[index];
+<a name="l00087"></a>00087                 y += changedLines[index];
+<a name="l00088"></a>00088 
+<a name="l00089"></a>00089                 <span class="keywordtype">int</span> yFirst = max(yLast, sliceFirst - 2); <span class="comment">// we need to update two adjacent lines as well since they are analyzed by xBRZ!</span>
+<a name="l00090"></a>00090                 yLast = min(srcHeight, sliceLast + 2);   <span class="comment">// (and make sure to not overlap with last slice!)</span>
+<a name="l00091"></a>00091                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = yFirst; i &lt; yLast; i += sdl_xbrz.task_granularity)
+<a name="l00092"></a>00092                 {
+<a name="l00093"></a>00093                     tg.run([=] { 
+<a name="l00094"></a>00094                         <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + sdl_xbrz.task_granularity, yLast);
+<a name="l00095"></a>00095                         xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), i, iLast);
+<a name="l00096"></a>00096                     });
+<a name="l00097"></a>00097                 }
+<a name="l00098"></a>00098             }
+<a name="l00099"></a>00099             index++;
+<a name="l00100"></a>00100         }
+<a name="l00101"></a>00101         tg.wait();
+<a name="l00102"></a>00102     }
+<a name="l00103"></a>00103     <span class="keywordflow">else</span> <span class="comment">// process complete input image</span>
+<a name="l00104"></a>00104     {
+<a name="l00105"></a>00105         concurrency::task_group tg;
+<a name="l00106"></a>00106         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; srcHeight; i += sdl_xbrz.task_granularity)
+<a name="l00107"></a>00107         {
+<a name="l00108"></a>00108             tg.run([=] { 
+<a name="l00109"></a>00109                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + sdl_xbrz.task_granularity, srcHeight);
+<a name="l00110"></a>00110                 xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), i, iLast);
+<a name="l00111"></a>00111             });
+<a name="l00112"></a>00112         }
+<a name="l00113"></a>00113         tg.wait();
+<a name="l00114"></a>00114     }
+<a name="l00115"></a>00115 <span class="preprocessor">#else</span>
+<a name="l00116"></a>00116 <span class="preprocessor"></span>    <span class="comment">/* non-PPL for non-Windows.</span>
+<a name="l00117"></a>00117 <span class="comment">    * combine the code above, cleanly, if possible. */</span>
+<a name="l00118"></a>00118     <span class="keywordflow">if</span> (changedLines)
+<a name="l00119"></a>00119     {
+<a name="l00120"></a>00120         <span class="keywordtype">int</span> yLast = 0;
+<a name="l00121"></a>00121         Bitu y = 0, index = 0;
+<a name="l00122"></a>00122         <span class="keywordflow">while</span> (y &lt; sdl.draw.height)
+<a name="l00123"></a>00123         {
+<a name="l00124"></a>00124             <span class="keywordflow">if</span> (!(index &amp; 1))
+<a name="l00125"></a>00125                 y += changedLines[index];
+<a name="l00126"></a>00126             <span class="keywordflow">else</span>
+<a name="l00127"></a>00127             {
+<a name="l00128"></a>00128                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceFirst = int(y);
+<a name="l00129"></a>00129                 <span class="keyword">const</span> <span class="keywordtype">int</span> sliceLast = int(y + changedLines[index]);
+<a name="l00130"></a>00130                 y += changedLines[index];
+<a name="l00131"></a>00131 
+<a name="l00132"></a>00132                 <span class="keywordtype">int</span> yFirst = max(yLast, sliceFirst - 2); <span class="comment">// we need to update two adjacent lines as well since they are analyzed by xBRZ!</span>
+<a name="l00133"></a>00133                 yLast = min(srcHeight, sliceLast + 2);  <span class="comment">// (and make sure to not overlap with last slice!)</span>
+<a name="l00134"></a>00134                 xbrz::scale((<span class="keywordtype">size_t</span>)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), yFirst, yLast);
+<a name="l00135"></a>00135             }
+<a name="l00136"></a>00136             index++;
+<a name="l00137"></a>00137         }
+<a name="l00138"></a>00138     }
+<a name="l00139"></a>00139     <span class="keywordflow">else</span> <span class="comment">// process complete input image</span>
+<a name="l00140"></a>00140     {
+<a name="l00141"></a>00141         xbrz::scale((<span class="keywordtype">size_t</span>)scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, <a class="code" href="namespaceGUI.html#aeafd135255365f3584da0e982fc79466" title="ARGB 24-bit color value: (a&lt;&lt;24)|(r&lt;&lt;16)|(g&lt;&lt;8)|(b)">xbrz::ColorFormat::RGB</a>, <a class="code" href="structxbrz_1_1ScalerCfg.html">xbrz::ScalerCfg</a>(), 0, srcHeight);
+<a name="l00142"></a>00142     }
+<a name="l00143"></a>00143 <span class="preprocessor">#endif </span><span class="comment">/*XBRZ_PPL*/</span>
+<a name="l00144"></a>00144 }
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146 <span class="preprocessor">#endif </span><span class="comment">/*C_XBRZ*/</span>
 <a name="l00147"></a>00147 
-<a name="l00148"></a>00148 <span class="preprocessor">#endif </span><span class="comment">/*C_XBRZ*/</span>
-<a name="l00149"></a>00149 
-<a name="l00150"></a>00150 <span class="preprocessor">#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT</span>
-<a name="l00151"></a>00151 <span class="preprocessor"></span>
-<a name="l00152"></a>00152 <span class="keywordtype">void</span> xBRZ_PostScale(<span class="keyword">const</span> uint32_t* src, <span class="keyword">const</span> <span class="keywordtype">int</span> srcWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> srcHeight, <span class="keyword">const</span> <span class="keywordtype">int</span> srcPitch, 
-<a name="l00153"></a>00153                     uint32_t* tgt, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtHeight, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtPitch, 
-<a name="l00154"></a>00154                     <span class="keyword">const</span> <span class="keywordtype">bool</span> bilinear, <span class="keyword">const</span> <span class="keywordtype">int</span> task_granularity)
-<a name="l00155"></a>00155 {
-<a name="l00156"></a>00156     (void)task_granularity;
-<a name="l00157"></a>00157 
-<a name="l00158"></a>00158 <span class="preprocessor"># if defined(XBRZ_PPL)</span>
-<a name="l00159"></a>00159 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (bilinear) {
-<a name="l00160"></a>00160         concurrency::task_group tg;
-<a name="l00161"></a>00161         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; tgtHeight; i += task_granularity)
-<a name="l00162"></a>00162             tg.run([=] {
-<a name="l00163"></a>00163                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + task_granularity, tgtHeight);
-<a name="l00164"></a>00164                 xbrz::bilinearScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });  
-<a name="l00165"></a>00165             });
-<a name="l00166"></a>00166         tg.wait();
-<a name="l00167"></a>00167     }
-<a name="l00168"></a>00168     <span class="keywordflow">else</span>
-<a name="l00169"></a>00169     {
-<a name="l00170"></a>00170         concurrency::task_group tg;
-<a name="l00171"></a>00171         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; tgtHeight; i += task_granularity)
-<a name="l00172"></a>00172             tg.run([=] {
-<a name="l00173"></a>00173                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + task_granularity, tgtHeight);
-<a name="l00174"></a>00174                 <span class="comment">// perf: going over target is by factor 4 faster than going over source for similar image sizes</span>
-<a name="l00175"></a>00175                 xbrz::nearestNeighborScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l00176"></a>00176             });
-<a name="l00177"></a>00177         tg.wait();
-<a name="l00178"></a>00178     }
-<a name="l00179"></a>00179 <span class="preprocessor">#else</span>
-<a name="l00180"></a>00180 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (bilinear)
-<a name="l00181"></a>00181         xbrz::bilinearScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, 0, tgtHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l00182"></a>00182     <span class="keywordflow">else</span>
-<a name="l00183"></a>00183         xbrz::nearestNeighborScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, 0, tgtHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
-<a name="l00184"></a>00184 <span class="preprocessor">#endif</span>
-<a name="l00185"></a>00185 <span class="preprocessor"></span>}
-<a name="l00186"></a>00186 
-<a name="l00187"></a>00187 <span class="preprocessor">#endif </span><span class="comment">/*C_XBRZ || C_SURFACE_POSTRENDER_ASPECT*/</span>
+<a name="l00148"></a>00148 <span class="preprocessor">#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT</span>
+<a name="l00149"></a>00149 <span class="preprocessor"></span>
+<a name="l00150"></a>00150 <span class="keywordtype">void</span> xBRZ_PostScale(<span class="keyword">const</span> uint32_t* src, <span class="keyword">const</span> <span class="keywordtype">int</span> srcWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> srcHeight, <span class="keyword">const</span> <span class="keywordtype">int</span> srcPitch, 
+<a name="l00151"></a>00151                     uint32_t* tgt, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtWidth, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtHeight, <span class="keyword">const</span> <span class="keywordtype">int</span> tgtPitch, 
+<a name="l00152"></a>00152                     <span class="keyword">const</span> <span class="keywordtype">bool</span> bilinear, <span class="keyword">const</span> <span class="keywordtype">int</span> task_granularity)
+<a name="l00153"></a>00153 {
+<a name="l00154"></a>00154     (void)task_granularity;
+<a name="l00155"></a>00155 
+<a name="l00156"></a>00156 <span class="preprocessor"># if defined(XBRZ_PPL)</span>
+<a name="l00157"></a>00157 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (bilinear) {
+<a name="l00158"></a>00158         concurrency::task_group tg;
+<a name="l00159"></a>00159         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; tgtHeight; i += task_granularity)
+<a name="l00160"></a>00160             tg.run([=] {
+<a name="l00161"></a>00161                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + task_granularity, tgtHeight);
+<a name="l00162"></a>00162                 xbrz::bilinearScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });  
+<a name="l00163"></a>00163             });
+<a name="l00164"></a>00164         tg.wait();
+<a name="l00165"></a>00165     }
+<a name="l00166"></a>00166     <span class="keywordflow">else</span>
+<a name="l00167"></a>00167     {
+<a name="l00168"></a>00168         concurrency::task_group tg;
+<a name="l00169"></a>00169         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; tgtHeight; i += task_granularity)
+<a name="l00170"></a>00170             tg.run([=] {
+<a name="l00171"></a>00171                 <span class="keyword">const</span> <span class="keywordtype">int</span> iLast = min(i + task_granularity, tgtHeight);
+<a name="l00172"></a>00172                 <span class="comment">// perf: going over target is by factor 4 faster than going over source for similar image sizes</span>
+<a name="l00173"></a>00173                 xbrz::nearestNeighborScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, i, iLast, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l00174"></a>00174             });
+<a name="l00175"></a>00175         tg.wait();
+<a name="l00176"></a>00176     }
+<a name="l00177"></a>00177 <span class="preprocessor">#else</span>
+<a name="l00178"></a>00178 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (bilinear)
+<a name="l00179"></a>00179         xbrz::bilinearScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, 0, tgtHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l00180"></a>00180     <span class="keywordflow">else</span>
+<a name="l00181"></a>00181         xbrz::nearestNeighborScale(&amp;src[0], srcWidth, srcHeight, srcPitch, &amp;tgt[0], tgtWidth, tgtHeight, tgtPitch, 0, tgtHeight, [](uint32_t pix) { <span class="keywordflow">return</span> pix; });
+<a name="l00182"></a>00182 <span class="preprocessor">#endif</span>
+<a name="l00183"></a>00183 <span class="preprocessor"></span>}
+<a name="l00184"></a>00184 
+<a name="l00185"></a>00185 <span class="preprocessor">#endif </span><span class="comment">/*C_XBRZ || C_SURFACE_POSTRENDER_ASPECT*/</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 17 2019 12:06:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Sep 14 2019 12:08:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

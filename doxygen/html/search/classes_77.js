@@ -8,6 +8,7 @@ var searchData=
   ['wgparam',['WGParam',['../structMT32Emu_1_1TimbreParam_1_1PartialParam_1_1WGParam.html',1,'MT32Emu::TimbreParam::PartialParam']]],
   ['window',['Window',['../classGUI_1_1Window.html',1,'GUI']]],
   ['window_5fcallback',['Window_Callback',['../structGUI_1_1Window__Callback.html',1,'GUI']]],
+  ['windowinwindow',['WindowInWindow',['../classGUI_1_1WindowInWindow.html',1,'GUI']]],
   ['windows_5fdvinfo',['windows_DVINFO',['../structwindows__DVINFO.html',1,'']]],
   ['wrongtype',['WrongType',['../classValue_1_1WrongType.html',1,'Value']]],
   ['wxh',['wxh',['../structScreenSizeInfo_1_1wxh.html',1,'ScreenSizeInfo']]]

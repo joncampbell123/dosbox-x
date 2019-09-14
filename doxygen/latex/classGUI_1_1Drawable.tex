@@ -172,6 +172,12 @@ void \hyperlink{classGUI_1_1Drawable_a6aaa69d3de9eaa1611c287c6030e232b}{draw\-Dr
 \hypertarget{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}{const int \hyperlink{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}{ch}}\label{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}
 
 \begin{DoxyCompactList}\small\item\em clip height. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a7f18b48889290acc30d7f4ba60e0bfd1}{const int \hyperlink{classGUI_1_1Drawable_a7f18b48889290acc30d7f4ba60e0bfd1}{fw}}\label{classGUI_1_1Drawable_a7f18b48889290acc30d7f4ba60e0bfd1}
+
+\begin{DoxyCompactList}\small\item\em functional width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a85855fdc961b5c3d135a95127f03fb28}{const int \hyperlink{classGUI_1_1Drawable_a85855fdc961b5c3d135a95127f03fb28}{fh}}\label{classGUI_1_1Drawable_a85855fdc961b5c3d135a95127f03fb28}
+
+\begin{DoxyCompactList}\small\item\em functional height. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}}\label{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}
 
 \begin{DoxyCompactList}\small\item\em Current position x coordinate. \end{DoxyCompactList}\item 
@@ -195,7 +201,7 @@ Drawables have a current font, color and (x,y) position. Drawing takes place at 
 
 Some drawing primitives are overloaded to take full coordinates. These ignore the current position, but update it just like their regular brethren. 
 
-Definition at line 1003 of file gui\-\_\-tk.\-h.
+Definition at line 1056 of file gui\-\_\-tk.\-h.
 
 
 
@@ -215,7 +221,7 @@ Create an empty drawable object with given dimensions.
 
 Optionally, the area is cleared with a given color (default\-: fully transparent). 
 
-Definition at line 196 of file gui\-\_\-tk.\-cpp.
+Definition at line 207 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -235,7 +241,7 @@ Deep-\/copying copy constructor.
 
 It honours clip and translate so that the resulting drawable, if drawn to the source drawable at (0,0), yields the same result as drawing directly to the source surface. If {\ttfamily fill} is not explicitly set, will copy the original surface's contents 
 
-Definition at line 211 of file gui\-\_\-tk.\-cpp.
+Definition at line 223 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -257,7 +263,7 @@ Draw a circle centered at the current position with diameter {\ttfamily d}.
 
 The current position is not changed. 
 
-Definition at line 328 of file gui\-\_\-tk.\-cpp.
+Definition at line 342 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -278,7 +284,7 @@ Draw a circle centered at the given coordinates with diameter {\ttfamily d}.
 
 The current position is set to the center. 
 
-Definition at line 1121 of file gui\-\_\-tk.\-h.
+Definition at line 1178 of file gui\-\_\-tk.\-h.
 
 
 
@@ -302,7 +308,7 @@ Draw a rectangle with top left at the current position and size {\ttfamily w}, {
 
 The current position is not changed. 
 
-Definition at line 362 of file gui\-\_\-tk.\-cpp.
+Definition at line 376 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -310,7 +316,7 @@ References draw\-Dot\-Line(), goto\-X\-Y(), line\-Width, x, and y.
 
 
 
-Referenced by G\-U\-I\-::\-Label\-::paint().
+Referenced by G\-U\-I\-::\-Label\-::paint(), and G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
 
 \hypertarget{classGUI_1_1Drawable_a173860d00ff795adfd7eaca64bb06cda}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Dot\-Rect@{draw\-Dot\-Rect}}
 \index{draw\-Dot\-Rect@{draw\-Dot\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
@@ -328,7 +334,7 @@ Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, 
 
 The current position is set to the top left corner. 
 
-Definition at line 1135 of file gui\-\_\-tk.\-h.
+Definition at line 1192 of file gui\-\_\-tk.\-h.
 
 
 
@@ -352,7 +358,7 @@ Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this 
 
 The top left corner of the source \hyperlink{classGUI_1_1Drawable}{Drawable} is put at the current position. The alpha channel is fully honoured. Additionally, an extra {\ttfamily alpha} value may be given which is multiplied with the source alpha channel. The current position remains unchanged. 
 
-Definition at line 427 of file gui\-\_\-tk.\-cpp.
+Definition at line 441 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -374,7 +380,7 @@ Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this 
 
 see \hyperlink{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}{draw\-Drawable(\-Drawable \&d, unsigned char alpha)}. The current position is moved to the given coordinates. 
 
-Definition at line 1188 of file gui\-\_\-tk.\-h.
+Definition at line 1245 of file gui\-\_\-tk.\-h.
 
 
 
@@ -398,11 +404,15 @@ Draw a rectangle with top left at the current position and size {\ttfamily w}, {
 
 The current position is not changed. 
 
-Definition at line 350 of file gui\-\_\-tk.\-cpp.
+Definition at line 364 of file gui\-\_\-tk.\-cpp.
 
 
 
 References draw\-Line(), goto\-X\-Y(), line\-Width, x, and y.
+
+
+
+Referenced by G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
 
 \hypertarget{classGUI_1_1Drawable_aeee95c349ff9948da7470458db11ee3c}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Rect@{draw\-Rect}}
 \index{draw\-Rect@{draw\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
@@ -420,7 +430,7 @@ Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, 
 
 The current position is set to the top left corner. 
 
-Definition at line 1128 of file gui\-\_\-tk.\-h.
+Definition at line 1185 of file gui\-\_\-tk.\-h.
 
 
 
@@ -446,11 +456,11 @@ Draw a text string.
 
 Current position is the leftmost pixel on the baseline of the character. The current position is moved to the next character. Background is not cleared. If {\ttfamily interpret} is {\ttfamily true}, some A\-S\-C\-I\-I control characters like backspace, line-\/feed, tab and A\-N\-S\-I colors are interpreted, and text is word-\/wrapped at the window borders. You can optionally pass start and length of a substring to print 
 
-Definition at line 67 of file gui\-\_\-tk.\-cpp.
+Definition at line 78 of file gui\-\_\-tk.\-cpp.
 
 
 
-References G\-U\-I\-::\-Color\-::\-Black, G\-U\-I\-::\-Color\-::\-Blue, color, G\-U\-I\-::\-Color\-::\-Cyan, G\-U\-I\-::\-Font\-::draw\-String(), font, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Color\-::\-Green, G\-U\-I\-::\-Color\-::\-Magenta, G\-U\-I\-::\-Color\-::\-Red, set\-Color(), G\-U\-I\-::\-Font\-::to\-Special(), G\-U\-I\-::\-Color\-::\-White, width, x, y, and G\-U\-I\-::\-Color\-::\-Yellow.
+References G\-U\-I\-::\-Color\-::\-Black, G\-U\-I\-::\-Color\-::\-Blue, color, G\-U\-I\-::\-Color\-::\-Cyan, G\-U\-I\-::\-Font\-::draw\-String(), font, fw, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Color\-::\-Green, G\-U\-I\-::\-Color\-::\-Magenta, G\-U\-I\-::\-Color\-::\-Red, set\-Color(), G\-U\-I\-::\-Font\-::to\-Special(), G\-U\-I\-::\-Color\-::\-White, width, x, y, and G\-U\-I\-::\-Color\-::\-Yellow.
 
 
 
@@ -474,7 +484,7 @@ Draw a text string at a fixed position.
 
 see \hyperlink{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}{draw\-Text(const String\& text, bool interpret, Size start, Size len)} 
 
-Definition at line 1170 of file gui\-\_\-tk.\-h.
+Definition at line 1227 of file gui\-\_\-tk.\-h.
 
 
 
@@ -498,11 +508,11 @@ Draw a single character.
 
 see draw\-Text(const S\-T\-R text, bool interpret), except wrapping is performed on this character only 
 
-Definition at line 453 of file gui\-\_\-tk.\-cpp.
+Definition at line 467 of file gui\-\_\-tk.\-cpp.
 
 
 
-References G\-U\-I\-::\-Font\-::draw\-Char(), font, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Font\-::to\-Special(), width, x, and y.
+References G\-U\-I\-::\-Font\-::draw\-Char(), font, fw, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Font\-::to\-Special(), x, and y.
 
 \hypertarget{classGUI_1_1Drawable_a2f27520ec352423f6a164843e41e0365}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Text@{draw\-Text}}
 \index{draw\-Text@{draw\-Text}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
@@ -520,7 +530,7 @@ Draw a single character at a fixed position.
 
 see \hyperlink{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}{draw\-Text(const Char c, bool interpret)}. 
 
-Definition at line 1177 of file gui\-\_\-tk.\-h.
+Definition at line 1234 of file gui\-\_\-tk.\-h.
 
 
 
@@ -543,7 +553,7 @@ Flood-\/fill an area at the current position.
 
 A continuous area with the same R\-G\-B value as the selected pixel is changed to the current color. The current position is not changed. 
 
-Definition at line 374 of file gui\-\_\-tk.\-cpp.
+Definition at line 388 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -563,7 +573,7 @@ Flood-\/fill an area at a given position.
 
 see \hyperlink{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}{fill()}, but moves current position to the given coordinates 
 
-Definition at line 1143 of file gui\-\_\-tk.\-h.
+Definition at line 1200 of file gui\-\_\-tk.\-h.
 
 
 
@@ -586,7 +596,7 @@ Draw a filled circle centered at the current position with diameter {\ttfamily d
 
 The current position is not changed. 
 
-Definition at line 395 of file gui\-\_\-tk.\-cpp.
+Definition at line 409 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -607,7 +617,7 @@ Draw a filled circle centered at the given coordinates with diameter {\ttfamily 
 
 The current position is set to the center. 
 
-Definition at line 1150 of file gui\-\_\-tk.\-h.
+Definition at line 1207 of file gui\-\_\-tk.\-h.
 
 
 
@@ -631,7 +641,7 @@ Draw a filled rectangle with top left at the current position and size {\ttfamil
 
 The current position is not changed. 
 
-Definition at line 416 of file gui\-\_\-tk.\-cpp.
+Definition at line 430 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -639,7 +649,7 @@ References draw\-Pixel(), goto\-X\-Y(), x, and y.
 
 
 
-Referenced by G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), and G\-U\-I\-::\-Radiobox\-::paint().
+Referenced by G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), G\-U\-I\-::\-Radiobox\-::paint(), and G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
 
 \hypertarget{classGUI_1_1Drawable_af31dc67b9230aa12a0988905643238c8}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill\-Rect@{fill\-Rect}}
 \index{fill\-Rect@{fill\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
@@ -657,7 +667,7 @@ Draw a filled rectangle with top left at the given coordinates and size {\ttfami
 
 The current position is set to the top left corner. 
 
-Definition at line 1157 of file gui\-\_\-tk.\-h.
+Definition at line 1214 of file gui\-\_\-tk.\-h.
 
 
 
@@ -680,7 +690,7 @@ Change current drawing color.
 
 The alpha part is honoured in all drawing primitives like this\-: All drawing operations in this window will unconditionally overwrite earlier content of this window. Only when combining this window with it's parent, the alpha channel is fully honoured. 
 
-Definition at line 1066 of file gui\-\_\-tk.\-h.
+Definition at line 1123 of file gui\-\_\-tk.\-h.
 
 
 
@@ -688,7 +698,7 @@ References color.
 
 
 
-Referenced by draw\-Text(), G\-U\-I\-::\-Label\-::paint(), G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), G\-U\-I\-::\-Radiobox\-::paint(), and G\-U\-I\-::\-Frame\-::paint().
+Referenced by draw\-Text(), G\-U\-I\-::\-Label\-::paint(), G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), G\-U\-I\-::\-Radiobox\-::paint(), G\-U\-I\-::\-Frame\-::paint(), and G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
 
 
 

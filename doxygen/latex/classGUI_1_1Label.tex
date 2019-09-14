@@ -42,11 +42,20 @@ Inheritance diagram for G\-U\-I\-:\-:Label\-:\begin{figure}[H]
 \hypertarget{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}{virtual void \hyperlink{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}{resize} (int w=-\/1, int h=-\/1)}\label{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}
 
 \begin{DoxyCompactList}\small\item\em Calculate label size. Parameters are ignored. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Label_a84714f868d1ada9134f58804097cef3b}{virtual bool \hyperlink{classGUI_1_1Label_a84714f868d1ada9134f58804097cef3b}{has\-Focus} () const }\label{classGUI_1_1Label_a84714f868d1ada9134f58804097cef3b}
+
+\begin{DoxyCompactList}\small\item\em Returns {\ttfamily true} if this window has currently the keyboard focus. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Label_a797c2ce94314014b2775114a046c67b7}{virtual void \hyperlink{classGUI_1_1Label_a797c2ce94314014b2775114a046c67b7}{paint} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1Label_a797c2ce94314014b2775114a046c67b7}
 
 \begin{DoxyCompactList}\small\item\em Paint label. \end{DoxyCompactList}\item 
 virtual bool \hyperlink{classGUI_1_1Label_ae974cb75928cf5fcb0574d59d3b41a43}{raise} ()
 \begin{DoxyCompactList}\small\item\em Put this window on top of all it's siblings. Preserves relative order. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Label_a1b99913d11d7041a667648c395d5231f}{bool {\bfseries allow\-\_\-focus} = false}\label{classGUI_1_1Label_a1b99913d11d7041a667648c395d5231f}
+
+\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -54,7 +63,7 @@ A text label.
 
 Text labels are positioned relative to the top left corner of their bounding box. They size themselves automatically and display their text in non-\/interpreted mode. 
 
-Definition at line 1482 of file gui\-\_\-tk.\-h.
+Definition at line 1540 of file gui\-\_\-tk.\-h.
 
 
 
@@ -78,7 +87,7 @@ Create a text label with given position, {\ttfamily text}, {\ttfamily font} and 
 
 If {\ttfamily width} is given, the resulting label is a word-\/wrapped multiline label 
 
-Definition at line 1498 of file gui\-\_\-tk.\-h.
+Definition at line 1559 of file gui\-\_\-tk.\-h.
 
 
 
@@ -104,7 +113,7 @@ Reimplemented from \hyperlink{classGUI_1_1Window_a90890951f6ce5f043657756b2691e7
 
 
 
-Definition at line 1532 of file gui\-\_\-tk.\-h.
+Definition at line 1596 of file gui\-\_\-tk.\-h.
 
 
 
