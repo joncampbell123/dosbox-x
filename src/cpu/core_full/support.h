@@ -167,7 +167,8 @@ enum {
 
 	M_SEG,M_EA,
 	M_GRP,
-	M_GRP_Ib,M_GRP_CL,M_GRP_1,
+	//Special shift groups
+	M_SHIFT_1, M_SHIFT_Ib, M_SHIFT_CL,
 
 	M_POPw,M_POPd
 };
