@@ -397,9 +397,9 @@ void DrawCursorText() {
         address /= 2;
         Bit16u cr = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
         IO_Write(cr     , 0xe);
-        IO_Write(cr + 1u, (address>>8) & 0xff);
+        IO_Write((Bitu)cr + 1u, (address >> 8) & 0xff);
         IO_Write(cr     , 0xf);
-        IO_Write(cr + 1u, address & 0xff);
+        IO_Write((Bitu)cr + 1u, address & 0xff);
     }
 }
 
@@ -676,8 +676,8 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     }
     if (!emu)
     {
-        auto x1 = (double)user_cursor_x / static_cast<double>(user_cursor_sw - 1);
-        auto y1 = (double)user_cursor_y / static_cast<double>(user_cursor_sh - 1);
+        auto x1 = (double)user_cursor_x / ((double)user_cursor_sw - 1);
+        auto y1 = (double)user_cursor_y / ((double)user_cursor_sh - 1);
         mouse.x       = x1 * mouse.max_screen_x;
         mouse.y       = y1 * mouse.max_screen_y;
 
