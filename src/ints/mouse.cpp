@@ -61,7 +61,7 @@ double int33_last_poll = 0;
 
 void DisableINT33() {
     if (en_int33) {
-        LOG(LOG_MISC,LOG_DEBUG)("Disabling INT 33 services");
+        LOG(LOG_MOUSE, LOG_DEBUG)("Disabling INT 33 services");
 
         en_int33 = false;
         /* TODO: Also unregister INT 33h handler */
@@ -1295,7 +1295,7 @@ static Bitu INT33_Handler(void) {
             Mouse_Reset();
             Mouse_AutoLock(true);
             AUX_INT33_Takeover();
-            LOG(LOG_KEYBOARD, LOG_NORMAL)("INT 33h reset");
+            LOG(LOG_MOUSE, LOG_NORMAL)("INT 33h reset");
         }
         break;
     case 0x22:      /* Set language for messages */
@@ -1498,10 +1498,10 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     if (!en_bios_ps2mouse) return;
 
     if (MouseTypeNone()) {
-        LOG(LOG_KEYBOARD,LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");
+        LOG(LOG_MOUSE, LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");
     }
     else {
-        LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 15H PS/2 emulation enabled");
+        LOG(LOG_MOUSE, LOG_NORMAL)("INT 15H PS/2 emulation enabled");
         bios_enable_ps2();
     }
 
@@ -1577,9 +1577,9 @@ void MOUSE_Startup(Section *sec) {
 
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 
-    LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
+    LOG(LOG_MOUSE, LOG_NORMAL)("INT 33H emulation enabled");
     if (en_int33_hide_if_polling)
-        LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation will hide host cursor if polling");
+        LOG(LOG_MOUSE, LOG_NORMAL)("INT 33H emulation will hide host cursor if polling");
 
     // Callback for mouse interrupt 0x33
     call_int33=CALLBACK_Allocate();
@@ -1626,7 +1626,7 @@ void MOUSE_Startup(Section *sec) {
 }
 
 void MOUSE_Init() {
-    LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
+    LOG(LOG_MOUSE, LOG_DEBUG)("Initializing mouse interface emulation");
 
     // TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
