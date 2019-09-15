@@ -1253,14 +1253,14 @@ static Bitu INT33_Handler(void) {
     case 0x1a:  /* Set mouse sensitivity */
         // ToDo : double mouse speed value
         Mouse_SetSensitivity(reg_bx, reg_cx, reg_dx);
-        LOG(LOG_MOUSE, LOG_WARN)("Set sensitivity used with %d %d (%d)", reg_bx, reg_cx, reg_dx);
+        LOG(LOG_MOUSE, LOG_NORMAL)("Set sensitivity used with %d %d (%d)", reg_bx, reg_cx, reg_dx);
         break;
     case 0x1b:  /* Get mouse sensitivity */
         reg_bx = mouse.senv_x_val;
         reg_cx = mouse.senv_y_val;
         reg_dx = mouse.dspeed_val;
 
-        LOG(LOG_MOUSE, LOG_WARN)("Get sensitivity %d %d", reg_bx, reg_cx);
+        LOG(LOG_MOUSE, LOG_NORMAL)("Get sensitivity %d %d", reg_bx, reg_cx);
         break;
     case 0x1c:  /* Set interrupt rate */
         /* Can't really set a rate this is host determined */
