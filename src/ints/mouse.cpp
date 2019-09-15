@@ -1104,7 +1104,7 @@ static Bitu INT33_Handler(void) {
             if(mouse.x < mouse.min_x) mouse.x = mouse.min_x;
             /* Or alternatively this: 
             mouse.x = (mouse.max_x - mouse.min_x + 1)/2;*/
-            LOG(LOG_MOUSE,LOG_NORMAL)("Define Hortizontal range min:%d max:%d",min,max);
+            LOG(LOG_MOUSE,LOG_NORMAL)("Define Horizontal range min:%d max:%d",min,max);
 
             /* NTS: The mouse in VESA BIOS modes would ideally start with the x and y ranges
              *      that fit the screen, but I'm not so sure mouse drivers even pay attention
@@ -1118,7 +1118,7 @@ static Bitu INT33_Handler(void) {
                 if (mouse.min_x == 0 && mouse.max_x > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_x = mouse.max_x;
-                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Hortizontal range min:%d max:%d defines the bounds of the screen",min,max);
+                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Horizontal range min:%d max:%d defines the bounds of the screen",min,max);
                 }
 
                 mouse.first_range_setx = false;
