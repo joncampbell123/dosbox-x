@@ -106,8 +106,6 @@ static Bit16u ps2cbseg,ps2cbofs;
 static bool useps2callback,ps2callbackinit;
 static RealPt ps2_callback,uir_callback;
 static Bit16s oldmouseX, oldmouseY;
-// forward
-void WriteMouseIntVector(void);
 
 // serial mouse emulation
 void on_mouse_event_for_serial(int delta_x,int delta_y,Bit8u buttonstate);
