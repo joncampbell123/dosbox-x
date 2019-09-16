@@ -841,8 +841,10 @@ public:
 		DOS_DelMultiplexHandler(multiplex_xms);
 
 		/* Free used memory while skipping the 0 handle */
-		for (Bitu i = 1;i<XMS_HANDLES;i++) 
-			if(!xms_handles[i].free) XMS_FreeMemory(i);
+		for (Bitu i = 1;i<XMS_HANDLES;i++) {
+		    xms_handles[i].locked=0;
+            XMS_FreeMemory(i);
+        }
 
 		xms_init = false;
 	}
