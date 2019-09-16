@@ -494,7 +494,7 @@ static Bitu DOS_21Handler(void) {
                 if(port!=0 && serialports[0]) {
                     Bit8u status;
                     // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
+                    IO_WriteB((Bitu)port + 4u, 0x3u);
                     serialports[0]->Getchar(&reg_al, &status, true, 0xFFFFFFFF);
                 }
             }
@@ -504,10 +504,10 @@ static Bitu DOS_21Handler(void) {
                 Bit16u port = real_readw(0x40,0);
                 if(port!=0 && serialports[0]) {
                     // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
+                    IO_WriteB((Bitu)port + 4u, 0x3u);
                     serialports[0]->Putchar(reg_dl,true,true, 0xFFFFFFFF);
                     // RTS off
-                    IO_WriteB(port+4u,0x1u);
+                    IO_WriteB((Bitu)port + 4u, 0x1u);
                 }
             }
             break;
