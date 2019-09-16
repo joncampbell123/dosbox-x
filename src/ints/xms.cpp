@@ -651,6 +651,9 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		umb_available=false;
 
+        xms_global_enable = false;
+        xms_local_enable_count = 0;
+
 		if (!section->Get_bool("xms")) return;
 
         XMS_HANDLES = (unsigned int)(section->Get_int("xms handles"));
