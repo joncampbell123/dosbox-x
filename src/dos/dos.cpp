@@ -1040,7 +1040,7 @@ static Bitu DOS_21Handler(void) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
                     reg_bx = drive*dos.tables.dpb_size;
-                    LOG(LOG_DOSMISC,LOG_ERROR)("Get drive parameter block.");
+                    LOG(LOG_DOSMISC,LOG_NORMAL)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;
                 }
@@ -1586,7 +1586,7 @@ static Bitu DOS_21Handler(void) {
                 reg_si = DOS_SDA_OFS;
                 reg_cx = DOS_SDA_SEG_SIZE;  // swap if in dos
                 reg_dx = 0x1a;  // swap always (NTS: Size of DOS SDA structure in dos_inc)
-                LOG(LOG_DOSMISC,LOG_ERROR)("Get SDA, Let's hope for the best!");
+                LOG(LOG_DOSMISC,LOG_NORMAL)("Get SDA, Let's hope for the best!");
             }
             break;
         case 0x5f:                  /* Network redirection */
@@ -1663,7 +1663,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x65:                  /* Get extented country information and a lot of other useless shit*/
             { /* Todo maybe fully support this for now we set it standard for USA */ 
-                LOG(LOG_DOSMISC,LOG_ERROR)("DOS:65:Extended country information call %X",reg_ax);
+                LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:65:Extended country information call %X",reg_ax);
                 if((reg_al <=  0x07) && (reg_cx < 0x05)) {
                     DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
                     CALLBACK_SCF(true);
@@ -1768,12 +1768,12 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x66:                  /* Get/Set global code page table  */
             if (reg_al==1) {
-                LOG(LOG_DOSMISC,LOG_ERROR)("Getting global code page table");
+                LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
                 reg_bx=reg_dx=dos.loaded_codepage;
                 CALLBACK_SCF(false);
                 break;
             }
-            LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Setting code page table is not supported");
+            LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported");
             break;
         case 0x67:                  /* Set handle count */
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
@@ -1796,11 +1796,11 @@ static Bitu DOS_21Handler(void) {
                 Bit16u old_cx=reg_cx;
                 switch(reg_al)      {
                     case 0x00:              /* Get */
-                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Get Disk serial number");
+                        LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Get Disk serial number");
                         reg_cl=0x66;// IOCTL function
                         break;
                     case 0x01:              /* Set */
-                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Set Disk serial number");
+                        LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Set Disk serial number");
                         reg_cl=0x46;// IOCTL function
                         break;
                     default:
