@@ -494,7 +494,7 @@ static Bitu DOS_21Handler(void) {
                 if(port!=0 && serialports[0]) {
                     Bit8u status;
                     // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
+                    IO_WriteB((Bitu)port + 4u, 0x3u);
                     serialports[0]->Getchar(&reg_al, &status, true, 0xFFFFFFFF);
                 }
             }
@@ -504,10 +504,10 @@ static Bitu DOS_21Handler(void) {
                 Bit16u port = real_readw(0x40,0);
                 if(port!=0 && serialports[0]) {
                     // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
+                    IO_WriteB((Bitu)port + 4u, 0x3u);
                     serialports[0]->Putchar(reg_dl,true,true, 0xFFFFFFFF);
                     // RTS off
-                    IO_WriteB(port+4u,0x1u);
+                    IO_WriteB((Bitu)port + 4u, 0x1u);
                 }
             }
             break;
@@ -717,12 +717,28 @@ static Bitu DOS_21Handler(void) {
             if (DOS_FCBRenameFile(SegValue(ds),reg_dx)) reg_al = 0x00;
             else reg_al = 0xFF;
             break;
+        case 0x18:      /* NULL Function for CP/M compatibility or Extended rename FCB */
+            goto default_fallthrough;
+        case 0x19:      /* Get current default drive */
+            reg_al = DOS_GetDefaultDrive();
+            break;
+        case 0x1a:      /* Set Disk Transfer Area Address */
+            dos.dta(RealMakeSeg(ds, reg_dx));
+            break;
         case 0x1b:      /* Get allocation info for default drive */ 
             if (!DOS_GetAllocationInfo(0,&reg_cx,&reg_al,&reg_dx)) reg_al=0xff;
             break;
         case 0x1c:      /* Get allocation info for specific drive */
             if (!DOS_GetAllocationInfo(reg_dl,&reg_cx,&reg_al,&reg_dx)) reg_al=0xff;
             break;
+        case 0x1d:      /* NULL Function for CP/M compatibility or Extended rename FCB */
+            goto default_fallthrough;
+        case 0x1e:      /* NULL Function for CP/M compatibility or Extended rename FCB */
+            goto default_fallthrough;
+        case 0x1f: /* Get drive parameter block for default drive */
+            goto case_0x32_fallthrough;
+        case 0x20:      /* NULL Function for CP/M compatibility or Extended rename FCB */
+            goto default_fallthrough;
         case 0x21:      /* Read random record from FCB */
             {
                 Bit16u toread=1;
@@ -744,6 +760,17 @@ static Bitu DOS_21Handler(void) {
         case 0x24:      /* Set Random Record number for FCB */
             DOS_FCBSetRandomRecord(SegValue(ds),reg_dx);
             break;
+        case 0x25:      /* Set Interrupt Vector */
+            RealSetVec(reg_al, RealMakeSeg(ds, reg_dx));
+            break;
+        case 0x26:      /* Create new PSP */
+            /* TODO: DEBUG.EXE/DEBUG.COM as shipped with MS-DOS seems to reveal a bug where,
+             *       when DEBUG.EXE calls this function and you're NOT loading a program to debug,
+             *       the CP/M CALL FAR instruction's offset field will be off by 2. When does
+             *       that happen, and how do we emulate that? */
+            DOS_NewPSP(reg_dx, DOS_PSP(dos.psp()).GetSize());
+            reg_al = 0xf0;    /* al destroyed */
+            break;
         case 0x27:      /* Random block read from FCB */
             reg_al = DOS_FCBRandomRead(SegValue(ds),reg_dx,&reg_cx,false);
             LOG(LOG_FCB,LOG_NORMAL)("DOS:0x27 FCB-Random(block) read used, result:al=%d",reg_al);
@@ -761,23 +788,6 @@ static Bitu DOS_21Handler(void) {
                 reg_si+=difference;
             }
             LOG(LOG_FCB,LOG_NORMAL)("DOS:29:FCB Parse Filename, result:al=%d",reg_al);
-            break;
-        case 0x19:      /* Get current default drive */
-            reg_al=DOS_GetDefaultDrive();
-            break;
-        case 0x1a:      /* Set Disk Transfer Area Address */
-            dos.dta(RealMakeSeg(ds,reg_dx));
-            break;
-        case 0x25:      /* Set Interrupt Vector */
-            RealSetVec(reg_al,RealMakeSeg(ds,reg_dx));
-            break;
-        case 0x26:      /* Create new PSP */
-            /* TODO: DEBUG.EXE/DEBUG.COM as shipped with MS-DOS seems to reveal a bug where,
-             *       when DEBUG.EXE calls this function and you're NOT loading a program to debug,
-             *       the CP/M CALL FAR instruction's offset field will be off by 2. When does
-             *       that happen, and how do we emulate that? */
-            DOS_NewPSP(reg_dx,DOS_PSP(dos.psp()).GetSize());
-            reg_al=0xf0;    /* al destroyed */      
             break;
         case 0x2a:      /* Get System Date */
             {
@@ -1030,9 +1040,9 @@ static Bitu DOS_21Handler(void) {
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
             break;
-        case 0x1f: /* Get drive parameter block for default drive */
         case 0x32: /* Get drive parameter block for specific drive */
             {   /* Officially a dpb should be returned as well. The disk detection part is implemented */
+                case_0x32_fallthrough:
                 Bit8u drive=reg_dl;
                 if (!drive || reg_ah==0x1f) drive = DOS_GetDefaultDrive();
                 else drive--;
@@ -1040,7 +1050,7 @@ static Bitu DOS_21Handler(void) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
                     reg_bx = drive*dos.tables.dpb_size;
-                    LOG(LOG_DOSMISC,LOG_ERROR)("Get drive parameter block.");
+                    LOG(LOG_DOSMISC,LOG_NORMAL)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;
                 }
@@ -1159,7 +1169,7 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;
-        case 0x3c:      /* CREATE Create of truncate file */
+        case 0x3c:      /* CREATE Create or truncate file */
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
@@ -1586,9 +1596,12 @@ static Bitu DOS_21Handler(void) {
                 reg_si = DOS_SDA_OFS;
                 reg_cx = DOS_SDA_SEG_SIZE;  // swap if in dos
                 reg_dx = 0x1a;  // swap always (NTS: Size of DOS SDA structure in dos_inc)
-                LOG(LOG_DOSMISC,LOG_ERROR)("Get SDA, Let's hope for the best!");
+                LOG(LOG_DOSMISC,LOG_NORMAL)("Get SDA, Let's hope for the best!");
             }
             break;
+        case 0x5e:                  /* Network and printer functions */
+            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:5E Network and printer functions not implemented");
+            goto default_fallthrough;
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS)
             switch(reg_al)
@@ -1647,6 +1660,8 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;
+        case 0x61:                  /* Unused (reserved for network use) */
+            goto default_fallthrough;
         case 0x62:                  /* Get Current PSP Address */
             reg_bx=dos.psp();
             break;
@@ -1663,7 +1678,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x65:                  /* Get extented country information and a lot of other useless shit*/
             { /* Todo maybe fully support this for now we set it standard for USA */ 
-                LOG(LOG_DOSMISC,LOG_ERROR)("DOS:65:Extended country information call %X",reg_ax);
+                LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:65:Extended country information call %X",reg_ax);
                 if((reg_al <=  0x07) && (reg_cx < 0x05)) {
                     DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
                     CALLBACK_SCF(true);
@@ -1768,12 +1783,12 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x66:                  /* Get/Set global code page table  */
             if (reg_al==1) {
-                LOG(LOG_DOSMISC,LOG_ERROR)("Getting global code page table");
+                LOG(LOG_DOSMISC,LOG_NORMAL)("Getting global code page table");
                 reg_bx=reg_dx=dos.loaded_codepage;
                 CALLBACK_SCF(false);
                 break;
             }
-            LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Setting code page table is not supported");
+            LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Setting code page table is not supported");
             break;
         case 0x67:                  /* Set handle count */
             /* Weird call to increase amount of file handles needs to allocate memory if >20 */
@@ -1784,6 +1799,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x68:                  /* FFLUSH Commit file */
+            case_0x68_fallthrough:
             if(DOS_FlushFile(reg_bl)) {
                 CALLBACK_SCF(false);
             } else {
@@ -1796,11 +1812,11 @@ static Bitu DOS_21Handler(void) {
                 Bit16u old_cx=reg_cx;
                 switch(reg_al)      {
                     case 0x00:              /* Get */
-                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Get Disk serial number");
+                        LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Get Disk serial number");
                         reg_cl=0x66;// IOCTL function
                         break;
                     case 0x01:              /* Set */
-                        LOG(LOG_DOSMISC,LOG_WARN)("DOS:Set Disk serial number");
+                        LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Set Disk serial number");
                         reg_cl=0x46;// IOCTL function
                         break;
                     default:
@@ -1811,7 +1827,12 @@ static Bitu DOS_21Handler(void) {
                 DOS_21Handler();
                 reg_cx=old_cx;
                 break;
-            } 
+            }
+        case 0x6a:                  /* Commit file */
+            // Note: Identical to AH=68h in DOS 5.0-6.0; not known whether this is the case in DOS 4.x
+            goto case_0x68_fallthrough;
+        case 0x6b:                  /* NULL Function */
+            goto default_fallthrough;
         case 0x6c:                  /* Extended Open/Create */
             MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
             if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
@@ -1821,24 +1842,25 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             break;
-
+        case 0x6d:                  /* ROM - Find first ROM program */
+            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:ROM - Find first ROM program not implemented");
+            goto default_fallthrough;
+        case 0x6e:                  /* ROM - Find next ROM program */
+            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:ROM - Find next ROM program not implemented");
+            goto default_fallthrough;
+        case 0x6f:                  /* ROM functions */
+            LOG(LOG_DOSMISC, LOG_ERROR)("DOS:6F ROM functions not implemented");
+            goto default_fallthrough;
         case 0x71:                  /* Unknown probably 4dos detection */
             reg_ax=0x7100;
             CALLBACK_SCF(true); //Check this! What needs this ? See default case
             LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
             break;
-
         case 0xE0:
-        case 0x18:                  /* NULL Function for CP/M compatibility or Extended rename FCB */
-        case 0x1d:                  /* NULL Function for CP/M compatibility or Extended rename FCB */
-        case 0x1e:                  /* NULL Function for CP/M compatibility or Extended rename FCB */
-        case 0x20:                  /* NULL Function for CP/M compatibility or Extended rename FCB */
-        case 0x6b:                  /* NULL Function */
-        case 0x61:                  /* UNUSED */
         case 0xEF:                  /* Used in Ancient Art Of War CGA */
-        case 0x5e:                  /* More Network Functions */
         default:
-            if (reg_ah < 0x6d) LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X. Set al to default of 0",reg_ah,reg_al); //Less errors. above 0x6c the functions are simply always skipped, only al is zeroed, all other registers untouched
+            default_fallthrough:
+            if (reg_ah < 0x6b) LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X. Set al to default of 0",reg_ah,reg_al); //Less errors. above 0x6c the functions are simply always skipped, only al is zeroed, all other registers untouched
             reg_al=0x00; /* default value */
             break;
     }
