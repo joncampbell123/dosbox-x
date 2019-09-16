@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - XMS emulation resets global enable and local
+    enable state on XMS emulation startup to fix
+    crashes related to inability to control A20 gate
+    after system reset or DOS kernel restart.
   - Debugger "SM" command now accepts segment:offset
     syntax for memory location to write.
   - Fixed INT 21h AH=65h bug that returns DBCS table
