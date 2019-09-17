@@ -103,6 +103,7 @@ int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
 
 unsigned int reset_post_delay = 0;
 
+Bitu call_irq_default = 0;
 Bit16u biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
@@ -7571,7 +7572,8 @@ private:
         }
 
         /* Default IRQ handler */
-        Bitu call_irq_default = CALLBACK_Allocate();
+        if (call_irq_default == 0)
+            call_irq_default = CALLBACK_Allocate();
         CALLBACK_Setup(call_irq_default, &Default_IRQ_Handler, CB_IRET, "irq default");
         RealSetVec(0x0b, CALLBACK_RealPointer(call_irq_default)); // IRQ 3
         RealSetVec(0x0c, CALLBACK_RealPointer(call_irq_default)); // IRQ 4
