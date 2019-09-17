@@ -7019,8 +7019,8 @@ private:
             /* reboot delay, in case the guest OS/application had something to day before hitting the "reset" signal */
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick) < reset_post_delay) {
-                void CALLBACK_Idle(void);
-                CALLBACK_Idle();
+                void CALLBACK_IdleNoInts(void);
+                CALLBACK_IdleNoInts();
             }
         }
 

@@ -131,6 +131,27 @@ void CALLBACK_Idle(void) {
 		CPU_Cycles=0;
 }
 
+void CALLBACK_IdleNoInts(void) {
+#if C_EMSCRIPTEN
+    void GFX_Events();
+    GFX_Events();
+#endif
+
+/* this makes the cpu execute instructions to handle irq's and then come back */
+//	Bitu oldIF=GETFLAG(IF);
+//	SETFLAGBIT(IF,true);
+	Bit16u oldcs=SegValue(cs);
+	Bit32u oldeip=reg_eip;
+	SegSet16(cs,CB_SEG);
+	reg_eip=CB_SOFFSET+call_idle*CB_SIZE;
+	DOSBOX_RunMachine();
+	reg_eip=oldeip;
+	SegSet16(cs,oldcs);
+//	SETFLAGBIT(IF,oldIF);
+	if (!CPU_CycleAutoAdjust && CPU_Cycles>0)
+		CPU_Cycles=0;
+}
+
 static Bitu default_handler(void) {
 	LOG(LOG_CPU,LOG_ERROR)("Illegal Unhandled Interrupt Called %X",lastint);
 	return CBRET_NONE;
