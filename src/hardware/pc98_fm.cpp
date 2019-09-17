@@ -501,6 +501,7 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         else if (board == "board14") {
             /* Apparently board14 is always IRQ 12, port 88h */
             LOG_MSG("PC-98 FM board is PC-9801-14 at baseio=0x%x irq=%d",0x88,12);
+            LOG_MSG("WARNING: This is not yet implemented!"); // board14 emulation requires emulation of a PIT timer (8253) on the board itself
             fmboard_reset(&np2cfg, 0x01);
         }
         else {
