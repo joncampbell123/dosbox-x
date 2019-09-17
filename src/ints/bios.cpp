@@ -8763,7 +8763,9 @@ public:
         cb_bios_startup_screen.Install(&cb_bios_startup_screen__func,CB_RETF,"BIOS Startup screen");
         cb_bios_boot.Install(&cb_bios_boot__func,CB_RETF,"BIOS BOOT");
         cb_bios_bootfail.Install(&cb_bios_bootfail__func,CB_RETF,"BIOS BOOT FAIL");
-        cb_pc98_rombasic.Install(&cb_pc98_entry__func,CB_RETF,"N88 ROM BASIC");
+
+        if (IS_PC98_ARCH)
+            cb_pc98_rombasic.Install(&cb_pc98_entry__func,CB_RETF,"N88 ROM BASIC");
 
         // Compatible POST routine location: jump to the callback
         {
