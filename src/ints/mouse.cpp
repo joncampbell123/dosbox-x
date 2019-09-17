@@ -1547,12 +1547,14 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
 
     // Callback for ps2 user callback handling
     useps2callback = false; ps2callbackinit = false;
-    call_ps2=CALLBACK_Allocate();
+    if (call_ps2 == 0)
+        call_ps2 = CALLBACK_Allocate();
     CALLBACK_Setup(call_ps2,&PS2_Handler,CB_RETF,"ps2 bios callback");
     ps2_callback=CALLBACK_RealPointer(call_ps2);
 
     // Callback for mouse user routine return
-    call_uir=CALLBACK_Allocate();
+    if (call_uir == 0)
+        call_uir = CALLBACK_Allocate();
     CALLBACK_Setup(call_uir,&UIR_Handler,CB_RETF_CLI,"mouse uir ret");
     uir_callback=CALLBACK_RealPointer(call_uir);
 }
