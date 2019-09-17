@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - Fixed some callback slot leaks that can cause
+    DOSBox-X to run out of callback slots if you
+    reset the guest system too much.
   - Fixed invalid callback and errant interrupt
     handling during BIOS reset delay that happens
     if you use the keyboard shortcut to trigger
