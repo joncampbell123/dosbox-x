@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - Fixed mistake that placed N88 ROM BASIC stub
+    (something specific to PC-98) in memory even
+    in IBM PC/XT/AT emulation mode.
   - Fixed some callback slot leaks that can cause
     DOSBox-X to run out of callback slots if you
     reset the guest system too much.
