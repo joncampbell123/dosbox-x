@@ -498,6 +498,11 @@ void PC98_FM_OnEnterPC98(Section *sec) {
             LOG_MSG("PC-98 FM board is PC-9801-26k at baseio=0x%x irq=%d",baseio,fmtimer_index2irq(fmirqidx));
             fmboard_reset(&np2cfg, 0x02);
         }
+        else if (board == "board14") {
+            /* Apparently board14 is always IRQ 12, port 88h */
+            LOG_MSG("PC-98 FM board is PC-9801-14 at baseio=0x%x irq=%d",0x88,12);
+            fmboard_reset(&np2cfg, 0x01);
+        }
         else {
             if (baseio == 0 || baseio == 0x188) { /* default */
                 pccore.snd86opt |= 0x01;
