@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - Fixed invalid callback and errant interrupt
+    handling during BIOS reset delay that happens
+    if you use the keyboard shortcut to trigger
+    system reset.
   - XMS emulation resets global enable and local
     enable state on XMS emulation startup to fix
     crashes related to inability to control A20 gate
