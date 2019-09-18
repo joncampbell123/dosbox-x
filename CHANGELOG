@@ -1,4 +1,9 @@
 0.82.22 (next)
+  - PC-98 VSYNC interrupt now fires at vertical
+    retrace start (as documented) instead of at
+    active display end behavior borrowed from
+    DOSBox VGA emulation. This fixes "Tonight"
+    by Swat.
   - Fixed mistake that placed N88 ROM BASIC stub
     (something specific to PC-98) in memory even
     in IBM PC/XT/AT emulation mode.
