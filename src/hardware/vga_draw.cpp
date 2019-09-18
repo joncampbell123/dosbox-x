@@ -2942,13 +2942,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         VGA_DisplayStartLatch(0);
         break;
     case MCH_VGA:
-    case MCH_PC98:
         PIC_AddEvent(VGA_DisplayStartLatch, (float)vga.draw.delay.vrstart);
         PIC_AddEvent(VGA_PanningLatch, (float)vga.draw.delay.vrend);
         // EGA: 82c435 datasheet: interrupt happens at display end
         // VGA: checked with scope; however disabled by default by jumper on VGA boards
         // add a little amount of time to make sure the last drawpart has already fired
         PIC_AddEvent(VGA_VertInterrupt,(float)(vga.draw.delay.vdend + 0.005));
+        break;
+    case MCH_PC98:
+        PIC_AddEvent(VGA_PanningLatch, (float)vga.draw.delay.vrend);
+        PIC_AddEvent(VGA_VertInterrupt,(float)(vga.draw.delay.vrstart + 0.0001));
         break;
     case MCH_EGA:
         PIC_AddEvent(VGA_DisplayStartLatch, (float)vga.draw.delay.vrend);
