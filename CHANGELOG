@@ -1,4 +1,9 @@
 0.82.22 (next)
+  - Fixed odd code addition that disabled (through
+    the configuration) XMS, EMS, and UMB when
+    booting a guest OS. This fixes a problem where
+    those services are not available when rebooting
+    back into the DOSBox-X shell from a guest OS.
   - CGA 640x200 and MCGA 640x480 modes fixed to
     have proper refresh rate when machine=mcga,
     instead of 140Hz.
