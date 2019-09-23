@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - MCGA horizontal active display register
+    encodes N - 1, not N, according to real
+    hardware register dumps.
   - INT 10h modes 2 and 3 updated set MCGA CRTC
     write protect bit, to match real PS/2 hardware
     behavior, and to unlock CRTC registers during
