@@ -823,11 +823,19 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 
 	//Horizontal total
 	IO_WriteW(crtc_base,(Bit16u)(0x00 | (CurMode->htotal) << 8));
-	//Horizontal displayed
-	IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend) << 8));
-	//Horizontal sync position
-	IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend+1) << 8));
-	//Horizontal sync width, seems to be fixed to 0xa, for cga at least, hercules has 0xf
+    if (machine == MCH_MCGA) {
+        //Horizontal displayed
+        IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend-1) << 8));
+        //Horizontal sync position
+        IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend) << 8));
+    }
+    else {
+        //Horizontal displayed
+        IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend) << 8));
+        //Horizontal sync position
+        IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend+1) << 8));
+    }
+    //Horizontal sync width, seems to be fixed to 0xa, for cga at least, hercules has 0xf
 	// PCjr doubles sync width in high resolution modes, good for aspect correction
 	// newer "compatible" CGA BIOS does the same
 	// The IBM CGA card seems to limit retrace pulse widths

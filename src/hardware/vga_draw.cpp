@@ -3575,6 +3575,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
         htotal = vga.other.htotal + 1u;
         hdend = vga.other.hdend;
+
+        if (machine == MCH_MCGA) {
+            // it seems MCGA follows the EGA/VGA model of encoding active display
+            // as N - 1 rather than CGA/MDA model of N.
+            hdend++;
+        }
+
         hbstart = hdend;
         hbend = htotal;
         hrstart = vga.other.hsyncp;
