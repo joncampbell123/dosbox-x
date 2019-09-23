@@ -1,4 +1,7 @@
 0.82.22 (next)
+  - CGA 640x200 and MCGA 640x480 modes fixed to
+    have proper refresh rate when machine=mcga,
+    instead of 140Hz.
   - MCGA horizontal active display register
     encodes N - 1, not N, according to real
     hardware register dumps.
