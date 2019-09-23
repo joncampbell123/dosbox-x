@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - INT 10h modes 2 and 3 updated set MCGA CRTC
+    write protect bit, to match real PS/2 hardware
+    behavior, and to unlock CRTC registers during
+    mode set.
   - PC-98 VSYNC interrupt now fires at vertical
     retrace start (as documented) instead of at
     active display end behavior borrowed from
