@@ -808,19 +808,6 @@ private:
         WriteOut(MSG_Get("PROGRAM_BOOT_PRINT_ERROR"));
     }
 
-    /*! \brief      Utility function to disable UMB, EMS, XMS
-     */
-    void disable_umb_ems_xms(void) {
-        Section* dos_sec = control->GetSection("dos");
-        char test[20];
-        strcpy(test,"umb=false");
-        dos_sec->HandleInputline(test);
-        strcpy(test,"xms=false");
-        dos_sec->HandleInputline(test);
-        strcpy(test,"ems=false");
-        dos_sec->HandleInputline(test);
-    }
-
 public:
    
     /*! \brief      Program entry point, when the command is run
@@ -1293,7 +1280,6 @@ public:
                     }
                 }
 
-                disable_umb_ems_xms();
                 void PreparePCJRCartRom(void);
                 PreparePCJRCartRom();
 
@@ -1435,8 +1421,6 @@ public:
                 WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
                 return;
             }
-
-            disable_umb_ems_xms();
 
             WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
 
