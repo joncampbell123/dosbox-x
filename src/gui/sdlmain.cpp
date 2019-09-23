@@ -6299,6 +6299,9 @@ bool VM_Boot_DOSBox_Kernel() {
     }
 
     if (dos_kernel_disabled) {
+        /* in case of reboot */
+        Init_MemHandles();
+
         DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
 
         /* DOS kernel init */
@@ -8133,9 +8136,6 @@ fresh_boot:
         reboot_machine = false;
         dos_kernel_shutdown = false;
         guest_msdos_mcb_chain = (Bit16u)(~0u);
-
-        /* in case of reboot */
-        Init_MemHandles();
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
