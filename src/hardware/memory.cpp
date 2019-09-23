@@ -1922,7 +1922,12 @@ void ShutDownMemoryAccessArray(Section * sec) {
     }
 }
 
+void XMS_ShutDown(Section* /*sec*/);
+
 void ShutDownMemHandles(Section * sec) {
+    /* XMS relies on us, so shut it down first to avoid spurious warnings about freeing when mhandles == NULL */
+    XMS_ShutDown(NULL);
+
     (void)sec;//UNUSED
     if (memory.mhandles != NULL) {
         delete [] memory.mhandles;

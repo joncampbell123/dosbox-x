@@ -155,6 +155,8 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+void ShutDownMemHandles(Section * sec);
+
 SDL_Block sdl;
 Bitu frames = 0;
 
@@ -8132,6 +8134,9 @@ fresh_boot:
         dos_kernel_shutdown = false;
         guest_msdos_mcb_chain = (Bit16u)(~0u);
 
+        /* in case of reboot */
+        Init_MemHandles();
+
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
         /* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
@@ -8252,6 +8257,9 @@ fresh_boot:
             XMS_DoShutDown();
             /* and the DOS API in general */
             DOS_DoShutDown();
+
+            /* mem handles too */
+            ShutDownMemHandles(NULL);
 
             /* set the "disable DOS kernel" flag so other parts of this program
              * do not attempt to manipulate now-defunct parts of the kernel
