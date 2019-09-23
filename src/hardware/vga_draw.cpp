@@ -3579,6 +3579,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (machine == MCH_MCGA) {
             // it seems MCGA follows the EGA/VGA model of encoding active display
             // as N - 1 rather than CGA/MDA model of N.
+            //
+            // TODO: Verify this on real hardware. Some code in DOSLIB hw/vga2/test5.c
+            //       attempts to set active display width which can confirm this.
+            //
+            //       This is so far based on CRTC register dumps from real MCGA hardware
+            //       for each mode.
             hdend++;
         }
 
