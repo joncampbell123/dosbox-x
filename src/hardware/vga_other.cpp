@@ -1129,7 +1129,7 @@ void VGA_SetupOther(void) {
 	if (machine==MCH_MDA) {
         VGA_SetMode(M_HERC_TEXT); // HACK
     }
-	if (machine==MCH_CGA) {
+	if (machine==MCH_CGA || machine==MCH_PCJR || machine==MCH_TANDY) {
 		Bitu base=0x3d0;
 		for (Bitu port_ct=0; port_ct<4; port_ct++) {
 			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
@@ -1153,7 +1153,8 @@ void VGA_SetupOther(void) {
 			IO_RegisterReadHandler(base,read_crtc_index_other,IO_MB);
 			IO_RegisterReadHandler(base+1,read_crtc_data_other,IO_MB);
 		}
-	} else if (!IS_EGAVGA_ARCH) {
+	}
+    if (machine==MCH_MCGA) {
 		Bitu base=0x3d0;
 		for (Bitu port_ct=0; port_ct<4; port_ct++) {
 			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
