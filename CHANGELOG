@@ -98,6 +98,9 @@
     - Fix flag behavior of several shift/rotate
     instructions, cause exceptions and fix
     potential 'pop ss' problems
+    - Add support for Print Screen key and
+    interrupt. In-game screenshot feature
+    of Descent and Descent 2 now works.
 0.82.21
   - Reduced title bar size of the Configuration GUI.
   - Fixed sizing and positions of some Help menu dialog

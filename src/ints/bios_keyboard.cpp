@@ -368,6 +368,13 @@ static Bitu IRQ1_Handler(void) {
     case 0xb6:                      /* Right Shift Released */
         flags1 &=~0x01;
         break;
+    case 0x37:						/* Keypad * or PrtSc Pressed */
+        if (!(flags3 & 0x02)) goto normal_key;
+        reg_ip += 7; // call int 5
+        break;
+    case 0xb7:						/* Keypad * or PrtSc Released */
+        if (!(flags3 & 0x02)) goto normal_key;
+        break;
     case 0x38:                      /* Alt Pressed */
         flags1 |=0x08;
         if (flags3 &0x02) flags3 |=0x08;
@@ -497,6 +504,7 @@ static Bitu IRQ1_Handler(void) {
         break;
 
     default: /* Normal Key */
+    normal_key:
         Bit16u asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */
         /* Handle the actual scancode */
@@ -1611,6 +1619,14 @@ void BIOS_SetupKeyboard(void) {
         //  out 0x20, al
         //  pop ax
         //  iret
+        //  cli
+        //  mov al, 0x20
+        //  out 0x20, al
+        //  push bp
+        //  int 0x05
+        //  pop bp
+        //  pop ax
+        //  iret
     }
 
     irq1_ret_ctrlbreak_callback=CALLBACK_Allocate();
@@ -1633,7 +1649,11 @@ void BIOS_SetupKeyboard(void) {
         //  in al, 0x60
         //  cmp al, 0xe0
         //  je skip
+        //  push ds
+        //  push 0x40
+        //  pop ds
         //  int 0x09
+        //  pop ds
         //  label skip:
         //  cli
         //  mov al, 0x20
