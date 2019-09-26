@@ -377,6 +377,7 @@ static Bitu Normal_Loop(void) {
                     ticksRemain--;
                 } else {
                     increaseticks();
+                    return 0;
                 }
             }
         }
