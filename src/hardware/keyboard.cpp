@@ -1566,9 +1566,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
         return;
     case KBD_printscreen:
         KEYBOARD_AddBuffer(0xe0);
-        KEYBOARD_AddBuffer(42 | (pressed ? 0 : 0x80));
+        KEYBOARD_AddBuffer(0x2a | (pressed ? 0 : 0x80)); /* 0x2a == 42 */
         KEYBOARD_AddBuffer(0xe0);
-        KEYBOARD_AddBuffer(55 | (pressed ? 0 : 0x80));
+        KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80)); /* 0x37 == 55 */
         /* pressing this key also disables any previous key repeat */
         keyb.repeat.key = KBD_NONE;
         keyb.repeat.wait = 0;
