@@ -1565,6 +1565,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
         keyb.repeat.wait=0;
         return;
     case KBD_printscreen:
+        /* NTS: Check previous assertion that the Print Screen sent these bytes in
+         *      one order when pressed and reverse order when released. Or perhaps
+         *      that's only what some keyboards do. --J.C. */
         KEYBOARD_AddBuffer(0xe0);
         KEYBOARD_AddBuffer(0x2a | (pressed ? 0 : 0x80)); /* 0x2a == 42 */
         KEYBOARD_AddBuffer(0xe0);
