@@ -1565,9 +1565,13 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
         keyb.repeat.wait=0;
         return;
     case KBD_printscreen:
-        extend=true;
-        if (pressed) { ret=0x2a; ret2=0x37; }
-        else         { ret=0xb7; ret2=0xaa; }
+        KEYBOARD_AddBuffer(0xe0);
+        KEYBOARD_AddBuffer(42 | (pressed ? 0 : 0x80));
+        KEYBOARD_AddBuffer(0xe0);
+        KEYBOARD_AddBuffer(55 | (pressed ? 0 : 0x80));
+        /* pressing this key also disables any previous key repeat */
+        keyb.repeat.key = KBD_NONE;
+        keyb.repeat.wait = 0;
         return;
     case KBD_lwindows:extend=true;ret=0x5B;break;
     case KBD_rwindows:extend=true;ret=0x5C;break;

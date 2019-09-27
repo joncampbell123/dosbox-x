@@ -158,6 +158,7 @@ extern Bitu BIOS_DEFAULT_IRQ0_LOCATION;		// (RealMake(0xf000,0xfea5))
 extern Bitu BIOS_DEFAULT_IRQ1_LOCATION;		// (RealMake(0xf000,0xe987))
 extern Bitu BIOS_DEFAULT_IRQ2_LOCATION;		// (RealMake(0xf000,0xff55))
 extern Bitu BIOS_DEFAULT_HANDLER_LOCATION;	// (RealMake(0xf000,0xff53))
+extern Bitu BIOS_DEFAULT_INT5_LOCATION;		// (RealMake(0xf000,0xff54))
 extern Bitu BIOS_VIDEO_TABLE_LOCATION;		// (RealMake(0xf000,0xf0a4))
 extern Bitu BIOS_DEFAULT_RESET_LOCATION;	// RealMake(0xf000,0xe05b)
 extern Bitu BIOS_VIDEO_TABLE_SIZE;
