@@ -138,6 +138,15 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			5	If set screen output is enabled and the palette can not be modified,
 				if clear screen output is disabled and the palette can be modified.
 		*/
+        /* NOTES: Paradise/Western Digital SVGA appears to respond to 0x00-0x0F as
+         *        expected, but 0x10-0x17 have an alias at 0x18-0x1F according to
+         *        DOSLIB TMODESET.EXE dumps.
+         *
+         *        if (val & 0x10)
+         *          index = val & 0x17;
+         *        else
+         *          index = val & 0x0F;
+         */
 		return;
 	} else {
 		vga.internal.attrindex=false;
