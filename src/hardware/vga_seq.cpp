@@ -69,6 +69,8 @@ void write_p3c4(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			val &= 0x07;	// FIXME: reasonable guess, since the ET4000 does it too
 		else
 			val &= 0x0F;	// FIXME: reasonable guess
+
+        /* Paradise/Western Digital sequencer registers appear to repeat every 0x40 aka decoding bits [5:0] */
 	}
 	else if (machine == MCH_EGA) {
 		val &= 0x0F; // FIXME: reasonable guess
