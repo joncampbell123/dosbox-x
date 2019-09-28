@@ -1340,6 +1340,9 @@ static Bitu INT33_Handler(void) {
         reg_cx = (Bit16u)mouse.max_x;
         reg_dx = (Bit16u)mouse.max_y;
         break;
+    case 0x53C1: /* Logitech CyberMan */
+        LOG(LOG_MOUSE, LOG_NORMAL)("Mouse function 53C1 for Logitech CyberMan called. Ignored by regular mouse driver.");
+        break;
     default:
         LOG(LOG_MOUSE, LOG_ERROR)("Mouse Function %04X not implemented!", reg_ax);
         break;
