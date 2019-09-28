@@ -1,4 +1,6 @@
 0.82.22 (next)
+  - (Allofich) Note and ignore INT 33, AX=53C1 call
+    for the Logitech CyberMan.
   - Fixed odd code addition that disabled (through
     the configuration) XMS, EMS, and UMB when
     booting a guest OS. This fixes a problem where
