@@ -142,6 +142,8 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
          *        expected, but 0x10-0x17 have an alias at 0x18-0x1F according to
          *        DOSLIB TMODESET.EXE dumps.
          *
+         *        Original IBM PS/2 VGA hardware acts the same.
+         *
          *        if (val & 0x10)
          *          index = val & 0x17;
          *        else
