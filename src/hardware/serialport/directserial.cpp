@@ -38,6 +38,7 @@ CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 
 	rx_retry = 0;
     rx_retry_max = 0;
+    rx_state = 0;
 
 	std::string tmpstring;
 	if(!cmd->FindStringBegin("realport:",tmpstring,false)) return;

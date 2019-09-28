@@ -485,7 +485,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         // build the completion list
                         char mask[DOS_PATHLENGTH] = {0};
-                        if (strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
+                        if (p_completion_start && strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
                             //Beep;
                             break;
                         }

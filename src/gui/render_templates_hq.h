@@ -82,6 +82,9 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 		int Y = (r + g + b) >> 2;
 		int u = 128 + ((r - b) >> 2);
 		int v = 128 + ((-r + 2 * g - b) >> 3);
-		_RGBtoYUV[color] = (Bit32u)((Y << 16) | (u << 8) | v);
+        if (_RGBtoYUV != NULL)
+            _RGBtoYUV[color] = (Bit32u)((Y << 16) | (u << 8) | v);
+        else
+            E_Exit("Memory allocation failed in conc2d");
 	}
 }

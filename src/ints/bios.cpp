@@ -1221,8 +1221,10 @@ public:
         else {
             if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
             raw = new unsigned char[(size_t)len+1u];
-            if (ir == NULL) E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
-            memcpy(raw,ir,(size_t)len);
+            if (ir == NULL)
+                E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
+            else
+                memcpy(raw, ir, (size_t)len);
             raw_len = len;
             raw[len] = 0;
             own = true;

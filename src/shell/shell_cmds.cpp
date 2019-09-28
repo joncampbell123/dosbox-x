@@ -135,7 +135,11 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	}
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
 	strcat(newcom,test->GetName());	strcat(newcom," ");
-	strcat(newcom,cmd_in);strcat(newcom,line);
+	strcat(newcom,cmd_in);
+    if (line != NULL)
+        strcat(newcom, line);
+    else
+        E_Exit("'line' in CheckConfig is NULL");
 	DoCommand(newcom);
 	return true;
 }
@@ -1687,7 +1691,7 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 
 void DOS_Shell::CMD_PROMPT(char *args){
 	HELP("PROMPT");
-	if(args && *args && strlen(args)) {
+	if(args && *args) {
 		args++;
 		SetEnv("PROMPT",args);
 	} else
@@ -1697,12 +1701,13 @@ void DOS_Shell::CMD_PROMPT(char *args){
 
 void DOS_Shell::CMD_PATH(char *args){
 	HELP("PATH");
-	if(args && *args && strlen(args)){
+	if(args && *args){
 		char pathstring[DOS_PATHLENGTH+CROSS_LEN+20]={ 0 };
 		strcpy(pathstring,"set PATH=");
-		while(args && *args && (*args=='='|| *args==' ')) 
+		while(args && (*args=='='|| *args==' ')) 
 		     args++;
-		strcat(pathstring,args);
+        if (args)
+            strcat(pathstring,args);
 		this->ParseLine(pathstring);
 		return;
 	} else {
@@ -1738,7 +1743,7 @@ void DOS_Shell::CMD_VER(char *args) {
 void DOS_Shell::CMD_VOL(char *args){
 	HELP("VOL");
 	Bit8u drive=DOS_GetDefaultDrive();
-	if(args && *args && strlen(args)){
+	if(args && *args){
 		args++;
 		Bit32u argLen = (Bit32u)strlen(args);
 		switch (args[argLen-1]) {

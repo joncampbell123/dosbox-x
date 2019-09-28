@@ -175,14 +175,17 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
 		}
 	}
 	CodePageHandlerDynRec * cpagehandler=cache.free_pages;
-	cache.free_pages=cache.free_pages->next;
-
-	// adjust previous and next page pointer
-	cpagehandler->prev=cache.last_page;
-	cpagehandler->next=0;
-	if (cache.last_page) cache.last_page->next=cpagehandler;
-	cache.last_page=cpagehandler;
-	if (!cache.used_pages) cache.used_pages=cpagehandler;
+    if (cache.free_pages != NULL) {
+        cache.free_pages = cache.free_pages->next;
+        // adjust previous and next page pointer
+        cpagehandler->prev = cache.last_page;
+        cpagehandler->next = 0;
+        if (cache.last_page) cache.last_page->next = cpagehandler;
+        cache.last_page = cpagehandler;
+        if (!cache.used_pages) cache.used_pages = cpagehandler;
+    }
+    else
+        E_Exit("NULL cache.free_pages in MakeCodePage");
 
 	// initialize the code page handler and add the handler to the memory page
 	cpagehandler->SetupAt(phys_page,handler);
@@ -257,7 +260,10 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 	if (GCC_UNLIKELY(!activecb->cache.wmapmask)) {
 		// no mask memory yet allocated, start with a small buffer
 		activecb->cache.wmapmask=(Bit8u*)malloc(START_WMMEM);
-		memset(activecb->cache.wmapmask,0,START_WMMEM);
+        if (activecb->cache.wmapmask != NULL)
+            memset(activecb->cache.wmapmask, 0, START_WMMEM);
+        else
+            E_Exit("Memory allocation failed in decode_increase_wmapmask");
 		activecb->cache.maskstart=(Bit16u)decode.page.index;	// start of buffer is current code position
 		activecb->cache.masklen=START_WMMEM;
 		mapidx=0;
@@ -268,19 +274,25 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 			Bitu newmasklen=activecb->cache.masklen*(Bitu)4;
 			if (newmasklen<mapidx+size) newmasklen=((mapidx+size)&~3)*2;
 			Bit8u* tempmem=(Bit8u*)malloc(newmasklen);
-			memset(tempmem,0,newmasklen);
-			memcpy(tempmem,activecb->cache.wmapmask,activecb->cache.masklen);
-			free(activecb->cache.wmapmask);
-			activecb->cache.wmapmask=tempmem;
-			activecb->cache.masklen=(Bit16u)newmasklen;
-		}
-	}
-	// update mask entries
-	switch (size) {
-		case 1 : activecb->cache.wmapmask[mapidx]+=0x01; break;
-		case 2 : (*(Bit16u*)&activecb->cache.wmapmask[mapidx])+=0x0101; break;
-		case 4 : (*(Bit32u*)&activecb->cache.wmapmask[mapidx])+=0x01010101; break;
-	}
+            if (tempmem != NULL) {
+                memset(tempmem, 0, newmasklen);
+                memcpy(tempmem, activecb->cache.wmapmask, activecb->cache.masklen);
+                free(activecb->cache.wmapmask);
+                activecb->cache.wmapmask = tempmem;
+                activecb->cache.masklen = (Bit16u)newmasklen;
+            }
+            else
+                E_Exit("Memory allocation failed in decode_increase_wmapmask");
+        }
+    }
+    // update mask entries
+    if (activecb->cache.wmapmask != NULL) {
+        switch (size) {
+        case 1: activecb->cache.wmapmask[mapidx] += 0x01; break;
+        case 2: (*(Bit16u*)& activecb->cache.wmapmask[mapidx]) += 0x0101; break;
+        case 4: (*(Bit32u*)& activecb->cache.wmapmask[mapidx]) += 0x01010101; break;
+        }
+    }
 }
 
 // fetch a byte, val points to the code location if possible,
