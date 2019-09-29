@@ -3277,6 +3277,24 @@ Bitu DEBUG_Loop(void) {
 void DEBUG_Enable(bool pressed) {
 	if (!pressed)
 		return;
+
+    /* this command is now a toggle! */
+    if (debugging) {
+        DrawRegistersUpdateOld();
+        debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
+        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        DOSBOX_SetNormalLoop();	
+        return;
+    }
+
 	static bool showhelp=false;
 
 #if defined(MACOSX) || defined(LINUX)
