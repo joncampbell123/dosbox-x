@@ -3280,6 +3280,8 @@ Bitu DEBUG_Loop(void) {
     }
 }
 
+void DEBUG_FlushInput(void);
+
 void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed)
 		return;
@@ -3330,13 +3332,12 @@ void DEBUG_Enable_Handler(bool pressed) {
     LoopHandler *ol = DOSBOX_GetLoop();
     if (ol != DEBUG_Loop) old_loop = ol;
 
-    void DEBUG_FlushInput(void);
-    DEBUG_FlushInput();
 	debugging=true;
     debug_running=false;
     check_rescroll=true;
     DrawRegistersUpdateOld();
     DEBUG_SetupConsole();
+    DEBUG_FlushInput();
 	SetCodeWinStart();
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
