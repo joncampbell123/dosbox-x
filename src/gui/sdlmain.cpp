@@ -8315,8 +8315,8 @@ fresh_boot:
             if (boot_debug_break) {
                 boot_debug_break = false;
 
-                void DEBUG_Enable(bool pressed);
-                DEBUG_Enable(true);
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
             }
 #endif
 
@@ -8371,8 +8371,8 @@ fresh_boot:
             if (boot_debug_break) {
                 boot_debug_break = false;
 
-                void DEBUG_Enable(bool pressed);
-                DEBUG_Enable(true);
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
             }
 #endif
 
