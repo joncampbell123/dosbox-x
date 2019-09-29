@@ -1747,6 +1747,9 @@ bool ParseCommand(char* str) {
             DEBUG_RefreshPage(0);
         }
 
+        void DEBUG_DrawScreen(void);
+        DEBUG_DrawScreen();
+
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
@@ -3296,6 +3299,9 @@ void DEBUG_Enable_Handler(bool pressed) {
             logBuffSuppressConsoleNeedUpdate = false;
             DEBUG_RefreshPage(0);
         }
+
+        void DEBUG_DrawScreen(void);
+        DEBUG_DrawScreen();
 
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
