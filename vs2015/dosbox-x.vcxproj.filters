@@ -55,9 +55,6 @@
     <Filter Include="Sources\libs\porttalk">
       <UniqueIdentifier>{cd3f8fa5-7241-4256-a47c-a74ae8a95284}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\libs\zmbv">
-      <UniqueIdentifier>{28485f5b-4c4a-4ad6-a8b1-59835197cb97}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\misc">
       <UniqueIdentifier>{5af65dcd-0cd1-4ee7-a026-ead87797f0df}</UniqueIdentifier>
     </Filter>
@@ -921,15 +918,6 @@
     <ClCompile Include="..\src\gui\zipfile.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\zmbv\drvproc.cpp">
-      <Filter>Sources\libs\zmbv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\zmbv\zmbv.cpp">
-      <Filter>Sources\libs\zmbv</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\zmbv\zmbv_vfw.cpp">
-      <Filter>Sources\libs\zmbv</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1135,12 +1123,6 @@
     </ClInclude>
     <ClInclude Include="..\src\ints\int10.h">
       <Filter>Sources\ints</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h">
-      <Filter>Sources\libs\gui_tk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\porttalk\porttalk.h">
-      <Filter>Sources\libs\porttalk</Filter>
     </ClInclude>
     <ClInclude Include="..\src\mt32\AReverbModel.h">
       <Filter>Sources\mt32</Filter>
@@ -1469,12 +1451,6 @@
     <ClInclude Include="..\include\zip.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\libs\zmbv\zmbv.h">
-      <Filter>Sources\libs\zmbv</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\zmbv\zmbv_vfw.h">
-      <Filter>Sources\libs\zmbv</Filter>
-    </ClInclude>
     <ClInclude Include="config.h">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -1735,12 +1711,6 @@
     </ClInclude>
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h">
       <Filter>Sources\fpu</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\porttalk\PortTalk_IOCTL.h">
-      <Filter>Sources\libs\porttalk</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\zmbv\resource.h">
-      <Filter>Sources\libs\zmbv</Filter>
     </ClInclude>
     <ClInclude Include="..\src\resource.h">
       <Filter>Sources</Filter>

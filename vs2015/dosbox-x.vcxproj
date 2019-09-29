@@ -1425,9 +1425,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\ints\bios_vhd.cpp" />
-    <ClCompile Include="..\src\libs\zmbv\drvproc.cpp" />
-    <ClCompile Include="..\src\libs\zmbv\zmbv.cpp" />
-    <ClCompile Include="..\src\libs\zmbv\zmbv_vfw.cpp" />
     <ClCompile Include="..\src\misc\iconvpp.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
     <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
@@ -1814,12 +1811,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\hardware\voodoo_vogl.h" />
     <ClInclude Include="..\src\ints\int10.h" />
     <ClInclude Include="..\src\ints\xms.h" />
-    <ClInclude Include="..\src\libs\gui_tk\gui_tk.h" />
-    <ClInclude Include="..\src\libs\porttalk\porttalk.h" />
-    <ClInclude Include="..\src\libs\porttalk\PortTalk_IOCTL.h" />
-    <ClInclude Include="..\src\libs\zmbv\resource.h" />
-    <ClInclude Include="..\src\libs\zmbv\zmbv.h" />
-    <ClInclude Include="..\src\libs\zmbv\zmbv_vfw.h" />
     <ClInclude Include="..\src\mt32\AReverbModel.h" />
     <ClInclude Include="..\src\mt32\BReverbModel.h" />
     <ClInclude Include="..\src\mt32\DelayReverb.h" />
