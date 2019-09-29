@@ -764,6 +764,10 @@ static void KillSwitch(bool pressed) {
     throw 1;
 }
 
+void DoKillSwitch(void) {
+    KillSwitch(true);
+}
+
 void BlankDisplay(void) {
     if (OpenGL_using()) {
         LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");

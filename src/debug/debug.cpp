@@ -1456,6 +1456,12 @@ bool ParseCommand(char* str) {
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
 
+    if (command == "QUIT") {
+        void DoKillSwitch(void);
+        DoKillSwitch();
+        return true;
+    }
+
     if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
         int order1 = dbg.win_find_order((int)dbg.active_win);
         int order2 = dbg.win_next_by_order(order1);
