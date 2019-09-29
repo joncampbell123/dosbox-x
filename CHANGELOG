@@ -1,4 +1,6 @@
 0.82.22 (next)
+  - cycles=max now displays cycle percentage correctly
+    instead of showing e.g. 100 cyc/ms
   - (Allofich) Note and ignore INT 33, AX=53C1 call
     for the Logitech CyberMan.
   - Fixed odd code addition that disabled (through
