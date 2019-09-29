@@ -3330,6 +3330,8 @@ void DEBUG_Enable_Handler(bool pressed) {
     LoopHandler *ol = DOSBOX_GetLoop();
     if (ol != DEBUG_Loop) old_loop = ol;
 
+    void DEBUG_FlushInput(void);
+    DEBUG_FlushInput();
 	debugging=true;
     debug_running=false;
     check_rescroll=true;

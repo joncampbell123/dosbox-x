@@ -525,6 +525,12 @@ bool DEBUG_IsDebuggerConsoleVisible(void) {
 	return (dbg.win_main != NULL);
 }
 
+void DEBUG_FlushInput(void) {
+    if (dbg.win_main != NULL) {
+        while (getch() >= 0); /* remember nodelay() is called to make getch() non-blocking */
+    }
+}
+
 void DBGUI_StartUp(void) {
 	mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
 
