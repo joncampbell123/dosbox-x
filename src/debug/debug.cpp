@@ -1456,6 +1456,12 @@ bool ParseCommand(char* str) {
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
 
+    if (command == "QUIT") {
+        void DoKillSwitch(void);
+        DoKillSwitch();
+        return true;
+    }
+
     if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
         int order1 = dbg.win_find_order((int)dbg.active_win);
         int order2 = dbg.win_next_by_order(order1);
@@ -3274,9 +3280,27 @@ Bitu DEBUG_Loop(void) {
     }
 }
 
-void DEBUG_Enable(bool pressed) {
+void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed)
 		return;
+
+    /* this command is now a toggle! */
+    if (debugging) {
+        DrawRegistersUpdateOld();
+        debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
+        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+        DOSBOX_SetNormalLoop();	
+        return;
+    }
+
 	static bool showhelp=false;
 
 #if defined(MACOSX) || defined(LINUX)
@@ -3932,7 +3956,10 @@ void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 Bitu DEBUG_EnableDebugger(void)
 {
 	exitLoop = true;
-	DEBUG_Enable(true);
+    
+    if (!debugging)
+        DEBUG_Enable_Handler(true);
+
 	CPU_Cycles=CPU_CycleLeft=0;
 	return 0;
 }
@@ -4018,9 +4045,9 @@ void DEBUG_Init() {
 	#if defined(MACOSX)
 		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
 		// which is not easy to input on a modern mac laptop
-		MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,"debugger","Debugger", &item);
+		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_f12,MMOD2,"debugger","Debugger", &item);
 	#else
-		MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger",&item);
+		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Debugger",&item);
 	#endif
 	item->set_text("Debugger");
 	/* Reset code overview and input line */

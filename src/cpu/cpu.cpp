@@ -1016,11 +1016,11 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 #if C_DEBUG
 # if C_HEAVY_DEBUG
     bool DEBUG_IntBreakpoint(Bit8u intNum);
-    void DEBUG_Enable(bool pressed);
+    Bitu DEBUG_EnableDebugger(void);
 
     if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
         if (DEBUG_IntBreakpoint((Bit8u)num))
-            DEBUG_Enable(true);
+            DEBUG_EnableDebugger();
     }
 # endif
     if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {

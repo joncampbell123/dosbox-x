@@ -764,6 +764,10 @@ static void KillSwitch(bool pressed) {
     throw 1;
 }
 
+void DoKillSwitch(void) {
+    KillSwitch(true);
+}
+
 void BlankDisplay(void) {
     if (OpenGL_using()) {
         LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");
@@ -8315,8 +8319,8 @@ fresh_boot:
             if (boot_debug_break) {
                 boot_debug_break = false;
 
-                void DEBUG_Enable(bool pressed);
-                DEBUG_Enable(true);
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
             }
 #endif
 
@@ -8371,8 +8375,8 @@ fresh_boot:
             if (boot_debug_break) {
                 boot_debug_break = false;
 
-                void DEBUG_Enable(bool pressed);
-                DEBUG_Enable(true);
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
             }
 #endif
 
