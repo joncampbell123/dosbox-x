@@ -921,42 +921,6 @@
     <ClCompile Include="..\src\gui\zipfile.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\amd98.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board14.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board118.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\boardpx.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\boardspb.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\boardx2.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\cbuscore.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\cs4231io.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pc9861k.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\sound\s98.c">
-      <Filter>Sources\hardware\snd_pc98\sound</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\snd_pc98\sound\sndcsec.c">
-      <Filter>Sources\hardware\snd_pc98\sound</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\libs\zmbv\drvproc.cpp">
       <Filter>Sources\libs\zmbv</Filter>
     </ClCompile>
@@ -1771,42 +1735,6 @@
     </ClInclude>
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h">
       <Filter>Sources\fpu</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\amd98.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board14.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board118.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\boardpx.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\boardspb.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\boardx2.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\cbuscore.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\cs4231io.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pc9861k.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
-      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\sound\s98.h">
-      <Filter>Sources\hardware\snd_pc98\sound</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\snd_pc98\sound\sndcsec.h">
-      <Filter>Sources\hardware\snd_pc98\sound</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\porttalk\PortTalk_IOCTL.h">
       <Filter>Sources\libs\porttalk</Filter>
