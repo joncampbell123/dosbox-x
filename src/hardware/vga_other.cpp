@@ -193,6 +193,9 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                      * bit 5: reserved
                      * bit 6: inverse of bit 8 of vertical displayed register 0x06
                      * bit 7: 1=write protect registers 0-7 */
+                    /* NTS: According to real hardware, bit 6 is more than just the 8th bit, clearing it automatically enables
+                     *      the scanline doubling in hardware apparently. If other parameters are not adjusted, weird results
+                     *      happen. */
                     vga.other.mcga_mode_control = (Bit8u)val;
                     if (val & 0x80)
                         crtc(read_only) = true;
