@@ -1,4 +1,10 @@
 0.82.22 (next)
+  - Debugger interface now flushes terminal input
+    upon entering the debugger, so that keyboard
+    input prior to entering the debugger is ignored.
+  - Debugger mapper shortcut and menu item are now
+    a toggle. Selecting once will enter the debugger
+    and selecting again will resume emulation.
   - cycles=max now displays cycle percentage correctly
     instead of showing e.g. 100 cyc/ms
   - (Allofich) Note and ignore INT 33, AX=53C1 call
