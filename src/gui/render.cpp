@@ -516,7 +516,10 @@ void RENDER_Reset( void ) {
       if(scalerOpGray == render.scale.op){
         simpleBlock = &ScaleGrayDw;
       }else{
-        simpleBlock = &ScaleNormalDw;
+          if (render.scale.forced && render.scale.size >= 2)
+              simpleBlock = &ScaleNormal2xDw;
+          else
+              simpleBlock = &ScaleNormalDw;
       }
     } else if (dblh && !render.scale.hardware) {
 		//Check whether tv2x and scan2x is selected
@@ -527,8 +530,11 @@ void RENDER_Reset( void ) {
         }else if(scalerOpScan == render.scale.op){
 			simpleBlock = &ScaleScanDh;
         }else{
-			simpleBlock = &ScaleNormalDh;
-		}
+            if (render.scale.forced && render.scale.size >= 2)
+                simpleBlock = &ScaleNormal2xDh;
+            else
+                simpleBlock = &ScaleNormalDh;
+        }
     } else  {
 forcenormal:
         complexBlock = 0;

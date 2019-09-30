@@ -237,6 +237,40 @@ ScalerSimpleBlock_t ScaleNormalDh = {
 {	NormalDh_8_8_R,		NormalDh_9_15_R ,	NormalDh_9_16_R ,	NormalDh_9_32_R }
 }};
 
+ScalerSimpleBlock_t ScaleNormal2xDw = {
+	"Normal2x",
+	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
+	4,2,{
+{	Normal2xDw_8_8_L,		Normal2xDw_8_15_L ,	Normal2xDw_8_16_L ,	Normal2xDw_8_32_L },
+{	               0,		Normal2xDw_15_15_L,	Normal2xDw_15_16_L,	Normal2xDw_15_32_L},
+{	               0,		Normal2xDw_16_15_L,	Normal2xDw_16_16_L,	Normal2xDw_16_32_L},
+{	               0,		Normal2xDw_32_15_L,	Normal2xDw_32_16_L,	Normal2xDw_32_32_L},
+{	Normal2xDw_8_8_L,		Normal2xDw_9_15_L ,	Normal2xDw_9_16_L ,	Normal2xDw_9_32_L }
+},{
+{	Normal2xDw_8_8_R,		Normal2xDw_8_15_R ,	Normal2xDw_8_16_R ,	Normal2xDw_8_32_R },
+{	               0,		Normal2xDw_15_15_R,	Normal2xDw_15_16_R,	Normal2xDw_15_32_R},
+{	               0,		Normal2xDw_16_15_R,	Normal2xDw_16_16_R,	Normal2xDw_16_32_R},
+{	               0,		Normal2xDw_32_15_R,	Normal2xDw_32_16_R,	Normal2xDw_32_32_R},
+{	Normal2xDw_8_8_R,		Normal2xDw_9_15_R ,	Normal2xDw_9_16_R ,	Normal2xDw_9_32_R }
+}};
+
+ScalerSimpleBlock_t ScaleNormal2xDh = {
+	"Normal2x",
+	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
+	2,4,{
+{	Normal2xDh_8_8_L,		Normal2xDh_8_15_L ,	Normal2xDh_8_16_L ,	Normal2xDh_8_32_L },
+{	               0,		Normal2xDh_15_15_L,	Normal2xDh_15_16_L,	Normal2xDh_15_32_L},
+{	               0,		Normal2xDh_16_15_L,	Normal2xDh_16_16_L,	Normal2xDh_16_32_L},
+{	               0,		Normal2xDh_32_15_L,	Normal2xDh_32_16_L,	Normal2xDh_32_32_L},
+{	Normal2xDh_8_8_L,		Normal2xDh_9_15_L ,	Normal2xDh_9_16_L ,	Normal2xDh_9_32_L }
+},{
+{	Normal2xDh_8_8_R,		Normal2xDh_8_15_R ,	Normal2xDh_8_16_R ,	Normal2xDh_8_32_R },
+{	               0,		Normal2xDh_15_15_R,	Normal2xDh_15_16_R,	Normal2xDh_15_32_R},
+{	               0,		Normal2xDh_16_15_R,	Normal2xDh_16_16_R,	Normal2xDh_16_32_R},
+{	               0,		Normal2xDh_32_15_R,	Normal2xDh_32_16_R,	Normal2xDh_32_32_R},
+{	Normal2xDh_8_8_R,		Normal2xDh_9_15_R ,	Normal2xDh_9_16_R ,	Normal2xDh_9_32_R }
+}};
+
 ScalerSimpleBlock_t ScaleNormal2x = {
 	"Normal2x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
