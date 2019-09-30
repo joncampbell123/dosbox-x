@@ -1,4 +1,4 @@
-0.82.22 (next)
+0.82.22
   - Added Normal2x render scalers so that 'force scaler'
     for 1x2 or 2x1 scalefactors works and you can scale
     up 320x200/640x200 VGA modes and 640x200 CGA modes
