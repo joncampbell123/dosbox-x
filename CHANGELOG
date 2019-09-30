@@ -1,4 +1,6 @@
 0.82.22 (next)
+  - Main window titlebar now reflects whether or
+    not the debugger interface is active.
   - Debugger interface now flushes terminal input
     upon entering the debugger, so that keyboard
     input prior to entering the debugger is ignored.
