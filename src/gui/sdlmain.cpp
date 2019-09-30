@@ -685,6 +685,8 @@ void GFX_SetIcon(void)
 #endif
 }
 
+bool IsDebuggerActive(void);
+
 extern std::string dosbox_title;
 
 void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
@@ -737,6 +739,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
     }
 
     if (paused) strcat(title," PAUSED");
+    if (IsDebuggerActive()) strcat(title," DEBUGGER");
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,title);
 #else

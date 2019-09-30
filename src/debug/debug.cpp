@@ -70,7 +70,9 @@ const char *egc_fgc_modes[4] = {
 };
 
 bool pc98_pegc_linear_framebuffer_enabled(void);
+void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+extern bool                 is_paused;
 extern bool                 pc98_crt_mode;
 extern uint8_t              GDC_display_plane;
 extern uint8_t              GDC_display_plane_pending;
@@ -1753,6 +1755,7 @@ bool ParseCommand(char* str) {
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
+        GFX_SetTitle(-1,-1,-1,is_paused);
         return true;
     }
 
@@ -3306,6 +3309,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
 		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
+        GFX_SetTitle(-1,-1,-1,is_paused);
         return;
     }
 
@@ -3353,6 +3357,7 @@ void DEBUG_Enable_Handler(bool pressed) {
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
 	}
 	KEYBOARD_ClrBuffer();
+    GFX_SetTitle(-1,-1,-1,false);
 }
 
 void DEBUG_DrawScreen(void) {
