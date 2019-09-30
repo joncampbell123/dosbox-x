@@ -426,7 +426,7 @@ void RENDER_Reset( void ) {
         }
     }
 
-    if ((dblh && dblw) || (render.scale.forced && !dblh && !dblw)) {
+    if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
             simpleBlock = &ScaleNormal2x;
