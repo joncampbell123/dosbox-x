@@ -1,4 +1,8 @@
 0.82.22 (next)
+  - Added Normal2x render scalers so that 'force scaler'
+    for 1x2 or 2x1 scalefactors works and you can scale
+    up 320x200/640x200 VGA modes and 640x200 CGA modes
+    by 2x.
   - Main window titlebar now reflects whether or
     not the debugger interface is active.
   - Debugger interface now flushes terminal input
