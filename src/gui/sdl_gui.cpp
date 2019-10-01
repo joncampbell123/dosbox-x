@@ -1026,18 +1026,18 @@ protected:
     InputWithEnterKey *name;
 public:
     SetCycles(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter CPU cycles:");
 //      name = new GUI::Input(this, 5, 30, 350);
-        name = new InputWithEnterKey(this, 5, 30, 350);
+        name = new InputWithEnterKey(this, 5, 30, width - 10 - border_left - border_right);
         name->set_trigger_target(this);
         std::ostringstream str;
         str << "fixed " << CPU_CycleMax;
 
         std::string cycles=str.str();
         name->setText(cycles.c_str());
-        (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
 
         name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
         name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
