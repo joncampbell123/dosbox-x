@@ -17,11 +17,13 @@
  */
 
 #ifndef DOSBOX_DOSBOX_H
-#ifdef _MSC_VER
-#define INLINE __forceinline
-#else
-#define INLINE inline
-#endif
+# ifndef INLINE
+#  ifdef _MSC_VER
+#   define INLINE __forceinline
+#  else
+#   define INLINE inline
+#  endif
+# endif
 #endif
 
 #define CODEC_4CC "ZMBV"
