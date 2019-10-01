@@ -66,6 +66,7 @@ CPPSRCS	=	$(DBX_PATH)/src/dosbox.cpp \
 			$(wildcard $(DBX_PATH)/src/gui/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/gui/*.c) \
 			$(wildcard $(DBX_PATH)/src/hardware/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/hardware/mame/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/parport/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/reSID/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/serialport/*.cpp) \
