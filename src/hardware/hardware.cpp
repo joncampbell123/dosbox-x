@@ -33,6 +33,7 @@
 #include "cross.h"
 
 #if (C_SSHOT)
+#include <zlib.h>
 #include <png.h>
 #include "../libs/zmbv/zmbv.h"
 #endif

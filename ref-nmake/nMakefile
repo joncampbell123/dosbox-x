@@ -283,6 +283,7 @@ OBJS4	=	$(DBX_PATH)\src\ints\bios.obj \
 			$(DBX_PATH)\src\ints\qcow2_disk.obj \
 			$(DBX_PATH)\src\ints\xms.obj \
 			$(DBX_PATH)\src\libs\gui_tk\gui_tk.obj \
+			$(DBX_PATH)\src\libs\zmbv\zmbv.obj \
 			$(DBX_PATH)\src\misc\cross.obj \
 			$(DBX_PATH)\src\misc\messages.obj \
 			$(DBX_PATH)\src\misc\programs.obj \

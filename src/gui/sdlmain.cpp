@@ -90,6 +90,10 @@ void GFX_OpenGLRedrawScreen(void);
 #endif
 
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
+#if _WIN32_WINNT < 0x0601
+//This is undefined in some older MinGW winapi headers. --yksoft1
+static const GUID CLSID_TaskbarList ={ 0x56FDF344,0xFD6D,0x11d0,{0x95,0x8A,0x00,0x60,0x97,0xC9,0xA0,0x90}};
+#endif
 static const GUID __my_IID_ITaskbarList3 = { 0xEA1AFB91ul,0x9E28u,0x4B86u,0x90u,0xE9u,0x9Eu,0x9Fu,0x8Au,0x5Eu,0xEFu,0xAFu };
 # define IID_ITaskbarList3 __my_IID_ITaskbarList3
 #endif

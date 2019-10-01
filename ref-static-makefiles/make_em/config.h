@@ -200,7 +200,7 @@
 #define PACKAGE_NAME "dosbox-x"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "dosbox-x 0.82.10"
+#define PACKAGE_STRING "dosbox-x 0.82.22"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "dosbox-x"
@@ -209,7 +209,7 @@
 #define PACKAGE_URL "http://dosbox-x.software"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.82.10"
+#define PACKAGE_VERSION "0.82.22"
 
 /* The size of `int *', as computed by sizeof. */
 #define SIZEOF_INT_P 4
@@ -236,7 +236,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "0.82.10"
+#define VERSION "0.82.22"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

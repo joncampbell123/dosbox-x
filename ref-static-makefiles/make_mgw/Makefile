@@ -8,6 +8,8 @@ RM		=	rm -f
 
 DBX_PATH	= ../..
 
+MT32 = 1
+
 CFLAGS	=	-O3 -DNDEBUG -Wstrict-overflow=0 -Wstrict-aliasing=0 -fomit-frame-pointer  -mno-ms-bitfields  -I. \
 			-I$(DBX_PATH) \
 			-I$(DBX_PATH)/include \
@@ -52,6 +54,7 @@ CPPSRCS	=	$(DBX_PATH)/src/dosbox.cpp \
 			$(wildcard $(DBX_PATH)/src/gui/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/gui/*.c) \
 			$(wildcard $(DBX_PATH)/src/hardware/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/hardware/mame/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/parport/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/reSID/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/serialport/*.cpp) \
@@ -78,14 +81,38 @@ CPPSRCS	=	$(DBX_PATH)/src/dosbox.cpp \
 			$(wildcard $(DBX_PATH)/src/hardware/snd_pc98/x11/*.c) \
 			$(wildcard $(DBX_PATH)/src/ints/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/libs/gui_tk/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/libs/zmbv/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/misc/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/output/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/output/direct3d/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/shell/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/xBRZ/*.cpp)
 
+CPPSRCS_MT32 = $(wildcard $(DBX_PATH)/src/mt32/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/mt32/freeverb/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/mt32/sha1/*.cpp)
+
+OBJS_MT32 = $(addsuffix .o,$(basename $(CPPSRCS_MT32)))
+
+CXXFLAGS_MT32 = -DC_MT32=1 -I$(DBX_PATH)/src/mt32 -I$(DBX_PATH)/src/mt32/freeverb -I$(DBX_PATH)/src/mt32/sha1
+
 OBJS = $(addsuffix .o,$(basename $(CPPSRCS)))
-LIBS = -static -lz -lpng -lm -lstdc++ $(shell sdl2-config --libs)
+LIBS = -static -lpng -lz -lm -lstdc++ $(shell sdl2-config --libs)
+
+ifeq ($(OPENGL), 1)
+	CXXFLAGS += -DC_OPENGL=1
+	ifdef WINDIR
+		LIBS += -lopengl32
+	else
+		LIBS += -lGL
+	endif
+endif
+
+ifeq ($(MT32),1)
+	CPPSRCS += $(CPPSRCS_MT32)
+	CXXFLAGS += $(CXXFLAGS_MT32)
+#	OBJS += $(OBJS_MT32)
+endif
 
 .SUFFIXES: .c.o
 .SUFFIXES: .cpp.o
@@ -103,4 +130,4 @@ $(TARGET):	$(OBJS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) $(OBJS_MT32)
