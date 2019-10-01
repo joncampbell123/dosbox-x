@@ -1,4 +1,6 @@
 0.82.23 (next)
+  - In the configuration GUI, scroll wheel input no longer
+    changes the window focus.
   - Set CPU cycles dialog box layout fixed.
   - Added 'skip encoding unchanged frames' option to
     dosbox.conf. If set, AVI video capture will skip
