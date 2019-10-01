@@ -4,7 +4,7 @@
     video frame compression if the frame has not changed
     from the previous frame. Option is off by default
     at this time in case it causes any issues with users
-    and their video editing software.'
+    and their video editing software.
 0.82.22
   - Added Normal2x render scalers so that 'force scaler'
     for 1x2 or 2x1 scalefactors works and you can scale
