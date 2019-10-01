@@ -1172,6 +1172,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
+    /* will change to default true unless this causes compatibility issues with other users or their editing software */
+    Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Unchanged frames will not be sent to the video codec as a possible performance and bandwidth optimization.");
+
     Pstring = secprop->Add_string("capture chroma format", Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(capturechromaformats);
     Pstring->Set_help("Chroma format to use when capturing to H.264. 'auto' picks the best quality option.\n"

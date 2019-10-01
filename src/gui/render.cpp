@@ -344,6 +344,10 @@ void RENDER_EndUpdate( bool abort ) {
         pitch = render.scale.cachePitch;
         if (render.frameskip.max)
             fps /= 1+render.frameskip.max;
+
+        if (Scaler_ChangedLineIndex == 0)
+            flags |= CAPTURE_FLAG_NOCHANGE;
+
         CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
             flags, fps, (Bit8u *)&scalerSourceCache, (Bit8u*)&render.pal.rgb );
     }

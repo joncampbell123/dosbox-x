@@ -59,6 +59,8 @@ extern "C" {
 
 #endif
 
+bool            skip_encoding_unchanged_frames = false;
+
 #if (C_AVCODEC)
 bool ffmpeg_init = false;
 AVFormatContext*	ffmpeg_fmt_ctx = NULL;
@@ -1212,53 +1214,62 @@ skip_shot:
 			else
 				codecFlags = 0;
 
-			if (!capture.video.codec->PrepareCompressFrame( codecFlags, format, (char *)pal, capture.video.buf, capture.video.bufSize))
-				goto skip_video;
+            if ((flags & CAPTURE_FLAG_NOCHANGE) && skip_encoding_unchanged_frames) {
+                /* advance unless at keyframe */
+                if (codecFlags == 0) capture.video.frames++;
 
-			for (i=0;i<height;i++) {
-				void * rowPointer;
-				if (flags & CAPTURE_FLAG_DBLW) {
-					void *srcLine;
-					Bitu x;
-					Bitu countWidth = width >> 1;
-					if (flags & CAPTURE_FLAG_DBLH)
-						srcLine=(data+(i >> 1)*pitch);
-					else
-						srcLine=(data+(i >> 0)*pitch);
-					switch ( bpp) {
-						case 8:
-							for (x=0;x<countWidth;x++)
-								((Bit8u *)doubleRow)[x*2+0] =
-									((Bit8u *)doubleRow)[x*2+1] = ((Bit8u *)srcLine)[x];
-							break;
-						case 15:
-						case 16:
-							for (x=0;x<countWidth;x++)
-								((Bit16u *)doubleRow)[x*2+0] =
-									((Bit16u *)doubleRow)[x*2+1] = ((Bit16u *)srcLine)[x];
-							break;
-						case 32:
-							for (x=0;x<countWidth;x++)
-								((Bit32u *)doubleRow)[x*2+0] =
-									((Bit32u *)doubleRow)[x*2+1] = ((Bit32u *)srcLine)[x];
-							break;
-					}
-					rowPointer=doubleRow;
-				} else {
-					if (flags & CAPTURE_FLAG_DBLH)
-						rowPointer=(data+(i >> 1)*pitch);
-					else
-						rowPointer=(data+(i >> 0)*pitch);
-				}
-				capture.video.codec->CompressLines( 1, &rowPointer );
-			}
+                /* write null non-keyframe */
+                CAPTURE_AddAviChunk( "00dc", (Bit32u)0, capture.video.buf, (Bit32u)(0x0), 0u);
+            }
+            else {
+                if (!capture.video.codec->PrepareCompressFrame( codecFlags, format, (char *)pal, capture.video.buf, capture.video.bufSize))
+                    goto skip_video;
 
-			int written = capture.video.codec->FinishCompressFrame();
-			if (written < 0)
-				goto skip_video;
+                for (i=0;i<height;i++) {
+                    void * rowPointer;
+                    if (flags & CAPTURE_FLAG_DBLW) {
+                        void *srcLine;
+                        Bitu x;
+                        Bitu countWidth = width >> 1;
+                        if (flags & CAPTURE_FLAG_DBLH)
+                            srcLine=(data+(i >> 1)*pitch);
+                        else
+                            srcLine=(data+(i >> 0)*pitch);
+                        switch ( bpp) {
+                            case 8:
+                                for (x=0;x<countWidth;x++)
+                                    ((Bit8u *)doubleRow)[x*2+0] =
+                                        ((Bit8u *)doubleRow)[x*2+1] = ((Bit8u *)srcLine)[x];
+                                break;
+                            case 15:
+                            case 16:
+                                for (x=0;x<countWidth;x++)
+                                    ((Bit16u *)doubleRow)[x*2+0] =
+                                        ((Bit16u *)doubleRow)[x*2+1] = ((Bit16u *)srcLine)[x];
+                                break;
+                            case 32:
+                                for (x=0;x<countWidth;x++)
+                                    ((Bit32u *)doubleRow)[x*2+0] =
+                                        ((Bit32u *)doubleRow)[x*2+1] = ((Bit32u *)srcLine)[x];
+                                break;
+                        }
+                        rowPointer=doubleRow;
+                    } else {
+                        if (flags & CAPTURE_FLAG_DBLH)
+                            rowPointer=(data+(i >> 1)*pitch);
+                        else
+                            rowPointer=(data+(i >> 0)*pitch);
+                    }
+                    capture.video.codec->CompressLines( 1, &rowPointer );
+                }
 
-			CAPTURE_AddAviChunk( "00dc", (Bit32u)written, capture.video.buf, (Bit32u)(codecFlags & 1 ? 0x10 : 0x0), 0u);
-			capture.video.frames++;
+                int written = capture.video.codec->FinishCompressFrame();
+                if (written < 0)
+                    goto skip_video;
+
+                CAPTURE_AddAviChunk( "00dc", (Bit32u)written, capture.video.buf, (Bit32u)(codecFlags & 1 ? 0x10 : 0x0), 0u);
+                capture.video.frames++;
+            }
 
 			if ( capture.video.audioused ) {
 				CAPTURE_AddAviChunk( "01wb", (Bit32u)(capture.video.audioused * 4u), capture.video.audiobuf, /*keyframe*/0x10u, 1u);
@@ -1801,6 +1812,8 @@ void CAPTURE_Init() {
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
+
+    skip_encoding_unchanged_frames = section->Get_bool("skip encoding unchanged frames");
 
     std::string ffmpeg_pixfmt = section->Get_string("capture chroma format");
 
