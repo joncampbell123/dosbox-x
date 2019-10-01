@@ -2156,8 +2156,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,256);
     Pint->Set_help("MT-32 max partials allowed (0-256)");
 
-    secprop=control->AddSection_prop("debug",&Null_Init);
-
     secprop=control->AddSection_prop("sblaster",&Null_Init,true);//done
     
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
