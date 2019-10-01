@@ -314,7 +314,6 @@ Bitu CaptureState = 0;
 
 #define WAVE_BUF 16*1024
 #define MIDI_BUF 4*1024
-#define AVI_HEADER_SIZE	500
 
 static struct {
 	struct {
