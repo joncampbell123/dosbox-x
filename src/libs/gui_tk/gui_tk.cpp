@@ -780,6 +780,7 @@ bool Window::mouseDown(int x, int y, MouseButton button)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
     bool handled = false;
+    bool doraise = !(button == GUI::WheelUp || button == GUI::WheelDown); /* do not raise if the scroll wheel */
 	Window *last = NULL;
 
 	while (i != children.rend()) {
@@ -791,7 +792,8 @@ bool Window::mouseDown(int x, int y, MouseButton button)
                 return true;
             }
 			mouseChild = last = w;
-			if (w->mouseDown(x-w->x, y-w->y, button) && w->raise()) {
+			if (w->mouseDown(x-w->x, y-w->y, button)) {
+                if (doraise) w->raise();
 				return true;
 			}
 		}
@@ -803,7 +805,7 @@ bool Window::mouseDown(int x, int y, MouseButton button)
 	}
 
 	mouseChild = NULL;
-	if (last != NULL) last->raise();
+	if (last != NULL && doraise) last->raise();
 	return handled;
 }
 
