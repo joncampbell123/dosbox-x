@@ -1,4 +1,5 @@
 0.82.23 (next)
+  - Set CPU cycles dialog box layout fixed.
   - Added 'skip encoding unchanged frames' option to
     dosbox.conf. If set, AVI video capture will skip
     video frame compression if the frame has not changed
