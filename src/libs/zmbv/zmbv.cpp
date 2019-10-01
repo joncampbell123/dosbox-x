@@ -16,6 +16,10 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
  */
 
+#include "config.h"
+
+#if (C_SSHOT)
+
 #include <zlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -555,3 +559,5 @@ VideoCodec::VideoCodec() {
 	work = 0;
 	memset( &zstream, 0, sizeof(zstream));
 }
+
+#endif //(C_SSHOT)
