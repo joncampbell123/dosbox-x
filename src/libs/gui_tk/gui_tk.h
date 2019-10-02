@@ -580,6 +580,7 @@ class Window : public Refcount {
 protected:
 	friend class ToplevelWindow;
 	friend class TransientWindow;
+    friend class WindowInWindow;
 	friend class Menu;
 
 	/// Width of the window.
@@ -770,7 +771,7 @@ public:
 /* Window wrapper to make scrollable regions */
 class WindowInWindow : public Window {
 protected:
-
+    void scrollToWindow(Window *child);
 public:
 	WindowInWindow(Window *parent, int x, int y, int w, int h) :
 		Window(parent,x,y,w,h) {}
@@ -789,6 +790,9 @@ public:
 	virtual bool mouseClicked(int x, int y, MouseButton button);
 	/// Mouse was double-clicked. Returns true if event was handled.
 	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
+
+	/// Key was pressed. Returns true if event was handled.
+	virtual bool keyDown(const Key &key);
 
 	virtual void paintAll(Drawable &d) const;
 
