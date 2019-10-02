@@ -1,4 +1,7 @@
 0.82.23 (next)
+  - Configuration GUI: If the settings are scrollable,
+    tabbing between fields will now auto-scroll to the
+    field and make it visible.
   - In the configuration GUI, scroll wheel input no longer
     changes the window focus.
   - Set CPU cycles dialog box layout fixed.
