@@ -595,43 +595,49 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00498"></a>00498             LOG_MSG(<span class="stringliteral">&quot;PC-98 FM board is PC-9801-26k at baseio=0x%x irq=%d&quot;</span>,baseio,fmtimer_index2irq(fmirqidx));
 <a name="l00499"></a>00499             fmboard_reset(&amp;np2cfg, 0x02);
 <a name="l00500"></a>00500         }
-<a name="l00501"></a>00501         <span class="keywordflow">else</span> {
-<a name="l00502"></a>00502             <span class="keywordflow">if</span> (baseio == 0 || baseio == 0x188) { <span class="comment">/* default */</span>
-<a name="l00503"></a>00503                 pccore.snd86opt |= 0x01;
-<a name="l00504"></a>00504                 baseio = 0x188;
-<a name="l00505"></a>00505             }
-<a name="l00506"></a>00506             <span class="keywordflow">else</span> {
-<a name="l00507"></a>00507                 baseio = 0x288;
-<a name="l00508"></a>00508             }
-<a name="l00509"></a>00509 
-<a name="l00510"></a>00510             pccore.snd86opt += board86_encodeirqidx(fmirqidx);
-<a name="l00511"></a>00511 
-<a name="l00512"></a>00512             LOG_MSG(<span class="stringliteral">&quot;PC-98 FM board is PC-9801-86c at baseio=0x%x irq=%d&quot;</span>,baseio,fmtimer_index2irq(fmirqidx));
-<a name="l00513"></a>00513             fmboard_reset(&amp;np2cfg, 0x14);   <span class="comment">// board86c, a good default</span>
-<a name="l00514"></a>00514         }
+<a name="l00501"></a>00501         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (board == <span class="stringliteral">&quot;board14&quot;</span>) {
+<a name="l00502"></a>00502             <span class="comment">/* Apparently board14 is always IRQ 12, port 88h */</span>
+<a name="l00503"></a>00503             LOG_MSG(<span class="stringliteral">&quot;PC-98 FM board is PC-9801-14 at baseio=0x%x irq=%d&quot;</span>,0x88,12);
+<a name="l00504"></a>00504             LOG_MSG(<span class="stringliteral">&quot;WARNING: This is not yet implemented!&quot;</span>); <span class="comment">// board14 emulation requires emulation of a PIT timer (8253) on the board itself</span>
+<a name="l00505"></a>00505             fmboard_reset(&amp;np2cfg, 0x01);
+<a name="l00506"></a>00506         }
+<a name="l00507"></a>00507         <span class="keywordflow">else</span> {
+<a name="l00508"></a>00508             <span class="keywordflow">if</span> (baseio == 0 || baseio == 0x188) { <span class="comment">/* default */</span>
+<a name="l00509"></a>00509                 pccore.snd86opt |= 0x01;
+<a name="l00510"></a>00510                 baseio = 0x188;
+<a name="l00511"></a>00511             }
+<a name="l00512"></a>00512             <span class="keywordflow">else</span> {
+<a name="l00513"></a>00513                 baseio = 0x288;
+<a name="l00514"></a>00514             }
 <a name="l00515"></a>00515 
-<a name="l00516"></a>00516         fmboard_bind();
-<a name="l00517"></a>00517         fmboard_extenable(<span class="keyword">true</span>);
-<a name="l00518"></a>00518 
-<a name="l00519"></a>00519         <span class="comment">// WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and</span>
-<a name="l00520"></a>00520         <span class="comment">//          will misrender if given any other sample rate (especially the OPNA synth).</span>
+<a name="l00516"></a>00516             pccore.snd86opt += board86_encodeirqidx(fmirqidx);
+<a name="l00517"></a>00517 
+<a name="l00518"></a>00518             LOG_MSG(<span class="stringliteral">&quot;PC-98 FM board is PC-9801-86c at baseio=0x%x irq=%d&quot;</span>,baseio,fmtimer_index2irq(fmirqidx));
+<a name="l00519"></a>00519             fmboard_reset(&amp;np2cfg, 0x14);   <span class="comment">// board86c, a good default</span>
+<a name="l00520"></a>00520         }
 <a name="l00521"></a>00521 
-<a name="l00522"></a>00522         pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, <span class="stringliteral">&quot;PC-98&quot;</span>);
-<a name="l00523"></a>00523         pc98_mixer-&gt;Enable(<span class="keyword">true</span>);
-<a name="l00524"></a>00524     }
-<a name="l00525"></a>00525 
-<a name="l00526"></a>00526     <span class="keywordflow">if</span> (was_pc98fm_init) {
-<a name="l00527"></a>00527         fmboard_on_reset();
-<a name="l00528"></a>00528         fmboard_bind(); <span class="comment">// FIXME: Re-binds I/O ports as well</span>
-<a name="l00529"></a>00529         fmboard_extenable(<span class="keyword">true</span>);
+<a name="l00522"></a>00522         fmboard_bind();
+<a name="l00523"></a>00523         fmboard_extenable(<span class="keyword">true</span>);
+<a name="l00524"></a>00524 
+<a name="l00525"></a>00525         <span class="comment">// WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and</span>
+<a name="l00526"></a>00526         <span class="comment">//          will misrender if given any other sample rate (especially the OPNA synth).</span>
+<a name="l00527"></a>00527 
+<a name="l00528"></a>00528         pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, <span class="stringliteral">&quot;PC-98&quot;</span>);
+<a name="l00529"></a>00529         pc98_mixer-&gt;Enable(<span class="keyword">true</span>);
 <a name="l00530"></a>00530     }
-<a name="l00531"></a>00531 }
-<a name="l00532"></a>00532 
+<a name="l00531"></a>00531 
+<a name="l00532"></a>00532     <span class="keywordflow">if</span> (was_pc98fm_init) {
+<a name="l00533"></a>00533         fmboard_on_reset();
+<a name="l00534"></a>00534         fmboard_bind(); <span class="comment">// FIXME: Re-binds I/O ports as well</span>
+<a name="l00535"></a>00535         fmboard_extenable(<span class="keyword">true</span>);
+<a name="l00536"></a>00536     }
+<a name="l00537"></a>00537 }
+<a name="l00538"></a>00538 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 14 2019 12:08:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

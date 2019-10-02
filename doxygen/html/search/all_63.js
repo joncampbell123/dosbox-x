@@ -103,7 +103,6 @@ var searchData=
   ['cmodevent',['CModEvent',['../classCModEvent.html',1,'CModEvent'],['../classCModEvent.html#a1bf7b8ec974c1944dbfa3737cac5e426',1,'CModEvent::CModEvent()']]],
   ['cms',['CMS',['../classCMS.html',1,'']]],
   ['cmscdex',['CMscdex',['../classCMscdex.html',1,'']]],
-  ['codecinst',['CodecInst',['../classCodecInst.html',1,'']]],
   ['codepagehandlerdynrec',['CodePageHandlerDynRec',['../classCodePageHandlerDynRec.html',1,'']]],
   ['col_5fstep',['col_step',['../classGUI_1_1BitmapFont.html#ac2fab3c605018ebaa18ff59c54f29e1b',1,'GUI::BitmapFont']]],
   ['color',['color',['../classGUI_1_1Drawable.html#a4baae1e13505d45245c49244703217d7',1,'GUI::Drawable']]],

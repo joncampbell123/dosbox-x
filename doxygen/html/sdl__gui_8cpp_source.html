@@ -1118,18 +1118,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01026"></a>01026     <a class="code" href="classInputWithEnterKey.html">InputWithEnterKey</a> *name;
 <a name="l01027"></a>01027 <span class="keyword">public</span>:
 <a name="l01028"></a>01028     <a class="code" href="classSetCycles.html">SetCycles</a>(<a class="code" href="classGUI_1_1Screen.html" title="A Screen represents the framebuffer that is the final destination of the GUI.">GUI::Screen</a> *parent, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="classGUI_1_1ToplevelWindow.html#a04de191f9a57b5b584657866a4ac6843" title="Title text.">title</a>) :
-<a name="l01029"></a>01029         <a class="code" href="classGUI_1_1ToplevelWindow.html#ab159db2520c5188bfd2fdde905d6fc84" title="Create a new GUI Frame with title bar, border and close button.">ToplevelWindow</a>(parent, x, y, 400, 150, title) {
+<a name="l01029"></a>01029         <a class="code" href="classGUI_1_1ToplevelWindow.html#ab159db2520c5188bfd2fdde905d6fc84" title="Create a new GUI Frame with title bar, border and close button.">ToplevelWindow</a>(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
 <a name="l01030"></a>01030         <span class="keyword">new</span> <a class="code" href="classGUI_1_1Label.html" title="A text label.">GUI::Label</a>(<span class="keyword">this</span>, 5, 10, <span class="stringliteral">&quot;Enter CPU cycles:&quot;</span>);
 <a name="l01031"></a>01031 <span class="comment">//      name = new GUI::Input(this, 5, 30, 350);</span>
-<a name="l01032"></a>01032         name = <span class="keyword">new</span> <a class="code" href="classInputWithEnterKey.html">InputWithEnterKey</a>(<span class="keyword">this</span>, 5, 30, 350);
+<a name="l01032"></a>01032         name = <span class="keyword">new</span> <a class="code" href="classInputWithEnterKey.html">InputWithEnterKey</a>(<span class="keyword">this</span>, 5, 30, <a class="code" href="classGUI_1_1Window.html#a6cd42974c2b9239d05dac79d284f427d" title="Width of the window.">width</a> - 10 - <a class="code" href="classGUI_1_1BorderedWindow.html#aee7cb08a129656be54ca7c80f6a1e773" title="Borders.">border_left</a> - border_right);
 <a name="l01033"></a>01033         name-&gt;set_trigger_target(<span class="keyword">this</span>);
 <a name="l01034"></a>01034         std::ostringstream str;
 <a name="l01035"></a>01035         str &lt;&lt; <span class="stringliteral">&quot;fixed &quot;</span> &lt;&lt; CPU_CycleMax;
 <a name="l01036"></a>01036 
 <a name="l01037"></a>01037         std::string cycles=str.str();
 <a name="l01038"></a>01038         name-&gt;<a class="code" href="classGUI_1_1Input.html#adb6864a1c00db39cfe508825be97cdb1" title="Set text to be edited.">setText</a>(cycles.c_str());
-<a name="l01039"></a>01039         (<span class="keyword">new</span> <a class="code" href="classGUI_1_1Button.html" title="A push button.">GUI::Button</a>(<span class="keyword">this</span>, 120, 70, <span class="stringliteral">&quot;Cancel&quot;</span>, 70))-&gt;addActionHandler(<span class="keyword">this</span>);
-<a name="l01040"></a>01040         (<span class="keyword">new</span> <a class="code" href="classGUI_1_1Button.html" title="A push button.">GUI::Button</a>(<span class="keyword">this</span>, 210, 70, <span class="stringliteral">&quot;OK&quot;</span>, 70))-&gt;addActionHandler(<span class="keyword">this</span>);
+<a name="l01039"></a>01039         (<span class="keyword">new</span> <a class="code" href="classGUI_1_1Button.html" title="A push button.">GUI::Button</a>(<span class="keyword">this</span>, 120, 60, <span class="stringliteral">&quot;Cancel&quot;</span>, 70))-&gt;addActionHandler(<span class="keyword">this</span>);
+<a name="l01040"></a>01040         (<span class="keyword">new</span> <a class="code" href="classGUI_1_1Button.html" title="A push button.">GUI::Button</a>(<span class="keyword">this</span>, 210, 60, <span class="stringliteral">&quot;OK&quot;</span>, 70))-&gt;addActionHandler(<span class="keyword">this</span>);
 <a name="l01041"></a>01041 
 <a name="l01042"></a>01042         name-&gt;<a class="code" href="classGUI_1_1Window.html#a90890951f6ce5f043657756b2691e754" title="Put this window on top of all it&#39;s siblings. Preserves relative order.">raise</a>(); <span class="comment">/* make sure keyboard focus is on the text field, ready for the user */</span>
 <a name="l01043"></a>01043         name-&gt;<a class="code" href="classGUI_1_1Input.html#a98bf8ee0e5ccb2e6a387fd1a463b60cd" title="Move the cursor to the end of the text field.">posToEnd</a>(); <span class="comment">/* position the cursor at the end where the user is most likely going to edit */</span>
@@ -1597,7 +1597,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 14 2019 12:08:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

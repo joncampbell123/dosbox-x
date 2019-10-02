@@ -166,158 +166,160 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00069"></a>00069                         val &amp;= 0x07;    <span class="comment">// FIXME: reasonable guess, since the ET4000 does it too</span>
 <a name="l00070"></a>00070                 <span class="keywordflow">else</span>
 <a name="l00071"></a>00071                         val &amp;= 0x0F;    <span class="comment">// FIXME: reasonable guess</span>
-<a name="l00072"></a>00072         }
-<a name="l00073"></a>00073         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_EGA) {
-<a name="l00074"></a>00074                 val &amp;= 0x0F; <span class="comment">// FIXME: reasonable guess</span>
-<a name="l00075"></a>00075         }
-<a name="l00076"></a>00076 
-<a name="l00077"></a>00077         seq(index)=(Bit8u)val;
-<a name="l00078"></a>00078 }
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080 <span class="keywordtype">void</span> VGA_SequReset(<span class="keywordtype">bool</span> reset);
-<a name="l00081"></a>00081 <span class="keywordtype">void</span> VGA_Screenstate(<span class="keywordtype">bool</span> enabled);
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083 <span class="keywordtype">void</span> write_p3c5(Bitu <span class="comment">/*port*/</span>,Bitu val,Bitu iolen) {
-<a name="l00084"></a>00084 <span class="comment">//      LOG_MSG(&quot;SEQ WRITE reg %X val %X&quot;,seq(index),val);</span>
-<a name="l00085"></a>00085         <span class="keywordflow">switch</span>(seq(index)) {
-<a name="l00086"></a>00086         <span class="keywordflow">case</span> 0:         <span class="comment">/* Reset */</span>
-<a name="l00087"></a>00087                 <span class="keywordflow">if</span>((seq(reset)^val)&amp;0x3) VGA_SequReset((val&amp;0x3)!=0x3);
-<a name="l00088"></a>00088                 seq(reset)=(Bit8u)val;
-<a name="l00089"></a>00089                 <span class="keywordflow">break</span>;
-<a name="l00090"></a>00090         <span class="keywordflow">case</span> 1:         <span class="comment">/* Clocking Mode */</span>
-<a name="l00091"></a>00091                 <span class="keywordflow">if</span> (val!=seq(clocking_mode)) {
-<a name="l00092"></a>00092                         <span class="keywordflow">if</span>((seq(clocking_mode)^val)&amp;0x20) VGA_Screenstate((val&amp;0x20)==0);
-<a name="l00093"></a>00093                         <span class="comment">// don&#39;t resize if only the screen off bit was changed</span>
-<a name="l00094"></a>00094                         <span class="keywordflow">if</span> ((val&amp;(~0x20u))!=(seq(clocking_mode)&amp;(~0x20u))) {
-<a name="l00095"></a>00095                                 seq(clocking_mode)=(Bit8u)val;
-<a name="l00096"></a>00096                                 VGA_StartResize();
-<a name="l00097"></a>00097                         } <span class="keywordflow">else</span> {
-<a name="l00098"></a>00098                                 seq(clocking_mode)=(Bit8u)val;
-<a name="l00099"></a>00099                         }
-<a name="l00100"></a>00100                         <span class="keywordflow">if</span> (val &amp; 0x20) vga.attr.disabled |= 0x2u;
-<a name="l00101"></a>00101                         <span class="keywordflow">else</span> vga.attr.disabled &amp;= ~0x2u;
-<a name="l00102"></a>00102                 }
-<a name="l00103"></a>00103                 <span class="comment">/* TODO Figure this out :)</span>
-<a name="l00104"></a>00104 <span class="comment">                        0       If set character clocks are 8 dots wide, else 9.</span>
-<a name="l00105"></a>00105 <span class="comment">                        2       If set loads video serializers every other character</span>
-<a name="l00106"></a>00106 <span class="comment">                                clock cycle, else every one.</span>
-<a name="l00107"></a>00107 <span class="comment">                        3       If set the Dot Clock is Master Clock/2, else same as Master Clock</span>
-<a name="l00108"></a>00108 <span class="comment">                                (See 3C2h bit 2-3). (Doubles pixels). Note: on some SVGA chipsets</span>
-<a name="l00109"></a>00109 <span class="comment">                                this bit also affects the Sequencer mode.</span>
-<a name="l00110"></a>00110 <span class="comment">                        4       If set loads video serializers every fourth character clock cycle,</span>
-<a name="l00111"></a>00111 <span class="comment">                                else every one.</span>
-<a name="l00112"></a>00112 <span class="comment">                        5       if set turns off screen and gives all memory cycles to the CPU</span>
-<a name="l00113"></a>00113 <span class="comment">                                interface.</span>
-<a name="l00114"></a>00114 <span class="comment">                */</span>
-<a name="l00115"></a>00115                 <span class="keywordflow">break</span>;
-<a name="l00116"></a>00116         <span class="keywordflow">case</span> 2:         <span class="comment">/* Map Mask */</span>
-<a name="l00117"></a>00117                 seq(map_mask)=val &amp; 15;
-<a name="l00118"></a>00118                 vga.config.full_map_mask=FillTable[val &amp; 15];
-<a name="l00119"></a>00119                 vga.config.full_not_map_mask=~vga.config.full_map_mask;
-<a name="l00120"></a>00120                 <span class="comment">/*</span>
-<a name="l00121"></a>00121 <span class="comment">                        0  Enable writes to plane 0 if set</span>
-<a name="l00122"></a>00122 <span class="comment">                        1  Enable writes to plane 1 if set</span>
-<a name="l00123"></a>00123 <span class="comment">                        2  Enable writes to plane 2 if set</span>
-<a name="l00124"></a>00124 <span class="comment">                        3  Enable writes to plane 3 if set</span>
-<a name="l00125"></a>00125 <span class="comment">                */</span>
-<a name="l00126"></a>00126                 <span class="keywordflow">break</span>;
-<a name="l00127"></a>00127         <span class="keywordflow">case</span> 3:         <span class="comment">/* Character Map Select */</span>
-<a name="l00128"></a>00128                 {
-<a name="l00129"></a>00129                         seq(character_map_select)=(Bit8u)val;
-<a name="l00130"></a>00130                         Bit8u font1=(val &amp; 0x3) &lt;&lt; 1;
-<a name="l00131"></a>00131                         <span class="keywordflow">if</span> (IS_VGA_ARCH) font1|=(val &amp; 0x10) &gt;&gt; 4;
-<a name="l00132"></a>00132                         vga.draw.font_tables[0]=&amp;vga.draw.font[font1*8*1024];
-<a name="l00133"></a>00133                         Bit8u font2=((val &amp; 0xc) &gt;&gt; 1);
-<a name="l00134"></a>00134                         <span class="keywordflow">if</span> (IS_VGA_ARCH) font2|=(val &amp; 0x20) &gt;&gt; 5;
-<a name="l00135"></a>00135                         vga.draw.font_tables[1]=&amp;vga.draw.font[font2*8*1024];
-<a name="l00136"></a>00136                 }
-<a name="l00137"></a>00137                 <span class="comment">/*</span>
-<a name="l00138"></a>00138 <span class="comment">                        0,1,4  Selects VGA Character Map (0..7) if bit 3 of the character</span>
-<a name="l00139"></a>00139 <span class="comment">                                        attribute is clear.</span>
-<a name="l00140"></a>00140 <span class="comment">                        2,3,5  Selects VGA Character Map (0..7) if bit 3 of the character</span>
-<a name="l00141"></a>00141 <span class="comment">                                        attribute is set.</span>
-<a name="l00142"></a>00142 <span class="comment">                        Note: Character Maps are placed as follows:</span>
-<a name="l00143"></a>00143 <span class="comment">                        Map 0 at 0k, 1 at 16k, 2 at 32k, 3: 48k, 4: 8k, 5: 24k, 6: 40k, 7: 56k</span>
-<a name="l00144"></a>00144 <span class="comment">                */</span>
-<a name="l00145"></a>00145                 <span class="keywordflow">break</span>;
-<a name="l00146"></a>00146         <span class="keywordflow">case</span> 4: <span class="comment">/* Memory Mode */</span>
-<a name="l00147"></a>00147                 <span class="comment">/* </span>
-<a name="l00148"></a>00148 <span class="comment">                        0  Set if in an alphanumeric mode, clear in graphics modes.</span>
-<a name="l00149"></a>00149 <span class="comment">                        1  Set if more than 64kbytes on the adapter.</span>
-<a name="l00150"></a>00150 <span class="comment">                        2  Enables Odd/Even addressing mode if set. Odd/Even mode places all odd</span>
-<a name="l00151"></a>00151 <span class="comment">                                bytes in plane 1&amp;3, and all even bytes in plane 0&amp;2.</span>
-<a name="l00152"></a>00152 <span class="comment">                        3  If set address bit 0-1 selects video memory planes (256 color mode),</span>
-<a name="l00153"></a>00153 <span class="comment">                                rather than the Map Mask and Read Map Select Registers.</span>
-<a name="l00154"></a>00154 <span class="comment">                */</span>
-<a name="l00155"></a>00155                 seq(memory_mode)=(Bit8u)val;
-<a name="l00156"></a>00156                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l00157"></a>00157                         <span class="comment">/* Changing this means changing the VGA Memory Read/Write Handler */</span>
-<a name="l00158"></a>00158                         <span class="keywordflow">if</span> (val&amp;0x08) vga.config.chained=<span class="keyword">true</span>;
-<a name="l00159"></a>00159                         <span class="keywordflow">else</span> vga.config.chained=<span class="keyword">false</span>;
-<a name="l00160"></a>00160                         VGA_SetupHandlers();
-<a name="l00161"></a>00161                 }
-<a name="l00162"></a>00162                 <span class="keywordflow">break</span>;
-<a name="l00163"></a>00163         <span class="keywordflow">default</span>:
-<a name="l00164"></a>00164                 <span class="keywordflow">if</span> (svga.write_p3c5) {
-<a name="l00165"></a>00165                         svga.write_p3c5(seq(index), val, iolen);
-<a name="l00166"></a>00166                 } <span class="keywordflow">else</span> {
-<a name="l00167"></a>00167                         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:SEQ:Write to illegal index %2X&quot;</span>,seq(index));
-<a name="l00168"></a>00168                 }
-<a name="l00169"></a>00169                 <span class="keywordflow">break</span>;
-<a name="l00170"></a>00170         }
-<a name="l00171"></a>00171 }
-<a name="l00172"></a>00172 
-<a name="l00173"></a>00173 
-<a name="l00174"></a>00174 Bitu read_p3c5(Bitu <span class="comment">/*port*/</span>,Bitu iolen) {
-<a name="l00175"></a>00175 <span class="comment">//      LOG_MSG(&quot;VGA:SEQ:Read from index %2X&quot;,seq(index));</span>
-<a name="l00176"></a>00176         <span class="keywordflow">switch</span>(seq(index)) {
-<a name="l00177"></a>00177         <span class="keywordflow">case</span> 0:                 <span class="comment">/* Reset */</span>
-<a name="l00178"></a>00178                 <span class="keywordflow">return</span> seq(reset);
-<a name="l00179"></a>00179                 <span class="keywordflow">break</span>;
-<a name="l00180"></a>00180         <span class="keywordflow">case</span> 1:                 <span class="comment">/* Clocking Mode */</span>
-<a name="l00181"></a>00181                 <span class="keywordflow">return</span> seq(clocking_mode);
-<a name="l00182"></a>00182                 <span class="keywordflow">break</span>;
-<a name="l00183"></a>00183         <span class="keywordflow">case</span> 2:                 <span class="comment">/* Map Mask */</span>
-<a name="l00184"></a>00184                 <span class="keywordflow">return</span> seq(map_mask);
-<a name="l00185"></a>00185                 <span class="keywordflow">break</span>;
-<a name="l00186"></a>00186         <span class="keywordflow">case</span> 3:                 <span class="comment">/* Character Map Select */</span>
-<a name="l00187"></a>00187                 <span class="keywordflow">return</span> seq(character_map_select);
-<a name="l00188"></a>00188                 <span class="keywordflow">break</span>;
-<a name="l00189"></a>00189         <span class="keywordflow">case</span> 4:                 <span class="comment">/* Memory Mode */</span>
-<a name="l00190"></a>00190                 <span class="keywordflow">return</span> seq(memory_mode);
-<a name="l00191"></a>00191                 <span class="keywordflow">break</span>;
-<a name="l00192"></a>00192         <span class="keywordflow">default</span>:
-<a name="l00193"></a>00193                 <span class="keywordflow">if</span> (svga.read_p3c5)
-<a name="l00194"></a>00194                         <span class="keywordflow">return</span> svga.read_p3c5(seq(index), iolen);
-<a name="l00195"></a>00195                 <span class="keywordflow">break</span>;
-<a name="l00196"></a>00196         }
-<a name="l00197"></a>00197         <span class="keywordflow">return</span> 0;
-<a name="l00198"></a>00198 }
-<a name="l00199"></a>00199 
-<a name="l00200"></a>00200 
-<a name="l00201"></a>00201 <span class="keywordtype">void</span> VGA_SetupSEQ(<span class="keywordtype">void</span>) {
-<a name="l00202"></a>00202         <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
-<a name="l00203"></a>00203                 IO_RegisterWriteHandler(0x3c4,write_p3c4,IO_MB);
-<a name="l00204"></a>00204                 IO_RegisterWriteHandler(0x3c5,write_p3c5,IO_MB);
-<a name="l00205"></a>00205                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l00206"></a>00206                         IO_RegisterReadHandler(0x3c4,read_p3c4,IO_MB);
-<a name="l00207"></a>00207                         IO_RegisterReadHandler(0x3c5,read_p3c5,IO_MB);
-<a name="l00208"></a>00208                 }
-<a name="l00209"></a>00209         }
-<a name="l00210"></a>00210 }
-<a name="l00211"></a>00211 
-<a name="l00212"></a>00212 <span class="keywordtype">void</span> VGA_UnsetupSEQ(<span class="keywordtype">void</span>) {
-<a name="l00213"></a>00213     IO_FreeWriteHandler(0x3c4,IO_MB);
-<a name="l00214"></a>00214     IO_FreeReadHandler(0x3c4,IO_MB);
-<a name="l00215"></a>00215     IO_FreeWriteHandler(0x3c5,IO_MB);
-<a name="l00216"></a>00216     IO_FreeReadHandler(0x3c5,IO_MB);
-<a name="l00217"></a>00217 }
-<a name="l00218"></a>00218 
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073         <span class="comment">/* Paradise/Western Digital sequencer registers appear to repeat every 0x40 aka decoding bits [5:0] */</span>
+<a name="l00074"></a>00074         }
+<a name="l00075"></a>00075         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_EGA) {
+<a name="l00076"></a>00076                 val &amp;= 0x0F; <span class="comment">// FIXME: reasonable guess</span>
+<a name="l00077"></a>00077         }
+<a name="l00078"></a>00078 
+<a name="l00079"></a>00079         seq(index)=(Bit8u)val;
+<a name="l00080"></a>00080 }
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082 <span class="keywordtype">void</span> VGA_SequReset(<span class="keywordtype">bool</span> reset);
+<a name="l00083"></a>00083 <span class="keywordtype">void</span> VGA_Screenstate(<span class="keywordtype">bool</span> enabled);
+<a name="l00084"></a>00084 
+<a name="l00085"></a>00085 <span class="keywordtype">void</span> write_p3c5(Bitu <span class="comment">/*port*/</span>,Bitu val,Bitu iolen) {
+<a name="l00086"></a>00086 <span class="comment">//      LOG_MSG(&quot;SEQ WRITE reg %X val %X&quot;,seq(index),val);</span>
+<a name="l00087"></a>00087         <span class="keywordflow">switch</span>(seq(index)) {
+<a name="l00088"></a>00088         <span class="keywordflow">case</span> 0:         <span class="comment">/* Reset */</span>
+<a name="l00089"></a>00089                 <span class="keywordflow">if</span>((seq(reset)^val)&amp;0x3) VGA_SequReset((val&amp;0x3)!=0x3);
+<a name="l00090"></a>00090                 seq(reset)=(Bit8u)val;
+<a name="l00091"></a>00091                 <span class="keywordflow">break</span>;
+<a name="l00092"></a>00092         <span class="keywordflow">case</span> 1:         <span class="comment">/* Clocking Mode */</span>
+<a name="l00093"></a>00093                 <span class="keywordflow">if</span> (val!=seq(clocking_mode)) {
+<a name="l00094"></a>00094                         <span class="keywordflow">if</span>((seq(clocking_mode)^val)&amp;0x20) VGA_Screenstate((val&amp;0x20)==0);
+<a name="l00095"></a>00095                         <span class="comment">// don&#39;t resize if only the screen off bit was changed</span>
+<a name="l00096"></a>00096                         <span class="keywordflow">if</span> ((val&amp;(~0x20u))!=(seq(clocking_mode)&amp;(~0x20u))) {
+<a name="l00097"></a>00097                                 seq(clocking_mode)=(Bit8u)val;
+<a name="l00098"></a>00098                                 VGA_StartResize();
+<a name="l00099"></a>00099                         } <span class="keywordflow">else</span> {
+<a name="l00100"></a>00100                                 seq(clocking_mode)=(Bit8u)val;
+<a name="l00101"></a>00101                         }
+<a name="l00102"></a>00102                         <span class="keywordflow">if</span> (val &amp; 0x20) vga.attr.disabled |= 0x2u;
+<a name="l00103"></a>00103                         <span class="keywordflow">else</span> vga.attr.disabled &amp;= ~0x2u;
+<a name="l00104"></a>00104                 }
+<a name="l00105"></a>00105                 <span class="comment">/* TODO Figure this out :)</span>
+<a name="l00106"></a>00106 <span class="comment">                        0       If set character clocks are 8 dots wide, else 9.</span>
+<a name="l00107"></a>00107 <span class="comment">                        2       If set loads video serializers every other character</span>
+<a name="l00108"></a>00108 <span class="comment">                                clock cycle, else every one.</span>
+<a name="l00109"></a>00109 <span class="comment">                        3       If set the Dot Clock is Master Clock/2, else same as Master Clock</span>
+<a name="l00110"></a>00110 <span class="comment">                                (See 3C2h bit 2-3). (Doubles pixels). Note: on some SVGA chipsets</span>
+<a name="l00111"></a>00111 <span class="comment">                                this bit also affects the Sequencer mode.</span>
+<a name="l00112"></a>00112 <span class="comment">                        4       If set loads video serializers every fourth character clock cycle,</span>
+<a name="l00113"></a>00113 <span class="comment">                                else every one.</span>
+<a name="l00114"></a>00114 <span class="comment">                        5       if set turns off screen and gives all memory cycles to the CPU</span>
+<a name="l00115"></a>00115 <span class="comment">                                interface.</span>
+<a name="l00116"></a>00116 <span class="comment">                */</span>
+<a name="l00117"></a>00117                 <span class="keywordflow">break</span>;
+<a name="l00118"></a>00118         <span class="keywordflow">case</span> 2:         <span class="comment">/* Map Mask */</span>
+<a name="l00119"></a>00119                 seq(map_mask)=val &amp; 15;
+<a name="l00120"></a>00120                 vga.config.full_map_mask=FillTable[val &amp; 15];
+<a name="l00121"></a>00121                 vga.config.full_not_map_mask=~vga.config.full_map_mask;
+<a name="l00122"></a>00122                 <span class="comment">/*</span>
+<a name="l00123"></a>00123 <span class="comment">                        0  Enable writes to plane 0 if set</span>
+<a name="l00124"></a>00124 <span class="comment">                        1  Enable writes to plane 1 if set</span>
+<a name="l00125"></a>00125 <span class="comment">                        2  Enable writes to plane 2 if set</span>
+<a name="l00126"></a>00126 <span class="comment">                        3  Enable writes to plane 3 if set</span>
+<a name="l00127"></a>00127 <span class="comment">                */</span>
+<a name="l00128"></a>00128                 <span class="keywordflow">break</span>;
+<a name="l00129"></a>00129         <span class="keywordflow">case</span> 3:         <span class="comment">/* Character Map Select */</span>
+<a name="l00130"></a>00130                 {
+<a name="l00131"></a>00131                         seq(character_map_select)=(Bit8u)val;
+<a name="l00132"></a>00132                         Bit8u font1=(val &amp; 0x3) &lt;&lt; 1;
+<a name="l00133"></a>00133                         <span class="keywordflow">if</span> (IS_VGA_ARCH) font1|=(val &amp; 0x10) &gt;&gt; 4;
+<a name="l00134"></a>00134                         vga.draw.font_tables[0]=&amp;vga.draw.font[font1*8*1024];
+<a name="l00135"></a>00135                         Bit8u font2=((val &amp; 0xc) &gt;&gt; 1);
+<a name="l00136"></a>00136                         <span class="keywordflow">if</span> (IS_VGA_ARCH) font2|=(val &amp; 0x20) &gt;&gt; 5;
+<a name="l00137"></a>00137                         vga.draw.font_tables[1]=&amp;vga.draw.font[font2*8*1024];
+<a name="l00138"></a>00138                 }
+<a name="l00139"></a>00139                 <span class="comment">/*</span>
+<a name="l00140"></a>00140 <span class="comment">                        0,1,4  Selects VGA Character Map (0..7) if bit 3 of the character</span>
+<a name="l00141"></a>00141 <span class="comment">                                        attribute is clear.</span>
+<a name="l00142"></a>00142 <span class="comment">                        2,3,5  Selects VGA Character Map (0..7) if bit 3 of the character</span>
+<a name="l00143"></a>00143 <span class="comment">                                        attribute is set.</span>
+<a name="l00144"></a>00144 <span class="comment">                        Note: Character Maps are placed as follows:</span>
+<a name="l00145"></a>00145 <span class="comment">                        Map 0 at 0k, 1 at 16k, 2 at 32k, 3: 48k, 4: 8k, 5: 24k, 6: 40k, 7: 56k</span>
+<a name="l00146"></a>00146 <span class="comment">                */</span>
+<a name="l00147"></a>00147                 <span class="keywordflow">break</span>;
+<a name="l00148"></a>00148         <span class="keywordflow">case</span> 4: <span class="comment">/* Memory Mode */</span>
+<a name="l00149"></a>00149                 <span class="comment">/* </span>
+<a name="l00150"></a>00150 <span class="comment">                        0  Set if in an alphanumeric mode, clear in graphics modes.</span>
+<a name="l00151"></a>00151 <span class="comment">                        1  Set if more than 64kbytes on the adapter.</span>
+<a name="l00152"></a>00152 <span class="comment">                        2  Enables Odd/Even addressing mode if set. Odd/Even mode places all odd</span>
+<a name="l00153"></a>00153 <span class="comment">                                bytes in plane 1&amp;3, and all even bytes in plane 0&amp;2.</span>
+<a name="l00154"></a>00154 <span class="comment">                        3  If set address bit 0-1 selects video memory planes (256 color mode),</span>
+<a name="l00155"></a>00155 <span class="comment">                                rather than the Map Mask and Read Map Select Registers.</span>
+<a name="l00156"></a>00156 <span class="comment">                */</span>
+<a name="l00157"></a>00157                 seq(memory_mode)=(Bit8u)val;
+<a name="l00158"></a>00158                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l00159"></a>00159                         <span class="comment">/* Changing this means changing the VGA Memory Read/Write Handler */</span>
+<a name="l00160"></a>00160                         <span class="keywordflow">if</span> (val&amp;0x08) vga.config.chained=<span class="keyword">true</span>;
+<a name="l00161"></a>00161                         <span class="keywordflow">else</span> vga.config.chained=<span class="keyword">false</span>;
+<a name="l00162"></a>00162                         VGA_SetupHandlers();
+<a name="l00163"></a>00163                 }
+<a name="l00164"></a>00164                 <span class="keywordflow">break</span>;
+<a name="l00165"></a>00165         <span class="keywordflow">default</span>:
+<a name="l00166"></a>00166                 <span class="keywordflow">if</span> (svga.write_p3c5) {
+<a name="l00167"></a>00167                         svga.write_p3c5(seq(index), val, iolen);
+<a name="l00168"></a>00168                 } <span class="keywordflow">else</span> {
+<a name="l00169"></a>00169                         <a class="code" href="classLOG.html">LOG</a>(LOG_VGAMISC,LOG_NORMAL)(<span class="stringliteral">&quot;VGA:SEQ:Write to illegal index %2X&quot;</span>,seq(index));
+<a name="l00170"></a>00170                 }
+<a name="l00171"></a>00171                 <span class="keywordflow">break</span>;
+<a name="l00172"></a>00172         }
+<a name="l00173"></a>00173 }
+<a name="l00174"></a>00174 
+<a name="l00175"></a>00175 
+<a name="l00176"></a>00176 Bitu read_p3c5(Bitu <span class="comment">/*port*/</span>,Bitu iolen) {
+<a name="l00177"></a>00177 <span class="comment">//      LOG_MSG(&quot;VGA:SEQ:Read from index %2X&quot;,seq(index));</span>
+<a name="l00178"></a>00178         <span class="keywordflow">switch</span>(seq(index)) {
+<a name="l00179"></a>00179         <span class="keywordflow">case</span> 0:                 <span class="comment">/* Reset */</span>
+<a name="l00180"></a>00180                 <span class="keywordflow">return</span> seq(reset);
+<a name="l00181"></a>00181                 <span class="keywordflow">break</span>;
+<a name="l00182"></a>00182         <span class="keywordflow">case</span> 1:                 <span class="comment">/* Clocking Mode */</span>
+<a name="l00183"></a>00183                 <span class="keywordflow">return</span> seq(clocking_mode);
+<a name="l00184"></a>00184                 <span class="keywordflow">break</span>;
+<a name="l00185"></a>00185         <span class="keywordflow">case</span> 2:                 <span class="comment">/* Map Mask */</span>
+<a name="l00186"></a>00186                 <span class="keywordflow">return</span> seq(map_mask);
+<a name="l00187"></a>00187                 <span class="keywordflow">break</span>;
+<a name="l00188"></a>00188         <span class="keywordflow">case</span> 3:                 <span class="comment">/* Character Map Select */</span>
+<a name="l00189"></a>00189                 <span class="keywordflow">return</span> seq(character_map_select);
+<a name="l00190"></a>00190                 <span class="keywordflow">break</span>;
+<a name="l00191"></a>00191         <span class="keywordflow">case</span> 4:                 <span class="comment">/* Memory Mode */</span>
+<a name="l00192"></a>00192                 <span class="keywordflow">return</span> seq(memory_mode);
+<a name="l00193"></a>00193                 <span class="keywordflow">break</span>;
+<a name="l00194"></a>00194         <span class="keywordflow">default</span>:
+<a name="l00195"></a>00195                 <span class="keywordflow">if</span> (svga.read_p3c5)
+<a name="l00196"></a>00196                         <span class="keywordflow">return</span> svga.read_p3c5(seq(index), iolen);
+<a name="l00197"></a>00197                 <span class="keywordflow">break</span>;
+<a name="l00198"></a>00198         }
+<a name="l00199"></a>00199         <span class="keywordflow">return</span> 0;
+<a name="l00200"></a>00200 }
+<a name="l00201"></a>00201 
+<a name="l00202"></a>00202 
+<a name="l00203"></a>00203 <span class="keywordtype">void</span> VGA_SetupSEQ(<span class="keywordtype">void</span>) {
+<a name="l00204"></a>00204         <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
+<a name="l00205"></a>00205                 IO_RegisterWriteHandler(0x3c4,write_p3c4,IO_MB);
+<a name="l00206"></a>00206                 IO_RegisterWriteHandler(0x3c5,write_p3c5,IO_MB);
+<a name="l00207"></a>00207                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l00208"></a>00208                         IO_RegisterReadHandler(0x3c4,read_p3c4,IO_MB);
+<a name="l00209"></a>00209                         IO_RegisterReadHandler(0x3c5,read_p3c5,IO_MB);
+<a name="l00210"></a>00210                 }
+<a name="l00211"></a>00211         }
+<a name="l00212"></a>00212 }
+<a name="l00213"></a>00213 
+<a name="l00214"></a>00214 <span class="keywordtype">void</span> VGA_UnsetupSEQ(<span class="keywordtype">void</span>) {
+<a name="l00215"></a>00215     IO_FreeWriteHandler(0x3c4,IO_MB);
+<a name="l00216"></a>00216     IO_FreeReadHandler(0x3c4,IO_MB);
+<a name="l00217"></a>00217     IO_FreeWriteHandler(0x3c5,IO_MB);
+<a name="l00218"></a>00218     IO_FreeReadHandler(0x3c5,IO_MB);
+<a name="l00219"></a>00219 }
+<a name="l00220"></a>00220 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 14 2019 12:08:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 1 2019 18:06:28 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

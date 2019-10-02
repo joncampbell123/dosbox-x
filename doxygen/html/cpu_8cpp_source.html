@@ -1113,11 +1113,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01016"></a>01016 <span class="preprocessor">#if C_DEBUG</span>
 <a name="l01017"></a>01017 <span class="preprocessor"></span><span class="preprocessor"># if C_HEAVY_DEBUG</span>
 <a name="l01018"></a>01018 <span class="preprocessor"></span>    <span class="keywordtype">bool</span> DEBUG_IntBreakpoint(Bit8u intNum);
-<a name="l01019"></a>01019     <span class="keywordtype">void</span> DEBUG_Enable(<span class="keywordtype">bool</span> pressed);
+<a name="l01019"></a>01019     Bitu DEBUG_EnableDebugger(<span class="keywordtype">void</span>);
 <a name="l01020"></a>01020 
 <a name="l01021"></a>01021     <span class="keywordflow">if</span> (type != CPU_INT_SOFTWARE) { <span class="comment">/* CPU core already takes care of SW interrupts */</span>
 <a name="l01022"></a>01022         <span class="keywordflow">if</span> (DEBUG_IntBreakpoint((Bit8u)num))
-<a name="l01023"></a>01023             DEBUG_Enable(<span class="keyword">true</span>);
+<a name="l01023"></a>01023             DEBUG_EnableDebugger();
 <a name="l01024"></a>01024     }
 <a name="l01025"></a>01025 <span class="preprocessor"># endif</span>
 <a name="l01026"></a>01026 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (type == CPU_INT_SOFTWARE &amp;&amp; boothax == BOOTHAX_MSDOS) {
@@ -4085,7 +4085,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 14 2019 12:08:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

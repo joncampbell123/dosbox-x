@@ -47,7 +47,6 @@ var searchData=
   ['cmodevent',['CModEvent',['../classCModEvent.html',1,'']]],
   ['cms',['CMS',['../classCMS.html',1,'']]],
   ['cmscdex',['CMscdex',['../classCMscdex.html',1,'']]],
-  ['codecinst',['CodecInst',['../classCodecInst.html',1,'']]],
   ['codepagehandlerdynrec',['CodePageHandlerDynRec',['../classCodePageHandlerDynRec.html',1,'']]],
   ['comb',['comb',['../classcomb.html',1,'']]],
   ['combfilter',['CombFilter',['../classMT32Emu_1_1CombFilter.html',1,'MT32Emu']]],

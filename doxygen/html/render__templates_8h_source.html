@@ -511,412 +511,448 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00414"></a>00414 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
 <a name="l00415"></a>00415 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
 <a name="l00416"></a>00416 <span class="preprocessor"></span>
-<a name="l00417"></a>00417 <span class="preprocessor">#if (DBPP &gt; 8)</span>
-<a name="l00418"></a>00418 <span class="preprocessor"></span>
-<a name="l00419"></a>00419 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
-<a name="l00420"></a>00420 <span class="preprocessor"></span>
-<a name="l00421"></a>00421 <span class="preprocessor">#define SCALERNAME              TV2x</span>
-<a name="l00422"></a>00422 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00423"></a>00423 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00424"></a>00424 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                      \</span>
-<a name="l00425"></a>00425 <span class="preprocessor">{                                                                                                       \</span>
-<a name="l00426"></a>00426 <span class="preprocessor">        PTYPE halfpixel=((P &amp; redblueMask) &gt;&gt; 1) &amp; redblueMask; \</span>
-<a name="l00427"></a>00427 <span class="preprocessor">        halfpixel|=((P &amp; greenMask) &gt;&gt; 1) &amp; greenMask;                  \</span>
-<a name="l00428"></a>00428 <span class="preprocessor">        line0[0]=P;                                                     \</span>
-<a name="l00429"></a>00429 <span class="preprocessor">        line0[1]=P;                                                     \</span>
-<a name="l00430"></a>00430 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
-<a name="l00431"></a>00431 <span class="preprocessor">        line1[1]=halfpixel;                                             \</span>
-<a name="l00432"></a>00432 <span class="preprocessor">}</span>
-<a name="l00433"></a>00433 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00434"></a>00434 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00435"></a>00435 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00436"></a>00436 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00437"></a>00437 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00438"></a>00438 <span class="preprocessor"></span>
-<a name="l00439"></a>00439 <span class="preprocessor">#define SCALERNAME              TVDh</span>
-<a name="l00440"></a>00440 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
-<a name="l00441"></a>00441 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00442"></a>00442 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                      \</span>
-<a name="l00443"></a>00443 <span class="preprocessor">{                                                                                                       \</span>
-<a name="l00444"></a>00444 <span class="preprocessor">        PTYPE halfpixel=((P &amp; redblueMask) &gt;&gt; 1) &amp; redblueMask; \</span>
-<a name="l00445"></a>00445 <span class="preprocessor">        halfpixel|=((P &amp; greenMask) &gt;&gt; 1) &amp; greenMask;                  \</span>
-<a name="l00446"></a>00446 <span class="preprocessor">        line0[0]=P;                                                     \</span>
-<a name="l00447"></a>00447 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
-<a name="l00448"></a>00448 <span class="preprocessor">}</span>
-<a name="l00449"></a>00449 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00450"></a>00450 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00451"></a>00451 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00452"></a>00452 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00453"></a>00453 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00417"></a>00417 <span class="preprocessor">#define SCALERNAME              Normal2xDw</span>
+<a name="l00418"></a>00418 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             4</span>
+<a name="l00419"></a>00419 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00420"></a>00420 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                              \</span>
+<a name="l00421"></a>00421 <span class="preprocessor">    line0[0] = P;                               \</span>
+<a name="l00422"></a>00422 <span class="preprocessor">    line0[1] = P;                               \</span>
+<a name="l00423"></a>00423 <span class="preprocessor">    line0[2] = P;                               \</span>
+<a name="l00424"></a>00424 <span class="preprocessor">    line0[3] = P;                               \</span>
+<a name="l00425"></a>00425 <span class="preprocessor">    line1[0] = P;                               \</span>
+<a name="l00426"></a>00426 <span class="preprocessor">    line1[1] = P;                               \</span>
+<a name="l00427"></a>00427 <span class="preprocessor">    line1[2] = P;                               \</span>
+<a name="l00428"></a>00428 <span class="preprocessor">    line1[3] = P;</span>
+<a name="l00429"></a>00429 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00430"></a>00430 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00431"></a>00431 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00432"></a>00432 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00433"></a>00433 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00434"></a>00434 <span class="preprocessor"></span>
+<a name="l00435"></a>00435 <span class="preprocessor">#define SCALERNAME      Normal2xDh</span>
+<a name="l00436"></a>00436 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH     2</span>
+<a name="l00437"></a>00437 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    4</span>
+<a name="l00438"></a>00438 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                              \</span>
+<a name="l00439"></a>00439 <span class="preprocessor">    line0[0] = P;                               \</span>
+<a name="l00440"></a>00440 <span class="preprocessor">    line0[1] = P;                               \</span>
+<a name="l00441"></a>00441 <span class="preprocessor">    line1[0] = P;                               \</span>
+<a name="l00442"></a>00442 <span class="preprocessor">    line1[1] = P;                               \</span>
+<a name="l00443"></a>00443 <span class="preprocessor">    line2[0] = P;                               \</span>
+<a name="l00444"></a>00444 <span class="preprocessor">    line2[1] = P;                               \</span>
+<a name="l00445"></a>00445 <span class="preprocessor">    line3[0] = P;                               \</span>
+<a name="l00446"></a>00446 <span class="preprocessor">    line3[1] = P;</span>
+<a name="l00447"></a>00447 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00448"></a>00448 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00449"></a>00449 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00450"></a>00450 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00451"></a>00451 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00452"></a>00452 <span class="preprocessor"></span>
+<a name="l00453"></a>00453 <span class="preprocessor">#if (DBPP &gt; 8)</span>
 <a name="l00454"></a>00454 <span class="preprocessor"></span>
-<a name="l00455"></a>00455 <span class="preprocessor">#define SCALERNAME              TV3x</span>
-<a name="l00456"></a>00456 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00457"></a>00457 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00458"></a>00458 <span class="preprocessor"></span><span class="preprocessor">#if !defined(C_SDL2) &amp;&amp; defined(MACOSX) </span><span class="comment">/* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */</span>
-<a name="l00459"></a>00459 <span class="preprocessor">#define SCALERFUNC                                                      \</span>
-<a name="l00460"></a>00460 <span class="preprocessor">{                                                                                       \</span>
-<a name="l00461"></a>00461 <span class="preprocessor">        PTYPE halfpixel=(((uint64_t)(P &amp; redblueMask) * (uint64_t)5) &gt;&gt; (uint64_t)3) &amp; redblueMask;     \</span>
-<a name="l00462"></a>00462 <span class="preprocessor">        halfpixel|=(((uint64_t)(P &amp; greenMask) * (uint64_t)5) &gt;&gt; (uint64_t)3) &amp; greenMask;                      \</span>
-<a name="l00463"></a>00463 <span class="preprocessor">        line0[0]=P;                                                             \</span>
-<a name="l00464"></a>00464 <span class="preprocessor">        line0[1]=P;                                                             \</span>
-<a name="l00465"></a>00465 <span class="preprocessor">        line0[2]=P;                                                             \</span>
+<a name="l00455"></a>00455 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
+<a name="l00456"></a>00456 <span class="preprocessor"></span>
+<a name="l00457"></a>00457 <span class="preprocessor">#define SCALERNAME              TV2x</span>
+<a name="l00458"></a>00458 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00459"></a>00459 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00460"></a>00460 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                      \</span>
+<a name="l00461"></a>00461 <span class="preprocessor">{                                                                                                       \</span>
+<a name="l00462"></a>00462 <span class="preprocessor">        PTYPE halfpixel=((P &amp; redblueMask) &gt;&gt; 1) &amp; redblueMask; \</span>
+<a name="l00463"></a>00463 <span class="preprocessor">        halfpixel|=((P &amp; greenMask) &gt;&gt; 1) &amp; greenMask;                  \</span>
+<a name="l00464"></a>00464 <span class="preprocessor">        line0[0]=P;                                                     \</span>
+<a name="l00465"></a>00465 <span class="preprocessor">        line0[1]=P;                                                     \</span>
 <a name="l00466"></a>00466 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
 <a name="l00467"></a>00467 <span class="preprocessor">        line1[1]=halfpixel;                                             \</span>
-<a name="l00468"></a>00468 <span class="preprocessor">        line1[2]=halfpixel;                                             \</span>
-<a name="l00469"></a>00469 <span class="preprocessor">        halfpixel=(((uint64_t)(P &amp; redblueMask) * (uint64_t)5) &gt;&gt; (uint64_t)4) &amp; redblueMask;   \</span>
-<a name="l00470"></a>00470 <span class="preprocessor">        halfpixel|=(((uint64_t)(P &amp; greenMask) * (uint64_t)5) &gt;&gt; (uint64_t)4) &amp; greenMask;                      \</span>
-<a name="l00471"></a>00471 <span class="preprocessor">        line2[0]=halfpixel;                                             \</span>
-<a name="l00472"></a>00472 <span class="preprocessor">        line2[1]=halfpixel;                                             \</span>
-<a name="l00473"></a>00473 <span class="preprocessor">        line2[2]=halfpixel;                                             \</span>
-<a name="l00474"></a>00474 <span class="preprocessor">}</span>
-<a name="l00475"></a>00475 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00476"></a>00476 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                      \</span>
-<a name="l00477"></a>00477 <span class="preprocessor">{                                                                                       \</span>
-<a name="l00478"></a>00478 <span class="preprocessor">        PTYPE halfpixel=(((P &amp; redblueMask) * 5) &gt;&gt; 3) &amp; redblueMask;   \</span>
-<a name="l00479"></a>00479 <span class="preprocessor">        halfpixel|=(((P &amp; greenMask) * 5) &gt;&gt; 3) &amp; greenMask;                    \</span>
-<a name="l00480"></a>00480 <span class="preprocessor">        line0[0]=P;                                                             \</span>
-<a name="l00481"></a>00481 <span class="preprocessor">        line0[1]=P;                                                             \</span>
-<a name="l00482"></a>00482 <span class="preprocessor">        line0[2]=P;                                                             \</span>
+<a name="l00468"></a>00468 <span class="preprocessor">}</span>
+<a name="l00469"></a>00469 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00470"></a>00470 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00471"></a>00471 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00472"></a>00472 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00473"></a>00473 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00474"></a>00474 <span class="preprocessor"></span>
+<a name="l00475"></a>00475 <span class="preprocessor">#define SCALERNAME              TVDh</span>
+<a name="l00476"></a>00476 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
+<a name="l00477"></a>00477 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00478"></a>00478 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                      \</span>
+<a name="l00479"></a>00479 <span class="preprocessor">{                                                                                                       \</span>
+<a name="l00480"></a>00480 <span class="preprocessor">        PTYPE halfpixel=((P &amp; redblueMask) &gt;&gt; 1) &amp; redblueMask; \</span>
+<a name="l00481"></a>00481 <span class="preprocessor">        halfpixel|=((P &amp; greenMask) &gt;&gt; 1) &amp; greenMask;                  \</span>
+<a name="l00482"></a>00482 <span class="preprocessor">        line0[0]=P;                                                     \</span>
 <a name="l00483"></a>00483 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
-<a name="l00484"></a>00484 <span class="preprocessor">        line1[1]=halfpixel;                                             \</span>
-<a name="l00485"></a>00485 <span class="preprocessor">        line1[2]=halfpixel;                                             \</span>
-<a name="l00486"></a>00486 <span class="preprocessor">        halfpixel=(((P &amp; redblueMask) * 5) &gt;&gt; 4) &amp; redblueMask; \</span>
-<a name="l00487"></a>00487 <span class="preprocessor">        halfpixel|=(((P &amp; greenMask) * 5) &gt;&gt; 4) &amp; greenMask;                    \</span>
-<a name="l00488"></a>00488 <span class="preprocessor">        line2[0]=halfpixel;                                             \</span>
-<a name="l00489"></a>00489 <span class="preprocessor">        line2[1]=halfpixel;                                             \</span>
-<a name="l00490"></a>00490 <span class="preprocessor">        line2[2]=halfpixel;                                             \</span>
-<a name="l00491"></a>00491 <span class="preprocessor">}</span>
-<a name="l00492"></a>00492 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00493"></a>00493 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00494"></a>00494 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00495"></a>00495 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00496"></a>00496 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00497"></a>00497 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00498"></a>00498 <span class="preprocessor"></span>
-<a name="l00499"></a>00499 <span class="preprocessor">#define SCALERNAME              RGB2x</span>
-<a name="l00500"></a>00500 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00501"></a>00501 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00502"></a>00502 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
-<a name="l00503"></a>00503 <span class="preprocessor">        line0[0]=P &amp; redMask;                           \</span>
-<a name="l00504"></a>00504 <span class="preprocessor">        line0[1]=P &amp; greenMask;                 \</span>
-<a name="l00505"></a>00505 <span class="preprocessor">        line1[0]=P &amp; blueMask;                          \</span>
-<a name="l00506"></a>00506 <span class="preprocessor">        line1[1]=P;</span>
-<a name="l00507"></a>00507 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00508"></a>00508 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00509"></a>00509 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00510"></a>00510 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00511"></a>00511 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00512"></a>00512 <span class="preprocessor"></span>
-<a name="l00513"></a>00513 <span class="preprocessor">#define SCALERNAME              RGB3x</span>
-<a name="l00514"></a>00514 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00515"></a>00515 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00516"></a>00516 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
-<a name="l00517"></a>00517 <span class="preprocessor">        line0[0]=P;                                                     \</span>
-<a name="l00518"></a>00518 <span class="preprocessor">        line0[1]=P &amp; greenMask;                         \</span>
-<a name="l00519"></a>00519 <span class="preprocessor">        line0[2]=P &amp; blueMask;                          \</span>
-<a name="l00520"></a>00520 <span class="preprocessor">        line1[0]=P &amp; greenMask;                         \</span>
-<a name="l00521"></a>00521 <span class="preprocessor">        line1[1]=P &amp; redMask;                                           \</span>
-<a name="l00522"></a>00522 <span class="preprocessor">        line1[2]=P;                             \</span>
-<a name="l00523"></a>00523 <span class="preprocessor">        line2[0]=P;                             \</span>
-<a name="l00524"></a>00524 <span class="preprocessor">        line2[1]=P &amp; blueMask;                          \</span>
-<a name="l00525"></a>00525 <span class="preprocessor">        line2[2]=P &amp; redMask;</span>
-<a name="l00526"></a>00526 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00527"></a>00527 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00528"></a>00528 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00529"></a>00529 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00530"></a>00530 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00531"></a>00531 <span class="preprocessor"></span>
-<a name="l00532"></a>00532 <span class="preprocessor">#define SCALERNAME              Scan2x</span>
-<a name="l00533"></a>00533 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00534"></a>00534 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00535"></a>00535 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
-<a name="l00536"></a>00536 <span class="preprocessor">        line0[0]=P;                                                     \</span>
-<a name="l00537"></a>00537 <span class="preprocessor">        line0[1]=P;                                                     \</span>
-<a name="l00538"></a>00538 <span class="preprocessor">        line1[0]=0;                                                     \</span>
-<a name="l00539"></a>00539 <span class="preprocessor">        line1[1]=0;</span>
-<a name="l00540"></a>00540 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00541"></a>00541 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00542"></a>00542 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00543"></a>00543 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00544"></a>00544 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00545"></a>00545 <span class="preprocessor"></span>
-<a name="l00546"></a>00546 <span class="preprocessor">#define SCALERNAME              ScanDh</span>
-<a name="l00547"></a>00547 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
-<a name="l00548"></a>00548 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00549"></a>00549 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
-<a name="l00550"></a>00550 <span class="preprocessor">        line0[0] = P;                                                           \</span>
-<a name="l00551"></a>00551 <span class="preprocessor">        line1[0] = 0;</span>
-<a name="l00552"></a>00552 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00553"></a>00553 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00554"></a>00554 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00555"></a>00555 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00556"></a>00556 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00557"></a>00557 <span class="preprocessor"></span>
-<a name="l00558"></a>00558 <span class="preprocessor">#define SCALERNAME              Scan3x</span>
-<a name="l00559"></a>00559 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00560"></a>00560 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00561"></a>00561 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                      \</span>
-<a name="l00562"></a>00562 <span class="preprocessor">        line0[0]=P;                             \</span>
-<a name="l00563"></a>00563 <span class="preprocessor">        line0[1]=P;                             \</span>
-<a name="l00564"></a>00564 <span class="preprocessor">        line0[2]=P;                             \</span>
-<a name="l00565"></a>00565 <span class="preprocessor">        line1[0]=P;                             \</span>
-<a name="l00566"></a>00566 <span class="preprocessor">        line1[1]=P;                             \</span>
-<a name="l00567"></a>00567 <span class="preprocessor">        line1[2]=P;                             \</span>
-<a name="l00568"></a>00568 <span class="preprocessor">        line2[0]=0;                             \</span>
-<a name="l00569"></a>00569 <span class="preprocessor">        line2[1]=0;                             \</span>
-<a name="l00570"></a>00570 <span class="preprocessor">        line2[2]=0;</span>
-<a name="l00571"></a>00571 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00572"></a>00572 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00573"></a>00573 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00574"></a>00574 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00575"></a>00575 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00576"></a>00576 <span class="preprocessor"></span>
-<a name="l00577"></a>00577 <span class="comment">/* Grayscale scalers */</span>
-<a name="l00578"></a>00578 <span class="preprocessor">#define SCALERNAME              GrayNormal</span>
-<a name="l00579"></a>00579 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
-<a name="l00580"></a>00580 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    1</span>
-<a name="l00581"></a>00581 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
-<a name="l00582"></a>00582 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
-<a name="l00583"></a>00583 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
-<a name="l00584"></a>00584 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
-<a name="l00585"></a>00585 <span class="preprocessor">        line0[0] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
-<a name="l00586"></a>00586 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00587"></a>00587 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00588"></a>00588 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00589"></a>00589 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00590"></a>00590 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00591"></a>00591 <span class="preprocessor"></span>
-<a name="l00592"></a>00592 <span class="preprocessor">#define SCALERNAME              GrayDw</span>
-<a name="l00593"></a>00593 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00594"></a>00594 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    1</span>
-<a name="l00595"></a>00595 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
-<a name="l00596"></a>00596 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
-<a name="l00597"></a>00597 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
-<a name="l00598"></a>00598 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
-<a name="l00599"></a>00599 <span class="preprocessor">        line0[0]=line0[1] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
-<a name="l00600"></a>00600 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00601"></a>00601 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00602"></a>00602 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00603"></a>00603 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00604"></a>00604 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00605"></a>00605 <span class="preprocessor"></span>
-<a name="l00606"></a>00606 <span class="preprocessor">#define SCALERNAME              GrayDh</span>
-<a name="l00607"></a>00607 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
-<a name="l00608"></a>00608 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00609"></a>00609 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
-<a name="l00610"></a>00610 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
-<a name="l00611"></a>00611 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
-<a name="l00612"></a>00612 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
-<a name="l00613"></a>00613 <span class="preprocessor">        line0[0]=line1[0] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
-<a name="l00614"></a>00614 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00615"></a>00615 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00616"></a>00616 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00617"></a>00617 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00618"></a>00618 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00619"></a>00619 <span class="preprocessor"></span>
-<a name="l00620"></a>00620 <span class="preprocessor">#define SCALERNAME              Gray2x</span>
-<a name="l00621"></a>00621 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00622"></a>00622 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00623"></a>00623 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
-<a name="l00624"></a>00624 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
-<a name="l00625"></a>00625 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
-<a name="l00626"></a>00626 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
-<a name="l00627"></a>00627 <span class="preprocessor">        line0[0]=line1[0]=line0[1]=line1[1] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
-<a name="l00628"></a>00628 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
-<a name="l00629"></a>00629 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00630"></a>00630 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00631"></a>00631 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00632"></a>00632 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00633"></a>00633 <span class="preprocessor"></span>
-<a name="l00634"></a>00634 <span class="preprocessor">#endif          //#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
-<a name="l00635"></a>00635 <span class="preprocessor"></span>
-<a name="l00636"></a>00636 <span class="preprocessor">#endif          //#if (DBPP &gt; 8)</span>
-<a name="l00637"></a>00637 <span class="preprocessor"></span>
-<a name="l00638"></a>00638 <span class="comment">/* Complex scalers */</span>
-<a name="l00639"></a>00639 
-<a name="l00640"></a>00640 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
+<a name="l00484"></a>00484 <span class="preprocessor">}</span>
+<a name="l00485"></a>00485 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00486"></a>00486 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00487"></a>00487 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00488"></a>00488 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00489"></a>00489 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00490"></a>00490 <span class="preprocessor"></span>
+<a name="l00491"></a>00491 <span class="preprocessor">#define SCALERNAME              TV3x</span>
+<a name="l00492"></a>00492 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00493"></a>00493 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00494"></a>00494 <span class="preprocessor"></span><span class="preprocessor">#if !defined(C_SDL2) &amp;&amp; defined(MACOSX) </span><span class="comment">/* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */</span>
+<a name="l00495"></a>00495 <span class="preprocessor">#define SCALERFUNC                                                      \</span>
+<a name="l00496"></a>00496 <span class="preprocessor">{                                                                                       \</span>
+<a name="l00497"></a>00497 <span class="preprocessor">        PTYPE halfpixel=(((uint64_t)(P &amp; redblueMask) * (uint64_t)5) &gt;&gt; (uint64_t)3) &amp; redblueMask;     \</span>
+<a name="l00498"></a>00498 <span class="preprocessor">        halfpixel|=(((uint64_t)(P &amp; greenMask) * (uint64_t)5) &gt;&gt; (uint64_t)3) &amp; greenMask;                      \</span>
+<a name="l00499"></a>00499 <span class="preprocessor">        line0[0]=P;                                                             \</span>
+<a name="l00500"></a>00500 <span class="preprocessor">        line0[1]=P;                                                             \</span>
+<a name="l00501"></a>00501 <span class="preprocessor">        line0[2]=P;                                                             \</span>
+<a name="l00502"></a>00502 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
+<a name="l00503"></a>00503 <span class="preprocessor">        line1[1]=halfpixel;                                             \</span>
+<a name="l00504"></a>00504 <span class="preprocessor">        line1[2]=halfpixel;                                             \</span>
+<a name="l00505"></a>00505 <span class="preprocessor">        halfpixel=(((uint64_t)(P &amp; redblueMask) * (uint64_t)5) &gt;&gt; (uint64_t)4) &amp; redblueMask;   \</span>
+<a name="l00506"></a>00506 <span class="preprocessor">        halfpixel|=(((uint64_t)(P &amp; greenMask) * (uint64_t)5) &gt;&gt; (uint64_t)4) &amp; greenMask;                      \</span>
+<a name="l00507"></a>00507 <span class="preprocessor">        line2[0]=halfpixel;                                             \</span>
+<a name="l00508"></a>00508 <span class="preprocessor">        line2[1]=halfpixel;                                             \</span>
+<a name="l00509"></a>00509 <span class="preprocessor">        line2[2]=halfpixel;                                             \</span>
+<a name="l00510"></a>00510 <span class="preprocessor">}</span>
+<a name="l00511"></a>00511 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+<a name="l00512"></a>00512 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                      \</span>
+<a name="l00513"></a>00513 <span class="preprocessor">{                                                                                       \</span>
+<a name="l00514"></a>00514 <span class="preprocessor">        PTYPE halfpixel=(((P &amp; redblueMask) * 5) &gt;&gt; 3) &amp; redblueMask;   \</span>
+<a name="l00515"></a>00515 <span class="preprocessor">        halfpixel|=(((P &amp; greenMask) * 5) &gt;&gt; 3) &amp; greenMask;                    \</span>
+<a name="l00516"></a>00516 <span class="preprocessor">        line0[0]=P;                                                             \</span>
+<a name="l00517"></a>00517 <span class="preprocessor">        line0[1]=P;                                                             \</span>
+<a name="l00518"></a>00518 <span class="preprocessor">        line0[2]=P;                                                             \</span>
+<a name="l00519"></a>00519 <span class="preprocessor">        line1[0]=halfpixel;                                             \</span>
+<a name="l00520"></a>00520 <span class="preprocessor">        line1[1]=halfpixel;                                             \</span>
+<a name="l00521"></a>00521 <span class="preprocessor">        line1[2]=halfpixel;                                             \</span>
+<a name="l00522"></a>00522 <span class="preprocessor">        halfpixel=(((P &amp; redblueMask) * 5) &gt;&gt; 4) &amp; redblueMask; \</span>
+<a name="l00523"></a>00523 <span class="preprocessor">        halfpixel|=(((P &amp; greenMask) * 5) &gt;&gt; 4) &amp; greenMask;                    \</span>
+<a name="l00524"></a>00524 <span class="preprocessor">        line2[0]=halfpixel;                                             \</span>
+<a name="l00525"></a>00525 <span class="preprocessor">        line2[1]=halfpixel;                                             \</span>
+<a name="l00526"></a>00526 <span class="preprocessor">        line2[2]=halfpixel;                                             \</span>
+<a name="l00527"></a>00527 <span class="preprocessor">}</span>
+<a name="l00528"></a>00528 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00529"></a>00529 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00530"></a>00530 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00531"></a>00531 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00532"></a>00532 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00533"></a>00533 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00534"></a>00534 <span class="preprocessor"></span>
+<a name="l00535"></a>00535 <span class="preprocessor">#define SCALERNAME              RGB2x</span>
+<a name="l00536"></a>00536 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00537"></a>00537 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00538"></a>00538 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
+<a name="l00539"></a>00539 <span class="preprocessor">        line0[0]=P &amp; redMask;                           \</span>
+<a name="l00540"></a>00540 <span class="preprocessor">        line0[1]=P &amp; greenMask;                 \</span>
+<a name="l00541"></a>00541 <span class="preprocessor">        line1[0]=P &amp; blueMask;                          \</span>
+<a name="l00542"></a>00542 <span class="preprocessor">        line1[1]=P;</span>
+<a name="l00543"></a>00543 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00544"></a>00544 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00545"></a>00545 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00546"></a>00546 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00547"></a>00547 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00548"></a>00548 <span class="preprocessor"></span>
+<a name="l00549"></a>00549 <span class="preprocessor">#define SCALERNAME              RGB3x</span>
+<a name="l00550"></a>00550 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00551"></a>00551 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00552"></a>00552 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
+<a name="l00553"></a>00553 <span class="preprocessor">        line0[0]=P;                                                     \</span>
+<a name="l00554"></a>00554 <span class="preprocessor">        line0[1]=P &amp; greenMask;                         \</span>
+<a name="l00555"></a>00555 <span class="preprocessor">        line0[2]=P &amp; blueMask;                          \</span>
+<a name="l00556"></a>00556 <span class="preprocessor">        line1[0]=P &amp; greenMask;                         \</span>
+<a name="l00557"></a>00557 <span class="preprocessor">        line1[1]=P &amp; redMask;                                           \</span>
+<a name="l00558"></a>00558 <span class="preprocessor">        line1[2]=P;                             \</span>
+<a name="l00559"></a>00559 <span class="preprocessor">        line2[0]=P;                             \</span>
+<a name="l00560"></a>00560 <span class="preprocessor">        line2[1]=P &amp; blueMask;                          \</span>
+<a name="l00561"></a>00561 <span class="preprocessor">        line2[2]=P &amp; redMask;</span>
+<a name="l00562"></a>00562 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00563"></a>00563 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00564"></a>00564 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00565"></a>00565 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00566"></a>00566 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00567"></a>00567 <span class="preprocessor"></span>
+<a name="l00568"></a>00568 <span class="preprocessor">#define SCALERNAME              Scan2x</span>
+<a name="l00569"></a>00569 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00570"></a>00570 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00571"></a>00571 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                              \</span>
+<a name="l00572"></a>00572 <span class="preprocessor">        line0[0]=P;                                                     \</span>
+<a name="l00573"></a>00573 <span class="preprocessor">        line0[1]=P;                                                     \</span>
+<a name="l00574"></a>00574 <span class="preprocessor">        line1[0]=0;                                                     \</span>
+<a name="l00575"></a>00575 <span class="preprocessor">        line1[1]=0;</span>
+<a name="l00576"></a>00576 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00577"></a>00577 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00578"></a>00578 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00579"></a>00579 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00580"></a>00580 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00581"></a>00581 <span class="preprocessor"></span>
+<a name="l00582"></a>00582 <span class="preprocessor">#define SCALERNAME              ScanDh</span>
+<a name="l00583"></a>00583 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
+<a name="l00584"></a>00584 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00585"></a>00585 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
+<a name="l00586"></a>00586 <span class="preprocessor">        line0[0] = P;                                                           \</span>
+<a name="l00587"></a>00587 <span class="preprocessor">        line1[0] = 0;</span>
+<a name="l00588"></a>00588 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00589"></a>00589 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00590"></a>00590 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00591"></a>00591 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00592"></a>00592 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00593"></a>00593 <span class="preprocessor"></span>
+<a name="l00594"></a>00594 <span class="preprocessor">#define SCALERNAME              Scan3x</span>
+<a name="l00595"></a>00595 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00596"></a>00596 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00597"></a>00597 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                      \</span>
+<a name="l00598"></a>00598 <span class="preprocessor">        line0[0]=P;                             \</span>
+<a name="l00599"></a>00599 <span class="preprocessor">        line0[1]=P;                             \</span>
+<a name="l00600"></a>00600 <span class="preprocessor">        line0[2]=P;                             \</span>
+<a name="l00601"></a>00601 <span class="preprocessor">        line1[0]=P;                             \</span>
+<a name="l00602"></a>00602 <span class="preprocessor">        line1[1]=P;                             \</span>
+<a name="l00603"></a>00603 <span class="preprocessor">        line1[2]=P;                             \</span>
+<a name="l00604"></a>00604 <span class="preprocessor">        line2[0]=0;                             \</span>
+<a name="l00605"></a>00605 <span class="preprocessor">        line2[1]=0;                             \</span>
+<a name="l00606"></a>00606 <span class="preprocessor">        line2[2]=0;</span>
+<a name="l00607"></a>00607 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00608"></a>00608 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00609"></a>00609 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00610"></a>00610 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00611"></a>00611 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00612"></a>00612 <span class="preprocessor"></span>
+<a name="l00613"></a>00613 <span class="comment">/* Grayscale scalers */</span>
+<a name="l00614"></a>00614 <span class="preprocessor">#define SCALERNAME              GrayNormal</span>
+<a name="l00615"></a>00615 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
+<a name="l00616"></a>00616 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    1</span>
+<a name="l00617"></a>00617 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
+<a name="l00618"></a>00618 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
+<a name="l00619"></a>00619 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
+<a name="l00620"></a>00620 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
+<a name="l00621"></a>00621 <span class="preprocessor">        line0[0] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
+<a name="l00622"></a>00622 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00623"></a>00623 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00624"></a>00624 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00625"></a>00625 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00626"></a>00626 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00627"></a>00627 <span class="preprocessor"></span>
+<a name="l00628"></a>00628 <span class="preprocessor">#define SCALERNAME              GrayDw</span>
+<a name="l00629"></a>00629 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00630"></a>00630 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    1</span>
+<a name="l00631"></a>00631 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
+<a name="l00632"></a>00632 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
+<a name="l00633"></a>00633 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
+<a name="l00634"></a>00634 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
+<a name="l00635"></a>00635 <span class="preprocessor">        line0[0]=line0[1] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
+<a name="l00636"></a>00636 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00637"></a>00637 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00638"></a>00638 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00639"></a>00639 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00640"></a>00640 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
 <a name="l00641"></a>00641 <span class="preprocessor"></span>
-<a name="l00642"></a>00642 <span class="preprocessor">#if (SBPP == DBPP) </span>
-<a name="l00643"></a>00643 <span class="preprocessor"></span>
-<a name="l00644"></a>00644 
-<a name="l00645"></a>00645 <span class="preprocessor">#if (DBPP &gt; 8)</span>
-<a name="l00646"></a>00646 <span class="preprocessor"></span>
-<a name="l00647"></a>00647 <span class="preprocessor">#include &quot;render_templates_hq.h&quot;</span>
-<a name="l00648"></a>00648 
-<a name="l00649"></a>00649 <span class="preprocessor">#define SCALERNAME              HQ2x</span>
-<a name="l00650"></a>00650 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00651"></a>00651 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00652"></a>00652 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_templates_hq2x.h&quot;</span>
-<a name="l00653"></a>00653 <span class="preprocessor">#define SCALERFUNC              conc2d(Hq2x,SBPP)(line0, line1, fc)</span>
-<a name="l00654"></a>00654 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00655"></a>00655 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00656"></a>00656 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00657"></a>00657 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00658"></a>00658 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00659"></a>00659 <span class="preprocessor"></span>
-<a name="l00660"></a>00660 <span class="preprocessor">#define SCALERNAME              HQ3x</span>
-<a name="l00661"></a>00661 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00662"></a>00662 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00663"></a>00663 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_templates_hq3x.h&quot;</span>
-<a name="l00664"></a>00664 <span class="preprocessor">#define SCALERFUNC              conc2d(Hq3x,SBPP)(line0, line1, line2, fc)</span>
-<a name="l00665"></a>00665 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00666"></a>00666 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00667"></a>00667 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00668"></a>00668 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00669"></a>00669 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00670"></a>00670 <span class="preprocessor"></span>
-<a name="l00671"></a>00671 <span class="preprocessor">#include &quot;render_templates_sai.h&quot;</span>
-<a name="l00672"></a>00672 
-<a name="l00673"></a>00673 <span class="preprocessor">#define SCALERNAME              Super2xSaI</span>
-<a name="l00674"></a>00674 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00675"></a>00675 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00676"></a>00676 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(Super2xSaI,SBPP)(line0, line1, fc)</span>
-<a name="l00677"></a>00677 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00678"></a>00678 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00679"></a>00679 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00680"></a>00680 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00681"></a>00681 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00642"></a>00642 <span class="preprocessor">#define SCALERNAME              GrayDh</span>
+<a name="l00643"></a>00643 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             1</span>
+<a name="l00644"></a>00644 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00645"></a>00645 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
+<a name="l00646"></a>00646 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
+<a name="l00647"></a>00647 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
+<a name="l00648"></a>00648 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
+<a name="l00649"></a>00649 <span class="preprocessor">        line0[0]=line1[0] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
+<a name="l00650"></a>00650 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00651"></a>00651 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00652"></a>00652 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00653"></a>00653 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00654"></a>00654 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00655"></a>00655 <span class="preprocessor"></span>
+<a name="l00656"></a>00656 <span class="preprocessor">#define SCALERNAME              Gray2x</span>
+<a name="l00657"></a>00657 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00658"></a>00658 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00659"></a>00659 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                              \</span>
+<a name="l00660"></a>00660 <span class="preprocessor">        PTYPE _red=(P&amp;redMask)&gt;&gt;redShift,_green=(P&amp;greenMask)&gt;&gt;greenShift,_blue=(P&amp;blueMask)&gt;&gt;blueShift;        \</span>
+<a name="l00661"></a>00661 <span class="preprocessor">  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \</span>
+<a name="l00662"></a>00662 <span class="preprocessor">  PTYPE _value = _gray&gt;255?0xff:(uint8_t)(_gray);  \</span>
+<a name="l00663"></a>00663 <span class="preprocessor">        line0[0]=line1[0]=line0[1]=line1[1] = ((_value&lt;&lt;redShift)|(_value&lt;&lt;greenShift)|(_value)&lt;&lt;blueShift);</span>
+<a name="l00664"></a>00664 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_simple.h&quot;</span>
+<a name="l00665"></a>00665 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00666"></a>00666 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00667"></a>00667 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00668"></a>00668 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00669"></a>00669 <span class="preprocessor"></span>
+<a name="l00670"></a>00670 <span class="preprocessor">#endif          //#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
+<a name="l00671"></a>00671 <span class="preprocessor"></span>
+<a name="l00672"></a>00672 <span class="preprocessor">#endif          //#if (DBPP &gt; 8)</span>
+<a name="l00673"></a>00673 <span class="preprocessor"></span>
+<a name="l00674"></a>00674 <span class="comment">/* Complex scalers */</span>
+<a name="l00675"></a>00675 
+<a name="l00676"></a>00676 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
+<a name="l00677"></a>00677 <span class="preprocessor"></span>
+<a name="l00678"></a>00678 <span class="preprocessor">#if (SBPP == DBPP) </span>
+<a name="l00679"></a>00679 <span class="preprocessor"></span>
+<a name="l00680"></a>00680 
+<a name="l00681"></a>00681 <span class="preprocessor">#if (DBPP &gt; 8)</span>
 <a name="l00682"></a>00682 <span class="preprocessor"></span>
-<a name="l00683"></a>00683 <span class="preprocessor">#define SCALERNAME              SuperEagle</span>
-<a name="l00684"></a>00684 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00685"></a>00685 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00686"></a>00686 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(SuperEagle,SBPP)(line0, line1, fc)</span>
-<a name="l00687"></a>00687 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00688"></a>00688 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00689"></a>00689 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00690"></a>00690 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00691"></a>00691 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00692"></a>00692 <span class="preprocessor"></span>
-<a name="l00693"></a>00693 <span class="preprocessor">#define SCALERNAME              _2xSaI</span>
-<a name="l00694"></a>00694 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00695"></a>00695 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00696"></a>00696 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(_2xSaI,SBPP)(line0, line1, fc)</span>
-<a name="l00697"></a>00697 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00698"></a>00698 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00699"></a>00699 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00700"></a>00700 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00701"></a>00701 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00702"></a>00702 <span class="preprocessor"></span>
-<a name="l00703"></a>00703 <span class="preprocessor">#define SCALERNAME              AdvInterp2x</span>
-<a name="l00704"></a>00704 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00705"></a>00705 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00706"></a>00706 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
-<a name="l00707"></a>00707 <span class="preprocessor">        if (C1 != C7 &amp;&amp; C3 != C5) {                                                                     \</span>
-<a name="l00708"></a>00708 <span class="preprocessor">                line0[0] = C3 == C1 ? interp_w2(C3,C4,5U,3U) : C4;              \</span>
-<a name="l00709"></a>00709 <span class="preprocessor">                line0[1] = C1 == C5 ? interp_w2(C5,C4,5U,3U) : C4;              \</span>
-<a name="l00710"></a>00710 <span class="preprocessor">                line1[0] = C3 == C7 ? interp_w2(C3,C4,5U,3U) : C4;              \</span>
-<a name="l00711"></a>00711 <span class="preprocessor">                line1[1] = C7 == C5 ? interp_w2(C5,C4,5U,3U) : C4;              \</span>
-<a name="l00712"></a>00712 <span class="preprocessor">        } else {                                                                                                        \</span>
-<a name="l00713"></a>00713 <span class="preprocessor">                line0[0] = line0[1] = C4;                                                               \</span>
-<a name="l00714"></a>00714 <span class="preprocessor">                line1[0] = line1[1] = C4;                                                               \</span>
-<a name="l00715"></a>00715 <span class="preprocessor">        }</span>
-<a name="l00716"></a>00716 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00717"></a>00717 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00718"></a>00718 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00719"></a>00719 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00720"></a>00720 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00721"></a>00721 <span class="preprocessor"></span>
-<a name="l00722"></a>00722 <span class="comment">//TODO, come up with something better for this one</span>
-<a name="l00723"></a>00723 <span class="preprocessor">#define SCALERNAME              AdvInterp3x</span>
-<a name="l00724"></a>00724 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00725"></a>00725 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00726"></a>00726 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
-<a name="l00727"></a>00727 <span class="preprocessor">        if ((C1 != C7) &amp;&amp; (C3 != C5)) {                                                                                                 \</span>
-<a name="l00728"></a>00728 <span class="preprocessor">                line0[0] = C3 == C1 ?  interp_w2(C3,C4,5U,3U) : C4;                                                                                             \</span>
-<a name="l00729"></a>00729 <span class="preprocessor">                line0[1] = (C3 == C1 &amp;&amp; C4 != C2) || (C5 == C1 &amp;&amp; C4 != C0) ? C1 : C4;          \</span>
-<a name="l00730"></a>00730 <span class="preprocessor">                line0[2] = C5 == C1 ?  interp_w2(C5,C4,5U,3U) : C4;                                                                                             \</span>
-<a name="l00731"></a>00731 <span class="preprocessor">                line1[0] = (C3 == C1 &amp;&amp; C4 != C6) || (C3 == C7 &amp;&amp; C4 != C0) ? C3 : C4;          \</span>
-<a name="l00732"></a>00732 <span class="preprocessor">                line1[1] = C4;                                                                                                                          \</span>
-<a name="l00733"></a>00733 <span class="preprocessor">                line1[2] = (C5 == C1 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C2) ? C5 : C4;          \</span>
-<a name="l00734"></a>00734 <span class="preprocessor">                line2[0] = C3 == C7 ?  interp_w2(C3,C4,5U,3U) : C4;                                                                                             \</span>
-<a name="l00735"></a>00735 <span class="preprocessor">                line2[1] = (C3 == C7 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C6) ? C7 : C4;          \</span>
-<a name="l00736"></a>00736 <span class="preprocessor">                line2[2] = C5 == C7 ?  interp_w2(C5,C4,5U,3U) : C4;                                                                                             \</span>
-<a name="l00737"></a>00737 <span class="preprocessor">        } else {                                                                                                                                                \</span>
-<a name="l00738"></a>00738 <span class="preprocessor">                line0[0] = line0[1] = line0[2] = C4;                                                                            \</span>
-<a name="l00739"></a>00739 <span class="preprocessor">                line1[0] = line1[1] = line1[2] = C4;                                                                            \</span>
-<a name="l00740"></a>00740 <span class="preprocessor">                line2[0] = line2[1] = line2[2] = C4;                                                                            \</span>
-<a name="l00741"></a>00741 <span class="preprocessor">        }</span>
-<a name="l00742"></a>00742 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00743"></a>00743 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00744"></a>00744 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00745"></a>00745 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00746"></a>00746 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00747"></a>00747 <span class="preprocessor"></span>
-<a name="l00748"></a>00748 <span class="preprocessor">#endif // #if (DBPP &gt; 8)</span>
-<a name="l00749"></a>00749 <span class="preprocessor"></span>
-<a name="l00750"></a>00750 <span class="preprocessor">#define SCALERNAME              AdvMame2x</span>
-<a name="l00751"></a>00751 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
-<a name="l00752"></a>00752 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
-<a name="l00753"></a>00753 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
-<a name="l00754"></a>00754 <span class="preprocessor">        if (C1 != C7 &amp;&amp; C3 != C5) {                                                                     \</span>
-<a name="l00755"></a>00755 <span class="preprocessor">                line0[0] = C3 == C1 ? C3 : C4;                                                  \</span>
-<a name="l00756"></a>00756 <span class="preprocessor">                line0[1] = C1 == C5 ? C5 : C4;                                                  \</span>
-<a name="l00757"></a>00757 <span class="preprocessor">                line1[0] = C3 == C7 ? C3 : C4;                                                  \</span>
-<a name="l00758"></a>00758 <span class="preprocessor">                line1[1] = C7 == C5 ? C5 : C4;                                                  \</span>
-<a name="l00759"></a>00759 <span class="preprocessor">        } else {                                                                                                        \</span>
-<a name="l00760"></a>00760 <span class="preprocessor">                line0[0] = line0[1] = C4;                                                               \</span>
-<a name="l00761"></a>00761 <span class="preprocessor">                line1[0] = line1[1] = C4;                                                               \</span>
-<a name="l00762"></a>00762 <span class="preprocessor">        }</span>
-<a name="l00763"></a>00763 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00764"></a>00764 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00765"></a>00765 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00766"></a>00766 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00767"></a>00767 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00768"></a>00768 <span class="preprocessor"></span>
-<a name="l00769"></a>00769 <span class="preprocessor">#define SCALERNAME              AdvMame3x</span>
-<a name="l00770"></a>00770 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
-<a name="l00771"></a>00771 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
-<a name="l00772"></a>00772 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                                                                      \</span>
-<a name="l00773"></a>00773 <span class="preprocessor">        if ((C1 != C7) &amp;&amp; (C3 != C5)) {                                                                                                 \</span>
-<a name="l00774"></a>00774 <span class="preprocessor">                line0[0] = C3 == C1 ?  C3 : C4;                                                                                         \</span>
-<a name="l00775"></a>00775 <span class="preprocessor">                line0[1] = (C3 == C1 &amp;&amp; C4 != C2) || (C5 == C1 &amp;&amp; C4 != C0) ? C1 : C4;          \</span>
-<a name="l00776"></a>00776 <span class="preprocessor">                line0[2] = C5 == C1 ?  C5 : C4;                                                                                         \</span>
-<a name="l00777"></a>00777 <span class="preprocessor">                line1[0] = (C3 == C1 &amp;&amp; C4 != C6) || (C3 == C7 &amp;&amp; C4 != C0) ? C3 : C4;          \</span>
-<a name="l00778"></a>00778 <span class="preprocessor">                line1[1] = C4;                                                                                                                          \</span>
-<a name="l00779"></a>00779 <span class="preprocessor">                line1[2] = (C5 == C1 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C2) ? C5 : C4;          \</span>
-<a name="l00780"></a>00780 <span class="preprocessor">                line2[0] = C3 == C7 ?  C3 : C4;                                                                                         \</span>
-<a name="l00781"></a>00781 <span class="preprocessor">                line2[1] = (C3 == C7 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C6) ? C7 : C4;          \</span>
-<a name="l00782"></a>00782 <span class="preprocessor">                line2[2] = C5 == C7 ?  C5 : C4;                                                                                         \</span>
-<a name="l00783"></a>00783 <span class="preprocessor">        } else {                                                                                                                                                \</span>
-<a name="l00784"></a>00784 <span class="preprocessor">                line0[0] = line0[1] = line0[2] = C4;                                                                            \</span>
-<a name="l00785"></a>00785 <span class="preprocessor">                line1[0] = line1[1] = line1[2] = C4;                                                                            \</span>
-<a name="l00786"></a>00786 <span class="preprocessor">                line2[0] = line2[1] = line2[2] = C4;                                                                            \</span>
-<a name="l00787"></a>00787 <span class="preprocessor">        }</span>
-<a name="l00788"></a>00788 <span class="preprocessor"></span>
-<a name="l00789"></a>00789 <span class="preprocessor">#include &quot;render_loops.h&quot;</span>
-<a name="l00790"></a>00790 <span class="preprocessor">#undef SCALERNAME</span>
-<a name="l00791"></a>00791 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
-<a name="l00792"></a>00792 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
-<a name="l00793"></a>00793 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
-<a name="l00794"></a>00794 <span class="preprocessor"></span>
-<a name="l00795"></a>00795 
-<a name="l00796"></a>00796 <span class="preprocessor">#endif // (SBPP == DBPP) &amp;&amp; !defined (CACHEWITHPAL)</span>
-<a name="l00797"></a>00797 <span class="preprocessor"></span>
-<a name="l00798"></a>00798 <span class="preprocessor">#endif // #if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
-<a name="l00799"></a>00799 <span class="preprocessor"></span>
-<a name="l00800"></a>00800 <span class="preprocessor">#undef PSIZE</span>
-<a name="l00801"></a>00801 <span class="preprocessor"></span><span class="preprocessor">#undef PTYPE</span>
-<a name="l00802"></a>00802 <span class="preprocessor"></span><span class="preprocessor">#undef PMAKE</span>
-<a name="l00803"></a>00803 <span class="preprocessor"></span><span class="preprocessor">#undef WC</span>
-<a name="l00804"></a>00804 <span class="preprocessor"></span><span class="preprocessor">#undef LC</span>
-<a name="l00805"></a>00805 <span class="preprocessor"></span><span class="preprocessor">#undef FC</span>
-<a name="l00806"></a>00806 <span class="preprocessor"></span><span class="preprocessor">#undef SC</span>
-<a name="l00807"></a>00807 <span class="preprocessor"></span><span class="preprocessor">#undef redMask</span>
-<a name="l00808"></a>00808 <span class="preprocessor"></span><span class="preprocessor">#undef greenMask</span>
-<a name="l00809"></a>00809 <span class="preprocessor"></span><span class="preprocessor">#undef blueMask</span>
-<a name="l00810"></a>00810 <span class="preprocessor"></span><span class="preprocessor">#undef redblueMask</span>
-<a name="l00811"></a>00811 <span class="preprocessor"></span><span class="preprocessor">#undef redBits</span>
-<a name="l00812"></a>00812 <span class="preprocessor"></span><span class="preprocessor">#undef greenBits</span>
-<a name="l00813"></a>00813 <span class="preprocessor"></span><span class="preprocessor">#undef blueBits</span>
-<a name="l00814"></a>00814 <span class="preprocessor"></span><span class="preprocessor">#undef redShift</span>
-<a name="l00815"></a>00815 <span class="preprocessor"></span><span class="preprocessor">#undef greenShift</span>
-<a name="l00816"></a>00816 <span class="preprocessor"></span><span class="preprocessor">#undef blueShift</span>
-<a name="l00817"></a>00817 <span class="preprocessor"></span><span class="preprocessor">#undef SRCTYPE</span>
+<a name="l00683"></a>00683 <span class="preprocessor">#include &quot;render_templates_hq.h&quot;</span>
+<a name="l00684"></a>00684 
+<a name="l00685"></a>00685 <span class="preprocessor">#define SCALERNAME              HQ2x</span>
+<a name="l00686"></a>00686 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00687"></a>00687 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00688"></a>00688 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_templates_hq2x.h&quot;</span>
+<a name="l00689"></a>00689 <span class="preprocessor">#define SCALERFUNC              conc2d(Hq2x,SBPP)(line0, line1, fc)</span>
+<a name="l00690"></a>00690 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00691"></a>00691 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00692"></a>00692 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00693"></a>00693 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00694"></a>00694 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00695"></a>00695 <span class="preprocessor"></span>
+<a name="l00696"></a>00696 <span class="preprocessor">#define SCALERNAME              HQ3x</span>
+<a name="l00697"></a>00697 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00698"></a>00698 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00699"></a>00699 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_templates_hq3x.h&quot;</span>
+<a name="l00700"></a>00700 <span class="preprocessor">#define SCALERFUNC              conc2d(Hq3x,SBPP)(line0, line1, line2, fc)</span>
+<a name="l00701"></a>00701 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00702"></a>00702 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00703"></a>00703 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00704"></a>00704 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00705"></a>00705 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00706"></a>00706 <span class="preprocessor"></span>
+<a name="l00707"></a>00707 <span class="preprocessor">#include &quot;render_templates_sai.h&quot;</span>
+<a name="l00708"></a>00708 
+<a name="l00709"></a>00709 <span class="preprocessor">#define SCALERNAME              Super2xSaI</span>
+<a name="l00710"></a>00710 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00711"></a>00711 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00712"></a>00712 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(Super2xSaI,SBPP)(line0, line1, fc)</span>
+<a name="l00713"></a>00713 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00714"></a>00714 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00715"></a>00715 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00716"></a>00716 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00717"></a>00717 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00718"></a>00718 <span class="preprocessor"></span>
+<a name="l00719"></a>00719 <span class="preprocessor">#define SCALERNAME              SuperEagle</span>
+<a name="l00720"></a>00720 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00721"></a>00721 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00722"></a>00722 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(SuperEagle,SBPP)(line0, line1, fc)</span>
+<a name="l00723"></a>00723 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00724"></a>00724 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00725"></a>00725 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00726"></a>00726 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00727"></a>00727 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00728"></a>00728 <span class="preprocessor"></span>
+<a name="l00729"></a>00729 <span class="preprocessor">#define SCALERNAME              _2xSaI</span>
+<a name="l00730"></a>00730 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00731"></a>00731 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00732"></a>00732 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC              conc2d(_2xSaI,SBPP)(line0, line1, fc)</span>
+<a name="l00733"></a>00733 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00734"></a>00734 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00735"></a>00735 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00736"></a>00736 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00737"></a>00737 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00738"></a>00738 <span class="preprocessor"></span>
+<a name="l00739"></a>00739 <span class="preprocessor">#define SCALERNAME              AdvInterp2x</span>
+<a name="l00740"></a>00740 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00741"></a>00741 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00742"></a>00742 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
+<a name="l00743"></a>00743 <span class="preprocessor">        if (C1 != C7 &amp;&amp; C3 != C5) {                                                                     \</span>
+<a name="l00744"></a>00744 <span class="preprocessor">                line0[0] = C3 == C1 ? interp_w2(C3,C4,5U,3U) : C4;              \</span>
+<a name="l00745"></a>00745 <span class="preprocessor">                line0[1] = C1 == C5 ? interp_w2(C5,C4,5U,3U) : C4;              \</span>
+<a name="l00746"></a>00746 <span class="preprocessor">                line1[0] = C3 == C7 ? interp_w2(C3,C4,5U,3U) : C4;              \</span>
+<a name="l00747"></a>00747 <span class="preprocessor">                line1[1] = C7 == C5 ? interp_w2(C5,C4,5U,3U) : C4;              \</span>
+<a name="l00748"></a>00748 <span class="preprocessor">        } else {                                                                                                        \</span>
+<a name="l00749"></a>00749 <span class="preprocessor">                line0[0] = line0[1] = C4;                                                               \</span>
+<a name="l00750"></a>00750 <span class="preprocessor">                line1[0] = line1[1] = C4;                                                               \</span>
+<a name="l00751"></a>00751 <span class="preprocessor">        }</span>
+<a name="l00752"></a>00752 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00753"></a>00753 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00754"></a>00754 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00755"></a>00755 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00756"></a>00756 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00757"></a>00757 <span class="preprocessor"></span>
+<a name="l00758"></a>00758 <span class="comment">//TODO, come up with something better for this one</span>
+<a name="l00759"></a>00759 <span class="preprocessor">#define SCALERNAME              AdvInterp3x</span>
+<a name="l00760"></a>00760 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00761"></a>00761 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00762"></a>00762 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
+<a name="l00763"></a>00763 <span class="preprocessor">        if ((C1 != C7) &amp;&amp; (C3 != C5)) {                                                                                                 \</span>
+<a name="l00764"></a>00764 <span class="preprocessor">                line0[0] = C3 == C1 ?  interp_w2(C3,C4,5U,3U) : C4;                                                                                             \</span>
+<a name="l00765"></a>00765 <span class="preprocessor">                line0[1] = (C3 == C1 &amp;&amp; C4 != C2) || (C5 == C1 &amp;&amp; C4 != C0) ? C1 : C4;          \</span>
+<a name="l00766"></a>00766 <span class="preprocessor">                line0[2] = C5 == C1 ?  interp_w2(C5,C4,5U,3U) : C4;                                                                                             \</span>
+<a name="l00767"></a>00767 <span class="preprocessor">                line1[0] = (C3 == C1 &amp;&amp; C4 != C6) || (C3 == C7 &amp;&amp; C4 != C0) ? C3 : C4;          \</span>
+<a name="l00768"></a>00768 <span class="preprocessor">                line1[1] = C4;                                                                                                                          \</span>
+<a name="l00769"></a>00769 <span class="preprocessor">                line1[2] = (C5 == C1 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C2) ? C5 : C4;          \</span>
+<a name="l00770"></a>00770 <span class="preprocessor">                line2[0] = C3 == C7 ?  interp_w2(C3,C4,5U,3U) : C4;                                                                                             \</span>
+<a name="l00771"></a>00771 <span class="preprocessor">                line2[1] = (C3 == C7 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C6) ? C7 : C4;          \</span>
+<a name="l00772"></a>00772 <span class="preprocessor">                line2[2] = C5 == C7 ?  interp_w2(C5,C4,5U,3U) : C4;                                                                                             \</span>
+<a name="l00773"></a>00773 <span class="preprocessor">        } else {                                                                                                                                                \</span>
+<a name="l00774"></a>00774 <span class="preprocessor">                line0[0] = line0[1] = line0[2] = C4;                                                                            \</span>
+<a name="l00775"></a>00775 <span class="preprocessor">                line1[0] = line1[1] = line1[2] = C4;                                                                            \</span>
+<a name="l00776"></a>00776 <span class="preprocessor">                line2[0] = line2[1] = line2[2] = C4;                                                                            \</span>
+<a name="l00777"></a>00777 <span class="preprocessor">        }</span>
+<a name="l00778"></a>00778 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00779"></a>00779 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00780"></a>00780 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00781"></a>00781 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00782"></a>00782 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00783"></a>00783 <span class="preprocessor"></span>
+<a name="l00784"></a>00784 <span class="preprocessor">#endif // #if (DBPP &gt; 8)</span>
+<a name="l00785"></a>00785 <span class="preprocessor"></span>
+<a name="l00786"></a>00786 <span class="preprocessor">#define SCALERNAME              AdvMame2x</span>
+<a name="l00787"></a>00787 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             2</span>
+<a name="l00788"></a>00788 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    2</span>
+<a name="l00789"></a>00789 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                              \</span>
+<a name="l00790"></a>00790 <span class="preprocessor">        if (C1 != C7 &amp;&amp; C3 != C5) {                                                                     \</span>
+<a name="l00791"></a>00791 <span class="preprocessor">                line0[0] = C3 == C1 ? C3 : C4;                                                  \</span>
+<a name="l00792"></a>00792 <span class="preprocessor">                line0[1] = C1 == C5 ? C5 : C4;                                                  \</span>
+<a name="l00793"></a>00793 <span class="preprocessor">                line1[0] = C3 == C7 ? C3 : C4;                                                  \</span>
+<a name="l00794"></a>00794 <span class="preprocessor">                line1[1] = C7 == C5 ? C5 : C4;                                                  \</span>
+<a name="l00795"></a>00795 <span class="preprocessor">        } else {                                                                                                        \</span>
+<a name="l00796"></a>00796 <span class="preprocessor">                line0[0] = line0[1] = C4;                                                               \</span>
+<a name="l00797"></a>00797 <span class="preprocessor">                line1[0] = line1[1] = C4;                                                               \</span>
+<a name="l00798"></a>00798 <span class="preprocessor">        }</span>
+<a name="l00799"></a>00799 <span class="preprocessor"></span><span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00800"></a>00800 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00801"></a>00801 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00802"></a>00802 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00803"></a>00803 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00804"></a>00804 <span class="preprocessor"></span>
+<a name="l00805"></a>00805 <span class="preprocessor">#define SCALERNAME              AdvMame3x</span>
+<a name="l00806"></a>00806 <span class="preprocessor"></span><span class="preprocessor">#define SCALERWIDTH             3</span>
+<a name="l00807"></a>00807 <span class="preprocessor"></span><span class="preprocessor">#define SCALERHEIGHT    3</span>
+<a name="l00808"></a>00808 <span class="preprocessor"></span><span class="preprocessor">#define SCALERFUNC                                                                                                                                      \</span>
+<a name="l00809"></a>00809 <span class="preprocessor">        if ((C1 != C7) &amp;&amp; (C3 != C5)) {                                                                                                 \</span>
+<a name="l00810"></a>00810 <span class="preprocessor">                line0[0] = C3 == C1 ?  C3 : C4;                                                                                         \</span>
+<a name="l00811"></a>00811 <span class="preprocessor">                line0[1] = (C3 == C1 &amp;&amp; C4 != C2) || (C5 == C1 &amp;&amp; C4 != C0) ? C1 : C4;          \</span>
+<a name="l00812"></a>00812 <span class="preprocessor">                line0[2] = C5 == C1 ?  C5 : C4;                                                                                         \</span>
+<a name="l00813"></a>00813 <span class="preprocessor">                line1[0] = (C3 == C1 &amp;&amp; C4 != C6) || (C3 == C7 &amp;&amp; C4 != C0) ? C3 : C4;          \</span>
+<a name="l00814"></a>00814 <span class="preprocessor">                line1[1] = C4;                                                                                                                          \</span>
+<a name="l00815"></a>00815 <span class="preprocessor">                line1[2] = (C5 == C1 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C2) ? C5 : C4;          \</span>
+<a name="l00816"></a>00816 <span class="preprocessor">                line2[0] = C3 == C7 ?  C3 : C4;                                                                                         \</span>
+<a name="l00817"></a>00817 <span class="preprocessor">                line2[1] = (C3 == C7 &amp;&amp; C4 != C8) || (C5 == C7 &amp;&amp; C4 != C6) ? C7 : C4;          \</span>
+<a name="l00818"></a>00818 <span class="preprocessor">                line2[2] = C5 == C7 ?  C5 : C4;                                                                                         \</span>
+<a name="l00819"></a>00819 <span class="preprocessor">        } else {                                                                                                                                                \</span>
+<a name="l00820"></a>00820 <span class="preprocessor">                line0[0] = line0[1] = line0[2] = C4;                                                                            \</span>
+<a name="l00821"></a>00821 <span class="preprocessor">                line1[0] = line1[1] = line1[2] = C4;                                                                            \</span>
+<a name="l00822"></a>00822 <span class="preprocessor">                line2[0] = line2[1] = line2[2] = C4;                                                                            \</span>
+<a name="l00823"></a>00823 <span class="preprocessor">        }</span>
+<a name="l00824"></a>00824 <span class="preprocessor"></span>
+<a name="l00825"></a>00825 <span class="preprocessor">#include &quot;render_loops.h&quot;</span>
+<a name="l00826"></a>00826 <span class="preprocessor">#undef SCALERNAME</span>
+<a name="l00827"></a>00827 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERWIDTH</span>
+<a name="l00828"></a>00828 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERHEIGHT</span>
+<a name="l00829"></a>00829 <span class="preprocessor"></span><span class="preprocessor">#undef SCALERFUNC</span>
+<a name="l00830"></a>00830 <span class="preprocessor"></span>
+<a name="l00831"></a>00831 
+<a name="l00832"></a>00832 <span class="preprocessor">#endif // (SBPP == DBPP) &amp;&amp; !defined (CACHEWITHPAL)</span>
+<a name="l00833"></a>00833 <span class="preprocessor"></span>
+<a name="l00834"></a>00834 <span class="preprocessor">#endif // #if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
+<a name="l00835"></a>00835 <span class="preprocessor"></span>
+<a name="l00836"></a>00836 <span class="preprocessor">#undef PSIZE</span>
+<a name="l00837"></a>00837 <span class="preprocessor"></span><span class="preprocessor">#undef PTYPE</span>
+<a name="l00838"></a>00838 <span class="preprocessor"></span><span class="preprocessor">#undef PMAKE</span>
+<a name="l00839"></a>00839 <span class="preprocessor"></span><span class="preprocessor">#undef WC</span>
+<a name="l00840"></a>00840 <span class="preprocessor"></span><span class="preprocessor">#undef LC</span>
+<a name="l00841"></a>00841 <span class="preprocessor"></span><span class="preprocessor">#undef FC</span>
+<a name="l00842"></a>00842 <span class="preprocessor"></span><span class="preprocessor">#undef SC</span>
+<a name="l00843"></a>00843 <span class="preprocessor"></span><span class="preprocessor">#undef redMask</span>
+<a name="l00844"></a>00844 <span class="preprocessor"></span><span class="preprocessor">#undef greenMask</span>
+<a name="l00845"></a>00845 <span class="preprocessor"></span><span class="preprocessor">#undef blueMask</span>
+<a name="l00846"></a>00846 <span class="preprocessor"></span><span class="preprocessor">#undef redblueMask</span>
+<a name="l00847"></a>00847 <span class="preprocessor"></span><span class="preprocessor">#undef redBits</span>
+<a name="l00848"></a>00848 <span class="preprocessor"></span><span class="preprocessor">#undef greenBits</span>
+<a name="l00849"></a>00849 <span class="preprocessor"></span><span class="preprocessor">#undef blueBits</span>
+<a name="l00850"></a>00850 <span class="preprocessor"></span><span class="preprocessor">#undef redShift</span>
+<a name="l00851"></a>00851 <span class="preprocessor"></span><span class="preprocessor">#undef greenShift</span>
+<a name="l00852"></a>00852 <span class="preprocessor"></span><span class="preprocessor">#undef blueShift</span>
+<a name="l00853"></a>00853 <span class="preprocessor"></span><span class="preprocessor">#undef SRCTYPE</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Sep 14 2019 12:08:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
