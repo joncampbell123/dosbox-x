@@ -732,8 +732,6 @@ void WindowInWindow::scrollToWindow(Window *child) {
     int bh = height;
 
     if (border) {
-        xadj++;
-        yadj++;
         bw -= 2 + (vscroll?vscroll_display_width:0);
         bh -= 2;
     }
