@@ -773,24 +773,26 @@ bool WindowInWindow::keyDown(const Key &key)
 		++i;
         while (i != e) {
             if ((*i)->tabbable) {
-                if ((*i)->raise()) {
-                    scrollToWindow(*i);
+                // WARNING: remember raise() changes the order of children, therefore using
+                //          *i after raise() is invalid (stale reference)
+                scrollToWindow(*i);
+                if ((*i)->raise())
                     break;
-                }
             }
 
             ++i;
         }
         return (i != e) || toplevel/*prevent TAB escape to another window*/;
-	} else {
-		std::list<Window *>::iterator i = children.begin(), e = children.end();
+    } else {
+        std::list<Window *>::iterator i = children.begin(), e = children.end();
         --e;
-		while (i != e) {
+        while (i != e) {
             if ((*i)->tabbable) {
-                if ((*i)->raise()) {
-                    scrollToWindow(*i);
+                // WARNING: remember raise() changes the order of children, therefore using
+                //          *i after raise() is invalid (stale reference)
+                scrollToWindow(*i);
+                if ((*i)->raise())
                     break;
-                }
             }
 
             ++i;
