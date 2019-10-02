@@ -1233,6 +1233,11 @@ void Checkbox::paint(Drawable &d) const
 	d.drawLine(3,(height/2)-6,12,(height/2)-6);
 	d.drawLine(3,(height/2)-6,3,(height/2)+4);
 
+    if (hasFocus()) {
+        d.setColor(Color::Black);
+        d.drawDotRect(1,(height/2)-8,14,14);
+    }
+
 	if (checked) {
 		d.setColor(Color::Text);
 		d.drawLine(5,(height/2)-2,7,(height/2)  );
