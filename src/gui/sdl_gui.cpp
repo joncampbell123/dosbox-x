@@ -803,6 +803,12 @@ public:
         }
         b->addActionHandler(this);
 
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = wiw->getChild(0);
+            if (w) w->raise();
+        }
+
         wiw->resize((columns * column_width) + 2/*border*/ + wiw->vscroll_display_width, scroll_h);
         wiw->enableScrollBars(false/*h*/,true/*v*/);
         wiw->enableBorder(true);
