@@ -761,7 +761,7 @@ public:
 	/// Return the \p n th child
 	Window *getChild(int n) {
 		for (std::list<Window *>::const_iterator i = children.begin(); i != children.end(); ++i) {
-			if (n--) return *i;
+			if ((n--) == 0) return *i;
 		}
 		return NULL;
 	}
