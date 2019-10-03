@@ -1201,9 +1201,11 @@ bool Input::keyDown(const Key &key)
 		break;
 	case Key::Down:
 		if (multi) pos = findPos(posx+3, posy-offset+f->getHeight()+4);
+        else return false;
 		break;
 	case Key::Up:
 		if (multi) pos = findPos(posx+3, posy-offset-f->getHeight()+4);
+        else return false;
 		break;
 	case Key::Home:
 		if (multi) {
