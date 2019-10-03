@@ -617,8 +617,11 @@ protected:
     /// \c mouse is within the boundaries of the window
     bool mouse_in_window;
 public:
-    /// \c tab stop
-    bool tab_stop;
+    /// \c first element of a tabbable list
+    bool first_tabbable;
+
+    /// \c last element of a tabbable list
+    bool last_tabbable;
 protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
