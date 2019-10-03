@@ -616,7 +616,13 @@ protected:
 
     /// \c mouse is within the boundaries of the window
     bool mouse_in_window;
+public:
+    /// \c first element of a tabbable list
+    bool first_tabbable;
 
+    /// \c last element of a tabbable list
+    bool last_tabbable;
+protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
 	 *  window. This window's content is below all children. */
@@ -765,6 +771,10 @@ public:
 		}
 		return NULL;
 	}
+
+    unsigned int getChildCount(void) {
+        return children.size();
+    }
 
 };
 

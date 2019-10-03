@@ -600,7 +600,9 @@ Window::Window(Window *parent, int x, int y, int w, int h) :
 	mouseChild(NULL),
     transient(false),
     toplevel(false),
-    mouse_in_window(false)
+    mouse_in_window(false),
+    first_tabbable(false),
+    last_tabbable(false)
 {
 	parent->addChild(this);
 }
