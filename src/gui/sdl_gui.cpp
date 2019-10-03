@@ -806,13 +806,13 @@ public:
         /* first chiild is first tabbable */
         {
             Window *w = wiw->getChild(0);
-            if (w) w->first_tabbable = true;
+            if (w) w->tab_stop = true;
         }
 
         /* last chiild is first tabbable */
         {
             Window *w = wiw->getChild(wiw->getChildCount()-1);
-            if (w) w->last_tabbable = true;
+            if (w) w->tab_stop = true;
         }
 
         /* the FIRST field needs to come first when tabbed to */
