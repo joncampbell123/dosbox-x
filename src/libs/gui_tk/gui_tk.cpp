@@ -768,10 +768,15 @@ bool WindowInWindow::keyDown(const Key &key)
 	if ((*children.rbegin())->keyDown(key)) return true;
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
+    bool tab_quit = false;
+
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
         while (i != e) {
+            if ((*i)->last_tabbable)
+                tab_quit = true;
+
             if ((*i)->tabbable) {
                 // WARNING: remember raise() changes the order of children, therefore using
                 //          *i after raise() is invalid (stale reference)
@@ -782,11 +787,15 @@ bool WindowInWindow::keyDown(const Key &key)
 
             ++i;
         }
+        if (tab_quit) return false;
         return (i != e) || toplevel/*prevent TAB escape to another window*/;
     } else {
         std::list<Window *>::iterator i = children.begin(), e = children.end();
         --e;
         while (i != e) {
+            if ((*i)->first_tabbable)
+                tab_quit = true;
+
             if ((*i)->tabbable) {
                 // WARNING: remember raise() changes the order of children, therefore using
                 //          *i after raise() is invalid (stale reference)
@@ -797,6 +806,7 @@ bool WindowInWindow::keyDown(const Key &key)
 
             ++i;
         }
+        if (tab_quit) return false;
 		return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	}
 }
