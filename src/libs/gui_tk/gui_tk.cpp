@@ -782,6 +782,20 @@ bool WindowInWindow::keyDown(const Key &key)
         return true;
     }
 
+    if (key.special == Key::PageUp) {
+        scroll_pos_y -= height - 16;
+        if (scroll_pos_y < 0) scroll_pos_y = 0;
+        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+        return true;
+    }
+
+    if (key.special == Key::PageDown) {
+        scroll_pos_y += height - 16;
+        if (scroll_pos_y < 0) scroll_pos_y = 0;
+        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+        return true;
+    }
+
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
     bool tab_quit = false;
