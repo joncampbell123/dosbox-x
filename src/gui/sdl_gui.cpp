@@ -803,13 +803,13 @@ public:
         }
         b->addActionHandler(this);
 
-        /* first chiild is first tabbable */
+        /* first child is first tabbable */
         {
             Window *w = wiw->getChild(0);
             if (w) w->first_tabbable = true;
         }
 
-        /* last chiild is first tabbable */
+        /* last child is first tabbable */
         {
             Window *w = wiw->getChild(wiw->getChildCount()-1);
             if (w) w->last_tabbable = true;
