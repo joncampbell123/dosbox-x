@@ -766,6 +766,22 @@ bool WindowInWindow::keyDown(const Key &key)
 {
 	if (children.empty()) return false;
 	if ((*children.rbegin())->keyDown(key)) return true;
+    if (dragging || vscroll_dragging) return true;
+
+    if (key.special == Key::Up) {
+        scroll_pos_y -= 64;
+        if (scroll_pos_y < 0) scroll_pos_y = 0;
+        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+        return true;
+    }
+
+    if (key.special == Key::Down) {
+        scroll_pos_y += 64;
+        if (scroll_pos_y < 0) scroll_pos_y = 0;
+        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+        return true;
+    }
+
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
     bool tab_quit = false;
