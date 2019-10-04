@@ -1,4 +1,6 @@
 0.82.23 (next)
+  - VGA port 3DAh "undefined bits" setting changed to 0x04
+    to accomodate "Blues Brothers"
   - Configuration GUI: If the settings are scrollable,
     tabbing between fields will now auto-scroll to the
     field and make it visible.
