@@ -35,24 +35,24 @@ public:
 									// something was wrong, delete it right away.
 	
 	bool fileOpen;
-	DFTYPE filetype;			// which mode to operate in (capture,fileappend,device)
-	FILE* file;
+	DFTYPE filetype = (DFTYPE)0;			// which mode to operate in (capture,fileappend,device)
+	FILE* file = NULL;
 	std::string name;			// name of the thing to open
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
 
-	Bit8u lastChar;				// used to save the previous character to decide wether to add LF
+	Bit8u lastChar = 0;				// used to save the previous character to decide wether to add LF
 	const Bit16u* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();
 	
-	bool ack_polarity;
+	bool ack_polarity = false;
 
 	Bitu Read_PR();
 	Bitu Read_COM();
 	Bitu Read_SR();
 
-	Bit8u datareg;
+	Bit8u datareg = 0;
 	Bit8u controlreg;
 
 	void Write_PR(Bitu);
@@ -60,10 +60,10 @@ public:
 	void Write_IOSEL(Bitu);
 	bool Putchar(Bit8u);
 
-	bool autofeed;
+	bool autofeed = false;
 	bool ack;
-	unsigned int timeout;
-	Bitu lastUsedTick;
+	unsigned int timeout = 0;
+	Bitu lastUsedTick = 0;
 	virtual void handleUpperEvent(Bit16u type);
 };
 

@@ -25,7 +25,7 @@ private:
 	Bit32u current;
 	unsigned int largeTarget;
 	unsigned int largeIncrement;
-	bool descending;
+	bool descending = false;
 
 	int interruptCountdown;
 	bool interruptRaised;

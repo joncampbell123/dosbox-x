@@ -9,7 +9,7 @@ private:
 	static const unsigned int bufferSize = 1024;
 	volatile unsigned int startpos;
 	volatile unsigned int endpos;
-	Bit64u ringBuffer[bufferSize];
+    Bit64u ringBuffer[bufferSize] = {};
 
 public:
 	RingBuffer() {
@@ -49,11 +49,11 @@ private:
 	SDL_Thread *thread;
 	SDL_mutex *synthMutex;
 	SDL_semaphore *procIdleSem, *mixerReqSem;
-	Bit16s mixerBuffer[2 * MIXER_BUFFER_SIZE];
-	volatile Bitu mixerBufferSize;
-	volatile bool stopProcessing;
-	bool open, noise, reverseStereo, renderInThread;
-	Bit16s numPartials;
+    Bit16s mixerBuffer[2 * MIXER_BUFFER_SIZE] = {};
+	volatile Bitu mixerBufferSize = 0;
+	volatile bool stopProcessing = false;
+	bool open, noise = false, reverseStereo = false, renderInThread = false;
+	Bit16s numPartials = 0;
 
 	class MT32ReportHandler : public MT32Emu::ReportHandler {
 	protected:

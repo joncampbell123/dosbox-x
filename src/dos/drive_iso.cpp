@@ -41,7 +41,7 @@ public:
 	Bit32u GetSeekPos(void);
 private:
 	isoDrive *drive;
-	Bit8u buffer[ISO_FRAMESIZE];
+    Bit8u buffer[ISO_FRAMESIZE] = {};
 	int cachedSector;
 	Bit32u fileBegin;
 	Bit32u filePos;

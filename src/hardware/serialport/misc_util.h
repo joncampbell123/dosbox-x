@@ -97,12 +97,12 @@ class TCPClientSocket {
 	bool SendArrayBuffered(Bit8u* data, Bitu bufsize);
 
 	private:
-	TCPsocket mysock;
-	SDLNet_SocketSet listensocketset;
+	TCPsocket mysock = NULL;
+	SDLNet_SocketSet listensocketset = NULL;
 
 	// Items for send buffering
-	Bitu sendbuffersize;
-	Bitu sendbufferindex;
+	Bitu sendbuffersize = 0;
+	Bitu sendbufferindex = 0;
 	
 	Bit8u* sendbuffer;
 };

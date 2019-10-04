@@ -1941,7 +1941,7 @@ static struct pc98_8251_keyboard_uart {
     double                      tx_load_ms;
 
     /* recv data from keyboard */
-    unsigned char               recv_buffer[32];
+    unsigned char               recv_buffer[32] = {};
     unsigned char               recv_in,recv_out;
 
     pc98_8251_keyboard_uart() : data(0xFF), txdata(0xFF), state(MODE_STATE), mode_byte(0), keyboard_reset(false), rx_enable(false), tx_enable(false), valid_state(false), rx_busy(false), rx_ready(false), tx_busy(false), tx_empty(true), recv_in(0), recv_out(0) {

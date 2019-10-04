@@ -325,21 +325,21 @@ static struct {
 		Bitu used;
 		Bit32u length;
 		Bit32u freq;
-	} wave;
+    } wave = {};
     struct {
         avi_writer  *writer;
 		Bitu		audiorate;
         std::map<std::string,size_t> name_to_stream_index;
-    } multitrack_wave;
+    } multitrack_wave = {};
 	struct {
 		FILE * handle;
 		Bit8u buffer[MIDI_BUF];
 		Bitu used,done;
 		Bit32u last;
-	} midi;
+    } midi = {};
 	struct {
 		Bitu rowlen;
-	} image;
+    } image = {};
 #if (C_SSHOT) || (C_AVCODEC)
 	struct {
 		avi_writer	*writer;
@@ -354,7 +354,7 @@ static struct {
 		float		fps;
 		int		bufSize;
 		void		*buf;
-	} video;
+    } video = {};
 #endif
 } capture;
 

@@ -42,20 +42,20 @@ private:
 	unsigned long sampleNum;
 
 	int ownerPart; // -1 if unassigned
-	int mixType;
-	int structurePosition; // 0 or 1 of a structure pair
-	StereoVolume stereoVolume;
+	int mixType = 0;
+	int structurePosition = 0; // 0 or 1 of a structure pair
+    StereoVolume stereoVolume = {};
 
-	Bit16s myBuffer[MAX_SAMPLES_PER_RUN];
+    Bit16s myBuffer[MAX_SAMPLES_PER_RUN] = {};
 
 	// Only used for PCM partials
-	int pcmNum;
+	int pcmNum = 0;
 	// FIXME: Give this a better name (e.g. pcmWaveInfo)
 	PCMWaveEntry *pcmWave;
 
 	// Final pulse width value, with velfollow applied, matching what is sent to the LA32.
 	// Range: 0-255
-	int pulseWidthVal;
+	int pulseWidthVal = 0;
 
 	Poly *poly;
 
@@ -63,7 +63,7 @@ private:
 	LA32Ramp cutoffModifierRamp;
 
 	// TODO: This should be owned by PartialPair
-	LA32PartialPair la32Pair;
+    LA32PartialPair la32Pair = {};
 
 	Bit32u getAmpValue();
 	Bit32u getCutoffValue();
@@ -77,7 +77,7 @@ public:
 	PatchCache cachebackup;
 
 	Partial *pair;
-	bool alreadyOutputed;
+	bool alreadyOutputed = false;
 
 	Partial(Synth *synth, int debugPartialNum);
 	~Partial();

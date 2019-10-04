@@ -44,7 +44,7 @@ public:
 	void start_packet();
 
 	Bit8u send_ack;
-	Bit8u packet[3];
+    Bit8u packet[3] = {};
 	Bit8u packet_xmit;
 	Bit8u mouse_buttons;	/* bit 0 = left   bit 1 = right     becomes bits 5 (L) and 4 (R) in packet[0] */
 	Bit8u xmit_another_packet;

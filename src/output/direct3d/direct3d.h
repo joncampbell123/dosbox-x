@@ -80,21 +80,21 @@ private:
     IDirect3D9*			pD3D9 = NULL;
     IDirect3DDevice9*		pD3DDevice9 = NULL;
 
-    D3DPRESENT_PARAMETERS 	d3dpp;			// Present parameters
-    D3DLOCKED_RECT		d3dlr;			// Texture lock rectangle
+    D3DPRESENT_PARAMETERS 	d3dpp = {};			// Present parameters
+    D3DLOCKED_RECT		d3dlr = {};			// Texture lock rectangle
 
-    HWND hwnd;						// DOSBow window
-    DWORD dwX,dwY;					// X,Y position
+    HWND hwnd = NULL;						// DOSBox window
+    DWORD dwX = 0, dwY = 0;					// X,Y position
     DWORD dwWidth, dwHeight;                            // DOSBox framebuffer size
-    DWORD dwScaledWidth, dwScaledHeight;                // D3D backbuffer size
-    const Bit16u* changedLines;
+    DWORD dwScaledWidth = 0, dwScaledHeight = 0;                // D3D backbuffer size
+    const Bit16u* changedLines = NULL;
 
-	int					backbuffer_clear_countdown;
+	int					backbuffer_clear_countdown = 0;
 
     // display modes
     D3DDISPLAYMODE*		modes;
-    unsigned int		iMode;
-    DWORD			dwNumModes;
+    unsigned int		iMode = 0;
+    DWORD			dwNumModes = 0;
 
     bool			deviceLost;
 
@@ -160,7 +160,7 @@ private:
 
     volatile enum D3D_state { D3D_IDLE = 0, D3D_LOADPS, D3D_LOCK, D3D_UNLOCK } thread_command;
     volatile bool thread_run, wait;
-    volatile HRESULT thread_hr;
+    volatile HRESULT thread_hr = 0;
 #if LOG_D3D
     void EnterLOGCriticalSection(LPCRITICAL_SECTION lpCriticalSection, int);
 #endif
@@ -175,10 +175,10 @@ private:
 public:
 
     // texture stuff
-    DWORD	dwTexHeight, dwTexWidth;
+    DWORD	dwTexHeight = 0, dwTexWidth = 0;
 
-    bool 	square, pow2, dynamic, bpp16;		// Texture limitations
-    Bit8s 	aspect, autofit;
+    bool 	square = false, pow2 = false, dynamic = false, bpp16;		// Texture limitations
+    Bit8s 	aspect, autofit = 0;
 
     // Pixel shader status
     bool 	psActive;

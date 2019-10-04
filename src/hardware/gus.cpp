@@ -1190,13 +1190,13 @@ public:
 		}
 public:
 		float		AttenDb[2];
-		uint32_t	Fix1616Mult[2];		// linear multiply to apply volume
+        uint32_t	Fix1616Mult[2] = {};		// linear multiply to apply volume
 	};
 public:
 	struct mixcontrol	mixpair[8];		// pairs 1-5 and Master
 	struct volpair		volpair[5];		// pairs 1-5 scaled by master
-	uint8_t			addr_attenuator;	// which attenuator is selected
-	uint8_t			addr_control;		// which control is selected
+	uint8_t			addr_attenuator = 0;	// which attenuator is selected
+	uint8_t			addr_control = 0;		// which control is selected
 } GUS_ICS2101;
 
 static inline uint8_t read_GF1_mapping_control(const unsigned int ch) {
@@ -1331,9 +1331,9 @@ public:
 	bool		mce;
 	bool		init;
 
-	uint8_t		ADCInputControl[2];	/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */
-	uint8_t		Aux1InputControl[2];	/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */
-	uint8_t		DACOutputControl[2];	/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */
+    uint8_t		ADCInputControl[2] = {};	/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */
+    uint8_t		Aux1InputControl[2] = {};	/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */
+    uint8_t		DACOutputControl[2] = {};	/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */
 } GUS_CS4231;
 
 static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {

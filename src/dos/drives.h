@@ -46,7 +46,7 @@ public:
 private:
 	static struct DriveInfo {
 		std::vector<DOS_Drive*> disks;
-		Bit32u currentDisk;
+		Bit32u currentDisk = 0;
 	} driveInfos[DOS_DRIVES];
 	
 	static int currentDrive;
@@ -90,7 +90,7 @@ protected:
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
 	struct {
 		char srch_dir[CROSS_LEN];
-	} srchInfo[MAX_OPENDIRS];
+    } srchInfo[MAX_OPENDIRS] = {};
 
 	struct {
 		Bit16u bytes_sector;
@@ -254,7 +254,7 @@ private:
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
 	struct {
 		char srch_dir[CROSS_LEN];
-	} srchInfo[MAX_OPENDIRS];
+    } srchInfo[MAX_OPENDIRS] = {};
 
 	struct {
 		Bit16u bytes_sector;
@@ -262,20 +262,20 @@ private:
 		Bit16u total_clusters;
 		Bit16u free_clusters;
 		Bit8u mediaid;
-	} allocation;
+    } allocation = {};
 	
-	bootstrap bootbuffer;
-	bool absolute;
-	Bit8u fattype;
-	Bit32u CountOfClusters;
-	Bit32u partSectOff;
-	Bit32u firstDataSector;
-	Bit32u firstRootDirSect;
+    bootstrap bootbuffer = {};
+	bool absolute = false;
+	Bit8u fattype = 0;
+	Bit32u CountOfClusters = 0;
+	Bit32u partSectOff = 0;
+	Bit32u firstDataSector = 0;
+	Bit32u firstRootDirSect = 0;
 
-	Bit32u cwdDirCluster;
+	Bit32u cwdDirCluster = 0;
 
-	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
-	Bit32u curFatSect;
+    Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2] = {};
+	Bit32u curFatSect = 0;
 
 	DOS_Drive_Cache labelCache;
 public:
@@ -287,7 +287,7 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit32u getSectSize(void);
-	Bit32u sector_size;
+	Bit32u sector_size = 0;
 
     // INT 25h/INT 26h
     virtual Bit32u GetSectorCount(void);

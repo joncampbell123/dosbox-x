@@ -135,19 +135,19 @@ static struct CMapper {
     SDL_Surface*                                draw_surface_nonpaletted;
     SDL_Surface*                                draw_surface;
 #endif
-    SDL_Surface*                                surface;
-    bool                                        exit;
-    CEvent*                                     aevent;                     //Active Event
-    CBind*                                      abind;                      //Active Bind
+    SDL_Surface*                                surface = NULL;
+    bool                                        exit = false;
+    CEvent*                                     aevent = NULL;                     //Active Event
+    CBind*                                      abind = NULL;                      //Active Bind
     CBindList_it                                abindit;                    //Location of active bind in list
-    bool                                        redraw;
-    bool                                        addbind;
+    bool                                        redraw = false;
+    bool                                        addbind = false;
     bool                                        running = false;
-    Bitu                                        mods;
+    Bitu                                        mods = 0;
     struct {
         Bitu                                    num_groups,num;
         CStickBindGroup*                        stick[MAXSTICKS];
-    } sticks;
+    } sticks = {};
     std::string                                 filename;
 } mapper;
 
@@ -519,6 +519,7 @@ public:
         event=0;
         active=holding=false;
         type = _type;
+        value = 0;
     }
 
     //! \brief Get modifier text
@@ -1418,7 +1419,7 @@ public:
     }
 
 private:
-    float joy1dz1, joy1rs1, joy1dz2, joy1rs2, joy2dz1, joy2rs1;
+    float joy1dz1 = 0, joy1rs1 = 0, joy1dz2 = 0, joy1rs2 = 0, joy2dz1 = 0, joy2rs1 = 0;
     CBind * CreateAxisBind(Bitu axis,bool positive) {
         if (axis<axes) {
             if (positive) return new CJAxisBind(&pos_axis_lists[axis],this,stick,axis,positive);
@@ -1494,11 +1495,11 @@ protected:
     Bitu button_wrap,button_cap,axes_cap,hats_cap;
     SDL_Joystick * sdl_joystick;
     char configname[10];
-    Bitu button_autofire[MAXBUTTON];
-    bool old_button_state[MAXBUTTON];
-    bool old_pos_axis_state[MAXAXIS];
-    bool old_neg_axis_state[MAXAXIS];
-    Uint8 old_hat_state[16];
+    Bitu button_autofire[MAXBUTTON] = {};
+    bool old_button_state[MAXBUTTON] = {};
+    bool old_pos_axis_state[MAXAXIS] = {};
+    bool old_neg_axis_state[MAXAXIS] = {};
+    Uint8 old_hat_state[16] = {};
     bool is_dummy;
 
     DOSBox_Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const

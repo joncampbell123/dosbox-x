@@ -52,11 +52,6 @@ CDirectSerial::CDirectSerial (Bitu id, CommandLine* cmd)
 		return;
 	}
 
-#if SERIAL_DEBUG
-	dbgmsg_poll_block=false;
-	dbgmsg_rx_block=false;
-#endif
-
 	// rxdelay: How many milliseconds to wait before causing an
 	// overflow when the application is unresponsive.
 	if(getBituSubstring("rxdelay:", &rx_retry_max, cmd)) {
