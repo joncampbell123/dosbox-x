@@ -8090,6 +8090,17 @@ private:
             PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
         }
 
+        if (!IS_PC98_ARCH) {
+            Section_prop * section=static_cast<Section_prop *>(control->GetSection("speaker"));
+            bool bit0en = section->Get_bool("pcspeaker clock gate enable at startup");
+
+            if (bit0en) {
+                Bit8u x = IO_Read(0x61);
+                IO_Write(0x61,(x & (~3u)) | 1u); /* set bits[1:0] = 01  (clock gate enable but output gate disable) */
+                LOG_MSG("xxxx");
+            }
+        }
+
         CPU_STI();
 
         return CBRET_NONE;

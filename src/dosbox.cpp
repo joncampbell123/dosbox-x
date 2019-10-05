@@ -2485,6 +2485,17 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC-Speaker emulation.");
 
+    /* added for "baoxiao-sanguozhi" which for some reason uses both port 61h bit 4 (DRAM refresh) and PIT timer 2 (PC speaker)
+     * for game timing IN ADDITION TO the BIOS timer counter in the BIOS data area. Game does not set bit 0 itself, so if the
+     * bit wasn't set, the game will hang when asking for a name. Setting this option to "true" tells the BIOS to start the system
+     * with that bit set so games like that can run. [https://github.com/joncampbell123/dosbox-x/issues/1274].
+     *
+     * Note that setting clock gate enable will not make audible sound through the PC speaker unless bit 1 (output gate enable)
+     * is also set. Setting bits [1:0] = to 01 is a way to cycle PIT timer 2 without making audible noise. */
+    Pbool = secprop->Add_bool("pcspeaker clock gate enable at startup",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Start system with the clock gate (bit 0 of port 61h) on. Needed for some games that use the PC speaker for timing on IBM compatible systems.\n"
+                    "This option has no effect in PC-98 mode.");
+
     Pint = secprop->Add_int("initial frequency",Property::Changeable::WhenIdle,-1);
     Pint->Set_help("PC speaker PIT timer is programmed to this frequency on startup. If the DOS game\n"
             "or demo causes a long audible beep at startup (leaving the gate open) try setting\n"
