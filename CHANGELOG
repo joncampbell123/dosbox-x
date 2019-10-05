@@ -1,4 +1,10 @@
 0.82.23 (next)
+  - Added dosbox.conf option to instruct DOSBox-X to leave
+    the PC speaker clock gate enabled if set, for games
+    that use that PIT output as a time source. Setting
+    the option to "true" allows "Bàoxiào sānguózhì", a game
+    with strange and elaborate timing code, to run without
+    hanging at the second title screen.
   - VGA port 3DAh "undefined bits" setting changed to 0x04
     to accomodate "Blues Brothers"
   - Configuration GUI: If the settings are scrollable,
