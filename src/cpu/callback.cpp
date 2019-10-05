@@ -83,7 +83,7 @@ void CALLBACK_Dump(void) {
 }
 
 void CALLBACK_Shutdown(void) {
-	for (Bitu i=1;(i<CB_MAX);i++) {
+	for (Bitu i=0;(i<CB_MAX);i++) {
 		CallBack_Handlers[i] = &illegal_handler;
 		CALLBACK_SetDescription(i,NULL);
 	}
