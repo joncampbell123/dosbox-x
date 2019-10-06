@@ -2487,8 +2487,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* added for "baoxiao-sanguozhi" which for some reason uses both port 61h bit 4 (DRAM refresh) and PIT timer 2 (PC speaker)
      * for game timing IN ADDITION TO the BIOS timer counter in the BIOS data area. Game does not set bit 0 itself, so if the
-     * bit wasn't set, the game will hang when asking for a name. Setting this option to "true" tells the BIOS to start the system
-     * with that bit set so games like that can run. [https://github.com/joncampbell123/dosbox-x/issues/1274].
+     * bit wasn't set, the game will hang when asking for a password. Setting this option to "true" tells the BIOS to start the
+     * system with that bit set so games like that can run. [https://github.com/joncampbell123/dosbox-x/issues/1274].
      *
      * Note that setting clock gate enable will not make audible sound through the PC speaker unless bit 1 (output gate enable)
      * is also set. Setting bits [1:0] = to 01 is a way to cycle PIT timer 2 without making audible noise. */
