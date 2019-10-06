@@ -133,6 +133,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     if (mpu.mode==M_UART && val!=0xff) return;
     if (mpu.state.reset) {
+        /* THIS CODE IN DISPUTE [https://github.com/joncampbell123/dosbox-x/issues/917#issuecomment-538717798] */
         if (mpu.state.cmd_pending || val!=0xff) {
             mpu.state.cmd_pending=val+1;
             return;
