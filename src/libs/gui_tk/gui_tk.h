@@ -773,7 +773,7 @@ public:
 	}
 
     unsigned int getChildCount(void) {
-        return children.size();
+        return (unsigned int)children.size();
     }
 
 };
