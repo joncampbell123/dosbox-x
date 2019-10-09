@@ -1108,8 +1108,10 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_setx || mouse.buttons == 0) {
                 if (mouse.min_x == 0 && mouse.max_x > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-                    mouse.max_screen_x = mouse.max_x;
-                    LOG(LOG_MOUSE, LOG_NORMAL)("Define Horizontal range min:%d max:%d defines the bounds of the screen", min, max);
+                    if (mouse.max_screen_x != mouse.max_x) {
+                        mouse.max_screen_x = mouse.max_x;
+                        LOG(LOG_MOUSE, LOG_NORMAL)("Define Horizontal range min:%d max:%d defines the bounds of the screen", min, max);
+                    }
                 }
                 mouse.first_range_setx = false;
             }
@@ -1143,8 +1145,10 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_sety || mouse.buttons == 0) {
                 if (mouse.min_y == 0 && mouse.max_y > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-                    mouse.max_screen_y = mouse.max_y;
-                    LOG(LOG_MOUSE, LOG_NORMAL)("Define Vertical range min:%d max:%d defines the bounds of the screen", min, max);
+                    if (mouse.max_screen_y != mouse.max_y) {
+                        mouse.max_screen_y = mouse.max_y;
+                        LOG(LOG_MOUSE, LOG_NORMAL)("Define Vertical range min:%d max:%d defines the bounds of the screen", min, max);
+                    }
                 }
                 mouse.first_range_sety = false;
             }
