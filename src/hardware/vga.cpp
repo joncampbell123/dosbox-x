@@ -843,6 +843,7 @@ void VGA_Reset(Section*) {
     vga.draw.resizing=false;
     vga.mode=M_ERROR;           //For first init
 
+    vga_8bit_dac = false;
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
