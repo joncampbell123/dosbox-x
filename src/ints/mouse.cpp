@@ -1105,7 +1105,7 @@ static Bitu INT33_Handler(void) {
              *      and then set a mouse range of x=0-1279 and y=0-479. Using the FIRST range
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
-            if (mouse.first_range_setx) {
+            if (mouse.first_range_setx || mouse.buttons == 0) {
                 if (mouse.min_x == 0 && mouse.max_x > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_x = mouse.max_x;
@@ -1140,7 +1140,7 @@ static Bitu INT33_Handler(void) {
              *      and then set a mouse range of x=0-1279 and y=0-479. Using the FIRST range
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
-            if (mouse.first_range_sety) {
+            if (mouse.first_range_sety || mouse.buttons == 0) {
                 if (mouse.min_y == 0 && mouse.max_y > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_y = mouse.max_y;
