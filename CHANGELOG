@@ -1,4 +1,13 @@
 0.82.23 (next)
+  - INT 33h define range functions now apply rounding
+    to the max range if the range is close to the
+    dimensions of the screen, for games like Daggerfall
+    that set the cursor maximum range to values close to,
+    but not exactly, the dimensions of the VGA screen.
+  - INT 33h define range functions updated to accept max
+    ranges for mapping host to guest if set just after
+    video modeset or if those INT 33h functions are called
+    when no mouse buttons are down.
   - INT 10h AH=4Fh AL=08h (Set DAC width) now correctly
     set AL=4Fh to indicate the call is supported.
   - VGA DAC palette writes are now ALWAYS masked to 6-bit
