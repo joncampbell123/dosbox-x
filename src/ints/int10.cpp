@@ -668,20 +668,24 @@ CX	640x480	800x600	  1024x768/1280x1024
 
                         VGA_DAC_UpdateColorPalette();
                         reg_bh=(vga_8bit_dac ? 8 : 6);
+                        reg_al=0x4f;
                         reg_ah=0x0;
 
                         LOG(LOG_INT10,LOG_NORMAL)("VESA BIOS called to set VGA DAC width to %u bits",reg_bh);
                     }
                     else {
+                        reg_al=0x4f;
                         reg_ah=0x3;
                     }
                     break;
                 case 0x01:                  /* Get DAC width */
                     if (CurMode->type == M_LIN8) {
                         reg_bh=(vga_8bit_dac ? 8 : 6);
+                        reg_al=0x4f;
                         reg_ah=0x0;
                     }
                     else {
+                        reg_al=0x4f;
                         reg_ah=0x3;
                     }
                     break;
