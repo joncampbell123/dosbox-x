@@ -1108,8 +1108,19 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_setx || mouse.buttons == 0) {
                 if (mouse.min_x == 0 && mouse.max_x > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-                    if (mouse.max_screen_x != mouse.max_x) {
-                        mouse.max_screen_x = mouse.max_x;
+
+                    // Apply sanity rounding.
+                    //
+                    // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                    //             partially offscreen. */
+                    Bit16s nval = mouse.max_x;
+                    if (nval >= ((Bit16s)CurMode->swidth - 32) && nval <= ((Bit16s)CurMode->swidth + 32))
+                        nval = (Bit16s)CurMode->swidth;
+                    else if (nval >= (((Bit16s)CurMode->swidth - 32) * 2) && nval <= (((Bit16s)CurMode->swidth + 32) * 2))
+                        nval = (Bit16s)CurMode->swidth * 2;
+
+                    if (mouse.max_screen_x != nval) {
+                        mouse.max_screen_x = nval;
                         LOG(LOG_MOUSE, LOG_NORMAL)("Define Horizontal range min:%d max:%d defines the bounds of the screen", min, max);
                     }
                 }
@@ -1145,8 +1156,19 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_sety || mouse.buttons == 0) {
                 if (mouse.min_y == 0 && mouse.max_y > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-                    if (mouse.max_screen_y != mouse.max_y) {
-                        mouse.max_screen_y = mouse.max_y;
+
+                    // Apply sanity rounding.
+                    //
+                    // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                    //             partially offscreen. */
+                    Bit16s nval = mouse.max_y;
+                    if (nval >= ((Bit16s)CurMode->sheight - 32) && nval <= ((Bit16s)CurMode->sheight + 32))
+                        nval = (Bit16s)CurMode->sheight;
+                    else if (nval >= (((Bit16s)CurMode->sheight - 32) * 2) && nval <= (((Bit16s)CurMode->sheight + 32) * 2))
+                        nval = (Bit16s)CurMode->sheight * 2;
+
+                    if (mouse.max_screen_y != nval) {
+                        mouse.max_screen_y = nval;
                         LOG(LOG_MOUSE, LOG_NORMAL)("Define Vertical range min:%d max:%d defines the bounds of the screen", min, max);
                     }
                 }
