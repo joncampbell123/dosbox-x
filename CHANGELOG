@@ -1,6 +1,6 @@
 0.82.23 (next)
   - INT 10h AH=4Fh AL=08h (Set DAC width) now correctly
-    set AL=4Fh to indicate the call succeeded.
+    set AL=4Fh to indicate the call is supported.
   - VGA DAC palette writes are now ALWAYS masked to 6-bit
     unless 8-BIT DAC mode is ON and enabled. This fixes
     palette problems with Amulets and Armor.
