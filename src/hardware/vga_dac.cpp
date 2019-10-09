@@ -219,7 +219,11 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     vga.dac.hidac_counter=0;
 
-    if (!enable_vga_8bit_dac)
+    // allow the full 8 bit ONLY if 8-bit DAC emulation is enabled AND 8-bit DAC mode is on.
+    // masking to 6 bits is REQUIRED for some games like "Amulets and Armor", where apparently
+    // the use of signed char with palette values can cause "overbright" effects if it can
+    // read back the full 8 bits.
+    if (!vga_8bit_dac)
         val&=0x3f;
 
     if (vga.dac.pel_index < 3) {
