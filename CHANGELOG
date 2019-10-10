@@ -1,4 +1,6 @@
 0.82.23 (next)
+  - Added PC-98 INT 1Bh AH=03h SCSI BIOS command, which
+    allows FreeDOS98 to boot.
   - INT 33h emulation fixed not to reset mouse min/max
     range if the new video mode is a VESA BIOS SVGA
     mode (not a standard VGA mode). Some games seem to
