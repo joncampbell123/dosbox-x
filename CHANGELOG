@@ -1,4 +1,9 @@
 0.82.23 (next)
+  - INT 33h emulation fixed not to reset mouse min/max
+    range if the new video mode is a VESA BIOS SVGA
+    mode (not a standard VGA mode). Some games seem to
+    define the mouse min/max range AND THEN set the
+    VESA BIOS mode, not the other way around.
   - INT 33h define range functions now apply rounding
     to the max range if the range is close to the
     dimensions of the screen, for games like Daggerfall
