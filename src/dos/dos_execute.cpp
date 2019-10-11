@@ -285,7 +285,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	EXE_Header head;Bitu i;
 	Bit16u fhandle;Bit16u len;Bit32u pos;
 	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
-	Bit16u minsize,maxsize,maxfree=0xffff;
+	Bit16u maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
     Bit32u headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
@@ -344,6 +344,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 			DOS_CloseFile(fhandle);
 			return false;
 		}
+		Bit16u minsize;
 		/* Get Memory */		
 		DOS_AllocateMemory(&pspseg,&maxfree);
 		if (iscom) {

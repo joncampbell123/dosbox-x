@@ -300,11 +300,10 @@ extern bool DOSBox_Paused();
 
 static Bitu Normal_Loop(void) {
     bool saved_allow = dosbox_allow_nonrecursive_page_fault;
-    Bit32u ticksNew;
     Bits ret;
 
     if (!menu.hidecycles || menu.showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
-        ticksNew = GetTicks();
+        Bit32u ticksNew = GetTicks();
         if (ticksNew >= Ticks) {
             Bit32u interval = ticksNew - ticksLastFramecounter;
             double rtnow = PIC_FullIndex();
@@ -480,11 +479,10 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
         Bit32s ratio = (Bit32s)((ticksScheduled * (CPU_CyclePercUsed * 90 * 1024 / 100 / 100)) / ticksDone);
         Bit32s new_cmax = (Bit32s)CPU_CycleMax;
         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
-        double ratioremoved = 0.0; //increase scope for logging
         if (cproc > 0) {
             /* ignore the cycles added due to the IO delay code in order
                to have smoother auto cycle adjustments */
-            ratioremoved = (double)CPU_IODelayRemoved / (double)cproc;
+            double ratioremoved = (double)CPU_IODelayRemoved / (double)cproc;
             if (ratioremoved < 1.0) {
                 double ratio_not_removed = 1 - ratioremoved;
                 ratio = (Bit32s)((double)ratio * ratio_not_removed);

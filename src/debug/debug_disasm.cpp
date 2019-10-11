@@ -533,7 +533,6 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
   int n=0, s=0, i;
   INT32 delta = 0;
   unsigned char buff[6];
-  char *name;
   char  signchar;
 
   switch (subtype) {
@@ -618,7 +617,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
     return;
   }
   if ((n == 4) && !sign) {
-    name = addr_to_hex((UINT32)delta, 0);
+    char *name = addr_to_hex((UINT32)delta, 0);
     uprintf("%s", name);
     return;
   }

@@ -949,8 +949,6 @@ skip_extend_word:
 	} else {
 		Bits imm=0;
 		Bit8u base_reg=0;
-		Bit8u scaled_reg;
-		Bitu scale=0;
 		switch (decode.modrm.rm) {
 		case 0:base_reg=DRC_REG_EAX;break;
 		case 1:base_reg=DRC_REG_ECX;break;
@@ -966,8 +964,8 @@ skip_extend_word:
 				};
 				// see if scaling should be used and which register is to be scaled in this case
 				if (((sib >> 3) &7)!=4) scaled_reg_used=true;
-				scaled_reg=scaledtable[(sib >> 3) &7];
-				scale=(sib >> 6);
+				Bit8u scaled_reg=scaledtable[(sib >> 3) &7];
+				Bitu scale=(sib >> 6);
 
 				switch (sib & 7) {
 				case 0:base_reg=DRC_REG_EAX;break;

@@ -3543,8 +3543,6 @@ public:
             if (enable_weitek) {
                 LOG_MSG("Weitek coprocessor emulation enabled");
 
-                static Bitu weitek_lfb = 0xC0000000UL;
-                static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
                 static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
 
                 if (weitek_lfb_cb == MEM_Callout_t_none) {
@@ -3558,6 +3556,9 @@ public:
                     assert(cb != NULL);
 
                     cb->Uninstall();
+
+                    static Bitu weitek_lfb = 0xC0000000UL;
+                    static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
 
                     cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
 

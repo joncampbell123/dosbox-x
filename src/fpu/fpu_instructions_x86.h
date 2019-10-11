@@ -1272,7 +1272,6 @@ static void FPU_FSTENV(PhysPt addr){
 
 static void FPU_FLDENV(PhysPt addr){
 	Bit16u tag;
-	Bit32u tagbig;
 	Bitu cw;
 	if(!cpu.code.big) {
 		cw     = mem_readw(addr+0);
@@ -1281,7 +1280,7 @@ static void FPU_FLDENV(PhysPt addr){
 	} else { 
 		cw     = mem_readd(addr+0);
 		fpu.sw = (Bit16u)mem_readd(addr+4);
-		tagbig = mem_readd(addr+8);
+		Bit32u tagbig = mem_readd(addr+8);
 		tag    = static_cast<Bit16u>(tagbig);
 	}
 	FPU_SetTag(tag);

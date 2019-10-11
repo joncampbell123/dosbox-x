@@ -413,9 +413,8 @@ static CacheBlockDynRec * cache_getblock(void) {
 }
 
 void CacheBlockDynRec::Clear(void) {
-	Bitu ind;
 	// check if this is not a cross page block
-	if (hash.index) for (ind=0;ind<2;ind++) {
+	if (hash.index) for (Bitu ind=0;ind<2;ind++) {
 		CacheBlockDynRec * fromlink=link[ind].from;
 		link[ind].from=0;
 		while (fromlink) {
@@ -503,11 +502,10 @@ static void cache_closeblock(void) {
 			if (written>block->cache.size+CACHE_MAXSIZE) E_Exit("CacheBlock overrun 1 %lu",(unsigned long)written-block->cache.size);
 		} else E_Exit("CacheBlock overrun 2 written %lu size %lu",(unsigned long)written,(unsigned long)block->cache.size);
 	} else {
-		Bitu new_size;
 		Bitu left=block->cache.size-written;
 		// smaller than cache align then don't bother to resize
 		if (left>CACHE_ALIGN) {
-			new_size=((written-1)|(CACHE_ALIGN-1))+1;
+			Bitu new_size=((written-1)|(CACHE_ALIGN-1))+1;
 			CacheBlockDynRec * newblock=cache_getblock();
 			// align block now to CACHE_ALIGN
 			newblock->cache.start=block->cache.start+new_size;
@@ -565,8 +563,8 @@ static void dyn_run_code(void);
 static bool cache_initialized = false;
 
 static void cache_init(bool enable) {
-	Bits i;
 	if (enable) {
+		Bits i;
 		// see if cache is already initialized
 		if (cache_initialized) return;
 		cache_initialized = true;
