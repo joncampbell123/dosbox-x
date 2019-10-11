@@ -69,7 +69,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	char tempdir[DOS_PATHLENGTH];
 	char upname[DOS_PATHLENGTH];
 	Bitu r,w;
-	Bit8u c;
 	*drive = DOS_GetDefaultDrive();
 	/* First get the drive */
 	if (name_int[1]==':') {
@@ -82,7 +81,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	}
 	r=0;w=0;
 	while (name_int[r]!=0 && (r<DOS_PATHLENGTH)) {
-		c=(Bit8u)name_int[r++];
+		Bit8u c=(Bit8u)name_int[r++];
 		if ((c>='a') && (c<='z')) c-=32;
 		else if (c==' ') continue; /* should be separator */
 		else if (c=='/') c='\\';
@@ -1254,13 +1253,13 @@ Bit8u DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore) 
 	Bit16u old_block=0;
 	Bit8u old_rec=0;
 	Bit8u error=0;
-	Bit16u count;
 
 	/* Set the correct record from the random data */
 	fcb.GetRandom(random);
 	fcb.SetRecord((Bit16u)(random / 128u),(Bit8u)(random & 127u));
 	if (restore) fcb.GetRecord(old_block,old_rec);
 	if (*numRec > 0) {
+		Bit16u count;
 		/* Write records */
 		for (count=0; count<*numRec; count++) {
 			error = DOS_FCBWrite(seg,offset,count);// dos_fcbwrite return 0 false when true...
@@ -1300,7 +1299,6 @@ bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset) {
 bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset){
 /* Special case: ????????.??? and DOS_ATTR_VOLUME */
     {
-        char shortname[DOS_FCBNAME];
         DOS_FCB fcb(seg,offset);
         Bit8u attr = 0;
         fcb.GetAttr(attr);
@@ -1308,6 +1306,7 @@ bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset){
         std::string label = Drives[drive]->GetLabel();
 
         if (attr & DOS_ATTR_VOLUME) {
+        char shortname[DOS_FCBNAME];
             fcb.GetVolumeName(shortname);
 
             if (!strcmp(shortname,"???????????")) {

@@ -437,13 +437,13 @@
 	CASE_0F_D(0xbc)												/* BSF Gd,Ed */
 		{
 			GetRMrd;
-			Bit32u result,value;
+			Bit32u value;
 			if (rm >= 0xc0) { GetEArd; value=*eard; } 
 			else			{ GetEAa; value=LoadMd(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 0;
+				Bit32u result = 0;
 				while ((value & 0x01)==0) { result++; value>>=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrd = result;
@@ -454,13 +454,13 @@
 	CASE_0F_D(0xbd)												/*  BSR Gd,Ed */
 		{
 			GetRMrd;
-			Bit32u result,value;
+			Bit32u value;
 			if (rm >= 0xc0) { GetEArd; value=*eard; } 
 			else			{ GetEAa; value=LoadMd(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 31;	// Operandsize-1
+				Bit32u result = 31;	// Operandsize-1
 				while ((value & 0x80000000)==0) { result--; value<<=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrd = result;

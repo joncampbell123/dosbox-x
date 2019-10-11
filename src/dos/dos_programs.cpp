@@ -729,7 +729,6 @@ private:
         bool tryload = (*error)?true:false;
         *error = 0;
         Bit8u drive;
-        FILE *tmpfile;
         char fullname[DOS_PATHLENGTH];
 
         localDrive* ldp=0;
@@ -739,7 +738,7 @@ private:
             ldp=dynamic_cast<localDrive*>(Drives[drive]);
             if(!ldp) return NULL;
 
-            tmpfile = ldp->GetSystemFilePtr(fullname, "rb");
+            FILE *tmpfile = ldp->GetSystemFilePtr(fullname, "rb");
             if(tmpfile == NULL) {
                 if (!tryload) *error=1;
                 return NULL;
@@ -2634,10 +2633,10 @@ quit:
 };
 
 bool ElTorito_ChecksumRecord(unsigned char *entry/*32 bytes*/) {
-    unsigned int word,chk=0,i;
+    unsigned int chk=0,i;
 
     for (i=0;i < 16;i++) {
-        word = ((unsigned int)entry[0]) + ((unsigned int)entry[1] << 8);
+        unsigned int word = ((unsigned int)entry[0]) + ((unsigned int)entry[1] << 8);
         chk += word;
         entry += 2;
     }
@@ -3504,8 +3503,8 @@ private:
                 }
             }
 
-            DOS_Drive* newDrive = NULL;
             if (!errorMessage) {
+                DOS_Drive* newDrive = NULL;
                 if (vhdImage) {
                     newDrive = new fatDrive(vhdImage, options);
                     vhdImage = NULL;

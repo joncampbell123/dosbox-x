@@ -681,9 +681,8 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bi
 
 	// Search matching breakpoint
 	std::list<CBreakpoint*>::iterator i;
-	CBreakpoint* bp;
 	for(i=BPoints.begin(); i != BPoints.end(); ++i) {
-		bp = (*i);
+		CBreakpoint* bp = (*i);
 		if ((bp->GetType()==BKPNT_INTERRUPT) && bp->IsActive() && (bp->GetIntNr()==intNr)) {
 			if (((bp->GetValue()==BPINT_ALL) || (bp->GetValue()==ahValue)) && ((bp->GetOther()==BPINT_ALL) || (bp->GetOther()==alValue))) {
 				// Ignore it once ?
@@ -704,9 +703,8 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue, Bi
 void CBreakpoint::DeleteAll() 
 {
 	std::list<CBreakpoint*>::iterator i;
-	CBreakpoint* bp;
 	for(i=BPoints.begin(); i != BPoints.end(); ++i) {
-		bp = (*i);
+		CBreakpoint* bp = (*i);
 		bp->Activate(false);
 		delete bp;
 	}
@@ -1138,7 +1136,6 @@ static void DrawCode(void) {
 	if (dbg.win_main == NULL || dbg.win_code == NULL)
 		return;
 
-	bool saveSel; 
 	Bit32u disEIP = codeViewData.useEIP;
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
@@ -1148,7 +1145,7 @@ static void DrawCode(void) {
 	for (int i=0;i<h;i++) {
         Bit64u start = GetAddress(codeViewData.useCS,disEIP);
 
-		saveSel = false;
+		bool saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
 				if (codeViewData.cursorPos==-1) {
@@ -2589,8 +2586,6 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	static char result[256];
 	
 	char instu[256];
-	char prefix[3];
-	Bit16u seg;
 
 	strcpy(instu,inst);
 	upcase(instu);
@@ -2598,6 +2593,8 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	result[0] = 0;
 	char* pos = strchr(instu,'[');
 	if (pos) {
+		char prefix[3];
+		Bit16u seg;
 		// Segment prefix ?
 		if (*(pos-1)==':') {
 			char* segpos = pos-3;
@@ -2796,14 +2793,13 @@ void win_code_ui_up(int count) {
             if (codeViewData.cursorPos>0)
                 codeViewData.cursorPos--;
             else {
-                Bitu bytes = 0;
-                char dline[200];
-                Bitu size = 0;
                 Bit32u newEIP = codeViewData.useEIP - 1;
                 if(codeViewData.useEIP) {
+                    Bitu bytes = 0;
+                    char dline[200];
                     for (; bytes < 10; bytes++) {
                         PhysPt start = (PhysPt)GetAddress(codeViewData.useCS,newEIP);
-                        size = DasmI386(dline, start, newEIP, cpu.code.big);
+                        Bitu size = DasmI386(dline, start, newEIP, cpu.code.big);
                         if(codeViewData.useEIP == newEIP+size) break;
                         newEIP--;
                     }
@@ -3703,11 +3699,10 @@ static void LogIDT(void) {
 }
 
 void LogPages(char* selname) {
-	char out1[512];
-
     DEBUG_BeginPagedContent();
 
 	if (paging.enabled) {
+		char out1[512];
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
 			for (unsigned int i=0; i<0xfffff; i++) {
@@ -4099,9 +4094,8 @@ void CDebugVar::InsertVariable(char* name, PhysPt adr)
 void CDebugVar::DeleteAll(void) 
 {
 	std::vector<CDebugVar*>::iterator i;
-	CDebugVar* bp;
 	for(i=varList.begin(); i != varList.end(); i++) {
-		bp = static_cast<CDebugVar*>(*i);
+		CDebugVar* bp = static_cast<CDebugVar*>(*i);
 		delete bp;
 	}
 	(varList.clear)();
@@ -4112,9 +4106,8 @@ CDebugVar* CDebugVar::FindVar(PhysPt pt)
 	if (varList.empty()) return 0;
 
 	std::vector<CDebugVar*>::size_type s = varList.size();
-	CDebugVar* bp;
 	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
-		bp = static_cast<CDebugVar*>(varList[i]);
+		CDebugVar* bp = static_cast<CDebugVar*>(varList[i]);
 		if (bp->GetAdr() == pt) return bp;
 	}
 	return 0;
@@ -4240,7 +4233,6 @@ static void OutputVecTable(char* filename) {
 static void DrawVariables(void) {
 	if (CDebugVar::varList.empty()) return;
 
-	CDebugVar *dv;
 	char buffer[DEBUG_VAR_BUF_LEN];
 	std::vector<CDebugVar*>::size_type s = CDebugVar::varList.size();
 	bool windowchanges = false;
@@ -4252,7 +4244,7 @@ static void DrawVariables(void) {
 			break;
 		}
 
-		dv = static_cast<CDebugVar*>(CDebugVar::varList[i]);
+		CDebugVar *dv = static_cast<CDebugVar*>(CDebugVar::varList[i]);
 		Bit16u value;
 		bool varchanges = false;
 		bool has_no_value = mem_readw_checked(dv->GetAdr(),&value);
@@ -4410,7 +4402,6 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 }
 
 bool DEBUG_HeavyIsBreakpoint(void) {
-	static Bitu zero_count = 0;
 	if (cpuLog) {
 		if (cpuLogCounter>0) {
 			LogInstruction(SegValue(cs),reg_eip,cpuLogFile);
@@ -4428,6 +4419,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 	// LogInstruction
 	if (logHeavy) DEBUG_HeavyLogInstruction();
 	if (zeroProtect) {
+		static Bitu zero_count = 0;
 		Bit32u value=0;
 		if (!mem_readd_checked(SegPhys(cs)+reg_eip,&value)) {
 			if (value == 0) zero_count++;

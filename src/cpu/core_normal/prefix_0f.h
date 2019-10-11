@@ -635,13 +635,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u result,value;
+			Bit16u value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 0;
+				Bit16u result = 0;
 				while ((value & 0x01)==0) { result++; value>>=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;
@@ -653,13 +653,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u result,value;
+			Bit16u value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				result = 15;	// Operandsize-1
+				Bit16u result = 15;	// Operandsize-1
 				while ((value & 0x8000)==0) { result--; value<<=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;

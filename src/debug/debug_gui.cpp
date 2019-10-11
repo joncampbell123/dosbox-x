@@ -674,15 +674,13 @@ void DEBUG_ShowMsg(char const* format,...) {
 
     if (IsDebuggerActive() && debugPageStopAt > 0) {
         if (++debugPageCounter >= debugPageStopAt) {
-            int key;
-
             debugPageCounter = 0;
             DEBUG_RefreshPage(0);
             DEBUG_DrawInput();
 
             /* pause, wait for input */
             do {
-                key = getch();
+                int key = getch();
                 if (key > 0) {
                     if (key == ' ' || key == 0x0A) {
                         /* continue */

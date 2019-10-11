@@ -356,8 +356,6 @@ private:
     }
 
 	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
-		Bit16u		oldax,oldbx;
-
         if (IS_PC98_ARCH) {
             if (con_sjis.take(xChar)) {
                 BIOS_NCOLS;
@@ -383,6 +381,7 @@ private:
             }
         }
         else {
+            Bit16u oldax,oldbx;
             oldax=reg_ax;
             oldbx=reg_bx;
 

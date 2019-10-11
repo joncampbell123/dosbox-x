@@ -325,9 +325,9 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	}
 	SDL_mutexV(player.mutex);
 	if (player.ctrlUsed) {
-		Bit16s sample0,sample1;
 		Bit16s * samples=(Bit16s *)&player.buffer;
 		for (Bitu pos=0;pos<len/4;pos++) {
+			Bit16s sample0,sample1;
 #if defined(WORDS_BIGENDIAN)
 			sample0=(Bit16s)host_readw((HostPt)&samples[pos*2+player.ctrlData.out[0]]);
 			sample1=(Bit16s)host_readw((HostPt)&samples[pos*2+player.ctrlData.out[1]]);
