@@ -58,20 +58,20 @@ public:
   public:
     State();
 
-    char sid_register[0x20];
+    char sid_register[0x20] = {};
 
     reg8 bus_value;
     cycle_count bus_value_ttl;
 
-    reg24 accumulator[3];
-    reg24 shift_register[3];
-    reg16 rate_counter[3];
-    reg16 rate_counter_period[3];
-    reg16 exponential_counter[3];
-    reg16 exponential_counter_period[3];
-    reg8 envelope_counter[3];
-    EnvelopeGenerator::State envelope_state[3];
-    bool hold_zero[3];
+    reg24 accumulator[3] = {};
+    reg24 shift_register[3] = {};
+    reg16 rate_counter[3] = {};
+    reg16 rate_counter_period[3] = {};
+    reg16 exponential_counter[3] = {};
+    reg16 exponential_counter_period[3] = {};
+    reg8 envelope_counter[3] = {};
+    EnvelopeGenerator::State envelope_state[3] = {};
+    bool hold_zero[3] = {};
 	};
     
   State read_state();

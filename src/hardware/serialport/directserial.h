@@ -48,7 +48,7 @@ public:
 private:
 	COMPORT comport;
 
-	Bitu rx_state;
+	Bitu rx_state = 0;
 #define D_RX_IDLE		0
 #define D_RX_WAIT		1
 #define D_RX_BLOCKED	2
@@ -60,8 +60,8 @@ private:
 	bool doReceive();
 
 #if SERIAL_DEBUG
-	bool dbgmsg_poll_block;
-	bool dbgmsg_rx_block;
+	bool dbgmsg_poll_block = false;
+	bool dbgmsg_rx_block = false;
 #endif
 
 };

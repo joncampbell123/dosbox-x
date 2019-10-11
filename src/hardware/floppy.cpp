@@ -43,7 +43,7 @@ class FloppyController;
 
 class FloppyDevice {
 public:
-	FloppyController *controller;
+	FloppyController *controller = NULL;
 public:
 	unsigned char current_track;
 	bool select,motor;

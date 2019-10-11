@@ -694,36 +694,36 @@ private:
 extern DOS_InfoBlock dos_infoblock;
 
 struct DOS_Block {
-	DOS_Date date;
-	DOS_Version version;
-	Bit16u firstMCB;
-	Bit16u errorcode;
-	Bit16u psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
-	void psp(Bit16u _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
-	RealPt dta();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
-	void dta(RealPt _dta);//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
-	Bit8u return_code,return_mode;
-	
-	Bit8u current_drive;
-	bool verify;
-	bool breakcheck;
-	bool echo;          // if set to true dev_con::read will echo input
-	bool direct_output;
-	bool internal_output;
-	struct  {
-		RealPt mediaid;
-		RealPt tempdta;
-		RealPt tempdta_fcbdelete;
-		RealPt dbcs;
-		RealPt filenamechar;
-		RealPt collatingseq;
-		RealPt upcase;
-		Bit8u* country;//Will be copied to dos memory. resides in real mem
-		Bit16u dpb; //Fake Disk parameter system using only the first entry so the drive letter matches
+    DOS_Date date = {};
+    DOS_Version version = {};
+    Bit16u firstMCB = 0;
+    Bit16u errorcode = 0;
+    Bit16u psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
+    void psp(Bit16u _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
+    RealPt dta();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
+    void dta(RealPt _dta);//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
+    Bit8u return_code = 0, return_mode = 0;
+
+    Bit8u current_drive = 0;
+    bool verify = false;
+    bool breakcheck = false;
+    bool echo = false;          // if set to true dev_con::read will echo input
+    bool direct_output = false;
+    bool internal_output = false;
+    struct {
+        RealPt mediaid = 0;
+        RealPt tempdta = 0;
+        RealPt tempdta_fcbdelete = 0;
+        RealPt dbcs = 0;
+        RealPt filenamechar = 0;
+        RealPt collatingseq = 0;
+        RealPt upcase = 0;
+        Bit8u* country = NULL;//Will be copied to dos memory. resides in real mem
+        Bit16u dpb = 0; //Fake Disk parameter system using only the first entry so the drive letter matches
         Bit16u dpb_size = 0x21; // bytes per DPB entry (MS-DOS 4.x-6.x size)
         Bit16u mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
-	} tables;
-	Bit16u loaded_codepage;
+    } tables;
+    Bit16u loaded_codepage = 0;
 };
 
 extern DOS_Block dos;
@@ -734,8 +734,8 @@ static INLINE Bit8u RealHandle(Bit16u handle) {
 }
 
 struct DOS_GetMemLog_Entry {
-    Bit16u      segbase;
-    Bit16u      pages;
+    Bit16u      segbase = 0;
+    Bit16u      pages = 0;
     std::string who;
 };
 

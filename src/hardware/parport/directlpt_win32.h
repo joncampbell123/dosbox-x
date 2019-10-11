@@ -36,8 +36,8 @@
 class CDirectLPT : public CParallel {
 public:
 	//HANDLE driverHandle;
-	Bit32u realbaseaddress;
-	Bit8u originalECPControlReg;
+	Bit32u realbaseaddress = 0;
+	Bit8u originalECPControlReg = 0;
 	
 	CDirectLPT(
 			Bitu nr,
@@ -48,11 +48,11 @@ public:
 
 	~CDirectLPT();
 	
-	bool interruptflag;
-	bool isECP;
-	bool InstallationSuccessful;	// check after constructing. If
+	bool interruptflag = false;
+	bool isECP = false;
+	bool InstallationSuccessful = false;	// check after constructing. If
 									// something was wrong, delete it right away.
-	bool ack_polarity;
+	bool ack_polarity = false;
 
 	Bitu Read_PR();
 	Bitu Read_COM();

@@ -27,8 +27,8 @@ private:
 	Synth *synth; // Only used for sending debug output
 	Part **parts;
 
-	Partial *partialTable[MT32EMU_MAX_PARTIALS];
-	Bit8u numReservedPartialsForPart[9];
+    Partial* partialTable[MT32EMU_MAX_PARTIALS] = {};
+    Bit8u numReservedPartialsForPart[9] = {};
 
 	bool abortFirstReleasingPolyWhereReserveExceeded(int minPart);
 	bool abortFirstPolyPreferHeldWhereReserveExceeded(int minPart);

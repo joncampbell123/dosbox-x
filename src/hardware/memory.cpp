@@ -82,17 +82,17 @@ static struct MemoryBlock {
         Bitu        end_page;
         Bitu        pages;
         PageHandler *handler;
-    } lfb;
+    } lfb = {};
     struct {
         Bitu        start_page;
         Bitu        end_page;
         Bitu        pages;
         PageHandler *handler;
-    } lfb_mmio;
+    } lfb_mmio = {};
     struct {
         bool enabled;
         Bit8u controlport;
-    } a20;
+    } a20 = {};
     Bit32u mem_alias_pagemask;
     Bit32u mem_alias_pagemask_active;
     Bit32u address_bits;

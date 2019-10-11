@@ -164,44 +164,44 @@ private:
 	FT_Library FTlib;					// FreeType2 library used to render the characters
 
 	SDL_Surface* page;					// Surface representing the current page
-	FT_Face curFont;					// The font currently used to render characters
-	Bit8u color;
+	FT_Face curFont = NULL;					// The font currently used to render characters
+	Bit8u color = 0;
 
-	Real64 curX, curY;					// Position of the print head (in inch)
+	Real64 curX = 0, curY = 0;					// Position of the print head (in inch)
 
-	Bit16u dpi;							// dpi of the page
-	Bit16u ESCCmd;						// ESC-command that is currently processed
-	bool ESCSeen;						// True if last read character was an ESC (0x1B)
-	bool FSSeen;						// True if last read character was an FS (0x1C) (IBM commands)
+	Bit16u dpi = 0;							// dpi of the page
+	Bit16u ESCCmd = 0;						// ESC-command that is currently processed
+	bool ESCSeen = false;						// True if last read character was an ESC (0x1B)
+	bool FSSeen = false;						// True if last read character was an FS (0x1C) (IBM commands)
 
-	Bit8u numParam, neededParam;		// Numbers of parameters already read/needed to process command
+	Bit8u numParam = 0, neededParam = 0;		// Numbers of parameters already read/needed to process command
 
-	Bit8u params[20];					// Buffer for the read params
-	Bit16u style;						// Style of font (see STYLE_* constants)
-	Real64 cpi, actcpi;					// CPI value set by program and the actual one (taking in account font types)
-	Bit8u score;						// Score for lines (see SCORE_* constants)
+    Bit8u params[20] = {};					// Buffer for the read params
+	Bit16u style = 0;						// Style of font (see STYLE_* constants)
+	Real64 cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
+	Bit8u score = 0;						// Score for lines (see SCORE_* constants)
 
-	Real64 topMargin, bottomMargin, rightMargin, leftMargin;	// Margins of the page (in inch)
-	Real64 pageWidth, pageHeight;								// Size of page (in inch)
-	Real64 defaultPageWidth, defaultPageHeight;					// Default size of page (in inch)
-	Real64 lineSpacing;											// Size of one line (in inch)
+	Real64 topMargin = 0, bottomMargin = 0, rightMargin = 0, leftMargin = 0;	// Margins of the page (in inch)
+	Real64 pageWidth = 0, pageHeight = 0;								// Size of page (in inch)
+	Real64 defaultPageWidth = 0, defaultPageHeight = 0;					// Default size of page (in inch)
+	Real64 lineSpacing = 0;											// Size of one line (in inch)
 
-	Real64 horiztabs[32];				// Stores the set horizontal tabs (in inch)
-	Bit8u numHorizTabs;					// Number of configured tabs
+    Real64 horiztabs[32] = {};				// Stores the set horizontal tabs (in inch)
+	Bit8u numHorizTabs = 0;					// Number of configured tabs
 
-	Real64 verttabs[16];				// Stores the set vertical tabs (in inch)
-	Bit8u numVertTabs;					// Number of configured tabs
+    Real64 verttabs[16] = {};				// Stores the set vertical tabs (in inch)
+	Bit8u numVertTabs = 0;					// Number of configured tabs
 
-	Bit8u curCharTable;					// Currently used char table und charset
-	Bit8u printQuality;					// Print quality (see QUALITY_* constants)
+	Bit8u curCharTable = 0;					// Currently used char table und charset
+	Bit8u printQuality = 0;					// Print quality (see QUALITY_* constants)
 
-	Typeface LQtypeFace;				// Typeface used in LQ printing mode
+	Typeface LQtypeFace = (Typeface)0;				// Typeface used in LQ printing mode
 
-	Real64 extraIntraSpace;				// Extra space between two characters (set by program, in inch)
+	Real64 extraIntraSpace = 0;				// Extra space between two characters (set by program, in inch)
 
-	bool charRead;						// True if a character was read since the printer was last initialized
-	bool autoFeed;						// True if a LF should automatically added after a CR
-	bool printUpperContr;				// True if the upper command characters should be printed
+	bool charRead = false;						// True if a character was read since the printer was last initialized
+	bool autoFeed = false;						// True if a LF should automatically added after a CR
+	bool printUpperContr = false;				// True if the upper command characters should be printed
 
 	struct bitGraphicParams				// Holds information about printing bit images
 	{
@@ -211,36 +211,36 @@ private:
 		Bit16u remBytes;				// Bytes left to read before image is done
 		Bit8u column[6];				// Bytes of the current and last column
 		Bit8u readBytesColumn;			// Bytes read so far for the current column
-	} bitGraph;
+    } bitGraph = {};
 
-	Bit8u densk, densl, densy, densz;	// Image density modes used in ESC K/L/Y/Z commands
+	Bit8u densk = 0, densl = 0, densy = 0, densz = 0;	// Image density modes used in ESC K/L/Y/Z commands
 
-	Bit16u curMap[256];					// Currently used ASCII => Unicode mapping
-	Bit16u charTables[4];				// Charactertables
+    Bit16u curMap[256] = {};					// Currently used ASCII => Unicode mapping
+    Bit16u charTables[4] = {};				// Charactertables
 
-	Real64 definedUnit;					// Unit used by some ESC/P2 commands (negative => use default)
+	Real64 definedUnit = 0;					// Unit used by some ESC/P2 commands (negative => use default)
 
-	bool multipoint;					// If multipoint mode is enabled
-	Real64 multiPointSize;				// Point size of font in multipoint mode
-	Real64 multicpi;					// CPI used in multipoint mode
+	bool multipoint = false;					// If multipoint mode is enabled
+	Real64 multiPointSize = 0;				// Point size of font in multipoint mode
+	Real64 multicpi = 0;					// CPI used in multipoint mode
 
-	Real64 hmi;							// Horizontal motion index (in inch; overrides CPI settings)
+	Real64 hmi = 0;							// Horizontal motion index (in inch; overrides CPI settings)
 
-	Bit8u msb;							// MSB mode
-	Bit16u numPrintAsChar;				// Number of bytes to print as characters (even when normally control codes)
+	Bit8u msb = 0;							// MSB mode
+	Bit16u numPrintAsChar = 0;				// Number of bytes to print as characters (even when normally control codes)
 
 #if defined (WIN32)
-	HDC printerDC;						// Win32 printer device
+	HDC printerDC = NULL;						// Win32 printer device
 #endif
 
-	char* output;						// Output method selected by user
-	void* outputHandle;					// If not null, additional pages will be appended to the given handle
-	bool multipageOutput;				// If true, all pages are combined to one file/print job etc. until the "eject page" button is pressed
-	Bit16u multiPageCounter;			// Current page (when printing multipages)
+	char* output = NULL;						// Output method selected by user
+	void* outputHandle = NULL;					// If not null, additional pages will be appended to the given handle
+	bool multipageOutput = false;				// If true, all pages are combined to one file/print job etc. until the "eject page" button is pressed
+	Bit16u multiPageCounter = 0;			// Current page (when printing multipages)
 
-	Bit8u ASCII85Buffer[4];				// Buffer used in ASCII85 encoding
-	Bit8u ASCII85BufferPos;				// Position in ASCII85 encode buffer
-	Bit8u ASCII85CurCol;				// Columns printed so far in the current lines
+    Bit8u ASCII85Buffer[4] = {};				// Buffer used in ASCII85 encoding
+	Bit8u ASCII85BufferPos = 0;				// Position in ASCII85 encode buffer
+	Bit8u ASCII85CurCol = 0;				// Columns printed so far in the current lines
 };
 
 #endif

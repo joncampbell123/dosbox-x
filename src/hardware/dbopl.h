@@ -193,20 +193,20 @@ struct Channel {
 
 struct Chip {
 	//This is used as the base counter for vibrato and tremolo
-	Bit32u lfoCounter;
-	Bit32u lfoAdd;
+	Bit32u lfoCounter = 0;
+	Bit32u lfoAdd = 0;
 	
 
-	Bit32u noiseCounter;
-	Bit32u noiseAdd;
-	Bit32u noiseValue;
+	Bit32u noiseCounter = 0;
+	Bit32u noiseAdd = 0;
+	Bit32u noiseValue = 0;
 
 	//Frequency scales for the different multiplications
-	Bit32u freqMul[16];
+    Bit32u freqMul[16] = {};
 	//Rates for decay and release for rate of this chip
-	Bit32u linearRates[76];
+    Bit32u linearRates[76] = {};
 	//Best match attack rates for the rate of this chip
-	Bit32u attackRates[76];
+    Bit32u attackRates[76] = {};
 
 	//18 channels with 2 operators each
 	Channel chan[18];
@@ -215,15 +215,15 @@ struct Chip {
 	Bit8u reg08;
 	Bit8u reg04;
 	Bit8u regBD;
-	Bit8u vibratoIndex;
-	Bit8u tremoloIndex;
-	Bit8s vibratoSign;
-	Bit8u vibratoShift;
-	Bit8u tremoloValue;
-	Bit8u vibratoStrength;
-	Bit8u tremoloStrength;
+	Bit8u vibratoIndex = 0;
+	Bit8u tremoloIndex = 0;
+	Bit8s vibratoSign = 0;
+	Bit8u vibratoShift = 0;
+	Bit8u tremoloValue = 0;
+	Bit8u vibratoStrength = 0;
+	Bit8u tremoloStrength = 0;
 	//Mask for allowed wave forms
-	Bit8u waveFormMask;
+	Bit8u waveFormMask = 0;
 	//0 or -1 when enabled
 	Bit8s opl3Active;
 

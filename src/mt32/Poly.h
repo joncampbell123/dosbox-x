@@ -43,7 +43,7 @@ private:
 
 	PolyState state;
 
-	Partial *partials[4];
+    Partial* partials[4] = {};
 
 	Poly *next;
 

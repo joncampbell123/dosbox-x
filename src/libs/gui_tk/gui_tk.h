@@ -618,10 +618,10 @@ protected:
     bool mouse_in_window;
 public:
     /// \c first element of a tabbable list
-    bool first_tabbable;
+    bool first_tabbable = false;
 
     /// \c last element of a tabbable list
-    bool last_tabbable;
+    bool last_tabbable = false;
 protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
@@ -773,7 +773,7 @@ public:
 	}
 
     unsigned int getChildCount(void) {
-        return children.size();
+        return (unsigned int)children.size();
     }
 
 };
@@ -815,7 +815,7 @@ public:
     bool    vscroll_dragging = false;
 
     bool    dragging = false;
-    int     drag_x,drag_y;
+    int     drag_x = 0, drag_y = 0;
 
     int     scroll_pos_x = 0;
     int     scroll_pos_y = 0;
@@ -854,7 +854,7 @@ protected:
 	String clipboard;
 
 	/// Currently pressed mouse button.
-	MouseButton button;
+	MouseButton button = (MouseButton)0;
 
 	/// Store a single RGB triple (8 bit each) as a native pixel value and advance pointer.
 	virtual void rgbToSurface(RGB color, void **pixel) = 0;

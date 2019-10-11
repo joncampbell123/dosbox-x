@@ -82,7 +82,7 @@ private:
 	typedef std::list<std::string>::iterator cmd_it;
 	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
 	cmd_it opt_scan;
-	bool opt_eat_argv;
+	bool opt_eat_argv = false;
 	std::list<std::string> cmds;
 	std::string file_name;
     std::string raw_cmdline;

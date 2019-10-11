@@ -1092,7 +1092,7 @@ private:
 	CALLBACK_HandlerObject callback_ipx;
 	CALLBACK_HandlerObject callback_esr;
 	CALLBACK_HandlerObject callback_ipxint;
-	RealPt old_73_vector;
+	RealPt old_73_vector = 0;
 	bool ipx_init;
 public:
 	IPX(Section* configuration):Module_base(configuration) {

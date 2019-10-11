@@ -81,7 +81,7 @@ public:
 		Bit16u  wReserved;
 		Bit8u	driveLetter;
 		Bit8u	numSubUnits;
-	} GCC_ATTRIBUTE(packed) TDeviceHeader;
+    } GCC_ATTRIBUTE(packed) TDeviceHeader = {};
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif

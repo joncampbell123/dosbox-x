@@ -719,8 +719,8 @@ public:
 
 class SectionEditor : public GUI::ToplevelWindow {
     Section_prop * section;
-    GUI::Button * closeButton;
-    GUI::WindowInWindow * wiw;
+    GUI::Button * closeButton = NULL;
+    GUI::WindowInWindow * wiw = NULL;
 public:
     std::vector<GUI::Char> cfg_sname;
 public:
@@ -887,9 +887,9 @@ public:
 };
 
 class AutoexecEditor : public GUI::ToplevelWindow {
-    GUI::Button *closeButton;
+    GUI::Button *closeButton = NULL;
     Section_line * section;
-    GUI::Input *content;
+    GUI::Input *content = NULL;
 public:
     std::vector<GUI::Char> cfg_sname;
 public:

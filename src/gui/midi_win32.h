@@ -29,15 +29,15 @@
 
 class MidiHandler_win32: public MidiHandler {
 private:
-	HMIDIOUT m_out;
-	MIDIHDR m_hdr;
-	HANDLE m_event;
+	HMIDIOUT m_out = NULL;
+    MIDIHDR m_hdr = {};
+	HANDLE m_event = NULL;
 	bool isOpen;
 
 #if WIN32_MIDI_PORT_PROTECT
-	HINSTANCE hMidiHelper;
-	bool midi_dll;
-	bool midi_dll_active;
+	HINSTANCE hMidiHelper = NULL;
+	bool midi_dll = false;
+	bool midi_dll_active = false;
 
 	void MidiHelper_Reset()
 	{

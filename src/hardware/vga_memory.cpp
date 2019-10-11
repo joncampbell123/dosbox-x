@@ -663,15 +663,15 @@ struct pc98_egc_shifter {
     uint16_t            remain;
     uint16_t            srcbit;
     uint16_t            dstbit;
-    uint16_t            o_srcbit;
-    uint16_t            o_dstbit;
+    uint16_t            o_srcbit = 0;
+    uint16_t            o_dstbit = 0;
 
-    uint8_t             buffer[512]; /* 4096/8 = 512 */
-    uint16_t            bufi,bufo;
+    uint8_t             buffer[512] = {}; /* 4096/8 = 512 */
+    uint16_t            bufi = 0, bufo = 0;
 
-    uint8_t             shft8load;
-    uint8_t             shft8bitr;
-    uint8_t             shft8bitl;
+    uint8_t             shft8load = 0;
+    uint8_t             shft8bitr = 0;
+    uint8_t             shft8bitl = 0;
 
     std::string debug_status(void) {
         char tmp[512];

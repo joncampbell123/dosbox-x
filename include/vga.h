@@ -750,28 +750,28 @@ typedef struct {
 static const size_t VGA_Draw_2_elem = 2;
 
 typedef struct {
-	VGAModes mode;								/* The mode the vga system is in */
-	VGAModes lastmode;
-	Bit8u misc_output;
+    VGAModes mode = {};                              /* The mode the vga system is in */
+    VGAModes lastmode = {};
+    Bit8u misc_output = 0;
     VGA_Draw_2 draw_2[VGA_Draw_2_elem];         /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
-	VGA_Draw draw;
-	VGA_Config config;
-	VGA_Internal internal;
-/* Internal module groups */
-	VGA_Seq seq;
-	VGA_Attr attr;
-	VGA_Crtc crtc;
-	VGA_Gfx gfx;
-	VGA_Dac dac;
-	VGA_Latch latch;
-	VGA_S3 s3;
-	VGA_SVGA svga;
-	VGA_HERC herc;
-	VGA_TANDY tandy;
-	VGA_AMSTRAD amstrad;
-	VGA_OTHER other;
-	VGA_Memory mem;
-	VGA_LFB lfb;
+    VGA_Draw draw = {};
+    VGA_Config config = {};
+    VGA_Internal internal = {};
+    /* Internal module groups */
+    VGA_Seq seq = {};
+    VGA_Attr attr = {};
+    VGA_Crtc crtc = {};
+    VGA_Gfx gfx = {};
+    VGA_Dac dac = {};
+    VGA_Latch latch;
+    VGA_S3 s3 = {};
+    VGA_SVGA svga = {};
+    VGA_HERC herc = {};
+    VGA_TANDY tandy = {};
+    VGA_AMSTRAD amstrad = {};
+    VGA_OTHER other = {};
+    VGA_Memory mem;
+    VGA_LFB lfb = {};
 } VGA_Type;
 
 
