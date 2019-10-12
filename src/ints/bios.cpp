@@ -757,10 +757,9 @@ static Bitu dosbox_integration_port00_index_r(Bitu port,Bitu iolen) {
 
 static void dosbox_integration_port00_index_w(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
-    uint32_t msk;
 
     while (iolen > 0) {
-        msk = 0xFFU << (dosbox_int_regsel_shf * 8);
+        uint32_t msk = 0xFFU << (dosbox_int_regsel_shf * 8);
         dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
         if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
         val >>= 8U;
@@ -786,10 +785,9 @@ static Bitu dosbox_integration_port01_data_r(Bitu port,Bitu iolen) {
 
 static void dosbox_integration_port01_data_w(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
-    uint32_t msk;
 
     while (iolen > 0) {
-        msk = 0xFFU << (dosbox_int_register_shf * 8);
+        uint32_t msk = 0xFFU << (dosbox_int_register_shf * 8);
         dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
         if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
         if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
@@ -3409,14 +3407,12 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         case 0x1A: /* load FONT RAM */
             {
-                unsigned int i,o,r;
-
                 /* DX = code (must be 0x76xx or 0x7700)
                  * BX:CX = 34-byte region to read from */
                 if ((reg_dh & 0x7Eu) == 0x76u) {
-                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
-                    for (r=0;r < 16u;r++) {
-                        o = (((((reg_dl & 0x7Fu)*128u)+((reg_dh - 0x20u) & 0x7Fu))*16u)+r)*2u;
+                    unsigned int i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    for (unsigned int r=0;r < 16u;r++) {
+                        unsigned int o = (((((reg_dl & 0x7Fu)*128u)+((reg_dh - 0x20u) & 0x7Fu))*16u)+r)*2u;
 
                         assert((o+2u) <= sizeof(vga.draw.font));
 
@@ -4042,7 +4038,7 @@ void PC98_Interval_Timer_Continue(void);
 bool enable_fdc_timer_hack = false;
 
 void FDC_WAIT_TIMER_HACK(void) {
-    unsigned int v,pv;
+    unsigned int v;
     unsigned int c=0;
 
     // Explanation:
@@ -4070,7 +4066,7 @@ void FDC_WAIT_TIMER_HACK(void) {
         void CALLBACK_Idle(void);
         CALLBACK_Idle();
 
-        pv = v;
+        unsigned int pv = v;
 
         v  = (unsigned int)IO_ReadB(0x71);
         v |= (unsigned int)IO_ReadB(0x71) << 8u;
@@ -6633,7 +6629,6 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 unsigned int dos_conventional_limit = 0;
 
 bool AdapterROM_Read(Bitu address,unsigned long *size) {
-    unsigned char chksum=0;
     unsigned char c[3];
     unsigned int i;
 
@@ -6646,6 +6641,7 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
         c[i] = mem_readb(address+i);
 
     if (c[0] == 0x55 && c[1] == 0xAA) {
+        unsigned char chksum=0;
         *size = (unsigned long)c[2] * 512UL;
         for (i=0;i < (unsigned int)(*size);i++) chksum += mem_readb(address+i);
         if (chksum != 0) {

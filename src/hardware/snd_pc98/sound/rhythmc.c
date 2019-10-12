@@ -44,10 +44,9 @@ void rhythm_initialize(UINT rate) {
 void rhythm_deinitialize(void) {
 
 	UINT	i;
-	SINT16	*ptr;
 
 	for (i=0; i<6; i++) {
-		ptr = rhythmcfg.pcm[i].sample;
+		SINT16 *ptr = rhythmcfg.pcm[i].sample;
 		rhythmcfg.pcm[i].sample = NULL;
 		if (ptr) {
 			_MFREE(ptr);

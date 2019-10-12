@@ -311,10 +311,9 @@ static int
 euckanji1st(const OEMCHAR *str, int pos)
 {
 	int ret;
-	int c;
 
 	for (ret = 0; pos >= 0; ret ^= 1) {
-		c = (UINT8)str[pos--];
+		int c = (UINT8)str[pos--];
 		if (!ISKANJI(c))
 			break;
 	}
@@ -324,9 +323,9 @@ euckanji1st(const OEMCHAR *str, int pos)
 void
 file_cpyname(OEMCHAR *dst, const OEMCHAR *src, int maxlen)
 {
-	int i;
 
 	if (maxlen-- > 0) {
+		int i;
 		for (i = 0; i < maxlen && src[i] != '\0'; i++) {
 			dst[i] = src[i];
 		}

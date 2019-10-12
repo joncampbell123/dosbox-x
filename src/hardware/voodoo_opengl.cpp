@@ -229,8 +229,6 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 		UINT32 TEXMODE = texmode;
 		INT32 LODBASE = (i==0) ? extra->lodbase0 : extra->lodbase1;
 
-		INT64 oow;
-
 		UINT32 ilod = (UINT32)(v->tmu[i].lodmin >> 8);
 		if (!((v->tmu[i].lodmask >> ilod) & 1))
 			ilod++;
@@ -245,7 +243,7 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 		/* determine the S/T/LOD values for this texture */
 		if (TEXMODE_ENABLE_PERSPECTIVE(texmode))
 		{
-			oow = fast_reciplog((iterw), &lod);
+			INT64 oow = fast_reciplog((iterw), &lod);
 			s = (oow * (iters)) >> 29;
 			t = (oow * (itert)) >> 29;
 			lod += LODBASE;
@@ -382,25 +380,22 @@ UINT32 calculate_palsum(UINT32 tmunum) {
 
 void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 	voodoo_state *v=(voodoo_state*)extra->state;
-	UINT32 texbase;
 
 	INT32 smax, tmax;
 	UINT32 *texrgbp;
 	GLuint texID;
 
-	UINT32 TEXMODE;
-
 	UINT32 num_tmus = 1;
 	if (v->tmu[1].ram != NULL) num_tmus++;
 
 	for (UINT32 j=0; j<num_tmus; j++) {
-		TEXMODE = (UINT32)(j==0 ? extra->r_textureMode0 : extra->r_textureMode1);
+		UINT32 TEXMODE = (UINT32)(j==0 ? extra->r_textureMode0 : extra->r_textureMode1);
 
 		UINT32 ilod = (UINT32)(v->tmu[j].lodmin >> 8);
 		if (!((v->tmu[j].lodmask >> ilod) & 1))
 			ilod++;
 
-		texbase = v->tmu[j].lodoffset[ilod];
+		UINT32 texbase = v->tmu[j].lodoffset[ilod];
 
 		if ( extra->texcount && (extra->texcount >= j) && (v->tmu[j].lodmin < (8 << 8)) ) {
 			bool valid_texid = true;
@@ -509,9 +504,8 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, smax, tmax, 0, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, texrgbp);
 				extern PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT;
 				glGenerateMipmapEXT(GL_TEXTURE_2D);
-				UINT32 palsum=0;
 				if ((TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u)==0x05) || (TEXMODE_FORMAT(v->tmu[j].reg[textureMode].u)==0x0e)) {
-					palsum = calculate_palsum(j);
+					UINT32 palsum = calculate_palsum(j);
 					if (t == textures[j].end()) {
 						std::map<const UINT32, GLuint>* ids = new std::map<const UINT32, GLuint>();
 						(*ids)[palsum] = texID;
@@ -556,13 +550,12 @@ void ogl_printInfoLog(GLhandleARB obj)
 {
     int infologLength = 0;
     int charsWritten  = 0;
-    char *infoLog;
 
     glGetObjectParameterivARB(obj, GL_OBJECT_INFO_LOG_LENGTH_ARB, &infologLength);
 
     if (infologLength > 0)
     {
-		infoLog = (char *)malloc((size_t)infologLength);
+		char *infoLog = (char *)malloc((size_t)infologLength);
 		glGetInfoLogARB(obj, infologLength, &charsWritten, infoLog);
 		LOG_MSG("%s\n",infoLog);
 		free(infoLog);

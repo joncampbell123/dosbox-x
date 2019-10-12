@@ -1287,7 +1287,6 @@ public:
     virtual bool CheckEvent(SDL_Event * event) {
         SDL_JoyAxisEvent * jaxis = NULL;
         SDL_JoyButtonEvent * jbutton = NULL;
-        Bitu but = 0;
 
         switch(event->type) {
             case SDL_JOYAXISMOTION:
@@ -1305,7 +1304,7 @@ public:
                     jbutton = &event->jbutton;
                     bool state;
                     state=jbutton->type==SDL_JOYBUTTONDOWN;
-                    but = jbutton->button % emulated_buttons;
+                    Bitu but = jbutton->button % emulated_buttons;
                     if ((unsigned int)jbutton->which == (unsigned int)stick) {
                         JOYSTICK_Button(emustick, but, state);
                     }

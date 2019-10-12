@@ -925,15 +925,14 @@ void ncc_table_write(ncc_table *n, UINT32 regnum, UINT32 data)
 
 void ncc_table_update(ncc_table *n)
 {
-	int r, g, b, i;
-
-	/* generte all 256 possibilities */
-	for (i = 0; i < 256; i++)
+	/* generate all 256 possibilities */
+	for (int i = 0; i < 256; i++)
 	{
 		int vi = (i >> 2) & 0x03;
 		int vq = (i >> 0) & 0x03;
 
 		/* start with the intensity */
+		int r, g, b;
 		r = g = b = n->y[(i >> 4) & 0x0f];
 
 		/* add the coloring */
@@ -1248,23 +1247,21 @@ void poly_render_triangle_custom(void *dest, int startscanline, int numscanlines
 		/* determine how much to advance to hit the next bucket */
 		scaninc = 1;
 
+		const poly_extent *extent = &extents[(curscan + extnum) - startscanline];
+		INT32 istartx = extent->startx, istopx = extent->stopx;
+
+		/* force start < stop */
+		if (istartx > istopx)
 		{
-			const poly_extent *extent = &extents[(curscan + extnum) - startscanline];
-			INT32 istartx = extent->startx, istopx = extent->stopx;
-
-			/* force start < stop */
-			if (istartx > istopx)
-			{
-				INT32 temp = istartx;
-				istartx = istopx;
-				istopx = temp;
-			}
-
-			/* set the extent and update the total pixel count */
-			unit->extent[extnum].startx = (INT16)istartx;
-			unit->extent[extnum].stopx = (INT16)istopx;
-			raster_fastfill(dest,curscan,extent,extra);
+			INT32 temp = istartx;
+			istartx = istopx;
+			istopx = temp;
 		}
+
+		/* set the extent and update the total pixel count */
+		unit->extent[extnum].startx = (INT16)istartx;
+		unit->extent[extnum].stopx = (INT16)istopx;
+		raster_fastfill(dest,curscan,extent,extra);
 		delete unit;
 	}
 }
@@ -2871,7 +2868,6 @@ UINT32 lfb_r(UINT32 offset)
 	LOG(LOG_VOODOO,LOG_WARN)("Voodoo:read LFB offset %X", offset);
 	UINT16 *buffer;
 	UINT32 bufmax;
-	UINT32 bufoffs;
 	UINT32 data;
 	int x, y, scry;
 	UINT32 destbuf;
@@ -2914,7 +2910,7 @@ UINT32 lfb_r(UINT32 offset)
 		data = voodoo_ogl_read_pixel(x, scry+1);
 	} else {
 		/* advance pointers to the proper row */
-		bufoffs = (unsigned long)((long)scry * (long)v->fbi.rowpixels + (long)x);
+		UINT32 bufoffs = (unsigned long)((long)scry * (long)v->fbi.rowpixels + (long)x);
 		if (bufoffs >= bufmax){
 			LOG_MSG("LFB_R: Buffer offset out of bounds x=%i y=%i offset=%08X bufoffs=%08X\n", x, y, offset, (UINT32) bufoffs);
 			return 0xffffffff;
@@ -3173,7 +3169,7 @@ void fastfill(voodoo_state *v)
 	poly_extent extents[64];
 	UINT16 dithermatrix[16];
 	UINT16 *drawbuf = NULL;
-	int extnum, x, y;
+	int extnum, y;
 
 	/* if we're not clearing either, take no time */
 	if (!FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u) && !FBZMODE_AUX_BUFFER_MASK(v->reg[fbzMode].u))
@@ -3203,7 +3199,7 @@ void fastfill(voodoo_state *v)
 		{
 			DECLARE_DITHER_POINTERS_NO_DITHER_VAR;
 			COMPUTE_DITHER_POINTERS_NO_DITHER_VAR(v->reg[fbzMode].u, y);
-			for (x = 0; x < 4; x++)
+			for (int x = 0; x < 4; x++)
 			{
 				int r = v->reg[color1].rgb.r;
 				int g = v->reg[color1].rgb.g;

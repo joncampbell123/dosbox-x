@@ -9,16 +9,14 @@ extern	TMS3631CFG	tms3631cfg;
 
 void SOUNDCALL tms3631_getpcm(TMS3631 tms, SINT32 *pcm, UINT count) {
 
-	UINT	ch;
-	SINT32	data;
 	UINT	i;
 
 	if (tms->enable == 0) {
 		return;
 	}
 	while(count--) {
-		ch = 0;
-		data = 0;
+		UINT ch = 0;
+		SINT32 data = 0;
 		do {									// centre
 			if ((tms->enable & (1 << ch)) && (tms->ch[ch].freq)) {
 				for (i=0; i<4; i++) {

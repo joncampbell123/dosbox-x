@@ -210,8 +210,6 @@ void ZIPFile::close_current(void) {
 }
 
 int ZIPFile::open(const char *path,int mode) {
-    unsigned char tmp[512];
-
     close();
 
     if (path == NULL) return -1;
@@ -245,6 +243,7 @@ int ZIPFile::open(const char *path,int mode) {
 
     /* if we're supposed to READ the ZIP file, then start scanning now */
     if ((mode & 3) == O_RDONLY) {
+        unsigned char tmp[512];
         struct pkzip_central_directory_header_main chdr;
         struct pkzip_central_directory_header_end ehdr;
 
@@ -415,7 +414,7 @@ void zip_nv_pair_map::process_line(char *line/*will modify, assume caller has pu
 }
 
 void zip_nv_pair_map::read_nv_pairs(ZIPFileEntry &ent) {
-    char tmp[1024],*r,*f;
+    char tmp[1024];
     char line[1024],*w,*wf=line+sizeof(line)-1;
     char c;
     int l;
@@ -425,8 +424,8 @@ void zip_nv_pair_map::read_nv_pairs(ZIPFileEntry &ent) {
 
     w = line;
     while ((l=ent.read(tmp,sizeof(tmp))) > 0) {
-        r = tmp;
-        f = tmp + l;
+        char* r = tmp;
+        char* f = tmp + l;
 
         while (r < f) {
             c = *r++;

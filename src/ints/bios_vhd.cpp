@@ -212,10 +212,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 	string.reserve((size_t)(string.size() + (dataLength / 2) + 10)); //allocate a few extra bytes
 	char* indata = (char*)data;
 	char* lastchar = indata + dataLength;
-	int utf32code = 0;
-#if defined (WIN32) || defined(OS2)
-	int iso8859_1code = 0;
-#else
+#if !defined (WIN32) && !defined(OS2)
 	char temp[10];
 	char* tempout;
 	char* tempout2;
@@ -223,12 +220,12 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 #endif
 	while (indata < lastchar) {
 		//decode the character
-		utf32code = utf16le_decode((const char**)&indata, lastchar);
+		int utf32code = utf16le_decode((const char**)&indata, lastchar);
 		if (utf32code < 0) return false;
 #if defined (WIN32) || defined(OS2)
 		//MSDN docs define fopen to accept strings in the windows default code page, which is typically Windows-1252
 		//convert unicode string to ISO-8859, which is a subset of Windows-1252, and a lot easier to implement
-		iso8859_1code = iso8859_1_encode(utf32code);
+		int iso8859_1code = iso8859_1_encode(utf32code);
 		if (iso8859_1code < 0) return false;
 		//and note that backslashes stay as backslashes on windows
 		string += (char)iso8859_1code;

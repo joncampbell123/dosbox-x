@@ -819,7 +819,6 @@ static inline void advance(OPL3 *chip)
 		/* Phase Generator */
 		if(op->vib)
 		{
-			uint8_t block;
 			unsigned int block_fnum = CH->block_fnum;
 
 			unsigned int fnum_lfo   = (block_fnum&0x0380) >> 7;
@@ -829,7 +828,7 @@ static inline void advance(OPL3 *chip)
 			if (lfo_fn_table_index_offset)  /* LFO phase modulation active */
 			{
 				block_fnum += lfo_fn_table_index_offset;
-				block = (block_fnum&0x1c00) >> 10;
+				uint8_t block = (block_fnum&0x1c00) >> 10;
 				op->Cnt += (chip->fn_tab[block_fnum&0x03ff] >> (7-block)) * op->mul;
 			}
 			else    /* LFO phase modulation  = zero */

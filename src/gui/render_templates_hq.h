@@ -62,9 +62,6 @@ static inline bool diffYUV(Bit32u yuv1, Bit32u yuv2)
 
 static inline void conc2d(InitLUTs,SBPP)(void)
 {
-	int r, g, b;
-	int Y, u, v;
-
 # if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
 	(void)conc2d(InitLUTs,SBPP);
 # endif
@@ -72,6 +69,7 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 	_RGBtoYUV = (Bit32u *)malloc(65536 * sizeof(Bit32u));
 
 	for (int color = 0; color < 65536; ++color) {
+		int r, g, b;
 #if SBPP == 32
 		r = ((color & 0xF800) >> 11) << (8 - 5);
 		g = ((color & 0x07E0) >> 5) << (8 - 6);
@@ -81,9 +79,9 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 		g = ((color & greenMask) >> greenShift) << (8 - greenBits);
 		b = ((color & blueMask) >> blueShift) << (8 - blueBits);
 #endif
-		Y = (r + g + b) >> 2;
-		u = 128 + ((r - b) >> 2);
-		v = 128 + ((-r + 2 * g - b) >> 3);
+		int Y = (r + g + b) >> 2;
+		int u = 128 + ((r - b) >> 2);
+		int v = 128 + ((-r + 2 * g - b) >> 3);
 		_RGBtoYUV[color] = (Bit32u)((Y << 16) | (u << 8) | v);
 	}
 }

@@ -1394,7 +1394,7 @@ void MenuShadeRect(int x,int y,int w,int h) {
 
         if (sdl.surface->format->BitsPerPixel == 32) {
             unsigned char *scan;
-            uint32_t *row,mask;
+            uint32_t mask;
 
             mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
                 ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
@@ -1406,14 +1406,14 @@ void MenuShadeRect(int x,int y,int w,int h) {
             scan += y * sdl.surface->pitch;
             scan += x * 4;
             while (h-- > 0) {
-                row = (uint32_t*)scan;
+                uint32_t *row = (uint32_t*)scan;
                 scan += sdl.surface->pitch;
                 for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
             }
         }
         else if (sdl.surface->format->BitsPerPixel == 16) {
             unsigned char *scan;
-            uint16_t *row,mask;
+            uint16_t mask;
 
             mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
                 ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
@@ -1425,7 +1425,7 @@ void MenuShadeRect(int x,int y,int w,int h) {
             scan += y * sdl.surface->pitch;
             scan += x * 2;
             while (h-- > 0) {
-                row = (uint16_t*)scan;
+                uint16_t *row = (uint16_t*)scan;
                 scan += sdl.surface->pitch;
                 for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
             }
@@ -1481,7 +1481,6 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 
         if (sdl.surface->format->BitsPerPixel == 32) {
             unsigned char *scan;
-            uint32_t *row;
 
             assert(sdl.surface->pixels != NULL);
 
@@ -1489,14 +1488,13 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
             scan += y * sdl.surface->pitch;
             scan += x * 4;
             while (h-- > 0) {
-                row = (uint32_t*)scan;
+                uint32_t *row = (uint32_t*)scan;
                 scan += sdl.surface->pitch;
                 for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
             }
         }
         else if (sdl.surface->format->BitsPerPixel == 16) {
             unsigned char *scan;
-            uint16_t *row;
 
             assert(sdl.surface->pixels != NULL);
 
@@ -1504,7 +1502,7 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
             scan += y * sdl.surface->pitch;
             scan += x * 2;
             while (h-- > 0) {
-                row = (uint16_t*)scan;
+                uint16_t *row = (uint16_t*)scan;
                 scan += sdl.surface->pitch;
                 for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
             }
@@ -2410,8 +2408,9 @@ void res_init(void) {
 
 void res_input(bool type, const char * res) {
     Section* sec = control->GetSection("sdl");
-    char win_res[11];
+
     if(sec) {
+        char win_res[11];
         strcpy(win_res,res);
         if(type) {
             std::string tmp("windowresolution="); tmp.append(win_res);
@@ -3232,13 +3231,13 @@ static void GUI_StartUp() {
   #endif
 #endif
 
-    int width=1024;
-    int height=768;
     if (!sdl.desktop.full.width) {
+        int width=1024;
         sdl.desktop.full.width_auto = true;
         sdl.desktop.full.width=width;
     }
     if (!sdl.desktop.full.height) {
+        int height=768;
         sdl.desktop.full.height_auto = true;
         sdl.desktop.full.height=height;
     }
@@ -4230,8 +4229,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             break;
                         case SDL_MOUSEMOTION:
                             {
-                                bool noRedrawNew = false,noRedrawOld = false;
-
                                 sel_item = DOSBoxMenu::unassigned_item_handle;
 
                                 auto search = popup_stack.end();
@@ -4256,6 +4253,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                  *  search = iterator just past the item's level (to remove items if changing) */
 
                                 if (mainMenu.menuUserHoverAt != sel_item) {
+                                    bool noRedrawNew = false,noRedrawOld = false;
+
                                     if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
                                         mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
                                         if (mainMenu.get_item(mainMenu.menuUserHoverAt).get_type() == DOSBoxMenu::item_type_id)

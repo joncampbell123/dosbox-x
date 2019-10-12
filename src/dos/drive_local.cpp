@@ -78,10 +78,9 @@ static host_cnv_char_t cpcnv_temp[4096];
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 	host_cnv_char_t *df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
-    unsigned char ic;
 
     while (*s != 0 && s < sf) {
-        ic = (unsigned char)(*s++);
+        unsigned char ic = (unsigned char)(*s++);
         if (ic < 32 || ic > 127) return false; // non-representable
 
 #if defined(host_cnv_use_wchar)
@@ -101,13 +100,11 @@ bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_L
 template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
 	host_cnv_char_t *df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
-    unsigned char ic;
-    MT wc;
 
     while (*s != 0 && s < sf) {
-        ic = (unsigned char)(*s++);
+        unsigned char ic = (unsigned char)(*s++);
         if (ic >= map_max) return false; // non-representable
-        wc = map[ic]; // output: unicode character
+        MT wc = map[ic]; // output: unicode character
 
 #if defined(host_cnv_use_wchar)
         *d++ = (host_cnv_char_t)wc;
@@ -126,24 +123,21 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
 template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
 	host_cnv_char_t *df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
-    uint16_t ic;
-    MT rawofs;
-    MT wc;
 
     while (*s != 0 && s < sf) {
-        ic = (unsigned char)(*s++);
+        uint16_t ic = (unsigned char)(*s++);
         if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
         }
 
-        rawofs = hitbl[ic >> 6];
+        MT rawofs = hitbl[ic >> 6];
         if (rawofs == 0xFFFF)
             return false;
 
         assert((size_t)(rawofs+ (Bitu)0x40) <= rawtbl_max);
-        wc = rawtbl[rawofs + (ic & 0x3F)];
+        MT wc = rawtbl[rawofs + (ic & 0x3F)];
         if (wc == 0x0000)
             return false;
 
@@ -191,10 +185,9 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
 template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
-    int ic;
-    int oc;
 
     while (*s != 0 && s < sf) {
+        int ic;
 #if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
 #else
@@ -202,7 +195,7 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
             return false; // non-representable
 #endif
 
-        oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        int oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
 
@@ -226,10 +219,9 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
 template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
-    int ic;
-    int oc;
 
     while (*s != 0 && s < sf) {
+        int ic;
 #if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
 #else
@@ -237,7 +229,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
             return false; // non-representable
 #endif
 
-        oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
+        int oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
         if (oc < 0)
             return false; // non-representable
 
@@ -254,9 +246,9 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
 bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
-    int ic;
 
     while (*s != 0 && s < sf) {
+        int ic;
 #if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
 #else
@@ -621,8 +613,11 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
     
-	char end[2]={CROSS_FILESPLIT,0};
-	if (tempDir[strlen(tempDir)-1]!=CROSS_FILESPLIT) strcat(tempDir,end);
+	
+	if (tempDir[strlen(tempDir)-1]!=CROSS_FILESPLIT) {
+		char end[2]={CROSS_FILESPLIT,0};
+		strcat(tempDir,end);
+	}
 	
 	Bit16u id;
 	if (!dirCache.FindFirst(tempDir,id)) {
