@@ -96,7 +96,6 @@ int SDL_SetGamma(float red, float green, float blue)
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;	
 
-	succeeded = -1;
 	/* Prefer using SetGammaRamp(), as it's more flexible */
 	{
 		Uint16 ramp[3][256];
@@ -122,7 +121,6 @@ int SDL_GetGamma(float *red, float *green, float *blue)
 	SDL_VideoDevice *video = current_video;
 	SDL_VideoDevice *this  = current_video;	
 
-	succeeded = -1;
 	/* Prefer using GetGammaRamp(), as it's more flexible */
 	{
 		Uint16 ramp[3][256];

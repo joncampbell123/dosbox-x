@@ -1408,8 +1408,6 @@ static void SetupVCPI() {
 		XMS_EnableA20(true);
 	}
 
-	vcpi.enabled=false;
-
 	vcpi.ems_handle=0;	// use EMM system handle for VCPI data
 
 	vcpi.enabled=true;

@@ -525,7 +525,6 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 			break;
 		case 3:
 			spkr.pit_mode3_counting = 1;
-			spkr.pit_new_max = spkr.pit_new_max;
 			spkr.pit_new_half=spkr.pit_new_max/2;
 			spkr.pit_index = 0;
 			spkr.pit_max = spkr.pit_new_max;

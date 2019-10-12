@@ -435,7 +435,6 @@ WINDOW *dupwin(WINDOW *win)
     new->_pary = win->_pary;
     new->_parent = win->_parent;
     new->_bkgd = win->_bkgd;
-    new->_flags = win->_flags;
 
     return new;
 }

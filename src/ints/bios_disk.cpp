@@ -1779,7 +1779,6 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     reserved_cylinders = 0;
     diskSizeK = imgSizeK;
     diskimg = imgFile;
-    active = false;
 
     if (imgName != NULL)
         diskname = (const char*)imgName;
@@ -2077,7 +2076,6 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     reserved_cylinders = 0;
     diskSizeK = imgSizeK;
     diskimg = imgFile;
-    active = false;
 
     if (imgName != NULL)
         diskname = (const char*)imgName;

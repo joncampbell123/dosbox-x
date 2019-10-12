@@ -991,7 +991,6 @@ public:
             chan=chan->next;
         }
         if (cmd->FindExist("/NOSHOW")) return;
-        chan=mixer.channels;
         WriteOut("Channel  Main    Main(dB)\n");
         ShowVolume("MASTER",mixer.mastervol[0],mixer.mastervol[1]);
         ShowVolume("RECORD",mixer.recordvol[0],mixer.recordvol[1]);

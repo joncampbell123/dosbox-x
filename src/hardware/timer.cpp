@@ -744,7 +744,6 @@ void TIMER_BIOS_INIT_Configure() {
     pit[1].output = true;
     pit[1].gate = true;
 	pit[1].bcd = false;
-	pit[1].write_state = 1;
 	pit[1].read_state = 1;
 	pit[1].go_read_latch = true;
 	pit[1].cntr = 18;
@@ -757,7 +756,6 @@ void TIMER_BIOS_INIT_Configure() {
     pit[2].output = true;
     pit[2].gate = false;
 	pit[2].bcd = false;
-	pit[2].write_state = 1;
 	pit[2].read_state = 1;
 	pit[2].go_read_latch = true;
 	pit[2].cntr = 18;
