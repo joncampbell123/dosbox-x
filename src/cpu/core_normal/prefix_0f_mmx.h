@@ -978,7 +978,6 @@
 		dest->ub.b3 = src.ub.b1;
 		dest->ub.b2 = dest->ub.b1;
 		dest->ub.b1 = src.ub.b0;
-		dest->ub.b0 = dest->ub.b0;
 		break;
 	}
 	CASE_0F_D(0x61)												/* PUNPCKLWD Pq,Qq */
@@ -995,7 +994,6 @@
 		dest->uw.w3 = src.uw.w1;
 		dest->uw.w2 = dest->uw.w1;
 		dest->uw.w1 = src.uw.w0;
-		dest->uw.w0 = dest->uw.w0;
 		break;
 	}
 	CASE_0F_D(0x62)												/* PUNPCKLDQ Pq,Qq */

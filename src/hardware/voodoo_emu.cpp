@@ -1310,7 +1310,7 @@ static void update_statistics(voodoo_state *v, bool accumulate)
 
 void register_w(UINT32 offset, UINT32 data) {
 //	voodoo_reg reg;
-	UINT32 regnum  = (offset) & 0xff;
+	UINT32 regnum;
 	UINT32 chips   = (offset>>8) & 0xf;
 //	reg.u = data;
 

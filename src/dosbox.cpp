@@ -1957,7 +1957,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->SetValue("auto",/*init*/true);
     Pstring->Set_values(cyclest);
 
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
 
     Pint = secprop->Add_int("cycleup",Property::Changeable::Always,10);
     Pint->SetMinMax(1,1000000);
@@ -2625,7 +2625,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
     Pmulti_remain->SetValue("dummy",/*init*/true);
     Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help(
         "set type of device connected to com port.\n"
         "Can be disabled, dummy, modem, nullmodem, directserial.\n"
@@ -2643,21 +2643,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
     Pmulti_remain->SetValue("dummy",/*init*/true);
     Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
 
     Pmulti_remain = secprop->Add_multiremain("serial3",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
     Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
 
     Pmulti_remain = secprop->Add_multiremain("serial4",Property::Changeable::WhenIdle," ");
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
     Pmulti_remain->SetValue("disabled",/*init*/true);
     Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
+    Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
 
 #if C_PRINTER
@@ -3146,7 +3146,7 @@ void DOSBOX_SetupConfigSections(void) {
                 "         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
                 "         Using IRQ 9, 12, 13, or IRQ 2-7 may cause problems with MS-DOS CD-ROM drivers.");
 
-        Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
+        secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
         if (i == 0) Pint->Set_help("Base I/O port for IDE controller. Set to 0 for default.\n"
                 "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
                 "         Using any port other than 1F0, 170, 1E8 or 168 can prevent MS-DOS CD-ROM drivers from detecting the IDE controller.");

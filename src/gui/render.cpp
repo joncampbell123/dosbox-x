@@ -450,8 +450,6 @@ void RENDER_Reset( void ) {
             simpleBlock = &ScaleNormal4x;
         else if (render.scale.size == 10 && !(dblh || dblw) && render.scale.hardware)
             simpleBlock = &ScaleNormal5x;
-        else
-            simpleBlock = &ScaleNormal1x;
         /* Maybe override them */
 #if RENDER_USE_ADVANCED_SCALERS>0
         switch (render.scale.op) {
