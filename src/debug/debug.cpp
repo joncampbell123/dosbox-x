@@ -3067,12 +3067,13 @@ Bit32u DEBUG_CheckKeys(void) {
 
                 if (cpudecoder == DEBUG_NullCPUCore)
                     ret = -1; /* DEBUG_Loop() must exit */
+                else
+                    ret = (*cpudecoder)();
 
 				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 
 				skipFirstInstruction = true; // for heavy debugger
 				CPU_Cycles = 1;
-				ret=(*cpudecoder)();
 
 				// ensure all breakpoints are activated
 				CBreakpoint::ActivateBreakpoints();
@@ -4144,7 +4145,10 @@ bool CDebugVar::LoadVars(char* name)
 
 	// read number of vars
 	Bit16u num;
-	if (fread(&num,sizeof(num),1,f) != 1) return false;
+	if (fread(&num,sizeof(num),1,f) != 1) {
+		fclose(f);
+		return false;
+	}
 
 	for (Bit16u i=0; i<num; i++) {
 		char name[16];
