@@ -3067,12 +3067,13 @@ Bit32u DEBUG_CheckKeys(void) {
 
                 if (cpudecoder == DEBUG_NullCPUCore)
                     ret = -1; /* DEBUG_Loop() must exit */
+                else
+                    ret = (*cpudecoder)();
 
 				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 
 				skipFirstInstruction = true; // for heavy debugger
 				CPU_Cycles = 1;
-				ret=(*cpudecoder)();
 
 				// ensure all breakpoints are activated
 				CBreakpoint::ActivateBreakpoints();
