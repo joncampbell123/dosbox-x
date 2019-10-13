@@ -2117,11 +2117,13 @@ restart_int:
         }
         if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
+            fclose(f);
             return;
         }
         Bit8u bufferbyte=0;
         if(fwrite(&bufferbyte,1,1,f)!=1) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
+            fclose(f);
             return;
         }
 

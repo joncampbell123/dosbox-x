@@ -213,10 +213,13 @@ int SDLNet_GetLocalAddresses(IPaddress *addresses, int maxcount)
     }
 
     if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == ERROR_BUFFER_OVERFLOW) {
-        pAdapterInfo = (IP_ADAPTER_INFO *) SDL_realloc(pAdapterInfo, ulOutBufLen);
-        if (pAdapterInfo == NULL) {
-			return 0;
+        PIP_ADAPTER_INFO pNewAdapterInfo = (IP_ADAPTER_INFO*)SDL_realloc(pAdapterInfo, ulOutBufLen);
+        if (pNewAdapterInfo == NULL) {
+            SDL_free(pAdapterInfo);
+            return 0;
         }
+        pAdapterInfo = pNewAdapterInfo;
+
 		dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
     }
 
