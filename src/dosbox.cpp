@@ -1154,7 +1154,7 @@ void DOSBOX_SetupConfigSections(void) {
         "  The maximum resolution and color depth the svga_s3 will be able to display\n"
         "  is determined by this value.\n "
         " -1: auto (vmemsizekb is ignored)\n"
-        "  0: 512k (800x600  at 256 colors)\n"
+        "  0: 512k (800x600  at 256 colors) if vmemsizekb=0\n"
         "  1: 1024x768  at 256 colors or 800x600  at 64k colors\n"
         "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
         "  4: 1600x1200 at 64k colors or 1024x768 at 16M colors\n"
