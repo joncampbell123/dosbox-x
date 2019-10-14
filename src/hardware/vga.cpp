@@ -931,9 +931,7 @@ void VGA_Reset(Section*) {
             if (vga.mem.memsize < _KB_bytes(4)) vga.mem.memsize = _KB_bytes(4);
             break;
         case MCH_CGA:
-            // FIXME: CGA crashes with vmemsize=16kb, even though real CGA has 16KB of VRAM
-            if (vga.mem.memsize < _KB_bytes(32)) vga.mem.memsize = _KB_bytes(32);
-//            if (vga.mem.memsize < _KB_bytes(16)) vga.mem.memsize = _KB_bytes(16);
+            if (vga.mem.memsize < _KB_bytes(16)) vga.mem.memsize = _KB_bytes(16);
             break;
         case MCH_TANDY:
         case MCH_PCJR:

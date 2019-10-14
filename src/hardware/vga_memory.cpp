@@ -1838,11 +1838,11 @@ public:
 
 	Bit8u readb(PhysPt addr) {
 		delay();
-		return vga.tandy.mem_base[addr - 0xb8000];
+		return vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF];
 	}
 	void writeb(PhysPt addr,Bit8u val){
 		delay();
-		vga.tandy.mem_base[addr - 0xb8000] = val;
+		vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF] = val;
 	}
 	
 };
