@@ -1147,12 +1147,13 @@ void DOSBOX_SetupConfigSections(void) {
             "will do nothing but cause a significant drop in frame rate which is probably not\n"
             "what you want. Recommended values -1, 0 to 2000.");
 
-    Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,2);
-    Pint->SetMinMax(0,8);
+    Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,8);
     Pint->Set_help(
         "Amount of video memory in megabytes.\n"
         "  The maximum resolution and color depth the svga_s3 will be able to display\n"
         "  is determined by this value.\n "
+        " -1: auto (vmemsizekb is ignored)\n"
         "  0: 512k (800x600  at 256 colors)\n"
         "  1: 1024x768  at 256 colors or 800x600  at 64k colors\n"
         "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
