@@ -1,4 +1,10 @@
 0.82.23 (next)
+  - Slow CGA memory access handler now wraps to 16KB
+    correctly, and resolves a segfault that can happen
+    if the last 16KB is accessed by the guest if
+    vmemsizekb=16.
+  - vmemsize default is now -1, which means to pick a
+    video memory size automatically.
   - Added PC-98 INT 1Bh AH=03h SCSI BIOS command, which
     allows FreeDOS98 to boot.
   - INT 33h emulation fixed not to reset mouse min/max
