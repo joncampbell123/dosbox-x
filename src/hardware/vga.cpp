@@ -1367,6 +1367,7 @@ extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF 
 extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 
 void pc98_update_palette(void);
+void UpdateCGAFromSaveState(void);
 
 void VGA_LoadState(Section *sec) {
     (void)sec;//UNUSED
@@ -1422,6 +1423,8 @@ void VGA_LoadState(Section *sec) {
                 vga.tandy.color_select =        (unsigned char)nv.get_ulong("cga.color_select");
             }
         }
+
+        UpdateCGAFromSaveState();
 
         for (unsigned int i=0;i < 0x10;i++)
             VGA_ATTR_SetPalette(i,vga.attr.palette[i]);

@@ -32,6 +32,13 @@
 static Bitu read_cga(Bitu /*port*/,Bitu /*iolen*/);
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/);
 
+void UpdateCGAFromSaveState(void) {
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
+        write_cga(0x3D8,vga.tandy.mode_control,1); // restore CGA
+        write_cga(0x3D9,vga.tandy.color_select,1); // restore CGA
+    }
+}
+
 static unsigned char mcga_crtc_dat_org = 0x00;
 
 static void write_crtc_index_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
