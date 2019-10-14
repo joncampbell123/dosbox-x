@@ -1460,6 +1460,18 @@ void VGA_SaveState(Section *sec) {
                 ent->write(tmp, 256 * 3);
             }
         }
+
+        {
+            char tmp[512],*w=tmp;
+
+            ZIPFileEntry *ent = savestate_zip.new_entry("cgareg.txt");
+            if (ent != NULL) {
+                w += sprintf(w,"cga.mode_control=0x%x\n",(unsigned int)vga.tandy.mode_control);
+                w += sprintf(w,"cga.color_select=0x%x\n",(unsigned int)vga.tandy.color_select);
+                assert(w < (tmp + sizeof(tmp)));
+                ent->write(tmp, (size_t)(w - tmp));
+            }
+        }
     }
 }
 
