@@ -1414,6 +1414,15 @@ void VGA_LoadState(Section *sec) {
             }
         }
 
+        {
+            ZIPFileEntry *ent = savestate_zip.get_entry("cgareg.txt");
+            if (ent != NULL) {
+                zip_nv_pair_map nv(*ent);
+                vga.tandy.mode_control =        (unsigned char)nv.get_ulong("cga.mode_control");
+                vga.tandy.color_select =        (unsigned char)nv.get_ulong("cga.color_select");
+            }
+        }
+
         for (unsigned int i=0;i < 0x10;i++)
             VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 
