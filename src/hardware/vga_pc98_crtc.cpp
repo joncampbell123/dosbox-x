@@ -156,12 +156,17 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
 
 bool egc_enable_enable = false;
 
+void update_gdc_analog(void) {
+    /* gdc analog mode if analog (16-color) or 256-color mode */
+    gdc_analog = (pc98_gdc_vramop & ((1 << VOPBIT_ANALOG)|(1 << VOPBIT_VGA))) != 0;
+}
+
 /* Port 0x6A command handling */
 void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // 16-color (analog) disable
-            gdc_analog = false;
             pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
+            update_gdc_analog();
             VGA_SetupHandlers();   // confirmed on real hardware: this disables access to E000:0000
             pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
                                    // They're both there in hardware, but one or another is active depending on analog enable.
@@ -169,8 +174,8 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x01: // or enable
             if (enable_pc98_16color) {
-                gdc_analog = true;
                 pc98_gdc_vramop |= (1 << VOPBIT_ANALOG);
+                update_gdc_analog();
                 VGA_SetupHandlers();   // confirmed on real hardware: this enables access to E000:0000
                 pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
                                        // They're both there in hardware, but one or another is active depending on analog enable.
@@ -198,6 +203,7 @@ void pc98_port6A_command_write(unsigned char b) {
         case 0x20: // 256-color mode disable
             if (enable_pc98_egc && egc_enable_enable) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_VGA);
+                update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
                 pc98_update_palette();
                 pc98_update_page_ptrs();
@@ -206,6 +212,8 @@ void pc98_port6A_command_write(unsigned char b) {
         case 0x21: // 256-color mode enable
             if (enable_pc98_egc && egc_enable_enable && enable_pc98_256color) {
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
+                LOG_MSG("256-color enable");
+                update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
                 pc98_update_palette();
                 pc98_update_page_ptrs();
