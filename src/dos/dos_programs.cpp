@@ -814,6 +814,7 @@ public:
     void Run(void) {
         std::string bios;
         std::string boothax_str;
+        signed char pc98_640x200 = -1; // -1 = default  0 = no  1 = yes
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
@@ -827,6 +828,12 @@ public:
 
         if (cmd->FindExist("-swap-one-drive",true))
             swaponedrive = true;
+
+        // debugging options
+        if (cmd->FindExist("-pc98-640x200",true))
+            pc98_640x200 = 1;
+        if (cmd->FindExist("-pc98-640x400",true))
+            pc98_640x200 = 0;
 
         if (cmd->FindExist("-force",true))
             force = true;
@@ -1507,7 +1514,10 @@ public:
                 /* Guess: If the boot sector is smaller than 512 bytes/sector, the PC-98 BIOS
                  *        probably sets the graphics layer to 640x200. Some games (Ys) do not
                  *        set but assume instead that is the mode of the graphics layer */
-                if (pc98_sect128) {
+                /* if pc98_640x200 < 0 && sect128, do it
+                 * if pc98_640x200 > 0, do it.
+                 * else do not */
+                if ((pc98_sect128 && pc98_640x200 < 0) || (pc98_640x200 > 0)) {
                     reg_eax = 0x4200;   // setup 640x200 graphics
                     reg_ecx = 0x8000;   // lower
                     CALLBACK_RunRealInt(0x18);
