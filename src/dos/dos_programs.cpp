@@ -1491,7 +1491,18 @@ public:
                  *       Either there's some rule the BIOS uses to decide the initial graphics mode,
                  *       or there's something about 256-color mode that the hardware does not permit
                  *       640x200 256-color mode and therefore "Alone in the Dark" can just write
-                 *       21h to port 6Ah to get what it wants anyway. */
+                 *       21h to port 6Ah to get what it wants anyway.
+                 *
+                 * Check:
+                 *
+                 *      - What happens if you set 640x200 8-color mode, and then switch directly to
+                 *        256-color mode by writing 21h to port 6Ah?
+                 *
+                 *      - Is it possible in any way to make a 640x200 double-scanned 256-color mode?
+                 *
+                 *      - What is the state of the graphics plane at system startup (when booting
+                 *        the OS from disk)? Does it matter between hard disk and floppy? Does
+                 *        sector size matter? */
 
                 /* Guess: If the boot sector is smaller than 512 bytes/sector, the PC-98 BIOS
                  *        probably sets the graphics layer to 640x200. Some games (Ys) do not
