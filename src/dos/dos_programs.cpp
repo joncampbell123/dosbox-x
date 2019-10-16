@@ -1153,7 +1153,7 @@ public:
         bool pc98_sect128 = false;
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
 
-        if (!has_read && IS_PC98_ARCH) {
+        if (!has_read && IS_PC98_ARCH && drive < 'C') {
             /* this may be one of those odd FDD images where track 0, head 0 is all 128-byte sectors
              * and the rest of the disk is 256-byte sectors. */
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea, 128) == 0 &&
@@ -1167,7 +1167,7 @@ public:
             }
         }
 
-        if (!has_read && IS_PC98_ARCH) {
+        if (!has_read && IS_PC98_ARCH && drive < 'C') {
             /* another nonstandard one with track 0 having 256 bytes/sector while the rest have 1024 bytes/sector */
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea,       256) == 0 &&
                 imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 256, 256) == 0 &&
@@ -1481,6 +1481,17 @@ public:
                 reg_ebp = 0;
                 reg_eax = 0x30;
                 reg_edx = 0x1;
+
+                /* TODO: What exactly happens here with initial graphics state is unclear and unknown.
+                 *       Games like YS II seem to assume the graphics mode is 640x200 on startup, which
+                 *       is why this code is here, however the PC-9821 port of "Alone in the Dark"
+                 *       directly programs port 6Ah to get 256-color mode and it seems to assume the
+                 *       graphics mode will come out 640x400.
+                 *
+                 *       Either there's some rule the BIOS uses to decide the initial graphics mode,
+                 *       or there's something about 256-color mode that the hardware does not permit
+                 *       640x200 256-color mode and therefore "Alone in the Dark" can just write
+                 *       21h to port 6Ah to get what it wants anyway. */
 
                 /* Guess: If the boot sector is smaller than 512 bytes/sector, the PC-98 BIOS
                  *        probably sets the graphics layer to 640x200. Some games (Ys) do not
