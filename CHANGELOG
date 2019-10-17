@@ -1,4 +1,8 @@
 0.82.23 (next)
+  - PC-98 256-color mode fixed to ignore doublescan
+    and 200-line bits of the GDC to match real hardware
+    behavior. This fixes display problems with
+    "Alone in the Dark"
   - BOOT command will now always set 640x200 8-color
     graphics mode when booting PC-98 disk images,
     to match the apparent behavior of real hardware.
