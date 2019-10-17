@@ -426,8 +426,15 @@ Bit16u PC98_GDC_state::read_fifo(void) {
 }
 
 void PC98_GDC_state::next_line(void) {
+    /* */
+
     row_line++;
-    if (row_line == row_height) {
+    if (row_line == row_height || /*HACK! See comments!*/(!master_sync/*graphics layer*/ && (pc98_gdc_vramop & (1u << VOPBIT_VGA)))) {
+        /* NTS: According to real PC-9821 hardware, doublescan is ignored entirely in 256-color mode.
+         *      The bits are still there in the GDC, and doublescan comes right back when 256-color mode is switched off.
+         *      Perhaps the hardware uses an entirely different address counting register during video raster?
+         *      Forcing this case at all times for 256-color mode is meant to emulate that fact.
+         *      This fixes issues with booting an HDI image of "Alone in the Dark" */
         scan_address += display_pitch >> (IM_bit ? 1u : 0u);
         row_line = 0;
     }

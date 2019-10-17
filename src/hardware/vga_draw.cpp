@@ -1906,7 +1906,9 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     disp_off = pc98_crt_mode ? 1 : 0;
 
     // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
-    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect)
+    // NTS: Doublescan seems to be ignored in 256-color mode, thus the HACK! below, according to real hardware.
+    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect &&
+        /*HACK!*/(pc98_gdc_vramop & (1u << VOPBIT_VGA)) == 0)
         ok_raster = (vga.draw.lines_done & 1) == 0;
 
     // Generally the master and slave GDC are given the same active display area, timing, etc.
