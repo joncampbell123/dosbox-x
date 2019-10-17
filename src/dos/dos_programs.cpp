@@ -814,7 +814,7 @@ public:
     void Run(void) {
         std::string bios;
         std::string boothax_str;
-        signed char pc98_640x200 = -1; // -1 = default  0 = no  1 = yes
+        bool pc98_640x200 = true;
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
@@ -831,9 +831,9 @@ public:
 
         // debugging options
         if (cmd->FindExist("-pc98-640x200",true))
-            pc98_640x200 = 1;
+            pc98_640x200 = true;
         if (cmd->FindExist("-pc98-640x400",true))
-            pc98_640x200 = 0;
+            pc98_640x200 = false;
 
         if (cmd->FindExist("-force",true))
             force = true;
@@ -1489,35 +1489,11 @@ public:
                 reg_eax = 0x30;
                 reg_edx = 0x1;
 
-                /* TODO: What exactly happens here with initial graphics state is unclear and unknown.
-                 *       Games like YS II seem to assume the graphics mode is 640x200 on startup, which
-                 *       is why this code is here, however the PC-9821 port of "Alone in the Dark"
-                 *       directly programs port 6Ah to get 256-color mode and it seems to assume the
-                 *       graphics mode will come out 640x400.
+                /* It seems 640x200 8-color digital mode is the state of the graphics hardware when the
+                 * BIOS boots the OS, and some games like Ys II assume the hardware is in this state.
                  *
-                 *       Either there's some rule the BIOS uses to decide the initial graphics mode,
-                 *       or there's something about 256-color mode that the hardware does not permit
-                 *       640x200 256-color mode and therefore "Alone in the Dark" can just write
-                 *       21h to port 6Ah to get what it wants anyway.
-                 *
-                 * Check:
-                 *
-                 *      - What happens if you set 640x200 8-color mode, and then switch directly to
-                 *        256-color mode by writing 21h to port 6Ah?
-                 *
-                 *      - Is it possible in any way to make a 640x200 double-scanned 256-color mode?
-                 *
-                 *      - What is the state of the graphics plane at system startup (when booting
-                 *        the OS from disk)? Does it matter between hard disk and floppy? Does
-                 *        sector size matter? */
-
-                /* Guess: If the boot sector is smaller than 512 bytes/sector, the PC-98 BIOS
-                 *        probably sets the graphics layer to 640x200. Some games (Ys) do not
-                 *        set but assume instead that is the mode of the graphics layer */
-                /* if pc98_640x200 < 0 && sect128, do it
-                 * if pc98_640x200 > 0, do it.
-                 * else do not */
-                if ((pc98_sect128 && pc98_640x200 < 0) || (pc98_640x200 > 0)) {
+                 * If I am wrong, you can pass --pc98-640x400 as a command line option to disable this. */
+                if (pc98_640x200) {
                     reg_eax = 0x4200;   // setup 640x200 graphics
                     reg_ecx = 0x8000;   // lower
                     CALLBACK_RunRealInt(0x18);
