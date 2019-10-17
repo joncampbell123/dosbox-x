@@ -8517,6 +8517,10 @@ private:
             }
 
             IO_Write(0x6A,0x00);    // switch back to 8-color mode
+
+            reg_eax = 0x4200;   // setup 640x200 graphics
+            reg_ecx = 0x8000;   // lower
+            CALLBACK_RunRealInt(0x18);
         }
         else {
             // restore 80x25 text mode
