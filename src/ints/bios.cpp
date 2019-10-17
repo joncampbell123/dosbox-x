@@ -8407,6 +8407,9 @@ private:
                 case CPU_ARCHTYPE_P55CSLOW:
                     cpu = "Pentium MMX";
                     break;
+                case CPU_ARCHTYPE_MIXED:
+                    cpu = "Auto (mixed)";
+                    break;
             }
 
             extern bool enable_fpu;
