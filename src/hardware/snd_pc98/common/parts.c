@@ -63,11 +63,9 @@ UINT PARTSCALL jis2sjis(UINT jis) {
 
 void PARTSCALL satuation_s16(SINT16 *dst, const SINT32 *src, UINT size) {
 
-	SINT32	data;
-
 	size >>= 1;
 	while(size--) {
-		data = *src++;
+		SINT32 data = *src++;
 		if (data > 32767) {
 			data = 32767;
 		}
@@ -80,11 +78,9 @@ void PARTSCALL satuation_s16(SINT16 *dst, const SINT32 *src, UINT size) {
 
 void PARTSCALL satuation_s16x(SINT16 *dst, const SINT32 *src, UINT size) {
 
-	SINT32	data;
-
 	size >>= 2;
 	while(size--) {
-		data = src[0];
+		SINT32 data = src[0];
 		if (data > 32767) {
 			data = 32767;
 		}

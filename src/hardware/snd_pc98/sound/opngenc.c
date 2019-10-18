@@ -59,7 +59,6 @@ void opngen_initialize(UINT rate) {
 	int		j;
 	double	pom;
 	long	detune;
-	double	freq;
 	UINT32	calcrate;
 
 	if (rate == 44100) {
@@ -152,7 +151,7 @@ void opngen_initialize(UINT rate) {
 		attacktable[i] = decaytable[i] = 0;
 	}
 	for (i=4; i<64; i++) {
-		freq = (double)(EVC_ENT << ENV_BITS) * FREQBASE4096;
+		double freq = (double)(EVC_ENT << ENV_BITS) * FREQBASE4096;
 		if (i < 8) {							// –Y‚ê‚Ä‚Ü‚·B
 			freq *= 1.0 + (i & 2) * 0.25;
 		}
@@ -373,7 +372,6 @@ static void channleupdate(OPNCH *ch) {
 	UINT8	kc = ch->kcode[0];
 	UINT	evr;
 	OPNSLOT	*slot;
-	int		s;
 
 	slot = ch->slot;
 	if (!(ch->extop)) {
@@ -391,7 +389,7 @@ static void channleupdate(OPNCH *ch) {
 	}
 	else {
 		for (i=0; i<4; i++, slot++) {
-			s = extendslot[i];
+			int s = extendslot[i];
 			slot->freq_inc = (ch->keynote[s] + slot->detune1[ch->kcode[s]])
 														* slot->multiple;
 			evr = ch->kcode[s] >> slot->keyscale;
@@ -413,7 +411,6 @@ void opngen_reset(void) {
 
 	OPNCH	*ch;
 	UINT	i;
-	OPNSLOT	*slot;
 	UINT	j;
 
 	ZeroMemory(&opngen, sizeof(opngen));
@@ -423,7 +420,7 @@ void opngen_reset(void) {
 	ch = opnch;
 	for (i=0; i<OPNCH_MAX; i++) {
 		ch->keynote[0] = 0;
-		slot = ch->slot;
+		OPNSLOT *slot = ch->slot;
 		for (j=0; j<4; j++) {
 			slot->env_mode = EM_OFF;
 			slot->env_cnt = EC_OFF;
@@ -485,9 +482,6 @@ void opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
 
 	UINT	chpos;
 	OPNCH	*ch;
-	OPNSLOT	*slot;
-	UINT	fn;
-	UINT8	blk;
 
 	chpos = reg & 3;
 	if (chpos == 3) {
@@ -496,7 +490,7 @@ void opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
 	sound_sync();
 	ch = opnch + chbase + chpos;
 	if (reg < 0xa0) {
-		slot = ch->slot + fmslot[(reg >> 2) & 3];
+		OPNSLOT *slot = ch->slot + fmslot[(reg >> 2) & 3];
 		switch(reg & 0xf0) {
 			case 0x30:					// DT1 MUL
 				set_dt1_mul(slot, value);
@@ -532,6 +526,8 @@ void opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
 		}
 	}
 	else {
+		UINT fn;
+		UINT8 blk;
 		switch(reg & 0xfc) {
 			case 0xa0:
 				blk = ch->keyfunc[0] >> 3;

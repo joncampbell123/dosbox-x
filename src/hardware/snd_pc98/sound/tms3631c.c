@@ -39,13 +39,12 @@ void tms3631_setvol(const UINT8 *vol) {
 
 	UINT	i;
 	UINT	j;
-	SINT32	data;
 
 	tms3631cfg.left = (vol[0] & 15) << 5;
 	tms3631cfg.right = (vol[1] & 15) << 5;
 	vol += 2;
 	for (i=0; i<16; i++) {
-		data = 0;
+		SINT32 data = 0;
 		for (j=0; j<4; j++) {
 			data += (vol[j] & 15) * ((i & (1 << j))?1:-1);
 		}

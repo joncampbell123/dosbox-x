@@ -145,10 +145,8 @@ void avi_writer_free_stream(avi_writer_stream *s) {
 }
 
 void avi_writer_free_streams(avi_writer *w) {
-    int i;
-
     if (w->avi_stream) {
-        for (i=0;i < w->avi_stream_max;i++)
+        for (int i=0;i < w->avi_stream_max;i++)
             avi_writer_free_stream(&w->avi_stream[i]);
         free(w->avi_stream);
     }
@@ -659,11 +657,11 @@ int avi_writer_update_avi_and_stream_headers(avi_writer *w) {
                 s->header.dwLength = s->sample_index_max;
         }
         else if (s->header.fccType == avi_fccType_audio) {
-            unsigned int nss,nlength=0;
+            unsigned int nlength=0;
 
             if (s->format != NULL && s->format_len >= sizeof(windows_WAVEFORMAT)) {
                 windows_WAVEFORMAT *w = (windows_WAVEFORMAT*)(s->format);
-                nss = __le_u16(&w->nBlockAlign);
+                unsigned int nss = __le_u16(&w->nBlockAlign);
                 if (nss != 0) nlength = s->sample_write_offset / nss;
             }
             else {
@@ -705,7 +703,6 @@ int avi_writer_update_avi_and_stream_headers(avi_writer *w) {
  *      returned is never larger than about 2MB or so */
 uint64_t avi_writer_stream_alloc_superindex(avi_writer *w,avi_writer_stream *s) {
     riff_chunk chunk;
-    uint64_t ofs;
 
     if (w == NULL || s == NULL)
         return 0ULL;
@@ -749,7 +746,7 @@ uint64_t avi_writer_stream_alloc_superindex(avi_writer *w,avi_writer_stream *s) 
         if ((s->indx_entryofs + sizeof(riff_indx_AVISUPERINDEX_entry)) > s->indx.data_length)
             return 0ULL;
 
-        ofs = (uint64_t)s->indx.absolute_data_offset + (uint64_t)s->indx_entryofs;
+        uint64_t ofs = (uint64_t)s->indx.absolute_data_offset + (uint64_t)s->indx_entryofs;
         s->indx_entryofs += (unsigned int)sizeof(riff_indx_AVISUPERINDEX_entry);
         return ofs;
     }

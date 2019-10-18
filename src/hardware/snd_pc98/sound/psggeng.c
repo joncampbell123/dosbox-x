@@ -11,10 +11,8 @@ extern	PSGGENCFG	psggencfg;
 void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 
 //	SINT32	noisevol;
-	UINT8	mixer;
 	UINT	noisetbl = 0;
 	PSGTONE	*tone;
-	PSGTONE	*toneterm;
 	SINT32	samp;
 //	UINT	psgvol;
 	SINT32	vol;
@@ -54,7 +52,7 @@ void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 				psg->evol = psggencfg.volume[psg->envvol];
 			}
 		}
-		mixer = psg->mixer;
+		UINT8 mixer = psg->mixer;
 		if (mixer & 0x38) {
             /* NTS: This code relies on signed integer underflow to determine when to advance
                     the pseudo-random noise generation sequence. It assumes that it can detect
@@ -83,7 +81,7 @@ void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 			}
 		}
 		tone = psg->tone;
-		toneterm = tone + 3;
+		PSGTONE *toneterm = tone + 3;
 		do {
 			vol = *(tone->pvol);
 			if (vol) {

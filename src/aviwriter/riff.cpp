@@ -751,8 +751,7 @@ int riff_stack_set_chunk_list_type(riff_chunk *c,riff_fourcc_t list,riff_fourcc_
 }
 
 void riff_stack_writing_sync(riff_stack *s) {
-	int64_t noffset = 0,x;
-	riff_chunk *t;
+	int64_t noffset = 0;
 
 	while (s->current >= 0) {
 		/* the caller uses this function when all chunks are to be completed,
@@ -762,12 +761,12 @@ void riff_stack_writing_sync(riff_stack *s) {
 		 *
 		 * as part of the process we must clear all disable_sync and
 		 * placeholder markings so the true state can be written back */
-		t = riff_stack_top(s);
+		riff_chunk *t = riff_stack_top(s);
 		t->disable_sync = 0;
 		t->placeholder = 0;
 		riff_stack_header_sync_all(s);
 		assert(s->top->absolute_data_offset >= (int64_t)0);
-		x = s->top->absolute_data_offset + s->top->absolute_data_length;
+		int64_t x = s->top->absolute_data_offset + s->top->absolute_data_length;
 		if (noffset < x) noffset = x;
 		riff_stack_pop(s);
 	}

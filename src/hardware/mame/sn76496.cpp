@@ -307,7 +307,7 @@ WRITE8_MEMBER( sn76496_base_device::stereo_w )
 
 void sn76496_base_device::write(uint8_t data)
 {
-	int n, r, c;
+	int r, c;
 
 	// update the output buffer before changing the registers
 //	m_sound->update();
@@ -356,7 +356,7 @@ void sn76496_base_device::write(uint8_t data)
 			{
 				if ((data & 0x80) == 0) logerror("sn76496_base_device: write to reg 6 with bit 7 clear; data was %03x, new write is %02x! report this to LN!\n", m_register[6], data);
 				if ((data & 0x80) == 0) m_register[r] = (m_register[r] & 0x3f0) | (data & 0x0f);
-				n = m_register[6];
+				int n = m_register[6];
 				// N/512,N/1024,N/2048,Tone #3 output
 				m_period[3] = ((n&3) == 3)? (m_period[2]<<1) : (1 << (5+(n&3)));
 				if (!(m_ncr_style_psg)) m_RNG = m_feedback_mask;

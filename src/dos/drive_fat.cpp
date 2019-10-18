@@ -650,25 +650,24 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 	Bit32u len = (Bit32u)strlen(dir);
 	char dirtoken[DOS_PATHLENGTH];
-	Bit32u currentClust = 0;
 	direntry foundEntry;
-	char * findDir;
 	strcpy(dirtoken,dir);
 
 	/* Skip if testing for root directory */
 	if ((len>0) && (dir[len-1]!='\\')) {
+		Bit32u currentClust = 0;
 		//LOG_MSG("Testing for dir %s", dir);
-		findDir = strtok(dirtoken,"\\");
+		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
 			findDir = strtok(NULL,"\\");
 			if(parDir && (findDir == NULL)) break;
 
-			char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
 				return false;
 			} else {
+				char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 				imgDTA->GetResult(find_name,find_size,find_date,find_time,find_attr);
 				if(!(find_attr &DOS_ATTR_DIRECTORY)) return false;
 			}
@@ -722,11 +721,10 @@ Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSe
 	Bit32u sectClust = (Bit32u)(logicalSector % bootbuffer.sectorspercluster);
 
 	Bit32u currentClust = startClustNum;
-	Bit32u testvalue;
 
 	while(skipClust!=0) {
 		bool isEOF = false;
-		testvalue = getClusterValue(currentClust);
+		Bit32u testvalue = getClusterValue(currentClust);
 		switch(fattype) {
 			case FAT12:
 				if(testvalue >= 0xff8) isEOF = true;
@@ -758,11 +756,10 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 	Bit32u endClust = (bytePos + clustSize - 1) / clustSize;
 	Bit32u countClust = 1;
 
-	Bit32u testvalue;
 	Bit32u currentClust = startCluster;
 	bool isEOF = false;
 	while(!isEOF) {
-		testvalue = getClusterValue(currentClust);
+		Bit32u testvalue = getClusterValue(currentClust);
 		if(testvalue == 0) {
 			/* What the crap?  Cluster is already empty - BAIL! */
 			break;
@@ -802,12 +799,11 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 }
 
 Bit32u fatDrive::appendCluster(Bit32u startCluster) {
-	Bit32u testvalue;
 	Bit32u currentClust = startCluster;
 	bool isEOF = false;
 	
 	while(!isEOF) {
-		testvalue = getClusterValue(currentClust);
+		Bit32u testvalue = getClusterValue(currentClust);
 		switch(fattype) {
 			case FAT12:
 				if(testvalue >= 0xff8) isEOF = true;
@@ -1803,7 +1799,6 @@ bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
 
 bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start/*=0*/) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	Bit32u logentsector;	/* Logical entry sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
@@ -1815,7 +1810,7 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	while(entNum>=0) {
-		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		Bit32u logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
@@ -1842,7 +1837,6 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 
 bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	Bit32u logentsector;	/* Logical entry sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector = 0;
 	Bit16u dirPos = 0;
@@ -1852,7 +1846,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	while(entNum>=0) {		
-		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		Bit32u logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
@@ -1883,8 +1877,6 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 
 bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
-	Bit32u logentsector; /* Logical entry sector */
-	Bit32u entryoffset;  /* Index offset within sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
 	
@@ -1893,8 +1885,8 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	for(;;) {		
-		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
-		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
+		Bit32u logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+		Bit32u entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector)); /* Index offset within sector */
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;

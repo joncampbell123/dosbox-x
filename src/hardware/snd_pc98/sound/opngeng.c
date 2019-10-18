@@ -53,7 +53,6 @@ extern	OPNCFG	opncfg;
 static void calcratechannel(OPNCH *ch) {
 
 	SINT32	envout;
-	SINT32	opout;
 
 	opngen.feedback2 = 0;
 	opngen.feedback3 = 0;
@@ -62,6 +61,7 @@ static void calcratechannel(OPNCH *ch) {
 	/* SLOT 1 */
 	CALCENV(envout, ch, 0);
 	if (envout > 0) {
+		SINT32	opout;
 		if (ch->feedback) {
 			/* with self feed back */
 			opout = ch->op1fb;
@@ -103,16 +103,14 @@ void SOUNDCALL opngen_getpcm(void *hdl, SINT32 *pcm, UINT count) {
 	OPNCH	*fm;
 	UINT	i;
 	UINT	playing;
-	SINT32	samp_l;
-	SINT32	samp_r;
 
 	if ((!opngen.playing) || (!count)) {
 		return;
 	}
 	fm = opnch;
 	do {
-		samp_l = opngen.outdl * (opngen.calcremain * -1);
-		samp_r = opngen.outdr * (opngen.calcremain * -1);
+		SINT32 samp_l = opngen.outdl * (opngen.calcremain * -1);
+		SINT32 samp_r = opngen.outdr * (opngen.calcremain * -1);
 		opngen.calcremain += FMDIV_ENT;
 		while(1) {
 			opngen.outdc = 0;
@@ -159,13 +157,11 @@ void SOUNDCALL opngen_getpcmvr(void *hdl, SINT32 *pcm, UINT count) {
 
 	OPNCH	*fm;
 	UINT	i;
-	SINT32	samp_l;
-	SINT32	samp_r;
 
 	fm = opnch;
 	while(count--) {
-		samp_l = opngen.outdl * (opngen.calcremain * -1);
-		samp_r = opngen.outdr * (opngen.calcremain * -1);
+		SINT32 samp_l = opngen.outdl * (opngen.calcremain * -1);
+		SINT32 samp_r = opngen.outdr * (opngen.calcremain * -1);
 		opngen.calcremain += FMDIV_ENT;
 		while(1) {
 			opngen.outdc = 0;

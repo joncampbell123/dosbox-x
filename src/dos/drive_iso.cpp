@@ -155,11 +155,10 @@ isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &e
           subUnit(0),
           driveLetter('\0')
  {
-	size_t i;
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
-        for (i=0;i < 26;i++)
+        for (size_t i=0;i < 26;i++)
             CDROM_Interface_Image::images[i] = NULL;
     }
 

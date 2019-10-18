@@ -222,9 +222,8 @@ imageDiskMemory::~imageDiskMemory() {
 	//release the underlying image
 	if (this->underlyingImage) this->underlyingImage->Release();
 	//loop through each chunk and release it if it has been allocated
-	Bit8u* chunk;
 	for (Bit32u i = 0; i < total_chunks; i++) {
-		chunk = ChunkMap[i];
+		Bit8u* chunk = ChunkMap[i];
 		if (chunk) free(chunk);
 	}
 	//release the memory map

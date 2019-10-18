@@ -66,10 +66,9 @@ static const zipcrc_t crc_table[256] = {
 zipcrc_t zipcrc_update(zipcrc_t crc, const void *data, size_t data_len)
 {
     const unsigned char *d = (const unsigned char *)data;
-    unsigned int tbl_idx;
 
     while (data_len--) {
-        tbl_idx = (crc ^ *d) & 0xff;
+        unsigned int tbl_idx = (crc ^ *d) & 0xff;
         crc = (crc_table[tbl_idx] ^ (crc >> 8)) & 0xffffffff;
 
         d++;
