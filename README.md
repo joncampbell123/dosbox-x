@@ -430,7 +430,7 @@ design as implemented now cannot accomodate.
   and memory access.
 
   If accurate emulation of cycles per instruction is needed, please
-  consider using PCem or PCem-X instead.
+  consider using PCem, 86Box, or VARCem instead.
 
 * Full precision floating point emulation.
 
@@ -1450,7 +1450,7 @@ The code is written to be as accurate as possible about
 the state and function of Sound Blaster cards, including many
 undocumented quirks.
 
-Additional hacks were added for additional tricks the some
+Additional hacks were added for additional tricks that some
 old DOS games and demos use. One such hack is "goldplay" mode,
 referring to an old music tracker playback library that
 supported playing MOD files to LPT DAC, PC speaker, and
