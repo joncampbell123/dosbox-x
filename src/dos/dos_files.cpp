@@ -80,7 +80,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 		return false; 
 	}
 	r=0;w=0;
-	while (name_int[r]!=0 && (r<DOS_PATHLENGTH)) {
+	while (r<DOS_PATHLENGTH && name_int[r]!=0) {
 		Bit8u c=(Bit8u)name_int[r++];
 		if ((c>='a') && (c<='z')) c-=32;
 		else if (c==' ') continue; /* should be separator */
@@ -1145,7 +1145,6 @@ Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset,Bit16u recno) {
 	if (++cur_rec>127u) { cur_block++;cur_rec=0; }
 	fcb.SetRecord(cur_block,cur_rec);
 	if (toread==rec_size) return FCB_SUCCESS;
-	if (toread==0) return FCB_READ_NODATA;
 	return FCB_READ_PARTIAL;
 }
 

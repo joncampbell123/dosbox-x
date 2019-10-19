@@ -1196,10 +1196,8 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 		case 0x8118:
 		case 0x9ae8:
 			return 0x400; // nothing busy
-			break;
 		case 0x81ec: // S3 video data processor
-			return 0x00007000; 
-			break;
+			return 0x00007000;
 		case 0x83da:
 			{
 				Bits delaycyc = CPU_CycleMax/5000;
@@ -1207,7 +1205,6 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 				CPU_Cycles -= delaycyc;
 				CPU_IODelayRemoved += delaycyc;
 				return vga_read_p3da(0,0);
-				break;
 			}
 		case 0x83d4:
 			if(len==1) return vga_read_p3d4(0,0);
@@ -1224,16 +1221,12 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			return XGA_Read_Multifunc();
 		case 0xa2e8:
 			return XGA_GetDualReg(xga.backcolor);
-			break;
 		case 0xa6e8:
 			return XGA_GetDualReg(xga.forecolor);
-			break;
 		case 0xaae8:
 			return XGA_GetDualReg(xga.writemask);
-			break;
 		case 0xaee8:
 			return XGA_GetDualReg(xga.readmask);
-			break;
 		default:
 			//LOG_MSG("XGA: Read from port %x, len %x", port, len);
 			break;

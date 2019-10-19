@@ -806,7 +806,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		std::reverse(results.begin(), results.end());
 	}
 
-	for (std::vector<DtaResult>::iterator iter = results.begin(); iter != results.end(); iter++) {
+	for (std::vector<DtaResult>::iterator iter = results.begin(); iter != results.end(); ++iter) {
 
 		char * name = iter->name;
 		Bit32u size = iter->size;

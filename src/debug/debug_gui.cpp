@@ -252,11 +252,11 @@ void DEBUG_RefreshPage(char scroll) {
 	if (dbg.win_out == NULL) return;
 
 	while (scroll < 0 && logBuffPos!=logBuff.begin()) {
-        logBuffPos--;
+        --logBuffPos;
         scroll++;
     }
 	while (scroll > 0 && logBuffPos!=logBuff.end()) {
-        logBuffPos++;
+        ++logBuffPos;
         scroll--;
     }
 
@@ -282,7 +282,7 @@ void DEBUG_RefreshPage(char scroll) {
      *
      *      rem_lines starts out as the number of lines in the subwin. */
     if (i != logBuff.begin()) {
-        i--;
+        --i;
 
         wattrset(dbg.win_out,0);
         while (rem_lines > 0) {
@@ -291,7 +291,7 @@ void DEBUG_RefreshPage(char scroll) {
             DBGUI_DrawDebugOutputLine(rem_lines,*i);
 
             if (i != logBuff.begin())
-                i--;
+                --i;
             else
                 break;
         }
@@ -649,7 +649,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuff.push_back(buf);
 	if (logBuff.size() > MAX_LOG_BUFFER) {
         logBuffHasDiscarded = true;
-        if (logBuffPos == logBuff.begin()) logBuffPos++; /* keep the iterator valid */
+        if (logBuffPos == logBuff.begin()) ++logBuffPos; /* keep the iterator valid */
 		logBuff.pop_front();
     }
 

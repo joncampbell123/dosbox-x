@@ -619,9 +619,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 
         /* PC-98 mouse */
         if (IS_PC98_ARCH) pc98_mouse_movement_apply(xrel,yrel);
-    }
 
-    if (user_cursor_locked) {
         mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
         mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
         if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;

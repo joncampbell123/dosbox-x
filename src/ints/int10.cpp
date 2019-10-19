@@ -999,7 +999,7 @@ bool Load_Anex86_Font(void) {
     FILE *fp = NULL;
 
     /* ANEX86.BMP accurate dump of actual font */
-    if (!fp) fp = fopen("anex86.bmp","rb");
+    fp = fopen("anex86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.BMP","rb");
 

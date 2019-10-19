@@ -260,7 +260,7 @@ int CDROM_Interface_Image::GetTrack(int sector)
 		Track &curr = *i;
 		Track &next = *(i + 1);
 		if (curr.start <= sector && sector < next.start) return curr.number;
-		i++;
+		++i;
 	}
 	return -1;
 }
@@ -596,7 +596,7 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 bool CDROM_Interface_Image::HasDataTrack(void)
 {
 	//Data track has attribute 0x40
-	for(track_it it = tracks.begin(); it != tracks.end(); it++) {
+	for(track_it it = tracks.begin(); it != tracks.end(); ++it) {
 		if ((*it).attr == 0x40) return true;
 	}
 	return false;
@@ -706,7 +706,7 @@ void CDROM_Interface_Image::ClearTracks()
 			delete curr.file;
 			last = curr.file;
 		}
-		i++;
+		++i;
 	}
 	tracks.clear();
 }

@@ -2779,18 +2779,14 @@ UINT32 register_r(UINT32 offset)
 			//result |= v->fbi.vblank << 6;
 			result |= (Voodoo_GetRetrace() ? 0x40u : 0u);
 
-
-			/* bit 7 is FBI graphics engine busy */
-			if (v->pci.op_pending)
+			if (v->pci.op_pending) {
+				/* bit 7 is FBI graphics engine busy */
 				result |= 1 << 7;
-
-			/* bit 8 is TREX busy */
-			if (v->pci.op_pending)
+				/* bit 8 is TREX busy */
 				result |= 1 << 8;
-
-			/* bit 9 is overall busy */
-			if (v->pci.op_pending)
+				/* bit 9 is overall busy */
 				result |= 1 << 9;
+			}
 
 			/* bits 11:10 specifies which buffer is visible */
 			result |= (UINT32)(v->fbi.frontbuf << 10);

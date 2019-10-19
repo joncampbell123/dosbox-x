@@ -2196,13 +2196,12 @@ static bool pc98_mouse_tick_scheduled = false;
 static void pc98_mouse_tick_event(Bitu val) {
     (void)val;
 
-    /* Generate interrupt */
-    if (p7fd8_8255_mouse_int_enable)
+    if (p7fd8_8255_mouse_int_enable) {
+        /* Generate interrupt */
         PIC_ActivateIRQ(MOUSE_IRQ);
-
-    /* keep the periodic interrupt going */
-    if (p7fd8_8255_mouse_int_enable)
+        /* keep the periodic interrupt going */
         PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_tick_interval_ms());
+    }
     else
         pc98_mouse_tick_scheduled = false;
 }

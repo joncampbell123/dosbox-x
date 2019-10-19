@@ -2206,10 +2206,12 @@ restart_int:
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            // sectors (large disk) - this is the same as partition length in MBR
-            if(mediadesc == 0xF8) host_writed(&sbuf[0x20],sectors-s);
-            // BIOS drive
-            if(mediadesc == 0xF8) sbuf[0x24]=0x80;
+            if(mediadesc == 0xF8) {
+                // sectors (large disk) - this is the same as partition length in MBR
+                host_writed(&sbuf[0x20],sectors-s);
+                // BIOS drive
+                sbuf[0x24]=0x80;
+            }
             else sbuf[0x24]=0x00;
             // ext. boot signature
             sbuf[0x26]=0x29;
@@ -2867,7 +2869,7 @@ public:
         }
         else if (ideattach != "none" && isdigit(ideattach[0]) && ideattach[0] > '0') { /* takes the form [controller]<m/s> such as: 1m for primary master */
             ide_index = ideattach[0] - '1';
-            if (ideattach.length() >= 1) ide_slave = (ideattach[1] == 's');
+            if (ideattach.length() >= 2) ide_slave = (ideattach[1] == 's');
             LOG_MSG("IDE: index %d slave=%d",ide_index,ide_slave?1:0);
         }
 

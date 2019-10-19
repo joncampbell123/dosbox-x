@@ -4095,7 +4095,7 @@ void CDebugVar::InsertVariable(char* name, PhysPt adr)
 void CDebugVar::DeleteAll(void) 
 {
 	std::vector<CDebugVar*>::iterator i;
-	for(i=varList.begin(); i != varList.end(); i++) {
+	for(i=varList.begin(); i != varList.end(); ++i) {
 		CDebugVar* bp = static_cast<CDebugVar*>(*i);
 		delete bp;
 	}
@@ -4126,7 +4126,7 @@ bool CDebugVar::SaveVars(char* name) {
 
 	std::vector<CDebugVar*>::iterator i;
 	CDebugVar* bp;
-	for(i=varList.begin(); i != varList.end(); i++) {
+	for(i=varList.begin(); i != varList.end(); ++i) {
 		bp = static_cast<CDebugVar*>(*i);
 		// name
 		fwrite(bp->GetName(),1,16,f);

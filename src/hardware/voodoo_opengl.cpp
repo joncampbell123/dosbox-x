@@ -422,7 +422,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 //						LOG_MSG("texture removed... size %d",t->second.ids->size());
 						if (t->second.ids->size() > 8) {
 							std::map<const UINT32, GLuint>::iterator u;
-							for (u=t->second.ids->begin(); u!=t->second.ids->end(); u++) {
+							for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
 								glDeleteTextures(1,&u->second);
 							}
 							t->second.ids->clear();
@@ -534,7 +534,7 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 void voodoo_ogl_invalidate_paltex(void) {
 	std::map<const UINT32, ogl_texmap>::iterator t;
 	for (int j=0; j<2; j++) {
-		for (t=textures[j].begin(); t!=textures[j].end(); t++) {
+		for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
 			if ((t->second.format == 0x05) || (t->second.format == 0x0e)) {
 				t->second.valid_pal = false;
 			}
@@ -1304,7 +1304,7 @@ void voodoo_ogl_texture_clear(UINT32 texbase, int TMU) {
 		VOGL_ClearBeginMode();
 		if (t->second.ids != NULL) {
 			std::map<const UINT32, GLuint>::iterator u;
-			for (u=t->second.ids->begin(); u!=t->second.ids->end(); u++) {
+			for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
 				glDeleteTextures(1,&u->second);
 			}
 			delete t->second.ids;
@@ -1825,10 +1825,10 @@ void voodoo_ogl_leave(bool leavemode) {
 
 	std::map<const UINT32, ogl_texmap>::iterator t;
 	for (int j=0; j<2; j++) {
-		for (t=textures[j].begin(); t!=textures[j].end(); t++) {
+		for (t=textures[j].begin(); t!=textures[j].end(); ++t) {
 			if (t->second.ids != NULL) {
 				std::map<const UINT32, GLuint>::iterator u;
-				for (u=t->second.ids->begin(); u!=t->second.ids->end(); u++) {
+				for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
 					glDeleteTextures(1,&u->second);
 				}
 				if (!t->second.ids->empty()) t->second.ids->clear();

@@ -108,7 +108,7 @@ void AutoexecObject::CreateAutoexec(void) {
 	//Create a new autoexec.bat
 	autoexec_data[0] = 0;
 	size_t auto_len;
-	for(auto_it it = autoexec_strings.begin(); it != autoexec_strings.end(); it++) {
+	for(auto_it it = autoexec_strings.begin(); it != autoexec_strings.end(); ++it) {
 
 		std::string linecopy = (*it);
 		std::string::size_type offset = 0;
@@ -156,11 +156,11 @@ void AutoexecObject::Uninstall() {
 			if (stringset && first_shell && first_shell->bf && first_shell->bf->filename.find("AUTOEXEC.BAT") != std::string::npos) {
 				//Replace entry with spaces if it is a set and from autoexec.bat, as else the location counter will be off.
 				*it = buf.assign(buf.size(),' ');
-				it++;
+				++it;
 			} else {
 				it = autoexec_strings.erase(it);
 			}
-		} else it++;
+		} else ++it;
 	}
 	installed=false;
 	this->CreateAutoexec();

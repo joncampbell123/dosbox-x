@@ -347,17 +347,17 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = str_index = len;
                 size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (Bit8u *)line, &len);
-                it_history ++;
+                ++it_history;
                 break;
 
             case 0x5000:	/* DOWN */
                 if (l_history.empty() || it_history == l_history.begin()) break;
 
                 // not very nice but works ..
-                it_history --;
+                --it_history;
                 if (it_history == l_history.begin()) {
                     // no previous commands in history
-                    it_history ++;
+                    ++it_history;
 
                     // remove current command from history
                     if (current_hist) {
@@ -365,7 +365,7 @@ void DOS_Shell::InputCommand(char * line) {
                         l_history.pop_front();
                     }
                     break;
-                } else it_history --;
+                } else --it_history;
 
                 for (;str_index>0; str_index--) {
                     // removes all characters
@@ -376,7 +376,7 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = str_index = len;
                 size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (Bit8u *)line, &len);
-                it_history ++;
+                ++it_history;
 
                 break;
             case 0x5300:/* DELETE */
@@ -397,7 +397,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x0F00:	/* Shift-Tab */
                 if (l_completion.size()) {
                     if (it_completion == l_completion.begin()) it_completion = l_completion.end (); 
-                    it_completion--;
+                    --it_completion;
 
                     if (it_completion->length()) {
                         for (;str_index > completion_index; str_index--) {
@@ -453,7 +453,7 @@ void DOS_Shell::InputCommand(char * line) {
             case'\t':
                 {
                     if (l_completion.size()) {
-                        it_completion ++;
+                        ++it_completion;
                         if (it_completion == l_completion.end()) it_completion = l_completion.begin();
                     } else {
                         // build new completion list

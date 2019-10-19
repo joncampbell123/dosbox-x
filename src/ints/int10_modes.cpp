@@ -1925,12 +1925,10 @@ dac_text16:
 		}
 
         /* SVGA text modes need the 256k+ access bit */
-        if (CurMode->mode >= 0x100 && !int10.vesa_nolfb)
+        if (CurMode->mode >= 0x100 && !int10.vesa_nolfb) {
             reg_31 |= 8; /* enable 256k+ access */
-
-        /* whether to enable the linear framebuffer */
-        if (CurMode->mode >= 0x100 && !int10.vesa_nolfb)
             s3_mode |= 0x10; /* enable LFB */
+        }
 
 		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
 		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31);	//Enable banked memory and 256k+ access

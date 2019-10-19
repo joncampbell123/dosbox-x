@@ -3335,8 +3335,10 @@ public:
 				std::istringstream stream(type);
 				int rmdval=0;
 				stream >> rmdval;
-				if(rmdval) CPU_CycleMax=(Bit32s)rmdval;
-				if(rmdval) CPU_CyclesSet=(Bit32s)rmdval;
+				if(rmdval) {
+					CPU_CycleMax=(Bit32s)rmdval;
+					CPU_CyclesSet=(Bit32s)rmdval;
+				}
 			}
 			CPU_CycleAutoAdjust=false;
 		}

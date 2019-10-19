@@ -116,11 +116,9 @@ void Poly::terminate() {
 			partial->deactivate();
 		}
 	}
-	if (state != POLY_Inactive) {
-		// FIXME: Throw out lots of debug output - this should never happen
-		// (Deactivating the partials above should've made them each call partialDeactivated(), ultimately changing the state to POLY_Inactive)
-		state = POLY_Inactive;
-	}
+	// FIXME: Throw out lots of debug output - this should never happen
+	// (Deactivating the partials above should've made them each call partialDeactivated(), ultimately changing the state to POLY_Inactive)
+	state = POLY_Inactive;
 }
 
 void Poly::backupCacheToPartials(PatchCache cache[4]) {

@@ -152,6 +152,7 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
         open = orig.open;
         hdrive = orig.hdrive;
         drive = orig.drive;
+        newtime = orig.newtime;
         if (name) {
             delete[] name; name = 0;
         }
