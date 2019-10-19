@@ -675,9 +675,7 @@ void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handl
 
 void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
     for (auto &id : ls.disp_list) {
-        if (id != DOSBoxMenu::unassigned_item_handle) {
-            id = DOSBoxMenu::unassigned_item_handle;
-        }
+        id = DOSBoxMenu::unassigned_item_handle;
     }
 
     ls.disp_list.clear();
@@ -1721,18 +1719,14 @@ void DOSBoxMenu::item::showItem(DOSBoxMenu &menu,bool show) {
 
 DOSBoxMenu::item &DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
     (void)menu;//UNUSED
-    if (itemHilight != hi) {
-        itemHilight = hi;
-    }
+    itemHilight = hi;
 
     return *this;
 }
 
 DOSBoxMenu::item &DOSBoxMenu::item::setHover(DOSBoxMenu &menu,bool ho) {
     (void)menu;//UNUSED
-    if (itemHover != ho) {
-        itemHover = ho;
-    }
+    itemHover = ho;
 
     return *this;
 }

@@ -71,10 +71,8 @@ struct PIT_Block {
     read_counter_result     last_counter;       /* what to return when gate == false (not counting) */
 
     void set_output(bool on) {
-        if (output != on) {
-            output = on;
-            // TODO: Event callback
-        }
+        output = on;
+        // TODO: Event callback
     }
 
     void set_next_counter(Bitu new_cntr) {

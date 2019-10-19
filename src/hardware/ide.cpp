@@ -3711,10 +3711,8 @@ IDEController::~IDEController() {
 
 static void IDE_PC98_Select(Bitu val) {
     val &= 1;
-    if (pc98_ide_select != val) {
-        pc98_ide_select = val;
-        // TODO: IRQ raise by signal
-    }
+    pc98_ide_select = val;
+    // TODO: IRQ raise by signal
 }
 
 static void ide_pc98ctlio_w(Bitu port,Bitu val,Bitu iolen) {
