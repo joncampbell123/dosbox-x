@@ -1753,7 +1753,7 @@ public:
 	}
 	
 	~EMS() {
-		if (ems_type<=0) return;
+		if (ems_type==0) return;
 
 		/* Undo Biosclearing */
 		BIOS_ZeroExtendedSize(false);

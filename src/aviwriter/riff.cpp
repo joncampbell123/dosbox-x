@@ -394,7 +394,7 @@ int riff_stack_read(riff_stack *s,riff_chunk *c,void *buf,size_t len) {
 		int64_t rem = c->data_length - c->read_offset;
 		if (rem > (int64_t)len) rem = (int64_t)len;
 		len = (size_t)rem;
-		if (len <= 0) return 0;
+		if (len == 0) return 0;
 		if (c->absolute_data_offset == ((int64_t)(-1))) return 0;
 		if (s->seek(s,c->absolute_data_offset+c->read_offset) != (c->absolute_data_offset+c->read_offset)) return 0;
 		rd = s->read(s,buf,len);

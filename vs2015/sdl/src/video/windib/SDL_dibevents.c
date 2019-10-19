@@ -1017,7 +1017,7 @@ int InitParentWindow(void) {
 				return 0;
 			}
 
-			if (--patience <= 0)
+			if (--patience == 0)
 				break;
 			else
 				Sleep(100);
