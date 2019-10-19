@@ -1777,8 +1777,8 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 					if (chip->timer_handler) (chip->timer_handler)(chip->TimerParam,0,period);
 				}
 			}
-#endif
 		break;
+#endif
 		case 0x08:  /* x,NTS,x,x, x,x,x,x */
 			chip->nts = v;
 		break;

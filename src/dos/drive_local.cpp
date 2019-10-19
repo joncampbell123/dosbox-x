@@ -537,9 +537,8 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
     return false;
 #else
     strcpy(sysName,host_name);
+    return true;
 #endif
-
-	return true;
 }
 
 bool localDrive::FileUnlink(const char * name) {

@@ -405,7 +405,7 @@ restart_prefix:
 			dyn_mov_byte_imm(opcode&3,(opcode>>2)&1,decode_fetchb());
 			break;
 		case 0xb8:case 0xb9:case 0xba:case 0xbb:case 0xbc:case 0xbd:case 0xbe:case 0xbf:	
-			dyn_mov_word_imm(opcode&7);break;
+			dyn_mov_word_imm(opcode&7);
 			break;
 
 		// 'shiftop []/reg8,imm8/1/cl'
