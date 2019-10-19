@@ -1327,7 +1327,7 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
             (ent.sizebyte == szb || req_sector_size == ~0U))
             return &(*i);
 
-        i++;
+        ++i;
     }
 
     return NULL;
@@ -1724,7 +1724,7 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u se
             (ent.sector_size == req_sector_size || req_sector_size == ~0U))
             return &(*i);
 
-        i++;
+        ++i;
     }
 
     return NULL;
@@ -2020,7 +2020,7 @@ imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u se
             (ent.sector_size == req_sector_size || req_sector_size == ~0U))
             return &(*i);
 
-        i++;
+        ++i;
     }
 
     return NULL;

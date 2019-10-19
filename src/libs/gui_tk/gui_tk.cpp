@@ -856,7 +856,7 @@ bool Window::mouseMoved(int x, int y)
 	bool end = (i == children.rend());
 	while (!end) {
 		Window *w = *i;
-		i++;
+		++i;
 		end = (i == children.rend());
 		if (w->visible && x >= w->x && x <= w->x+w->width
 			&& y >= w->y && y <= w->y+w->height
@@ -891,7 +891,7 @@ bool Window::mouseDownOutside(MouseButton button) {
 				handled = true;
 		}
 
-		i++;
+		++i;
 	}
 
     return handled;
@@ -922,7 +922,7 @@ bool Window::mouseDown(int x, int y, MouseButton button)
             handled |= w->mouseDownOutside(button);
         }
 
-		i++;
+		++i;
 	}
 
 	mouseChild = NULL;

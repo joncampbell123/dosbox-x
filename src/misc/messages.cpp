@@ -45,7 +45,7 @@ typedef list<MessageBlock>::iterator itmb;
 
 void MSG_Add(const char * _name, const char* _val) {
 	/* Find the message */
-	for(itmb tel=Lang.begin();tel!=Lang.end();tel++) {
+	for(itmb tel=Lang.begin();tel!=Lang.end();++tel) {
 		if((*tel).name==_name) { 
 //			LOG_MSG("double entry for %s",_name); //Message file might be loaded before default text messages
 			return;
@@ -57,7 +57,7 @@ void MSG_Add(const char * _name, const char* _val) {
 
 void MSG_Replace(const char * _name, const char* _val) {
 	/* Find the message */
-	for(itmb tel=Lang.begin();tel!=Lang.end();tel++) {
+	for(itmb tel=Lang.begin();tel!=Lang.end();++tel) {
 		if((*tel).name==_name) { 
 			Lang.erase(tel);
 			break;
@@ -118,7 +118,7 @@ void LoadMessageFile(const char * fname) {
 }
 
 const char * MSG_Get(char const * msg) {
-	for(itmb tel=Lang.begin();tel!=Lang.end();tel++){	
+	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
 		if((*tel).name==msg)
 		{
 			return  (*tel).val.c_str();
@@ -131,7 +131,7 @@ const char * MSG_Get(char const * msg) {
 bool MSG_Write(const char * location) {
 	FILE* out=fopen(location,"w+t");
 	if(out==NULL) return false;//maybe an error?
-	for(itmb tel=Lang.begin();tel!=Lang.end();tel++){
+	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
 		fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
 	}
 	fclose(out);
