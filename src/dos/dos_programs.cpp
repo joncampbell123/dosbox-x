@@ -2869,7 +2869,7 @@ public:
         }
         else if (ideattach != "none" && isdigit(ideattach[0]) && ideattach[0] > '0') { /* takes the form [controller]<m/s> such as: 1m for primary master */
             ide_index = ideattach[0] - '1';
-            if (ideattach.length() >= 1) ide_slave = (ideattach[1] == 's');
+            if (ideattach.length() >= 2) ide_slave = (ideattach[1] == 's');
             LOG_MSG("IDE: index %d slave=%d",ide_index,ide_slave?1:0);
         }
 
