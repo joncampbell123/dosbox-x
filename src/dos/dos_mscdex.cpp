@@ -176,7 +176,7 @@ CMscdex::CMscdex(void) {
 CMscdex::~CMscdex(void) {
 	defaultBufSeg = 0;
 	for (Bit16u i=0; i<GetNumDrives(); i++) {
-		delete (cdrom)[i];
+		delete cdrom[i];
 		cdrom[i] = 0;
 	}
 }
@@ -211,7 +211,7 @@ int CMscdex::RemoveDrive(Bit16u _drive)
 	}
 
 	if (idx == MSCDEX_MAX_DRIVES || (idx!=0 && idx!=GetNumDrives()-1)) return 0;
-	delete (cdrom)[idx];
+	delete cdrom[idx];
 	if (idx==0) {
 		for (Bit16u i=0; i<GetNumDrives(); i++) {
 			if (i == MSCDEX_MAX_DRIVES-1) {
