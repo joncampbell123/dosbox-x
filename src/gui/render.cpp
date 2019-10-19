@@ -782,7 +782,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     } else if(ratio < 0.75) {
         dblw=true;
         ratio *= 2.0;
-    } else if(!dblw && !dblh && (width < 370) && (height < 280)) {
+    } else if(width < 370 && height < 280) {
         dblw=true; dblh=true;
     }
     LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
