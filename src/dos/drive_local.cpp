@@ -508,7 +508,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
     unsigned int tis;
 
     // "type" always has ANSI chars (like "rb"), nothing fancy
-    for (tis=0;type[tis] != 0 && tis < 7;tis++) wtype[tis] = (wchar_t)type[tis];
+    for (tis=0;tis < 7 && type[tis] != 0;tis++) wtype[tis] = (wchar_t)type[tis];
     assert(tis < 7); // guard
     wtype[tis] = 0;
 
