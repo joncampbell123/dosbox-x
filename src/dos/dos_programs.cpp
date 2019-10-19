@@ -2206,10 +2206,12 @@ restart_int:
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            // sectors (large disk) - this is the same as partition length in MBR
-            if(mediadesc == 0xF8) host_writed(&sbuf[0x20],sectors-s);
-            // BIOS drive
-            if(mediadesc == 0xF8) sbuf[0x24]=0x80;
+            if(mediadesc == 0xF8) {
+                // sectors (large disk) - this is the same as partition length in MBR
+                host_writed(&sbuf[0x20],sectors-s);
+                // BIOS drive
+                sbuf[0x24]=0x80;
+            }
             else sbuf[0x24]=0x00;
             // ext. boot signature
             sbuf[0x26]=0x29;
