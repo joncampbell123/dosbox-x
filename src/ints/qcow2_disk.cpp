@@ -73,6 +73,7 @@ using namespace std;
             size_t readResult = fread(backing_file_name, header.backing_file_size, 1, file);
             if (readResult != 1) {
                 LOG(LOG_IO, LOG_ERROR) ("Reading error in QCow2Image constructor\n");
+                delete[] backing_file_name;
                 return;
             }
 			if (backing_file_name[0] != 0x2F){
