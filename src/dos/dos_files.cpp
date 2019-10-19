@@ -1145,7 +1145,6 @@ Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset,Bit16u recno) {
 	if (++cur_rec>127u) { cur_block++;cur_rec=0; }
 	fcb.SetRecord(cur_block,cur_rec);
 	if (toread==rec_size) return FCB_SUCCESS;
-	if (toread==0) return FCB_READ_NODATA;
 	return FCB_READ_PARTIAL;
 }
 
