@@ -899,7 +899,7 @@ void VGA_Reset(Section*) {
         int sz_m = section->Get_int("vmemsize");
         int sz_k = section->Get_int("vmemsizekb");
 
-        if (sz_m >= 0) {
+        if (sz_m >= 0 || sz_k > 0) {
             vga.mem.memsize  = _MB_bytes((unsigned int)sz_m);
             vga.mem.memsize += _KB_bytes((unsigned int)sz_k);
             vga.mem.memsize  = (vga.mem.memsize + 0xFFFu) & (~0xFFFu);
