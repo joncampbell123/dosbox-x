@@ -1,4 +1,5 @@
 0.82.23 (next)
+  - Fixed bug that capped vmemsizekb to 8KB.
   - BIOS bootup screen now shows correct text for CPU
     type instead of "? CPU" when cputype=auto.
   - PC-98 256-color mode fixed to ignore doublescan
