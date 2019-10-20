@@ -139,7 +139,7 @@ private:
 
 class localFile : public DOS_File {
 public:
-	localFile(const char* name, FILE * handle);
+	localFile(const char* _name, FILE * handle);
 	bool Read(Bit8u * data,Bit16u * size);
 	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
@@ -173,7 +173,7 @@ public:
 
 	enum TDirSort { NOSORT, ALPHABETICAL, DIRALPHABETICAL, ALPHABETICALREV, DIRALPHABETICALREV };
 
-	void		SetBaseDir			(const char* path, DOS_Drive *drive);
+	void		SetBaseDir			(const char* baseDir, DOS_Drive *drive);
 	void		SetDirSort			(TDirSort sort) { sortDirType = sort; };
 	bool		OpenDir				(const char* path, Bit16u& id);
 	bool		ReadDir				(Bit16u id, char* &result);
@@ -186,12 +186,12 @@ public:
 	bool		FindNext			(Bit16u id, char* &result);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
-	void		AddEntry			(const char* path, bool checkExist = false);
+	void		AddEntry			(const char* path, bool checkExists = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
 
 	void		EmptyCache			(void);
 	void		MediaChange			(void);
-	void		SetLabel			(const char* name,bool cdrom,bool allowupdate);
+	void		SetLabel			(const char* vname,bool cdrom,bool allowupdate);
 	char*		GetLabel			(void) { return label; };
 
 	class CFileInfo {
@@ -223,16 +223,16 @@ private:
 	void DeleteFileInfo(CFileInfo *dir);
 
 	bool		RemoveTrailingDot	(char* shortname);
-	Bits		GetLongName		(CFileInfo* info, char* shortname);
-	void		CreateShortName		(CFileInfo* dir, CFileInfo* info);
-	Bitu		CreateShortNameID	(CFileInfo* dir, const char* name);
+	Bits		GetLongName		(CFileInfo* curDir, char* shortName);
+	void		CreateShortName		(CFileInfo* curDir, CFileInfo* info);
+	Bitu		CreateShortNameID	(CFileInfo* curDir, const char* name);
 	int		CompareShortname	(const char* compareName, const char* shortName);
 	bool		SetResult		(CFileInfo* dir, char * &result, Bitu entryNr);
-	bool		IsCachedIn		(CFileInfo* dir);
+	bool		IsCachedIn		(CFileInfo* curDir);
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
-	bool		OpenDir			(CFileInfo* dir, const char* path, Bit16u& id);
-	void		CreateEntry		(CFileInfo* dir, const char* name, bool query_directory);
+	bool		OpenDir			(CFileInfo* dir, const char* expand, Bit16u& id);
+	void		CreateEntry		(CFileInfo* dir, const char* name, bool is_directory);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	Bit16u		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);

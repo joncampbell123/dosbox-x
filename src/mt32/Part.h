@@ -36,7 +36,7 @@ public:
 	void prepend(Poly *poly);
 	void append(Poly *poly);
 	Poly *takeFirst();
-	void remove(Poly * const poly);
+	void remove(Poly * const polyToRemove);
 };
 
 class Part {
@@ -80,7 +80,7 @@ protected:
 	const char *getName() const;
 
 public:
-	Part(Synth *synth, unsigned int usePartNum);
+	Part(Synth *useSynth, unsigned int usePartNum);
 	virtual ~Part();
 	void reset();
 	void setDataEntryMSB(unsigned char midiDataEntryMSB);
@@ -101,8 +101,8 @@ public:
 	virtual void setPan(unsigned int midiPan);
 	Bit32s getPitchBend() const;
 	void setBend(unsigned int midiBend);
-	virtual void setProgram(unsigned int midiProgram);
-	void setHoldPedal(bool pedalval);
+	virtual void setProgram(unsigned int patchNum);
+	void setHoldPedal(bool pressed);
 	void stopPedalHold();
 	void updatePitchBenderRange();
 	virtual void refresh();
@@ -136,11 +136,11 @@ class RhythmPart: public Part {
 	// This caches the timbres/settings in use by the rhythm part
 	PatchCache drumCache[85][4];
 public:
-	RhythmPart(Synth *synth, unsigned int usePartNum);
+	RhythmPart(Synth *useSynth, unsigned int usePartNum);
 	void refresh();
-	void refreshTimbre(unsigned int timbreNum);
+	void refreshTimbre(unsigned int absTimbreNum);
 	void setTimbre(TimbreParam *timbre);
-	void noteOn(unsigned int key, unsigned int velocity);
+	void noteOn(unsigned int midiKey, unsigned int velocity);
 	void noteOff(unsigned int midiKey);
 	unsigned int getAbsTimbreNum() const;
 	void setPan(unsigned int midiPan);

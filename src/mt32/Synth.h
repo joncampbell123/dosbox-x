@@ -247,7 +247,7 @@ protected:
 	// Callbacks for reporting various errors and information
 	virtual void onErrorControlROM() {}
 	virtual void onErrorPCMROM() {}
-	virtual void showLCDMessage(const char *message);
+	virtual void showLCDMessage(const char *data);
 	virtual void onDeviceReset() {}
 	virtual void onDeviceReconfig() {}
 	virtual void onNewReverbMode(Bit8u /* mode */) {}
@@ -363,8 +363,8 @@ private:
 	bool loadPCMROM(const ROMImage &pcmROMImage);
 
 	bool initPCMList(Bit16u mapAddress, Bit16u count);
-	bool initTimbres(Bit16u mapAddress, Bit16u offset, int timbreCount, int startTimbre, bool compressed);
-	bool initCompressedTimbre(int drumNum, const Bit8u *mem, unsigned int memLen);
+	bool initTimbres(Bit16u mapAddress, Bit16u offset, int count, int startTimbre, bool compressed);
+	bool initCompressedTimbre(int timbreNum, const Bit8u *src, unsigned int srcLen);
 
 	void refreshSystemMasterTune();
 	void refreshSystemReverbParameters();
@@ -406,11 +406,11 @@ public:
 	void playSysex(const Bit8u *sysex, Bit32u len);
 	void playSysexWithoutFraming(const Bit8u *sysex, Bit32u len);
 	void playSysexWithoutHeader(unsigned char device, unsigned char command, const Bit8u *sysex, Bit32u len);
-	void writeSysex(unsigned char channel, const Bit8u *sysex, Bit32u len);
+	void writeSysex(unsigned char device, const Bit8u *sysex, Bit32u len);
 
-	void setReverbEnabled(bool reverbEnabled);
+	void setReverbEnabled(bool newReverbEnabled);
 	bool isReverbEnabled() const;
-	void setReverbOverridden(bool reverbOverridden);
+	void setReverbOverridden(bool newReverbOverridden);
 	bool isReverbOverridden() const;
 	void setDACInputMode(DACInputMode mode);
 
@@ -436,7 +436,7 @@ public:
 
 	const Partial *getPartial(unsigned int partialNum) const;
 
-	void setPartialLimit( unsigned int partialLimit );
+	void setPartialLimit( unsigned int _partialLimit );
 	unsigned int getPartialLimit() const;
 	
 	void readMemory(Bit32u addr, Bit32u len, Bit8u *data);

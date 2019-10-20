@@ -163,13 +163,13 @@ enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 
 /* Routines for File Class */
 void DOS_SetupFiles (void);
-bool DOS_ReadFile(Bit16u handle,Bit8u * data,Bit16u * amount, bool fcb = false);
-bool DOS_WriteFile(Bit16u handle,Bit8u * data,Bit16u * amount,bool fcb = false);
-bool DOS_SeekFile(Bit16u handle,Bit32u * pos,Bit32u type,bool fcb = false);
+bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount, bool fcb = false);
+bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb = false);
+bool DOS_SeekFile(Bit16u entry,Bit32u * pos,Bit32u type,bool fcb = false);
 /* ert, 20100711: Locking extensions */
 bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size);
-bool DOS_CloseFile(Bit16u handle,bool fcb = false);
-bool DOS_FlushFile(Bit16u handle);
+bool DOS_CloseFile(Bit16u entry,bool fcb = false);
+bool DOS_FlushFile(Bit16u entry);
 bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry);
 bool DOS_ForceDuplicateEntry(Bit16u entry,Bit16u newentry);
 bool DOS_GetFileDate(Bit16u entry, Bit16u* otime, Bit16u* odate);
@@ -178,7 +178,7 @@ bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate);
 /* Routines for Drive Class */
 bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry,bool fcb = false);
 bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bit16u action, Bit16u *entry, Bit16u* status);
-bool DOS_CreateFile(char const * name,Bit16u attribute,Bit16u * entry, bool fcb = false);
+bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
 bool DOS_FindFirst(char *search,Bit16u attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
@@ -208,9 +208,9 @@ Bit8u DOS_FindDevice(char const * name);
 void DOS_SetupDevices(void);
 
 /* Execute and new process creation */
-bool DOS_NewPSP(Bit16u pspseg,Bit16u size);
-bool DOS_ChildPSP(Bit16u pspseg,Bit16u size);
-bool DOS_Execute(char * name,PhysPt block,Bit8u flags);
+bool DOS_NewPSP(Bit16u segment,Bit16u size);
+bool DOS_ChildPSP(Bit16u segment,Bit16u size);
+bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags);
 void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode);
 
 /* Memory Handling Routines */
@@ -231,8 +231,8 @@ bool DOS_FCBCreate(Bit16u seg,Bit16u offset);
 bool DOS_FCBClose(Bit16u seg,Bit16u offset);
 bool DOS_FCBFindFirst(Bit16u seg,Bit16u offset);
 bool DOS_FCBFindNext(Bit16u seg,Bit16u offset);
-Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset, Bit16u numBlocks);
-Bit8u DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u numBlocks);
+Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset, Bit16u recno);
+Bit8u DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u recno);
 Bit8u DOS_FCBRandomRead(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
 Bit8u DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
 bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset);
@@ -359,7 +359,7 @@ protected:
 class DOS_PSP :public MemStruct {
 public:
 	DOS_PSP						(Bit16u segment)		{ SetPt(segment);seg=segment;};
-	void	MakeNew				(Bit16u memSize);
+	void	MakeNew				(Bit16u mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
 	Bit16u	FindFreeFileEntry	(void);
 	void	CloseFiles			(void);
@@ -456,9 +456,9 @@ public:
 class DOS_InfoBlock:public MemStruct {
 public:
     DOS_InfoBlock() : seg(0) {};
-	void SetLocation(Bit16u  seg);
+	void SetLocation(Bit16u  segment);
     void SetFirstDPB(Bit32u _first_dpb);
-	void SetFirstMCB(Bit16u _first_mcb);
+	void SetFirstMCB(Bit16u _firstmcb);
 	void SetBuffers(Bit16u x,Bit16u y);
 	void SetCurDirStruct(Bit32u _curdirstruct);
 	void SetFCBTable(Bit32u _fcbtable);
@@ -536,11 +536,11 @@ class DOS_DTA:public MemStruct{
 public:
 	DOS_DTA(RealPt addr) { SetPt(addr); }
 
-	void SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * _pattern);
+	void SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern);
 	void SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
 	
 	Bit8u GetSearchDrive(void);
-	void GetSearchParams(Bit8u & _sattr,char * _spattern);
+	void GetSearchParams(Bit8u & attr,char * pattern);
 	void GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
 
 	void	SetDirID(Bit16u entry)			{ sSave(sDTA,dirID,entry); };

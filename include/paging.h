@@ -39,11 +39,11 @@ class PageDirectory;
 
 typedef PageHandler* (MEM_CalloutHandler)(MEM_CalloutObject &co,Bitu phys_page);
 
-void MEM_RegisterHandler(Bitu phys_page,PageHandler *handler,Bitu phys_range=1);
+void MEM_RegisterHandler(Bitu phys_page,PageHandler *handler,Bitu page_range=1);
 
-void MEM_FreeHandler(Bitu phys_page,Bitu phys_range=1);
+void MEM_FreeHandler(Bitu phys_page,Bitu page_range=1);
 
-void MEM_InvalidateCachedHandler(Bitu phys_page,Bitu phys_range=1);
+void MEM_InvalidateCachedHandler(Bitu phys_page,Bitu range=1);
 
 static const Bitu MEMMASK_ISA_20BIT = 0x000000FFU; /* ISA 20-bit decode (20 - 12 = 8) */
 static const Bitu MEMMASK_ISA_24BIT = 0x00000FFFU; /* ISA 24-bit decode (24 - 12 = 12) */

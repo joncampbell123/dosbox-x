@@ -42,7 +42,7 @@ public:
 	~DelayReverb();
 	void open();
 	void close();
-	void setParameters(Bit8u time, Bit8u level);
+	void setParameters(Bit8u newTime, Bit8u newLevel);
 	void process(const float *inLeft, const float *inRight, float *outLeft, float *outRight, unsigned long numSamples);
 	bool isActive() const;
 

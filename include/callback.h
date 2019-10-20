@@ -72,7 +72,7 @@ bool CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,const char*
 Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr,const char* descr);
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr);
-const char* CALLBACK_GetDescription(Bitu callback);
+const char* CALLBACK_GetDescription(Bitu nr);
 
 void CALLBACK_SCF(bool val);
 void CALLBACK_SZF(bool val);

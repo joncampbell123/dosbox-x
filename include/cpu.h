@@ -133,8 +133,8 @@ bool CPU_READ_CRX(Bitu cr,Bit32u & retvalue);
 bool CPU_WRITE_DRX(Bitu dr,Bitu value);
 bool CPU_READ_DRX(Bitu dr,Bit32u & retvalue);
 
-bool CPU_WRITE_TRX(Bitu dr,Bitu value);
-bool CPU_READ_TRX(Bitu dr,Bit32u & retvalue);
+bool CPU_WRITE_TRX(Bitu tr,Bitu value);
+bool CPU_READ_TRX(Bitu tr,Bit32u & retvalue);
 
 Bitu CPU_SMSW(void);
 bool CPU_LMSW(Bitu word);

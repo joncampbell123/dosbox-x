@@ -947,7 +947,7 @@ public:
 	/** \p cb is not copied. */
 	static void add(Timer_Callback *cb, const Ticks ticks) { timers.insert(std::pair<const Ticks,Timer_Callback *>(ticks+Timer::ticks,cb)); }
 
-	static void remove(const Timer_Callback *const cb);
+	static void remove(const Timer_Callback *const timer);
 
 	/// Return current time (ticks since application start)
 	static Ticks now() { return ticks; }
@@ -1043,7 +1043,7 @@ public:
 	Uint32 getTime() { return current_time; }
 
 	/// Process an SDL event. Returns \c true if event was handled.
-	bool event(const SDL_Event& ev);
+	bool event(const SDL_Event& event);
 };
 #endif
 

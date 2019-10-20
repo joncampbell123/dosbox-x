@@ -137,7 +137,7 @@ extern DECLSPEC IPaddress * SDLCALL SDLNet_TCP_GetPeerAddress(TCPsocket sock);
    is less than the amount of data sent, then either the remote connection was
    closed, or an unknown socket error occurred.
 */
-extern DECLSPEC int SDLCALL SDLNet_TCP_Send(TCPsocket sock, const void *data,
+extern DECLSPEC int SDLCALL SDLNet_TCP_Send(TCPsocket sock, const void *datap,
 		int len);
 
 /* Receive up to 'maxlen' bytes of data over the non-server socket 'sock',
@@ -328,12 +328,12 @@ extern DECLSPEC void SDLCALL SDLNet_FreeSocketSet(SDLNet_SocketSet set);
 /***********************************************************************/
 
 /* Write a 16/32 bit value to network packet buffer */
-extern DECLSPEC void SDLCALL SDLNet_Write16(Uint16 value, void *area);
-extern DECLSPEC void SDLCALL SDLNet_Write32(Uint32 value, void *area);
+extern DECLSPEC void SDLCALL SDLNet_Write16(Uint16 value, void *areap);
+extern DECLSPEC void SDLCALL SDLNet_Write32(Uint32 value, void *areap);
 
 /* Read a 16/32 bit value from network packet buffer */
-extern DECLSPEC Uint16 SDLCALL SDLNet_Read16(void *area);
-extern DECLSPEC Uint32 SDLCALL SDLNet_Read32(void *area);
+extern DECLSPEC Uint16 SDLCALL SDLNet_Read16(void *areap);
+extern DECLSPEC Uint32 SDLCALL SDLNet_Read32(void *areap);
 
 /***********************************************************************/
 /* Error reporting functions                                           */

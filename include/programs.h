@@ -112,7 +112,7 @@ public:
 	DOS_PSP * psp;                                      //! DOS kernel Program Segment Prefix associated with this program at runtime
 	virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
 	bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
-	bool GetEnvNum(Bitu num,std::string & result);      //! Return an environment variable by index
+	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
 	Bitu GetEnvCount(void);                             //! Return the number of enviormental variables
 	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
 	void WriteOut(const char * format,...);				//! Write to standard output 
@@ -123,6 +123,6 @@ public:
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
-void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main);
+void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * SDL_main);
 
 #endif

@@ -47,7 +47,7 @@ char * lowcase(char * str);
 
 bool ScanCMDBool(char * cmd,char const * const check);
 char * ScanCMDRemain(char * cmd);
-char * StripWord(char *&cmd);
+char * StripWord(char *&line);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
 

@@ -38,7 +38,7 @@ protected:
 	Bit32u index;
 
 public:
-	RingBuffer(const Bit32u size);
+	RingBuffer(const Bit32u newsize);
 	virtual ~RingBuffer();
 	float next();
 	bool isEmpty() const;
@@ -47,7 +47,7 @@ public:
 
 class AllpassFilter : public RingBuffer {
 public:
-	AllpassFilter(const Bit32u size);
+	AllpassFilter(const Bit32u useSize);
 	float process(const float in);
 };
 
@@ -56,7 +56,7 @@ class CombFilter : public RingBuffer {
 	float filterFactor;
 
 public:
-	CombFilter(const Bit32u size);
+	CombFilter(const Bit32u useSize);
 	void process(const float in);
 	float getOutputAt(const Bit32u outIndex) const;
 	void setFeedbackFactor(const float useFeedbackFactor);

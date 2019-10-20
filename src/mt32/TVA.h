@@ -78,8 +78,8 @@ private:
 	void nextPhase();
 
 public:
-	TVA(const Partial *partial, LA32Ramp *ampRamp);
-	void reset(const Part *part, const TimbreParam::PartialParam *partialParam, const MemParams::RhythmTemp *rhythmTemp);
+	TVA(const Partial *usePartial, LA32Ramp *useAmpRamp);
+	void reset(const Part *newPart, const TimbreParam::PartialParam *newPartialParam, const MemParams::RhythmTemp *newRhythmTemp);
 	void handleInterrupt();
 	void recalcSustain();
 	void startDecay();

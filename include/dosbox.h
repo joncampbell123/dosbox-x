@@ -79,7 +79,7 @@
 # define HAS_LONG_DOUBLE		1
 #endif
 
-GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * format,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
 typedef Bits cpu_cycles_count_t;
 typedef Bitu cpu_cycles_countu_t;

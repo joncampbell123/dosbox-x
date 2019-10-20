@@ -16,7 +16,7 @@ public:
 	                comb();
 	        void    setbuffer(float *buf, int size);
 	        void    deletebuffer();
-	inline  float   process(float inp);
+	inline  float   process(float input);
 	        void    mute();
 	        void    setdamp(float val);
 	        float   getdamp();

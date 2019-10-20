@@ -76,7 +76,7 @@ typedef struct SCtrl {
     Bit8u           vol[4];
 } TCtrl;
 
-extern int CDROM_GetMountType(char* path, int force);
+extern int CDROM_GetMountType(char* path, int forceCD);
 
 //! \brief Base CD-ROM interface class
 //!

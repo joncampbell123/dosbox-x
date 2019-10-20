@@ -86,7 +86,7 @@ struct Chip {
 	//Last selected register
 	Timer timer[2];
 	//Check for it being a write to the timer
-	bool Write( Bit32u addr, Bit8u val );
+	bool Write( Bit32u reg, Bit8u val );
 	//Read the current timer state, will use current double
 	Bit8u Read( );
 	//poll counter
