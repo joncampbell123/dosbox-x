@@ -1164,7 +1164,7 @@ void DOSBOX_SetupConfigSections(void) {
         );
 
     Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,8);
+    Pint->SetMinMax(0,1024);
     Pint->Set_help(
         "Amount of video memory in kilobytes, in addition to vmemsize");
 
