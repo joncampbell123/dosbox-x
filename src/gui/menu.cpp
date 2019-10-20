@@ -58,7 +58,7 @@ bool                                                GFX_GetPreventFullscreen(voi
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool                                                OpenGL_using(void);
 
-void                                                MAPPER_TriggerEventByName(const std::string name);
+void                                                MAPPER_TriggerEventByName(const std::string& name);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 
 const DOSBoxMenu::mapper_event_t                    DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
@@ -1175,7 +1175,7 @@ void SetScaleForced(bool forced)
 }
 
 // Sets the scaler to use.
-void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
+void SetScaler(scalerOperation_t op, Bitu size, std::string& prefix)
 {
     auto value = prefix + (render.scale.forced ? " forced" : "");
     SetVal("render", "scaler", value);
@@ -1199,7 +1199,7 @@ std::string MSCDEX_Output(int num) {
     }
 }
 
-void SetVal(const std::string secname, std::string preval, const std::string val) {
+void SetVal(const std::string& secname, const std::string& preval, const std::string& val) {
     if(preval=="keyboardlayout" && !dos_kernel_disabled) {
         DOS_MCB mcb(dos.psp()-1);
         static char name[9];
@@ -1695,7 +1695,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
         }
     }
 #endif
-    if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
+    std::string fullScreenString = std::string("desktop.fullscreen");
+    if (!menu.gui || GetSetSDLValue(1, fullScreenString, 0)) return;
     if (!GetMenu(GetHWND())) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(Message.wParam))) return;

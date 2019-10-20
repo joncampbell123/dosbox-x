@@ -19,7 +19,7 @@
 #include <string>
 #include "config.h"
 #include "menudef.h"
-void SetVal(const std::string secname, std::string preval, const std::string val);
+void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 
 #include <SDL_video.h>
 
@@ -43,7 +43,7 @@ void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string dri
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive);
 bool MENU_SetBool(std::string secname, std::string value);
 void MENU_swapstereo(bool enabled);
-void* GetSetSDLValue(int isget, std::string target, void* setval);
+void* GetSetSDLValue(int isget, std::string& target, void* setval);
 void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 void change_output(int output);
 void res_input(bool type, const char * res);
@@ -367,7 +367,7 @@ class DOSBoxMenu {
                 inline mapper_event_t get_mapper_event(void) const {
                     return mapper_event;
                 }
-                inline item &set_mapper_event(const mapper_event_t e) {
+                inline item& set_mapper_event(const mapper_event_t& e) {
                     mapper_event = e;
                     return *this;
                 }

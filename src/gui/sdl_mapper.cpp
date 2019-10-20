@@ -2697,7 +2697,7 @@ static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor/*
 }
 
 
-void MAPPER_TriggerEventByName(const std::string name) {
+void MAPPER_TriggerEventByName(const std::string& name) {
     CEvent *event = get_mapper_event_by_name(name);
     if (event != NULL) {
         if (event->type == CEvent::handler_event_t) {

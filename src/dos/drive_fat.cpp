@@ -1875,7 +1875,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	}
 }
 
-bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
+bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry& useEntry) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;

@@ -233,7 +233,7 @@ public:
 	// Create a hard drive image of a specified geometry
 	imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sectorSize);
 	// Create a floppy image of a specified geometry
-	imageDiskMemory(diskGeo floppyGeometry);
+	imageDiskMemory(diskGeo& floppyGeometry);
 	// Create a copy-on-write memory image of an existing image
 	imageDiskMemory(imageDisk* underlyingImage);
 	virtual ~imageDiskMemory();

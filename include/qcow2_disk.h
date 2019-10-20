@@ -52,7 +52,7 @@ public:
 	
 	static QCow2Header read_header(FILE* qcow2File);
 
-	QCow2Image(QCow2Header qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes);
+	QCow2Image(QCow2Header& qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes);
 
 	virtual ~QCow2Image();
 	
@@ -123,7 +123,7 @@ class QCow2Disk : public imageDisk{
 
 public:
 	
-	QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
+	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
 
 	virtual ~QCow2Disk();
 	
