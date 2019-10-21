@@ -124,7 +124,7 @@ static raster_info *add_rasterizer(voodoo_state *v, const raster_info *cinfo);
 static raster_info *find_rasterizer(voodoo_state *v, int texcount);
 
 /* generic rasterizers */
-static void raster_fastfill(void *dest, INT32 scanline, const poly_extent *extent, const void *extradata);
+static void raster_fastfill(void *destbase, INT32 y, const poly_extent *extent, const void *extradata);
 
 
 /***************************************************************************

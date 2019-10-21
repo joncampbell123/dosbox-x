@@ -77,7 +77,7 @@ public:
 	static void GetPlatformConfigName(std::string& in);
 	static void CreatePlatformConfigDir(std::string& in);
 	static void ResolveHomedir(std::string & temp_line);
-	static void CreateDir(std::string const& temp);
+	static void CreateDir(std::string const& in);
 	static bool IsPathAbsolute(std::string const& in);
 };
 

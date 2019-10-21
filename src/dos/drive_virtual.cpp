@@ -83,7 +83,7 @@ public:
 	Virtual_File(Bit8u * in_data,Bit32u in_size);
 	bool Read(Bit8u * data,Bit16u * size);
 	bool Write(const Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Seek(Bit32u * new_pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
 private:

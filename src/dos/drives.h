@@ -38,7 +38,7 @@ public:
 	static void CycleDisks(int drive, bool notify);
 	static void CycleAllDisks(void);
 	static void CycleAllCDs(void);
-	static void Init(Section* sec);
+	static void Init(Section* s);
 	
 	static void SaveState( std::ostream& stream );
 	static void LoadState( std::istream& stream );
@@ -76,7 +76,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const * GetLabel(){return dirCache.GetLabel();};
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) { dirCache.SetLabel(label,iscdrom,updatable); };
-	virtual void *opendir(const char *dir);
+	virtual void *opendir(const char *name);
 	virtual void closedir(void *handle);
 	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory);
 	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
@@ -248,7 +248,7 @@ private:
 	bool FindNextInternal(Bit32u dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
 	bool getDirClustNum(const char * dir, Bit32u * clustNum, bool parDir);
 	bool getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry);
-	bool addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry);
+	bool addDirectoryEntry(Bit32u dirClustNumber, direntry& useEntry);
 	void zeroOutCluster(Bit32u clustNumber);
 	bool getEntryName(const char *fullname, char *entname);
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
@@ -423,7 +423,7 @@ struct isoDirEntry {
 
 class isoDrive : public DOS_Drive {
 public:
-	isoDrive(char driveLetter, const char* device_name, Bit8u mediaid, int &error);
+	isoDrive(char driveLetter, const char* fileName, Bit8u mediaid, int &error);
 	~isoDrive();
 	virtual bool FileOpen(DOS_File **file, const char *name, Bit32u flags);
 	virtual bool FileCreate(DOS_File **file, const char *name, Bit16u attributes);
@@ -431,7 +431,7 @@ public:
 	virtual bool RemoveDir(const char *dir);
 	virtual bool MakeDir(const char *dir);
 	virtual bool TestDir(const char *dir);
-	virtual bool FindFirst(const char *_dir, DOS_DTA &dta, bool fcb_findfirst);
+	virtual bool FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst);
 	virtual bool FindNext(DOS_DTA &dta);
 	virtual bool GetFileAttr(const char *name, Bit16u *attr);
 	virtual bool Rename(const char * oldname,const char * newname);
@@ -452,9 +452,9 @@ private:
 	bool loadImage();
 	bool lookupSingle(isoDirEntry *de, const char *name, Bit32u sectorStart, Bit32u length);
 	bool lookup(isoDirEntry *de, const char *path);
-	int  UpdateMscdex(char driveLetter, const char* physicalPath, Bit8u& subUnit);
+	int  UpdateMscdex(char driveLetter, const char* path, Bit8u& subUnit);
 	int  GetDirIterator(const isoDirEntry* de);
-	bool GetNextDirEntry(const int dirIterator, isoDirEntry* de);
+	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(Bit8u** buffer, const Bit32u sector);
 	

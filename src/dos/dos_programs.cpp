@@ -3242,7 +3242,7 @@ private:
         }
     }
 
-    bool PrepElTorito(const std::string type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
+    bool PrepElTorito(const std::string& type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
         el_torito_floppy_base = ~0UL;
         el_torito_floppy_type = 0xFF;
 

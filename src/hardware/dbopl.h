@@ -236,13 +236,13 @@ struct Chip {
 
 	Bit32u WriteAddr( Bit32u port, Bit8u val );
 
-	void GenerateBlock2( Bitu samples, Bit32s* output );
-	void GenerateBlock3( Bitu samples, Bit32s* output );
+	void GenerateBlock2( Bitu total, Bit32s* output );
+	void GenerateBlock3( Bitu total, Bit32s* output );
 
 	//Update the synth handlers in all channels
 	void UpdateSynths();
 	void Generate( Bit32u samples );
-	void Setup( Bit32u r );
+	void Setup( Bit32u rate );
 
 	Chip();
 };

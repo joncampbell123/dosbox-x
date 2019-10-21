@@ -15,7 +15,7 @@ public:
 	                allpass();
 	        void    setbuffer(float *buf, int size);
 	        void    deletebuffer();
-	inline  float   process(float inp);
+	inline  float   process(float input);
 	        void    mute();
 	        void    setfeedback(float val);
 	        float   getfeedback();

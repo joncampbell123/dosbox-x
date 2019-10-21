@@ -420,7 +420,7 @@ private:
 
 public: 
 	static void       InsertVariable(char* name, PhysPt adr);
-	static CDebugVar* FindVar       (PhysPt adr);
+	static CDebugVar* FindVar       (PhysPt pt);
 	static void       DeleteAll     ();
 	static bool       SaveVars      (char* name);
 	static bool       LoadVars      (char* name);

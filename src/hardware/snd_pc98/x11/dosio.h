@@ -76,8 +76,8 @@ short file_delete_c(const OEMCHAR *sjis);
 short file_attr_c(const OEMCHAR *sjis);
 
 void file_cpyname(char *dst, const char *src, int maxlen);
-void file_catname(char *path, const char *sjis, int maxlen);
-BOOL file_cmpname(const char *path, const char *sjis);
+void file_catname(char *path, const char *filename, int maxlen);
+BOOL file_cmpname(const char *path, const char *path2);
 OEMCHAR *file_getname(const OEMCHAR *path);
 void file_cutname(OEMCHAR *path);
 OEMCHAR *file_getext(const OEMCHAR *path);

@@ -37,8 +37,8 @@ private:
 	void nextPhase();
 
 public:
-	TVF(const Partial *partial, LA32Ramp *cutoffModifierRamp);
-	void reset(const TimbreParam::PartialParam *partialParam, Bit32u basePitch);
+	TVF(const Partial *usePartial, LA32Ramp *useCutoffModifierRamp);
+	void reset(const TimbreParam::PartialParam *newPartialParam, Bit32u basePitch);
 	// Returns the base cutoff (without envelope modification).
 	// The base cutoff is calculated when reset() is called and remains static
 	// for the lifetime of the partial.

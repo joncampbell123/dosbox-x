@@ -129,8 +129,8 @@ public:
 	void Clear_Request(void) {
 		request=false;
 	}
-	Bitu Read(Bitu size, Bit8u * buffer);
-	Bitu Write(Bitu size, Bit8u * buffer);
+	Bitu Read(Bitu want, Bit8u * buffer);
+	Bitu Write(Bitu want, Bit8u * buffer);
 };
 
 class DmaController {

@@ -114,7 +114,7 @@ public:
 
     /*! \brief      Process and execute command (internal or external)
      */
-	void DoCommand(char * cmd);
+	void DoCommand(char * line);
 
     /*! \brief      Execute a command
      */

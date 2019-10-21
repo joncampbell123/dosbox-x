@@ -158,7 +158,7 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
-	imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk, unsigned int rev);
+	imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk, unsigned int revision);
 	virtual ~imageDiskNFD();
 
     struct vfdentry {
@@ -231,9 +231,9 @@ public:
 	// Create a hard drive image of a specified size; automatically select c/h/s
 	imageDiskMemory(Bit32u imgSizeK);
 	// Create a hard drive image of a specified geometry
-	imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sectorSize);
+	imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size);
 	// Create a floppy image of a specified geometry
-	imageDiskMemory(diskGeo floppyGeometry);
+	imageDiskMemory(diskGeo& floppyGeometry);
 	// Create a copy-on-write memory image of an existing image
 	imageDiskMemory(imageDisk* underlyingImage);
 	virtual ~imageDiskMemory();
@@ -279,7 +279,7 @@ public:
 	VHDTypes vhdType;
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
-	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk);
+	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);
 	static VHDTypes GetVHDType(const char* fileName);
 	virtual ~imageDiskVHD();
 
@@ -340,7 +340,7 @@ private:
 
 	imageDiskVHD() : imageDisk(ID_VHD) { }
 	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId);
-	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
+	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength);
 

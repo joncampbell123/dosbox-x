@@ -560,8 +560,8 @@ static Bit8u EMM_ReleaseMemory(Bit16u handle) {
 
 static Bit8u EMM_SavePageMap(Bit16u handle) {
 	/* Check for valid handle */
-	if (handle>=EMM_MAX_HANDLES || emm_handles[handle].pages==NULL_HANDLE) {
-		if (handle!=0) return EMM_INVALID_HANDLE;
+	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
+		return EMM_INVALID_HANDLE;
 	}
 	/* Check for previous save */
 	if (emm_handles[handle].saved_page_map) return EMM_PAGE_MAP_SAVED;
@@ -589,8 +589,8 @@ static Bit8u EMM_RestoreMappingTable(void) {
 }
 static Bit8u EMM_RestorePageMap(Bit16u handle) {
 	/* Check for valid handle */
-	if (handle>=EMM_MAX_HANDLES || emm_handles[handle].pages==NULL_HANDLE) {
-		if (handle!=0) return EMM_INVALID_HANDLE;
+	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
+		return EMM_INVALID_HANDLE;
 	}
 	/* Check for previous save */
 	if (!emm_handles[handle].saved_page_map) return EMM_NO_SAVED_PAGE_MAP;

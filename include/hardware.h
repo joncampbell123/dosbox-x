@@ -35,7 +35,7 @@ enum OPL_Mode {
 
 extern Bitu CaptureState;
 
-void OPL_Init(Section* sec,OPL_Mode mode);
+void OPL_Init(Section* sec,OPL_Mode oplmode);
 void CMS_Init(Section* sec);
 void OPL_ShutDown(Section* sec);
 void CMS_ShutDown(Section* sec);

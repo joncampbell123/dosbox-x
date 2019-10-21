@@ -79,7 +79,7 @@ public:
 	Partial *pair;
 	bool alreadyOutputed = false;
 
-	Partial(Synth *synth, int debugPartialNum);
+	Partial(Synth *useSynth, int useDebugPartialNum);
 	~Partial();
 
 	int debugGetPartialNum() const;
@@ -90,7 +90,7 @@ public:
 	bool isActive() const;
 	void activate(int part);
 	void deactivate(void);
-	void startPartial(const Part *part, Poly *usePoly, const PatchCache *useCache, const MemParams::RhythmTemp *rhythmTemp, Partial *pairPartial);
+	void startPartial(const Part *part, Poly *usePoly, const PatchCache *usePatchCache, const MemParams::RhythmTemp *rhythmTemp, Partial *pairPartial);
 	void startAbort();
 	void startDecayAll();
 	bool shouldReverb();

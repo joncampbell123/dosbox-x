@@ -1150,7 +1150,7 @@ public:
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *closeButton;
-    ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
+    ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String& title) :
         GUI::ToplevelWindow(parent, (int)x, (int)y, 30/*initial*/, 30/*initial*/, title) {
         cfg_windows_active.clear();
 
@@ -1288,9 +1288,10 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
     SDL_Surface *sdlscreen;
     SDL_Event event;
+    GUI::String configString = GUI::String("DOSBox Configuration");
 
     sdlscreen = screen->getSurface();
-    auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+    auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, configString);
     cfg_wnd->raise();
 
     // event loop
@@ -1347,6 +1348,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
+    GUI::String configString = GUI::String("DOSBox Configuration");
 
     sdlscreen = screen->getSurface();
     switch (select) {
@@ -1396,7 +1398,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             new SaveLangDialog(screen, 90, 100, "Save Language File...");
             break;
         case 10: {
-            auto *np = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+            auto *np = new ConfigurationWindow(screen, 30, 30, configString);
             np->raise();
             } break;
         case 11:

@@ -19,7 +19,7 @@ void rhythm_setvol(UINT vol);
 void rhythm_reset(RHYTHM rhy);
 void rhythm_bind(RHYTHM rhy);
 void rhythm_update(RHYTHM rhy);
-void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 val);
+void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 value);
 
 #ifdef __cplusplus
 }

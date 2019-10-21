@@ -42,7 +42,7 @@ extern HostPt               MemBase;
 
 HostPt                      GetMemBase(void);
 bool                        MEM_A20_Enabled(void);
-void                        MEM_A20_Enable(bool enable);
+void                        MEM_A20_Enable(bool enabled);
 
 /* Memory management / EMS mapping */
 Bitu                        MEM_FreeTotal(void);           //Free 4 kb pages
@@ -146,13 +146,13 @@ static INLINE void var_write(Bit64u * const var, const Bit64u val) {
 
 /* The Folowing six functions are slower but they recognize the paged memory system */
 
-Bit8u  mem_readb(const PhysPt pt);
-Bit16u mem_readw(const PhysPt pt);
-Bit32u mem_readd(const PhysPt pt);
+Bit8u  mem_readb(const PhysPt address);
+Bit16u mem_readw(const PhysPt address);
+Bit32u mem_readd(const PhysPt address);
 
-void mem_writeb(const PhysPt pt,const Bit8u val);
-void mem_writew(const PhysPt pt,const Bit16u val);
-void mem_writed(const PhysPt pt,const Bit32u val);
+void mem_writeb(const PhysPt address,const Bit8u val);
+void mem_writew(const PhysPt address,const Bit16u val);
+void mem_writed(const PhysPt address,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 

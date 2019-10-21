@@ -207,7 +207,7 @@ public:
 	void Write_LCR(Bit8u data);
 	void Write_MCR(Bit8u data);
 	// Really old hardware seems to have the delta part of this register writable
-	void Write_MSR(Bit8u data);
+	void Write_MSR(Bit8u val);
 	void Write_SPR(Bit8u data);
 	void Write_reserved(Bit8u data, Bit8u address);
 
@@ -245,7 +245,7 @@ public:
 	
 	void Init_Registers();
 	
-	bool Putchar(Bit8u data, bool wait_dtr, bool wait_rts, Bitu timeout);
+	bool Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout);
 	bool Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout);
 
 	DOS_Device* mydosdevice;

@@ -123,7 +123,7 @@ public:
 
 	Property(std::string const& _propname, Changeable::Value when):propname(_propname),is_modified(false),change(when) { use_global_config_str=false; }
 	void Set_values(const char * const * in);
-	void Set_help(std::string const& str);
+	void Set_help(std::string const& in);
 	char const* Get_help();
 	virtual	bool SetValue(std::string const& str)=0;
 	Value const& GetValue() const { return value;}
@@ -174,7 +174,7 @@ public:
 	int getMin() { return min;}
 	int getMax() { return max;}
 	void SetMinMax(Value const& min,Value const& max) {this->min = min; this->max=max;}
-	bool SetValue(std::string const& in);
+	bool SetValue(std::string const& input);
 	virtual ~Prop_int(){ }
 	virtual bool CheckValue(Value const& in, bool warn);
 	// Override SetVal, so it takes min,max in account when there are no suggested values
@@ -214,7 +214,7 @@ public:
 		:Property(_propname,when) {
 		default_value = value = _value;
 	}
-	bool SetValue(std::string const& in);
+	bool SetValue(std::string const& input);
 	virtual ~Prop_bool(){ }
 };
 
@@ -224,7 +224,7 @@ public:
 		:Property(_propname,when) {
 		default_value = value = _value;
 	}
-	bool SetValue(std::string const& in);
+	bool SetValue(std::string const& input);
 	virtual bool CheckValue(Value const& in, bool warn);
 	virtual ~Prop_string(){ }
 };
@@ -236,7 +236,7 @@ public:
 		default_value = value = _value;
 		realpath = _value;
 	}
-	bool SetValue(std::string const& in);
+	bool SetValue(std::string const& input);
 	virtual ~Prop_path(){ }
 };
 
@@ -246,7 +246,7 @@ public:
 		:Property(_propname,when) {
 		default_value = value = _value;
 	}
-	bool SetValue(std::string const& in);
+	bool SetValue(std::string const& input);
 	virtual ~Prop_hex(){ }
 };
 
@@ -292,7 +292,7 @@ public:
  *       (i.e. we want high-level stuff to cleanup first and low level
  *       stuff like logging to cleanup last). */
 extern std::list<Function_wrapper> exitfunctions;
-void AddExitFunction(SectionFunction func,const char *funcname,bool canchange=false);
+void AddExitFunction(SectionFunction func,const char *name,bool canchange=false);
 
 /* for use with AddExitFunction and a name of a function.
  * this turns it into function pointer and function name. it turns one param into two. */
@@ -418,7 +418,7 @@ class Section_line: public Section{
 public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
 	virtual ~Section_line() { };
-	virtual bool HandleInputline(std::string const& gegevens);
+	virtual bool HandleInputline(std::string const& line);
 	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	std::string data;
