@@ -390,6 +390,7 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 	callback = NULL;
 	channum = num;
 	DMA16 = dma16 ? 0x1 : 0x0;
+    transfer_mode = 0;
 
     if (isadma128k >= 0)
         Set128KMode(isadma128k > 0); // user's choice

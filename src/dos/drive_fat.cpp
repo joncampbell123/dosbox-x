@@ -114,6 +114,9 @@ fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatD
 	curSectOff = 0;
 	seekpos = 0;
 	memset(&sectorBuffer[0], 0, sizeof(sectorBuffer));
+    currentSector = 0;
+    dirCluster = 0;
+    dirIndex = 0;
 	
 	if(filelength > 0) {
 		Seek(&seekto, DOS_SEEK_SET);

@@ -103,6 +103,9 @@ void pc98_port68_command_write(unsigned char b);
 
 PC98_GDC_state::PC98_GDC_state() {
     memset(param_ram,0,sizeof(param_ram));
+    memset(cmd_parm_tmp, 0, sizeof(cmd_parm_tmp));
+    memset(rfifo, 0, sizeof(rfifo));
+    memset(fifo, 0, sizeof(fifo));
 
     // make a display partition area to cover the screen, whatever it is.
     param_ram[0] = 0x00;        // SAD=0
@@ -115,6 +118,9 @@ PC98_GDC_state::PC98_GDC_state() {
     doublescan = false;
     param_ram_wptr = 0;
     display_partition = 0;
+    display_partition_rem_lines = 0;
+    active_display_lines = 0;
+    active_display_words_per_line = 0;
     row_line = 0;
     row_height = 16;
     scan_address = 0;
@@ -122,6 +128,7 @@ PC98_GDC_state::PC98_GDC_state() {
     proc_step = 0xFF;
     display_enable = true;
     display_mode = 0;
+    display_pitch = 0;
     cursor_enable = true;
     cursor_blink_state = 0;
     cursor_blink_count = 0;
@@ -132,6 +139,12 @@ PC98_GDC_state::PC98_GDC_state() {
     dynamic_ram_refresh = 0;
     cursor_blink = true;
     idle = false;
+    horizontal_sync_width = 0;
+    vertical_sync_width = 0;
+    horizontal_front_porch_width = 0;
+    horizontal_back_porch_width = 0;
+    vertical_front_porch_width = 0;
+    vertical_back_porch_width = 0;
     reset_fifo();
     reset_rfifo();
 }

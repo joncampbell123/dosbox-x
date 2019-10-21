@@ -80,12 +80,12 @@ public:
 	bool register_pnp;
 /* FDC internal registers */
 	uint8_t ST[4];			/* ST0..ST3 */
-	uint8_t current_cylinder[4];
+    uint8_t current_cylinder[4] = {};
 /* buffers */
-	uint8_t in_cmd[16];
+    uint8_t in_cmd[16] = {};
 	uint8_t in_cmd_len;
 	uint8_t in_cmd_pos;
-	uint8_t out_res[16];
+    uint8_t out_res[16] = {};
 	uint8_t out_res_len;
 	uint8_t out_res_pos;
 	unsigned int motor_steps;
@@ -458,6 +458,9 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	busy_status = 0;
 	for (i=0;i < 4;i++) positioning[i] = false;
 	for (i=0;i < 4;i++) ST[i] = 0x00;
+    irq_pending = false;
+    motor_steps = 0;
+    motor_dir = 0;
 	reset_io();
 
 	digital_output_register = 0;

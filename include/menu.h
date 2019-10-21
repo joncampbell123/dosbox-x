@@ -212,7 +212,7 @@ class DOSBoxMenu {
                     unsigned int        enabled:1;
                     unsigned int        checked:1;
                     unsigned int        in_use:1;
-                } status;
+                } status = {};
             protected:
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event = unassigned_mapper_event;

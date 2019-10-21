@@ -256,12 +256,12 @@ class Capture {
 	Bit8u ToRaw[256];
 	Bit8u delay256;
 	Bit8u delayShift8;
-	RawHeader header;
+    RawHeader header = {};
 
 	FILE*	handle;				//File used for writing
 	Bit32u	startTicks;			//Start used to check total raw length on end
 	Bit32u	lastTicks;			//Last ticks when last last cmd was added
-	Bit8u	buf[1024];	//16 added for delay commands and what not
+    Bit8u   buf[1024] = {};     //16 added for delay commands and what not
 	Bit32u	bufUsed;
 #if 0//unused
     Bit8u	cmd[2];				//Last cmd's sent to either ports
@@ -457,6 +457,8 @@ skipWrite:
 		cache = _cache;
 		handle = 0;
 		bufUsed = 0;
+        startTicks = 0;
+        lastTicks = 0;
 		MakeTables();
 	}
 	~Capture() {

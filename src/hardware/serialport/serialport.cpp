@@ -1090,6 +1090,26 @@ void CSerial::Init_Registers () {
 CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
 	Bit16u base = serial_baseaddr[id];
+    InstallationSuccessful = false;
+    bytetime = 0;
+    waiting_interrupts = 0;
+    baud_divider = 0;
+    IER = 0;
+    irq_active = false;
+    ISR = 0;
+    LCR = 0;
+    dtr = false;
+    rts = false;
+    op1 = false;
+    op2 = false;
+    loopback = false;
+    LSR = 0;
+    SPR = 0;
+    loopback_data = 0;
+    errors_in_fifo = 0;
+    rx_interrupt_threshold = 0;
+    FCR = 0;
+    sync_guardtime = false;
 
     d_cts=false;		// bit0: deltaCTS
     d_dsr=false;		// bit1: deltaDSR

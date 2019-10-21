@@ -1199,6 +1199,14 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
 IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index) : IDEDevice(c) {
     this->drive_index = drive_index;
     sector_i = sector_total = 0;
+    atapi_to_host = false;
+    host_maximum_byte_count = 0;
+    LBA = 0;
+    TransferLength = 0;
+    memset(atapi_cmd, 0, sizeof(atapi_cmd));
+    atapi_cmd_i = 0;
+    atapi_cmd_total = 0;
+    memset(sector, 0, sizeof(sector));
 
     memset(sense,0,sizeof(sense));
     set_sense(/*SK=*/0);
@@ -2040,6 +2048,13 @@ IDEATADevice::IDEATADevice(IDEController *c,unsigned char bios_disk_index) : IDE
     multiple_sector_max = sizeof(sector) / 512;
     multiple_sector_count = 1;
     geo_translate = false;
+    heads = 0;
+    sects = 0;
+    cyls = 0;
+    progress_count = 0;
+    phys_heads = 0;
+    phys_sects = 0;
+    phys_cyls = 0;
 }
 
 IDEATADevice::~IDEATADevice() {

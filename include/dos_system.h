@@ -238,18 +238,18 @@ private:
 	void		Clear			(void);
 
 	CFileInfo*	dirBase;
-	char		dirPath				[CROSS_LEN];
-	DOS_Drive*	drive;
-	char		basePath			[CROSS_LEN];
-	bool		dirFirstTime;
+	char		dirPath				[CROSS_LEN] = {};
+	DOS_Drive*	drive = NULL;
+	char		basePath			[CROSS_LEN] = {};
+	bool		dirFirstTime = false;
 	TDirSort	sortDirType;
 	CFileInfo*	save_dir;
-	char		save_path			[CROSS_LEN];
-	char		save_expanded		[CROSS_LEN];
+	char		save_path			[CROSS_LEN] = {};
+	char		save_expanded		[CROSS_LEN] = {};
 
 	Bit16u		srchNr;
 	CFileInfo*	dirSearch			[MAX_OPENDIRS];
-	char		dirSearchName		[MAX_OPENDIRS];
+	char		dirSearchName		[MAX_OPENDIRS] = {};
 	CFileInfo*	dirFindFirst		[MAX_OPENDIRS];
 	Bit16u		nextFreeFindFirst;
 
