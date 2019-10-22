@@ -85,6 +85,10 @@ void GFX_OpenGLRedrawScreen(void);
 #include "zipfile.h"
 #include "shell.h"
 
+#if defined(LINUX) && defined(HAVE_ALSA)
+# include <alsa/asoundlib.h>
+#endif
+
 #if defined(WIN32) && !defined(HX_DOS)
 # include <shobjidl.h>
 #endif
@@ -8498,6 +8502,11 @@ fresh_boot:
 
     mainMenu.unbuild();
     mainMenu.clear_all_menu_items();
+
+#if defined(LINUX) && defined(HAVE_ALSA)
+    // force ALSA to release global cache, so that it's one less leak reported by Valgrind
+    snd_config_update_free_global();
+#endif
 
     return 0;
 }
