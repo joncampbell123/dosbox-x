@@ -36,6 +36,7 @@
 #include "softmodem.h"
 #include "nullmodem.h"
 #include "seriallog.h"
+#include "serialfile.h"
 
 #include "cpu.h"
 
@@ -1350,6 +1351,9 @@ public:
 			}
 			else if (type=="log") {
 				serialports[i] = new CSerialLog (i, &cmd);
+			}
+			else if (type=="file") {
+				serialports[i] = new CSerialFile (i, &cmd);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
