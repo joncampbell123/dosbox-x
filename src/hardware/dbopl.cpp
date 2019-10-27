@@ -612,6 +612,15 @@ Operator::Operator() {
 	reg60 = 0;
 	reg80 = 0;
 	regE0 = 0;
+    waveBase = 0;
+    waveMask = 0;
+    waveStart = 0;
+    vibrato = 0;
+    attackAdd = 0;
+    decayAdd = 0;
+    rateIndex = 0;
+    tremoloMask = 0;
+    vibStrength = 0;
 	SetState( OFF );
 	rateZero = (1 << OFF);
 	sustainLevel = ENV_MAX;

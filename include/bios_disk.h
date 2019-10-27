@@ -276,7 +276,7 @@ public:
 		VHD_TYPE_DYNAMIC = 3,
 		VHD_TYPE_DIFFERENCING = 4
 	};
-	VHDTypes vhdType;
+    VHDTypes vhdType = VHD_TYPE_NONE;
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);

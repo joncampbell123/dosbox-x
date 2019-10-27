@@ -35,6 +35,7 @@ revmodel::revmodel(float scaletuning)
 	roomsize = (initialroom*scaleroom) + offsetroom;
 	width = initialwidth;
 	mode = initialmode;
+    filtval = 0;
 	update();
 
 	// Buffer will be full of rubbish - so we MUST mute them

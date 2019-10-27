@@ -50,6 +50,12 @@ static const Bit32u BUFFER_SIZE = 16384;
 
 DelayReverb::DelayReverb() {
 	buf = NULL;
+    bufIx = 0;
+    delayLeft = 0;
+    delayRight = 0;
+    delayFeedback = 0;
+    amp = 0;
+    feedback = 0;
 	setParameters(0, 0);
 
 

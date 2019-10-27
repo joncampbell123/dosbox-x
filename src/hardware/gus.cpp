@@ -1194,7 +1194,7 @@ public:
 	};
 public:
 	struct mixcontrol	mixpair[8];		// pairs 1-5 and Master
-	struct volpair		volpair[5];		// pairs 1-5 scaled by master
+    struct volpair		volpair[5] = {};	// pairs 1-5 scaled by master
 	uint8_t			addr_attenuator = 0;	// which attenuator is selected
 	uint8_t			addr_control = 0;		// which control is selected
 } GUS_ICS2101;

@@ -26,6 +26,8 @@
 WaveformGenerator::WaveformGenerator()
 {
   sync_source = this;
+  sync_dest = NULL;
+  waveform = 0;
 
   set_chip_model(MOS6581);
 

@@ -93,10 +93,11 @@ private:
 		Bit16u required_flags,forbidden_flags;
 		Bit16u required_userflags,forbidden_userflags;
 	} current_layout_planes[layout_pages-4];
-	Bit8u additional_planes,used_lock_modifiers;
+    Bit8u additional_planes = 0;
+    Bit8u used_lock_modifiers;
 
 	// diacritics table
-	Bit8u diacritics[2048];
+    Bit8u diacritics[2048] = {};
 	Bit16u diacritics_entries;
 	Bit16u diacritics_character;
 	Bit16u user_keys;
