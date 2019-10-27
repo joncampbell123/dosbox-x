@@ -1,4 +1,7 @@
 0.82.23 (next)
+  - Parallel port emulation now support both dev: and
+    file: to specify that LPTx output go to a file,
+    not necessarily a device by name.
   - Fixed bug that capped vmemsizekb to 8KB.
   - BIOS bootup screen now shows correct text for CPU
     type instead of "? CPU" when cputype=auto.
