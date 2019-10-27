@@ -31,19 +31,30 @@ CSerialFile::CSerialFile(Bitu id,	CommandLine* cmd):CSerial(id, cmd) {
 	setCD(false);
 	setDSR(true);
 	setCTS(true);
-	InstallationSuccessful=true;
+
+    filename = "serial";
+	if (cmd->FindStringBegin("file:",filename,false)) {
+        /* good */
+	}
+
+    fp = fopen(filename.c_str(),"wb");
+    if (fp != NULL) {
+        InstallationSuccessful=true;
+    }
+    else {
+        LOG_MSG("serialfile unable to open file '%s'",filename.c_str());
+        InstallationSuccessful=false;
+    }
 }
 
 CSerialFile::~CSerialFile() {
+    if (fp != NULL) {
+        fclose(fp);
+        fp = NULL;
+    }
+
 	// clear events
 	removeEvent(SERIAL_TX_EVENT);
-}
-
-void CSerialFile::log_emit() {
-	if (!log_line.empty()) {
-		LOG_MSG("CSerial Log: %s",log_line.c_str());
-		log_line.clear();
-	}
 }
 
 void CSerialFile::handleUpperEvent(Bit16u type) {
@@ -76,12 +87,7 @@ void CSerialFile::transmitByte(Bit8u val, bool first) {
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 
-	if (val == '\n' || val == '\r')
-		log_emit();
-	else {
-		log_line += (char)val;
-		if (log_line.length() >= 256) log_emit();
-	}
+    if (fp != NULL) fwrite(&val,1,1,fp);
 }
 
 /*****************************************************************************/

@@ -41,9 +41,8 @@ public:
 	void setBreak(bool value);
 	void handleUpperEvent(Bit16u type);
 
-	void log_emit();
-
-	std::string log_line;
+	FILE* fp = NULL;
+    std::string filename;
 };
 
 #endif // INCLUDEGUARD
