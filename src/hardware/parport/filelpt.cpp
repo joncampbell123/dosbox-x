@@ -74,6 +74,9 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	if(cmd->FindStringBegin("dev:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_DEV;
+	} else if(cmd->FindStringBegin("file:",str,false)) {
+		name = str.c_str();
+		filetype = FILE_DEV;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_APPEND;
