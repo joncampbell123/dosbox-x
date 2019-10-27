@@ -1,4 +1,5 @@
 0.82.23 (next)
+  - Added file output to serial port emulation.
   - Parallel port emulation now support both dev: and
     file: to specify that LPTx output go to a file,
     not necessarily a device by name.
