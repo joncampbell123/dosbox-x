@@ -77,6 +77,7 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	} else if(cmd->FindStringBegin("file:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_DEV;
+        timeout = 0;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_APPEND;
@@ -179,7 +180,7 @@ void CFileLPT::Write_IOSEL(Bitu val) {
 }
 void CFileLPT::handleUpperEvent(Bit16u type) {
     (void)type;//UNUSED
-	if(fileOpen) {
+	if(fileOpen && timeout != 0) {
 		if(lastUsedTick + timeout < PIC_Ticks) {
 			if(addFF) {
 				fputc(12,file);
