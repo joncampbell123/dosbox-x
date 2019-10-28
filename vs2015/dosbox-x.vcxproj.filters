@@ -924,6 +924,9 @@
     <ClCompile Include="..\src\libs\zmbv\zmbv.cpp">
       <Filter>Sources\libs\zmbv</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\serialport\serialfile.cpp">
+      <Filter>Sources\hardware\serialport</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1720,6 +1723,9 @@
     </ClInclude>
     <ClInclude Include="..\src\resource.h">
       <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\serialport\serialfile.h">
+      <Filter>Sources\hardware\serialport</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

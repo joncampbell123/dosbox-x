@@ -1395,6 +1395,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\hardware\parport\printer_redir.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialfile.cpp" />
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c" />
     <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c" />
@@ -1781,6 +1782,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\hardware\serialport\misc_util.h" />
     <ClInclude Include="..\src\hardware\serialport\nullmodem.h" />
     <ClInclude Include="..\src\hardware\serialport\serialdummy.h" />
+    <ClInclude Include="..\src\hardware\serialport\serialfile.h" />
     <ClInclude Include="..\src\hardware\serialport\seriallog.h" />
     <ClInclude Include="..\src\hardware\serialport\serialmouse.h" />
     <ClInclude Include="..\src\hardware\serialport\softmodem.h" />
