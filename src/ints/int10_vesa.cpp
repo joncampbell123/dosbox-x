@@ -178,7 +178,6 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
          * NOTICE: This limits the modelist to what is able to fit! Extended modes may not fit, which is why the option is OFF by default. */
         uint16_t modesg = int10.rom.vesa_modes >> 16;
         uint16_t modoff = int10.rom.vesa_modes & 0xFFFF;
-        uint16_t m;
 
         mem_writed(buffer+0x0e,RealMake(seg,vbe2_pos));	//VESA Mode list
 
@@ -189,7 +188,7 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
             else {
                 if (vbe2_pos >= (253+off)) break;
             }
-            m = real_readw(modesg,modoff);
+            uint16_t m = real_readw(modesg,modoff);
             if (m == 0xFFFF) break;
             real_writew(seg,vbe2_pos,m);
             vbe2_pos += 2;
@@ -437,7 +436,6 @@ Bit8u VESA_GetCPUWindow(Bit8u window,Bit16u & address) {
 
 Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait) {
 //Structure is (vesa 3.0 doc): blue,green,red,alignment
-	Bit8u r,g,b;
 	if (index>255) return VESA_FAIL;
 	if (index+count>256) return VESA_FAIL;
 	
@@ -446,9 +444,9 @@ Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait) {
 	
 	IO_Write(0x3c8,(Bit8u)index);
 	while (count) {
-		b = mem_readb(data++);
-		g = mem_readb(data++);
-		r = mem_readb(data++);
+		Bit8u b = mem_readb(data++);
+		Bit8u g = mem_readb(data++);
+		Bit8u r = mem_readb(data++);
 		data++;
 		IO_Write(0x3c9,r);
 		IO_Write(0x3c9,g);
@@ -460,14 +458,13 @@ Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait) {
 
 
 Bit8u VESA_GetPalette(PhysPt data,Bitu index,Bitu count) {
-	Bit8u r,g,b;
 	if (index>255) return VESA_FAIL;
 	if (index+count>256) return VESA_FAIL;
 	IO_Write(0x3c7,(Bit8u)index);
 	while (count) {
-		r = IO_Read(0x3c9);
-		g = IO_Read(0x3c9);
-		b = IO_Read(0x3c9);
+		Bit8u r = IO_Read(0x3c9);
+		Bit8u g = IO_Read(0x3c9);
+		Bit8u b = IO_Read(0x3c9);
 		mem_writeb(data++,b);
 		mem_writeb(data++,g);
 		mem_writeb(data++,r);

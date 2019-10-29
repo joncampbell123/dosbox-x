@@ -319,7 +319,6 @@ static void FDC_Destroy(Section* sec) {
 
 static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
-	FloppyController *fdc;
 
 	assert(fdc_interface < MAX_FLOPPY_CONTROLLERS);
 
@@ -334,7 +333,7 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",fdc_interface);
 
     {
-        fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
+        FloppyController *fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
         fdc->install_io_port();
 
 		PIC_SetIRQMask((unsigned int)(fdc->IRQ), false);
@@ -514,8 +513,6 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 }
 
 void FloppyController::install_io_port(){
-	unsigned int i;
-
 	if (base_io != 0) {
 		LOG_MSG("FDC installing to io=%03xh IRQ=%d DMA=%d\n",base_io,IRQ,DMA);
         if (IS_PC98_ARCH) {
@@ -527,7 +524,7 @@ void FloppyController::install_io_port(){
             ReadHandler[2].Install(base_io+4,fdc_baseio98_r,IO_MA);     // 0x94 / 0xCC
         }
         else {
-            for (i=0;i < 8;i++) {
+            for (unsigned int i=0;i < 8;i++) {
                 if (i != 6) { /* does not use port 0x3F6 */
                     WriteHandler[i].Install(base_io+i,fdc_baseio_w,IO_MA);
                     ReadHandler[i].Install(base_io+i,fdc_baseio_r,IO_MA);
@@ -563,7 +560,6 @@ FloppyController *match_fdc_controller(Bitu port) {
 /* when DOR port is written */
 void FloppyController::on_dor_change(unsigned char b) {
 	unsigned char chg = b ^ digital_output_register;
-	unsigned int i;
 
 	/* !RESET line */
 	if (chg & 0x04) {
@@ -603,7 +599,7 @@ void FloppyController::on_dor_change(unsigned char b) {
 		LOG_MSG("FDC: Motor control {A,B,C,D} = {%u,%u,%u,%u}\n",
 			(b>>7)&1,(b>>6)&1,(b>>5)&1,(b>>4)&1);
 
-		for (i=0;i < 4;i++) {
+		for (unsigned int i=0;i < 4;i++) {
 			if (device[i] != NULL) device[i]->set_motor((b&(0x10<<i))?true:false);
 		}
 	}

@@ -2147,12 +2147,12 @@ void IDEATADevice::update_from_biosdisk() {
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
-    IDEController *c;
     unsigned int i;
 
     index = -1;
     slave = false;
     for (i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        IDEController* c;
         if ((c=idecontroller[i]) == NULL) continue;
         index = (signed char)i;
 
@@ -2349,7 +2349,6 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 
             if (dev->type == IDE_TYPE_HDD) {
                 IDEATADevice *ata = (IDEATADevice*)dev;
-                static bool vm86_warned = false;
 //              static bool int13_fix_wrap_warned = false;
                 bool vm86 = IDE_CPU_Is_Vm86();
 
@@ -2423,6 +2422,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
                         ide->drivehead = dev->drivehead = 0xE0u | (ms<<4u) | (lba>>24u); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
+                        static bool vm86_warned = false;
 
                         if (vm86 && !vm86_warned) {
                             LOG_MSG("IDE warning: INT 13h extensions read from virtual 8086 mode.\n");
@@ -2476,10 +2476,6 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
             if (dev->type == IDE_TYPE_HDD) {
                 IDEATADevice *ata = (IDEATADevice*)dev;
-                static bool vm86_warned = false;
-#if 0
-                static bool int13_fix_wrap_warned = false;
-#endif
                 bool vm86 = IDE_CPU_Is_Vm86();
 
                 if ((ata->bios_disk_index-2) == (disk-0x80)) {
@@ -2501,6 +2497,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                      *       track boundaries. */
                     if (sect > dsk->sectors) {
 #if 0 /* this warning is pointless */
+                        static bool int13_fix_wrap_warned = false;
                         if (!int13_fix_wrap_warned) {
                             LOG_MSG("INT 13h implementation warning: we were given over-large sector number.\n");
                             LOG_MSG("This is normally the fault of DOSBox INT 13h emulation that counts sectors\n");
@@ -2596,6 +2593,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                         ide->drivehead = dev->drivehead = 0xA0u | (ms<<4u) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
+                        static bool vm86_warned = false;
 
                         if (vm86 && !vm86_warned) {
                             LOG_MSG("IDE warning: INT 13h read from virtual 8086 mode.\n");
@@ -3160,13 +3158,11 @@ void IDEController::lower_irq() {
 unsigned int pc98_ide_select = 0;
 
 IDEController *match_ide_controller(Bitu port) {
-    unsigned int i;
-
     if (IS_PC98_ARCH) {
         return idecontroller[pc98_ide_select];
     }
     else {
-        for (i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
             IDEController *ide = idecontroller[i];
             if (ide == NULL) continue;
             if (ide->base_io != 0U && ide->base_io == (port&0xFFF8U)) return ide;
@@ -3685,13 +3681,11 @@ void IDEController::register_isapnp() {
 }
 
 void IDEController::install_io_port(){
-    unsigned int i;
-
     if (IS_PC98_ARCH)
         return;
 
     if (base_io != 0) {
-        for (i=0;i < 8;i++) {
+        for (unsigned int i=0;i < 8;i++) {
             WriteHandler[i].Install(base_io+i,ide_baseio_w,IO_MA);
             ReadHandler[i].Install(base_io+i,ide_baseio_r,IO_MA);
         }

@@ -563,13 +563,13 @@ void lfb_mem_cb_init() {
 
     {
         MEM_CalloutObject *cb = MEM_GetCallout(lfb_mem_cb);
-        Bitu p2sz = 1;
 
         assert(cb != NULL);
 
         cb->Uninstall();
 
         if (memory.lfb.pages != 0) {
+            Bitu p2sz = 1;
             /* make p2sz the largest power of 2 that covers the LFB */
             while (p2sz < memory.lfb.pages) p2sz <<= (Bitu)1;
             cb->Install(memory.lfb.start_page,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(p2sz)),lfb_memio_cb);
@@ -580,12 +580,12 @@ void lfb_mem_cb_init() {
 
     {
         MEM_CalloutObject *cb = MEM_GetCallout(lfb_mmio_cb);
-        Bitu p2sz = 1;
 
         assert(cb != NULL);
 
         cb->Uninstall();
         if (memory.lfb_mmio.pages != 0) {
+            Bitu p2sz = 1;
             /* make p2sz the largest power of 2 that covers the LFB */
             while (p2sz < memory.lfb_mmio.pages) p2sz <<= (Bitu)1;
             cb->Install(memory.lfb_mmio.start_page,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(p2sz)),lfb_memio_cb);

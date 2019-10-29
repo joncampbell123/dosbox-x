@@ -90,7 +90,7 @@ Bitu OUTPUT_SURFACE_SetSize()
 #endif
 
         /* decide where the rectangle on the screen goes */
-        int final_width,final_height,ax,ay;
+        int final_width,final_height;
 
 #if C_XBRZ
         /* scale to fit the window.
@@ -112,8 +112,8 @@ Bitu OUTPUT_SURFACE_SetSize()
 
             final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
             final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
-            ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
-            ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
+            int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
+            int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
             if (ax < 0) ax = 0;
             if (ay < 0) ay = 0;
             sdl.clip.x += ax + (int)sdl.overscan_width;

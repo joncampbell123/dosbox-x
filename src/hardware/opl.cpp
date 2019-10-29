@@ -479,7 +479,6 @@ void disable_operator(op_type* op_pt, Bit32u act_type) {
 
 void adlib_init(Bit32u samplerate) {
     Bit16s i;
-	Bits j, oct;
 
 	int_samplerate = samplerate;
 
@@ -588,9 +587,9 @@ void adlib_init(Bit32u samplerate) {
 		kslev[7][4] = 40;	kslev[7][5] = 43;	kslev[7][6] = 45;	kslev[7][7] = 47;
 		kslev[7][8] = 48;
 		for (i=9;i<16;i++) kslev[7][i] = (Bit8u)(i+41);
-		for (j=6;j>=0;j--) {
+		for (Bits j=6;j>=0;j--) {
 			for (i=0;i<16;i++) {
-				oct = (Bits)kslev[j+1][i]-8;
+				Bits oct = (Bits)kslev[j+1][i]-8;
 				if (oct < 0) oct = 0;
 				kslev[j][i] = (Bit8u)oct;
 			}

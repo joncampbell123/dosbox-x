@@ -242,11 +242,9 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 
 int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
     (void)ef;//UNUSED
-	unsigned char a,b;
-
 	while (1) {
-		a = mem_readb(es++);
-		b = (unsigned char)(*ls++);
+		unsigned char a = mem_readb(es++);
+		unsigned char b = (unsigned char)(*ls++);
 		if (a == '=') a = 0;
 		if (a == 0 && b == 0) break;
 		if (a == b) continue;
@@ -257,10 +255,11 @@ int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
 }
 
 void EnvPhys_StrCpyToCPPString(std::string &result,PhysPt &env_scan,PhysPt env_fence) {
-	char tmp[512],*w=tmp,*wf=tmp+sizeof(tmp)-1,c;
+	char tmp[512],*w=tmp,*wf=tmp+sizeof(tmp)-1;
 
 	result.clear();
 	while (env_scan < env_fence) {
+		char c;
 		if ((c=(char)mem_readb(env_scan++)) == 0) break;
 
 		if (w >= wf) {

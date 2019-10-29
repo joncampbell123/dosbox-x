@@ -1081,14 +1081,13 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
                 Bit16u ftime,fdate;
-                bool ftdvalid=false;
 
 				strcpy(nameSource,pathSource);
 				strcat(nameSource,name);
 				// Open Source
 				if (DOS_OpenFile(nameSource,0,&sourceHandle)) {
                     // record the file date/time
-                    ftdvalid = DOS_GetFileDate(sourceHandle, &ftime, &fdate);
+                    bool ftdvalid = DOS_GetFileDate(sourceHandle, &ftime, &fdate);
                     if (!ftdvalid) LOG_MSG("WARNING: COPY cannot obtain file date/time");
 
 					// Create Target or open it if in concat mode
@@ -1553,10 +1552,8 @@ void DOS_Shell::CMD_SUBST (char * args) {
  * E.g. make basedir member dos_drive instead of localdrive
  */
 	HELP("SUBST");
-	localDrive* ldp=0;
-	char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-	char temp_str[2] = { 0,0 };
 	try {
+		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
 		strcpy(mountstring,"MOUNT ");
 		StripSpaces(args);
 		std::string arg;
@@ -1566,6 +1563,7 @@ void DOS_Shell::CMD_SUBST (char * args) {
   
 		command.FindCommand(1,arg);
 		if( (arg.size()>1) && arg[1] !=':')  throw(0);
+		char temp_str[2] = { 0,0 };
 		temp_str[0]=(char)toupper(args[0]);
 		command.FindCommand(2,arg);
 		if((arg=="/D") || (arg=="/d")) {
@@ -1582,6 +1580,7 @@ void DOS_Shell::CMD_SUBST (char * args) {
    		Bit8u drive;char fulldir[DOS_PATHLENGTH];
 		if (!DOS_MakeName(const_cast<char*>(arg.c_str()),fulldir,&drive)) throw 0;
 	
+		localDrive* ldp=0;
 		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 0;
 		char newname[CROSS_LEN];   
 		strcpy(newname, ldp->basedir);	   
@@ -1788,12 +1787,11 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 		WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 		return;
 	}
-	char * word;
     pic_tickindex_t delay = 0;
     int duration = 0, core = 0;
 
 	while (*args) {
-		word=StripWord(args);
+		char *word=StripWord(args);
 		KBD_KEYS scankey = (KBD_KEYS)0;
 		char *tail;
 		bool alt = false, control = false, shift = false;

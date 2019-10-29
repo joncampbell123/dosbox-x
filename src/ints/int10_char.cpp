@@ -470,8 +470,6 @@ void INT10_GetCursorPos(Bit8u *row, Bit8u*col, const Bit8u page)
 }
 
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
-    Bit16u address;
-
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
     if (IS_PC98_ARCH) {
@@ -490,7 +488,7 @@ void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
         BIOS_NCOLS;
         // Calculate the address knowing nbcols nbrows and page num
         // NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs
-        address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
+        Bit16u address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
         if (IS_PC98_ARCH) {
             vga_pc98_direct_cursor_pos(address);
         }

@@ -138,16 +138,15 @@ void SERIAL_getErrorString(char* buffer, size_t length) {
 		(LPTSTR) &sysmessagebuffer,
 		0,NULL);
 
-	const char* err5text = "The specified port is already in use.\n";
-	const char* err2text = "The specified port does not exist.\n";
-
     size_t sysmsg_offset = 0;
 
 	if(error == 5) {
+		const char* err5text = "The specified port is already in use.\n";
 		sysmsg_offset = (int)strlen(err5text);
 		memcpy(buffer,err5text,sysmsg_offset);
 
 	} else if(error == 2) {
+		const char* err2text = "The specified port does not exist.\n";
 		sysmsg_offset = (int)strlen(err2text);
 		memcpy(buffer,err2text,sysmsg_offset);
 	}

@@ -2410,7 +2410,6 @@ static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 void KEYBOARD_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
-    unsigned int i;
 
     {
         Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -2424,7 +2423,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
      *
      * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
     if (IS_PC98_ARCH) {
-        for (i=0;i < 4;i++) {
+        for (unsigned int i=0;i < 4;i++) {
             ReadHandler_8255_PC98[i].Uninstall();
             WriteHandler_8255_PC98[i].Uninstall();
 

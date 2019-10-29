@@ -127,8 +127,6 @@ static int xms_local_enable_count = 0;
 void DOS_Write_HMA_CPM_jmp(void);
 
 Bitu XMS_EnableA20(bool enable) {
-	Bit8u val;
-
     if (IS_PC98_ARCH) {
         // NEC PC-98: Unmask (enable) A20 by writing to port 0xF2.
         //            Mask (disable) A20 by writing to port 0xF6.
@@ -136,7 +134,7 @@ Bitu XMS_EnableA20(bool enable) {
     }
     else {
         // IBM PC/AT: Port 0x92, bit 1, set if A20 enabled
-        val = IO_Read(0x92);
+        Bit8u val = IO_Read(0x92);
         if (enable) IO_Write(0x92,val | 2);
         else		IO_Write(0x92,val & ~2);
     }

@@ -341,12 +341,10 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
 }
 
 void IO_InvalidateCachedHandler(Bitu port,Bitu range) {
-    Bitu mb,r,p;
-
     assert((port+range) <= IO_MAX);
-    for (mb=0;mb <= 2;mb++) {
-        p = port;
-        r = range;
+    for (Bitu mb=0;mb <= 2;mb++) {
+        Bitu p = port;
+        Bitu r = range;
         while (r--) {
             io_writehandlers[mb][p]=IO_WriteSlowPath;
             io_readhandlers[mb][p]=IO_ReadSlowPath;

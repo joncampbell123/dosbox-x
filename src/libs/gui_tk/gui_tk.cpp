@@ -2079,12 +2079,12 @@ void WindowInWindow::paintAll(Drawable &d) const {
         int thumbheight = vscroll_display_width - 2;
         int thumbtravel = height - 2 - thumbheight;
         if (thumbtravel < 0) thumbtravel = 0;
-        int xleft = 1;
         int ytop = 1 + ((scroll_pos_h > 0) ?
             ((thumbtravel * scroll_pos_y) / scroll_pos_h) :
             0);
 
         if (thumbheight <= (height + 2) && !disabled) {
+            int xleft = 1;
             dscroll.setColor(Color::Light3D);
             dscroll.drawLine(xleft,ytop,xleft+thumbwidth-1,ytop);
             dscroll.drawLine(xleft,ytop,xleft,ytop+thumbheight-1);

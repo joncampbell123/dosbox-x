@@ -405,15 +405,14 @@ void VGA_SetClock(Bitu which,Bitu target) {
     best.err=(Bits)target;
     best.m=1u;
     best.n=1u;
-    Bitu n,r;
-    Bits m;
+    Bitu r;
 
     for (r = 0; r <= 3; r++) {
         Bitu f_vco = target * ((Bitu)1u << (Bitu)r);
         if (MIN_VCO <= f_vco && f_vco < MAX_VCO) break;
     }
-    for (n=1;n<=31;n++) {
-        m=(Bits)((target * (n + 2u) * ((Bitu)1u << (Bitu)r) + (S3_CLOCK_REF / 2u)) / S3_CLOCK_REF) - 2;
+    for (Bitu n=1;n<=31;n++) {
+        Bits m=(Bits)((target * (n + 2u) * ((Bitu)1u << (Bitu)r) + (S3_CLOCK_REF / 2u)) / S3_CLOCK_REF) - 2;
         if (0 <= m && m <= 127) {
             Bitu temp_target = (Bitu)S3_CLOCK(m,n,r);
             Bits err = (Bits)(target - temp_target);
@@ -1112,12 +1111,10 @@ void VGA_OnEnterPC98(Section *sec) {
     pc98_update_palette();
 
     {
-        unsigned char r,g,b;
-
         for (unsigned int i=0;i < 8;i++) {
-            r = (i & 2) ? 255 : 0;
-            g = (i & 4) ? 255 : 0;
-            b = (i & 1) ? 255 : 0;
+            unsigned char r = (i & 2) ? 255 : 0;
+            unsigned char g = (i & 4) ? 255 : 0;
+            unsigned char b = (i & 1) ? 255 : 0;
 
             if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
                 pc98_text_palette[i] = ((Bitu)(((Bitu)b << GFX_Bshift) + ((Bitu)g << GFX_Gshift) + ((Bitu)r << GFX_Rshift) + (Bitu)GFX_Amask));
@@ -1460,10 +1457,10 @@ void VGA_SaveState(Section *sec) {
         }
 
         {
-            unsigned char tmp[256 * 3];
 
             ZIPFileEntry *ent = savestate_zip.new_entry("vga.dac.palette.bin");
             if (ent != NULL) {
+                unsigned char tmp[256 * 3];
                 for (unsigned int c=0;c < 256;c++) {
                     tmp[c*3 + 0] = vga.dac.rgb[c].red;
                     tmp[c*3 + 1] = vga.dac.rgb[c].green;

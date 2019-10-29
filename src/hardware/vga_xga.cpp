@@ -832,7 +832,7 @@ void XGA_DrawPattern(Bitu val) {
 	Bitu srcval;
 	Bitu destval;
 
-	Bits xat, yat, srcx, srcy, tarx, tary, dx, dy;
+	Bits xat, yat, srcx, srcy, tary, dx, dy;
 
 	dx = -1;
 	dy = -1;
@@ -863,7 +863,7 @@ void XGA_DrawPattern(Bitu val) {
 	}
 
 	for(yat=0;yat<=xga.MIPcount;yat++) {
-		tarx = xga.destx;
+		Bits tarx = xga.destx;
 		for(xat=0;xat<=xga.MAPcount;xat++) {
 
 			srcdata = XGA_GetPoint((Bitu)srcx + (tarx & 0x7), (Bitu)srcy + (tary & 0x7));

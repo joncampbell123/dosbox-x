@@ -977,13 +977,11 @@ void Synth::readMemoryRegion(const MemoryRegion *region, Bit32u addr, Bit32u len
     unsigned int off = region->firstTouchedOffset(addr);
     len = region->getClampedLen(addr, len);
 
-    unsigned int m;
-
     if (region->isReadable()) {
         region->read(first, off, data, len);
     } else {
         // FIXME: We might want to do these properly in future
-        for (m = 0; m < len; m += 2) {
+        for (unsigned int m = 0; m < len; m += 2) {
             data[m] = 0xff;
             if (m + 1 < len) {
                 data[m+1] = (Bit8u)region->type;
@@ -1701,16 +1699,12 @@ void Synth::findPartial( const Partial *src, Bit8u *index_out )
 void Synth::findPartialParam( const TimbreParam::PartialParam *src, Bit16u *index_out1, Bit16u *index_out2 )
 {
     Bit16u partialParam_idx1, partialParam_idx2;
-    bool stop;
-
-
-    stop = false;
 
     partialParam_idx1 = 0xffff;
     partialParam_idx2 = 0xffff;
 
-
     if( src != NULL ) {
+        bool stop = false;
         partialParam_idx1 = 0;
 
         // #1 = mt32ram.timbres[] - partial
@@ -1847,16 +1841,12 @@ void Synth::findPartialParam( const TimbreParam::PartialParam *src, Bit16u *inde
 void Synth::findPatchCache( const PatchCache *src, Bit16u *index_out1, Bit16u *index_out2 )
 {
     Bit16u patchCache_idx1, patchCache_idx2;
-    bool stop;
-
-
-    stop = false;
 
     patchCache_idx1 = 0xffff;
     patchCache_idx2 = 0xffff;
 
-
     if( src != NULL ) {
+        bool stop = false;
         patchCache_idx1 = 0;
 
         // #1 = parts[0-7] - patchCache

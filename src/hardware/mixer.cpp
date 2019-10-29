@@ -606,13 +606,11 @@ double MixerChannel::timeSinceLastSample(void) {
 }
 
 inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
-    int sample;
-
     if (msbuffer_o >= upto)
         return false;
 
     while (freq_fslew < freq_d) {
-        sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
+        int sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
         msbuffer[msbuffer_o][0] = sample * volmul[0];
         sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
         msbuffer[msbuffer_o][1] = sample * volmul[1];
@@ -878,7 +876,6 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     Bitu need = (Bitu)len/MIXER_SSIZE;
     Bit16s *output = (Bit16s*)stream;
     int remains;
-    Bit32s *in;
 
     if (mixer.mute) {
         if ((CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)) != 0)
@@ -897,7 +894,7 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     }
 
     if (!mixer.prebuffer_wait && !mixer.mute) {
-        in = &mixer.work[mixer.work_out][0];
+        Bit32s *in = &mixer.work[mixer.work_out][0];
         while (need > 0) {
             if (mixer.work_out == mixer.work_in) break;
             *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));

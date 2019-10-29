@@ -512,12 +512,11 @@ void DOS_Shell::InputCommand(char * line) {
                             dta.GetResult(name,sz,date,time,att);
                             // add result to completion list
 
-                            char *ext;	// file extension
                             if (strcmp(name, ".") && strcmp(name, "..")) {
                                 if (dir_only) { //Handle the dir only case different (line starts with cd)
                                     if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(name);
                                 } else {
-                                    ext = strrchr(name, '.');
+                                    char *ext = strrchr(name, '.'); // file extension
                                     if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
                                         // we add executables to the a seperate list and place that list infront of the normal files
                                         executable.push_front(name);
@@ -1045,14 +1044,13 @@ char * DOS_Shell::Which(char * name) {
 	pathenv = strchr(pathenv,'=');
 	if (!pathenv) return 0;
 	pathenv++;
-	Bitu i_path = 0;
 	while (*pathenv) {
 		/* remove ; and ;; at the beginning. (and from the second entry etc) */
 		while(*pathenv == ';')
 			pathenv++;
 
 		/* get next entry */
-		i_path = 0; /* reset writer */
+		Bitu i_path = 0; /* reset writer */
 		while(*pathenv && (*pathenv !=';') && (i_path < DOS_PATHLENGTH) )
 			path[i_path++] = *pathenv++;
 

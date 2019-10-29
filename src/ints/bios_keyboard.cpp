@@ -605,21 +605,19 @@ extern bool pc98_force_ibm_layout;
  * - / 口       --          0x335F      0x331F  --      0x33DB  0x33DB      Kana+CTRL = 0x331F
  */
 static Bitu IRQ1_Handler_PC98(void) {
-    unsigned char sc_8251,status;
+    unsigned char status;
     unsigned int patience = 32;
-    Bit16u scan_add;
-    bool pressed;
 
     status = IO_ReadB(0x43); /* 8251 status */
     while (status & 2/*RxRDY*/) {
-        sc_8251 = IO_ReadB(0x41); /* 8251 data */
+        unsigned char sc_8251 = IO_ReadB(0x41); /* 8251 data */
 
-        pressed = !(sc_8251 & 0x80);
+        bool pressed = !(sc_8251 & 0x80);
         sc_8251 &= 0x7F;
 
         /* Testing on real hardware shows INT 18h AH=0 returns raw scancode in upper half, ASCII in lower half.
          * Just like INT 16h on IBM PC hardware */
-        scan_add = sc_8251 << 8U;
+        Bit16u scan_add = sc_8251 << 8U;
 
         /* NOTES:
          *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.

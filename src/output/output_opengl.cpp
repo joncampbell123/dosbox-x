@@ -426,13 +426,12 @@ Bitu OUTPUT_OPENGL_SetSize()
         {
             extern Bit8u int10_font_16[256 * 16];
 
-            unsigned char *bmp;
             uint32_t tmp[8 * 16];
             unsigned int x, y, c;
 
             for (c = 0; c < 256; c++) 
             {
-                bmp = int10_font_16 + (c * 16);
+                unsigned char *bmp = int10_font_16 + (c * 16);
                 for (y = 0; y < 16; y++) 
                 {
                     for (x = 0; x < 8; x++) 

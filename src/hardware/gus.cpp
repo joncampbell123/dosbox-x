@@ -326,7 +326,6 @@ public:
 		}
 	}
 	INLINE void WaveUpdate(void) {
-		Bit32u WaveExtra = 0;
 		bool endcondition;
 
 		if ((WaveCtrl & (WCTRL_STOP | WCTRL_STOPPED)) == 0/*voice is running*/) {
@@ -337,6 +336,7 @@ public:
 			 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
 			 *
 			 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
+			Bit32u WaveExtra = 0;
 			if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/) {
 				/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
 				 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
