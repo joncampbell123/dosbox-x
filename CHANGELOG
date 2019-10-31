@@ -1,4 +1,7 @@
 0.82.23 (next)
+  - Serial and parallel file output now disable stdio
+    buffering so that output is more immediately
+    accessible to the user.
   - Added file output to serial port emulation.
   - Parallel port emulation now support both dev: and
     file: to specify that LPTx output go to a file,
