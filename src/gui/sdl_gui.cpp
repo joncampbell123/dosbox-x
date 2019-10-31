@@ -822,8 +822,18 @@ public:
         }
 
         wiw->resize((columns * column_width) + 2/*border*/ + wiw->vscroll_display_width, scroll_h);
-        wiw->enableScrollBars(false/*h*/,true/*v*/);
-        wiw->enableBorder(true);
+
+        if (wiw->scroll_pos_h != 0) {
+            wiw->enableScrollBars(false/*h*/,true/*v*/);
+            wiw->enableBorder(true);
+        }
+        else {
+            wiw->enableScrollBars(false/*h*/,false/*v*/);
+            wiw->enableBorder(false);
+
+            resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + /*wiw->vscroll_display_width*//*scrollbar*/ + 10,
+                    button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
+        }
     }
 
     ~SectionEditor() {
