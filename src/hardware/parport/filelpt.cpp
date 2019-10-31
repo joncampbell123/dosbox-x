@@ -103,12 +103,15 @@ bool CFileLPT::OpenFile() {
 	switch(filetype) {
 	case FILE_DEV:
 		file = fopen(name.c_str(),"wb");
+        if (file != NULL) setbuf(file,NULL); // disable buffering
 		break;
 	case FILE_CAPTURE:
 		file = OpenCaptureFile("Parallel Port Stream",".prt");
+        if (file != NULL) setbuf(file,NULL); // disable buffering
 		break;
 	case FILE_APPEND:
 		file = fopen(name.c_str(),"ab");
+        if (file != NULL) setbuf(file,NULL); // disable buffering
 		break;
 	}
 

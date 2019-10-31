@@ -80,8 +80,10 @@ void CSerialFile::transmitByte(Bit8u val, bool first) {
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 
-    if (fp == NULL)
+    if (fp == NULL) {
         fp = fopen(filename.c_str(),"wb");
+        if (fp != NULL) setbuf(fp,NULL); // disable buffering
+    }
     if (fp != NULL)
         fwrite(&val,1,1,fp);
 }
