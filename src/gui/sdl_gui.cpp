@@ -191,7 +191,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
     if (dw < 640) dw = 640;
-    if (dh < 480) dh = 480;
+    if (dh < 350) dh = 350;
 
     assert(sx < dw);
     assert(sy < dh);
