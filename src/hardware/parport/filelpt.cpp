@@ -30,9 +30,11 @@
 
 CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr,initIrq) {
+    bool is_file = false;
 	InstallationSuccessful = false;
 	fileOpen = false;
 	controlreg = 0;
+    timeout = ~0u;
 	std::string str;
 	ack = false;
 
@@ -62,14 +64,7 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 			}
 		}
 	}
-	
 	temp=0;
-	if(cmd->FindStringBegin("timeout:",str,false)) {
-		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
-			LOG_MSG("parallel%d: Invalid timeout parameter.",(int)nr+1);
-			return;
-		}
-	} else timeout = 500;
 
 	if(cmd->FindStringBegin("dev:",str,false)) {
 		name = str.c_str();
@@ -77,11 +72,21 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	} else if(cmd->FindStringBegin("file:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_DEV;
-        timeout = 0;
+        is_file = true;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
 		name = str.c_str();
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
+
+	if (cmd->FindStringBegin("timeout:",str,false)) {
+		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
+			LOG_MSG("parallel%d: Invalid timeout parameter.",(int)nr+1);
+			return;
+		}
+	}
+
+    if (timeout == ~0u)
+        timeout = is_file ? 0 : 500;
 
 	InstallationSuccessful = true;
 }
