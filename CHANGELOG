@@ -1,5 +1,6 @@
 0.82.24 (next)
-  - 
+  - INT 33h define range functions now include separate
+    range correction for text mode vs graphics mode.
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
