@@ -1119,16 +1119,29 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_setx || mouse.buttons == 0) {
                 if (mouse.min_x == 0 && mouse.max_x > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-
-                    // Apply sanity rounding.
-                    //
-                    // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
-                    //             partially offscreen. */
                     Bit16s nval = mouse.max_x;
-                    if (nval >= ((Bit16s)CurMode->swidth - 32) && nval <= ((Bit16s)CurMode->swidth + 32))
-                        nval = (Bit16s)CurMode->swidth;
-                    else if (nval >= (((Bit16s)CurMode->swidth - 32) * 2) && nval <= (((Bit16s)CurMode->swidth + 32) * 2))
-                        nval = (Bit16s)CurMode->swidth * 2;
+
+                    if (CurMode->type == M_TEXT) {
+                        // Text is reported as if each row is 8 lines high (CGA compat) even if EGA 14-line
+                        // or VGA 16-line, and 8 pixels wide even if EGA/VGA 9-pixels/char is enabled.
+                        //
+                        // Apply sanity rounding.
+                        //
+                        // FreeDOS EDIT: The max is set to just under 640x400, so that the cursor only has
+                        //               room for ONE PIXEL in the last row and column.
+                        if (nval >= ((Bit16s)(CurMode->twidth*8) - 32) && nval <= ((Bit16s)(CurMode->twidth*8) + 32))
+                            nval = (Bit16s)CurMode->twidth*8;
+                    }
+                    else {
+                        // Apply sanity rounding.
+                        //
+                        // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                        //             partially offscreen. */
+                        if (nval >= ((Bit16s)CurMode->swidth - 32) && nval <= ((Bit16s)CurMode->swidth + 32))
+                            nval = (Bit16s)CurMode->swidth;
+                        else if (nval >= (((Bit16s)CurMode->swidth - 32) * 2) && nval <= (((Bit16s)CurMode->swidth + 32) * 2))
+                            nval = (Bit16s)CurMode->swidth * 2;
+                    }
 
                     if (mouse.max_screen_x != nval) {
                         mouse.max_screen_x = nval;
@@ -1167,16 +1180,29 @@ static Bitu INT33_Handler(void) {
             if (mouse.first_range_sety || mouse.buttons == 0) {
                 if (mouse.min_y == 0 && mouse.max_y > 0) {
                     // most games redefine the range so they can use a saner range matching the screen
-
-                    // Apply sanity rounding.
-                    //
-                    // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
-                    //             partially offscreen. */
                     Bit16s nval = mouse.max_y;
-                    if (nval >= ((Bit16s)CurMode->sheight - 32) && nval <= ((Bit16s)CurMode->sheight + 32))
-                        nval = (Bit16s)CurMode->sheight;
-                    else if (nval >= (((Bit16s)CurMode->sheight - 32) * 2) && nval <= (((Bit16s)CurMode->sheight + 32) * 2))
-                        nval = (Bit16s)CurMode->sheight * 2;
+
+                    if (CurMode->type == M_TEXT) {
+                        // Text is reported as if each row is 8 lines high (CGA compat) even if EGA 14-line
+                        // or VGA 16-line, and 8 pixels wide even if EGA/VGA 9-pixels/char is enabled.
+                        //
+                        // Apply sanity rounding.
+                        //
+                        // FreeDOS EDIT: The max is set to just under 640x400, so that the cursor only has
+                        //               room for ONE PIXEL in the last row and column.
+                        if (nval >= ((Bit16s)(CurMode->theight*8) - 32) && nval <= ((Bit16s)(CurMode->theight*8) + 32))
+                            nval = (Bit16s)CurMode->theight*8;
+                    }
+                    else {
+                        // Apply sanity rounding.
+                        //
+                        // Daggerfall: Sets max to 310 instead of 320, probably to prevent drawing the cursor
+                        //             partially offscreen. */
+                        if (nval >= ((Bit16s)CurMode->sheight - 32) && nval <= ((Bit16s)CurMode->sheight + 32))
+                            nval = (Bit16s)CurMode->sheight;
+                        else if (nval >= (((Bit16s)CurMode->sheight - 32) * 2) && nval <= (((Bit16s)CurMode->sheight + 32) * 2))
+                            nval = (Bit16s)CurMode->sheight * 2;
+                    }
 
                     if (mouse.max_screen_y != nval) {
                         mouse.max_screen_y = nval;
