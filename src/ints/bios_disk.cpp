@@ -444,7 +444,6 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
     active = false;
     hardDrive = isHardDisk;
     if(!isHardDisk) {
-        Bit8u i=0;
         bool founddisk = false;
 
         if (imgName != NULL) {
@@ -501,6 +500,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
         }
 
         if (sectors == 0 && heads == 0 && cylinders == 0) {
+            Bit8u i=0;
             while (DiskGeometryList[i].ksize!=0x0) {
                 if ((DiskGeometryList[i].ksize==imgSizeK) ||
                         (DiskGeometryList[i].ksize+1==imgSizeK)) {
@@ -1478,8 +1478,6 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     }
 
     if (!memcmp(tmp,"VFD1.",5)) {
-        Bit8u i=0;
-        bool founddisk = false;
         uint32_t stop_at = 0xC3FC;
         unsigned long entof;
 
@@ -1571,6 +1569,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 }
             }
 
+            Bit8u i=0;
             if (sector_size != 0) {
                 i=0;
                 while (DiskGeometryList[i].ksize != 0) {
@@ -1623,6 +1622,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
             LOG_MSG("VFD geometry detection: C/H/S %u/%u/%u %u bytes/sector",
                 cylinders, heads, sectors, sector_size);
 
+            bool founddisk = false;
             if (sector_size != 0 && sectors != 0 && cylinders != 0 && heads != 0)
                 founddisk = true;
 

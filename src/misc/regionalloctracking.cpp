@@ -36,9 +36,6 @@ RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), topDownA
 }
 
 Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
-	size_t si;
-	Bitu base;
-
 	if (bytes == 0u) return alloc_failed;
 	if (alignment > 1u && must_be_at != 0u) return alloc_failed; /* avoid nonsense! */
 	if (who == NULL) who = "";
@@ -52,9 +49,10 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 
 	{
 		/* allocate downward from the top */
-		si = topDownAlloc ? (alist.size() - 1u) : 0u;
+		size_t si = topDownAlloc ? (alist.size() - 1u) : 0u;
 		while ((ssize_t)si >= 0) {
 			Block &blk = alist[si];
+			Bitu base;
 
 			if (!blk.free || (blk.end+1u-blk.start) < bytes) {
 				if (topDownAlloc) si--;

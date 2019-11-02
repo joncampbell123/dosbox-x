@@ -1234,12 +1234,10 @@ bool CommandLine::BeginOpt(bool eat_argv) {
 }
 
 bool CommandLine::GetOptGNUSingleCharCheck(std::string &name) {
-    char c;
-
     /* return another char, skipping spaces or invalid chars */
     name.clear();
     while (!opt_gnu_getopt_singlechar.empty()) {
-        c = opt_gnu_getopt_singlechar.at(0);
+        char c = opt_gnu_getopt_singlechar.at(0);
         opt_gnu_getopt_singlechar = opt_gnu_getopt_singlechar.substr(1);
         if (c <= ' ' || c > 126) continue;
 

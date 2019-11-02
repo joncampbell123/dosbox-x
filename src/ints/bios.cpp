@@ -6663,7 +6663,6 @@ void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
     unsigned char *sf = s + sizeof(dosbox_cga640_bmp);
     uint32_t width,height;
     unsigned int dx,dy;
-    uint32_t vram;
     uint32_t off;
     uint32_t sz;
 
@@ -6684,7 +6683,7 @@ void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
 
     LOG(LOG_MISC,LOG_DEBUG)("Drawing CGA logo (%u x %u)",(int)width,(int)height);
     for (dy=0;dy < height;dy++) {
-        vram  = ((y+dy) >> 1) * 80;
+        uint32_t vram  = ((y+dy) >> 1) * 80;
         vram += ((y+dy) & 1) * 0x2000;
         vram += (x / 8);
         s = dosbox_cga640_bmp + off + ((height-(dy+1))*((width+7)/8));
@@ -6704,7 +6703,6 @@ void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
     uint32_t width,height;
     unsigned char p[4];
     unsigned char c;
-    uint32_t vram;
     uint32_t off;
     uint32_t sz;
 
@@ -6726,7 +6724,7 @@ void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
     // EGA/VGA Write Mode 2
     LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo as PC-98 (%u x %u)",(int)width,(int)height);
     for (dy=0;dy < height;dy++) {
-        vram = ((y+dy) * 80) + (x / 8);
+        uint32_t vram = ((y+dy) * 80) + (x / 8);
         s = dosbox_vga16_bmp + off + ((height-(dy+1))*((width+1)/2));
         for (dx=0;dx < width;dx += 8) {
             p[0] = p[1] = p[2] = p[3] = 0;
@@ -8603,9 +8601,6 @@ public:
         phys_writeb(0xfffff,0x55);
     }
     BIOS(Section* configuration):Module_base(configuration){
-        /* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
-        Bitu wo;
-
         isapnp_biosstruct_base = 0;
 
         { // TODO: Eventually, move this to BIOS POST or init phase
@@ -8800,7 +8795,7 @@ public:
         {
             Bitu wo_fence;
 
-            wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+            Bitu wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
             wo_fence = wo + 64;
 
             // POST
@@ -9165,7 +9160,7 @@ extern Bit8u int10_font_08[256 * 8];
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-    Bitu oi,i;
+    Bitu oi;
 
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");
@@ -9272,7 +9267,7 @@ void ROMBIOS_Init() {
 
     /* install the font */
     if (rom_bios_8x8_cga_font) {
-        for (i=0;i<128*8;i++) {
+        for (Bitu i=0;i<128*8;i++) {
             phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
         }
     }

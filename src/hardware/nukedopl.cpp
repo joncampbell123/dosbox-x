@@ -997,10 +997,9 @@ static void OPL3_ChannelKeyOff(opl3_channel *channel)
 static void OPL3_ChannelSet4Op(opl3_chip *chip, Bit8u data)
 {
     Bit8u bit;
-    Bit8u chnum;
     for (bit = 0; bit < 6; bit++)
     {
-        chnum = bit;
+        Bit8u chnum = bit;
         if (bit >= 3)
         {
             chnum += 9 - 3;

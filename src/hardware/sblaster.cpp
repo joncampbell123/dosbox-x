@@ -1043,8 +1043,6 @@ static unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
 }
 
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
-    Bit8u final_tc;
-
     if (sb.dma.force_autoinit)
         autoinit = true;
 
@@ -1071,7 +1069,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
          *         playback. Rate-limiting the copy means the 45454Hz time constant written
          *         by the demo stays intact despite being limited to 22050Hz during the first
          *         DSP block (command 0x14). */
-        final_tc = DSP_RateLimitedFinalTC_Old();
+        Bit8u final_tc = DSP_RateLimitedFinalTC_Old();
         sb.freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
     }
     else {

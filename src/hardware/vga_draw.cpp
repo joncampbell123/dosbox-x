@@ -307,20 +307,19 @@ static Bit8u * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
     const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit8u * draw=(Bit8u *)TempLine;
     VGA_Latch pixels;
-    Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         /* CGA odd/even mode, first plane */
-        val=pixels.b[0];
-        for (i=0;i < 4;i++,val <<= 2)
+        Bitu val=pixels.b[0];
+        for (Bitu i=0;i < 4;i++,val <<= 2)
             *draw++ = vga.attr.palette[(val>>6)&3];
 
         /* CGA odd/even mode, second plane */
         val=pixels.b[1];
-        for (i=0;i < 4;i++,val <<= 2)
+        for (Bitu i=0;i < 4;i++,val <<= 2)
             *draw++ = vga.attr.palette[(val>>6)&3];
     }
     return TempLine;
@@ -330,20 +329,19 @@ static Bit8u * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
     const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u * draw=(Bit32u *)TempLine;
     VGA_Latch pixels;
-    Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
         /* CGA odd/even mode, first plane */
-        val=pixels.b[0];
-        for (i=0;i < 4;i++,val <<= 2)
+        Bitu val=pixels.b[0];
+        for (Bitu i=0;i < 4;i++,val <<= 2)
             *draw++ = vga.dac.xlat32[(val>>6)&3];
 
         /* CGA odd/even mode, second plane */
         val=pixels.b[1];
-        for (i=0;i < 4;i++,val <<= 2)
+        for (Bitu i=0;i < 4;i++,val <<= 2)
             *draw++ = vga.dac.xlat32[(val>>6)&3];
     }
     return TempLine;
@@ -353,14 +351,13 @@ static Bit8u * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
     const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit8u * draw=(Bit8u *)TempLine;
     VGA_Latch pixels;
-    Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
-        val=pixels.b[0];
-        for (i=0;i < 8;i++,val <<= 1)
+        Bitu val=pixels.b[0];
+        for (Bitu i=0;i < 8;i++,val <<= 1)
             *draw++ = vga.attr.palette[(val>>7)&1];
     }
     return TempLine;
@@ -369,13 +366,12 @@ static Bit8u * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 static Bit8u * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const Bit8u *base = (Bit8u*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u * draw=(Bit32u *)TempLine;
-    Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
-        val = base[vidstart & vga.tandy.addr_mask];
+        Bitu val = base[vidstart & vga.tandy.addr_mask];
         vidstart++;
 
-        for (i=0;i < 8;i++,val <<= 1)
+        for (Bitu i=0;i < 8;i++,val <<= 1)
             *draw++ = vga.dac.xlat32[(val>>7)&1];
     }
     return TempLine;
@@ -385,14 +381,13 @@ static Bit8u * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
     const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u * draw=(Bit32u *)TempLine;
     VGA_Latch pixels;
-    Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
-        val=pixels.b[0];
-        for (i=0;i < 8;i++,val <<= 1)
+        Bitu val=pixels.b[0];
+        for (Bitu i=0;i < 8;i++,val <<= 1)
             *draw++ = vga.dac.xlat32[(val>>7)&1];
     }
     return TempLine;
@@ -401,14 +396,12 @@ static Bit8u * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
 static Bit8u * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u * draw=(Bit32u *)TempLine;
-    unsigned char val;
-    unsigned int i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
-        val = base[vidstart & vga.tandy.addr_mask];
+        unsigned char val = base[vidstart & vga.tandy.addr_mask];
         vidstart++;
 
-        for (i=0;i < 4;i++,val <<= 2)
+        for (unsigned int i=0;i < 4;i++,val <<= 2)
             *draw++ = vga.dac.xlat32[(val>>6)&3];
     }
 
@@ -672,9 +665,9 @@ template <const unsigned int pixelcount> static inline void Alt_VGA_256color_2x4
 static Bit8u * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
     Bitu count = vga.draw.blocks;
-    unsigned char cur,nex;
 
     if (count > 0u) {
+        unsigned char cur,nex;
         /* on VGA hardware I've seen, the first pixel is the full 8-bit pixel value of the FIRST pixel in memory. */
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
@@ -848,10 +841,10 @@ template <const unsigned int card,typename templine_type_t> static inline void A
 template <const unsigned int card,typename templine_type_t> static Bit8u * EGA_Planar_Common_Line(Bitu vidstart, Bitu /*line*/) {
     templine_type_t* temps = (templine_type_t*)TempLine;
     Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
-    Bit32u t1,t2;
     Bitu i = 0;
 
     while (count > 0u) {
+        Bit32u t1,t2;
         t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
         t1 = (t1 >> 4) & 0x0f0f0f0f;
         t2 &= 0x0f0f0f0f;
@@ -896,10 +889,9 @@ static Bit8u * Alt_VGA_Planar_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
 static Bit8u * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
-    Bit8u t;
 
     for (Bitu i = 0; i < ((vga.draw.line_length>>2)+vga.draw.panning); i += 2) {
-        t = vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+        Bit8u t = vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
         vidstart++;
 
         temps[i+0] = vga.dac.xlat32[(t>>4)&0xF];
@@ -1691,7 +1683,6 @@ template <const unsigned int card,typename templine_type_t,const unsigned int pi
     const bool in_cursor_row = Alt_EGAVGA_TEXT_In_Cursor_Row<card>(line);
 
     unsigned char foreground,background;
-    unsigned int font;
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
@@ -1701,7 +1692,7 @@ template <const unsigned int card,typename templine_type_t,const unsigned int pi
         const unsigned char attr = pixels.b[1];
 
         // the font pattern
-        font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
+        unsigned int font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
         Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
 
         // Draw it
@@ -1927,8 +1918,6 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
     if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster && pc98_display_enable) {
-        Bit8u g8,r8,b8,e8;
-
         draw = ((Bit32u*)TempLine) + disp_off;
         blocks = vga.draw.blocks;
 
@@ -1939,12 +1928,11 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
              *          this code will read 256KB past the end of the buffer and possibly
              *          segfault. */
             const unsigned long vmask = pc98_256kb_boundary ? 0x7FFFFu : 0x3FFFFu;
-            const unsigned char *s;
 
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
 
             while (blocks--) {
-                s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & vmask]);
+                const unsigned char *s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & vmask]);
                 for (unsigned char i=0;i < 8;i++) *draw++ = vga.dac.xlat32[*s++];
 
                 vidmem += 8;
@@ -1961,14 +1949,16 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             while (blocks--) {
                 // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
                 //      the 4th bitplane is no longer rendered.
+                Bit8u e8;
+
                 if (gdc_analog)
                     e8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(3)];  /* E0000-E7FFF */
                 else
                     e8 = 0x00;
 
-                g8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
-                r8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
-                b8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
+                Bit8u g8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
+                Bit8u r8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
+                Bit8u b8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
 
                 for (unsigned char i=0;i < 8;i++) {
                     foreground  = (e8 & 0x80) ? 8 : 0;
@@ -2820,11 +2810,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
         float faithful_framerate_adjustment_delay = 0.0f;
         if( vsync.faithful ) {
-            static float counter = 0.0f;
             const float gfxmode_vsyncrate   = 1000.0f/vga.draw.delay.vtotal;
             const float user_vsyncrate      = 1000.0f/vsync.period;
             const float framerate_diff      = user_vsyncrate - gfxmode_vsyncrate;
             if( framerate_diff >= 0 ) {
+                static float counter = 0.0f;
                 // User vsync rate is greater than the target vsync rate
                 const float adjustment_deadline = gfxmode_vsyncrate / framerate_diff;
                 counter += 1.0f;

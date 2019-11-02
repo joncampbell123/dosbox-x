@@ -1767,8 +1767,10 @@ public:
 		GEMMIS_seg=0;
 
 		/* Remove the emsname and callback hack */
-		char buf[32]= { 0 };
-		if (ems_baseseg != 0) MEM_BlockWrite(PhysMake(ems_baseseg,0),buf,32);
+		if (ems_baseseg != 0) {
+			char buf[32]= { 0 };
+			MEM_BlockWrite(PhysMake(ems_baseseg,0),buf,32);
+		}
 		RealSetVec(0x67,zero_int67_if_no_ems ? 0 : old67_pointer);
 
 #if 0 // FIXME

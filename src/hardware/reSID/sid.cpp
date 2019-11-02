@@ -395,14 +395,14 @@ double SID2::I0(double x)
   // Max error acceptable in I0.
   const double I0e = 1e-6;
 
-  double sum, u, halfx, temp;
+  double sum, u, halfx;
   int n;
 
   sum = u = n = 1;
   halfx = x/2.0;
 
   do {
-    temp = halfx/n++;
+    double temp = halfx/n++;
     u *= temp*temp;
     sum += u;
   } while (u >= I0e*sum);
