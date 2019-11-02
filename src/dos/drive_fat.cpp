@@ -133,7 +133,7 @@ void fatFile::Flush(void) {
 #endif
 
     if (modified || newtime) {
-        direntry tmpentry;
+        direntry tmpentry = {};
 
         myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
 
@@ -215,7 +215,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 		return false;
 	}
 
-	direntry tmpentry;
+    direntry tmpentry = {};
 	Bit16u sizedec, sizecount;
 	sizedec = *size;
 	sizecount = 0;
@@ -349,7 +349,7 @@ bool fatFile::Close() {
 	if (loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
     if (modified || newtime) {
-        direntry tmpentry;
+        direntry tmpentry = {};
 
         myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
 
@@ -1515,7 +1515,7 @@ Bits fatDrive::UnMount(void) {
 Bit8u fatDrive::GetMediaByte(void) { return loadedDisk->GetBiosType(); }
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
-	direntry fileEntry;
+    direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
@@ -1570,14 +1570,14 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 }
 
 bool fatDrive::FileExists(const char *name) {
-	direntry fileEntry;
+    direntry fileEntry = {};
 	Bit32u dummy1, dummy2;
 	if(!getFileDirEntry(name, &fileEntry, &dummy1, &dummy2)) return false;
 	return true;
 }
 
 bool fatDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
-	direntry fileEntry;
+    direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	/* TODO: check for read-only flag and requested write access */
@@ -1597,7 +1597,7 @@ bool fatDrive::FileStat(const char * /*name*/, FileStat_Block *const /*stat_bloc
 }
 
 bool fatDrive::FileUnlink(const char * name) {
-	direntry fileEntry;
+    direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
@@ -1611,7 +1611,7 @@ bool fatDrive::FileUnlink(const char * name) {
 }
 
 bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) {
-	direntry dummyClust;
+    direntry dummyClust = {};
 	if(fattype==FAT32) return false;
 
     // volume label searches always affect root directory, no matter the current directory, at least with FCBs
@@ -1765,13 +1765,13 @@ nextfile:
 }
 
 bool fatDrive::FindNext(DOS_DTA &dta) {
-	direntry dummyClust;
+    direntry dummyClust = {};
 
 	return FindNextInternal(dta.GetDirIDCluster(), dta, &dummyClust);
 }
 
 bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
-	direntry fileEntry;
+    direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		char dirName[DOS_NAMELENGTH_ASCII];
@@ -1995,7 +1995,7 @@ bool fatDrive::MakeDir(const char *dir) {
 
 bool fatDrive::RemoveDir(const char *dir) {
 	Bit32u dummyClust, dirClust;
-	direntry tmpentry;
+    direntry tmpentry = {};
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
 
@@ -2047,12 +2047,12 @@ bool fatDrive::RemoveDir(const char *dir) {
 }
 
 bool fatDrive::Rename(const char * oldname, const char * newname) {
-	direntry fileEntry1;
+    direntry fileEntry1 = {};
 	Bit32u dirClust1, subEntry1;
 	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) return false;
 	/* File to be renamed really exists */
 
-	direntry fileEntry2;
+    direntry fileEntry2 = {};
 	Bit32u dirClust2, subEntry2;
 
 	/* Check if file already exists */

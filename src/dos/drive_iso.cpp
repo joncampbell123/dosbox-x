@@ -305,7 +305,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	int dirIterator = dta.GetDirID();
 	bool isRoot = dirIterators[dirIterator].root;
 	
-	isoDirEntry de;
+    isoDirEntry de = {};
 	while (GetNextDirEntry(dirIterator, &de)) {
 		Bit8u findAttr = 0;
 		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
