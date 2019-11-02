@@ -23,13 +23,8 @@
 
 namespace MT32Emu {
 
-FreeverbModel::FreeverbModel(float useScaleTuning, float useFiltVal, float useWet, Bit8u useRoom, float useDamp) {
-	freeverb = NULL;
-	scaleTuning = useScaleTuning;
-	filtVal = useFiltVal;
-	wet = useWet;
-	room = useRoom;
-	damp = useDamp;
+FreeverbModel::FreeverbModel(float useScaleTuning, float useFiltVal, float useWet, Bit8u useRoom, float useDamp)
+    :freeverb(NULL), scaleTuning(useScaleTuning), filtVal(useFiltVal), wet(useWet), room(useRoom), damp(useDamp) {
 }
 
 FreeverbModel::~FreeverbModel() {

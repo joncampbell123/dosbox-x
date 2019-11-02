@@ -23,6 +23,8 @@
 #ifdef _MSC_VER
 //#pragma warning ( disable : 4786 )
 //#pragma warning ( disable : 4290 )
+#undef max
+#undef min
 #endif
 
 
@@ -161,15 +163,12 @@ protected:
 class Prop_int:public Property {
 public:
 	Prop_int(std::string const& _propname,Changeable::Value when, int _value)
-		:Property(_propname,when) {
+		:Property(_propname,when), min (-1), max(-1) {
 		default_value = value = _value;
-		min = max = -1;
 	}
 	Prop_int(std::string const&  _propname,Changeable::Value when, int _min,int _max,int _value)
-		:Property(_propname,when) {
+		:Property(_propname,when), min(_min), max(_max) {
 		default_value = value = _value;
-		min = _min;
-		max = _max;
 	}
 	int getMin() { return min;}
 	int getMax() { return max;}
@@ -187,16 +186,13 @@ private:
 class Prop_double:public Property {
 public:
 	Prop_double(std::string const & _propname, Changeable::Value when, double _value)
-		:Property(_propname,when){
+		:Property(_propname,when), min(-1.0), max(-1.0) {
 		default_value = value = _value;
-		min = max = -1.0;
 	}
 	Prop_double(std::string const & propname, Changeable::Value when, double _value, double _min, double _max)
-		:Property(propname, when)
+		:Property(propname, when), min(_min), max(_max)
 	{
 		default_value = value = _value;
-		min = _min;
-		max = _max;
 	}
 	double getMin() const { return min; }
 	double getMax() const { return max; }
@@ -232,9 +228,8 @@ class Prop_path:public Prop_string{
 public:
 	std::string realpath;
 	Prop_path(std::string const& _propname, Changeable::Value when, char const * const _value)
-		:Prop_string(_propname,when,_value) {
+		:Prop_string(_propname,when,_value), realpath(_value) {
 		default_value = value = _value;
-		realpath = _value;
 	}
 	bool SetValue(std::string const& input);
 	virtual ~Prop_path(){ }
