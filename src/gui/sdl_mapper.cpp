@@ -396,6 +396,9 @@ public:
     //! \brief Indicate whether the event is a trigger or continuous input
     virtual bool IsTrigger(void)=0;
 
+    /// TODO
+    virtual void RebindRedraw(void) {}
+
     //! \brief Event name
     std::string eventname;
 
@@ -1955,6 +1958,7 @@ public:
         invert=inv;
         mapper.redraw=true;
     }
+    virtual void RebindRedraw(void) {}
     void SetColor(Bit8u _col) { color=_col; }
 protected:
     Bitu x,y,dx,dy;
@@ -2040,6 +2044,9 @@ public:
         SetActiveEvent(event);
         last_clicked=this;
     }
+    void RebindRedraw(void) {
+        Click();//HACK!
+    }
 protected:
     CEvent * event;
 };
@@ -2068,6 +2075,8 @@ void CCaptionButton::Change(const char * format,...) {
     mapper.redraw=true;
 }       
 
+void RedrawMapperBindButton(CEvent *ev);
+
 class CBindButton : public CTextButton {
 public: 
     CBindButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BB_Types _type) 
@@ -2091,6 +2100,7 @@ public:
             }
             if (mapper.abindit!=mapper.aevent->bindlist.end()) SetActiveBind(*(mapper.abindit));
             else SetActiveBind(0);
+            RedrawMapperBindButton(mapper.aevent);
             break;
         case BB_Next:
             if (mapper.abindit!=mapper.aevent->bindlist.end()) 
@@ -2210,6 +2220,11 @@ public:
         notify_button = n;
     }
 
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
     //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
 
@@ -2253,6 +2268,11 @@ public:
     //! \brief Associate this object with a text button in the mapper GUI so that joystick position can be displayed at all times
     void notifybutton(CTextButton *n) {
         notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
     }
 
     //! \brief Text button to use to display joystick position
@@ -2301,6 +2321,11 @@ public:
         notify_button = n;
     }
 
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
     //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
 protected:
@@ -2333,6 +2358,12 @@ public:
     {
         notify_button = n;
     }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
     CTextButton *notify_button;
 protected:
     //! \brief Which joystick
@@ -2366,6 +2397,11 @@ public:
     //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
     }
 
     //! \brief Mapper UI text button to indicate status by
@@ -2403,6 +2439,11 @@ public:
     }
 
     virtual ~CHandlerEvent() {}
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
 
     virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
@@ -3709,6 +3750,7 @@ void BIND_MappingEvents(void) {
                     SetActiveEvent(mapper.aevent);
                     mapper.addbind=false;
                     mapper.aevent->update_menu_shortcut();
+                    RedrawMapperBindButton(mapper.aevent);
                     break;
                 }
             }
@@ -4347,5 +4389,9 @@ void ext_signal_host_key(bool enable) {
 
 void MapperCapCursorToggle(void) {
     MAPPER_TriggerEventByName("hand_capmouse");
+}
+
+void RedrawMapperBindButton(CEvent *ev) {
+    if (ev != NULL) ev->RebindRedraw();
 }
 
