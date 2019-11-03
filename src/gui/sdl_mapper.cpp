@@ -3067,39 +3067,39 @@ static void CreateLayout(void) {
     /* Labels for the joystick */
     CTextButton* btn;
     if (joytype ==JOY_2AXIS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Joystick 1");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Joystick 2");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Joystick 1");
+        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Joystick 2");
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
     } else if(joytype ==JOY_4AXIS || joytype == JOY_4AXIS_2) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3/4");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
+        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
     } else if(joytype == JOY_CH) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3/4");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Hat/D-pad");
+        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
+        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
+        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
     } else if ( joytype==JOY_FCS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,20,"Axis 3");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,20,"Hat/D-pad");
+        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
+        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3");
+        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
     } else if(joytype == JOY_NONE) {
-        btn = new CTextButton(PX(XO + 0), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn = new CTextButton(PX(XO + 0), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 4), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn = new CTextButton(PX(XO + 4), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, 20, "Disabled");
+        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
     }
    
    
    
     /* The modifier buttons */
-    AddModButton(PX(0),PY(17),50,20,"Mod1",1);
-    AddModButton(PX(2),PY(17),50,20,"Mod2",2);
-    AddModButton(PX(4),PY(17),50,20,"Mod3",3);
-    AddModButton(PX(6),PY(17),50,20,"Host",4);
+    AddModButton(PX(0),PY(17),50,BH,"Mod1",1);
+    AddModButton(PX(2),PY(17),50,BH,"Mod2",2);
+    AddModButton(PX(4),PY(17),50,BH,"Mod3",3);
+    AddModButton(PX(6),PY(17),50,BH,"Host",4);
     /* Create Handler buttons */
     Bitu xpos=3;Bitu ypos=11;
     for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();++hit) {
@@ -3117,8 +3117,8 @@ static void CreateLayout(void) {
     next_handler_xpos = xpos;
     next_handler_ypos = ypos;
     /* Create some text buttons */
-//  new CTextButton(PX(6),0,124,20,"Keyboard Layout");
-//  new CTextButton(PX(17),0,124,20,"Joystick Layout");
+//  new CTextButton(PX(6),0,124,BH,"Keyboard Layout");
+//  new CTextButton(PX(17),0,124,BH,"Joystick Layout");
 
     bind_but.action=new CCaptionButton(180,420,0,0);
 
@@ -3127,19 +3127,19 @@ static void CreateLayout(void) {
 
     /* Create binding support buttons */
     
-    bind_but.mod1=new CCheckButton(20,410,60,20, "mod1",BC_Mod1);
-    bind_but.mod2=new CCheckButton(20,432,60,20, "mod2",BC_Mod2);
-    bind_but.mod3=new CCheckButton(20,454,60,20, "mod3",BC_Mod3);
-    bind_but.host=new CCheckButton(100,410,60,20,"host",BC_Host);
-    bind_but.hold=new CCheckButton(100,432,60,20,"hold",BC_Hold);
+    bind_but.mod1=new CCheckButton(20,410,60,BH, "mod1",BC_Mod1);
+    bind_but.mod2=new CCheckButton(20,432,60,BH, "mod2",BC_Mod2);
+    bind_but.mod3=new CCheckButton(20,454,60,BH, "mod3",BC_Mod3);
+    bind_but.host=new CCheckButton(100,410,60,BH,"host",BC_Host);
+    bind_but.hold=new CCheckButton(100,432,60,BH,"hold",BC_Hold);
 
-    bind_but.add=new CBindButton(20,384,50,20,"Add",BB_Add);
-    bind_but.del=new CBindButton(70,384,50,20,"Del",BB_Del);
-    bind_but.next=new CBindButton(120,384,50,20,"Next",BB_Next);
+    bind_but.add=new CBindButton(20,384,50,BH,"Add",BB_Add);
+    bind_but.del=new CBindButton(70,384,50,BH,"Del",BB_Del);
+    bind_but.next=new CBindButton(120,384,50,BH,"Next",BB_Next);
 
-    bind_but.save=new CBindButton(180,440,50,20,"Save",BB_Save);
-    bind_but.exit=new CBindButton(230,440,50,20,"Exit",BB_Exit);
-    bind_but.cap=new CBindButton(280,440,50,20,"Capt",BB_Capture);
+    bind_but.save=new CBindButton(180,440,50,BH,"Save",BB_Save);
+    bind_but.exit=new CBindButton(230,440,50,BH,"Exit",BB_Exit);
+    bind_but.cap=new CBindButton(280,440,50,BH,"Capt",BB_Capture);
 
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
