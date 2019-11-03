@@ -733,6 +733,9 @@ void SHELL_Init() {
     if (mapper_keybind.size() > 0)
         mapper_keybind[0] = toupper(mapper_keybind[0]);
 
+    /* Punctuation is important too. */
+    mapper_keybind += ".";
+
     /* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
      *      so there is no problem here of causing use-after-free crashes when we exit. */
     std::string host_key_help; // SHELL_STARTUP_BEGIN2
