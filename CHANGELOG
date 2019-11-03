@@ -1,4 +1,7 @@
 0.82.24 (next)
+  - "Ro" key in PC-98 mode in the mapper interface now
+    clarifies that it is Ro / _ since the shift state is
+    the underscore.
   - Shell startup code fixed to show F11 for Windows and
     F12 for other platforms properly instead of always
     showing F11.
