@@ -56,6 +56,7 @@ bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
 bool en_int33_hide_if_intsub=false;
+bool en_int33_pc98_show_graphics=true; // NEC MOUSE.COM behavior
 
 double int33_last_poll = 0;
 
@@ -856,8 +857,16 @@ static void Mouse_ResetHardware(void){
     if (MOUSE_IRQ != 0)
         PIC_SetIRQMask(MOUSE_IRQ,false);
 
-    if (IS_PC98_ARCH)
+    if (IS_PC98_ARCH) {
         IO_WriteB(0x7FDD,IO_ReadB(0x7FDD) & (~0x10)); // remove interrupt inhibit
+
+        // NEC MOUSE.COM behavior: Driver startup and INT 33h AX=0 automatically show the graphics layer.
+        // Some games by "Orange House" depend on this behavior, without which the graphics are invisible.
+        if (en_int33_pc98_show_graphics) {
+            reg_eax = 0x40u << 8u; // AH=40h show graphics layer
+            CALLBACK_RunRealInt(0x18);
+        }
+    }
 }
 
 void Mouse_BeforeNewVideoMode(bool setmode) {
@@ -1635,6 +1644,8 @@ void MOUSE_Startup(Section *sec) {
     en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
 
     en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
+
+    en_int33_pc98_show_graphics=section->Get_bool("pc-98 show graphics layer on initialize");
 
     en_int33=section->Get_bool("int33");
     if (!en_int33) {

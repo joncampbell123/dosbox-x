@@ -1,4 +1,9 @@
 0.82.24 (next)
+  - INT 33h mouse emulation now enables graphics layer
+    on mouse startup and INT 33h AX=0 to imitate NEC
+    MOUSE.COM behavior seen on real hardware. This is
+    needed for some Orange House games that assume this
+    behavior, without which the graphics are invisible.
   - INT 33h define range functions now include separate
     range correction for text mode vs graphics mode.
 0.82.23
