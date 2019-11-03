@@ -42,6 +42,7 @@ void MAPPER_RunEvent(Bitu);
 void MAPPER_RunInternal();
 void MAPPER_LosingFocus(void);
 
+std::string mapper_event_keybind_string(const std::string &x);
 
 #define MMOD1 0x1
 #define MMOD2 0x2

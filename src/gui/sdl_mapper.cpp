@@ -4398,3 +4398,9 @@ void RedrawMapperBindButton(CEvent *ev) {
     if (ev != NULL) ev->RebindRedraw();
 }
 
+std::string mapper_event_keybind_string(const std::string &x) {
+    CEvent *ev = get_mapper_event_by_name(x);
+    if (ev != NULL) return ev->GetBindMenuText();
+    return std::string();
+}
+
