@@ -3525,6 +3525,9 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
                 event->MakeDefaultBind(tmp);
                 CreateStringBind(tmp);
             }
+
+            // color of the button needs to reflect binding
+            event->notify_button->BindColor();
         }
     }
 
