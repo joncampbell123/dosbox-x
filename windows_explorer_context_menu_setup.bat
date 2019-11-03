@@ -3,6 +3,8 @@ cls
 
 call :cleanup
 
+pushd %~dp0
+
 echo ----------------------------------------------
 echo ^| DOSBox-X context menu for Windows Explorer ^|
 echo ----------------------------------------------
@@ -77,4 +79,5 @@ goto :eof
 :cleanup
 set DOSBOX-X-EXE=
 set DOSBOX-X-PATH=
+popd
 goto :eof
