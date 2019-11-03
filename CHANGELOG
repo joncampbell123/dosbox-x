@@ -1,4 +1,7 @@
 0.82.24 (next)
+  - Shell startup code fixed to show F11 for Windows and
+    F12 for other platforms properly instead of always
+    showing F11.
   - Added BOOT option --pc98-graphics to start up with
     graphics layer enabled in order to run HDI images
     using QMOUSE and games that expect NEC MOUSE.COM
