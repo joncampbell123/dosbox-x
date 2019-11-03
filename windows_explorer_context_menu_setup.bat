@@ -16,6 +16,7 @@ if %ERRORLEVEL% NEQ 0 (
 	echo - run it in an elevated command prompt
 	echo - in Windows Explorer, right-click it and choose "Run as administrator"
 	echo.
+	pause
 	call :failed
 	exit /b 1
 )
