@@ -94,7 +94,8 @@ enum {
     CLR_WHITE = 2,
     CLR_RED = 3,
     CLR_BLUE = 4,
-    CLR_GREEN = 5
+    CLR_GREEN = 5,
+    CLR_DARKGREEN = 6
 };
 
 enum BB_Types {
@@ -214,14 +215,15 @@ static CKeyEvent*                               num_lock_event = NULL;
 
 static std::map<std::string, size_t>            name_to_events;
 
-static SDL_Color                                map_pal[6] =
+static SDL_Color                                map_pal[7] =
 {
     {0x00,0x00,0x00,0x00},          //0=black
     {0x7f,0x7f,0x7f,0x00},          //1=grey
     {0xff,0xff,0xff,0x00},          //2=white
     {0xff,0x00,0x00,0x00},          //3=red
     {0x10,0x30,0xff,0x00},          //4=blue
-    {0x00,0xff,0x20,0x00}           //5=green
+    {0x00,0xff,0x20,0x00},          //5=green
+    {0x00,0x7f,0x10,0x00}           //6=dark green
 };
 
 static KeyBlock combo_f[12] =
@@ -2034,7 +2036,7 @@ public:
     }
     void Click(void) {
         if (last_clicked) last_clicked->BindColor();
-        this->SetColor(CLR_GREEN);
+        this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_DARKGREEN : CLR_GREEN);
         SetActiveEvent(event);
         last_clicked=this;
     }
@@ -3906,7 +3908,7 @@ void MAPPER_RunInternal() {
     mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(640,480);
     // Sorry, but SDL_SetSurfacePalette requires a full palette.
     SDL_Palette *sdl2_map_pal_ptr = SDL_AllocPalette(256);
-    SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 6);
+    SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 7);
     SDL_SetSurfacePalette(mapper.draw_surface, sdl2_map_pal_ptr);
     if (last_clicked) {
         last_clicked->SetColor(CLR_WHITE);
@@ -3917,7 +3919,7 @@ void MAPPER_RunInternal() {
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
     /* Set some palette entries */
-    SDL_SetPalette(mapper.surface, SDL_LOGPAL|SDL_PHYSPAL, map_pal, 0, 6);
+    SDL_SetPalette(mapper.surface, SDL_LOGPAL|SDL_PHYSPAL, map_pal, 0, 7);
     if (last_clicked) {
         last_clicked->BindColor();
         last_clicked=NULL;
