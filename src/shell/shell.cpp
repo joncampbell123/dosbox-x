@@ -39,6 +39,8 @@ Bit16u shell_psp = 0;
 
 Bitu call_int2e = 0;
 
+void MSG_Replace(const char * _name, const char* _val);
+
 void CALLBACK_DeAllocate(Bitu in);
 
 Bitu call_shellstop = 0;
@@ -769,7 +771,7 @@ void SHELL_Init() {
                 "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n");
-        MSG_Add("SHELL_STARTUP_BEGIN2",
+        MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
@@ -808,7 +810,7 @@ void SHELL_Init() {
                 "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
                 "\xBA                                                                    \xBA\n"
                 "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n");
-        MSG_Add("SHELL_STARTUP_BEGIN2",
+        MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
