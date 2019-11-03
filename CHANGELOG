@@ -1,4 +1,7 @@
 0.82.24 (next)
+  - Shell startup now prints the actual mapper binding
+    (whatever it is) for the Host key instead of assuming
+    F12/F11.
   - "Ro" key in PC-98 mode in the mapper interface now
     clarifies that it is Ro / _ since the shift state is
     the underscore.
