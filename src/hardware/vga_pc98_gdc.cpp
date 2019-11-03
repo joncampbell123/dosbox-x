@@ -844,6 +844,15 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
                 return gdc->read_status();//FIXME this stops "Battle Skin Panic" from getting stuck is this correct behavior?
 
             return gdc->rfifo_read_data();
+        case 0x04:      /* 0x64: nothing */
+                        /* 0xA4: Bit 0 select display "plane" */
+            if (port == 0x64) {
+                goto unknown;
+            }
+            else {
+                return GDC_display_plane_pending;
+            }
+            break;
         case 0x06:      /* 0x66: ??
                            0xA6: Bit 0 indicates current CPU access "plane" */
             if (port == 0xA6) {
