@@ -29,6 +29,7 @@
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
+#include "mapper.h"
 #include "build_timestamp.h"
 
 extern bool enable_config_as_shell_commands;
@@ -722,6 +723,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_COPY_SUCCESS","   %d File(s) copied.\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
+
+    std::string mapper_keybind = mapper_event_keybind_string("host");
+    if (mapper_keybind.empty()) mapper_keybind = "unbound";
 
     if (machine == MCH_PC98) {
         MSG_Add("SHELL_STARTUP_BEGIN",
