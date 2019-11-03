@@ -363,6 +363,8 @@ void DOS_Shell::Run(void) {
     if (this == first_shell) {
         /* Start a normal shell and check for a first command init */
         WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
+        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
+        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
 #if C_DEBUG
         WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
@@ -740,12 +742,14 @@ void SHELL_Init() {
                 "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
                 "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
-                "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n"
+                "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n");
+        MSG_Add("SHELL_STARTUP_BEGIN2",
 #if defined(WIN32) && !defined(C_HX_DOS) /* F12 is not a good modifier key in Windows: https://stackoverflow.com/questions/18997754/how-to-disable-f12-to-debug-application-in-visual-studio-2012 */
-                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \x86\x46\n");
 #else
-                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n");
 #endif
+        MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -781,12 +785,14 @@ void SHELL_Init() {
                 "\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
                 "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
                 "\xBA                                                                    \xBA\n"
-                "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n"
+                "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n");
+        MSG_Add("SHELL_STARTUP_BEGIN2",
 #if defined(WIN32) && !defined(C_HX_DOS) /* F12 is not a good modifier key in Windows: https://stackoverflow.com/questions/18997754/how-to-disable-f12-to-debug-application-in-visual-studio-2012 */
-                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \xBA\n"
+                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \xBA\n");
 #else
-                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
+                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n");
 #endif
+        MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
                 "\xBA                                                                    \xBA\n"
                );
