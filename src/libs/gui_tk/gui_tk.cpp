@@ -504,7 +504,7 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 
 	for (int row = height-h; row < height; row++, move(rs-w*col_step)) {
 		for (int col = 0; col < w; col++, move(col_step)) {
-			if (!background_set ^ !(*ptr&(1<<bit)))
+			if (!background_set != !(*ptr&(1<<bit)))
 				out.drawPixel(col,row);
 		}
 	}

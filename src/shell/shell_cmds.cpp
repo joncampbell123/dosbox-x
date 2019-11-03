@@ -1867,7 +1867,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 			core = 3;
 		} else if (!strcasecmp(word,"full")) {
 			core = 4;
-		} else if (word[0] == 'k' && word[1] == 'p' && word[2] & !word[3]) {
+		} else if (word[0] == 'k' && word[1] == 'p' && word[2] && !word[3]) {
 			word[0] = 151+word[2]-'0';
 			word[1] = 0;
 		} else if (word[0] == 'f' && word[1]) {

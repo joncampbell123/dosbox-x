@@ -975,9 +975,9 @@ checkext:
 		string++;
 	}
 savefcb:
-	if (!hasdrive & !(parser & PARSE_DFLT_DRIVE)) fcb_name.part.drive[0] = 0;
-	if (!hasname & !(parser & PARSE_BLNK_FNAME)) strcpy(fcb_name.part.name,"        ");
-	if (!hasext & !(parser & PARSE_BLNK_FEXT)) strcpy(fcb_name.part.ext,"   ");
+	if (!hasdrive && !(parser & PARSE_DFLT_DRIVE)) fcb_name.part.drive[0] = 0;
+	if (!hasname && !(parser & PARSE_BLNK_FNAME)) strcpy(fcb_name.part.name,"        ");
+	if (!hasext && !(parser & PARSE_BLNK_FEXT)) strcpy(fcb_name.part.ext,"   ");
 	fcb.SetName((unsigned char)fcb_name.part.drive[0],fcb_name.part.name,fcb_name.part.ext);
 	fcb.ClearBlockRecsize(); //Undocumented bonus work.
 	*change=(Bit8u)(string-string_begin);
