@@ -731,7 +731,22 @@ void SHELL_Init() {
 
     /* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
      *      so there is no problem here of causing use-after-free crashes when we exit. */
-    std::string host_key_help;
+    std::string host_key_help; // SHELL_STARTUP_BEGIN2
+
+    if (machine == MCH_PC98) {
+// "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n"
+        host_key_help =
+            std::string("\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
+            (mapper_keybind + "                                     ").substr(0,20) +
+            std::string(" \x86\x46\n");
+    }
+    else {
+// "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
+        host_key_help =
+            std::string("\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
+            (mapper_keybind + "                                     ").substr(0,20) +
+            std::string(" \xBA\n");
+    }
 
     if (machine == MCH_PC98) {
         MSG_Add("SHELL_STARTUP_BEGIN",
@@ -748,7 +763,7 @@ void SHELL_Init() {
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n");
         MSG_Add("SHELL_STARTUP_BEGIN2",
-                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n");
+                host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
@@ -787,7 +802,7 @@ void SHELL_Init() {
                 "\xBA                                                                    \xBA\n"
                 "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n");
         MSG_Add("SHELL_STARTUP_BEGIN2",
-                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n");
+                host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
                 "\xBA                                                                    \xBA\n"
