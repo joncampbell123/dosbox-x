@@ -1,7 +1,13 @@
 0.82.24 (next)
+  - Added BOOT option --pc98-graphics to start up with
+    graphics layer enabled in order to run HDI images
+    using QMOUSE and games that expect NEC MOUSE.COM
+    behavior of showing graphics layer on driver init.
+  - BOOT now hides graphics layer on startup in PC-98 mode
+    to reflect real hardware.
   - INT 33h mouse emulation now enables graphics layer
     on mouse startup and INT 33h AX=0 to imitate NEC
-    MOUSE.COM behavior seen on real hardware. This is
+    MOUSE.COM behavior seen on real PC-98 hardware. This is
     needed for some Orange House games that assume this
     behavior, without which the graphics are invisible.
   - INT 33h define range functions now include separate
