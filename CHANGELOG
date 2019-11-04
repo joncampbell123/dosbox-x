@@ -1,4 +1,6 @@
 0.82.24 (next)
+  - Some OpenGL cleanup and fixes for when compiling for
+    Mac OS X Catalina.
   - Shell startup now prints the actual mapper binding
     (whatever it is) for the Host key instead of assuming
     F12/F11.
