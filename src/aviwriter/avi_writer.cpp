@@ -808,7 +808,7 @@ int avi_writer_emit_opendml_indexes(avi_writer *w) {
             /* start an AVISUPERINDEX */
             out_chunks = 0;
             if ((superindex = avi_writer_stream_alloc_superindex(w,s)) == 0ULL) {
-                fprintf(stderr,"Cannot alloc superindex for %u\n",s->index);
+                fprintf(stderr,"Cannot alloc superindex for %d\n",s->index);
                 break;
             }
 

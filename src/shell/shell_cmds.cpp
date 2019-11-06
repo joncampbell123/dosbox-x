@@ -613,18 +613,18 @@ static void FormatNumber(Bit32u num,char * buf) {
 	num/=1000;
 	numg=num;
 	if (numg) {
-		sprintf(buf,"%d,%03d,%03d,%03d",numg,numm,numk,numb);
+		sprintf(buf,"%u,%03u,%03u,%03u",numg,numm,numk,numb);
 		return;
 	}
 	if (numm) {
-		sprintf(buf,"%d,%03d,%03d",numm,numk,numb);
+		sprintf(buf,"%u,%03u,%03u",numm,numk,numb);
 		return;
 	}
 	if (numk) {
-		sprintf(buf,"%d,%03d",numk,numb);
+		sprintf(buf,"%u,%03u",numk,numb);
 		return;
 	}
-	sprintf(buf,"%d",numb);
+	sprintf(buf,"%u",numb);
 }
 
 struct DtaResult {

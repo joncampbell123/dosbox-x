@@ -3683,7 +3683,7 @@ void BIND_MappingEvents(void) {
 
                 size_t tmpl;
 #if defined(C_SDL2)
-                tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
+                tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%d sym=%d mod=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,

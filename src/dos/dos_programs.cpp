@@ -331,7 +331,7 @@ public:
                     if (free_size_cyl>65534) free_size_cyl=65534;
                     if (total_size_cyl<free_size_cyl) total_size_cyl=free_size_cyl+10;
                     if (total_size_cyl>65534) total_size_cyl=65534;
-                    sprintf(teststr,"512,32,%d,%d",total_size_cyl,free_size_cyl);
+                    sprintf(teststr,"512,32,%u,%u",total_size_cyl,free_size_cyl);
                 }
                 str_size=teststr;
             }
