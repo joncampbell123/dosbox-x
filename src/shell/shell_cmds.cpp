@@ -1794,11 +1794,11 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 		char *word=StripWord(args);
 		KBD_KEYS scankey = (KBD_KEYS)0;
 		char *tail;
-		bool alt = false, control = false, shift = false;
+		bool alt = false, ctrl = false, shift = false;
 		while (word[1] == '-') {
 			switch (word[0]) {
 				case 'c':
-					control = true;
+					ctrl = true;
 					word += 2;
 					break;
 				case 's':
@@ -1926,7 +1926,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 				if (delay == 0) KEYBOARD_AddKey(KBD_leftshift,true);
 				else PIC_AddEvent(&delayed_press,delay++,KBD_leftshift);
 			}
-			if (control) {
+			if (ctrl) {
 				if (delay == 0) KEYBOARD_AddKey(KBD_leftctrl,true);
 				else PIC_AddEvent(&delayed_press,delay++,KBD_leftctrl);
 			}
@@ -1943,7 +1943,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 				if (delay+duration == 0) KEYBOARD_AddKey(KBD_leftalt,false);
 				else PIC_AddEvent(&delayed_release,delay+++duration,KBD_leftalt);
 			}
-			if (control) {
+			if (ctrl) {
 				if (delay+duration == 0) KEYBOARD_AddKey(KBD_leftctrl,false);
 				else PIC_AddEvent(&delayed_release,delay+++duration,KBD_leftctrl);
 			}

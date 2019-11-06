@@ -2553,7 +2553,7 @@ public:
             }
 
             if (sg != 0 && sg < minimum_mcb_free) {
-                Bit16u tmp = minimum_mcb_free - sg;
+                tmp = minimum_mcb_free - sg;
                 if (!DOS_ResizeMemory(sg,&tmp)) {
                     LOG(LOG_MISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
                 }

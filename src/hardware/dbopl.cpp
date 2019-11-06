@@ -1264,7 +1264,7 @@ void Chip::Setup( Bit32u rate ) {
 		Bit8u index, shift;
 		EnvelopeSelect( i, index, shift );
 		//Original amount of samples the attack would take
-		Bit32s original = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] << shift) / scale));
+		Bit32s originalAmount = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] << shift) / scale));
 		 
 		Bit32s guessAdd = (Bit32s)((Bit32u)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH - shift - 3 ))));
 		Bit32s bestAdd = guessAdd;
@@ -1273,7 +1273,7 @@ void Chip::Setup( Bit32u rate ) {
 			Bit32s volume = ENV_MAX;
 			Bit32s samples = 0;
 			Bit32u count = 0;
-			while ( volume > 0 && samples < original * 2 ) {
+			while ( volume > 0 && samples < originalAmount * 2 ) {
 				count += (Bit32u)guessAdd;
 				Bit32s change = (Bit32s)(count >> RATE_SH);
 				count &= RATE_MASK;
@@ -1283,7 +1283,7 @@ void Chip::Setup( Bit32u rate ) {
 				samples++;
 
 			}
-			Bit32s diff = original - samples;
+			Bit32s diff = originalAmount - samples;
 			Bit32u lDiff = labs( diff );
 			//Init last on first pass
 			if ( lDiff < bestDiff ) {
@@ -1294,7 +1294,7 @@ void Chip::Setup( Bit32u rate ) {
 					break;
 			}
 			//Linear correction factor, not exactly perfect but seems to work
-			double correct = (original - diff) / (double)original;
+			double correct = (originalAmount - diff) / (double)originalAmount;
 			guessAdd = (Bit32s)(guessAdd * correct);
 			//Below our target
 			if ( diff < 0 ) {

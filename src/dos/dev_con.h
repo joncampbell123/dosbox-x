@@ -787,7 +787,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 count++;
                 continue;
             } else if (data[count] == 0x1A && IS_PC98_ARCH) {
-                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                 /* it also redraws the function key row */
                 update_pc98_function_row(pc98_function_row_mode,true);
@@ -795,7 +795,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                 Real_INT10_SetCursorPos(0,0,page);
             } else if (data[count] == 0x1E && IS_PC98_ARCH) {
-                Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                 Real_INT10_SetCursorPos(0,0,page);
             } else { 
@@ -813,7 +813,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     break;
                 case '*':/* PC-98: clear screen (same code path as CTRL+Z) */
                     if (IS_PC98_ARCH) {
-                        Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                        page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                         /* it also redraws the function key row */
                         update_pc98_function_row(pc98_function_row_mode,true);

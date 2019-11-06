@@ -914,7 +914,7 @@ void CONFIG::Run(void) {
 				Section* sec = control->GetSection(pvars[0].c_str());
 				if (!sec) {
 					// not a section: little duplicate from above
-					Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
+					sec=control->GetSectionFromProperty(pvars[0].c_str());
 					if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 					else {
 						WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));

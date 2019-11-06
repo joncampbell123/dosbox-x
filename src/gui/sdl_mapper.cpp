@@ -1096,11 +1096,8 @@ public:
          */
 
         // activate if we exceed user-defined deadzone
-        const auto joystick = this->GetJoystick();
-        const auto axis = this->GetAxis();
-        const auto positive = this->GetPositive();
-        const auto deadzone = GetJoystickDeadzone((int)joystick, (int)axis, positive);
-        
+        const auto deadzone = GetJoystickDeadzone((int)this->GetJoystick(), (int)this->GetAxis(), this->GetPositive());
+
         if (_value > deadzone && event->IsTrigger()) 
             _value = 25000 + 1;
 

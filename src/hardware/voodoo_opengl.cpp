@@ -203,7 +203,7 @@ void ogl_get_fog_blend(voodoo_state* v, INT32 wfloat, INT32 ITERZ, INT64 ITERW, 
 
 void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_data *vd) {
 	const poly_extra_data *extra = (const poly_extra_data *)extradata;
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 	INT32 iterr, iterg, iterb, itera;
 	INT32 iterz;
 	INT64 iterw;
@@ -220,7 +220,7 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 	iterw = extra->startw + ((dy * extra->dwdy)>>4) + ((dx * extra->dwdx)>>4);
 
 	for (Bitu i=0; i<extra->texcount; i++) {
-		INT64 iters,itert,iterw;
+		INT64 iters,itert,iterw2;
 		UINT32 smax,tmax;
 		INT64 s, t;
 		INT32 lod=0;
@@ -236,14 +236,14 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 		smax = (v->tmu[i].wmask >> ilod) + 1;
 		tmax = (v->tmu[i].hmask >> ilod) + 1;
 
-		iterw = v->tmu[i].startw + ((dy * v->tmu[i].dwdy)>>4) + ((dx * v->tmu[i].dwdx)>>4);
+		iterw2 = v->tmu[i].startw + ((dy * v->tmu[i].dwdy)>>4) + ((dx * v->tmu[i].dwdx)>>4);
 		iters = v->tmu[i].starts + ((dy * v->tmu[i].dsdy)>>4) + ((dx * v->tmu[i].dsdx)>>4);
 		itert = v->tmu[i].startt + ((dy * v->tmu[i].dtdy)>>4) + ((dx * v->tmu[i].dtdx)>>4);
 
 		/* determine the S/T/LOD values for this texture */
 		if (TEXMODE_ENABLE_PERSPECTIVE(texmode))
 		{
-			INT64 oow = fast_reciplog((iterw), &lod);
+			INT64 oow = fast_reciplog((iterw2), &lod);
 			s = (oow * (iters)) >> 29;
 			t = (oow * (itert)) >> 29;
 			lod += LODBASE;
@@ -265,14 +265,14 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 			lod = v->tmu[i].lodmax;
 
 		/* clamp W */
-		if (TEXMODE_CLAMP_NEG_W(texmode) && (iterw) < 0)
+		if (TEXMODE_CLAMP_NEG_W(texmode) && (iterw2) < 0)
 			s = t = 0;
 
 		if (s != 0) vd->m[i].s = (float)((float)s/(float)(smax*(1u<<(18u+ilod))));
 		else vd->m[i].s = 0.0f;
 		if (t != 0) vd->m[i].t = (float)((float)t/(float)(tmax*(1u<<(18u+ilod))));
 		else vd->m[i].t = 0.0f;
-		if (iterw != 0) vd->m[i].w = (float)((float)iterw/(float)(0xffffff));
+		if (iterw2 != 0) vd->m[i].w = (float)((float)iterw2/(float)(0xffffff));
 		else vd->m[i].w = 0.0f;
 
 		vd->m[i].sw = vd->m[i].s * vd->m[i].w;
@@ -379,7 +379,7 @@ UINT32 calculate_palsum(UINT32 tmunum) {
 }
 
 void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 
 	INT32 smax, tmax;
 	UINT32 *texrgbp;
@@ -421,7 +421,6 @@ void ogl_cache_texture(const poly_extra_data *extra, ogl_texture_data *td) {
 						valid_texid = false;
 //						LOG_MSG("texture removed... size %d",t->second.ids->size());
 						if (t->second.ids->size() > 8) {
-							std::map<const UINT32, GLuint>::iterator u;
 							for (u=t->second.ids->begin(); u!=t->second.ids->end(); ++u) {
 								glDeleteTextures(1,&u->second);
 							}
@@ -563,7 +562,7 @@ void ogl_printInfoLog(GLhandleARB obj)
 }
 
 void ogl_sh_tex_combine(std::string *strFShader, const int TMU, const poly_extra_data *extra) {
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 
 	UINT32 TEXMODE     = v->tmu[TMU].reg[textureMode].u;
 
@@ -667,7 +666,7 @@ void ogl_sh_tex_combine(std::string *strFShader, const int TMU, const poly_extra
 }
 
 void ogl_sh_color_path(std::string *strFShader, const poly_extra_data *extra) {
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 
 	UINT32 FBZCOLORPATH = v->reg[fbzColorPath].u;
 	UINT32 FBZMODE = v->reg[fbzMode].u;
@@ -876,7 +875,7 @@ void ogl_sh_color_path(std::string *strFShader, const poly_extra_data *extra) {
 }
 
 void ogl_sh_fog(std::string *strFShader, const poly_extra_data *extra) {
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 
 	UINT32 FOGMODE = v->reg[fogMode].u;
 
@@ -932,7 +931,7 @@ void ogl_sh_fog(std::string *strFShader, const poly_extra_data *extra) {
 
 
 void ogl_shaders(const poly_extra_data *extra) {
-	voodoo_state *v=(voodoo_state*)extra->state;
+	v=(voodoo_state*)extra->state;
 
 	GLint res;
 	std::string strVShader, strFShader;
@@ -1119,7 +1118,7 @@ void ogl_shaders(const poly_extra_data *extra) {
 
 
 void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
-	voodoo_state *v=extra->state;
+	v=extra->state;
 	ogl_texture_data td[2];
 	ogl_vertex_data vd[3];
 

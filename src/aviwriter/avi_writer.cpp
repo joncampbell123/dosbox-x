@@ -660,8 +660,8 @@ int avi_writer_update_avi_and_stream_headers(avi_writer *w) {
             unsigned int nlength=0;
 
             if (s->format != NULL && s->format_len >= sizeof(windows_WAVEFORMAT)) {
-                windows_WAVEFORMAT *w = (windows_WAVEFORMAT*)(s->format);
-                unsigned int nss = __le_u16(&w->nBlockAlign);
+                windows_WAVEFORMAT *wf = (windows_WAVEFORMAT*)(s->format);
+                unsigned int nss = __le_u16(&wf->nBlockAlign);
                 if (nss != 0) nlength = s->sample_write_offset / nss;
             }
             else {

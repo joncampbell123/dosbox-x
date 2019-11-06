@@ -2645,10 +2645,10 @@ void GFX_SwitchFullScreen(void)
 #ifdef WIN32
     if (menu.startup) // NOTE should be always true I suppose ???
     {
-        auto vsync = static_cast<Section_prop *>(control->GetSection("vsync"));
-        if (vsync)
+        auto vsyncProp = static_cast<Section_prop *>(control->GetSection("vsync"));
+        if (vsyncProp)
         {
-            auto vsyncMode = vsync->Get_string("vsyncmode");
+            auto vsyncMode = vsyncProp->Get_string("vsyncmode");
             if (!strcmp(vsyncMode, "host")) SetVal("vsync", "vsyncmode", "host");
         }
     }
@@ -8365,7 +8365,6 @@ fresh_boot:
             /* new code: fire event */
             DispatchVMEvent(VM_EVENT_RESET);
 
-            extern bool custom_bios;
             if (custom_bios) {
                 /* need to relocate BIOS allocations */
                 void ROMBIOS_InitForCustomBIOS(void);

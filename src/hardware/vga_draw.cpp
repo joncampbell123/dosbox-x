@@ -675,16 +675,16 @@ static Bit8u * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*
         count--;
 
         while (count > 0u) {
-            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-            Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels,cur,nex);
+            const unsigned int addr2 = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr2 << vga.config.addr_shift));
+            Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels2,cur,nex);
             count--;
         }
 
         /* the top nibble of the first pixel past the end is visible on real hardware */
         {
-            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+            const unsigned int addr2 = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
             Alt_VGA_256color_2x4bit_Draw_CharClock<1>(temps,pixels,cur,nex);
         }
     }
@@ -928,7 +928,7 @@ static Bit8u * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // This is used when the mouse cursor partially leaves the screen.
         // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
         // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
-        Bit32u* temp = (Bit32u*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
+        Bit32u* temp2 = (Bit32u*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
         //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
 
         // the index of the bit inside the cursor bitmap we start at:
@@ -941,7 +941,7 @@ static Bit8u * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // stay at the right position in the pattern
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        Bit32u* xat = &temp[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+        Bit32u* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             Bit8u bitsA = vga.mem.linear[m];
@@ -960,7 +960,7 @@ static Bit8u * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
                 xat++;
             }
         }
-        return (Bit8u*)temp;
+        return (Bit8u*)temp2;
     }
 }
 

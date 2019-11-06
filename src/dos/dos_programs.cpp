@@ -1526,9 +1526,9 @@ public:
                 CPU_Push16(BIOS_bootfail_code_offset & 0xF); /* offset */
 
                 /* clear the text layer */
-                for (unsigned int i=0;i < (80*25*2);i += 2) {
-                    mem_writew(0xA0000+i,0x0000);
-                    mem_writew(0xA2000+i,0x00E1);
+                for (i=0;i < (80*25*2);i += 2) {
+                    mem_writew((PhysPt)(0xA0000+i),0x0000);
+                    mem_writew((PhysPt)(0xA2000+i),0x00E1);
                 }
 
                 /* hide the cursor */
@@ -1563,7 +1563,7 @@ public:
                  *        So, apparently you cannot put a 1.44MB image in drive A:
                  *        and a 1.2MB image in drive B: */
 
-                for (unsigned int i=0;i < 2;i++) {
+                for (i=0;i < 2;i++) {
                     if (imageDiskList[i] != NULL) {
                         disk_equip |= (0x0111u << i); /* 320KB[15:12] 1MB[11:8] 640KB[7:4] unit[1:0] */
                         disk_equip_144 |= (1u << i);
@@ -1571,11 +1571,11 @@ public:
                     }
                 }
 
-                for (unsigned int i=0;i < 2;i++) {
+                for (i=0;i < 2;i++) {
                     if (imageDiskList[i+2] != NULL) {
                         scsi_equip |= (1u << i);
 
-                        Bit16u m = 0x460u + (i * 4u);
+                        Bit16u m = 0x460u + ((Bit16u)i * 4u);
 
                         mem_writeb(m+0u,sects);
                         mem_writeb(m+1u,heads);

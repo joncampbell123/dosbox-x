@@ -3802,31 +3802,25 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 }
 
 // TODO: This looks to be unused
-CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
+CPU_Decoder* CPU_IndexDecoderType(Bit16u decoder_idx)
 {
-	CPU_Decoder *cpudecoder;
-
-
-	cpudecoder = 0;
-	switch( decoder_idx ) {
-		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
-		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
+    switch (decoder_idx) {
+    case 0: return &CPU_Core_Normal_Run;
+    case 1: return &CPU_Core_Prefetch_Run;
 #if !defined(C_EMSCRIPTEN)
-		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
-		case 3: cpudecoder = &CPU_Core_Full_Run; break;
+    case 2: return &CPU_Core_Simple_Run;
+    case 3: return &CPU_Core_Full_Run;
 #endif
 #if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
+    case 4: return &CPU_Core_Dyn_X86_Run;
 #endif
-		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
+    case 100: return &CPU_Core_Normal_Trap_Run;
 #if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
+    case 101: return &CPU_Core_Dyn_X86_Trap_Run;
 #endif
-		case 200: cpudecoder = &HLT_Decode; break;
-	}
-
-
-	return cpudecoder;
+    case 200: return &HLT_Decode;
+    default: return 0;
+    }
 }
 
 Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */

@@ -858,7 +858,6 @@ static IO_WriteHandleObject WriteHandler[4];
 
 void PIC_Reset(Section *sec) {
     (void)sec;//UNUSED
-    Bitu i;
 
     ReadHandler[0].Uninstall();
     ReadHandler[1].Uninstall();
@@ -923,7 +922,7 @@ void PIC_Reset(Section *sec) {
     /* Setup pic0 and pic1 with initial values like DOS has normally */
     PIC_Ticks=0;
     PIC_IRQCheck=0;
-    for (i=0;i<2;i++) {
+    for (Bitu i=0;i<2;i++) {
         pics[i].auto_eoi=false;
         pics[i].rotate_on_auto_eoi=false;
         pics[i].request_issr=false;
