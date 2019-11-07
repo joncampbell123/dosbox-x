@@ -25,6 +25,7 @@
     range correction for text mode vs graphics mode.
   - Help sections in Configuration GUI have been improved,
     they are now easier to browse and read. (aybe)
+  - CONFIG: added description for 'securemode' (aybe).
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
