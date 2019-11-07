@@ -292,17 +292,18 @@ bool Prop_int::SetVal(Value const& in, bool forced, bool warn, bool init) {
 		int va = static_cast<int>(Value(in));
 
 		//No ranges
-		if (mi == -1 && ma == -1) { value = in; return true;}
+		if (mi == -1 && ma == -1) { value = in; is_modified = true; return true;}
 
 		//Inside range
-		if (va >= mi && va <= ma) { value = in; return true;}
+		if (va >= mi && va <= ma) { value = in; is_modified = true; return true;}
 
 		//Outside range, set it to the closest boundary
 		if (va > ma ) va = ma; else va = mi;
 
 		if (warn) LOG_MSG("%s is outside the allowed range %s-%s for variable: %s.\nIt has been set to the closest boundary: %d.",in.ToString().c_str(),min.ToString().c_str(),max.ToString().c_str(),propname.c_str(),va);
 
-		value = va; 
+		value = va;
+		is_modified = true;
 		return true;
 		}
 }
