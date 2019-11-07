@@ -5,6 +5,10 @@ Additional notes
 
 11/7/2019
 
+Fixups for Visual Studio 2019:
+
+Make sure you install MSVC v141 - VS 2017 C++ x64/x86 build tools (v14.16).
+
 Windows 8.1 SDK option is gone from the installer but can be found here:
 https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
 
