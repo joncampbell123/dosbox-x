@@ -23,6 +23,8 @@
     behavior, without which the graphics are invisible.
   - INT 33h define range functions now include separate
     range correction for text mode vs graphics mode.
+  - Help sections in Configuration GUI have been improved,
+    they are now easier to browse and read. (aybe)
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
