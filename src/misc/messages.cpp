@@ -124,7 +124,7 @@ const char * MSG_Get(char const * msg) {
 			return  (*tel).val.c_str();
 		}
 	}
-	return "Message not Found!\n";
+	return msg;
 }
 
 
