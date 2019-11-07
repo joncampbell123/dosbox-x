@@ -1112,6 +1112,10 @@ void MIXER_Controls_Init() {
     item->set_text("Decrease recording volume");
 }
 
+void MIXER_DOS_Boot(Section *) {
+    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
+}
+
 void MIXER_Init() {
     AddExitFunction(AddExitFunctionFuncPair(MIXER_Stop));
 
@@ -1208,7 +1212,7 @@ void MIXER_Init() {
         (unsigned int)mixer.samples_per_ms.fd,
         (unsigned int)mixer.prebuffer_samples);
 
-    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
+    AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(MIXER_DOS_Boot));
 
     MIXER_Controls_Init();
 }
