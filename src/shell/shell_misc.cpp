@@ -338,6 +338,11 @@ void DOS_Shell::InputCommand(char * line) {
                     l_history.push_front(line);
                 }
 
+                // ensure we're at end to handle all cases
+                while (str_index < str_len) {
+                    outc((Bit8u)line[str_index++]);
+                }
+
                 for (;str_index>0; str_index--) {
                     // removes all characters
                     outc(8); outc(' '); outc(8);
@@ -366,6 +371,11 @@ void DOS_Shell::InputCommand(char * line) {
                     }
                     break;
                 } else --it_history;
+
+                // ensure we're at end to handle all cases
+                while (str_index < str_len) {
+                    outc((Bit8u)line[str_index++]);
+                }
 
                 for (;str_index>0; str_index--) {
                     // removes all characters
