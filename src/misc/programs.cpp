@@ -1050,7 +1050,9 @@ void PROGRAMS_Init() {
 		"-axclear clears the autoexec section.\n"\
 		"-axadd [line] adds a line to the autoexec section.\n"\
 		"-axtype prints the content of the autoexec section.\n"\
-		"-securemode switches to secure mode.\n"\
+		"-securemode\n"\
+        " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
+        " as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value." );
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
