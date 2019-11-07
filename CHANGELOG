@@ -1,4 +1,7 @@
 0.82.24 (next)
+  - CONFIG.COM and MIXER.COM are now registered only at
+    DOS kernel startup, to resolve their disappearance
+    after RE-DOS or guest system reset.
   - Some OpenGL cleanup and fixes for when compiling for
     Mac OS X Catalina.
   - Shell startup now prints the actual mapper binding
