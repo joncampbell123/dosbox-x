@@ -1,5 +1,12 @@
 Getting started with DOSBox-X development under Windows 10
 
+Additional notes
+----------------
+
+11/7/2019
+
+Windows 8.1 SDK option is gone from the installer but can be found here:
+https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
 
 Visual Studio
 -------------
@@ -19,7 +26,6 @@ Setting up the environment from scratch
 - for debugging, you might want to change 'Working Directory' default value of $(ProjectDir) to $(TargetDir)
 
 Note that Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
-
 
 Pass additional options to the custom-build of SDL1
 ---------------------------------------------------
