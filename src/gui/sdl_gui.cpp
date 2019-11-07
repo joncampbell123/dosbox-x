@@ -697,7 +697,7 @@ public:
             Property *p;
             int i = 0;
             while ((p = sec->Get_prop(i++))) {
-                msg += std::string("\033[34m")+p->propname+":\033[0m "+p->Get_help()+"\n";
+                msg += std::string("\033[37;1m")+p->propname+":\033[0m\n"+p->Get_help()+"\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);
