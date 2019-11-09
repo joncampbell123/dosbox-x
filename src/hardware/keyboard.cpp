@@ -193,29 +193,29 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
 
     if (keyb.ps2mouse.reporting && keyb.ps2mouse.mode == MM_STREAM) {
         if ((keyb.used+4) < KEYBUFSIZE) {
-            int x,y;
+            int x2,y2;
 
-            x = (int)(keyb.ps2mouse.acx * (1 << keyb.ps2mouse.resolution));
-            x /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
-            if (x < -256) x = -256;
-            else if (x > 255) x = 255;
+            x2 = (int)(keyb.ps2mouse.acx * (1 << keyb.ps2mouse.resolution));
+            x2 /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
+            if (x2 < -256) x2 = -256;
+            else if (x2 > 255) x2 = 255;
 
-            y = -((int)(keyb.ps2mouse.acy * (1 << keyb.ps2mouse.resolution)));
-            y /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
-            if (y < -256) y = -256;
-            else if (y > 255) y = 255;
+            y2 = -((int)(keyb.ps2mouse.acy * (1 << keyb.ps2mouse.resolution)));
+            y2 /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
+            if (y2 < -256) y2 = -256;
+            else if (y2 > 255) y2 = 255;
 
             KEYBOARD_AddBuffer(AUX|
-                ((y == -256 || y == 255) ? 0x80 : 0x00) |   /* Y overflow */
-                ((x == -256 || x == 255) ? 0x40 : 0x00) |   /* X overflow */
-                (y & 0x100 ? 0x20 : 0x00) |         /* Y sign bit */
-                (x & 0x100 ? 0x10 : 0x00) |         /* X sign bit */
+                ((y2 == -256 || y2 == 255) ? 0x80 : 0x00) |   /* Y overflow */
+                ((x2 == -256 || x2 == 255) ? 0x40 : 0x00) |   /* X overflow */
+                (y2 & 0x100 ? 0x20 : 0x00) |         /* Y sign bit */
+                (x2 & 0x100 ? 0x10 : 0x00) |         /* X sign bit */
                 0x08 |                      /* always 1? */
                 (keyb.ps2mouse.m ? 4 : 0) |         /* M */
                 (keyb.ps2mouse.r ? 2 : 0) |         /* R */
                 (keyb.ps2mouse.l ? 1 : 0));         /* L */
-            KEYBOARD_AddBuffer(AUX|(x&0xFF));
-            KEYBOARD_AddBuffer(AUX|(y&0xFF));
+            KEYBOARD_AddBuffer(AUX|(x2&0xFF));
+            KEYBOARD_AddBuffer(AUX|(y2&0xFF));
             if (keyb.ps2mouse.intellimouse_btn45) {
                 KEYBOARD_AddBuffer(AUX|(scrollwheel&0xFF)); /* TODO: 4th & 5th buttons */
             }

@@ -720,16 +720,16 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 				 * So the below code has funny conditions to match Win95's weird rules on what
 				 * consitutes valid or invalid %variable% names. */
 				if (*r == '%' && ((spaces > 0 && chars == 0) || (spaces == 0 && chars > 0))) {
-					std::string temp;
+					std::string temp2;
 
 					/* valid name found. substitute */
 					*r++ = 0; /* ASCIIZ snip */
-					if (GetEnvStr(name,temp)) {
-						size_t equ_pos = temp.find_first_of('=');
+					if (GetEnvStr(name,temp2)) {
+						size_t equ_pos = temp2.find_first_of('=');
 						if (equ_pos != std::string::npos) {
-							const char *base = temp.c_str();
+							const char *base = temp2.c_str();
 							const char *value = base + equ_pos + 1;
-							const char *fence = base + temp.length();
+							const char *fence = base + temp2.length();
 							assert(value >= base && value <= fence);
 							size_t len = (size_t)(fence-value);
 

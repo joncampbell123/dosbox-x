@@ -86,11 +86,11 @@ void AutoexecObject::Install(const std::string &in) {
 		safe_strncpy(buf2, buf.c_str(), n + 1);
 		if((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
 			char* after_set = buf2 + 4;//move to variable that is being set
-			char* test = strpbrk(after_set,"=");
-			if(!test) {first_shell->SetEnv(after_set,"");return;}
-			*test++ = 0;
+			char* test2 = strpbrk(after_set,"=");
+			if(!test2) {first_shell->SetEnv(after_set,"");return;}
+			*test2++ = 0;
 			//If the shell is running/exists update the environment
-			first_shell->SetEnv(after_set,test);
+			first_shell->SetEnv(after_set,test2);
 		}
 		delete [] buf2;
 	}
@@ -148,9 +148,9 @@ void AutoexecObject::Uninstall() {
 			// If it's a environment variable remove it from there as well
 			if ((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
 				char* after_set = buf2 + 4;//move to variable that is being set
-				char* test = strpbrk(after_set,"=");
-				if (!test) continue;
-				*test = 0;
+				char* test2 = strpbrk(after_set,"=");
+				if (!test2) continue;
+				*test2 = 0;
 				stringset = true;
 				//If the shell is running/exists update the environment
 				if (first_shell) first_shell->SetEnv(after_set,"");

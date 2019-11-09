@@ -1030,7 +1030,6 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 
 
 void VGA_SetupOther(void) {
-	Bitu i;
 	memset( &vga.tandy, 0, sizeof( vga.tandy ));
 	vga.attr.disabled = 0;
 	vga.config.bytes_skip=0;
@@ -1048,12 +1047,12 @@ void VGA_SetupOther(void) {
 
 	if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		extern Bit8u int10_font_08[256 * 8];
-		for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_08[i*8],8);
+		for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_08[i*8],8);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
 	}
     if (machine==MCH_MCGA) { // MCGA uses a 8x16 font, through double-scanning as if 8x8 CGA text mode
         extern Bit8u int10_font_16[256 * 16];
-        for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_16[i*16],16);
+        for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_16[i*16],16);
         vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
     }
 	if (machine==MCH_CGA || IS_TANDY_ARCH || machine==MCH_HERC || machine==MCH_MDA) {
@@ -1062,7 +1061,7 @@ void VGA_SetupOther(void) {
 	}
 	if (machine==MCH_HERC || machine==MCH_MDA) {
 		extern Bit8u int10_font_14[256 * 14];
-		for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_14[i*14],14);
+		for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_14[i*14],14);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
 		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Herc Blend");
 		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Herc Pal");

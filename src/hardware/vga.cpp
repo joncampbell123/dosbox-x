@@ -909,8 +909,7 @@ void VGA_Reset(Section*) {
              * A lot of DOSBox's VGA emulation code assumes power-of-2 VRAM sizes especially when wrapping
              * memory addresses with (a & (vmemsize - 1)) type code. */
             if (!is_power_of_2(vga.mem.memsize)) {
-                Bitu i = int_log2(vga.mem.memsize) + 1u;
-                vga.mem.memsize = 1u << i;
+                vga.mem.memsize = 1u << (int_log2(vga.mem.memsize) + 1u);
                 LOG(LOG_VGA,LOG_WARN)("VGA RAM size requested is not a power of 2, rounding up to %uKB",vga.mem.memsize>>10);
             }
         }

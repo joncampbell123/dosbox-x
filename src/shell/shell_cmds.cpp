@@ -613,18 +613,18 @@ static void FormatNumber(Bit32u num,char * buf) {
 	num/=1000;
 	numg=num;
 	if (numg) {
-		sprintf(buf,"%d,%03d,%03d,%03d",numg,numm,numk,numb);
+		sprintf(buf,"%u,%03u,%03u,%03u",numg,numm,numk,numb);
 		return;
 	}
 	if (numm) {
-		sprintf(buf,"%d,%03d,%03d",numm,numk,numb);
+		sprintf(buf,"%u,%03u,%03u",numm,numk,numb);
 		return;
 	}
 	if (numk) {
-		sprintf(buf,"%d,%03d",numk,numb);
+		sprintf(buf,"%u,%03u",numk,numb);
 		return;
 	}
-	sprintf(buf,"%d",numb);
+	sprintf(buf,"%u",numb);
 }
 
 struct DtaResult {
@@ -1794,11 +1794,11 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 		char *word=StripWord(args);
 		KBD_KEYS scankey = (KBD_KEYS)0;
 		char *tail;
-		bool alt = false, control = false, shift = false;
+		bool alt = false, ctrl = false, shift = false;
 		while (word[1] == '-') {
 			switch (word[0]) {
 				case 'c':
-					control = true;
+					ctrl = true;
 					word += 2;
 					break;
 				case 's':
@@ -1867,7 +1867,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 			core = 3;
 		} else if (!strcasecmp(word,"full")) {
 			core = 4;
-		} else if (word[0] == 'k' && word[1] == 'p' && word[2] & !word[3]) {
+		} else if (word[0] == 'k' && word[1] == 'p' && word[2] && !word[3]) {
 			word[0] = 151+word[2]-'0';
 			word[1] = 0;
 		} else if (word[0] == 'f' && word[1]) {
@@ -1926,7 +1926,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 				if (delay == 0) KEYBOARD_AddKey(KBD_leftshift,true);
 				else PIC_AddEvent(&delayed_press,delay++,KBD_leftshift);
 			}
-			if (control) {
+			if (ctrl) {
 				if (delay == 0) KEYBOARD_AddKey(KBD_leftctrl,true);
 				else PIC_AddEvent(&delayed_press,delay++,KBD_leftctrl);
 			}
@@ -1943,7 +1943,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 				if (delay+duration == 0) KEYBOARD_AddKey(KBD_leftalt,false);
 				else PIC_AddEvent(&delayed_release,delay+++duration,KBD_leftalt);
 			}
-			if (control) {
+			if (ctrl) {
 				if (delay+duration == 0) KEYBOARD_AddKey(KBD_leftctrl,false);
 				else PIC_AddEvent(&delayed_release,delay+++duration,KBD_leftctrl);
 			}

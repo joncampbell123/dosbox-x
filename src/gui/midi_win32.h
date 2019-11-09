@@ -109,7 +109,6 @@ public:
 			if (configmidi.fail() && total) {
 				lowcase(strconf);
 				for(unsigned int i = 0; i< total;i++) {
-					MIDIOUTCAPS mididev;
 					midiOutGetDevCaps(i, &mididev, sizeof(MIDIOUTCAPS));
 					std::string devname(mididev.szPname);
 					lowcase(devname);

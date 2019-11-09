@@ -674,7 +674,7 @@ void DMA_Reset(Section* /*sec*/) {
 	if (enable_1st_dma) {
         if (IS_PC98_ARCH) {
             /* install handlers for ports 0x21-0x29 odd */
-            for (unsigned int i=0;i < 5;i++) {
+            for (i=0;i < 5;i++) {
                 DmaControllers[0]->DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
                 DmaControllers[0]->DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
             }

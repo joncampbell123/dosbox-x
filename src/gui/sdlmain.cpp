@@ -2645,10 +2645,10 @@ void GFX_SwitchFullScreen(void)
 #ifdef WIN32
     if (menu.startup) // NOTE should be always true I suppose ???
     {
-        auto vsync = static_cast<Section_prop *>(control->GetSection("vsync"));
-        if (vsync)
+        auto vsyncProp = static_cast<Section_prop *>(control->GetSection("vsync"));
+        if (vsyncProp)
         {
-            auto vsyncMode = vsync->Get_string("vsyncmode");
+            auto vsyncMode = vsyncProp->Get_string("vsyncmode");
             if (!strcmp(vsyncMode, "host")) SetVal("vsync", "vsyncmode", "host");
         }
     }
@@ -6437,7 +6437,7 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     {
         char tmp1[64];
-        sprintf(tmp1,"%u",atoi(ts));
+        sprintf(tmp1,"%d",atoi(ts));
         tmp += tmp1;
     }
 
@@ -6736,7 +6736,7 @@ bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const men
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
 
-    sprintf(tmp,"%u",f);
+    sprintf(tmp,"%d",f);
     SetVal("sdl", "overscan", tmp);
     change_output(7);
     return true;
@@ -6902,7 +6902,7 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
 
-    sprintf(tmp,"%u",f);
+    sprintf(tmp,"%d",f);
     SetVal("render", "frameskip", tmp);
     return true;
 }
@@ -8365,7 +8365,6 @@ fresh_boot:
             /* new code: fire event */
             DispatchVMEvent(VM_EVENT_RESET);
 
-            extern bool custom_bios;
             if (custom_bios) {
                 /* need to relocate BIOS allocations */
                 void ROMBIOS_InitForCustomBIOS(void);

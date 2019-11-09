@@ -348,7 +348,6 @@ l_M_Ed:
 	case D_PUSHAw:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegalopcode;
 		{
-			Bit32u old_esp = reg_esp;
 			try {
 				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
@@ -363,7 +362,6 @@ l_M_Ed:
 		} goto nextopcode;
 	case D_PUSHAd:
 		{
-			Bit32u old_esp = reg_esp;
 			try {
 				Bit32u tmpesp = reg_esp;
 				Push_32(reg_eax);Push_32(reg_ecx);Push_32(reg_edx);Push_32(reg_ebx);
@@ -379,7 +377,6 @@ l_M_Ed:
 	case D_POPAw:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegalopcode;
 		{
-			Bit32u old_esp = reg_esp;
 			try {
 				reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
 				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
@@ -393,7 +390,6 @@ l_M_Ed:
 		} goto nextopcode;
 	case D_POPAd:
 		{
-			Bit32u old_esp = reg_esp;
 			try {
 				reg_edi=Pop_32();reg_esi=Pop_32();reg_ebp=Pop_32();Pop_32();//Don't save ESP
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();
@@ -508,8 +504,6 @@ l_M_Ed:
 		}
 	case D_LEAVEw:
 		{
-			Bit32u old_esp = reg_esp;
-
 			reg_esp &= cpu.stack.notmask;
 			reg_esp |= reg_ebp&cpu.stack.mask;
 			try {
@@ -523,8 +517,6 @@ l_M_Ed:
 		} goto nextopcode;
 	case D_LEAVEd:
 		{
-			Bit32u old_esp = reg_esp;
-
 			reg_esp &= cpu.stack.notmask;
 			reg_esp |= reg_ebp&cpu.stack.mask;
 			try {

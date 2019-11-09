@@ -562,10 +562,10 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
                 memset(&sectbuf[di],0,sizeof(sectbuf[di]));
                 sectbuf[di].attrib = DOS_ATTR_VOLUME;
                 {
-                    unsigned int i = 0;
+                    unsigned int j = 0;
                     const char *s = label;
-                    while (i < 11 && *s != 0) sectbuf[di].entryname[i++] = toupper(*s++);
-                    while (i < 11)            sectbuf[di].entryname[i++] = ' ';
+                    while (j < 11 && *s != 0) sectbuf[di].entryname[j++] = toupper(*s++);
+                    while (j < 11)            sectbuf[di].entryname[j++] = ' ';
                 }
                 writeSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
 		        labelCache.SetLabel(label, false, true);

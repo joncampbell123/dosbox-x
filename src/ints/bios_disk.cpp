@@ -1033,7 +1033,6 @@ static Bitu INT13_DiskHandler(void) {
                 CALLBACK_SCF(true);
                 return CBRET_NONE;
             }
-            Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
             imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
             Bit64u largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
             largesize/=512;
@@ -1173,7 +1172,6 @@ static Bitu INT13_DiskHandler(void) {
         if (bufsz > 0x1E) bufsz = 0x1E;
         else bufsz = 0x1A;
 
-        Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
         imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
 
         real_writew(segat,bufptr+0x00,bufsz);

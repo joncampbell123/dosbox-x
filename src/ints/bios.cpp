@@ -422,7 +422,6 @@ void dosbox_integration_trigger_read() {
             /* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
              *       can't retaliate if the user wants to capture video or screenshots. */
 #if (C_SSHOT)
-            extern Bitu CaptureState;
             dosbox_int_register = 0x00000000; // available
             if (CaptureState & CAPTURE_IMAGE)
                 dosbox_int_register |= 1 << 0; // Image capture is in progress
@@ -3443,7 +3442,6 @@ static Bitu INT18_PC98_Handler(void) {
 
                 if ((reg_bh & 0x30) == 0x30) { // 640x480
                     if ((reg_al & 0xC) == 0x0C) { // 31KHz sync
-                        extern bool pc98_31khz_mode;
                         void PC98_Set31KHz_480line(void);
                         pc98_31khz_mode = true;
                         PC98_Set31KHz_480line();
@@ -3511,13 +3509,11 @@ static Bitu INT18_PC98_Handler(void) {
                             LOG_MSG("PC-98 change in hsync frequency to %uHz",(reg_al & 0x04) ? 31 : 24);
 
                             if (reg_al & 4) {
-                                extern bool pc98_31khz_mode;
                                 void PC98_Set31KHz(void);
                                 pc98_31khz_mode = true;
                                 PC98_Set31KHz();
                             }
                             else {
-                                extern bool pc98_31khz_mode;
                                 void PC98_Set24KHz(void);
                                 pc98_31khz_mode = false;
                                 PC98_Set24KHz();
@@ -8374,41 +8370,41 @@ private:
 
         {
             char tmp[512];
-            const char *cpu = "?";
+            const char *cpuType = "?";
 
             switch (CPU_ArchitectureType) {
                 case CPU_ARCHTYPE_8086:
-                    cpu = "8086";
+                    cpuType = "8086";
                     break;
                 case CPU_ARCHTYPE_80186:
-                    cpu = "80186";
+                    cpuType = "80186";
                     break;
                 case CPU_ARCHTYPE_286:
-                    cpu = "286";
+                    cpuType = "286";
                     break;
                 case CPU_ARCHTYPE_386:
-                    cpu = "386";
+                    cpuType = "386";
                     break;
                 case CPU_ARCHTYPE_486OLD:
-                    cpu = "486 (older generation)";
+                    cpuType = "486 (older generation)";
                     break;
                 case CPU_ARCHTYPE_486NEW:
-                    cpu = "486 (later generation)";
+                    cpuType = "486 (later generation)";
                     break;
                 case CPU_ARCHTYPE_PENTIUM:
-                    cpu = "Pentium";
+                    cpuType = "Pentium";
                     break;
                 case CPU_ARCHTYPE_P55CSLOW:
-                    cpu = "Pentium MMX";
+                    cpuType = "Pentium MMX";
                     break;
                 case CPU_ARCHTYPE_MIXED:
-                    cpu = "Auto (mixed)";
+                    cpuType = "Auto (mixed)";
                     break;
             }
 
             extern bool enable_fpu;
 
-            sprintf(tmp,"%s CPU present",cpu);
+            sprintf(tmp,"%s CPU present",cpuType);
             BIOS_Int10RightJustifiedPrint(x,y,tmp);
             if (enable_fpu) BIOS_Int10RightJustifiedPrint(x,y," with FPU");
             BIOS_Int10RightJustifiedPrint(x,y,"\n");
@@ -8871,7 +8867,7 @@ public:
 
                 phys_writeb(0xE8000 + 0x0DD8 + (PhysPt)i,0);
 
-                for (size_t i=0;i < sizeof(pc98_epson_check_2);i++)
+                for (i=0;i < sizeof(pc98_epson_check_2);i++)
                     phys_writeb(0xF5200 + 0x018E + (PhysPt)i,(Bit8u)pc98_epson_check_2[i]);
             }
         }

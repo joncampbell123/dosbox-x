@@ -566,7 +566,7 @@ void riff_stack_debug_print(FILE *fp,int level,riff_chunk *chunk) {
 		riff_stack_fourcc_to_str(chunk->fourcc,tmp);
 		fprintf(fp,"'%s' ",tmp);
 	}
-	fprintf(fp,"hdr=%lld data=%lld len=%lu data-end=%lld",
+	fprintf(fp,"hdr=%llu data=%llu len=%lu data-end=%llu",
 		(unsigned long long)(chunk->absolute_header_offset),
 		(unsigned long long)(chunk->absolute_data_offset),
 		(unsigned long)(chunk->data_length),

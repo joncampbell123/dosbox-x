@@ -167,7 +167,8 @@ static void LogEMUMachine(void) {
     DEBUG_ShowMsg("Emulator machine:");
 
     {
-        const char *m = "?",*svga = "";
+        const char *m = "?";
+        const char *cardName = "";
 
         switch (machine) {
             case MCH_HERC:      m="Hercules";   break;
@@ -185,14 +186,14 @@ static void LogEMUMachine(void) {
         }
 
         switch (svgaCard) {
-            case SVGA_None:             svga="";                break;
-            case SVGA_S3Trio:           svga="S3 Trio";         break;
-            case SVGA_TsengET4K:        svga="Tseng ET4000";    break;
-            case SVGA_TsengET3K:        svga="Tseng ET3000";    break;
-            case SVGA_ParadisePVGA1A:   svga="Paradise PVGA1A"; break;
+            case SVGA_None:             cardName ="";                break;
+            case SVGA_S3Trio:           cardName ="S3 Trio";         break;
+            case SVGA_TsengET4K:        cardName ="Tseng ET4000";    break;
+            case SVGA_TsengET3K:        cardName ="Tseng ET3000";    break;
+            case SVGA_ParadisePVGA1A:   cardName ="Paradise PVGA1A"; break;
         }
 
-        DEBUG_ShowMsg("Machine: %s %s",m,svga);
+        DEBUG_ShowMsg("Machine: %s %s",m, cardName);
     }
 
     DEBUG_EndPagedContent();
@@ -4151,14 +4152,14 @@ bool CDebugVar::LoadVars(char* name)
 	}
 
 	for (Bit16u i=0; i<num; i++) {
-		char name[16];
+		char name2[16];
 		// name
-		if (fread(name,16,1,f) != 1) break;
+		if (fread(name2,16,1,f) != 1) break;
 		// adr
 		PhysPt adr;
 		if (fread(&adr,sizeof(adr),1,f) != 1) break;
 		// insert
-		InsertVariable(name,adr);
+		InsertVariable(name2,adr);
 	}
 	fclose(f);
 	return true;

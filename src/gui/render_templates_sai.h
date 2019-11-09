@@ -20,11 +20,11 @@ static inline int conc2d(GetResult,SBPP)(PTYPE A, PTYPE B, PTYPE C, PTYPE D) {
 	const bool ac = (A==C);
 	const bool bc = (B==C);
 	const int x1 = ac;
-	const int y1 = (bc & !ac);
+	const int y1 = (bc && !ac);
 	const bool ad = (A==D);
 	const bool bd = (B==D);
 	const int x2 = ad;
-	const int y2 = (bd & !ad);
+	const int y2 = (bd && !ad);
 	const int x = x1+x2;
 	const int y = y1+y2;
 	static const int rmap[3][3] = {

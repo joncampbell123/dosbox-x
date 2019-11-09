@@ -135,7 +135,7 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 					INT32 y, const poly_extent *extent,	const void *extradata)
 {
 	const poly_extra_data *extra = (const poly_extra_data *)extradata;
-	voodoo_state *v = extra->state;
+	v = extra->state;
 	stats_block *stats = &v->thread_stats[0];
 	DECLARE_DITHER_POINTERS;
 	INT32 startx = extent->startx;
@@ -3728,7 +3728,7 @@ static raster_info *find_rasterizer(voodoo_state *v, int texcount)
 static void raster_fastfill(void *destbase, INT32 y, const poly_extent *extent, const void *extradata)
 {
 	const poly_extra_data *extra = (const poly_extra_data *)extradata;
-	voodoo_state *v = extra->state;
+	v = extra->state;
 	stats_block *stats = &v->thread_stats[0];
 	INT32 startx = extent->startx;
 	INT32 stopx = extent->stopx;
