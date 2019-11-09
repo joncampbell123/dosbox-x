@@ -33,6 +33,8 @@
     they have been changed in configuration GUI (aybe).
   - Some scenarios with command history could display
     garbage characters from previous/next command (aybe).
+  - Fixed all hard disk images created by IMGMAKE having
+    VHD footers. (Allofich)
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
