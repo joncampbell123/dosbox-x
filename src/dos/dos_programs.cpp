@@ -1920,7 +1920,6 @@ restart_int:
         std::string disktype;
         std::string src;
         std::string filename;
-        std::string path = "";
         std::string dpath;
 
         unsigned int c, h, s, sectors; 
@@ -1939,6 +1938,7 @@ restart_int:
         // maybe it is a DOSBox path.
         
         // split filename and path
+        std::string path = "";
         Bitu spos = temp_line.rfind('\\');
         if(spos==std::string::npos) {
             temp_line.rfind('/');
@@ -2660,7 +2660,7 @@ quit:
             case 0x50|0x80: menuname="BASIC"; goto menufirst; // Down
             case 0xD:   // Run
                 menuname="GOTO_EXIT";
-                return;
+                goto menufirst;
         } while (CON_IN(&c));
     }   
 };
@@ -2801,8 +2801,7 @@ public:
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
         }
-        //initialize variables
-        imageDisk * newImage = NULL;
+        imageDisk * newImage;
         char drive;
         std::vector<std::string> paths;
         //show help if no arguments or -?
@@ -4393,7 +4392,6 @@ public:
         if (raw[0] == '/') {
             raw++;
             if (raw[0] == '?') {
-                raw++;
                 Help();
                 return;
             }
