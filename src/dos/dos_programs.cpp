@@ -2262,7 +2262,7 @@ restart_int:
             fwrite(&sbuf,512,1,f);
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        if((mediadesc == 0xF8) && (temp_line.find(".vhd"))) {
+        if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
             int i;
             Bit8u footer[512];
             // basic information
