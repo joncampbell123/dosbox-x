@@ -391,4 +391,3 @@ vs2015/libpng/linux-build/*
 /vs2015/libpdcurses/wincon/ozdemo.exe
 /vs2015/libpdcurses/wincon/firework.exe
 .vscode/settings.json
-vs2015/freetype/objs/freetype.lib
