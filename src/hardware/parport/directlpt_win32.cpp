@@ -53,15 +53,15 @@
 /* Wrapper functions for the function pointers
     - call these functions to perform I/O.
  */
-     short  Inp32 (short portaddr)
+     short Inp32(short portaddr)
      {
-          return (inp32fp)(portaddr);
+         return inp32fp(portaddr);
      }
 
-     void  Out32 (short portaddr, short datum)
+     void Out32(short portaddr, short datum)
      {
-          (oup32fp)(portaddr,datum);
-     } 
+         oup32fp(portaddr, datum);
+     }
 
 //********************************************************
 

@@ -52,13 +52,9 @@ public:
 	_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
 };
 # undef LOG
-# if defined (_MSC_VER)
-#  define LOG(X,Y)
-# else
-#  define LOG(X,Y) CPU_LOG
+# define LOG(X,Y) CPU_LOG
 # define CPU_LOG(...)
 # endif
-#endif
 
 bool enable_weitek = false;
 
