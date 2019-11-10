@@ -341,7 +341,6 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
-      <BrowseInformation>false</BrowseInformation>
       <BrowseInformationFile />
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <SDLCheck>false</SDLCheck>
