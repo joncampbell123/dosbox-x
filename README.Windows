@@ -8,6 +8,13 @@ Additional notes
 Windows 8.1 SDK option is gone from the installer but can be found here:
 https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
 
+11/12/2019
+
+Debugging experience is broken in some projects (i.e. The breakpoint will not currently be hit), these should be addressed in the future but as there is a total of 146 builds it will take some time.
+
+The following projects have been fixed and work as intended:
+- dosbox-x: Debug Win32, Debug x64, Debug SDL2 Win32, Debug SDL2 x64
+
 Visual Studio
 -------------
 
