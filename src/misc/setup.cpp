@@ -37,6 +37,12 @@
 # pragma warning(disable:4305) /* truncation from double to float */
 #endif
 
+/* for file system functions */
+#if defined (_WIN32)
+#pragma comment(lib, "Shlwapi.lib")
+#include <Shlwapi.h>
+#endif
+
 /* functions to call when DOSBox-X is exiting. */
 std::list<Function_wrapper> exitfunctions;
 
@@ -978,9 +984,60 @@ Section* Config::GetSectionFromProperty(char const * const prop) const{
     return NULL;
 }
 
+#if defined(_WIN32)
+
+bool IsCurrentDirectorySystemDirectory()
+{
+    TCHAR c_buf[MAX_PATH];
+
+    const auto c_len = GetCurrentDirectory(MAX_PATH, c_buf);
+
+    if (!c_len || c_len > MAX_PATH)
+        return false;
+
+    TCHAR s_buf[MAX_PATH];
+
+    const auto s_len = GetSystemDirectory(s_buf, MAX_PATH);
+
+    if (!s_len || s_len > MAX_PATH)
+        return false;
+
+    return !stricmp(c_buf, s_buf);
+}
+
+bool TryFixCurrentDirectory()
+{
+    TCHAR m_buf[MAX_PATH];
+
+    const auto m_len = GetModuleFileName(nullptr, m_buf, MAX_PATH);
+
+    if (!m_len || m_len == MAX_PATH && GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+        return false;
+
+    if (!PathRemoveFileSpec(m_buf))
+        return false;
+
+    TCHAR p_buf[MAX_PATH];
+
+    const auto p_len = GetFullPathName(m_buf, MAX_PATH, p_buf, nullptr);
+
+    if (!p_len || p_len > MAX_PATH)
+        return false;
+
+    return SetCurrentDirectory(p_buf);
+}
+
+#endif
 
 bool Config::ParseConfigFile(char const * const configfilename) {
     LOG(LOG_MISC,LOG_DEBUG)("Attempting to load config file #%zu from %s",configfiles.size(),configfilename);
+
+#if defined (_WIN32)
+    // try gracefully handle when current directory is SYSTEM32 causing local configuration to be ignored
+    // e.g. when it has been launched from a non-pinned task bar item or something else weird
+    if (IsCurrentDirectorySystemDirectory())
+        TryFixCurrentDirectory();
+#endif
 
     //static bool first_configfile = true;
     ifstream in(configfilename);
