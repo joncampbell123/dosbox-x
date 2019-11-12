@@ -146,12 +146,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -163,12 +165,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -246,16 +250,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
@@ -266,71 +268,61 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -339,23 +331,16 @@
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformationFile />
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <SDLCheck>false</SDLCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -376,24 +361,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/QIfist</AdditionalOptions>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformationFile />
       <SDLCheck>false</SDLCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -416,18 +394,14 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformationFile />
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -436,10 +410,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -448,47 +419,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <Midl />
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <MinimalRebuild>false</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <StringPooling>false</StringPooling>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
-      <OmitFramePointers>false</OmitFramePointers>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -497,10 +438,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -509,47 +447,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Midl />
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <MinimalRebuild>false</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <StringPooling>false</StringPooling>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
-      <OmitFramePointers>false</OmitFramePointers>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -558,10 +466,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -576,17 +481,13 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformationFile />
       <SDLCheck>false</SDLCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -595,10 +496,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -607,47 +505,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
     <Midl />
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <MinimalRebuild>false</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <StringPooling>false</StringPooling>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
-      <OmitFramePointers>false</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -656,10 +524,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -668,47 +533,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'">
     <Midl />
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <MinimalRebuild>false</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <StringPooling>false</StringPooling>
-      <ControlFlowGuard>Guard</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
-      <OmitFramePointers>false</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -717,10 +552,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -729,49 +561,20 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile />
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
+      <SDLCheck>false</SDLCheck>
+      <WarningLevel>Level3</WarningLevel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -789,51 +592,21 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/QIfist</AdditionalOptions>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile />
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -854,45 +627,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile />
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -901,10 +646,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -914,48 +656,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -964,10 +675,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -977,48 +685,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdlnet;$(SolutionDir)/libpdcurses;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -1027,10 +704,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -1042,47 +716,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <AdditionalOptions>/QIfist</AdditionalOptions>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile />
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <TargetMachine>MachineX64</TargetMachine>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -1091,10 +735,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -1104,49 +745,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -1155,10 +764,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
@@ -1168,49 +774,17 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/libpdcurses;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;$(SolutionDir)/freetype/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(IntDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
-      <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>
-      </EnableEnhancedInstructionSet>
-      <AdditionalOptions>/QIfist /utf-8</AdditionalOptions>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>
-      </BrowseInformationFile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <SDLCheck>
-      </SDLCheck>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies);$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib</AdditionalDependencies>
-      <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ImportLibrary>$(IntDir)/dosbox-x.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -1219,10 +793,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <CustomBuildStep>
       <Message>
       </Message>
