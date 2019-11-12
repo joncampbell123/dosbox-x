@@ -35,6 +35,8 @@
     garbage characters from previous/next command (aybe).
   - Fixed all hard disk images created by IMGMAKE having
     VHD footers. (Allofich)
+  - (Windows) Ensure local dosbox.conf is loaded when
+    process current directory does not make sense. (aybe)
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
