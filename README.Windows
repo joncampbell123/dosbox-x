@@ -3,10 +3,17 @@ Getting started with DOSBox-X development under Windows 10
 Additional notes
 ----------------
 
-11/7/2019
+11/13/2019
 
-Windows 8.1 SDK option is gone from the installer but can be found here:
-https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
+The entire solution use Windows SDK 10.
+
+You will need to install the following in Visual Studio Installer:
+- Windows SDK 10.0.17763.0
+- C++ Windows XP Support for VS 2017 (v141) tools [Deprecated]
+
+Preferred IDE is Visual Studio 2019.
+
+Every build of dosbox-x have been fixed and work as intended.
 
 11/12/2019
 
@@ -14,6 +21,11 @@ Debugging experience is broken in some projects (i.e. The breakpoint will not cu
 
 The following projects have been fixed and work as intended:
 - dosbox-x: Debug Win32, Debug x64, Debug SDL2 Win32, Debug SDL2 x64
+
+11/7/2019
+
+Windows 8.1 SDK option is gone from the installer but can be found here:
+https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
 
 Visual Studio
 -------------
