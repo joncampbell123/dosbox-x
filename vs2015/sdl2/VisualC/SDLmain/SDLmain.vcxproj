@@ -38,7 +38,7 @@
     <ProjectName>SDL2main</ProjectName>
     <ProjectGuid>{47281679-339B-4D01-8556-A49384BFE812}</ProjectGuid>
     <RootNamespace>SDLmain</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'" Label="Configuration">
