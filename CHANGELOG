@@ -35,8 +35,13 @@
     garbage characters from previous/next command (aybe).
   - Fixed all hard disk images created by IMGMAKE having
     VHD footers. (Allofich)
-  - Fixed debugging for desktop Windows projects, breakpoints
-    were not hit unless a rebuild was done everytime. (aybe)
+  - Windows Visual Studio solution: (aybe)
+    - cleaned and clarified project properties for dosbox-x
+    - removed configurations that didn't make sense
+    - fixed broken debugging
+    - consolidated to use single versions of SDK and IDE
+    - enabled faster builds (multi-processor compilation)
+    - fixed broken builds, e.g. ARM, ARM64
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
