@@ -185,6 +185,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -219,6 +220,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -252,6 +254,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -284,6 +287,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -312,6 +316,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -345,6 +350,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -376,6 +382,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -407,6 +414,7 @@
       </EnableEnhancedInstructionSet>
       <SDLCheck>
       </SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>

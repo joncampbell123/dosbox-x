@@ -335,6 +335,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -366,6 +367,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -398,6 +400,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -426,6 +429,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -454,6 +458,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -484,6 +489,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <SDLCheck>false</SDLCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -512,6 +518,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -540,6 +547,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SDLCheck>false</SDLCheck>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -569,6 +577,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <SDLCheck>false</SDLCheck>
       <WarningLevel>Level3</WarningLevel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -601,6 +610,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -634,6 +644,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -663,6 +674,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -692,6 +704,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -723,6 +736,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -752,6 +766,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -781,6 +796,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>

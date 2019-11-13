@@ -222,8 +222,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -256,8 +255,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -290,8 +288,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -325,8 +322,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -360,8 +356,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -395,8 +390,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -430,8 +424,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -465,8 +458,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>$(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>
       </CompileAsManaged>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
@@ -501,8 +493,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>
@@ -550,8 +541,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>
@@ -599,8 +589,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
@@ -649,8 +638,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
@@ -699,8 +687,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
@@ -749,8 +736,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
@@ -799,8 +785,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
@@ -849,8 +834,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
-      <MultiProcessorCompilation>
-      </MultiProcessorCompilation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
