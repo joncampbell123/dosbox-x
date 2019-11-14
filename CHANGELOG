@@ -42,6 +42,7 @@
     - consolidated to use single versions of SDK and IDE
     - enabled faster builds (multi-processor compilation)
     - fixed broken builds, e.g. ARM, ARM64
+  - XP can be targeted from Visual Studio 2019. (aybe)
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
