@@ -211,47 +211,34 @@ using namespace std;
 
 //Helper functions for endianness. QCOW format is big endian so we need different functions than those defined in mem.h.
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
+    inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
+        return buffer;
+    }
 
+    inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
+        return buffer;
+    }
 
-	inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
-		return buffer;
-	}
-
-
-	inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
-		return buffer;
-	}
-
-
-	inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
-		return buffer;
-	}
-
-
+    inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
+        return buffer;
+    }
 #else
+    inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
+        return (buffer >> 8) | (buffer << 8);
+    }
 
+    inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
+        return (buffer >> 24) | (((buffer >> 16) & 0xff) << 8) |
+            (((buffer >> 8) & 0xff) << 16) | (buffer << 24);
+    }
 
-	inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
-		Bit8u* b = (Bit8u*)&buffer;
-		return (unsigned int)b[1] | ((unsigned int)b[0] << 8u);
-	}
-
-
-	inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
-		Bit8u* b = (Bit8u*)&buffer;
-		return (Bit32u)b[3] | ((Bit32u)b[2] << 8u) | ((Bit32u)b[1] << 16u) | ((Bit32u)b[0] << 24u);
-	}
-
-
-	inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
-		Bit8u* b = (Bit8u*)&buffer;
-		return
-            (unsigned int)b[7] | ((unsigned int)b[6] << 8u) |
-            ((unsigned int)b[5] << 16u) | ((unsigned int)b[4] << 24u) |
-            ((Bit64u)b[3] << 32u) | ((Bit64u)b[2] << 40u) | ((Bit64u)b[1] << 48u) | ((Bit64u)b[0] << 56u);
-	}
-
-
+    inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
+        return
+            (buffer >> 56) | (((buffer >> 48) & 0xff) << 8) |
+            (((buffer >> 40) & 0xff) << 16) | (((buffer >> 32) & 0xff) << 24) |
+            (((buffer >> 24) & 0xff) << 32) | (((buffer >> 16) & 0xff) << 40) |
+            (((buffer >> 8) & 0xff) << 48) | (buffer << 56);
+    }
 #endif
 
 

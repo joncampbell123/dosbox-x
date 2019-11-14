@@ -37,6 +37,13 @@
     VHD footers. (Allofich)
   - (Windows) Ensure local dosbox.conf is loaded when
     process current directory does not make sense. (aybe)
+  - Windows Visual Studio solution: (aybe)
+    - cleaned and clarified project properties for projects
+    - removed configurations that didn't make sense
+    - fixed broken debugging
+    - consolidated to use single versions of SDK and IDE
+    - enabled faster builds (multi-processor compilation)
+    - fixed broken builds, e.g. ARM, ARM64
 0.82.23
   - Serial and parallel file output now disable stdio
     buffering so that output is more immediately
