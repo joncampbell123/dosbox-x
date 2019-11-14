@@ -37,10 +37,8 @@
 # pragma warning(disable:4305) /* truncation from double to float */
 #endif
 
-/* for file system functions */
 #if defined (_WIN32)
-#pragma comment(lib, "Shlwapi.lib")
-#include <Shlwapi.h>
+#include <Shlwapi.h> /* for PathRemoveFileSpec */
 #endif
 
 /* functions to call when DOSBox-X is exiting. */
