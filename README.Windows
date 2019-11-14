@@ -13,7 +13,7 @@ You will need to install the following in Visual Studio Installer:
 - Windows SDK 10.0.17763.0
 - C++ Windows XP Support for VS 2017 (v141) tools [Deprecated]
 
-Every build of dosbox-x have been fixed and work as intended.
+Every projects settings have been fixed and should work as intended.
 
 All platforms build successfully.
 

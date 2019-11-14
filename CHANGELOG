@@ -36,7 +36,7 @@
   - Fixed all hard disk images created by IMGMAKE having
     VHD footers. (Allofich)
   - Windows Visual Studio solution: (aybe)
-    - cleaned and clarified project properties for dosbox-x
+    - cleaned and clarified project properties for projects
     - removed configurations that didn't make sense
     - fixed broken debugging
     - consolidated to use single versions of SDK and IDE
