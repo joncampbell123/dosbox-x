@@ -64,7 +64,13 @@ void GFX_OpenGLRedrawScreen(void);
 # include <signal.h>
 # include <sys/stat.h>
 # include <process.h>
-# if !defined(__MINGW32__) /* MinGW does not have these headers */
+
+# if _MSC_FULL_VER == 191627031
+#  define V141_XP_TOOLSET
+# endif
+
+/* MinGW and vc141_xp don't have these headers */
+# if !defined(__MINGW32__) && !defined(V141_XP_TOOLSET) 
 #  include <shcore.h>
 #  include <shellscalingapi.h>
 # endif
@@ -6264,6 +6270,7 @@ void AUTOEXEC_Init();
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
+#if !defined(V141_XP_TOOLSET)
     // if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
     if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
         return;
@@ -6296,6 +6303,7 @@ void Windows_DPI_Awareness_Init() {
         LOG(LOG_MISC,LOG_DEBUG)("USER32.DLL exports SetProcessDPIAware function, calling it to signal we are DPI aware.");
         __SetProcessDPIAware();
     }
+#endif /* !defined(V141_XP_TOOLSET) */
 }
 #endif
 
