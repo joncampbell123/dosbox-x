@@ -5,15 +5,20 @@ Additional notes
 
 11/13/2019
 
-The entire solution uses Windows SDK 10.
+The solution uses Windows 10 SDK and Windows 7.1 SDK, the latter allows to still target XP.
 
 Preferred IDE is Visual Studio 2019.
 
 You will need to install the following in Visual Studio Installer:
 - Windows SDK 10.0.17763.0
-- C++ Windows XP Support for VS 2017 (v141) tools [Deprecated]
+- for Win32/x64 targets:
+  - MSVC v141 - VS 2017 C++ x64/x86 build tools (v14.16)
+  - C++ Windows XP Support for VS 2017 (v141) tools [Deprecated]
+- for ARM targets:
+  - MSVC v142 - VS 2019 C++ ARM build tools (v14.23)
+  - MSVC v142 - VS 2019 C++ ARM64 build tools (v14.23)
 
-Every projects settings have been fixed and should work as intended.
+All project settings have been reviewed and fixed.
 
 All platforms build successfully.
 
