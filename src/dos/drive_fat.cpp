@@ -522,14 +522,12 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 }
 
 void fatDrive::UpdateBootVolumeLabel(const char *label) {
-    /* if the extended boot signature is 0x29 there is a copy of the volume label at 0x2B */
-    unsigned char *p = (unsigned char*)(&bootbuffer);
-
-    if (p[0x26] == 0x29) {
+    /* if the extended boot signature at 0x26 (bootcode[0x02]) is 0x29, there is a copy of the volume label at 0x2B (bootcode[0x07]) */
+    if (bootbuffer.bootcode[0x02] == 0x29) {
         unsigned int i = 0;
 
-        while (i < 11 && *label != 0) p[0x2B+(i++)] = toupper(*label++);
-        while (i < 11)                p[0x2B+(i++)] = ' ';
+        while (i < 11 && *label != 0) bootbuffer.bootcode[0x07+(i++)] = toupper(*label++);
+        while (i < 11)                bootbuffer.bootcode[0x07+(i++)] = ' ';
 
         loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
     }
