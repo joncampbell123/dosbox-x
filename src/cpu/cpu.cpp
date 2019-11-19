@@ -3116,7 +3116,7 @@ public:
 		DOSBoxMenu::item *item;
 
 		if(inited) {
-			Change_Config(configuration);
+			CPU::Change_Config(configuration);
 			return;
 		}
 //		Section_prop * section=static_cast<Section_prop *>(configuration);
@@ -3233,7 +3233,7 @@ public:
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
 
-		Change_Config(configuration);	
+		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
 	bool Change_Config(Section* newconfig){

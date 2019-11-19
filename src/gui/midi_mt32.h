@@ -79,7 +79,7 @@ public:
 	MidiHandler_mt32() : chan(NULL), synth(NULL), thread(NULL), synthMutex(NULL), procIdleSem(NULL), mixerReqSem(NULL), open(false) {}
 
 	~MidiHandler_mt32() {
-		Close();
+		MidiHandler_mt32::Close();
 	}
 
 	const char *GetName(void) {

@@ -1002,7 +1002,7 @@ bool ISAPnPDevice::alloc(size_t sz) {
 }
 
 ISAPnPDevice::~ISAPnPDevice() {
-    alloc(0);
+    ISAPnPDevice::alloc(0);
 }
 
 void ISAPnPDevice::begin_write_res() {

@@ -1326,20 +1326,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     /* Many HDI images indicate a disk format of 256 or 512 bytes per sector combined with a FAT filesystem
      * that indicates 1024 bytes per sector. */
     if (pc98_512_to_1024_allow &&
-         bootbuffer.bytespersector != getSectSize() &&
-         bootbuffer.bytespersector >  getSectSize() &&
-        (bootbuffer.bytespersector %  getSectSize()) == 0) {
+         bootbuffer.bytespersector != fatDrive::getSectSize() &&
+         bootbuffer.bytespersector >  fatDrive::getSectSize() &&
+        (bootbuffer.bytespersector %  fatDrive::getSectSize()) == 0) {
         unsigned int ratioshift = 1;
 
-        while ((unsigned int)(bootbuffer.bytespersector >> ratioshift) > getSectSize())
+        while ((unsigned int)(bootbuffer.bytespersector >> ratioshift) > fatDrive::getSectSize())
             ratioshift++;
 
         unsigned int ratio = 1u << ratioshift;
 
         LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u:1 shift=%u",
-                getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
+                fatDrive::getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
 
-        if ((unsigned int)(bootbuffer.bytespersector >> ratioshift) == getSectSize()) {
+        if ((unsigned int)(bootbuffer.bytespersector >> ratioshift) == fatDrive::getSectSize()) {
             assert(ratio >= 2);
 
             /* we can hack things in place IF the starting sector is an even number */
@@ -1356,7 +1356,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     }
 
     /* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */
-    if (getSectSize() == 512 && !IS_PC98_ARCH) {
+    if (fatDrive::getSectSize() == 512 && !IS_PC98_ARCH) {
         if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
             /* Not a FAT filesystem */
             LOG_MSG("Loaded image has no valid magicnumbers at the end!");
@@ -1422,10 +1422,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     /* another fault of this code is that it assumes the sector size of the medium matches
      * the bytespersector value of the MS-DOS filesystem. if they don't match, problems
      * will result. */
-    if (bootbuffer.bytespersector != getSectSize()) {
+    if (bootbuffer.bytespersector != fatDrive::getSectSize()) {
         LOG_MSG("FAT bytes/sector %u does not match disk image bytes/sector %u",
             (unsigned int)bootbuffer.bytespersector,
-            (unsigned int)getSectSize());
+            (unsigned int)fatDrive::getSectSize());
 		created_successfully = false;
         return;
     }

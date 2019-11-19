@@ -1209,7 +1209,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     memset(sector, 0, sizeof(sector));
 
     memset(sense,0,sizeof(sense));
-    set_sense(/*SK=*/0);
+    IDEATAPICDROMDevice::set_sense(/*SK=*/0);
 
     /* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
      *        care more about loading times than emulation accuracy. */
