@@ -1232,7 +1232,7 @@ Bit32u localFile::GetSeekPos() {
 localFile::localFile(const char* _name, FILE * handle) {
 	fhandle=handle;
 	open=true;
-	UpdateDateTimeFromHost();
+	localFile::UpdateDateTimeFromHost();
 
 	attr=DOS_ATTR_ARCHIVE;
 	last_action=NONE;

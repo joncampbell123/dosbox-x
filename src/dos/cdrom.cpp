@@ -39,7 +39,7 @@ CDROM_Interface_SDL::CDROM_Interface_SDL(void) {
 }
 
 CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
-	StopAudio();
+	CDROM_Interface_SDL::StopAudio();
 #if !defined(C_SDL2)
 	SDL_CDClose(cd);
 	cd		= 0;

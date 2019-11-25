@@ -169,7 +169,7 @@ public:
 
 class IDEATADevice:public IDEDevice {
 public:
-    IDEATADevice(IDEController *c,unsigned char bios_disk_index);
+    IDEATADevice(IDEController *c,unsigned char disk_index);
     virtual ~IDEATADevice();
     virtual void writecommand(uint8_t cmd);
 public:
@@ -190,7 +190,7 @@ public:
     Bitu multiple_sector_max,multiple_sector_count;
     Bitu heads,sects,cyls,headshr,progress_count;
     Bitu phys_heads,phys_sects,phys_cyls;
-    unsigned char sector[512*128];
+    unsigned char sector[512 * 128] = {};
     Bitu sector_i,sector_total;
     bool geo_translate;
 };
@@ -1209,7 +1209,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     memset(sector, 0, sizeof(sector));
 
     memset(sense,0,sizeof(sense));
-    set_sense(/*SK=*/0);
+    IDEATAPICDROMDevice::set_sense(/*SK=*/0);
 
     /* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
      *        care more about loading times than emulation accuracy. */
@@ -2036,15 +2036,12 @@ void IDEATADevice::generate_identify_device() {
     sector[511] = 0 - csum;
 }
 
-IDEATADevice::IDEATADevice(IDEController *c,unsigned char bios_disk_index) : IDEDevice(c) {
-    this->bios_disk_index = bios_disk_index;
+IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index)
+    : IDEDevice(c), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox IDE disk"), bios_disk_index(disk_index) {
     sector_i = sector_total = 0;
 
     headshr = 0;
     type = IDE_TYPE_HDD;
-    id_serial = "8086";
-    id_firmware_rev = "8086";
-    id_model = "DOSBox IDE disk";
     multiple_sector_max = sizeof(sector) / 512;
     multiple_sector_count = 1;
     geo_translate = false;

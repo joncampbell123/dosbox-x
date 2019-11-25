@@ -162,7 +162,7 @@ void CombFilter::setFilterFactor(const float useFilterFactor) {
 AReverbModel::AReverbModel(const ReverbMode mode) : allpasses(NULL), combs(NULL), currentSettings(*REVERB_SETTINGS[mode]), lpfAmp(0.0F), wetLevel(0.0F) {}
 
 AReverbModel::~AReverbModel() {
-	close();
+	AReverbModel::close();
 }
 
 void AReverbModel::open() {
