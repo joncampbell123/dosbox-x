@@ -297,7 +297,7 @@ char *slk_label(int labnum)
         return (char *)0;
 
     for (i = 0, p = slk[labnum - 1].label; *p; i++)
-        temp[i] = *p++;
+        temp[i] = (char)*p++;
 
     temp[i] = '\0';
 #endif
