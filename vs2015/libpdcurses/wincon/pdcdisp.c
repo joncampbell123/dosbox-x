@@ -147,7 +147,7 @@ void _set_ansi_color(short f, short b, attr_t attr)
         if (!pdc_conemu)
             SetConsoleMode(pdc_con_out, 0x0015);
 
-        WriteConsoleA(pdc_con_out, esc, strlen(esc), NULL, NULL);
+        WriteConsoleA(pdc_con_out, esc, (DWORD)strlen(esc), NULL, NULL);
 
         if (!pdc_conemu)
             SetConsoleMode(pdc_con_out, 0x0010);
@@ -226,7 +226,7 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
             ch = ' ';
 
         if (ansi)
-            buffer.text[j] = ch & A_CHARTEXT;
+            buffer.text[j] = (char)(ch & A_CHARTEXT);
         else
         {
             buffer.ci[j].Attributes = mapped_attr;

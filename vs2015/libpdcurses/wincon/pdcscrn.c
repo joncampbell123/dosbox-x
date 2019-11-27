@@ -3,6 +3,7 @@
 #include "pdcwin.h"
 
 #include <stdlib.h>
+#include <VersionHelpers.h>
 
 /* COLOR_PAIR to attribute encoding table. */
 
@@ -391,7 +392,7 @@ int PDC_scr_open(int argc, char **argv)
         exit(1);
     }
 
-    is_nt = !(GetVersion() & 0x80000000);
+    is_nt = IsWindowsXPOrGreater();
 
     str = getenv("ConEmuANSI");
     pdc_conemu = !!str;
