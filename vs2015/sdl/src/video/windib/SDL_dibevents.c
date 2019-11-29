@@ -866,10 +866,23 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
             LeaveCriticalSection(&ParentWindowCritSec);
 
-			/* SetWindowPos() gave us a deferred window position/size to apply after resize */
+			/* SDL_dibvideo.c gave us a deferred window position/size to apply after resize.
+               PROBLEM: The rect is calculated with AdjustWindowRectEx() which computes the menu height
+                        as if the menu is normal and does not take into consideration cases where the menu
+                        bar has doubled or tripled due to wrapping. To avoid the window jumping and snapping
+                        erratically, don't set the new size unless it's BIGGER than the current window size.
+
+                        We can't use GetMenuBarInfo() here since that appeared only in Windows Vista or higher
+                        and this code is intended to work as low as Windows XP, or the DOS HX extender. */
             if (nr.right > 0 && nr.bottom > 0) {
-                SetWindowPos(ParentWindowHWND, NULL,
-                    nr.left, nr.top, nr.right - nr.left, nr.bottom - nr.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
+                RECT r;
+
+                GetWindowRect(ParentWindowHWND, &r);
+
+                if ((nr.right - nr.left) > (r.right - r.left) || (nr.bottom - nr.top) > (r.bottom - r.top)) {
+                    SetWindowPos(ParentWindowHWND, NULL,
+                        nr.left, nr.top, nr.right - nr.left, nr.bottom - nr.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
+                }
             }
 
  			return r;
