@@ -730,6 +730,17 @@ void FloppyController::on_fdc_in_command() {
 				reset_res();
 				ST[0] = 0x00 | devidx;
 
+                // FIXME: Real IBM PC hardware (at least Pentium motherboard) behavior says that the FDC is too lazy
+                //        to clear/reset ST1/ST2 unless another error occurs.
+                //
+                //        PC-98 booter game Star Cruiser seems to expect these to zero out if no error.
+                //
+                //        Fix this compromise later when real behavior is determined.
+                if (IS_PC98_ARCH) {
+                    ST[1] = 0;
+                    ST[2] = 0;
+                }
+
                 out_res[3] = in_cmd[2];
                 out_res[4] = in_cmd[3];
                 out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
@@ -819,12 +830,15 @@ void FloppyController::on_fdc_in_command() {
 			 *   7     total
 			 */
 			/* must have a device present. must have an image. device motor and select must be enabled.
-			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+			 * current physical cylinder position must be within range of the image. request must have MFM bit set.
+             * In order to support copy-protected booter games (IBM PC or PC-98) the sector number is NOT range
+             * limited in order to support games such as Star Cruiser that look for intentionally out of range
+             * sector numbers. */
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
 				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
 				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
-				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
+				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U) {
 				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
 
@@ -834,6 +848,17 @@ void FloppyController::on_fdc_in_command() {
 				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
 				reset_res();
 				ST[0] = 0x00 | devidx;
+
+                // FIXME: Real IBM PC hardware (at least Pentium motherboard) behavior says that the FDC is too lazy
+                //        to clear/reset ST1/ST2 unless another error occurs.
+                //
+                //        PC-98 booter game Star Cruiser seems to expect these to zero out if no error.
+                //
+                //        Fix this compromise later when real behavior is determined.
+                if (IS_PC98_ARCH) {
+                    ST[1] = 0;
+                    ST[2] = 0;
+                }
 
                 out_res[3] = in_cmd[2];
                 out_res[4] = in_cmd[3];
@@ -853,12 +878,6 @@ void FloppyController::on_fdc_in_command() {
                 }
 
 				while (!fail && !dma->tcount/*terminal count*/) {
-					/* if we're reading past the track, fail */
-					if (in_cmd[4] > image->sectors) {
-						fail = true;
-						break;
-					}
-
 //                  LOG_MSG("FDC: Read sector going to DMA 0x%x",(unsigned int)dma->pagebase + (unsigned int)dma->curraddr);
 
 					/* read sector */
