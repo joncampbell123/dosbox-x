@@ -597,7 +597,7 @@ void FloppyController::on_dor_change(unsigned char b) {
 	/* drive motors */
 	if (chg & 0xF0) {
 		LOG_MSG("FDC: Motor control {A,B,C,D} = {%u,%u,%u,%u}\n",
-			(b>>7)&1,(b>>6)&1,(b>>5)&1,(b>>4)&1);
+			(b>>4)&1,(b>>5)&1,(b>>6)&1,(b>>7)&1);
 
 		for (unsigned int i=0;i < 4;i++) {
 			if (device[i] != NULL) device[i]->set_motor((b&(0x10<<i))?true:false);
