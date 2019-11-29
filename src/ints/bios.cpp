@@ -4289,6 +4289,12 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 }
             }
 
+            /* need to clear DMA terminal count after read as BIOS would, I assume (Arsys Star Cruiser) */
+            {
+                DmaChannel *dma = GetDMAChannel(2);
+                if (dma) dma->tcount = false;
+            }
+
             reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
