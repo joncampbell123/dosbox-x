@@ -873,7 +873,15 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
                         erratically, don't set the new size unless it's BIGGER than the current window size.
 
                         We can't use GetMenuBarInfo() here since that appeared only in Windows Vista or higher
-                        and this code is intended to work as low as Windows XP, or the DOS HX extender. */
+                        and this code is intended to work as low as Windows XP, or the DOS HX extender.
+
+                        Actually according to Microsoft winuser.h where the function resides it should be
+                        compatible with Windows XP, it's just that VS2019 doesn't let this code see the constants
+                        and structures needed to use it in this source file for some reason.
+
+                        Annoyingly their MSDN site has completely removed any information on when APIs showed
+                        up in what version of Windows at all, instead of showing what version it appeared in
+                        but pretending that nothing before Windows 2000 ever existed. */
             if (nr.right > 0 && nr.bottom > 0) {
                 RECT r;
 
