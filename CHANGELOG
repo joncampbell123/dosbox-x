@@ -1,4 +1,8 @@
 0.82.24 (next)
+  - Windows SDL1 window resizing fixed to avoid snapping
+    and jumping issues when the window is sized down
+    to the point the menu bar doubles or triples in
+    height due to menu item wrapping.
   - FDC clear DMA terminal count automatically (with a
     warning printed to the log) at beginning of FDC
     read/write (PC-98 booter game Star Cruiser).
