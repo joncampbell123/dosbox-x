@@ -784,8 +784,8 @@ void TIMER_BIOS_INIT_Configure() {
         if (freq < 0)
             freq = IS_PC98_ARCH ? 2000 : 903;
 
-		if (freq < 19) {
-			div = 1;
+		if (freq < 1) {
+			div = 65535;
 		}
 		else {
 			div = (unsigned int)PIT_TICK_RATE / (unsigned int)freq;
