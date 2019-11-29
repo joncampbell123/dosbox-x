@@ -264,8 +264,17 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
                 ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
                 the menu bar. Why? */
         if (GetMenu(GetHWND()) != NULL) {
-            r.top += GetSystemMetrics(SM_CYMENU);//HACK
-            r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+            MENUBARINFO mb;
+            int rh;
+
+            memset(&mb, 0, sizeof(mb));
+            mb.cbSize = sizeof(mb);
+
+            GetMenuBarInfo(GetHWND(), OBJID_MENU, 0, &mb); // returns absolute screen coordinates, apparently.
+            rh = mb.rcBar.bottom + 1 - mb.rcBar.top; // menu screen space is top <= y <= bottom, inclusive.
+
+            r.top += rh;
+            r.bottom += rh;
         }
 
         if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
