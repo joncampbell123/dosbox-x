@@ -626,7 +626,15 @@ void FloppyController::invalid_command_code() {
 }
 
 uint8_t FloppyController::fdc_data_read() {
-	if (busy_status) {
+    // FIXME: It's unclear whether or not this is correct behavior.
+    //        IBM compatible Pentium motherboards might have FDCs that
+    //        leave the busy bit set until the response has been read, from my experience.
+    //        On the other hand some PC-98 booter games seem to assume that busy will be
+    //        cleared when read finishes and will not read response until busy bit clears
+    //        (Arsys Star Cruiser).
+    //
+    //        This is a compromise until further study.
+    if (busy_status || IS_PC98_ARCH) {
 		if (out_res_state) {
 			if (out_res_pos < out_res_len) {
 				uint8_t b = out_res[out_res_pos++];
@@ -900,6 +908,18 @@ void FloppyController::on_fdc_in_command() {
                 out_res[1] = ST[1];
                 out_res[2] = ST[2];
             }
+
+            // FIXME: It's unclear whether or not this is correct behavior.
+            //        IBM compatible Pentium motherboards might have FDCs that
+            //        leave the busy bit set until the response has been read, from my experience.
+            //        On the other hand some PC-98 booter games seem to assume that busy will be
+            //        cleared when read finishes and will not read response until busy bit clears
+            //        (Arsys Star Cruiser).
+            //
+            //        This is a compromise until further study.
+            if (IS_PC98_ARCH)
+                busy_status = 0;
+
 			raise_irq();
 			break;
 		case 0x07: /* Calibrate drive */
