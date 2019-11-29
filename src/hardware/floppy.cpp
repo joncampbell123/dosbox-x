@@ -743,8 +743,8 @@ void FloppyController::on_fdc_in_command() {
                 }
 
                 if (dma->tcount) {
-                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at write start");
-                    fail = true;
+                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at write start. Resetting terminal count. Hope a new count was written!");
+                    dma->tcount = false;
                 }
 
 				while (!fail && !dma->tcount/*terminal count*/) {
@@ -848,8 +848,8 @@ void FloppyController::on_fdc_in_command() {
                 }
 
                 if (dma->tcount) {
-                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at read start");
-                    fail = true;
+                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at read start. Resetting terminal count. Hope a new count was written!");
+                    dma->tcount = false;
                 }
 
 				while (!fail && !dma->tcount/*terminal count*/) {
