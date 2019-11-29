@@ -734,6 +734,11 @@ void FloppyController::on_fdc_in_command() {
                     }
                 }
 
+                if (dma->tcount) {
+                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at write start");
+                    fail = true;
+                }
+
 				while (!fail && !dma->tcount/*terminal count*/) {
 					/* if we're reading past the track, fail */
 					if (in_cmd[4] > image->sectors) {
@@ -832,6 +837,11 @@ void FloppyController::on_fdc_in_command() {
                         out_res[6]++;
                         sz >>= 1u;
                     }
+                }
+
+                if (dma->tcount) {
+                    LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA terminal count at read start");
+                    fail = true;
                 }
 
 				while (!fail && !dma->tcount/*terminal count*/) {
