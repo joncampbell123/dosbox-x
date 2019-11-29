@@ -1,4 +1,8 @@
 0.82.24 (next)
+  - FDC emulation now allows READ command to look for
+    sector numbers that are out of range in order to
+    support booter games that read out of range sector
+    numbers as part of their copy protection.
   - Windows SDL1 window resizing fixed to avoid snapping
     and jumping issues when the window is sized down
     to the point the menu bar doubles or triples in
