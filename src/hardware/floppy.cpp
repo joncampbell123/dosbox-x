@@ -184,7 +184,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 
 #if 0
 	LOG_MSG("FDC: motor step. if=%u dev=%u rem=%u dir=%d current=%u\n",
-		idx,devidx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder[devidx]);
+		(int)idx,(int)devidx,(int)fdc->motor_steps,(int)fdc->motor_dir,(int)fdc->current_cylinder[devidx]);
 #endif
 
 	if (dev != NULL && dev->track0 && fdc->motor_dir < 0) {
@@ -229,7 +229,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 			LOG_MSG("FDC: warning, after motor step FDC and drive are out of sync (fdc=%u drive=%u). OS or App needs to recalibrate\n",
 				fdc->current_cylinder[devidx],dev->current_track);
 
-//		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
+//		LOG_MSG("FDC: motor step finished. current=%u\n",(int)(fdc->current_cylinder[devidx]));
 	}
 }
 
