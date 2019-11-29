@@ -743,7 +743,11 @@ void FloppyController::on_fdc_in_command() {
 
 					/* DMA transfer */
 					dma->Register_Callback(0);
-					if (dma->Read(sector_size_bytes,sector) != sector_size_bytes) break;
+					if (dma->Read(sector_size_bytes,sector) != sector_size_bytes) {
+                        LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA read failed");
+                        fail = true;
+                        break;
+                    }
 
 					/* write sector */
 					Bit8u err = image->Write_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector,sector_size_bytes);
@@ -846,7 +850,11 @@ void FloppyController::on_fdc_in_command() {
 
 					/* DMA transfer */
 					dma->Register_Callback(0);
-					if (dma->Write(sector_size_bytes,sector) != sector_size_bytes) break;
+					if (dma->Write(sector_size_bytes,sector) != sector_size_bytes) {
+                        LOG(LOG_MISC,LOG_DEBUG)("FDC: DMA write failed during read");
+                        fail = true;
+                        break;
+                    }
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
