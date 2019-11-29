@@ -1,4 +1,6 @@
 0.82.24 (next)
+  - FDC DMA read/write failure now causes FDC to signal
+    an error, and the debug output will say so.
   - FDC debug output now shows motor bits in the correct
     order, not backwards
   - CONFIG.COM and MIXER.COM are now registered only at
