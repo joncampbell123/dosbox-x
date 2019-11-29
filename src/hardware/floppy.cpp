@@ -859,6 +859,8 @@ void FloppyController::on_fdc_in_command() {
 						break;
 					}
 
+//                  LOG_MSG("FDC: Read sector going to DMA 0x%x",(unsigned int)dma->pagebase + (unsigned int)dma->curraddr);
+
 					/* read sector */
 					Bit8u err = image->Read_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector,sector_size_bytes);
 					if (err != 0x00) {
