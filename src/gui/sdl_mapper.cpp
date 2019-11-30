@@ -3160,7 +3160,7 @@ static void CreateLayout(void) {
 //  new CTextButton(PX(6),0,124,BH,"Keyboard Layout");
 //  new CTextButton(PX(17),0,124,BH,"Joystick Layout");
 
-    bind_but.action=new CCaptionButton(180,420,0,0);
+    bind_but.action=new CCaptionButton(180,426,0,0);
 
     bind_but.event_title=new CCaptionButton(0,350,0,0);
     bind_but.bind_title=new CCaptionButton(0,365,0,0);
@@ -3177,14 +3177,14 @@ static void CreateLayout(void) {
     bind_but.del=new CBindButton(70,384,50,BH,"Del",BB_Del);
     bind_but.next=new CBindButton(120,384,50,BH,"Next",BB_Next);
 
-    bind_but.save=new CBindButton(180,440,50,BH,"Save",BB_Save);
-    bind_but.exit=new CBindButton(230,440,50,BH,"Exit",BB_Exit);
-    bind_but.cap=new CBindButton(280,440,50,BH,"Capt",BB_Capture);
+    bind_but.save=new CBindButton(180,444,50,BH,"Save",BB_Save);
+    bind_but.exit=new CBindButton(230,444,50,BH,"Exit",BB_Exit);
+    bind_but.cap=new CBindButton(280,444,50,BH,"Capt",BB_Capture);
 
     bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
     bind_but.dbg->Change("(event debug)");
 
-    bind_but.dbg2 = new CCaptionButton(330, 440, 310, 20); // right next to the Save button
+    bind_but.dbg2 = new CCaptionButton(330, 444, 310, 20); // right next to the Save button
     bind_but.dbg2->Change("");
 
     bind_but.bind_title->Change("Bind Title");
