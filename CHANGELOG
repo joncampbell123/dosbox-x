@@ -1,4 +1,4 @@
-0.82.24 (next)
+0.82.24
   - FDC emulation now allows READ command to look for
     sector numbers that are out of range in order to
     support booter games that read out of range sector
