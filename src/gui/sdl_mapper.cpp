@@ -1912,6 +1912,7 @@ public:
         color=CLR_WHITE;
         enabled=true;
         invert=false;
+        press=false;
     }
     virtual void Draw(void) {
         Bit8u bg;
@@ -1919,7 +1920,7 @@ public:
         if (!enabled) return;
 
         if (!invert)
-            bg = bkcolor;
+            bg = press ? Bit8u(CLR_DARKGREEN) : bkcolor;
         else
             bg = color;
 
@@ -1955,15 +1956,22 @@ public:
         invert=inv;
         mapper.redraw=true;
     }
+    void SetPress(bool p) {
+        press=p;
+        mapper.redraw=true;
+    }
     virtual void RebindRedraw(void) {}
     void SetColor(Bit8u _col) { color=_col; }
 protected:
     Bitu x,y,dx,dy;
     Bit8u color;
     Bit8u bkcolor;
+    bool press;
     bool invert;
     bool enabled;
 };
+
+static CButton *press_select = NULL;
 
 class CTextButton : public CButton {
 public:
@@ -1976,7 +1984,7 @@ public:
 
         if (!invert) {
             fg = color;
-            bg = bkcolor;
+            bg = press ? Bit8u(CLR_DARKGREEN) : bkcolor;
         }
         else {
             fg = bkcolor;
@@ -3578,7 +3586,36 @@ void MAPPER_CheckEvent(SDL_Event * event) {
     }
 }
 
+void PressRelease(void) {
+    if (press_select != NULL) {
+        press_select->SetPress(false);
+        press_select = NULL;
+    }
+}
+
+void PressSelect(CButton *b) {
+    if (press_select != b)
+        PressRelease();
+
+    if (b != NULL) {
+        press_select = b;
+        press_select->SetPress(true);
+    }
+}
+
+void Mapper_MousePressEvent(SDL_Event &event) {
+    /* Check the press */
+    for (CButton_it but_it = buttons.begin();but_it!=buttons.end();++but_it) {
+        if ((*but_it)->OnTop(event.button.x,event.button.y)) {
+            PressSelect(*but_it);
+            break;
+        }
+    }
+}
+
 void Mapper_MouseInputEvent(SDL_Event &event) {
+    PressRelease();
+
     /* Check the press */
     for (CButton_it but_it = buttons.begin();but_it!=buttons.end();++but_it) {
         if ((*but_it)->OnTop(event.button.x,event.button.y)) {
@@ -3636,6 +3673,14 @@ void BIND_MappingEvents(void) {
             Mapper_FingerInputEvent(event);
             break;
 #endif
+        case SDL_MOUSEBUTTONDOWN:
+#if defined(C_SDL2)
+            if (event.button.which != SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
+                Mapper_MousePressEvent(event);
+#else
+            Mapper_MousePressEvent(event);
+#endif
+            break;
         case SDL_MOUSEBUTTONUP:
 #if defined(C_SDL2)
             if (event.button.which != SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
