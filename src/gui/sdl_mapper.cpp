@@ -3625,6 +3625,19 @@ void Mapper_MouseInputEvent(SDL_Event &event) {
 }
 
 #if defined(C_SDL2)
+void Mapper_FingerPressEvent(SDL_Event &event) {
+    SDL_Event ev;
+
+    memset(&ev,0,sizeof(ev));
+    ev.type = SDL_MOUSEBUTTONDOWN;
+
+    /* NTS: Windows versions of SDL2 do normalize the coordinates */
+    ev.button.x = (Sint32)(event.tfinger.x * mapper.surface->w);
+    ev.button.y = (Sint32)(event.tfinger.y * mapper.surface->h);
+
+    Mapper_MousePressEvent(ev);
+}
+
 void Mapper_FingerInputEvent(SDL_Event &event) {
     SDL_Event ev;
 
@@ -3667,6 +3680,11 @@ void BIND_MappingEvents(void) {
                     break;
             }
         } break;
+#endif
+#if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
+        case SDL_FINGERDOWN:
+            Mapper_FingerPressEvent(event);
+            break;
 #endif
 #if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
         case SDL_FINGERUP:
