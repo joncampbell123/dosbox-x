@@ -103,7 +103,7 @@ emptyline:
 				cmd_read++;
 				size_t name_len = strlen(file_name);
 				if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
-					strcpy(cmd_write,file_name);
+					strncpy(cmd_write,file_name,CMD_MAXLINE);
 					cmd_write += name_len;
 				}
 				continue;
@@ -118,7 +118,7 @@ emptyline:
 				if (!cmd->FindCommand((unsigned int)next,word)) continue;
 				size_t name_len = strlen(word.c_str());
 				if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
-					strcpy(cmd_write,word.c_str());
+					strncpy(cmd_write,word.c_str(),CMD_MAXLINE);
 					cmd_write += name_len;
 				}
 				continue;
@@ -135,7 +135,7 @@ emptyline:
 					equals++;
 					size_t name_len = strlen(equals);
 					if (((size_t)(cmd_write - line) + name_len) < (CMD_MAXLINE - 1)) {
-						strcpy(cmd_write,equals);
+						strncpy(cmd_write,equals,CMD_MAXLINE);
 						cmd_write += name_len;
 					}
 				}
