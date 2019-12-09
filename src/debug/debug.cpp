@@ -2055,9 +2055,10 @@ bool ParseCommand(char* str) {
                 vga.attr.overscan_color);
             DEBUG_ShowMsg("color-plane-en=%02xh color-select=%02xh index=%02xh",
                 vga.attr.color_plane_enable,    vga.attr.color_select,  vga.attr.index);
-            DEBUG_ShowMsg("disabled-by-index=%u disabled-by-idx1-bit5=%u",
+            DEBUG_ShowMsg("disabled-by-index=%u disabled-by-idx1-bit5=%u index-written=%u",
                 vga.attr.disabled & 1 ? 1 : 0,
-                vga.attr.disabled & 2 ? 1 : 0);
+                vga.attr.disabled & 2 ? 1 : 0,
+                vga.internal.attrindex);
 
             cpptmp = " ";
             for (unsigned int i=0;i < 16;i++) {
