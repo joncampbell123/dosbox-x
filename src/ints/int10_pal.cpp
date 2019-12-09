@@ -300,6 +300,16 @@ void INT10_GetDACPage(Bit8u* mode,Bit8u* page) {
 		*page&=0xc;
 		*page>>=2;
 	}
+
+    /* the operations carried out here blanked the display because of the index (0x10/0x14) without bit 5,
+     * write a dummy index with bit 5 to reenable the display. Bugfix for "Blue Force" MS-DOS game.
+     *
+     * Note that DOSBox SVN has the same bug without this fix, but appears to work because the AC blanking
+     * doesn't work (2019/12/08). */
+    IO_Write(VGAREG_ACTL_ADDRESS,0x10/*index*/ | 0x20/*display enable*/);
+    /* read both, to avoid having to read 0x3CC or BIOS data area regs */
+    IO_Read(0x3BA); /* reset flip flop */
+    IO_Read(0x3DA); /* reset flip flop */
 }
 
 void INT10_SetPelMask(Bit8u mask) {

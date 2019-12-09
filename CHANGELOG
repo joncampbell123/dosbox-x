@@ -1,4 +1,8 @@
 0.82.25 (next)
+  - INT 10h AX=101Ah Get Video DAC color-page state fixed
+    to restore display after blanking it due to Attribute
+    Controller read and write operations. This fixes
+    IBM PC compatible MS-DOS game "Blue Force".
   - Debugger: "VGA AC" now shows AC disable bits as well
     as the internal state indicating whether the last
     byte written to 3C0h was handled as the index.
