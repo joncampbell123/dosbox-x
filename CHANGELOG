@@ -1,5 +1,7 @@
 0.82.25 (next)
-  - 
+  - Debugger: "VGA AC" now shows AC disable bits as well
+    as the internal state indicating whether the last
+    byte written to 3C0h was handled as the index.
 0.82.24
   - FDC emulation now allows READ command to look for
     sector numbers that are out of range in order to
