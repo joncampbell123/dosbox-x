@@ -2528,6 +2528,11 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BPDEL  [bpNr] / *         - Delete breakpoint nr / all.\n");
 		DEBUG_ShowMsg("C / D  [segment]:[offset] - Set code / data view address.\n");
 		DEBUG_ShowMsg("DOS MCBS                  - Show Memory Control Block chain.\n");
+        DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
+        DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
+        DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
+        DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
+        DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write cpu log file.\n");
@@ -2553,6 +2558,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("INTHAND [intNum]          - Set code view to interrupt handler.\n");
 
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
+        DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
 		DEBUG_ShowMsg("LDT                       - Lists descriptors of the LDT.\n");
 		DEBUG_ShowMsg("IDT                       - Lists descriptors of the IDT.\n");
@@ -3383,7 +3389,7 @@ static void LogMCBChain(Bit16u mcb_segment) {
 	while (true) {
 		// verify that the type field is valid
 		if (mcb.GetType()!=0x4d && mcb.GetType()!=0x5a) {
-			LOG(LOG_MISC,LOG_ERROR)("MCB chain broken at %04X:0000!",mcb_segment);
+			DEBUG_ShowMsg("MCB chain broken at %04X:0000!",mcb_segment);
 			return;
 		}
 
@@ -3401,13 +3407,13 @@ static void LogMCBChain(Bit16u mcb_segment) {
 				psp_seg_note = "";
 		}
 
-		LOG(LOG_MISC,LOG_ERROR)("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
+        DEBUG_ShowMsg("   %04X  %12u     %04X %-7s  %s",mcb_segment,mcb.GetSize() << 4,mcb.GetPSPSeg(), psp_seg_note, filename);
 
 		// print a message if dataAddr is within this MCB's memory range
 		PhysPt mcbStartAddr = PhysMake(mcb_segment+1,0);
 		PhysPt mcbEndAddr = PhysMake(mcb_segment+1+mcb.GetSize(),0);
 		if (dataAddr >= mcbStartAddr && dataAddr < mcbEndAddr) {
-			LOG(LOG_MISC,LOG_ERROR)("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
+            DEBUG_ShowMsg("   (data addr %04hX:%04X is %u bytes past this MCB)",dataSeg,DOS_dataOfs,dataAddr - mcbStartAddr);
 		}
 
 		// if we've just processed the last MCB in the chain, break out of the loop
@@ -3430,14 +3436,14 @@ static void LogBIOSMem(void) {
 
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("BIOS memory blocks:");
-    LOG(LOG_MISC,LOG_ERROR)("Region            Status What");
+    DEBUG_ShowMsg("BIOS memory blocks:");
+    DEBUG_ShowMsg("Region            Status What");
     for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
         sprintf(tmp,"%08lx-%08lx %s",
             (unsigned long)(i->start),
             (unsigned long)(i->end),
             i->free ? "FREE  " : "ALLOC ");
-        LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+        DEBUG_ShowMsg("%s %s",tmp,i->who.c_str());
     }
 
     DEBUG_EndPagedContent();
@@ -3466,22 +3472,22 @@ static void LogEMS(void) {
     std::string h_name;
 
     if (dos_kernel_disabled) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while DOS kernel is inactive.");
+        DEBUG_ShowMsg("Cannot enumerate EMS memory while DOS kernel is inactive.");
         return;
     }
 
     if (!EMS_Active()) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while EMS is inactive.");
+        DEBUG_ShowMsg("Cannot enumerate EMS memory while EMS is inactive.");
         return;
     }
 
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("EMS memory (type %s) handles:",EMS_Type_String());
-    LOG(LOG_MISC,LOG_ERROR)("Handle Address  Size (bytes)    Name");
+    DEBUG_ShowMsg("EMS memory (type %s) handles:",EMS_Type_String());
+    DEBUG_ShowMsg("Handle Address  Size (bytes)    Name");
     for (Bitu h=0;h < EMS_Max_Handles();h++) {
         if (EMS_GetHandle(/*&*/h_size,/*&*/xh_addr,/*&*/h_name,h)) {
-            LOG(LOG_MISC,LOG_ERROR)("%6lu %08lx %08lx %s",
+            DEBUG_ShowMsg("%6lu %08lx %08lx %s",
                 (unsigned long)h,
                 (unsigned long)xh_addr,
                 (unsigned long)h_size,
@@ -3493,10 +3499,10 @@ static void LogEMS(void) {
     Bitu GetEMSPageFrameSegment(void);
     Bitu GetEMSPageFrameSize(void);
 
-    LOG(LOG_MISC,LOG_ERROR)("EMS page frame 0x%08lx-0x%08lx",
+    DEBUG_ShowMsg("EMS page frame 0x%08lx-0x%08lx",
         GetEMSPageFrameSegment()*16UL,
         (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
-    LOG(LOG_MISC,LOG_ERROR)("Handle Page(p/l) Address");
+    DEBUG_ShowMsg("Handle Page(p/l) Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
         Bit16u log_page;
@@ -3515,14 +3521,14 @@ static void LogEMS(void) {
                     (unsigned long)(xh_addr + ((PhysPt)log_page << 14u)),
                     (unsigned long)(xh_addr + ((PhysPt)log_page << 14u) + (1u << 14u) - 1u));
 
-            LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
+            DEBUG_ShowMsg("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
                 (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
                 (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1,
                 tmp);
         }
         else {
-            LOG(LOG_MISC,LOG_ERROR)("--     %4lu/     %08lx-%08lx",(unsigned long)p,
+            DEBUG_ShowMsg("--     %4lu/     %08lx-%08lx",(unsigned long)p,
                 (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
                 (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
         }
@@ -3538,28 +3544,26 @@ static void LogXMS(void) {
     Bitu size;
 
     if (dos_kernel_disabled) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while DOS kernel is inactive.");
+        DEBUG_ShowMsg("Cannot enumerate XMS memory while DOS kernel is inactive.");
         return;
     }
 
     if (!XMS_Active()) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while XMS is inactive.");
+        DEBUG_ShowMsg("Cannot enumerate XMS memory while XMS is inactive.");
         return;
     }
 
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("XMS memory handles:");
-    LOG(LOG_MISC,LOG_ERROR)("Handle Status Location Size (bytes)");
-    for (Bitu h=1;h < XMS_GetTotalHandles();h++) {
-        if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free,h)) {
-            if (!free) {
-                LOG(LOG_MISC,LOG_ERROR)("%6lu %s 0x%08lx %lu",
-                        (unsigned long)h,
-                        free ? "FREE  " : "ALLOC ",
-                        (unsigned long)phys_location,
-                        (unsigned long)size << 10UL); /* KB -> bytes */
-            }
+    DEBUG_ShowMsg("XMS memory handles:");
+    DEBUG_ShowMsg("Handle Status Location Size (bytes)");
+    for (Bitu h = 1; h < XMS_GetTotalHandles(); h++) {
+        if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free, h)) {
+            DEBUG_ShowMsg("%6lu %s 0x%08lx %lu",
+                (unsigned long)h,
+                free ? "FREE " : "ALLOC ",
+                (unsigned long)phys_location,
+                (unsigned long)size << 10UL); /* KB -> bytes */
         }
     }
 
@@ -3570,20 +3574,20 @@ static void LogDOSKernMem(void) {
     char tmp[192];
 
     if (dos_kernel_disabled) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate DOS kernel memory while DOS kernel is inactive.");
+        DEBUG_ShowMsg("Cannot enumerate DOS kernel memory while DOS kernel is inactive.");
         return;
     }
 
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("DOS kernel memory blocks:");
-    LOG(LOG_MISC,LOG_ERROR)("Seg      Size (bytes)     What");
+    DEBUG_ShowMsg("DOS kernel memory blocks:");
+    DEBUG_ShowMsg("Seg      Size (bytes)     What");
     for (auto i=DOS_GetMemLog.begin();i!=DOS_GetMemLog.end();i++) {
         sprintf(tmp,"%04x     %8lu     ",
                 (unsigned int)(i->segbase),
                 (unsigned long)(i->pages << 4UL));
 
-        LOG(LOG_MISC,LOG_ERROR)("%s    %s",tmp,i->who.c_str());
+        DEBUG_ShowMsg("%s    %s",tmp,i->who.c_str());
     }
 
     DEBUG_EndPagedContent();
@@ -3595,39 +3599,39 @@ static void LogMCBS(void)
     if (dos_kernel_disabled) {
         if (boothax == BOOTHAX_MSDOS) {
             if (guest_msdos_LoL == 0 || guest_msdos_mcb_chain == 0) {
-                LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive, and DOSBox-X has not yet determined the MCB list of the guest MS-DOS operating system");
+                DEBUG_ShowMsg("Cannot enumerate MCB list while DOS kernel is inactive, and DOSBox-X has not yet determined the MCB list of the guest MS-DOS operating system");
                 return;
             }
 
             DEBUG_BeginPagedContent();
 
             try {
-                LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
-                LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
+                DEBUG_ShowMsg("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
+                DEBUG_ShowMsg("Conventional memory:");
                 LogMCBChain(guest_msdos_mcb_chain);
             }
             catch (GuestPageFaultException &pf) {
                 (void)pf;//unused
-                LOG(LOG_MISC,LOG_ERROR)("(Enumeration caused page fault within the guest)");
+                DEBUG_ShowMsg("(Enumeration caused page fault within the guest)");
             }
 
             DEBUG_EndPagedContent();
             return;
         }
         else {
-            LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive.");
+            DEBUG_ShowMsg("Cannot enumerate MCB list while DOS kernel is inactive.");
             return;
         }
     }
 
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
-    LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
+    DEBUG_ShowMsg("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
+    DEBUG_ShowMsg("Conventional memory:");
     LogMCBChain(dos.firstMCB);
 
     if (dos_infoblock.GetStartOfUMBChain() != 0xFFFF) {
-        LOG(LOG_MISC,LOG_ERROR)("Upper memory:");
+        DEBUG_ShowMsg("Upper memory:");
         LogMCBChain(dos_infoblock.GetStartOfUMBChain());
     }
 
@@ -3645,13 +3649,13 @@ static void LogGDT(void)
 
     DEBUG_BeginPagedContent();
 
-	LOG(LOG_MISC,LOG_ERROR)("GDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
+    DEBUG_ShowMsg("GDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
 	while (address<max) {
 		desc.Load(address);
 		sprintf(out1,"%04X: b:%08lX type: %02X parbg",(int)(i<<3),(unsigned long)desc.GetBase(),desc.saved.seg.type);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 		address+=8; i++;
 	}
 
@@ -3670,13 +3674,13 @@ static void LogLDT(void) {
 
     DEBUG_BeginPagedContent();
 
-	LOG(LOG_MISC,LOG_ERROR)("LDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
+    DEBUG_ShowMsg("LDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
 	while (address<max) {
 		desc.Load(address);
 		sprintf(out1,"%04X: b:%08lX type: %02X parbg",(int)((i<<3)|4),(unsigned long)desc.GetBase(),desc.saved.seg.type);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 		address+=8; i++;
 	}
 
@@ -3693,7 +3697,7 @@ static void LogIDT(void) {
 	while (address<256*8) {
 		if (cpu.idt.GetDescriptor(address,desc)) {
 			sprintf(out1,"%04X: sel:%04X off:%02X",(unsigned int)(address/8),(int)desc.GetSelector(),(int)desc.GetOffset());
-			LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+            DEBUG_ShowMsg("%s",out1);
 		}
 		address+=8;
 	}
@@ -3720,7 +3724,7 @@ void LogPages(char* selname) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
 							i,entry.block.base,entry.block.us,table.block.us,
 							entry.block.wr,table.block.wr,entry.block.d,entry.block.a);
-						LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+                        DEBUG_ShowMsg("%s",out1);
 					}
 				}
 			}
@@ -3736,14 +3740,14 @@ void LogPages(char* selname) {
 					(unsigned long)sel,
 					(unsigned long)entry.block.base,
 					entry.block.p,table.block.p,entry.block.us,table.block.us,entry.block.wr,table.block.wr);
-				LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+                DEBUG_ShowMsg("%s",out1);
 			} else {
 				sprintf(out1,"pagetable %03X not present, flags [puw] %x::%x::%x",
 					(int)(sel >> 10),
 					(int)table.block.p,
 					(int)table.block.us,
 					(int)table.block.wr);
-				LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+                DEBUG_ShowMsg("%s",out1);
 			}
 		}
 	}
@@ -3765,15 +3769,15 @@ const char *FPU_tag(unsigned int i) {
 static void LogFPUInfo(void) {
     DEBUG_BeginPagedContent();
 
-    LOG(LOG_MISC,LOG_ERROR)("FPU TOP=%u",(unsigned int)fpu.top);
+    DEBUG_ShowMsg("FPU TOP=%u",(unsigned int)fpu.top);
 
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-        LOG(LOG_MISC,LOG_ERROR)(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
+        DEBUG_ShowMsg(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
 #else
-        LOG(LOG_MISC,LOG_ERROR)(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
+        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
 #endif
     }
 
@@ -3790,32 +3794,32 @@ static void LogCPUInfo(void) {
 		(unsigned long)paging.cr2,
 		(unsigned long)paging.cr3,
 		(unsigned long)cpu.cpl);
-	LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+    DEBUG_ShowMsg("%s",out1);
 	sprintf(out1,"eflags:%08lX [vm=%x iopl=%x nt=%x]",
 		(unsigned long)reg_flags,
 		(int)(GETFLAG(VM)>>17),
 		(int)(GETFLAG(IOPL)>>12),
 		(int)(GETFLAG(NT)>>14));
-	LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+    DEBUG_ShowMsg("%s",out1);
 	sprintf(out1,"GDT base=%08lX limit=%08lX",
 		(unsigned long)cpu.gdt.GetBase(),
 		(unsigned long)cpu.gdt.GetLimit());
-	LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+    DEBUG_ShowMsg("%s",out1);
 	sprintf(out1,"IDT base=%08lX limit=%08lX",
 		(unsigned long)cpu.idt.GetBase(),
 		(unsigned long)cpu.idt.GetLimit());
-	LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+    DEBUG_ShowMsg("%s",out1);
 
 	Bitu sel=CPU_STR();
 	Descriptor desc;
 	if (cpu.gdt.GetDescriptor(sel,desc)) {
 		sprintf(out1,"TR selector=%04X, base=%08lX limit=%08lX*%X",(int)sel,(unsigned long)desc.GetBase(),(unsigned long)desc.GetLimit(),desc.saved.seg.g?0x4000:1);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 	}
 	sel=CPU_SLDT();
 	if (cpu.gdt.GetDescriptor(sel,desc)) {
 		sprintf(out1,"LDT selector=%04X, base=%08lX limit=%08lX*%X",(int)sel,(unsigned long)desc.GetBase(),(unsigned long)desc.GetLimit(),desc.saved.seg.g?0x4000:1);
-		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
+        DEBUG_ShowMsg("%s",out1);
 	}
 
     DEBUG_EndPagedContent();
@@ -4004,7 +4008,7 @@ void DBGBlock::set_data_view(unsigned int view) {
 
 void DEBUG_SetupConsole(void) {
 	if (dbg.win_main == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
+        DEBUG_ShowMsg("DEBUG_SetupConsole initializing GUI");
 
         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 
@@ -4023,7 +4027,7 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 	CBreakpoint::DeleteAll();
 	CDebugVar::DeleteAll();
 	if (dbg.win_main != NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
+        DEBUG_ShowMsg("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
 
         void DEBUG_GUI_DestroySubWindows(void);
@@ -4051,7 +4055,7 @@ void DEBUG_ReinitCallback(void) {
 void DEBUG_Init() {
 	DOSBoxMenu::item *item;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
+    DEBUG_ShowMsg("Initializing debug system");
 
 	/* Add some keyhandlers */
 	#if defined(MACOSX)
