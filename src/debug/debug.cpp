@@ -1292,7 +1292,10 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
     hex = str;
     while (*hex == ' ') hex++;
 
-    if (strncmp(hex, "EFLAGS", 6) == 0) { hex += 6; regval = (Bit32u)reg_flags; }
+    // The user can enclose a value in double quotations to enter hex values that
+    // would collide with a flag name (AC, AF, CF, and DF).
+    if (*hex == '\"') { hex++; }
+    else if (strncmp(hex, "EFLAGS", 6) == 0) { hex += 6; regval = (Bit32u)reg_flags; }
     else if (strncmp(hex, "FLAGS", 5) == 0) { hex += 5; regval = (Bit32u)reg_flags; }
     else if (strncmp(hex, "IOPL", 4) == 0) { hex += 4; regval = (reg_flags & FLAG_IOPL) >> 12u; }
     else if (strncmp(hex, "CR0", 3) == 0) { hex += 3; regval = (Bit32u)cpu.cr0; }
@@ -1344,7 +1347,7 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
     else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
     else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
 
-    while (*hex) {
+    while (*hex && *hex != '\"') {
         if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((Bit32u)(*hex)) - '0';
         else if ((*hex >= 'A') && (*hex <= 'F')) value = (value << 4u) + ((Bit32u)(*hex)) - 'A' + 10u;
         else {
@@ -1353,6 +1356,11 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
                 if (*hex == '-') { hex++; return regval + value - GetHexValue(hex, hex, parsed); }
                 else break; // No valid char
         }
+        hex++;
+    }
+
+    // If there is a closing quote, skip over it.
+    if (*hex == '\"') {
         hex++;
     }
 
