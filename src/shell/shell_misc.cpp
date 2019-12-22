@@ -742,7 +742,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 				else {
 					/* nope. didn't find a valid name */
 
-					while (*r != 0 && *r == ' ') r++; /* skip spaces */
+					while (*r == ' ') r++; /* skip spaces */
 					name--; /* step "name" back to cover the first '%' we found */
 
 					for (char *c=name;c < r;) {

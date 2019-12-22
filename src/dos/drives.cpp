@@ -87,6 +87,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 
         while (togo > 0) {
             if (input[vnamePos]==0) break;
+            //Another mscdex quirk. Label is not always uppercase. (Daggerfall)
             output[labelPos] = toupper(input[vnamePos]);
             labelPos++;
             vnamePos++;
@@ -108,8 +109,7 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 		if (input[vnamePos]==0) break;
 		if (!point && (input[vnamePos]=='.')) {	togo=4; point=true; }
 
-		//another mscdex quirk. Label is not always uppercase. (Daggerfall)
-		output[labelPos] = (cdrom?input[vnamePos]:toupper(input[vnamePos]));
+		output[labelPos] = input[vnamePos];
 
 		labelPos++; vnamePos++;
 		togo--;

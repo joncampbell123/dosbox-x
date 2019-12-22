@@ -1289,7 +1289,7 @@ void DOS_Shell::CMD_GOTO(char * args) {
 	HELP("GOTO");
 	StripSpaces(args);
 	if (!bf) return;
-	if (*args &&(*args==':')) args++;
+	if (*args==':') args++;
 	//label ends at the first space
 	char* non_space = args;
 	while (*non_space) {

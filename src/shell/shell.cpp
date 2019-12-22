@@ -426,8 +426,7 @@ private:
     AutoexecObject autoexec_auto_bat;
 public:
 	AUTOEXEC(Section* configuration):Module_base(configuration) {
-		/* Register a virtual AUOEXEC.BAT file */
-		std::string line;
+		/* Register a virtual AUTOEXEC.BAT file */
 		Section_line * section=static_cast<Section_line *>(configuration);
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
