@@ -318,7 +318,7 @@ void MIDI_State_SaveMessage()
 
 						// GM 1.0 = 0-2
 						if( rpn >= 3 ) break;
-						if( rpn == 0x7f7f ) break;
+						//if( rpn == 0x7f7f ) break;
 
 						midi_state[channel].code_rpn_coarse[rpn] = arg2;
 					}
@@ -335,7 +335,7 @@ void MIDI_State_SaveMessage()
 
 						// GM 1.0 = 0-2
 						if( rpn >= 3 ) break;
-						if( rpn == 0x7f7f ) break;
+						//if( rpn == 0x7f7f ) break;
 
 						midi_state[channel].code_rpn_fine[rpn] = arg2;
 					}

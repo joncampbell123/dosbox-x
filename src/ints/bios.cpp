@@ -1993,8 +1993,8 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
             switch (Message) {
                 case 0x41:  /* POWER_OFF */
                     LOG_MSG("Plug & Play OS requested power off.\n");
-                    throw 1;    /* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
                     reg_ax = 0;
+                    throw 1;    /* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
                     break;
                 case 0x42:  /* PNP_OS_ACTIVE */
                     LOG_MSG("Plug & Play OS reports itself active\n");
@@ -2139,8 +2139,7 @@ static bool Tandy_TransferInProgress(void) {
     else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
 
     IO_Write(0x0c,0x00);
-    Bit16u datalen=IO_ReadB(tandy_dma*2u+1u)&0xffu;
-    datalen|=(IO_ReadB(tandy_dma*2u+1u)<<8u);
+    Bit16u datalen = (IO_ReadB(tandy_dma * 2 + 1)) + (IO_ReadB(tandy_dma * 2 + 1) << 8);
     if (datalen==0xffff) return false;  /* no DMA transfer */
     else if ((datalen<0x10) && (real_readb(0x40,0xd4)==0x0f) && (real_readw(0x40,0xd2)==0x1c)) {
         /* stop already requested */
@@ -8272,9 +8271,9 @@ private:
                     IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
                 }
                 else { // brown #6 instead of puke yellow
-                    IO_Write(0xAA,((i & 2) ? 0x5 : 0x0) + bias);    // green
-                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
-                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
+                    IO_Write(0xAA, 0x5 + bias);    // green
+                    IO_Write(0xAC, 0xA + bias);    // red
+                    IO_Write(0xAE, 0x0 + bias);    // blue
                 }
             }
 
