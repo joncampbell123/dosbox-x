@@ -240,7 +240,6 @@
       <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4001</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;$(UserDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -367,7 +366,6 @@
       </FloatingPointExceptions>
       <CreateHotpatchableImage>
       </CreateHotpatchableImage>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;$(UserDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
