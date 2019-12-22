@@ -1,4 +1,6 @@
 0.82.25 (next)
+  - Fixed ADDKEY "full" command not turning on the
+    full core when used with a delay. (Allofich)
   - INT 10h AX=101Ah Get Video DAC color-page state fixed
     to restore display after blanking it due to Attribute
     Controller read and write operations. This fixes
