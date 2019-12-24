@@ -183,8 +183,6 @@ void CPU_Core_Dynrec_Cache_Close(void);
 bool CPU_IsDynamicCore(void);
 
 void menu_update_cputype(void) {
-	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
-	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
     bool allow_prefetch = false;
     bool allow_pre386 = false;
 
@@ -3862,7 +3860,6 @@ void init_vm86_fake_io() {
 	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0x66);	/* OUT DX,EAX */
 	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xEF);
 	phys_writeb((PhysPt)(phys+wo+0x02),(Bit8u)0xCB);	/* RETF */
-	wo += 3;
 }
 
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
