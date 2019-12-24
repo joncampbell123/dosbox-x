@@ -4008,7 +4008,7 @@ void DBGBlock::set_data_view(unsigned int view) {
 
 void DEBUG_SetupConsole(void) {
 	if (dbg.win_main == NULL) {
-        DEBUG_ShowMsg("DEBUG_SetupConsole initializing GUI");
+        LOG(LOG_MISC, LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
 
         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 
@@ -4027,7 +4027,7 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 	CBreakpoint::DeleteAll();
 	CDebugVar::DeleteAll();
 	if (dbg.win_main != NULL) {
-        DEBUG_ShowMsg("DEBUG_Shutdown freeing ncurses state");
+        LOG(LOG_MISC, LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
 
         void DEBUG_GUI_DestroySubWindows(void);
@@ -4055,7 +4055,7 @@ void DEBUG_ReinitCallback(void) {
 void DEBUG_Init() {
 	DOSBoxMenu::item *item;
 
-    DEBUG_ShowMsg("Initializing debug system");
+    LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
 	/* Add some keyhandlers */
 	#if defined(MACOSX)
