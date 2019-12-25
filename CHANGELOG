@@ -1,4 +1,6 @@
 0.82.25 (next)
+  - Change 25.COM to use INT 10h AX=1114h (8x16) instead
+    of INT 10h AX=3 (set 80x25 mode).
   - INT 10h AX=1111h (8x14) and AX=1113h (8x8), related
     to 28.COM and 50.COM, now range check the current
     cursor row against number of rows to keep it on
