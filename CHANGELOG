@@ -1,4 +1,8 @@
 0.82.25 (next)
+  - INT 10h AX=1111h (8x14) and AX=1113h (8x8), related
+    to 28.COM and 50.COM, now range check the current
+    cursor row against number of rows to keep it on
+    screen.
   - Fixed ADDKEY "full" command not turning on the
     full core when used with a delay. (Allofich)
   - INT 10h AX=101Ah Get Video DAC color-page state fixed
