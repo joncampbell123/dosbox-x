@@ -328,7 +328,7 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (!copiedFooter) {
 			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
 			if (fseeko64(diskimg, (off_t)0, SEEK_SET)) return 0x05;
-			if (fwrite(originalFooter.cookie, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
+			if (fwrite(&originalFooter, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
 			copiedFooter = true;
 			//flush the data to disk after writing the backup footer
 			if (fflush(diskimg)) return 0x05;
@@ -339,7 +339,7 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
 		//now write the footer
 		if (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) return 0x05;
-		if (fwrite(originalFooter.cookie, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
+		if (fwrite(&originalFooter, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
 		//save the new block location and new footer position
 		Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511ul) / 512ul);
 		footerPosition = newFooterPosition;

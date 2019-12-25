@@ -594,7 +594,6 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
                                 hddsize >= sectorsize && (hddsize/1024) <= (imgSizeK+4)) {
 
                                 sector_size = sectorsize;
-                                imgSizeK -= (ofs / 1024);
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
@@ -1567,7 +1566,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 }
             }
 
-            Bit8u i=0;
+            Bit8u i;
             if (sector_size != 0) {
                 i=0;
                 while (DiskGeometryList[i].ksize != 0) {
