@@ -1113,7 +1113,13 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
         VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+
+        if (IS_VGA_ARCH)
+            VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+        else if (IS_EGA_ARCH)
+            VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
+        else
+            VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
     }
 
     /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
@@ -1127,7 +1133,10 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
 
     /* don't register 28.com unless EGA/VGA */
-    if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+    if (IS_VGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+    else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
 
 	/* don't register 50 unless VGA */
 	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
