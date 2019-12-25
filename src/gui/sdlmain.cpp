@@ -8383,6 +8383,12 @@ fresh_boot:
             /* new code: fire event */
             DispatchVMEvent(VM_EVENT_RESET);
 
+            /* force the mapper to let go of all keys so that the host key is not stuck (Issue #1320) */
+            void MAPPER_ReleaseAllKeys(void);
+            MAPPER_ReleaseAllKeys();
+            void MAPPER_LosingFocus(void);
+            MAPPER_LosingFocus();
+
             if (custom_bios) {
                 /* need to relocate BIOS allocations */
                 void ROMBIOS_InitForCustomBIOS(void);
