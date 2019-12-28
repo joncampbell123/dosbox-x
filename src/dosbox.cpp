@@ -1736,7 +1736,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'");
 
     Pbool = secprop->Add_bool("allow 4bpp packed vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 4bpp packed VESA modes, set to 'false'");
+    Pbool->Set_help("If the DOS game or demo has problems with 4bpp packed VESA modes, set to 'false'.\n"
+                    "4bpp (16-color) packed is an unusual novelty mode only seen on specific Chips & Tech 65550\n"
+                    "VESA BIOSes such as the one in a Toshiba Libretto laptop.");
 
     Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
