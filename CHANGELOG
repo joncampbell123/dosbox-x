@@ -1,4 +1,16 @@
 0.82.25 (next)
+  - Due to continuous problems with DOS games and a
+    very long VESA modelist, the defaults for VESA
+    BIOS options in dosbox.conf have been changed to
+    limit the modelist to something a late 1990s
+    VESA BIOS would list. New defaults include a
+    maximum resolution of 1280x1024, the removal of
+    4bpp 16-color packed, unusual video modes,
+    "High Definition" TV broadcast modes, and the
+    extra explicitly defined 24bpp modes to complement
+    VBE1.2 32bpp modes. Those options remain
+    changeable and all limits can be lifted with
+    settings in dosbox.conf if wanted.
   - Allow using "" in the debugger to specify that
     a hex value should be used rather than the
     contents of the flag with that name. Allows
