@@ -1,4 +1,9 @@
 0.82.25 (next)
+  - Allow using "" in the debugger to specify that
+    a hex value should be used rather than the
+    contents of the flag with that name. Allows
+    hex values of AC, AF, CF and DF to be directly
+    specified. (Allofich)
   - 25.COM, 28.COM, and 50.COM now have different
     versions for VGA, EGA, and other IBM compatible
     video machines. 28.COM now correctly sets 28 lines
