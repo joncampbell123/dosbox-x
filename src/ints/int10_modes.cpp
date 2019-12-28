@@ -47,6 +47,15 @@ extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 
+/* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
+ * when the VBE1.2 setting indicates they should be 24bpp.
+ *
+ * Explicitly 24bpp modes (numbered 0x120 or higher) are available regardless of the VBE1.2
+ * setting but only if enabled in dosbox.conf.
+ *
+ * Disabling the explicit 24bpp modes is intended to reflect actual SVGA hardware that tends
+ * to support either 24bpp or 32bpp, but not both. */
+
 VideoModeBlock ModeList_VGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
 { 0x000  ,M_TEXT   ,360 ,400 ,40 ,25 ,9 ,16 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,400 ,_EGA_HALF_CLOCK	},
