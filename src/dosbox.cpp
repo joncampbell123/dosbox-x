@@ -1724,6 +1724,11 @@ void DOSBOX_SetupConfigSections(void) {
                     "width and height limits and available video memory.\n"
                     "This is unusual for VESA BIOSes to do and is disabled by default.");
 
+    Pbool = secprop->Add_bool("allow unusual vesa modes",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, unusual (uncommon) modes are added to the list. The modes reflect uncommon resolutions\n"
+                    "added by external drivers (UNIVBE), some VESA BIOSes, some laptop and netbook displays, and\n"
+                    "some added by DOSBox-X for additional fun. Disabled by default.");
+
     Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
 

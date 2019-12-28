@@ -36,6 +36,7 @@ extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
 extern bool enable_vga_8bit_dac;
 extern bool allow_hd_vesa_modes;
+extern bool allow_unusual_vesa_modes;
 extern bool allow_explicit_vesa_24bpp;
 extern bool allow_vesa_lowres_modes;
 extern bool allow_vesa_4bpp_packed;
@@ -733,7 +734,10 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                     bool allow3 =
                         allow_hd_vesa_modes ||
                         !(ModeList_VGA[i].special & _HIGH_DEFINITION);
-                    bool allow_res = allow1 && allow2 && allow3;
+                    bool allow4 =
+                        allow_unusual_vesa_modes ||
+                        !(ModeList_VGA[i].special & _UNUSUAL_MODE);
+                    bool allow_res = allow1 && allow2 && allow3 && allow4;
 
                     switch (ModeList_VGA[i].type) {
                         case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
