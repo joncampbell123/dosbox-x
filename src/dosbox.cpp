@@ -1710,6 +1710,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on). You could set this to false to simulate\n"
             "SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.");
 
+    Pbool = secprop->Add_bool("allow explicit 24bpp vesa modes",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, additional 24bpp modes are listed in the modelist regardless whether modes 0x100-0x11F are\n"
+                    "configured to be 24bpp or 32bpp. Setting this option can provide the best testing and development\n"
+                    "environment for new retro DOS code. If clear, 24bpp will only be available in the 0x100-0x11F range\n"
+                    "if the \"vesa vbe 1.2 modes are 32bpp\" is false. Setting to false helps to emulate typical SVGA\n"
+                    "hardware in which either 24bpp is supported, or 32bpp is supported, but not both.");
+
     Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
 

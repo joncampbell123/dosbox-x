@@ -36,6 +36,7 @@ extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
 extern bool allow_vesa_lowres_modes;
 extern bool allow_vesa_4bpp_packed;
+extern bool allow_explicit_vesa_24bpp;
 extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
@@ -2033,6 +2034,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
 	case M_LIN24:
 		if (mode >= 0x100 && !allow_vesa_24bpp) return ~0ul;
+        if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*3;
 	case M_LIN32:
 		if (mode >= 0x100 && !allow_vesa_32bpp) return ~0ul;

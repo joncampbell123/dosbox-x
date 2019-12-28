@@ -35,6 +35,7 @@ bool vesa_zero_on_get_information = true;
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
 extern bool enable_vga_8bit_dac;
+extern bool allow_explicit_vesa_24bpp;
 extern bool allow_vesa_lowres_modes;
 extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
@@ -317,6 +318,7 @@ foundit:
 		break;
 	case M_LIN24:
 		if (!allow_vesa_24bpp || !allow_res) return VESA_FAIL;
+        if (mode >= 0x120 && !allow_explicit_vesa_24bpp) return VESA_FAIL;
 		pageSize = mblock->sheight * mblock->swidth*3;
 		var_write(&minfo.BytesPerScanLine,(Bit16u)(mblock->swidth*3));
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -722,8 +724,12 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
 
             if (canuse_mode) {
                 if (ModeList_VGA[i].mode >= 0x100) {
-                    bool allow_res = allow_vesa_lowres_modes ||
+                    bool allow1 = allow_vesa_lowres_modes ||
                         (ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
+                    bool allow2 =
+                        allow_explicit_vesa_24bpp || ModeList_VGA[i].type != M_LIN24 ||
+                        (ModeList_VGA[i].type == M_LIN24 && ModeList_VGA[i].mode < 0x120);
+                    bool allow_res = allow1 && allow2;
 
                     switch (ModeList_VGA[i].type) {
                         case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;

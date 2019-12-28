@@ -255,6 +255,7 @@ float hretrace_fx_avg_weight = 3;
 
 bool allow_vesa_4bpp_packed = true;
 bool allow_vesa_lowres_modes = true;
+bool allow_explicit_vesa_24bpp = true;
 bool vesa12_modes_32bpp = true;
 bool allow_vesa_32bpp = true;
 bool allow_vesa_24bpp = true;
@@ -815,6 +816,7 @@ void VGA_Reset(Section*) {
     allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
     vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
     allow_vesa_4bpp_packed = section->Get_bool("allow 4bpp packed vesa modes");
+    allow_explicit_vesa_24bpp = section->Get_bool("allow explicit 24bpp vesa modes");
     allow_vesa_32bpp = section->Get_bool("allow 32bpp vesa modes");
     allow_vesa_24bpp = section->Get_bool("allow 24bpp vesa modes");
     allow_vesa_16bpp = section->Get_bool("allow 16bpp vesa modes");
