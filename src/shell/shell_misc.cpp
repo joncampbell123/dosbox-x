@@ -205,8 +205,6 @@ void DOS_Shell::InputCommand(char * line) {
                         cr = 0x4000;
                     else if (c == 0x4A)  // F7
                         cr = 0x4100;
-                    else if (c == 0x50)  // F8
-                        cr = 0x4200;
                     else if (c == 0x51)  // F9
                         cr = 0x4300;
                     else if (c == 0x5A)  // F10
