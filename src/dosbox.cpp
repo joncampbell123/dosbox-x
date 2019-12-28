@@ -1717,6 +1717,13 @@ void DOSBOX_SetupConfigSections(void) {
                     "if the \"vesa vbe 1.2 modes are 32bpp\" is false. Setting to false helps to emulate typical SVGA\n"
                     "hardware in which either 24bpp is supported, or 32bpp is supported, but not both. Disabled by default.");
 
+    Pbool = secprop->Add_bool("allow high definition vesa modes",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, offer HD video modes in the VESA modelist (such as 1280x720 aka 720p or 1920x1080 aka 1080p).\n"
+                    "This option also offers 4:3 versions (960x720 and 1440x1080) for DOS games that cannot properly handle\n"
+                    "a 16:9 aspect ratio, and several other HD modes. The modes enabled by this option are still limited by the\n"
+                    "width and height limits and available video memory.\n"
+                    "This is unusual for VESA BIOSes to do and is disabled by default.");
+
     Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
 
