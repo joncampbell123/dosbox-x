@@ -1733,7 +1733,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If the DOS game or demo has problems with 8bpp VESA modes, set to 'false'");
 
     Pbool = secprop->Add_bool("allow 4bpp vesa modes",Property::Changeable::Always,true);
-    Pbool->Set_help("If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'");
+    Pbool->Set_help("If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'.\n"
+                    "These modes have the same 16-color planar memory layout as standard VGA, but\n"
+                    "at SVGA resolution.");
 
     Pbool = secprop->Add_bool("allow 4bpp packed vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If the DOS game or demo has problems with 4bpp packed VESA modes, set to 'false'.\n"
