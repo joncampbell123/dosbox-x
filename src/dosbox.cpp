@@ -1681,12 +1681,7 @@ void DOSBOX_SetupConfigSections(void) {
             "of the electron beam in a CRT monitor");
 
     Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
-    Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
-            "Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
-            "buffer for querying modes. Such programs may crash if given the entire modelist supported by DOSBox-X.\n"
-            "  Warcraft II by Blizzard ................ Set to a value between 8 and 16. This game has a fixed buffer that it\n"
-            "                                           reads the modelist into. DOSBox-X's normal modelist is too long and\n"
-            "                                           the game will overrun the buffer and crash without this setting.");
+    Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.");
 
     Pint = secprop->Add_int("vesa modelist width limit",Property::Changeable::Always,1280);
     Pint->Set_help("IF nonzero, VESA modes with horizontal resolution higher than the specified pixel count will not be listed.\n"
