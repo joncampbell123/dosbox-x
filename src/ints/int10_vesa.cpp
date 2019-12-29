@@ -26,6 +26,7 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
+#include "render.h"
 #include "dos_inc.h"
 
 int hack_lfb_yadjust = 0;
@@ -737,7 +738,10 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                     bool allow4 =
                         allow_unusual_vesa_modes ||
                         !(ModeList_VGA[i].special & _UNUSUAL_MODE);
-                    bool allow_res = allow1 && allow2 && allow3 && allow4;
+                    bool allow5 = /* either user modified or within the limits of the render scaler architecture */
+                        (ModeList_VGA[i].special & _USER_MODIFIED) ||
+                        (ModeList_VGA[i].swidth <= SCALER_MAXWIDTH && ModeList_VGA[i].sheight <= SCALER_MAXHEIGHT);
+                    bool allow_res = allow1 && allow2 && allow3 && allow4 && allow5;
 
                     switch (ModeList_VGA[i].type) {
                         case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;

@@ -27,6 +27,7 @@
 #include "vga.h"
 #include "bios.h"
 #include "programs.h"
+#include "render.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -606,6 +607,12 @@ static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
         }
 	    /* ignore disabled modes */
         else if (modeblock[i].special & _USER_DISABLED) {
+            /* ignore */
+            i++;
+        }
+        /* ignore modes beyond the render scaler architecture's limits... unless the user created it. We did warn the user! */
+        else if (!(modeblock[i].special & _USER_MODIFIED) &&
+                (modeblock[i].swidth > SCALER_MAXWIDTH || modeblock[i].sheight > SCALER_MAXHEIGHT)) {
             /* ignore */
             i++;
         }
@@ -2293,6 +2300,16 @@ public:
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
             ModeList_VGA[array_i].mode = (Bit16u)newmode;
             INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
+        }
+
+        /* If the new mode exceeds the maximum supported resolution of the render scaler architecture, then warn.
+         * Exceeding the scaler maximum will result in a frozen screen with the contents prior to the mode switch,
+         * which is useless. VESA BIOS emulation will not allow setting the mode. */
+        if (ModeList_VGA[array_i].swidth > SCALER_MAXWIDTH || ModeList_VGA[array_i].sheight > SCALER_MAXHEIGHT) {
+            WriteOut("WARNING: Mode %u x %u as specified exceeds the maximum resolution\n",
+                ModeList_VGA[array_i].swidth,ModeList_VGA[array_i].sheight);
+            WriteOut("supported by the render scaler architecture of this emulator and\n");
+            WriteOut("will be disabled.\n");
         }
 
         /* if the new mode cannot fit in available memory, then mark as disabled */

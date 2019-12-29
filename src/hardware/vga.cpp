@@ -136,6 +136,7 @@
 #include "mixer.h"
 #include "menu.h"
 #include "mem.h"
+#include "render.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -1523,6 +1524,7 @@ void VGA_Init() {
     vga.tandy.draw_base = NULL;
     vga.tandy.mem_base = NULL;
     LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
+    LOG(LOG_MISC,LOG_DEBUG)("Render scaler maximum resolution is %u x %u",SCALER_MAXWIDTH,SCALER_MAXHEIGHT);
 
     VGA_TweakUserVsyncOffset(0.0f);
 
