@@ -1,4 +1,6 @@
 0.82.25 (next)
+  - Added 1920x1440 4:3 HD VESA BIOS mode and increased
+    scaler limits to support it.
   - VESA BIOS emulation now rejects video modes that
     exceed the render scaler architecture's limits,
     to avoid frozen screens if set. However, VESAMOED.COM
