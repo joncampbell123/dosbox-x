@@ -1,4 +1,5 @@
 0.82.25 (next)
+  - S3 emulation now allows 16MB of video memory.
   - Due to continuous problems with DOS games and a
     very long VESA modelist, the defaults for VESA
     BIOS options in dosbox.conf have been changed to
