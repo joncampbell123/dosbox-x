@@ -1,4 +1,15 @@
 0.82.25 (next)
+  - VESA BIOS emulation now rejects video modes that
+    exceed the render scaler architecture's limits,
+    to avoid frozen screens if set.
+  - VESAMOED.COM will now warn you if the custom mode
+    you modified exceeds the render scaler's limits.
+  - VGA emulation now reports render scaler limits
+    in the logfile at startup, if debug logging is
+    enabled.
+  - Render scaler code now logs a warning when it
+    rejects a video mode that exceeds the render
+    scaler limits.
   - S3 emulation now allows 16MB of video memory.
   - Due to continuous problems with DOS games and a
     very long VESA modelist, the defaults for VESA
