@@ -1148,7 +1148,7 @@ void DOSBOX_SetupConfigSections(void) {
             "what you want. Recommended values -1, 0 to 2000.");
 
     Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,8);
+    Pint->SetMinMax(-1,16);
     Pint->Set_help(
         "Amount of video memory in megabytes.\n"
         "  The maximum resolution and color depth the svga_s3 will be able to display\n"
