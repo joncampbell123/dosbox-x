@@ -1511,7 +1511,6 @@ bool debugpollvga_rtp_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item *
 }
 
 void VGA_Init() {
-    string str;
     Bitu i,j;
 
     vga.other.mcga_mode_control = 0;
