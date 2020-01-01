@@ -31,7 +31,7 @@
 #include "SDL_error.h"
 #include "SDL_version.h"
 
-#include "begin_code.h"
+//#include "begin_code.h"
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus
 extern "C" {
@@ -222,6 +222,6 @@ extern DECLSPEC int SDLCALL SDL_GetWMInfo(SDL_SysWMinfo *info);
 #ifdef __cplusplus
 }
 #endif
-#include "close_code.h"
+//#include "close_code.h"
 
 #endif /* _SDL_syswm_h */
