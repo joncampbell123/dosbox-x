@@ -1,5 +1,6 @@
 0.82.26 (next)
-  - 
+  - Added "Rescan all drives" menu command and mapper
+    shortcut (Issue #1379 requested by saintfrater)
 0.82.25
   - Added 1920x1440 4:3 HD VESA BIOS mode and increased
     scaler limits to support it.
