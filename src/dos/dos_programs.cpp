@@ -163,6 +163,10 @@ static const char* UnmountHelper(char umount) {
     return MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
 }
 
+void MenuUnmountDrive(char drv) {
+    UnmountHelper(drv);
+}
+
 class MOUNT : public Program {
 public:
     void ListMounts(void) {

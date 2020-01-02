@@ -198,6 +198,8 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
+void MenuUnmountDrive(char drv);
+
 bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -215,7 +217,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
-    LOG_MSG("Unmount %c",drive+'A');//TODO
+    MenuUnmountDrive(drive+'A');
 
     return true;
 }
