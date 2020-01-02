@@ -2663,6 +2663,8 @@ void DOS_DoShutDown() {
     if (IS_PC98_ARCH) update_pc98_function_row(0);
 
     DOS_Casemap_Free();
+
+    mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
@@ -2685,6 +2687,8 @@ void DOS_Startup(Section* sec) {
         LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
 		test = new DOS(control->GetSection("dos"));
 	}
+
+    mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
 }
 
 void DOS_RescanAll(bool pressed) {
@@ -2715,6 +2719,7 @@ void DOS_Init() {
     DOSBoxMenu::item *item;
 
     MAPPER_AddHandler(DOS_RescanAll,MK_nothing,0,"rescanall","RescanAll",&item);
+    item->enable(false).refresh_item(mainMenu);
     item->set_text("Rescan all drives");
 }
 
