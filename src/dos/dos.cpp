@@ -27,6 +27,8 @@
 #include "paging.h"
 #include "callback.h"
 #include "regs.h"
+#include "menu.h"
+#include "mapper.h"
 #include "drives.h"
 #include "dos_inc.h"
 #include "setup.h"
@@ -2685,6 +2687,14 @@ void DOS_Startup(Section* sec) {
 	}
 }
 
+void DOS_RescanAll(bool pressed) {
+    if (!pressed) return;
+
+    for(Bitu i =0; i<DOS_DRIVES;i++) {
+        if (Drives[i]) Drives[i]->EmptyCache();
+    }
+}
+
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
@@ -2701,5 +2711,10 @@ void DOS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(DOS_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_KERNEL,AddVMEventFunctionFuncPair(DOS_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(DOS_OnReset));
+
+    DOSBoxMenu::item *item;
+
+    MAPPER_AddHandler(DOS_RescanAll,MK_nothing,0,"rescanall","RescanAll",&item);
+    item->set_text("Rescan all drives");
 }
 
