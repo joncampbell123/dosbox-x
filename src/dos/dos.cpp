@@ -2654,6 +2654,19 @@ void DOS_ShutdownDrives() {
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void DOS_Casemap_Free();
 
+void DOS_EnableDriveMenu(char drv) {
+    if (drv >= 'A' && drv <= 'Z') {
+        {
+            std::string name = std::string("drive_") + drv + "_rescan";
+            mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL).refresh_item(mainMenu);
+        }
+        {
+            std::string name = std::string("drive_") + drv + "_unmount";
+            mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL).refresh_item(mainMenu);
+        }
+    }
+}
+
 void DOS_DoShutDown() {
 	if (test != NULL) {
 		delete test;
@@ -2665,16 +2678,7 @@ void DOS_DoShutDown() {
     DOS_Casemap_Free();
 
     mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
-    for (char drv='A';drv <= 'Z';drv++) {
-        {
-            std::string name = std::string("drive_") + drv + "_rescan";
-            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
-        }
-        {
-            std::string name = std::string("drive_") + drv + "_unmount";
-            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
-        }
-    }
+    for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
@@ -2699,16 +2703,7 @@ void DOS_Startup(Section* sec) {
 	}
 
     mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
-    for (char drv='A';drv <= 'Z';drv++) {
-        {
-            std::string name = std::string("drive_") + drv + "_rescan";
-            mainMenu.get_item(name).enable(true).refresh_item(mainMenu);
-        }
-        {
-            std::string name = std::string("drive_") + drv + "_unmount";
-            mainMenu.get_item(name).enable(true).refresh_item(mainMenu);
-        }
-    }
+    for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
 void DOS_RescanAll(bool pressed) {
@@ -2743,15 +2738,6 @@ void DOS_Init() {
     MAPPER_AddHandler(DOS_RescanAll,MK_nothing,0,"rescanall","RescanAll",&item);
     item->enable(false).refresh_item(mainMenu);
     item->set_text("Rescan all drives");
-    for (char drv='A';drv <= 'Z';drv++) {
-        {
-            std::string name = std::string("drive_") + drv + "_rescan";
-            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
-        }
-        {
-            std::string name = std::string("drive_") + drv + "_unmount";
-            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
-        }
-    }
+    for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 

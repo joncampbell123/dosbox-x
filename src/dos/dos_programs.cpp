@@ -49,6 +49,8 @@
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 
+void DOS_EnableDriveMenu(char drv);
+
 #if defined(OS2)
 #define INCL DOSFILEMGR
 #define INCL_DOSERRORS
@@ -145,6 +147,7 @@ static const char* UnmountHelper(char umount) {
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
         Drives[i_drive] = 0;
+        DOS_EnableDriveMenu(i_drive+'A');
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive()) {
             DOS_SetDrive(ZDRIVE_NUM);
@@ -240,6 +243,8 @@ public:
                 /* remap drives */
                 Drives[i_newz] = Drives[25];
                 Drives[25] = 0;
+                DOS_EnableDriveMenu(i_newz+'A');
+                DOS_EnableDriveMenu(25+'A');
                 if (!first_shell) return; //Should not be possible
                 /* Update environment */
                 std::string line = "";
@@ -541,6 +546,7 @@ public:
         }
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
+        DOS_EnableDriveMenu(drive);
         /* Set the correct media byte in the table */
         mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
         if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
@@ -3222,6 +3228,7 @@ private:
                     if (cdrom) IDE_CDROM_Detach(i_drive);
 
                     Drives[i_drive] = NULL;
+                    DOS_EnableDriveMenu(i_drive+'A');
                     if (i_drive == DOS_GetDefaultDrive())
                         DOS_SetDrive(toupper('Z') - 'A');
                     WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
