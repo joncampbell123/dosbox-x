@@ -180,7 +180,7 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     const char *mname = menuitem->get_name().c_str();
     if (!strncmp(mname,"drive_",6)) {
         drive = mname[6] - 'A';
-        if (drive < 0 || drive >= 26) return false;
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
     }
     else {
         return false;
@@ -200,7 +200,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     const char *mname = menuitem->get_name().c_str();
     if (!strncmp(mname,"drive_",6)) {
         drive = mname[6] - 'A';
-        if (drive < 0 || drive >= 26) return false;
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
     }
     else {
         return false;
