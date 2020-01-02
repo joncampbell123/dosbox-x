@@ -171,6 +171,8 @@ Bitu frames = 0;
 
 ScreenSizeInfo          screen_size_info;
 
+extern bool dos_kernel_disabled;
+
 bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -186,7 +188,12 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         return false;
     }
 
-    LOG_MSG("Rescan %c",drive+'A');//TODO
+    if (dos_kernel_disabled) return true;
+
+    if (drive < DOS_DRIVES && Drives[drive]) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering rescan on drive %c",drive+'A');
+        Drives[drive]->EmptyCache();
+    }
 
     return true;
 }
@@ -205,6 +212,8 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     else {
         return false;
     }
+
+    if (dos_kernel_disabled) return true;
 
     LOG_MSG("Unmount %c",drive+'A');//TODO
 

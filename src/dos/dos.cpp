@@ -2665,6 +2665,16 @@ void DOS_DoShutDown() {
     DOS_Casemap_Free();
 
     mainMenu.get_item("mapper_rescanall").enable(false).refresh_item(mainMenu);
+    for (char drv='A';drv <= 'Z';drv++) {
+        {
+            std::string name = std::string("drive_") + drv + "_rescan";
+            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+        }
+        {
+            std::string name = std::string("drive_") + drv + "_unmount";
+            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+        }
+    }
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
@@ -2689,12 +2699,23 @@ void DOS_Startup(Section* sec) {
 	}
 
     mainMenu.get_item("mapper_rescanall").enable(true).refresh_item(mainMenu);
+    for (char drv='A';drv <= 'Z';drv++) {
+        {
+            std::string name = std::string("drive_") + drv + "_rescan";
+            mainMenu.get_item(name).enable(true).refresh_item(mainMenu);
+        }
+        {
+            std::string name = std::string("drive_") + drv + "_unmount";
+            mainMenu.get_item(name).enable(true).refresh_item(mainMenu);
+        }
+    }
 }
 
 void DOS_RescanAll(bool pressed) {
     if (!pressed) return;
     if (dos_kernel_disabled) return;
 
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering rescan on all drives");
     for(Bitu i =0; i<DOS_DRIVES;i++) {
         if (Drives[i]) Drives[i]->EmptyCache();
     }
@@ -2722,5 +2743,15 @@ void DOS_Init() {
     MAPPER_AddHandler(DOS_RescanAll,MK_nothing,0,"rescanall","RescanAll",&item);
     item->enable(false).refresh_item(mainMenu);
     item->set_text("Rescan all drives");
+    for (char drv='A';drv <= 'Z';drv++) {
+        {
+            std::string name = std::string("drive_") + drv + "_rescan";
+            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+        }
+        {
+            std::string name = std::string("drive_") + drv + "_unmount";
+            mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+        }
+    }
 }
 
