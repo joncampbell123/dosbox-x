@@ -2654,6 +2654,8 @@ void DOS_ShutdownDrives() {
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void DOS_Casemap_Free();
 
+extern Bit8u ZDRIVE_NUM;
+
 void DOS_EnableDriveMenu(char drv) {
     if (drv >= 'A' && drv <= 'Z') {
         {
@@ -2662,7 +2664,7 @@ void DOS_EnableDriveMenu(char drv) {
         }
         {
             std::string name = std::string("drive_") + drv + "_unmount";
-            mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL).refresh_item(mainMenu);
+            mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
         }
     }
 }
