@@ -2693,6 +2693,7 @@ void DOS_Startup(Section* sec) {
 
 void DOS_RescanAll(bool pressed) {
     if (!pressed) return;
+    if (dos_kernel_disabled) return;
 
     for(Bitu i =0; i<DOS_DRIVES;i++) {
         if (Drives[i]) Drives[i]->EmptyCache();
