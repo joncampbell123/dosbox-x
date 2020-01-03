@@ -967,9 +967,7 @@ HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double sc
     }
 
     if (psEffect) {
-#if LOG_D3D
 	LOG_MSG("D3D:Shader scale: %.2f", psEffect->getScale());
-#endif
 	// Compare optimal scaling factor
 	bool dblgfx=((scalex < scaley ? scalex : scaley) >= psEffect->getScale());
 
@@ -1018,7 +1016,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 
     psEffect->setinputDim((float)dwWidth, (float)dwHeight);
     if(FAILED(psEffect->LoadEffect(pshader)) || FAILED(psEffect->Validate())) {
-	/*LOG_MSG("D3D:Pixel shader error:");
+	LOG_MSG("D3D:Pixel shader error:");
 
 	// The resulting string can exceed 512 char LOG_MSG limit, split on newlines
 	std::stringstream ss(psEffect->getErrors());
@@ -1027,7 +1025,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 	    LOG_MSG(" %s", line.c_str());
 	}
 
-	LOG_MSG("D3D:Pixel shader output disabled");*/
+	LOG_MSG("D3D:Pixel shader output disabled");
 	delete psEffect;
 	psEffect = NULL;
 	psActive = false;
@@ -1447,10 +1445,6 @@ void CDirect3D::SetupSceneScaled(void)
     D3DXMatrixTranslation(&m_matView, -0.5f, -0.5f, 0.0f);
 
     // TODO: Re-implement 5:4 monitor autofit
-
-#if LOG_D3D
-    LOG_MSG("D3D:Scaled resolution: %.1fx%.1f, factor: %dx%d", sizex, sizey, x, y);
-#endif
 
     D3DXMatrixScaling(&m_matWorld, 1.0, 1.0, 1.0f);
 }
