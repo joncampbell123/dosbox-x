@@ -1377,21 +1377,40 @@ HRESULT CDirect3D::CreateVertex(void)
     vertexBuffer->Lock(0, 0, (void**)&vertices, 0);
 
     //Setup vertices
-    vertices[0].position = D3DXVECTOR3( (float)dwX,					  (float)dwY,					 0.0f );
-    vertices[0].diffuse  = 0xFFFFFFFF;
-    vertices[0].texcoord = D3DXVECTOR2( 0.0f,						  0.0f );
+    if (psActive) {
+        vertices[0].position = D3DXVECTOR3(-0.5f, -0.5f, 0.0f);
+        vertices[0].diffuse = 0xFFFFFFFF;
+        vertices[0].texcoord = D3DXVECTOR2(0.0f, (float)sizey);
 
-    vertices[1].position = D3DXVECTOR3( (float)dwX,					  (float)(dwY + dwScaledHeight), 0.0f );
-    vertices[1].diffuse  = 0xFFFFFFFF;
-    vertices[1].texcoord = D3DXVECTOR2( 0.0f,						  (float)sizey );
-    
-    vertices[2].position = D3DXVECTOR3( (float)(dwX + dwScaledWidth), (float)dwY,				     0.0f );
-    vertices[2].diffuse  = 0xFFFFFFFF;
-    vertices[2].texcoord = D3DXVECTOR2( (float)sizex,				  0.0f );
-    
-    vertices[3].position = D3DXVECTOR3( (float)(dwX + dwScaledWidth), (float)(dwY + dwScaledHeight), 0.0f );
-    vertices[3].diffuse  = 0xFFFFFFFF;
-    vertices[3].texcoord = D3DXVECTOR2( (float)sizex,				  (float)sizey );
+        vertices[1].position = D3DXVECTOR3(-0.5f, 0.5f, 0.0f);
+        vertices[1].diffuse = 0xFFFFFFFF;
+        vertices[1].texcoord = D3DXVECTOR2(0.0f, 0.0f);
+
+        vertices[2].position = D3DXVECTOR3(0.5f, -0.5f, 0.0f);
+        vertices[2].diffuse = 0xFFFFFFFF;
+        vertices[2].texcoord = D3DXVECTOR2((float)sizex, (float)sizey);
+
+        vertices[3].position = D3DXVECTOR3(0.5f, 0.5f, 0.0f);
+        vertices[3].diffuse = 0xFFFFFFFF;
+        vertices[3].texcoord = D3DXVECTOR2((float)sizex, 0.0f);
+    }
+    else {
+        vertices[0].position = D3DXVECTOR3((float)dwX, (float)dwY, 0.0f);
+        vertices[0].diffuse = 0xFFFFFFFF;
+        vertices[0].texcoord = D3DXVECTOR2(0.0f, 0.0f);
+
+        vertices[1].position = D3DXVECTOR3((float)dwX, (float)(dwY + dwScaledHeight), 0.0f);
+        vertices[1].diffuse = 0xFFFFFFFF;
+        vertices[1].texcoord = D3DXVECTOR2(0.0f, (float)sizey);
+
+        vertices[2].position = D3DXVECTOR3((float)(dwX + dwScaledWidth), (float)dwY, 0.0f);
+        vertices[2].diffuse = 0xFFFFFFFF;
+        vertices[2].texcoord = D3DXVECTOR2((float)sizex, 0.0f);
+
+        vertices[3].position = D3DXVECTOR3((float)(dwX + dwScaledWidth), (float)(dwY + dwScaledHeight), 0.0f);
+        vertices[3].diffuse = 0xFFFFFFFF;
+        vertices[3].texcoord = D3DXVECTOR2((float)sizex, (float)sizey);
+    }
 
     // Additional vertices required for some PS effects
     // FIXME: Recent changes may have BROKEN pixel shader support here!!!!!
@@ -1435,18 +1454,30 @@ void CDirect3D::SetupSceneScaled(void)
 
     // Projection is screenspace coords
     D3DXMatrixOrthoOffCenterLH(&m_matProj, 0.0f, (float)Viewport.Width, 0.0f, (float)Viewport.Height, 0.0f, 1.0f);
-    {
+    if (!psActive) {
 	    D3DXMATRIX x;
 	    D3DXMatrixScaling(&x, 1.0f, -1.0f, 1.0f);
 	    m_matProj *= x;
     }
 
-    // View matrix with -0.5f offset to avoid a fuzzy picture
-    D3DXMatrixTranslation(&m_matView, -0.5f, -0.5f, 0.0f);
+    if (psActive) {
+        // View matrix does offset
+        // A -0.5f modifier is applied to vertex coordinates to match texture
+        // and screen coords. Some drivers may compensate for this
+        // automatically, but on others texture alignment errors are introduced
+        // More information on this can be found in the Direct3D 9 documentation
+        D3DXMatrixTranslation(&m_matView, (float)Viewport.Width / 2 - 0.5f, (float)Viewport.Height / 2 + 0.5f, 0.0f);
+    }
+    else {
+        // View matrix with -0.5f offset to avoid a fuzzy picture
+        D3DXMatrixTranslation(&m_matView, -0.5f, -0.5f, 0.0f);
+    }
 
     // TODO: Re-implement 5:4 monitor autofit
-
-    D3DXMatrixScaling(&m_matWorld, 1.0, 1.0, 1.0f);
+    if (psActive)
+        D3DXMatrixScaling(&m_matWorld, (float)dwScaledWidth, (float)dwScaledHeight, 1.0f);
+    else
+        D3DXMatrixScaling(&m_matWorld, 1.0, 1.0, 1.0f);
 }
 
 #if !(C_D3DSHADERS)
