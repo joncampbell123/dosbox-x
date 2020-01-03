@@ -1479,11 +1479,11 @@ void CDirect3D::SetupSceneScaled(void)
         { /* translation matrix to make dwX and dwY effective. Note that the code inherited from Daum naturally
              centers the image on screen by it's design, so the calculation has to account for that. */
             D3DXMATRIX t;
-            float nx = float(Viewport.Width - dwScaledWidth) / 4.0f;
-            float ny = float(Viewport.Height - dwScaledHeight) / 4.0f;
-            float dx = float(dwX) / 2.0f;
-            float dy = float(dwY) / 2.0f;
-//            LOG_MSG("dx=%.3f dy=%.3f nx=%.3f ny=%.3f", dx, dy, nx, ny);
+            float nx = float(Viewport.Width - dwScaledWidth) / 2.0f;
+            float ny = float(Viewport.Height - dwScaledHeight) / 2.0f;
+            float dx = float(dwX);
+            float dy = float(dwY);
+//          LOG_MSG("dx=%.3f dy=%.3f nx=%.3f ny=%.3f", dx, dy, nx, ny);
             D3DXMatrixTranslation(&t, -(dx - nx), -(dy - ny), 0.0f);
             m_matWorld *= t;
         }
