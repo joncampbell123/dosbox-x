@@ -1,4 +1,7 @@
 0.82.26 (next)
+  - Direct3D support has been fixed to properly render
+    pixel shaders again that were already written for
+    other forks.
   - Added "Rescan all drives" menu command and mapper
     shortcut (Issue #1379 requested by saintfrater)
 0.82.25
