@@ -1478,6 +1478,10 @@ void CDirect3D::SetupSceneScaled(void)
         D3DXMatrixScaling(&m_matWorld, (float)dwScaledWidth, (float)dwScaledHeight, 1.0f);
         { /* translation matrix to make dwX and dwY effective. Note that the code inherited from Daum naturally
              centers the image on screen by it's design, so the calculation has to account for that. */
+            /* NTS: The reason we go to these great pains for pixel shaders is that there are other forks of
+                    DOSBox that have this same Direct3D code, but without this fork's alterations that use
+                    pure integer coordinates. The shaders require the -0.5 to 0.5 vertex and texture coordinates
+                    to work properly and will not render properly with this fork's modifications. */
             D3DXMATRIX t;
             float nx = float(Viewport.Width - dwScaledWidth) / 2.0f;
             float ny = float(Viewport.Height - dwScaledHeight) / 2.0f;
