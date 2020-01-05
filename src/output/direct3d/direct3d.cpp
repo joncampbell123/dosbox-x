@@ -48,6 +48,25 @@ void CDirect3D::EnterLOGCriticalSection(LPCRITICAL_SECTION lpCriticalSection, in
 
 #include "d3d_components.h"
 
+/* Most DOSBox forks incorporating the "D3D patch" expect the pixelshader filename
+   to exist in a shaders\ subdirectory. */
+std::string shader_translate_directory(const std::string& path) {
+    if (path == "none")
+        return path;
+
+    /* DOSBox fork compatability: if only the name of a file is given, assume it
+       exists in the shaders\ directory.
+
+       This fork's variation is to NOT prefix shaders\ to it if it looks like a
+       full path, with or without a drive letter. */
+    if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') /* drive letter ex. C:, D:, etc. */
+        return path;
+    if (path.length() >= 1 && path[0] == '\\') /* perhaps a UNC path or an absolute path from the current drive */
+        return path;
+
+    return std::string("shaders\\") + path;
+}
+
 HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 {
 #if LOG_D3D
@@ -941,13 +960,13 @@ HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double sc
 
 #if C_D3DSHADERS
     // See if the shader is already running
-    if((!psEffect) || (strcmp(pshader+8, shader))) {
+    if((!psEffect) || pshader != shader) {
 
 	// This is called in main thread to test if pixelshader needs to be changed
 	if((scalex == 0) && (scaley == 0)) return S_OK;
 
 	RENDER_SetForceUpdate(false);
-	safe_strncpy(pshader+8, shader, 22); pshader[29] = '\0';
+    pshader = shader;
 #if D3D_THREAD
 	Wait(false);
 	thread_command = D3D_LOADPS;
@@ -997,7 +1016,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 	psEffect = NULL;
     }
 
-    if(!strcmp(pshader+8, "none")) {
+    if(pshader == "none") {
 	// Returns E_FAIL so that further shader processing is disabled
 	psActive = false;
 	return E_FAIL;
@@ -1015,7 +1034,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 #endif
 
     psEffect->setinputDim((float)dwWidth, (float)dwHeight);
-    if(FAILED(psEffect->LoadEffect(pshader)) || FAILED(psEffect->Validate())) {
+    if(FAILED(psEffect->LoadEffect(shader_translate_directory(pshader).c_str())) || FAILED(psEffect->Validate())) {
 	LOG_MSG("D3D:Pixel shader error:");
 
 	// The resulting string can exceed 512 char LOG_MSG limit, split on newlines

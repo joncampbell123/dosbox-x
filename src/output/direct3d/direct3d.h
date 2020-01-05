@@ -119,7 +119,7 @@ private:
     D3DXMATRIX			m_matPreWorld;
 
     // Pixel shader
-    char			pshader[30];
+    std::string         pshader;
     ScalingEffect*		psEffect;
     LPDIRECT3DTEXTURE9		lpWorkTexture1;
     LPDIRECT3DTEXTURE9		lpWorkTexture2;
@@ -214,7 +214,7 @@ public:
 #if LOG_D3D
 	lpDebugTexture = NULL;
 #endif
-	strcpy(pshader, "shaders\\");
+    pshader.clear();
 	psEffect = NULL;
 #endif
 
