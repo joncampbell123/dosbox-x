@@ -6858,6 +6858,17 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
             while (*name == '\\') name++;
         }
 
+        /* the shader set included with the source code includes none.fx which is empty.
+           if that was chosen then just change it to "none" so the D3D shader code does
+           not waste it's time. */
+        {
+            const char* n = strrchr(name, '\\');
+            if (n == NULL) n = name;
+
+            if (!strcasecmp(n, "none.fx"))
+                name = "none";
+        }
+
         /* SetVal just forces the interpreter to parse name=value and pixelshader is a multivalue. */
         std::string tmp = name;
         if (true/*FIXME*/) tmp += " forced";
