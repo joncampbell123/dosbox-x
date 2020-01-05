@@ -1016,7 +1016,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
 	psEffect = NULL;
     }
 
-    if(pshader == "none") {
+    if(pshader.empty() || pshader == "none") {
 	// Returns E_FAIL so that further shader processing is disabled
 	psActive = false;
 	return E_FAIL;
