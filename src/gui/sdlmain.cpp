@@ -6810,7 +6810,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
     (void)menuitem;//UNUSED
 
     OPENFILENAME ofn;
-    char filenamebuf[300];
+    char filenamebuf[300] = { 0 };
     char cwd[1024]; /* to prevent the dialog box from browsing relative to the Documents folder */
 
     GetCurrentDirectory(sizeof(cwd) - 16,cwd);
