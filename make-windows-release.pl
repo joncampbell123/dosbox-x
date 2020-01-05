@@ -41,7 +41,7 @@ my @filelist = ();
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt');
+my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
 
 foreach $platform (@platforms) {
 	foreach $build (@builds) {
@@ -55,5 +55,5 @@ foreach $platform (@platforms) {
 }
 
 # do it
-$r = system($ziptool, '-9', "$subdir/$zipname", @filelist);
+$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
 exit 1 unless $r == 0;
