@@ -1048,7 +1048,6 @@ HRESULT CDirect3D::LoadPixelShader(void)
 	delete psEffect;
 	psEffect = NULL;
 	psActive = false;
-	pshader[8] = '\0';
 	return E_FAIL;
     }
 
