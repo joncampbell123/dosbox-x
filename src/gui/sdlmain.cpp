@@ -6815,6 +6815,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
 
     GetCurrentDirectory(sizeof(cwd) - 16,cwd);
 
+    std::string forced_setting;
     std::string o_cwd = cwd; /* GetOpenFileName() will change the current working directory! */
 
     strcat(cwd, "\\shaders"); /* DOSBox "D3D patch" compat: File names are assumed to exist relative to <cwd>\shaders */
@@ -6825,6 +6826,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
         Prop_multival* prop = section->Get_multival("pixelshader");
         const char *path = prop->GetSection()->Get_string("type");
+        forced_setting = prop->GetSection()->Get_string("force");
 
         if (path != NULL && strcmp(path, "none") != 0) {
             filenamebuf[sizeof(filenamebuf) - 1] = 0;
@@ -6871,7 +6873,8 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
 
         /* SetVal just forces the interpreter to parse name=value and pixelshader is a multivalue. */
         std::string tmp = name;
-        if (true/*FIXME*/) tmp += " forced";
+        tmp += " ";
+        tmp += forced_setting;
         SetVal("sdl", "pixelshader", tmp);
 
         /* GetOpenFileName() probably changed the current directory.
