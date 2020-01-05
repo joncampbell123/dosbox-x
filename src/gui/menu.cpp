@@ -361,6 +361,10 @@ static const char *def_menu_video[] =
     "VideoPC98Menu",
     "--",
     "VideoDebugMenu",
+#ifdef C_D3DSHADERS
+    "--",
+    "load_d3d_shader",
+#endif
     NULL
 };
 

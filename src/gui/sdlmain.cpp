@@ -6804,6 +6804,14 @@ bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     return true;
 }
 
+#ifdef C_D3DSHADERS
+bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    return true;
+}
+#endif
+
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7869,6 +7877,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoDebugMenu");
                 item.set_text("Debug");
             }
+#ifdef C_D3DSHADERS
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select pixel shader...").
+                    set_callback_function(vid_select_pixel_shader_menu_callback);
+            }
+#endif
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
