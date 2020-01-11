@@ -703,7 +703,8 @@ extern ClockDomain clockdom_DOSBox_cycles;
 bool PIC_RunQueue(void) {
 #if C_DEBUG
     bool IsDebuggerActive(void);
-    if (IsDebuggerActive())
+    bool IsDebuggerRunwatch(void);
+    if (IsDebuggerActive() && !IsDebuggerRunwatch())
         return false;
 #endif
 #ifdef DEBUG_CPU_CYCLE_OVERRUN

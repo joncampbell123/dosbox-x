@@ -278,6 +278,10 @@ bool IsDebuggerActive(void) {
     return debugging;
 }
 
+bool IsDebuggerRunwatch(void) {
+    return debug_running;
+}
+
 static void SetColor(Bitu test) {
 	if (test) {
 		if (has_colors()) { wattrset(dbg.win_reg,COLOR_PAIR(PAIR_BYELLOW_BLACK));}
