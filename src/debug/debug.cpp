@@ -3098,12 +3098,15 @@ Bit32u DEBUG_CheckKeys(void) {
 
                 Bits DEBUG_NullCPUCore(void);
 
+				CPU_Cycles = 1;
+                inhibit_int_breakpoint = true;
                 if (cpudecoder == DEBUG_NullCPUCore)
                     ret = -1; /* DEBUG_Loop() must exit */
                 else
                     ret = (*cpudecoder)();
 
-				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
+                inhibit_int_breakpoint = false;
+                mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 
 				skipFirstInstruction = true; // for heavy debugger
 				CPU_Cycles = 1;
