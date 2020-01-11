@@ -1,4 +1,7 @@
 0.82.26 (next)
+  - Debugger toggle reverts back to debugger interface
+    instead of running state if triggered during a
+    RUNWATCH command.
   - Fixed RUWNATCH command, which was broken by another
     fix sometime back designed to stop PIC event
     processing while in the debugger.
