@@ -3076,7 +3076,8 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_F(5):	// Run Program
                 DrawRegistersUpdateOld();
 				debugging=false;
-				DrawCode(); // update code window to show "running" status
+				DrawCode();
+                DrawInput();
                 logBuffSuppressConsole = false;
                 if (logBuffSuppressConsoleNeedUpdate) {
                     logBuffSuppressConsoleNeedUpdate = false;
