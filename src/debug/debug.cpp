@@ -150,6 +150,8 @@ static void DrawVariables(void);
 static void LogDOSKernMem(void);
 static void LogBIOSMem(void);
 
+bool inhibit_int_breakpoint=false;
+
 void DEBUG_DrawInput(void) {
     DrawInput();
 }
@@ -828,6 +830,7 @@ bool DEBUG_Breakpoint(void)
 
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
+    if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
 	/* First get the physical address and check for a set Breakpoint */
 	PhysPt where=(PhysPt)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah,reg_al)) return false;
@@ -3127,9 +3130,11 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_F(10):	// Step over inst
                 DrawRegistersUpdateOld();
 				if (StepOver()) {
-					skipFirstInstruction = true; // for heavy debugger
+                    inhibit_int_breakpoint = true;
+                    skipFirstInstruction = true; // for heavy debugger
 					CPU_Cycles = 1;
 					ret=(*cpudecoder)();
+                    inhibit_int_breakpoint = false;
 
 					DOSBOX_SetNormalLoop();
 
