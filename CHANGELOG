@@ -1,4 +1,7 @@
 0.82.26 (next)
+  - Fixed RUWNATCH command, which was broken by another
+    fix sometime back designed to stop PIC event
+    processing while in the debugger.
   - Debugger interface fixed to keep the SDL event
     handling going during the "pager" routine to
     prevent Windows from graying out the main window
