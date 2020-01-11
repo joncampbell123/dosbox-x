@@ -1,4 +1,8 @@
 0.82.26 (next)
+  - Debugger interface now shows (running/watching)
+    while RUNWATCH is active.
+  - Debugger interface now correctly shows (running)
+    status when F5 is used to resume emulation.
   - Debugger toggle reverts back to debugger interface
     instead of running state if triggered during a
     RUNWATCH command.
