@@ -3313,6 +3313,8 @@ void DEBUG_Enable_Handler(bool pressed) {
     /* However this should break back into the debugger if RUNWATCH is active */
     if (debug_running) {
         debug_running = false;
+        DrawRegistersUpdateOld();
+        SetCodeWinStart();
         DEBUG_DrawScreen();
         return;
     }
