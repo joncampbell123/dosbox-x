@@ -1,4 +1,8 @@
 0.82.26 (next)
+  - Debugger interface fixed to keep the SDL event
+    handling going during the "pager" routine to
+    prevent Windows from graying out the main window
+    as "not responding" in Windows 7/8/10.
   - Direct3D support has been fixed to properly render
     pixel shaders again that were already written for
     other forks.
