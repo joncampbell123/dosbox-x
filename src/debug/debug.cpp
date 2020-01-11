@@ -1771,6 +1771,15 @@ bool ParseCommand(char* str) {
             DEBUG_RefreshPage(0);
         }
 
+        Bits DEBUG_NullCPUCore(void);
+
+        CPU_Cycles = 1;
+        inhibit_int_breakpoint = true;
+        if (cpudecoder != DEBUG_NullCPUCore)
+            (*cpudecoder)();
+
+        inhibit_int_breakpoint = false;
+
         void DEBUG_DrawScreen(void);
         DEBUG_DrawScreen();
 
