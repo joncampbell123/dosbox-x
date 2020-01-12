@@ -23,6 +23,11 @@
 #include <stdio.h>
 #include <errno.h>
 
+#if defined(WIN32)
+#include <conio.h>
+#include <SDL.h>
+#endif
+
 #include "dosbox.h"
 #include "logging.h"
 #include "support.h"
@@ -680,7 +685,16 @@ void DEBUG_ShowMsg(char const* format,...) {
 
             /* pause, wait for input */
             do {
+#if defined(WIN32)
+                int key;
+
+                if (kbhit())
+                    key = getch();
+                else
+                    key = -1;
+#else
                 int key = getch();
+#endif
                 if (key > 0) {
                     if (key == ' ' || key == 0x0A) {
                         /* continue */
@@ -693,6 +707,17 @@ void DEBUG_ShowMsg(char const* format,...) {
                         break;
                     }
                 }
+
+#if defined(WIN32)
+                /* help inspire confidence in users and in Windows by keeping the event loop going.
+                   This is to prevent Windows from graying out the main window during this loop
+                   as "application not responding" */
+                SDL_Event ev;
+
+                if (SDL_PollEvent(&ev)) {
+                    /* TODO */
+                }
+#endif
             } while (1);
         }
     }
