@@ -1731,7 +1731,7 @@ void FM_OPL::WriteReg(int r, int v)
 		/* FB,C */
 		if( (r&0x0f) > 8) return;
 		CH = &P_CH[r&0x0f];
-		CH->SLOT[SLOT1].FB  = (v>>1)&7 ? ((v>>1)&7) + 7 : 0;
+		CH->SLOT[SLOT1].FB  = ((v>>1)&7) ? ((v>>1)&7) + 7 : 0;
 		CH->SLOT[SLOT1].CON = v&1;
 		CH->SLOT[SLOT1].connect1 = CH->SLOT[SLOT1].CON ? &output[0] : &phase_modulation;
 		break;

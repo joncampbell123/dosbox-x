@@ -396,13 +396,13 @@ void INT10_SetColorSelect(Bit8u val) {
 		switch(vga.mode) {
 		case M_TANDY2:
 			IO_Write(VGAREG_TDY_ADDRESS, 0x11);
-			IO_Write(VGAREG_PCJR_DATA, val&1? 0xf:0);
+			IO_Write(VGAREG_PCJR_DATA, (val&1)? 0xf:0);
 			break;
 		case M_TANDY4:
 			for(Bit8u i = 0x11; i < 0x14; i++) {
 				const Bit8u t4_table[] = {0,2,4,6, 0,3,5,0xf};
 				IO_Write(VGAREG_TDY_ADDRESS, i);
-				IO_Write(VGAREG_PCJR_DATA, t4_table[(i-0x10)+(val&1? 4:0)]);
+				IO_Write(VGAREG_PCJR_DATA, t4_table[(i-0x10)+((val&1)? 4:0)]);
 			}
 			break;
 		default:

@@ -314,10 +314,10 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 void CDirectSerial::updateMSR () {
 	int new_status = SERIAL_getmodemstatus(comport);
 
-	setCTS(new_status&SERIAL_CTS? true:false);
-	setDSR(new_status&SERIAL_DSR? true:false);
-	setRI(new_status&SERIAL_RI? true:false);
-	setCD(new_status&SERIAL_CD? true:false);
+	setCTS((new_status&SERIAL_CTS)? true:false);
+	setDSR((new_status&SERIAL_DSR)? true:false);
+	setRI((new_status&SERIAL_RI)? true:false);
+	setCD((new_status&SERIAL_CD)? true:false);
 }
 
 void CDirectSerial::transmitByte (Bit8u val, bool first) {

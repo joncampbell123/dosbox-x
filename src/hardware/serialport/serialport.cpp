@@ -734,11 +734,11 @@ Bitu CSerial::Read_MCR () {
 void CSerial::Write_MCR (Bit8u data) {
 	// WARNING: At the time setRTSDTR is called rts and dsr members are still wrong.
 	if (data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
-	bool new_dtr = data & MCR_DTR_MASK? true:false;
-	bool new_rts = data & MCR_RTS_MASK? true:false;
-	bool new_op1 = data & MCR_OP1_MASK? true:false;
-	bool new_op2 = data & MCR_OP2_MASK? true:false;
-	bool new_loopback = data & MCR_LOOPBACK_Enable_MASK? true:false;
+	bool new_dtr = (data & MCR_DTR_MASK)? true:false;
+	bool new_rts = (data & MCR_RTS_MASK)? true:false;
+	bool new_op1 = (data & MCR_OP1_MASK)? true:false;
+	bool new_op2 = (data & MCR_OP2_MASK)? true:false;
+	bool new_loopback = (data & MCR_LOOPBACK_Enable_MASK)? true:false;
 	if (loopback != new_loopback) {
 		if (new_loopback) setRTSDTR(false,false);
 		else setRTSDTR(new_rts,new_dtr);

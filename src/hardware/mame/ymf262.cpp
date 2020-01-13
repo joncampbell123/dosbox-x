@@ -2089,7 +2089,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 
 		chip->pan_ctrl_value[ (r&0xf) + ch_offset ] = v;    /* store control value for OPL3/OPL2 mode switching on the fly */
 
-		CH->SLOT[SLOT1].FB  = (v>>1)&7 ? ((v>>1)&7) + 7 : 0;
+		CH->SLOT[SLOT1].FB  = ((v>>1)&7) ? ((v>>1)&7) + 7 : 0;
 		CH->SLOT[SLOT1].CON = v&1;
 
 		if( chip->OPL3_mode & 1 )

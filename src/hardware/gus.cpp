@@ -1820,7 +1820,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 	}
 
 	LOG(LOG_MISC,LOG_DEBUG)("GUS DMA transfer %lu bytes, GUS RAM address 0x%lx %u-bit DMA %u-bit PCM (ctrl=0x%02x) tcount=%u",
-		(unsigned long)step,(unsigned long)dmaaddr,myGUS.DMAControl & 0x4 ? 16 : 8,myGUS.DMAControl & 0x40 ? 16 : 8,myGUS.DMAControl,chan->tcount);
+		(unsigned long)step,(unsigned long)dmaaddr,(myGUS.DMAControl & 0x4) ? 16 : 8,(myGUS.DMAControl & 0x40) ? 16 : 8,myGUS.DMAControl,chan->tcount);
 
 	if (step > 0) {
 		dmaaddr += (unsigned int)step;

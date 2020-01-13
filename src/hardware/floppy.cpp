@@ -717,8 +717,8 @@ void FloppyController::on_fdc_in_command() {
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
-				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads &&
+				((in_cmd[1]&4U)?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
 				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
 				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
@@ -836,8 +836,8 @@ void FloppyController::on_fdc_in_command() {
              * sector numbers. */
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
-				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads &&
+				((in_cmd[1]&4U)?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
 				in_cmd[5] <= FLOPPY_MAX_SECTOR_SIZE_SZCODE && in_cmd[4] > 0U) {
 				unsigned char sector[FLOPPY_MAX_SECTOR_SIZE];
 				bool fail = false;
@@ -1013,7 +1013,7 @@ void FloppyController::on_fdc_in_command() {
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
             ST[0] &= ~0x20;
 			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads) {
+				current_cylinder[devidx] < image->cylinders && ((in_cmd[1]&4U)?1U:0U) <= image->heads) {
 				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
 				/* TODO: minor delay to emulate time for one sector to pass under the head */
 				reset_res();
@@ -1021,7 +1021,7 @@ void FloppyController::on_fdc_in_command() {
 				out_res[1] = ST[1];
 				out_res[2] = ST[2];
 				out_res[3] = current_cylinder[devidx];
-				out_res[4] = (in_cmd[1]&4?1:0);
+				out_res[4] = ((in_cmd[1]&4)?1:0);
 				out_res[5] = ns + 1;		/* the sector passing under the head at this time */
                 {
                     unsigned int sz = (unsigned int)image->sector_size;

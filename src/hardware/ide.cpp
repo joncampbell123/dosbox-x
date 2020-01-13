@@ -894,8 +894,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 if (!common_spinup_response(/*spin up*/true,/*wait*/false)) {
                     count = 0x03;
                     state = IDE_DEV_READY;
-                    feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                    status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                    feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                    status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                     controller->raise_irq();
                     allow_writing = true;
                     return;
@@ -1501,8 +1501,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 
             count = 0x03;
             state = IDE_DEV_READY;
-            feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-            status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+            feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+            status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
             controller->raise_irq();
             allow_writing = true;
             break;
@@ -1535,8 +1535,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
@@ -1582,8 +1582,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
@@ -1621,8 +1621,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
@@ -1639,8 +1639,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
@@ -1657,8 +1657,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
@@ -1677,8 +1677,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             else {
                 count = 0x03;
                 state = IDE_DEV_READY;
-                feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
-                status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
                 controller->raise_irq();
                 allow_writing = true;
             }
