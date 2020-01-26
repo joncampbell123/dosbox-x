@@ -720,7 +720,8 @@ void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handl
 }
 
 void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
-    std::fill(ls.disp_list.begin(), ls.disp_list.end(), DOSBoxMenu::unassigned_item_handle);
+    uint16_t id = DOSBoxMenu::unassigned_item_handle;
+    std::fill(ls.disp_list.begin(), ls.disp_list.end(), id);
 
     ls.disp_list.clear();
     ls.items_changed = true;
