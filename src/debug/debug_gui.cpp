@@ -542,6 +542,21 @@ void DBGUI_StartUp(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("DEBUG GUI startup");
 	/* Start the main window */
 	dbg.win_main=initscr();
+
+#ifdef WIN32
+    /* Tell Windows 10 we DONT want a thin tall console window that fills the screen top to bottom.
+       It's a nuisance especially when the user attempts to move the windwo up to the top to see
+       the status, only for Windows to auto-maximize. 30 lines is enough, thanks. */
+    {
+        if (dbg.win_main) {
+            int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main, win_main_maxy, win_main_maxx);
+            if (win_main_maxx > 100) win_main_maxy = 100;
+            if (win_main_maxy > 40) win_main_maxy = 40;
+            resize_term(win_main_maxy, win_main_maxx);
+        }
+    }
+#endif
+
 	cbreak();       /* take input chars one at a time, no wait for \n */
 	noecho();       /* don't echo input */
 	scrollok(stdscr,false);
