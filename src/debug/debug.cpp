@@ -2862,8 +2862,6 @@ Bit32u DEBUG_CheckKeys(void) {
 	bool skipDraw = false;
 	int key=getch();
 
-	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
-	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
     if (key == KEY_RESIZE) {
 #ifdef WIN32 /* BUG: pdcurses notifies us immediately upon getting a resize event but does not update it's
                      internal structures to reflect the new console size. For example a Win32 console event
