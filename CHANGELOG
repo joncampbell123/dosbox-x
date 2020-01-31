@@ -1,4 +1,4 @@
-0.82.26 (next)
+0.82.26
   - Debugger console window fixed to choose a smaller
     default size in Windows builds.
   - Debugger console window now resizes properly
