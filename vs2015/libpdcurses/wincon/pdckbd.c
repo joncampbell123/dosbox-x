@@ -34,6 +34,11 @@ static SHORT left_key;
 static int key_count = 0;
 static int save_press = 0;
 
+/* HACK! */
+INPUT_RECORD* _pdcurses_hax_inputrecord(void) {
+    return &save_ip;
+}
+
 #define KEV save_ip.Event.KeyEvent
 #define MEV save_ip.Event.MouseEvent
 #define REV save_ip.Event.WindowBufferSizeEvent

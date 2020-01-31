@@ -2852,6 +2852,10 @@ void win_code_ui_up(int count) {
     }
 }
 
+#ifdef WIN32
+extern "C" INPUT_RECORD * _pdcurses_hax_inputrecord(void);
+#endif
+
 Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	bool numberrun = false;
@@ -2861,11 +2865,19 @@ Bit32u DEBUG_CheckKeys(void) {
 	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
 	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
     if (key == KEY_RESIZE) {
-#ifdef WIN32 /* pdcurses needs a little more work here to work properly in Windows.
-                Note that not calling resize_term() prevents pdcurses from sending any more resize events. */
-        if (dbg.win_main) {
-            int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main, win_main_maxy, win_main_maxx);
-            resize_term(win_main_maxy,win_main_maxx);
+#ifdef WIN32 /* BUG: pdcurses notifies us immediately upon getting a resize event but does not update it's
+                     internal structures to reflect the new console size. For example a Win32 console event
+                     reporting a change to 80x41 would still return 80x40 if we asked pdcurses right now.
+                     To make resizing the console window less painful, look at pdcurses internal structure
+                     directly instead.
+
+                     Note that we need to call resize_term() or pdcurses will never notify us about console
+                     resize again. */
+        {
+            INPUT_RECORD *r = _pdcurses_hax_inputrecord();
+            if (r->EventType == WINDOW_BUFFER_SIZE_EVENT) {
+                resize_term(r->Event.WindowBufferSizeEvent.dwSize.Y, r->Event.WindowBufferSizeEvent.dwSize.X);
+            }
         }
 #endif
         void DEBUG_GUI_OnResize(void);
