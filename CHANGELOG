@@ -1,4 +1,6 @@
 0.82.26 (next)
+  - Debugger console window fixed to choose a smaller
+    default size in Windows builds.
   - Debugger console window now resizes properly
     in Windows builds.
   - Using F10 (step over) in the debugger to step
