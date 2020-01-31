@@ -2873,6 +2873,9 @@ Bit32u DEBUG_CheckKeys(void) {
 
                      Note that we need to call resize_term() or pdcurses will never notify us about console
                      resize again. */
+            /* FIXME: Windows will notify us if the user enlarges the window vertically, but will NOT notify
+                      us if they vertically shrink the window (adds scrollbar instead). How do we disable
+                      that behavior? */
         {
             INPUT_RECORD *r = _pdcurses_hax_inputrecord();
             if (r->EventType == WINDOW_BUFFER_SIZE_EVENT) {
