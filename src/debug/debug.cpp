@@ -2861,6 +2861,13 @@ Bit32u DEBUG_CheckKeys(void) {
 	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
 	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
     if (key == KEY_RESIZE) {
+#ifdef WIN32 /* pdcurses needs a little more work here to work properly in Windows.
+                Note that not calling resize_term() prevents pdcurses from sending any more resize events. */
+        if (dbg.win_main) {
+            int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main, win_main_maxy, win_main_maxx);
+            resize_term(win_main_maxy,win_main_maxx);
+        }
+#endif
         void DEBUG_GUI_OnResize(void);
         DEBUG_GUI_OnResize();
         DEBUG_DrawScreen();
