@@ -1,4 +1,6 @@
 0.82.26 (next)
+  - Debugger console window now resizes properly
+    in Windows builds.
   - Using F10 (step over) in the debugger to step
     over INT 21h when a breakpoint for INT 21h is
     set now works correctly, instead of letting the
