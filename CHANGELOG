@@ -1,5 +1,6 @@
 0.83.0 (next)
-  - 
+  - Source tree now includes build script for Linux
+    users who prefer Clang/LLVM over GCC.
 0.82.26
   - Debugger console window fixed to choose a smaller
     default size in Windows builds.
