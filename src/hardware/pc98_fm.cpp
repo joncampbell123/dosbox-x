@@ -122,15 +122,15 @@ static std::map<UINT,CBUS4PORT> cbuscore_map;
 
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
-    auto &cbusm = cbuscore_map[port];
-    auto &func = cbusm.out;
+    const auto &cbusm = cbuscore_map[port];
+    const auto &func = cbusm.out;
     if (func) func(port,val);
 }
 
 Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
-    auto &cbusm = cbuscore_map[port];
-    auto &func = cbusm.inp;
+    const auto &cbusm = cbuscore_map[port];
+    const auto &func = cbusm.inp;
     if (func) return func(port);
     return ~0ul;
 }
