@@ -669,21 +669,21 @@ static Bit8u * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*
     if (count > 0u) {
         unsigned char cur,nex;
         /* on VGA hardware I've seen, the first pixel is the full 8-bit pixel value of the FIRST pixel in memory. */
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
         Alt_VGA_256color_2x4bit_Draw_CharClock<7>(temps,pixels,cur,nex);
         count--;
 
         while (count > 0u) {
-            const unsigned int addr2 = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr2 << vga.config.addr_shift));
+            addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
             Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels2,cur,nex);
             count--;
         }
 
         /* the top nibble of the first pixel past the end is visible on real hardware */
         {
-            const unsigned int addr2 = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
             VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
             Alt_VGA_256color_2x4bit_Draw_CharClock<1>(temps,pixels,cur,nex);
         }
