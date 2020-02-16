@@ -1,4 +1,8 @@
 0.83.0 (next)
+  - Linux/X11 SDL1 builds fixed not to issue resize
+    commands to the window to avoid fighting the
+    window manager. This prevents "spastic resizing"
+    under Gnome 3 in Centos 8.
   - Source tree now includes build script for Linux
     users who prefer Clang/LLVM over GCC.
 0.82.26
