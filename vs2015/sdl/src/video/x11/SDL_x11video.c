@@ -1165,7 +1165,12 @@ static int X11_ResizeWindow(_THIS,
 		window_w = w;
 		window_h = h;
 
-        XResizeWindow(SDL_Display, WMwindow, w, h);
+		if ((flags & SDL_HAX_NORESIZEWINDOW) && (flags & SDL_FULLSCREEN) == 0 && (screen->flags & SDL_FULLSCREEN) == 0) {
+			/* do nothing */
+		}
+		else {
+			XResizeWindow(SDL_Display, WMwindow, w, h);
+		}
 
 		/* Resize the fullscreen and display windows */
 		if ( flags & SDL_FULLSCREEN ) {
@@ -1210,7 +1215,7 @@ SDL_Surface *X11_SetVideoMode(_THIS, SDL_Surface *current,
 	if ( (SDL_Window) && ((saved_flags&SDL_OPENGL) == (flags&SDL_OPENGL))
 	      && (bpp == current->format->BitsPerPixel)
           && ((saved_flags&SDL_NOFRAME) == (flags&SDL_NOFRAME)) ) {
-		if (X11_ResizeWindow(this, current, width, height, flags) < 0) {
+        if (X11_ResizeWindow(this, current, width, height, flags) < 0) {
 			current = NULL;
 			goto done;
 		}

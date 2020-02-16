@@ -460,6 +460,10 @@ bool dos_shell_running_program = false;
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
+bool setSizeButNotResize() {
+    return (userResizeWindowWidth > 0 && userResizeWindowHeight > 0);
+}
+
 int NonUserResizeCounter = 0;
 
 Bitu time_limit_ms = 0;

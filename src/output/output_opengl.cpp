@@ -17,6 +17,8 @@
 
 using namespace std;
 
+bool setSizeButNotResize();
+
 #if C_OPENGL
 PFNGLGENBUFFERSARBPROC glGenBuffersARB = NULL;
 PFNGLBINDBUFFERARBPROC glBindBufferARB = NULL;
@@ -155,7 +157,7 @@ retry:
     sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, (sdl_flags & SDL_WINDOW_OPENGL) ? SCREEN_OPENGL : SCREEN_SURFACE);
     if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else
-    sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags);
+    sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags | (unsigned int)(setSizeButNotResize() ? SDL_HAX_NORESIZEWINDOW : 0));
 #endif
     if (sdl.surface == NULL && sdl.desktop.fullscreen) {
         LOG_MSG("Fullscreen not supported: %s", SDL_GetError());

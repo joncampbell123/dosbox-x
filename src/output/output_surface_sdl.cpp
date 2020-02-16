@@ -10,6 +10,8 @@
 
 using namespace std;
 
+bool setSizeButNotResize();
+
 #if !defined(C_SDL2)
 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
 {
@@ -241,7 +243,7 @@ retry:
             sdl.surface = SDL_SetVideoMode((int)final_width, (int)final_height, (int)bpp,
                 (unsigned int)((sdl.draw.flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
 #ifdef SDL_DOSBOX_X_SPECIAL
-                (unsigned int)SDL_HAX_NOREFRESH |
+                (unsigned int)SDL_HAX_NOREFRESH | (unsigned int)(setSizeButNotResize() ? SDL_HAX_NORESIZEWINDOW : 0) |
 #endif
                 (unsigned int)SDL_RESIZABLE);
 

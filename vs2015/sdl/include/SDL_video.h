@@ -143,7 +143,8 @@ typedef struct SDL_Surface {
 #define SDL_OPENGLBLIT	0x0000000A	/**< Create an OpenGL rendering context and use it for blitting */
 #define SDL_RESIZABLE	0x00000010	/**< This video mode may be resized */
 #define SDL_NOFRAME     0x00000020	/**< No window caption or edge frame */
-#define SDL_HAX_NOREFRESH 0x10000000/**< DOSBox-X specific: Disable auto-redraw of the window when repainting is needed */
+#define SDL_HAX_NOREFRESH 0x08000000/**< DOSBox-X specific: Disable auto-redraw of the window when repainting is needed */
+#define SDL_HAX_NORESIZEWINDOW 0x04000000/**< DOSBox-X specific: Call is in response to SDL_SetVideoMode and therefore do not resize the window again */
 /*@}*/
 
 /** Used internally (read-only) */
