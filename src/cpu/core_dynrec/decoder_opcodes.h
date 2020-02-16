@@ -35,7 +35,7 @@ static void dyn_dop_ebgb(DualOps op) {
 		dyn_fill_ea(FC_ADDR);
 		gen_protect_addr_reg();
 		dyn_read_byte_canuseword(FC_ADDR,FC_OP1);
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		dyn_dop_byte_gencall(op);
 
 		if ((op!=DOP_CMP) && (op!=DOP_TEST)) {
@@ -43,10 +43,10 @@ static void dyn_dop_ebgb(DualOps op) {
 			dyn_write_byte(FC_ADDR,FC_RETOP);
 		}
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		dyn_dop_byte_gencall(op);
-		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -54,11 +54,11 @@ static void dyn_dop_ebgb_mov(void) {
 	dyn_get_modrm();
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea(FC_ADDR);
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		dyn_write_byte(FC_ADDR,FC_TMP_BA1);
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -70,7 +70,7 @@ static void dyn_dop_ebib_mov(void) {
 		dyn_write_byte(FC_ADDR,FC_TMP_BA1);
 	} else {
 		gen_mov_byte_to_reg_low_imm(FC_TMP_BA1,decode_fetchb());
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -80,16 +80,16 @@ static void dyn_dop_ebgb_xchg(void) {
 		dyn_fill_ea(FC_ADDR);
 		gen_protect_addr_reg();
 		dyn_read_byte(FC_ADDR,FC_TMP_BA1);
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		gen_restore_addr_reg();
 		dyn_write_byte(FC_ADDR,FC_TMP_BA2);
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA2,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -98,14 +98,14 @@ static void dyn_dop_gbeb(DualOps op) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea(FC_ADDR);
 		dyn_read_byte_canuseword(FC_ADDR,FC_OP2);
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		dyn_dop_byte_gencall(op);
-		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP2,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 		dyn_dop_byte_gencall(op);
-		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	}
 }
 
@@ -114,10 +114,10 @@ static void dyn_dop_gbeb_mov(void) {
 	if (decode.modrm.mod<3) {
 		dyn_fill_ea(FC_ADDR);
 		dyn_read_byte(FC_ADDR,FC_TMP_BA1);
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,(decode.modrm.reg>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.reg&3,((decode.modrm.reg>>2)&1));
 	}
 }
 
@@ -359,7 +359,7 @@ static void dyn_movx_ev_gb(bool sign) {
 		gen_extend_byte(sign,FC_TMP_BA1);
 		MOV_REG_WORD_FROM_HOST_REG(FC_TMP_BA1,decode.modrm.reg,decode.big_op);
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW(FC_TMP_BA1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 		gen_extend_byte(sign,FC_TMP_BA1);
 		MOV_REG_WORD_FROM_HOST_REG(FC_TMP_BA1,decode.modrm.reg,decode.big_op);
 	}
@@ -629,7 +629,7 @@ static void dyn_grp2_eb(grp2_types type) {
 		gen_protect_addr_reg();
 		dyn_read_byte_canuseword(FC_ADDR,FC_OP1);
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 	switch (type) {
 	case grp2_1:
@@ -654,7 +654,7 @@ static void dyn_grp2_eb(grp2_types type) {
 		gen_restore_addr_reg();
 		dyn_write_byte(FC_ADDR,FC_RETOP);
 	} else {
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -709,7 +709,7 @@ static void dyn_grp3_eb(void) {
 		if ((decode.modrm.reg==2) || (decode.modrm.reg==3)) gen_protect_addr_reg();
 		dyn_read_byte_canuseword(FC_ADDR,FC_OP1);
 	} else {
-		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 	switch (decode.modrm.reg) {
 	case 0x0:	// test eb,ib
@@ -742,7 +742,7 @@ static void dyn_grp3_eb(void) {
 		gen_restore_addr_reg();
 		dyn_write_byte(FC_ADDR,FC_RETOP);
 	} else {
-		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+		MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 	}
 }
 
@@ -809,9 +809,9 @@ static bool dyn_grp4_eb(void) {
 			gen_restore_addr_reg();
 			dyn_write_byte(FC_ADDR,FC_RETOP);
 		} else {
-			MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+			MOV_REG_BYTE_TO_HOST_REG_LOW_CANUSEWORD(FC_OP1,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 			dyn_sop_byte_gencall(decode.modrm.reg==0 ? SOP_INC : SOP_DEC);
-			MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,(decode.modrm.rm>>2)&1);
+			MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 		}
 		break;
 	case 0x7:		//CALBACK Iw

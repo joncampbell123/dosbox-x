@@ -2562,10 +2562,10 @@ public:
         sprintf(buf,"%s \"key %d%s%s%s%s\"",
             entry,
             (int)key,
-            defmod & 1 ? " mod1" : "",
-            defmod & 2 ? " mod2" : "",
-            defmod & 4 ? " mod3" : "",
-            defmod & 8 ? " host" : ""
+            (defmod & 1) ? " mod1" : "",
+            (defmod & 2) ? " mod2" : "",
+            (defmod & 4) ? " mod3" : "",
+            (defmod & 8) ? " host" : ""
         );
     }
 #else

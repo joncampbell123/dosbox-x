@@ -875,11 +875,11 @@ static Bitu INT13_DiskHandler(void) {
         break;
     case 0x3: /* Write sectors */
         
-        if(driveInactive(drivenum)) {
+        if(driveInactive(drivenum) || !imageDiskList[drivenum]) {
             reg_ah = 0xff;
             CALLBACK_SCF(true);
             return CBRET_NONE;
-        }                     
+        }
 
         /* INT 13h is limited to 512 bytes/sector (as far as I know).
          * The sector buffer in this function is limited to 512 bytes/sector,

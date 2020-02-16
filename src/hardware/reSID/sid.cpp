@@ -679,7 +679,7 @@ void SID2::clock(cycle_count delta_t)
 
       // Clock on MSB off if MSB is on, clock on MSB on if MSB is off.
       reg24 delta_accumulator =
-	(accumulator & 0x800000 ? 0x1000000 : 0x800000) - accumulator;
+	((accumulator & 0x800000) ? 0x1000000 : 0x800000) - accumulator;
 
       cycle_count delta_t_next = (cycle_count)((unsigned int)delta_accumulator / (unsigned int)freq);
       if (delta_accumulator%freq) {

@@ -135,7 +135,7 @@ enum {
 //macros to convert a 3-bit register index to the correct register
 #define reg_8l(reg) (cpu_regs.regs[(reg)].byte[BL_INDEX])
 #define reg_8h(reg) (cpu_regs.regs[(reg)].byte[BH_INDEX])
-#define reg_8(reg) ((reg) & 4 ? reg_8h((reg) & 3) : reg_8l((reg) & 3))
+#define reg_8(reg) ((reg & 4) ? reg_8h((reg) & 3) : reg_8l((reg) & 3))
 #define reg_16(reg) (cpu_regs.regs[(reg)].word[W_INDEX])
 #define reg_32(reg) (cpu_regs.regs[(reg)].dword[DW_INDEX])
 

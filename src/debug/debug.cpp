@@ -2089,8 +2089,8 @@ bool ParseCommand(char* str) {
             DEBUG_ShowMsg("color-plane-en=%02xh color-select=%02xh index=%02xh",
                 vga.attr.color_plane_enable,    vga.attr.color_select,  vga.attr.index);
             DEBUG_ShowMsg("disabled-by-index=%u disabled-by-idx1-bit5=%u index-written=%u",
-                vga.attr.disabled & 1 ? 1 : 0,
-                vga.attr.disabled & 2 ? 1 : 0,
+                (vga.attr.disabled & 1) ? 1 : 0,
+                (vga.attr.disabled & 2) ? 1 : 0,
                 vga.internal.attrindex);
 
             cpptmp = " ";

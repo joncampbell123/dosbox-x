@@ -1096,7 +1096,7 @@ bool CommandLine::FindCommand(unsigned int which,std::string & value) {
     if (which<1) return false;
     if (which>cmds.size()) return false;
     cmd_it it=cmds.begin();
-    for (;which>1;--which) it++;
+    for (;which>1;--which) ++it;
     value=(*it);
     return true;
 }

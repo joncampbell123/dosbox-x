@@ -128,7 +128,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
             Bit8u cur_col=CURSOR_POS_COL(page);
 
             if (cur_row >= rows)
-                INT10_SetCursorPos(rows-1,cur_col,page);
+                INT10_SetCursorPos((Bit8u)(rows-1),cur_col,page);
         }
 	}
 }

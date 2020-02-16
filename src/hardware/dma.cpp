@@ -173,8 +173,8 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
         else if (port == 0x29) { /* auto bank increment */
             pc98_port_29h = (Bit8u)val;
             DmaControllers[0]->GetChannel(val & 3)->page_bank_increment_wraparound =
-                (val & 0x08 ? 0xF0 : 0x00) +
-                (val & 0x04 ? 0x0F : 0x00);
+                ((val & 0x08) ? 0xF0 : 0x00) +
+                ((val & 0x04) ? 0x0F : 0x00);
 #if 0
             LOG_MSG("DMA channel %u page auto increment mask %x",
                 (unsigned int)(val&3u),

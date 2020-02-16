@@ -150,10 +150,14 @@ public:
 			if (!active_count) Release();	// delay page releasing until active_count is zero
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
-			memset(invalidation_map,0,4096);
-		}
-		invalidation_map[addr]++;
+            invalidation_map = (Bit8u*)malloc(4096);
+            if (invalidation_map != NULL)
+                memset(invalidation_map, 0, 4096);
+            else
+                E_Exit("Memory allocation failed in writeb");
+        }
+        if (invalidation_map != NULL)
+            invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
 	void writew(PhysPt addr,Bit16u val){
@@ -168,13 +172,17 @@ public:
 			return;
 		} else if (!invalidation_map) {
 			invalidation_map=(Bit8u*)malloc(4096);
-			memset(invalidation_map,0,4096);
+            if (invalidation_map != NULL)
+                memset(invalidation_map, 0, 4096);
+            else
+                E_Exit("Memory allocation failed in writew");
 		}
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 		host_writew(&invalidation_map[addr],
 			host_readw(&invalidation_map[addr])+0x101);
 #else
-		(*(Bit16u*)&invalidation_map[addr])+=0x101;
+        if (invalidation_map != NULL)
+            (*(Bit16u*)& invalidation_map[addr]) += 0x101;
 #endif
 		InvalidateRange(addr,addr+(Bitu)1);
 	}
@@ -190,13 +198,17 @@ public:
 			return;
 		} else if (!invalidation_map) {
 			invalidation_map=(Bit8u*)malloc(4096);
-			memset(invalidation_map,0,4096);
+            if (invalidation_map != NULL)
+                memset(invalidation_map, 0, 4096);
+            else
+                E_Exit("Memory allocation failed in writed");
 		}
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 		host_writed(&invalidation_map[addr],
 			host_readd(&invalidation_map[addr])+0x1010101);
 #else
-		(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
+        if (invalidation_map != NULL)
+            (*(Bit32u*)& invalidation_map[addr]) += 0x1010101;
 #endif
 		InvalidateRange(addr,addr+(Bitu)3);
 	}
@@ -211,11 +223,16 @@ public:
 				if (!active_count) Release();
 			}
 		} else {
-			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
-				memset(invalidation_map,0,4096);
-			}
-			invalidation_map[addr]++;
+            if (!invalidation_map) {
+                invalidation_map = (Bit8u*)malloc(4096);
+                if (invalidation_map != NULL) {
+                    memset(invalidation_map, 0, 4096);
+                }
+                else
+                    E_Exit("Memory allocation failed in writeb_checked");
+            }
+            if (invalidation_map != NULL)
+                invalidation_map[addr]++;
 			if (InvalidateRange(addr,addr)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
 				return true;
@@ -237,13 +254,17 @@ public:
 		} else {
 			if (!invalidation_map) {
 				invalidation_map=(Bit8u*)malloc(4096);
-				memset(invalidation_map,0,4096);
+                if (invalidation_map != NULL)
+                    memset(invalidation_map, 0, 4096);
+                else
+                    E_Exit("Memory allocation failed in writew_checked");
 			}
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 			host_writew(&invalidation_map[addr],
 				host_readw(&invalidation_map[addr])+0x101);
 #else
-			(*(Bit16u*)&invalidation_map[addr])+=0x101;
+            if (invalidation_map != NULL)
+                (*(Bit16u*)& invalidation_map[addr]) += 0x101;
 #endif
 			if (InvalidateRange(addr,addr+(Bitu)1)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
@@ -266,13 +287,17 @@ public:
 		} else {
 			if (!invalidation_map) {
 				invalidation_map=(Bit8u*)malloc(4096);
-				memset(invalidation_map,0,4096);
+                if (invalidation_map != NULL)
+                    memset(invalidation_map, 0, 4096);
+                else
+                    E_Exit("Memory allocation failed in writed_checked");
 			}
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 			host_writed(&invalidation_map[addr],
 				host_readd(&invalidation_map[addr])+0x1010101);
 #else
-			(*(Bit32u*)&invalidation_map[addr])+=0x1010101;
+            if (invalidation_map != NULL)
+                (*(Bit32u*)& invalidation_map[addr]) += 0x1010101;
 #endif
 			if (InvalidateRange(addr,addr+(Bitu)3)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
@@ -406,9 +431,12 @@ static INLINE void cache_addunusedblock(CacheBlockDynRec * block) {
 static CacheBlockDynRec * cache_getblock(void) {
 	// get a free cache block and advance the free pointer
 	CacheBlockDynRec * ret=cache.block.free;
-	if (!ret) E_Exit("Ran out of CacheBlocks" );
-	cache.block.free=ret->cache.next;
-	ret->cache.next=0;
+    if (!ret)
+        E_Exit("Ran out of CacheBlocks");
+    else {
+        cache.block.free = ret->cache.next;
+        ret->cache.next = 0;
+    }
 	return ret;
 }
 
@@ -571,15 +599,19 @@ static void cache_init(bool enable) {
 		if (cache_blocks == NULL) {
 			// allocate the cache blocks memory
 			cache_blocks=(CacheBlockDynRec*)malloc(CACHE_BLOCKS*sizeof(CacheBlockDynRec));
-			if(!cache_blocks) E_Exit("Allocating cache_blocks has failed");
-			memset(cache_blocks,0,sizeof(CacheBlockDynRec)*CACHE_BLOCKS);
+            if (!cache_blocks)
+                E_Exit("Allocating cache_blocks has failed");
+            else
+                memset(cache_blocks, 0, sizeof(CacheBlockDynRec) * CACHE_BLOCKS);
 			cache.block.free=&cache_blocks[0];
 			// initialize the cache blocks
-			for (i=0;i<CACHE_BLOCKS-1;i++) {
-				cache_blocks[i].link[0].to=(CacheBlockDynRec *)1;
-				cache_blocks[i].link[1].to=(CacheBlockDynRec *)1;
-				cache_blocks[i].cache.next=&cache_blocks[i+1];
-			}
+            if (cache_blocks != NULL) {
+                for (i = 0; i < CACHE_BLOCKS - 1; i++) {
+                    cache_blocks[i].link[0].to = (CacheBlockDynRec*)1;
+                    cache_blocks[i].link[1].to = (CacheBlockDynRec*)1;
+                    cache_blocks[i].cache.next = &cache_blocks[i + 1];
+                }
+            }
 		}
 		if (cache_code_start_ptr==NULL) {
 			// allocate the code cache memory

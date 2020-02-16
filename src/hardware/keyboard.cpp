@@ -208,8 +208,8 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
             KEYBOARD_AddBuffer(AUX|
                 ((y2 == -256 || y2 == 255) ? 0x80 : 0x00) |   /* Y overflow */
                 ((x2 == -256 || x2 == 255) ? 0x40 : 0x00) |   /* X overflow */
-                (y2 & 0x100 ? 0x20 : 0x00) |         /* Y sign bit */
-                (x2 & 0x100 ? 0x10 : 0x00) |         /* X sign bit */
+                ((y2 & 0x100) ? 0x20 : 0x00) |         /* Y sign bit */
+                ((x2 & 0x100) ? 0x10 : 0x00) |         /* X sign bit */
                 0x08 |                      /* always 1? */
                 (keyb.ps2mouse.m ? 4 : 0) |         /* M */
                 (keyb.ps2mouse.r ? 2 : 0) |         /* R */
