@@ -285,19 +285,25 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
  #define fopen64 fopen
  #define ftello64 ftell
  #define fseeko64 fseek
+ #define fseek_ofs_t off_t
 #elif defined (__HAIKU__)
  #define fopen64 fopen
  #define ftello64 ftello
  #define fseeko64 fseeko
+ #define fseek_ofs_t off_t
 #elif defined (_MSC_VER)
  #define fopen64 fopen
  #if (_MSC_VER >= 1400)
   #define ftello64 _ftelli64
   #define fseeko64 _fseeki64
+  #define fseek_ofs_t __int64
  #else
   #define ftello64 ftell
   #define fseeko64 fseek
+  #define fseek_ofs_t long
  #endif
+#else
+ #define fseek_ofs_t long
 #endif
 
 /* Dos Error Codes */
