@@ -48,6 +48,7 @@
 #include "mouse.h"
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
+bool force_nocachedir = false;
 
 void DOS_EnableDriveMenu(char drv);
 
@@ -290,6 +291,10 @@ public:
         }
 
         bool nocachedir = false;
+
+        if (force_nocachedir)
+            nocachedir = true;
+
         if (cmd->FindExist("-nocachedir",true))
             nocachedir = true;
 

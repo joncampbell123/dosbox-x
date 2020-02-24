@@ -119,6 +119,8 @@ void CheckSSESupport()
 
 extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+extern bool         force_nocachedir;
+
 extern Bitu         frames;
 extern Bitu         cycle_count;
 extern bool         sse2_available;
@@ -766,6 +768,8 @@ void Init_VGABIOS() {
     // mem init must have already happened.
     // We can remove this once the device callout system is in place.
     assert(MemBase != NULL);
+
+    force_nocachedir = section->Get_bool("nocachedir");
 
     VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
@@ -1510,6 +1514,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
+
+    Pbool = secprop->Add_bool("nocachedir",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir by default.");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
