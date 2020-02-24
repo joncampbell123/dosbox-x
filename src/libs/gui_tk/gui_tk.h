@@ -2046,12 +2046,11 @@ protected:
         columns = 1;
         colx.clear();
         colx.push_back(3+width);
-		for (i = items.begin(); i != items.end() && y > 0; ++i) {
+        for (i = items.begin(); i != items.end() && y > 0; ++i) {
             if (*i == "|") {
                 colx.push_back(3+width);
                 columns++;
                 px = width;
-                width = 0;
             }
             else {
                 Size newwidth = (unsigned int)f->getWidth(*i) + px + 33;

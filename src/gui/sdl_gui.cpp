@@ -1197,7 +1197,7 @@ public:
         };
 
         while ((sec = control->GetSection(i))) {
-            if ((i%15) == 0) bar->addItem(1, "|");
+            if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             std::string name = sec->GetName();
             name[0] = std::toupper(name[0]);
             const auto sz = gridfunc(i);

@@ -1485,6 +1485,11 @@ void Menu::paint(Drawable &d) const
                 if (coli < colx.size()) {
                     cwidth = colx[coli] - x;
                 }
+
+                d.setColor(Color::Shadow3D);
+                d.drawLine(x-2,2,x-2,this->height-4);
+                d.setColor(Color::Light3D);
+                d.drawLine(x-1,2,x-1,this->height-4);
             }
         } else {
 			if (index == selected && hasFocus()) {
