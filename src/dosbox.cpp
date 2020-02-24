@@ -1492,6 +1492,14 @@ void DOSBOX_SetupConfigSections(void) {
                       "15khz is not implemented at this time.\n"
                       "31khz is experimental at this time.");
 
+    Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("This controls PIT 1 PC speaker behavior related to turning the output on and off.\n"
+                      "Default setting is 'auto' to let the emulator choose for you.\n"
+                      "true:  PIT 1 will always cycle whether or not the speaker is on (PC-9801 behavior).\n"
+                      "false: PIT 1 will only cycle when the speaker is on (PC-9821 behavior).\n"
+                      "Some older games will require the PC-9801 behavior to function properly.");
+
     Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,2457600);
     Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"

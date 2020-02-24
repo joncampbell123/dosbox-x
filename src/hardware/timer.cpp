@@ -28,6 +28,13 @@
 #include "setup.h"
 #include "control.h"
 
+// This is only set in PC-98 mode and only if emulating PC-9801.
+// There is at least one game (PC-98 port of Thexder) that depends on PC-9801 PIT 1
+// behavior where the counter cycles at all times whether or not the PC speaker is
+// "on". This does not force the PC speaker output on (does not force an audible beep),
+// it only forces the clock gate on and PIT 1 to cycle.
+bool speaker_clock_lock_on = false;
+
 static INLINE void BIN2BCD(Bit16u& val) {
 	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
 	val=temp;
@@ -690,6 +697,8 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //
 //        Port 35h (Intel 8255 PPI Port C)
 //        - bit 3 PIT 1 counter gate (there is no output gate). Setting the bit inhibits the counter (and therefore PC speaker)
+//        - On PC-9821, this bit controls the clock gate of PIT 1 and therefore whether the PC speaker makes sound
+//        - On PC-9801, the clock gate of PIT 1 is always on, and this bit controls whether the PC speaker makes sound
 //
 //        IBM PC:
 //
@@ -701,15 +710,24 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //                                                         |
 //        counter output gate -> --------------------------+
 //
-//        PC-98:
+//        PC-9821:
 //
 //                        +------+
 //        counter gate -> | 8254 | -> PC speaker
 //                        +------+
+//
+//        PC-9801:
+//
+//                        +------+    +----------+
+//        logic high ->   | 8254 | -> | AND GATE | -> PC speaker
+//         (always on)    +------+    +----------+
+//                                         |
+//        inverse of bit 3 of port 37h ----+
+//          (bit 3 is inhibit)
 void TIMER_SetGate2(bool in) {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     pit[speaker_pit].track_time(PIC_FullIndex());
-    pit[speaker_pit].set_gate(in);
+    pit[speaker_pit].set_gate(in || speaker_clock_lock_on);
 }
 
 bool TIMER_GetOutput2() {
@@ -826,6 +844,10 @@ void TIMER_BIOS_INIT_Configure() {
             ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
             );
 
+        /* Turn off PC speaker.
+         * Note for PC9801 behavior this will help start the PIT cycling anyway. */
+        TIMER_SetGate2(false);
+
         /* The timer is always on, there's no clock gate that I know of.
          * There's a bit 6 port 434h that might gate it on some hardware, but that doesn't seem to be the case on anything I have.
          *
@@ -920,6 +942,17 @@ void TIMER_OnPowerOn(Section*) {
 
     if (IS_PC98_ARCH) {
         int pc98rate;
+
+        {
+            const char *s = section->Get_string("pc-98 timer always cycles");
+
+            if (!strcmp(s,"true") || !strcmp(s,"1"))
+                speaker_clock_lock_on = true; // PC-9801 behavior
+            else if (!strcmp(s,"false") || !strcmp(s,"0"))
+                speaker_clock_lock_on = false; // PC-9821 behavior
+            else // anything else is handled as "auto"
+                speaker_clock_lock_on = false; // PC-9821 behavior
+        }
 
         /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
         pc98rate = section->Get_int("pc-98 timer master frequency");
