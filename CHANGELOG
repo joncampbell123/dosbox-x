@@ -1,4 +1,10 @@
 0.83.0 (next)
+  - Added dosbox.conf option to select between two
+    known behaviors in PC-98 mode regarding the PC
+    speaker and the PIT timer. The default behavior
+    follows the newer hardware, the alternate setting
+    is for older games written against the PC-9801
+    behavior.
   - Added dosbox.conf option nocachedir which, when
     set, instructs MOUNT to automatically act as if
     -nocachedir were given.
