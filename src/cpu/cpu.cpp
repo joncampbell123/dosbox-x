@@ -247,9 +247,16 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_pentium").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
         refresh_item(mainMenu);
+#if C_FPU
     mainMenu.get_item("cputype_pentium_mmx").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW).
         refresh_item(mainMenu);
+#else
+    mainMenu.get_item("cputype_pentium_mmx").
+        check(false).
+        enable(false).
+        refresh_item(mainMenu);
+#endif
     mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
@@ -3484,7 +3491,11 @@ public:
 		} else if (cputype == "pentium") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
+#if C_FPU
 			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+#else
+            E_Exit("Pentium MMX emulation requires FPU emulation, which was not compiled into this binary");
+#endif
 		} else if (cputype == "ppro_slow") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
  		}
