@@ -1,4 +1,10 @@
 0.83.0 (next)
+  - PC-98 GDC status fixed to follow the explicit
+    definition of one bit as hblank and the other
+    as vsync instead of carrying over VGA port 3DAh
+    style logic of hblank/vblank vs vsync. This
+    fixes the BPS logo scanline effects in PC-98
+    game 'frontier-universe-bps-neo-kobe-pc98-ia'
   - Added dosbox.conf option to select between two
     known behaviors in PC-98 mode regarding the PC
     speaker and the PIT timer. The default behavior
