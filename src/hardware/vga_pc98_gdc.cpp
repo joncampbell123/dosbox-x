@@ -572,14 +572,9 @@ uint8_t PC98_GDC_state::read_status(void) {
 
     ret  = 0x00; // light pen not present
 
-	if (timeInFrame >= vga.draw.delay.vdend) {
-        ret |= 0x40; // vertical blanking
-    }
-    else {
-        if (timeInLine >= vga.draw.delay.hblkstart && 
-            timeInLine <= vga.draw.delay.hblkend)
-            ret |= 0x40; // horizontal blanking
-    }
+    if (timeInLine >= vga.draw.delay.hblkstart && 
+        timeInLine <= vga.draw.delay.hblkend)
+        ret |= 0x40; // horizontal blanking
 
     if (timeInFrame >= vga.draw.delay.vrstart &&
         timeInFrame <= vga.draw.delay.vrend)
