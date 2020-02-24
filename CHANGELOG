@@ -1,4 +1,7 @@
 0.83.0 (next)
+  - Added dosbox.conf option nocachedir which, when
+    set, instructs MOUNT to automatically act as if
+    -nocachedir were given.
   - Linux/X11 SDL1 builds fixed not to issue resize
     commands to the window to avoid fighting the
     window manager. This prevents "spastic resizing"
