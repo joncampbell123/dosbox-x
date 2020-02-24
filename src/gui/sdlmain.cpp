@@ -7800,31 +7800,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 # endif
 #endif
 
-        if (control->opt_startui)
-            GUI_Run(false);
-        if (control->opt_editconf.length() != 0)
-            launcheditor(control->opt_editconf);
-        if (control->opt_opencaptures.length() != 0)
-            launchcaptures(control->opt_opencaptures);
-        if (control->opt_opensaves.length() != 0)
-            launchsaves(control->opt_opensaves);
-
-        {
-            /* Some extra SDL Functions */
-            Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
-
-            if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
-                LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
-
-#if !defined(C_SDL2)
-                void DOSBox_SetSysMenu(void);
-                DOSBox_SetSysMenu();
-#endif
-                //only switch if not already in fullscreen
-                if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-            }
-        }
-
         /* stock top-level menu items */
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainMenu");
@@ -8051,6 +8026,31 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).
                         set_callback_function(drive_callbacks[i]);
                 }
+            }
+        }
+
+        if (control->opt_startui)
+            GUI_Run(false);
+        if (control->opt_editconf.length() != 0)
+            launcheditor(control->opt_editconf);
+        if (control->opt_opencaptures.length() != 0)
+            launchcaptures(control->opt_opencaptures);
+        if (control->opt_opensaves.length() != 0)
+            launchsaves(control->opt_opensaves);
+
+        {
+            /* Some extra SDL Functions */
+            Section_prop* sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
+
+            if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
+                LOG(LOG_MISC, LOG_DEBUG)("Going fullscreen immediately, during startup");
+
+#if !defined(C_SDL2)
+                void DOSBox_SetSysMenu(void);
+                DOSBox_SetSysMenu();
+#endif
+                //only switch if not already in fullscreen
+                if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
             }
         }
 
