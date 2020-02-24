@@ -1457,24 +1457,44 @@ void Menu::paint(Drawable &d) const
 	d.setFont(Font::getFont("menu"));
 	const int asc = Font::getFont("menu")->getAscent()+1;
 	const int height = Font::getFont("menu")->getHeight()+2;
+    int x = 3,cwidth = width-3-x;
 	int y = asc+3;
 	int index = 0;
+    unsigned int coli = 0;
+
+    if (coli < colx.size()) {
+        x = colx[coli++];
+        cwidth = width-3-x;
+        if (coli < colx.size()) {
+            cwidth = colx[coli] - x;
+        }
+    }
+
 	for (std::vector<String>::const_iterator i = items.begin(); i != items.end(); ++i) {
 		if ((*i).empty()) {
 			d.setColor(Color::Shadow3D);
-			d.drawLine(4,y-asc+6,width-5,y-asc+6);
+			d.drawLine(x+1,y-asc+6,cwidth,y-asc+6);
 			d.setColor(Color::Light3D);
-			d.drawLine(4,y-asc+7,width-5,y-asc+7);
+			d.drawLine(x+1,y-asc+7,cwidth,y-asc+7);
 			y += 12;
-		} else {
+        } else if (*i == "|") {
+            y = asc+3;
+            if (coli < colx.size()) {
+                x = colx[coli++];
+                cwidth = width-3-x;
+                if (coli < colx.size()) {
+                    cwidth = colx[coli] - x;
+                }
+            }
+        } else {
 			if (index == selected && hasFocus()) {
 				d.setColor(Color::SelectionBackground);
-				d.fillRect(3,y-asc,width-6,height);
+				d.fillRect(x,y-asc,cwidth,height);
 				d.setColor(Color::SelectionForeground);
 			} else {
 				d.setColor(Color::Text);
 			}
-			d.drawText(20,y,(*i),false,0);
+			d.drawText(x+17,y,(*i),false,0);
 			y += height;
 		}
 		index++;

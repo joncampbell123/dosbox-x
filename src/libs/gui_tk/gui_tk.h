@@ -1967,6 +1967,11 @@ protected:
 	/// List of menu items (displayed text)
 	std::vector<String> items;
 
+    /// column support
+    unsigned int rows = 0;
+    unsigned int columns = 0;
+    std::vector<unsigned int> colx;
+
 	/// Currently selected menu item.
 	/** Can be -1 if no item is currently active. */
 	int selected;
@@ -1980,40 +1985,98 @@ protected:
 	/// Selects menu item at position (x,y).
 	/** \a selected is set to -1 if there is no active item at that location. */
 	virtual void selectItem(int x, int y) {
-        (void)x;//UNUSED
-		y -= 2;
+        unsigned int coli = 0;
+        int xmin,xmax,ypos = 2;
+
 		selected = -1;
 
-        // mouse input should select nothing if outside the bounds of this menu
-        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        xmin = 0;
+        xmax = width;
+        if (coli < colx.size()) {
+            xmin = colx[coli++];
+            if (coli < colx.size())
+                xmax = colx[coli];
+        }
 
-		const int height = Font::getFont("menu")->getHeight()+2;
+        // mouse input should select nothing if outside the bounds of this menu
+        if (x < 3 || x >= (width-3) || y < 2 || y >= (height-2)) return;
+        selected = 0;
+
+		const int fheight = Font::getFont("menu")->getHeight()+2;
 		std::vector<String>::iterator i;
-		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-			selected++;
-			if ((*i).size() > 0) y -= height;
-			else y -= 12;
+		for (i = items.begin(); i != items.end(); ++i) {
+            if ((*i).size() > 0) {
+                if (*i == "|") {
+                    ypos = 2;
+                    xmin = xmax = width;
+                    if (coli < colx.size()) {
+                        xmin = colx[coli++];
+                        if (coli < colx.size())
+                            xmax = colx[coli];
+                    }
+                }
+                else {
+                    if (x >= xmin && x < xmax) {
+                        if (y >= ypos && y < (ypos+fheight))
+                            break;
+                    }
+
+                    ypos += fheight;
+                }
+            }
+            else {
+                if (x >= xmin && x < xmax) {
+                    if (y >= ypos && y < (ypos+12))
+                        break;
+                }
+
+                ypos += 12;
+            }
+
+            selected++;
 		}
-		if (y > 0 || (selected >= 0 && items[(unsigned int)selected].size() == 0)) selected = -1;
+
+		if (selected >= 0 && items[(unsigned int)selected].size() == 0) selected = -1;
 	}
 
 	virtual Size getPreferredWidth() {
-		Size width = 0;
+		Size width = 0,px = 0;
 		const Font *f = Font::getFont("menu");
 		std::vector<String>::iterator i;
+        columns = 1;
+        colx.clear();
+        colx.push_back(3+width);
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-			Size newwidth = (unsigned int)f->getWidth(*i);
-			if (newwidth > width) width = newwidth;
+            if (*i == "|") {
+                colx.push_back(3+width);
+                columns++;
+                px = width;
+                width = 0;
+            }
+            else {
+                Size newwidth = (unsigned int)f->getWidth(*i) + px + 33;
+                if (newwidth > width) width = newwidth;
+            }
 		}
-		return width+39;
+		return width+6;
 	}
 
 	virtual Size getPreferredHeight() {
-		Size height = 0;
+		Size height = 0,py = 0,row = 0;
 		const Size h = (unsigned int)Font::getFont("menu")->getHeight()+2u;
 		std::vector<String>::iterator i;
+        rows = 0;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-			height += ((*i).size() > 0?h:12);
+            if (*i == "|") {
+                py = 0;
+                row = 0;
+            }
+            else {
+                row++;
+                if (rows < row) rows = row;
+                py += ((*i).size() > 0?h:12);
+                if (height < py) height = py;
+            }
 		}
 		return height+6;
 	}
