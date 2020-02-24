@@ -1,4 +1,7 @@
 0.83.0 (next)
+  - Configuration GUI settings menu is now vertically
+    divided to ensure that it fits on the screen even
+    if the window is at minimum size.
   - PC-98 GDC status fixed to follow the explicit
     definition of one bit as hblank and the other
     as vsync instead of carrying over VGA port 3DAh
