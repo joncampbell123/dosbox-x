@@ -1,4 +1,7 @@
 0.83.0 (next)
+  - Added mt32.romdir dosbox.conf configuration option
+    for users who store the MT32 ROMs elsewhere other
+    than the current working directory.
   - Configuration GUI settings menu is now vertically
     divided to ensure that it fits on the screen even
     if the window is at minimum size.

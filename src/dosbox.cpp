@@ -2135,6 +2135,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,15);
     Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
 
+    /* mt32.romdir added from DOSBox ECE by request. This romdir code taken from DOSBox ECE */
+    Pstring = secprop->Add_string("mt32.romdir",Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("Name of the directory where MT-32 Control and PCM ROM files can be found. Emulation requires these files to work.\n"
+            "  Accepted file names are as follows:\n"
+            "    MT32_CONTROL.ROM or CM32L_CONTROL.ROM - control ROM file.\n"
+            "    MT32_PCM.ROM or CM32L_PCM.ROM - PCM ROM file.");
+
     Pstring = secprop->Add_string("mt32.reverse.stereo",Property::Changeable::WhenIdle,"off");
     Pstring->Set_values(mt32ReverseStereo);
     Pstring->Set_help("Reverse stereo channels for MT-32 output");

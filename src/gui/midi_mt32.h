@@ -103,27 +103,42 @@ public:
 		MT32Emu::FileStream controlROMFile;
 		MT32Emu::FileStream pcmROMFile;
 
-        /* TODO: Add an option through midiconfig for the user to tell us where to look for ROMs.
-         *       That way they don't have to sit there in the root directory of the DOS game alongside
-         *       the game files. Much like Fluidsynth MIDI support where you can use midiconfig to
-         *       tell it where the soundfonts are. */
+        /* mt32.romdir added from DOSBox ECE by request. This romdir code taken from DOSBox ECE */
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
+        const char *romDir = section->Get_string("mt32.romdir");
+        if (romDir == NULL) romDir = "./"; // Paranoid NULL-check, should never happen
+        size_t romDirLen = strlen(romDir);
+        bool addPathSeparator = false;
+        if (romDirLen < 1) {
+            romDir = "./";
+        } else if (4080 < romDirLen) {
+            LOG_MSG("MT32: mt32.romdir is too long, using the current dir.");
+            romDir = "./";
+        } else {
+            char lastChar = romDir[strlen(romDir) - 1];
+            addPathSeparator = lastChar != '/' && lastChar != '\\';
+        }
 
-		if (!controlROMFile.open("CM32L_CONTROL.ROM")) {
-			if (!controlROMFile.open("MT32_CONTROL.ROM")) {
-				LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
-                user_romhelp();
-				return false;
-			}
-		}
-		if (!pcmROMFile.open("CM32L_PCM.ROM")) {
-			if (!pcmROMFile.open("MT32_PCM.ROM")) {
-				LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
-                user_romhelp();
-				return false;
-			}
-		}
+        char pathName[4096];
 
-		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
+        makeROMPathName(pathName, romDir, "CM32L_CONTROL.ROM", addPathSeparator);
+        if (!controlROMFile.open(pathName)) {
+            makeROMPathName(pathName, romDir, "MT32_CONTROL.ROM", addPathSeparator);
+            if (!controlROMFile.open(pathName)) {
+                LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
+                user_romhelp();
+                return false;
+            }
+        }
+        makeROMPathName(pathName, romDir, "CM32L_PCM.ROM", addPathSeparator);
+        if (!pcmROMFile.open(pathName)) {
+            makeROMPathName(pathName, romDir, "MT32_PCM.ROM", addPathSeparator);
+            if (!pcmROMFile.open(pathName)) {
+                LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
+                user_romhelp();
+                return false;
+            }
+        }
 
 		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);
 		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
@@ -232,6 +247,8 @@ public:
 		if (renderInThread) SDL_UnlockMutex(synthMutex);
 	}
 
+	static void makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator);
+
 private:
 	void render(Bitu len, Bit16s *buf) {
 		Bit32u msg = midiBuffer.get();
@@ -249,6 +266,14 @@ private:
 		chan->AddSamples_s16(len, buf);
 	}
 } midiHandler_mt32;
+
+void MidiHandler_mt32::makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator) {
+	strcpy(pathName, romDir);
+	if (addPathSeparator) {
+		strcat(pathName, "/");
+	}
+	strcat(pathName, fileName);
+}
 
 void MidiHandler_mt32::MT32ReportHandler::printDebug(const char *fmt, va_list list) {
 	if (midiHandler_mt32.noise) {
