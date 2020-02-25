@@ -137,7 +137,6 @@
 /* #undef C_SDL2 */
 
 /* Define to 1 to use opengl display output support */
-/* TODO: Windows SDK ARM32 and ARM64 doesn't provide opengl32.lib, find alternatives */
 #if !defined(_M_ARM64) && !defined (_M_ARM)
 # define C_OPENGL 1
 #endif
