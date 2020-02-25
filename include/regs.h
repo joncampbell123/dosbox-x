@@ -62,7 +62,7 @@ struct Segment {
 enum SegNames { es=0,cs,ss,ds,fs,gs};
 
 struct Segments {
-	Bit16u val[8];
+	Bitu val[8];
 	PhysPt phys[8];
 	PhysPt limit[8];
 	bool expanddown[8];
