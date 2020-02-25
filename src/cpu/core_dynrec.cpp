@@ -169,6 +169,33 @@ static struct {
 
 #include "core_dynrec/decoder.h"
 
+/* Dynarec on Windows ARM32 works, but only on Windows 10.
+ * Windows RT 8.x only runs ARMv7 Thumb-2 code, which we don't have a backend for
+ * Attempting to use dynarec on RT will result in an instant crash. 
+ * So we need to detect the Windows version before enabling dynarec. */
+#if defined(WIN32) && defined(_M_ARM)
+bool IsWin10OrGreater() {
+    HMODULE handle = GetModuleHandleW(L"ntdll.dll");
+    if (handle) {
+        typedef LONG(WINAPI* RtlGetVersionPtr)(RTL_OSVERSIONINFOW*);
+        RtlGetVersionPtr getVersionPtr = (RtlGetVersionPtr)GetProcAddress(handle, "RtlGetVersion");
+        if (getVersionPtr != NULL) {
+            RTL_OSVERSIONINFOW info = { 0 };
+            info.dwOSVersionInfoSize = sizeof(info);
+            if (getVersionPtr(&info) == 0) { /* STATUS_SUCCESS == 0 */
+                if (info.dwMajorVersion >= 10)
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+static bool is_win10 = false;
+static bool winrt_warning = true;
+#endif
+
+
 CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
 	CacheBlockDynRec * block=NULL;
 	// the last instruction was a control flow modifying instruction
@@ -206,6 +233,16 @@ static bool paging_warning = true;
 Bits CPU_Core_Dynrec_Run(void) {
     if (CPU_Cycles <= 0)
 	    return CBRET_NONE;
+
+#if defined(WIN32) && defined(_M_ARM)
+    if (!is_win10) {
+        if (winrt_warning) {
+            LOG_MSG("Dynamic core warning: Windows RT 8.x requires ARMv7 Thumb-2 dynarec core, which is not supported yet.");
+            winrt_warning = false;
+        }
+        return CPU_Core_Normal_Run();
+    }
+#endif
 
     /* Dynamic core is NOT compatible with the way page faults
      * in the guest are handled in this emulator. Do not use
@@ -375,6 +412,9 @@ Bits CPU_Core_Dynrec_Trap_Run(void) {
 }
 
 void CPU_Core_Dynrec_Init(void) {
+#if defined(WIN32) && defined(_M_ARM)
+    is_win10 = IsWin10OrGreater();
+#endif
 }
 
 void CPU_Core_Dynrec_Cache_Init(bool enable_cache) {
