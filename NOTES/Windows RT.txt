@@ -1,0 +1,2 @@
+- Windows RT ARM, using Visual Studio, is always ARMv7 Thumb
+  [https://github.com/joncampbell123/dosbox-x/pull/1419]
