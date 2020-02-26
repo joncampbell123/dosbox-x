@@ -876,7 +876,7 @@ static Bitu INT67_Handler(void) {
 		break;
 	case 0x4b:		/* Get Handle Count */
 		reg_bx=0;
-		for (int i=0;i<EMM_MAX_HANDLES;i++) if (emm_handles[i].pages!=NULL_HANDLE) reg_bx++;
+		for (unsigned int i=0;i<EMM_MAX_HANDLES;i++) if (emm_handles[i].pages!=NULL_HANDLE) reg_bx++;
 		reg_ah=EMM_NO_ERROR;
 		break;
 	case 0x4c:		/* Get Pages for one Handle */
