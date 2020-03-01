@@ -6544,6 +6544,17 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     return true;
 }
 
+bool dos_debug_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    const auto &ts = menuitem->get_name();
+
+    // TODO
+
+    return true;
+}
+
 void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
 
@@ -7990,6 +8001,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_pc98_clock_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz").
                         set_callback_function(dos_pc98_clock_menu_callback);
+                }
+            }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSDebugMenu");
+                item.set_text("Debug");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
+                        set_callback_function(dos_debug_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
+                        set_callback_function(dos_debug_menu_callback);
                 }
             }
         }
