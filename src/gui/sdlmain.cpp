@@ -38,6 +38,8 @@
 #endif
 
 extern bool dpi_aware_enable;
+extern bool log_int21;
+extern bool log_fileio;
 
 bool OpenGL_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -8251,6 +8253,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced);
+
+        mainMenu.get_item("debug_logint21").check(log_int21);
+        mainMenu.get_item("debug_logfileio").check(log_fileio);
 
         mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
