@@ -6552,7 +6552,14 @@ bool dos_debug_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 
     const auto &ts = menuitem->get_name();
 
-    // TODO
+    if (ts == "debug_logint21") {
+        log_int21 = !log_int21;
+        mainMenu.get_item("debug_logint21").check(log_int21).refresh_item(mainMenu);
+    }
+    else if (ts == "debug_logfileio") {
+        log_fileio = !log_fileio;
+        mainMenu.get_item("debug_logfileio").check(log_fileio).refresh_item(mainMenu);
+    }
 
     return true;
 }
