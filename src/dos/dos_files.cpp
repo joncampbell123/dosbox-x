@@ -368,6 +368,8 @@ bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+
+    LOG(LOG_FILES, LOG_DEBUG)("Reading %d bytes from %s ", *amount, Files[handle]->name);
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_WRITE)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -394,6 +396,8 @@ bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+
+    LOG(LOG_FILES, LOG_DEBUG)("Writing %d bytes to %s", *amount, Files[handle]->name);
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_READ)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -454,7 +458,8 @@ bool DOS_CloseFile(Bit16u entry, bool fcb) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
-	if (Files[handle]->IsOpen()) {
+    if (Files[handle]->IsOpen()) {
+        LOG(LOG_FILES, LOG_NORMAL)("Closing file %s", Files[handle]->name);
 		Files[handle]->Close();
 	}
 
@@ -668,7 +673,8 @@ bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bi
 bool DOS_UnlinkFile(char const * const name) {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
 	// An existing device returns an access denied error
-	if (DOS_FindDevice(name) != DOS_DEVICES) {
+    LOG(LOG_FILES, LOG_NORMAL)("Deleting file %s", name);
+    if (DOS_FindDevice(name) != DOS_DEVICES) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}

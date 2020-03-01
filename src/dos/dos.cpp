@@ -433,7 +433,9 @@ static Bitu DOS_21Handler(void) {
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     
     static Bitu time_start = 0; //For emulating temporary time changes.
-
+    auto ah = reg_ah;
+    auto al = reg_al;
+    LOG(LOG_CPU, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", ah, al);
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
             /* HACK for demoscene prod parties/1995/wired95/surprisecode/w95spcod.zip/WINNERS/SURP-KLF
