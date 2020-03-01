@@ -1,4 +1,4 @@
-0.83.0 (next)
+0.83.0
   - Added mt32.romdir dosbox.conf configuration option
     for users who store the MT32 ROMs elsewhere other
     than the current working directory.
