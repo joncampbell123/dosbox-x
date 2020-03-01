@@ -40,6 +40,9 @@
 #define FCB_ERR_EOF     3
 #define FCB_ERR_WRITE   1
 
+extern bool log_int21;
+extern bool log_fileio;
+
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
@@ -369,7 +372,9 @@ bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 		return false;
 	}
 
-    LOG(LOG_FILES, LOG_DEBUG)("Reading %d bytes from %s ", *amount, Files[handle]->name);
+    if (log_fileio) {
+        LOG(LOG_FILES, LOG_DEBUG)("Reading %d bytes from %s ", *amount, Files[handle]->name);
+    }
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_WRITE)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -397,7 +402,9 @@ bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount,bool fcb) {
 		return false;
 	}
 
-    LOG(LOG_FILES, LOG_DEBUG)("Writing %d bytes to %s", *amount, Files[handle]->name);
+    if (log_fileio) {
+        LOG(LOG_FILES, LOG_DEBUG)("Writing %d bytes to %s", *amount, Files[handle]->name);
+    }
 /*
 	if ((Files[handle]->flags & 0x0f) == OPEN_READ)) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
@@ -459,8 +466,10 @@ bool DOS_CloseFile(Bit16u entry, bool fcb) {
 		return false;
 	}
     if (Files[handle]->IsOpen()) {
-        LOG(LOG_FILES, LOG_NORMAL)("Closing file %s", Files[handle]->name);
-		Files[handle]->Close();
+        if (log_fileio) {
+            LOG(LOG_FILES, LOG_NORMAL)("Closing file %s", Files[handle]->name);
+        }
+        Files[handle]->Close();
 	}
 
 	DOS_PSP psp(dos.psp());
@@ -672,8 +681,10 @@ bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bi
 
 bool DOS_UnlinkFile(char const * const name) {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
-	// An existing device returns an access denied error
-    LOG(LOG_FILES, LOG_NORMAL)("Deleting file %s", name);
+    // An existing device returns an access denied error
+    if (log_fileio) {
+        LOG(LOG_FILES, LOG_NORMAL)("Deleting file %s", name);
+    }
     if (DOS_FindDevice(name) != DOS_DEVICES) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;

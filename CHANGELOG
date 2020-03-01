@@ -1,6 +1,9 @@
 0.83.1
   - Added INT 21h debug logging for file I/O and general
-    INT 21h usage [patch by ognjenmi]
+    INT 21h usage [patch by ognjenmi]. Added enables for
+    the logging which are off by default since the INT 21h
+    and file I/O logging are fairly noisy under normal
+    usage.
 
 0.83.0
   - Added mt32.romdir dosbox.conf configuration option
