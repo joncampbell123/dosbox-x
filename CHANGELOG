@@ -1,5 +1,6 @@
 0.83.1
-  -
+  - Added INT 21h debug logging for file I/O and general
+    INT 21h usage [patch by ognjenmi]
 
 0.83.0
   - Added mt32.romdir dosbox.conf configuration option
