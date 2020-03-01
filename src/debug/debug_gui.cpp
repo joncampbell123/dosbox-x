@@ -829,8 +829,8 @@ void LOG::Init() {
 		debuglog=0;
 	}
 
-    log_int21 = sect->Get_bool("int21");
-    log_fileio = sect->Get_bool("fileio");
+    log_int21 = sect->Get_bool("int21") || control->opt_logint21;
+    log_fileio = sect->Get_bool("fileio") || control->opt_logfileio;
 
 	/* end of early init logging */
 	do_LOG_stderr = false;

@@ -6120,6 +6120,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
             fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
+            fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
+            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -6220,6 +6222,12 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "resetmapper") {
             control->opt_resetmapper = true;
+        }
+        else if (optname == "log-int21") {
+            control->opt_logint21 = true;
+        }
+        else if (optname == "log-fileio") {
+            control->opt_logfileio = true;
         }
         else if (optname == "noconsole") {
             control->opt_noconsole = true;
