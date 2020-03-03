@@ -1,10 +1,3 @@
-Only in dosbox-x-dosbox-x-v0.83.0: autom4te.cache
-Only in dosbox-x-dosbox-x-v0.83.0: bin
-Only in dosbox-x-dosbox-x-v0.83.0 - Org: build-debug-with-clang
-Only in dosbox-x-dosbox-x-v0.83.0: build-sdl2
-Only in dosbox-x-dosbox-x-v0.83.0: config.h
-Only in dosbox-x-dosbox-x-v0.83.0: config.h.in
-Only in dosbox-x-dosbox-x-v0.83.0: dosbox-x.spec
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/cross.h dosbox-x-dosbox-x-v0.83.0 - Org/include/cross.h
 109,110c109,110
 < bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
@@ -118,7 +111,6 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < char * StripArg(char *&cmd);
 ---
 > 
-Only in dosbox-x-dosbox-x-v0.83.0: obj
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos.cpp
 85d84
 < bool uselfn;
@@ -1838,11 +1830,9 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < #if defined (WIN32)
 < 	HANDLE CreateOpenFile(char const* const name);
 < #endif
-Only in dosbox-x-dosbox-x-v0.83.0/src: dosbox-x
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dosbox.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dosbox.cpp
 122a123
 > 
-Only in dosbox-x-dosbox-x-v0.83.0/src: dosbox.plist
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/hardware/hardware.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/hardware/hardware.cpp
 517,519c517,519
 <     char tempname[CROSS_LEN], sname[12];
@@ -1859,12 +1849,6 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 > 	bool testRead = read_directory_first(dir, tempname, is_directory );
 > 	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/cbus: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/common: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/generic: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/sound: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/sound/getsnd: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/x11: .dirstamp
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/cross.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/cross.cpp
 211c211
 < bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory) {
@@ -1940,8 +1924,6 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < 
 < 
-Only in dosbox-x-dosbox-x-v0.83.0/src/mt32/freeverb: .dirstamp
-Only in dosbox-x-dosbox-x-v0.83.0/src/mt32/sha1: .dirstamp
 diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell.cpp
 636,638c636,638
 < 	MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
@@ -2287,4 +2269,3 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 1083,1084d1034
 < 	upcase(name);
 < 	if (DOS_FileExists(name)) return name;
-Only in dosbox-x-dosbox-x-v0.83.0: stamp-h1
