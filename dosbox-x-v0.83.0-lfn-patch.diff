@@ -1,4 +1,4 @@
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/cross.h dosbox-x-dosbox-x-v0.83.0 - Org/include/cross.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/cross.h dosbox-x-dosbox-x-v0.83.0-org/include/cross.h
 109,110c109,110
 < bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
 < bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
@@ -18,7 +18,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 > bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
 > bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_inc.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dos_inc.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_inc.h dosbox-x-dosbox-x-v0.83.0-org/include/dos_inc.h
 24d23
 < #define CTBUF 127
 31a31
@@ -64,7 +64,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 > 		Bit8u sname[8];						/* The Search pattern for the filename */		
 > 		Bit8u sext[3];						/* The Search pattern for the extenstion */
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_system.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dos_system.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_system.h dosbox-x-dosbox-x-v0.83.0-org/include/dos_system.h
 36d35
 < #include <ctype.h>
 40d38
@@ -101,17 +101,17 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 > 	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
 > 	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dosbox.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dosbox.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dosbox.h dosbox-x-dosbox-x-v0.83.0-org/include/dosbox.h
 127c127
 < extern bool             SDLNetInited, uselfn;
 ---
 > extern bool				SDLNetInited;
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/support.h dosbox-x-dosbox-x-v0.83.0 - Org/include/support.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/support.h dosbox-x-dosbox-x-v0.83.0-org/include/support.h
 47c47
 < char * StripArg(char *&cmd);
 ---
 > 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/dos.cpp
 85d84
 < bool uselfn;
 165c164
@@ -714,7 +714,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 > 
 3173d2602
 < 		uselfn = dos.version.major>6;
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_classes.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_classes.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_classes.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/dos_classes.cpp
 27,38d26
 < char sname[LFN_NAMELENGTH+1],storect[CTBUF];
 < struct finddata {
@@ -837,7 +837,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 > 	memcpy(&pattern[9],&temp[8],3);
 > 	pattern[12]=0;
 > 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_files.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_files.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_files.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/dos_files.cpp
 46,47d45
 < bool force = false;
 < int sdrive;
@@ -1072,7 +1072,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < 		find_dta.GetResult(name,lname,size,date,time,attr);
 ---
 > 		find_dta.GetResult(name,size,date,time,attr);
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_misc.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_misc.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_misc.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/dos_misc.cpp
 95d94
 <     char name[256];
 211,226d209
@@ -1177,7 +1177,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < 			reg_ax=0;
 < 			return true;
 < 		}
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_programs.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_programs.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_programs.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/dos_programs.cpp
 174,175c174
 <         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
 <         Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
@@ -1187,7 +1187,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 <                 dta.GetResult(name,lname,size,date,time,attr);
 ---
 >                 dta.GetResult(name,size,date,time,attr);
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_cache.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_cache.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_cache.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drive_cache.cpp
 136,137c136,137
 <         char* result = 0, *lresult = 0;
 <         ReadDir(id,result,lresult);
@@ -1276,7 +1276,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 <     if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
 ---
 >     if (!SetResult(dirFindFirst[id], result, dirFindFirst[id]->nextEntry)) {
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_fat.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_fat.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_fat.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drive_fat.cpp
 628,630c628,629
 <                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
 <                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
@@ -1342,7 +1342,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < #endif
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_iso.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_iso.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_iso.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drive_iso.cpp
 31,32d30
 < char fullname[LFN_NAMELENGTH];
 < 
@@ -1420,7 +1420,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < 
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_local.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_local.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_local.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drive_local.cpp
 544,546d543
 < #if defined (WIN32)
 < #include <Shellapi.h>
@@ -1636,7 +1636,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < #endif
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_virtual.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_virtual.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_virtual.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drive_virtual.cpp
 31d30
 < 	const char * lname;
 59d57
@@ -1681,7 +1681,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < #endif
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drives.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dos/drives.cpp
 32,33c32,33
 <     char wild_name[10];
 <     char wild_ext[5];
@@ -1789,7 +1789,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 <     return true;
 < }
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.h dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drives.h
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.h dosbox-x-dosbox-x-v0.83.0-org/src/dos/drives.h
 29d28
 < bool LWildFileCmp(const char * file, const char * wild);
 70,74d68
@@ -1830,10 +1830,10 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < #if defined (WIN32)
 < 	HANDLE CreateOpenFile(char const* const name);
 < #endif
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dosbox.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dosbox.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dosbox.cpp dosbox-x-dosbox-x-v0.83.0-org/src/dosbox.cpp
 122a123
 > 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/hardware/hardware.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/hardware/hardware.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/hardware/hardware.cpp dosbox-x-dosbox-x-v0.83.0-org/src/hardware/hardware.cpp
 517,519c517,519
 <     char tempname[CROSS_LEN], sname[12];
 <     bool testRead = read_directory_first(dir, tempname, sname, is_directory );
@@ -1849,7 +1849,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 > 	bool testRead = read_directory_first(dir, tempname, is_directory );
 > 	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/cross.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/cross.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/cross.cpp dosbox-x-dosbox-x-v0.83.0-org/src/misc/cross.cpp
 211c211
 < bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory) {
 ---
@@ -1890,7 +1890,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 343,344d337
 < 	entry_sname[0]=0;
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/programs.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/programs.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/programs.cpp dosbox-x-dosbox-x-v0.83.0-org/src/misc/programs.cpp
 153,155c153,155
 <     MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
 <     if (tail.count<CTBUF) tail.buffer[tail.count]=0;
@@ -1899,7 +1899,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 > 	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
 > 	if (tail.count<127) tail.buffer[tail.count]=0;
 > 	else tail.buffer[126]=0;
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/support.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/support.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/support.cpp dosbox-x-dosbox-x-v0.83.0-org/src/misc/support.cpp
 80,81c80
 < 	while (--p >= str && *reinterpret_cast<unsigned char*>(p) != '\f' && isspace(*reinterpret_cast<unsigned char*>(p))) {};
 < 
@@ -1924,7 +1924,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < }
 < 
 < 
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell.cpp dosbox-x-dosbox-x-v0.83.0-org/src/shell/shell.cpp
 636,638c636,638
 < 	MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
 < 	if (tail.count<CTBUF) tail.buffer[tail.count]=0;
@@ -1951,7 +1951,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 < 	dos.dta(RealMake(psp_seg,CTBUF+1));
 ---
 > 	dos.dta(RealMake(psp_seg,0x80));
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_cmds.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell_cmds.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_cmds.cpp dosbox-x-dosbox-x-v0.83.0-org/src/shell/shell_cmds.cpp
 411c411
 < 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 ---
@@ -2168,7 +2168,7 @@ diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf
 ---
 >    		Bit8u drive;char fulldir[DOS_PATHLENGTH];
 > 		if (!DOS_MakeName(const_cast<char*>(arg.c_str()),fulldir,&drive)) throw 0;
-diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_misc.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell_misc.cpp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_misc.cpp dosbox-x-dosbox-x-v0.83.0-org/src/shell/shell_misc.cpp
 47c47
 < 	DOS_GetCurrentDir(0,dir,uselfn);
 ---
