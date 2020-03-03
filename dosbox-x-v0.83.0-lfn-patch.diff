@@ -1,0 +1,2290 @@
+Only in dosbox-x-dosbox-x-v0.83.0: autom4te.cache
+Only in dosbox-x-dosbox-x-v0.83.0: bin
+Only in dosbox-x-dosbox-x-v0.83.0 - Org: build-debug-with-clang
+Only in dosbox-x-dosbox-x-v0.83.0: build-sdl2
+Only in dosbox-x-dosbox-x-v0.83.0: config.h
+Only in dosbox-x-dosbox-x-v0.83.0: config.h.in
+Only in dosbox-x-dosbox-x-v0.83.0: dosbox-x.spec
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/cross.h dosbox-x-dosbox-x-v0.83.0 - Org/include/cross.h
+109,110c109,110
+< bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+< bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
+> bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+112,113c112,113
+< bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory);
+< bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory);
+---
+> bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
+> bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
+126,128c126,127
+< bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+< bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+< 
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
+> bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_inc.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dos_inc.h
+24d23
+< #define CTBUF 127
+31a31
+> 
+39c39
+<   char buffer[CTBUF];		/* the buffer itself */
+---
+>   char buffer[127];			 /* the buffer itself */
+183d182
+< bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
+196c195
+< bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN);
+---
+> bool DOS_GetCurrentDir(Bit8u drive,char * const buffer);
+204,208d202
+< bool DOS_GetFileAttrEx(char const* const name, struct stat *status, Bit8u hdrive=-1);
+< unsigned long DOS_GetCompressedFileSize(char const* const name);
+< #if defined (WIN32)
+< HANDLE DOS_CreateOpenFile(char const* const name);
+< #endif
+396,398c390
+< 	void	SetCommandTail		(RealPt src);
+< 	void    StoreCommandTail    (void);
+< 	void    RestoreCommandTail  (void);
+---
+> 	void	SetCommandTail		(RealPt src);	
+553,554d544
+<     int GetFindData(int fmt,char * finddata);
+< 	
+556c546
+< 	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+---
+> 	void SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+559,560c549,550
+< 	void GetSearchParams(Bit8u & _sattr,char * _spattern,bool lfn);
+<     void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+---
+> 	void GetSearchParams(Bit8u & attr,char * pattern);
+> 	void GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+573,574c563,564
+<         Bit8u spname[8];                    /* The Search pattern for the filename */              
+<         Bit8u spext[3];                     /* The Search pattern for the extension */
+---
+> 		Bit8u sname[8];						/* The Search pattern for the filename */		
+> 		Bit8u sext[3];						/* The Search pattern for the extenstion */
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dos_system.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dos_system.h
+36d35
+< #include <ctype.h>
+40d38
+< #define LFN_NAMELENGTH 255
+43c41
+< #define DOS_PATHLENGTH 255
+---
+> #define DOS_PATHLENGTH 80
+181c179
+<     bool        ReadDir             (Bit16u id, char* &result, char * &lresult);
+---
+> 	bool		ReadDir				(Bit16u id, char* &result);
+188c186
+<     bool        FindNext            (Bit16u id, char* &result, char* &lresult);
+---
+> 	bool		FindNext			(Bit16u id, char* &result);
+232c230
+<     bool        SetResult       (CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
+---
+> 	bool		SetResult		(CFileInfo* dir, char * &result, Bitu entryNr);
+237c235
+<     void        CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
+---
+> 	void		CreateEntry		(CFileInfo* dir, const char* name, bool is_directory);
+275,279d272
+< 	virtual bool GetFileAttrEx(char* name, struct stat *status)=0;
+< 	virtual unsigned long GetCompressedSize(char* name)=0;
+< #if defined (WIN32)
+< 	virtual HANDLE CreateOpenFile(char const* const name)=0;
+< #endif
+294,295c287,288
+<     virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+<     virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+---
+> 	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+> 	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/dosbox.h dosbox-x-dosbox-x-v0.83.0 - Org/include/dosbox.h
+127c127
+< extern bool             SDLNetInited, uselfn;
+---
+> extern bool				SDLNetInited;
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/include/support.h dosbox-x-dosbox-x-v0.83.0 - Org/include/support.h
+47c47
+< char * StripArg(char *&cmd);
+---
+> 
+Only in dosbox-x-dosbox-x-v0.83.0: obj
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos.cpp
+85d84
+< bool uselfn;
+165c164
+< extern bool force, dos_kernel_disabled;
+---
+> extern bool dos_kernel_disabled;
+415,428d413
+< typedef struct {
+< 	UINT16 size_of_structure;
+< 	UINT16 structure_version;
+< 	UINT32 sectors_per_cluster;
+< 	UINT32 bytes_per_sector;
+< 	UINT32 available_clusters_on_drive;
+< 	UINT32 total_clusters_on_drive;
+< 	UINT32 available_sectors_on_drive;
+< 	UINT32 total_sectors_on_drive;
+< 	UINT32 available_allocation_units;
+< 	UINT32 total_allocation_units;
+< 	UINT8 reserved[8];
+< } ext_space_info_t;
+< 
+449d433
+< 	char *p;
+1202d1185
+< 		{
+1205,1206d1187
+< 			force = true;
+< 			Bit8u oldal=reg_al;
+1208d1188
+< 				force = false;
+1211,1215d1190
+< 				force = false;
+< 				if (uselfn&&DOS_OpenFile(name1,oldal,&reg_ax)) {
+< 					CALLBACK_SCF(false);
+< 					break;
+< 				}
+1220d1194
+< 			force = false;
+1222d1195
+< 		}
+1388c1361
+< 			if (DOS_GetCurrentDir(reg_dl,name1,false)) {
+---
+>             if (DOS_GetCurrentDir(reg_dl,name1)) {
+1883a1857,1858
+>             reg_ax=0x7100;
+>             CALLBACK_SCF(true); //Check this! What needs this ? See default case
+1885,2392d1859
+<             if (!uselfn) {
+<                     reg_ax=0x7100;
+<                     CALLBACK_SCF(true); //Check this! What needs this ? See default case
+<                     break;
+<             }
+<             switch(reg_al)          {
+<                     case 0x39:              /* LFN MKDIR */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if (DOS_MakeDir(name1)) {
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0x3a:              /* LFN RMDIR */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if  (DOS_RemoveDir(name1)) {
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                                     LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
+<                             }
+<                             break;
+<                     case 0x3b:              /* LFN CHDIR */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if  (DOS_ChangeDir(name1)) {
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0x41:              /* LFN UNLINK */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if (DOS_UnlinkFile(name1)) {
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0x43:              /* LFN ATTR */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             switch (reg_bl) {
+<                                     case 0x00:                              /* Get */
+<                                     {
+< 										Bit16u attr_val=reg_cx;
+< 										if (DOS_GetFileAttr(name1,&attr_val)) {
+< 												reg_cx=attr_val;
+< 												reg_ax=0;
+< 												CALLBACK_SCF(false);
+< 										} else {
+< 												CALLBACK_SCF(true);
+< 												reg_ax=dos.errorcode;
+< 										}
+< 										break;
+<                                     };
+<                                     case 0x01:                              /* Set */
+< 										if (DOS_SetFileAttr(name1,reg_cx)) {
+< 												reg_ax=0;
+< 												CALLBACK_SCF(false);
+< 										} else {
+< 												CALLBACK_SCF(true);
+< 												reg_ax=dos.errorcode;
+< 										}
+< 										break;
+< 									case 0x02:				/* Get compressed file size */
+< 									{
+< 										reg_ax=0;
+< 										reg_dx=0;
+< 										unsigned long size = DOS_GetCompressedFileSize(name1);
+< 										if (size >= 0) {
+< #if defined (WIN32)
+< 											reg_ax = LOWORD(size);
+< 											reg_dx = HIWORD(size);
+< #endif
+< 											CALLBACK_SCF(false);
+< 										} else {
+< 											CALLBACK_SCF(true);
+< 											reg_ax=dos.errorcode;
+< 										}
+< 										break;
+< 									}
+<                                     case 0x03:
+<                                     case 0x05:
+<                                     case 0x07:
+< 									{
+< #if defined (WIN32)
+< 										HANDLE hFile = DOS_CreateOpenFile(name1);
+< 										if (hFile != INVALID_HANDLE_VALUE) {
+< 											time_t clock = time(NULL), ttime;
+< 											struct tm *t = localtime(&clock);
+< 											t->tm_sec  = (((int)reg_cx) << 1) & 0x3e;
+< 											t->tm_min  = (((int)reg_cx) >> 5) & 0x3f;
+< 											t->tm_hour = (((int)reg_cx) >> 11) & 0x1f;
+< 											t->tm_mday = (int)(reg_di) & 0x1f;
+< 											t->tm_mon  = ((int)(reg_di >> 5) & 0x0f) - 1;
+< 											t->tm_year = ((int)(reg_di >> 9) & 0x7f) + 80;
+< 											ttime=mktime(t);
+< 											LONGLONG ll = Int32x32To64(ttime, 10000000) + 116444736000000000 + (reg_bl==0x07?reg_si*100000:0);
+< 											FILETIME time;
+< 											time.dwLowDateTime = (DWORD) ll;
+< 											time.dwHighDateTime = (DWORD) (ll >> 32);
+< 											if (!SetFileTime(hFile, reg_bl==0x07?&time:NULL,reg_bl==0x05?&time:NULL,reg_bl==0x03?&time:NULL)) {
+< 												CloseHandle(hFile);
+< 												CALLBACK_SCF(true);
+< 												reg_ax=dos.errorcode;
+< 												break;
+< 											}
+< 											CloseHandle(hFile);
+< 											reg_ax=0;
+< 											CALLBACK_SCF(false);
+< 										} else
+< #endif
+< 										{
+< 											CALLBACK_SCF(true);
+< 											reg_ax=dos.errorcode;
+< 										}
+< 										break;
+< 									}
+<                                     case 0x04:
+<                                     case 0x06:
+<                                     case 0x08:
+< 										struct stat status;
+< 										if (DOS_GetFileAttrEx(name1, &status)) {
+< 											struct tm * ltime;
+< 											time_t ttime=reg_bl==0x04?status.st_mtime:reg_bl==0x06?status.st_atime:status.st_ctime;
+< 											if ((ltime=localtime(&ttime))!=0) {
+< 												reg_cx=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+< 												reg_di=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+< 											}
+< 											if (reg_bl==0x08)
+< 												reg_si = 0;
+< 											reg_ax=0;
+< 											CALLBACK_SCF(false);
+< 										} else {
+< 											CALLBACK_SCF(true);
+< 											reg_ax=dos.errorcode;
+< 										}
+< 										break;
+<                                     default:
+<                                             E_Exit("DOS:Illegal LFN Attr call %2X",reg_bl);
+<                             }
+<                             break;
+<                     case 0x47:              /* LFN PWD */
+< 					{
+< 							DOS_PSP psp(dos.psp());
+< 							psp.StoreCommandTail();
+<                             if (DOS_GetCurrentDir(reg_dl,name1,true)) {
+<                                     MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));
+< 									psp.RestoreCommandTail();
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+< 					}
+<                     case 0x4e:              /* LFN FindFirst */
+< 					{
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+< 							if (!DOS_GetSFNPath(name1,name2,false)) {
+< 								reg_ax=dos.errorcode;
+< 								CALLBACK_SCF(true);
+< 								break;
+< 							}
+<                             if (DOS_FindFirst(name2,reg_cx,false)) {
+< 									Bit16u entry;
+< 									Bit8u i,handle=DOS_FILES;
+< 									for (i=0;i<DOS_FILES;i++) {
+< 										if (!Files[i]) {
+< 											handle=i;
+< 											break;
+< 										}
+< 									}
+< 									if (handle==DOS_FILES) {
+< 										reg_ax=DOSERR_TOO_MANY_OPEN_FILES;
+< 										CALLBACK_SCF(true);
+< 										break;
+< 									}
+< 									DOS_PSP psp(dos.psp());
+< 									entry = psp.FindFreeFileEntry();
+< 									if (entry==0xff) {
+< 										reg_ax=DOSERR_TOO_MANY_OPEN_FILES;
+< 										CALLBACK_SCF(true);
+< 										break;
+< 									}
+< 									Files[handle]=new DOS_Device(*Devices[handle]);
+< 									Files[handle]->AddRef();
+< 									psp.SetFileHandle(entry,handle);
+< 									reg_ax=handle;
+<                                     DOS_DTA dta(dos.dta());
+<                                     char finddata[CROSS_LEN];
+< 									MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             };
+<                             break;           
+< 					}
+<                     case 0x4f:              /* LFN FindNext */
+< 					{
+< 							Bit8u handle=(Bit8u)reg_bx;
+< 							if (handle>=DOS_FILES || !Files[handle]) {
+< 								reg_ax=DOSERR_INVALID_HANDLE;
+< 								CALLBACK_SCF(true);
+< 								break;
+< 							}
+<                             if (DOS_FindNext()) {
+<                                     DOS_DTA dta(dos.dta());
+<                                     char finddata[CROSS_LEN];
+<                                     MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+<                                     CALLBACK_SCF(false);
+<                                     reg_ax=0x4f00+handle;
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             };
+<                             break;
+< 					}							
+<                     case 0x56:              /* LFN Rename */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             MEM_StrCopy(SegPhys(es)+reg_di,name2+1,DOSNAMEBUF);
+<                             *name2='\"';
+<                             p=name2+strlen(name2);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if (DOS_Rename(name1,name2)) {
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);                   
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;         
+<                     case 0x60:              /* LFN GetName */
+<                             MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if (DOS_Canonicalize(name1,name2)) {
+<                                     strcpy(name1,"\"");
+<                                     strcat(name1,name2);
+<                                     strcat(name1,"\"");
+<                                     switch(reg_cl)          {
+<                                             case 0:         // Canonoical path name
+<                                                     strcpy(name2,name1);
+< 													MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+< 													reg_ax=0;
+< 													CALLBACK_SCF(false);
+< 													break;
+<                                             case 1:         // SFN path name
+< 													if (DOS_GetSFNPath(name1,name2,false)) {
+< 														MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+< 														reg_ax=0;
+< 														CALLBACK_SCF(false);
+< 													} else {
+< 														reg_ax=2;
+< 														CALLBACK_SCF(true);								
+< 													}
+< 													break;
+<                                             case 2:         // LFN path name
+< 													if (DOS_GetSFNPath(name1,name2,true)) {
+< 														MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+< 														reg_ax=0;
+< 														CALLBACK_SCF(false);
+< 													} else {
+< 														reg_ax=2;
+< 														CALLBACK_SCF(true);								
+< 													}
+< 													break;
+<                                             default:
+<                                                     E_Exit("DOS:Illegal LFN GetName call %2X",reg_cl);
+<                                     }
+<                                     MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+<                                     reg_ax=5;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0x6c:              /* LFN Create */
+<                             MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+<                             *name1='\"';
+<                             p=name1+strlen(name1);
+<                             while (*p==' '||*p==0) p--;
+<                             *(p+1)='\"';
+<                             *(p+2)=0;
+<                             if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0xa0:              /* LFN VolInfo */
+<                             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+<                             if (DOS_Canonicalize(name1,name2)) {
+<                                     if (reg_cx > 3)
+<                                             MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
+<                                     reg_ax=0;
+<                                     reg_bx=0x4006;
+<                                     reg_cx=0xff;
+<                                     reg_dx=0x104;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=dos.errorcode;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+<                     case 0xa1:              /* LFN FileClose */
+< 							{
+< 								Bit8u handle=(Bit8u)reg_bx;
+< 								if (handle>=DOS_FILES || !Files[handle]) {
+< 									reg_ax=DOSERR_INVALID_HANDLE;
+< 									CALLBACK_SCF(true);
+< 									break;
+< 								}
+< 								DOS_PSP psp(dos.psp());
+< 								Bit16u entry=psp.FindEntryByHandle(handle);
+< 								if (entry>0&&entry!=0xff) psp.SetFileHandle(entry,0xff);
+< 								if (entry>0&&Files[handle]->RemoveRef()<=0) {
+< 									delete Files[handle];
+< 									Files[handle]=0;
+< 								}
+< 								reg_ax=0;
+< 								CALLBACK_SCF(false);
+< 								break;
+< 							}
+< 							case 0xa6:		/* LFN GetFileInfoByHandle */
+< 							{
+< 								char buf[64];
+< 								unsigned long serial_number=0,st=0,cdate,ctime,adate,atime,mdate,mtime;
+< 								Bit8u entry=(Bit8u)reg_bx, handle;
+< 								if (entry>=DOS_FILES) {
+< 									reg_ax=DOSERR_INVALID_HANDLE;
+< 									CALLBACK_SCF(true);
+< 									break;
+< 								}
+< 								DOS_PSP psp(dos.psp());
+< 								for (int i=0;i<=DOS_FILES;i++)
+< 									if (Files[i] && psp.FindEntryByHandle(i)==entry)
+< 										handle=i;
+< 								if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
+< 									char volume[] = "A:\\";
+< 									volume[0]+=Files[handle]->GetDrive();
+< #if defined (WIN32)
+< 									GetVolumeInformation(volume, NULL, 0, &serial_number, NULL, NULL, NULL, 0);
+< #endif
+< 									struct stat status;
+< 									if (DOS_GetFileAttrEx(Files[handle]->name, &status, Files[handle]->GetDrive())) {
+< 										time_t ttime;
+< 										struct tm * ltime;
+< 										ttime=status.st_ctime;
+< 										if ((ltime=localtime(&ttime))!=0) {
+< 											ctime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+< 											cdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+< 										}
+< 										ttime=status.st_atime;
+< 										if ((ltime=localtime(&ttime))!=0) {
+< 											atime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+< 											adate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+< 										}
+< 										ttime=status.st_mtime;
+< 										if ((ltime=localtime(&ttime))!=0) {
+< 											mtime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+< 											mdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+< 										}
+< 										sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",&st,&ctime,&cdate,&atime,&adate,&mtime,&mdate,&serial_number,&st,&st,&st,&st,&handle);
+< 										for (int i=32;i<36;i++) buf[i]=0;
+< 										buf[36]=(char)((Bit32u)status.st_size%256);
+< 										buf[37]=(char)(((Bit32u)status.st_size%65536)/256);
+< 										buf[38]=(char)(((Bit32u)status.st_size%16777216)/65536);
+< 										buf[39]=(char)((Bit32u)status.st_size/16777216);
+< 										buf[40]=(char)status.st_nlink;
+< 										for (int i=41;i<47;i++) buf[i]=0;
+< 										buf[52]=0;
+< 										MEM_BlockWrite(SegPhys(ds)+reg_dx,buf,53);
+< 										reg_ax=0;
+< 										CALLBACK_SCF(false);
+< 									} else {
+< 										reg_ax=dos.errorcode;
+< 										CALLBACK_SCF(true);
+< 									}
+< 								} else {
+< 									reg_ax=dos.errorcode;
+< 									CALLBACK_SCF(true);
+< 								}
+< 								break;
+< 							}
+<                     case 0xa7:              /* LFN TimeConv */
+<                             switch (reg_bl) {
+<                                     case 0x00:
+< 											reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
+< 											reg_ch=mem_readb(SegPhys(ds)+reg_si+1);	//but MS-DOS 7 and 4DOS DIR should
+< 											reg_dl=mem_readb(SegPhys(ds)+reg_si+4);	//show date/time correctly now
+< 											reg_dh=mem_readb(SegPhys(ds)+reg_si+5);
+< 											reg_bh=0;
+< 											reg_ax=0;
+< 											CALLBACK_SCF(false);
+< 											break;
+<                                     case 0x01:
+< 											mem_writeb(SegPhys(es)+reg_di,reg_cl);
+< 											mem_writeb(SegPhys(es)+reg_di+1,reg_ch);
+< 											mem_writeb(SegPhys(es)+reg_di+4,reg_dl);
+< 											mem_writeb(SegPhys(es)+reg_di+5,reg_dh);
+< 											reg_ax=0;
+< 											CALLBACK_SCF(false);
+< 											break;
+<                                     default:
+<                                             E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
+<                             }
+<                             break;
+<                     case 0xa8:              /* LFN GenSFN */
+<                             if (reg_dh == 0 || reg_dh == 1) {
+<                                     MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
+<                                     int i,j=0;
+<                                     char c[13],*s=strrchr(name1,'.');
+<                                     for (i=0;i<8;j++) {
+<                                             if (name1[j] == 0 || s-name1 <= j) break;
+<                                             if (name1[j] == '.') continue;
+<                                             sprintf(c,"%s%c",c,toupper(name1[j]));
+<                                             i++;
+<                                     }
+<                                     if (s != NULL) {
+<                                             s++;
+<                                             if (s != 0 && reg_dh == 1) strcat(c,".");
+<                                             for (i=0;i<3;i++) {
+<                                                     if (*(s+i) == 0) break;
+<                                                     sprintf(c,"%s%c",c,toupper(*(s+i)));
+<                                             }
+<                                     }
+<                                     MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+<                                     reg_ax=0;
+<                                     CALLBACK_SCF(false);
+<                             } else {
+<                                     reg_ax=1;
+<                                     CALLBACK_SCF(true);
+<                             }
+<                             break;
+< 					case 0xa9:		/* LFN Server Create */
+< 							reg_ax=0x7100; // not implemented yet
+< 							CALLBACK_SCF(true);
+< 					case 0xaa:		/* LFN Subst */
+< 							if (reg_bh==2) {
+< 								Bit8u drive=reg_bl>0?reg_bl-1:DOS_GetDefaultDrive();
+< 								if (Drives[drive]&&!strncmp(Drives[drive]->GetInfo(),"local directory ",16)) {
+< 									strcpy(name1,Drives[drive]->GetInfo()+16);
+< 									MEM_BlockWrite(SegPhys(ds)+reg_dx,name1,(Bitu)(strlen(name1)+1));
+< 									reg_ax=0;
+< 									CALLBACK_SCF(false);
+< 								} else {
+< 									reg_ax=3;
+< 									CALLBACK_SCF(true);						
+< 								}
+< 								break;
+< 							}
+<                     default:
+<                             reg_ax=0x7100;
+<                             CALLBACK_SCF(true); //Check this! What needs this ? See default case
+<             }
+2394,2432c1861
+< 		case 0x73:
+< 			if (reg_al==3)
+< 			{
+< 			MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
+< 			if (name1[1]==':'&&name1[2]=='\\')
+< 				reg_dl=name1[0]-'A'+1;
+< 			else {
+< 				reg_ax=0xffff;
+< 				CALLBACK_SCF(true);
+< 				break;
+< 			}
+< 			Bit16u bytes_per_sector,total_clusters,free_clusters;
+< 			Bit8u sectors_per_cluster;
+< 			if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+< 				{
+< 				ext_space_info_t *info = new ext_space_info_t;
+< 				info->size_of_structure = sizeof(ext_space_info_t);
+< 				info->structure_version = 0;
+< 				info->sectors_per_cluster = sectors_per_cluster;
+< 				info->bytes_per_sector = bytes_per_sector;
+< 				info->available_clusters_on_drive = free_clusters;
+< 				info->total_clusters_on_drive = total_clusters;
+< 				info->available_sectors_on_drive = sectors_per_cluster * free_clusters;
+< 				info->total_sectors_on_drive = sectors_per_cluster * total_clusters;
+< 				info->available_allocation_units = free_clusters;
+< 				info->total_allocation_units = total_clusters;
+< 				MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
+< 				delete(info);
+< 				reg_ax=0;
+< 				CALLBACK_SCF(false);
+< 				}
+< 			else
+< 				{
+< 				reg_ax=dos.errorcode;
+< 				CALLBACK_SCF(true);
+< 				}
+< 			break;
+< 			}
+< 		case 0xE0:
+---
+>         case 0xE0:
+2799a2229
+> 
+3173d2602
+< 		uselfn = dos.version.major>6;
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_classes.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_classes.cpp
+27,38d26
+< char sname[LFN_NAMELENGTH+1],storect[CTBUF];
+< struct finddata {
+<        Bit8u attr;
+<        Bit8u fres1[19];
+<        Bit32u mtime;
+<        Bit32u mdate;
+<        Bit32u hsize;
+<        Bit32u size;
+<        Bit8u fres2[8];
+<        char lname[260];
+<        char sname[14];
+< } fd;
+346c334
+<         MEM_BlockCopy(pt+offsetof(sPSP,cmdtail),Real2Phys(src),CTBUF+1);
+---
+> 		MEM_BlockCopy(pt+offsetof(sPSP,cmdtail),Real2Phys(src),128);
+353,362d340
+< void DOS_PSP::StoreCommandTail() {
+< 	int len=mem_strlen(pt+offsetof(sPSP,cmdtail.buffer));
+< 	MEM_StrCopy(pt+offsetof(sPSP,cmdtail.buffer),storect,len>CTBUF?CTBUF:len);
+< }
+< 
+< void DOS_PSP::RestoreCommandTail() {
+< 	mem_writeb(pt+offsetof(sPSP,cmdtail.count),strlen(storect)>0?strlen(storect)-1:0);
+< 	MEM_BlockWrite(pt+offsetof(sPSP,cmdtail.buffer),storect,strlen(storect));
+< }
+< 
+395,408c373,379
+< 
+< 	/* Fill with char 0 */
+<     int i;
+<     for (i=0;i<LFN_NAMELENGTH;i++) {
+<         if (pattern[i]==0) break;
+< 			sname[i]=pattern[i];
+<     }
+<     while (i<=LFN_NAMELENGTH) sname[i++]=0;
+<     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
+< 	
+<     char * find_ext;
+<     find_ext=strchr(pattern,'.');
+<     if (find_ext) {
+<         Bitu size=(Bitu)(find_ext-pattern);
+---
+> 	/* Fill with spaces */
+> 	Bit8u i;
+> 	for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,sname)+i,' ');
+> 	char * find_ext;
+> 	find_ext=strchr(pattern,'.');
+> 	if (find_ext) {
+> 		Bitu size=(Bitu)(find_ext-pattern);
+410,412c381,383
+< 			MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,size);
+< 			find_ext++;
+< 			MEM_BlockWrite(pt+offsetof(sDTA,spext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+---
+> 		MEM_BlockWrite(pt+offsetof(sDTA,sname),pattern,size);
+> 		find_ext++;
+> 		MEM_BlockWrite(pt+offsetof(sDTA,sext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+414c385
+< 		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+---
+> 		MEM_BlockWrite(pt+offsetof(sDTA,sname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+418c389
+< void DOS_DTA::SetResult(const char * _name, const char * _lname, Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
+---
+> void DOS_DTA::SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
+424,431d394
+<     fd.hsize=0;
+<     fd.size=_size;
+<     fd.mdate=_date;
+<     fd.mtime=_time;
+<     fd.attr=_attr;
+<     strcpy(fd.lname,_lname);
+<     strcpy(fd.sname,_name);
+<     if (!strcmp(fd.lname,fd.sname)) fd.sname[0]=0;
+435c398
+< void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr) {
+---
+> void DOS_DTA::GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr) {
+437d399
+<     strcpy(_lname,fd.lname);
+444,458d405
+< int DOS_DTA::GetFindData(int fmt, char * fdstr) {
+< 	if (fmt==1)
+< 		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",&fd.attr,&fd.fres1,&fd.mtime,&fd.mdate,&fd.mtime,&fd.hsize,&fd.size,&fd.fres2,&fd.lname,&fd.sname);
+< 	else
+< 		sprintf(fdstr,"%-1s%-19s%-4s%-4s%-4s%-4s%-8s%-260s%-14s",&fd.attr,&fd.fres1,&fd.mtime,&fd.mdate,&fd.hsize,&fd.size,&fd.fres2,&fd.lname,&fd.sname);
+< 	for (int i=0;i<4;i++) fdstr[28+i]=0;
+<     fdstr[32]=(char)fd.size%256;
+<     fdstr[33]=(char)((fd.size%65536)/256);
+<     fdstr[34]=(char)((fd.size%16777216)/65536);
+<     fdstr[35]=(char)(fd.size/16777216);
+<     fdstr[44+strlen(fd.lname)]=0;
+<     fdstr[304+strlen(fd.sname)]=0;
+<     return (sizeof(fd));
+< }
+< 
+463c410
+< void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
+---
+> void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern) {
+465,475c412,418
+<     if (lfn) {
+<         memcpy(pattern,sname,LFN_NAMELENGTH);
+<            pattern[LFN_NAMELENGTH]=0;
+<     } else {
+<         char temp[11];
+<         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
+<         for (int i=0;i<13;i++) pattern[i]=0;
+<             memcpy(pattern,temp,8);
+<             pattern[strlen(pattern)]='.';
+<             memcpy(&pattern[strlen(pattern)],&temp[8],3);
+<     }
+---
+> 	char temp[11];
+> 	MEM_BlockRead(pt+offsetof(sDTA,sname),temp,11);
+> 	memcpy(pattern,temp,8);
+> 	pattern[8]='.';
+> 	memcpy(&pattern[9],&temp[8],3);
+> 	pattern[12]=0;
+> 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_files.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_files.cpp
+46,47d45
+< bool force = false;
+< int sdrive;
+70,83c68
+< 	char names[LFN_NAMELENGTH];
+< 	strcpy(names,name);
+< 	char * name_int = names;
+< 	if (strlen(names)==14 && name_int[1]==':' && name_int[2]!='\\' && name_int[9]==' ' && name_int[10]=='.') {
+< 		for (unsigned int i=0;i<strlen(names);i++)
+< 			if (i<10 && name_int[i]==32) {
+< 				name_int[i]='.';
+< 				name_int[i+1]=name_int[11]==32?0:toupper(name_int[11]);
+< 				name_int[i+2]=name_int[12]==32?0:toupper(name_int[12]);
+< 				name_int[i+3]=name_int[13]==32?0:toupper(name_int[13]);
+< 				name_int[i+4]=0;
+< 				break;
+< 			} else if (i<10) name_int[i]=toupper(name_int[i]);
+< 	}
+---
+> 	const char * name_int = name;
+86,87c71
+<     Bitu r,w, q=0;
+< 	/* First get the drive */
+---
+> 	Bitu r,w;
+89,92c73
+< 	while (name_int[0]=='"') {
+< 		q++;
+< 		name_int++;
+< 	}
+---
+> 	/* First get the drive */
+104,111c85,87
+< 		if (c=='/') c='\\';
+< 		else if (c=='"') {q++;continue;}
+< 		else if (uselfn&&!force) {
+< 			if (c==' ' && q/2*2 == q) continue;
+< 		} else {
+< 			if ((c>='a') && (c<='z')) c-=32;
+< 			else if (c==' ') continue; /* should be separator */
+< 		}
+---
+> 		if ((c>='a') && (c<='z')) c-=32;
+> 		else if (c==' ') continue; /* should be separator */
+> 		else if (c=='/') c='\\';
+177,194c153,168
+< 			if (!uselfn||force) {
+< 				char * ext=strchr(tempdir,'.');
+< 				if (ext) {
+< 					if(strchr(ext+1,'.')) { 
+< 					//another dot in the extension =>file not found
+< 					//Or path not found depending on wether 
+< 					//we are still in dir check stage or file stage
+< 						if(stop)
+< 							DOS_SetError(DOSERR_FILE_NOT_FOUND);
+< 						else
+< 							DOS_SetError(DOSERR_PATH_NOT_FOUND);
+< 						return false;
+< 					}
+< 					
+< 					ext[4] = 0;
+< 					if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
+< 				} else tempdir[8]=0;
+< 			}
+---
+> 			char * ext=strchr(tempdir,'.');
+> 			if (ext) {
+> 				if(strchr(ext+1,'.')) { 
+> 				//another dot in the extension =>file not found
+> 				//Or path not found depending on wether 
+> 				//we are still in dir check stage or file stage
+> 					if(stop)
+> 						DOS_SetError(DOSERR_FILE_NOT_FOUND);
+> 					else
+> 						DOS_SetError(DOSERR_PATH_NOT_FOUND);
+> 					return false;
+> 				}
+> 				
+> 				ext[4] = 0;
+> 				if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
+> 			} else tempdir[8]=0;
+210,269c184
+< bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
+<     char dir_current[DOS_PATHLENGTH + 1], pdir[LFN_NAMELENGTH], *p;
+<     Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
+<     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+<     int w=0;
+<     DOS_DTA dta(dos.dta());
+<     Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+<     if (!DOS_MakeName(path,fulldir,&drive)) return false;
+<     sprintf(SFNPath,"%c:\\",drive+'A');
+<     strcpy(LFNPath,SFNPath);
+<     strcpy(dir_current,Drives[drive]->curdir);
+<     Drives[drive]->curdir,"";
+<     p = fulldir;
+<     if (*p==0) return true;
+<     for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
+< 		*s = 0;
+< 		if (SFNPath[strlen(SFNPath)-1]=='\\')
+< 			sprintf(pdir,"\"%s%s\"",SFNPath,p);
+< 		else
+< 			sprintf(pdir,"\"%s\\%s\"",SFNPath,p);
+< 		if (!strrchr(p,'*') && !strrchr(p,'?')) {
+< 			*s = '\\';
+< 			p = s + 1;
+< 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
+< 				dta.GetResult(name,lname,size,date,time,attr);
+< 				strcat(SFNPath,name);
+< 				strcat(LFNPath,lname);
+< 				Drives[drive]->curdir,SFNPath+3;
+< 				strcat(SFNPath,"\\");
+< 				strcat(LFNPath,"\\");
+< 			}
+< 			else {
+< 			return false;}
+< 		} else {
+< 			strcat(SFNPath,p);
+< 			strcat(LFNPath,p);
+< 			strcat(SFNPath,"\\");
+< 			strcat(LFNPath,"\\");
+< 			*s = '\\';
+< 			p = s + 1;
+< 			break;
+< 		}
+<     }
+<     if (p != 0) {
+< 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
+< 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
+< 			dta.GetResult(name,lname,size,date,time,attr);
+< 			strcat(SFNPath,name);
+< 			strcat(LFNPath,lname);
+< 		} else {
+< 			strcat(SFNPath,p);
+< 			strcat(LFNPath,p);
+< 		}
+<     }
+<     Drives[drive]->curdir,dir_current;
+<     if (LFN) strcpy(SFNPath,LFNPath);
+<     return true;
+< }
+< 
+< bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN) {
+---
+> bool DOS_GetCurrentDir(Bit8u drive,char * const buffer) {
+276,289c191
+<     if (LFN && uselfn) {
+<             char cdir[DOS_PATHLENGTH],ldir[DOS_PATHLENGTH];
+< 		if (strchr(Drives[drive]->curdir,' '))
+< 			sprintf(cdir,"\"%c:\\%s\"",drive+'A',Drives[drive]->curdir);
+< 		else
+< 			sprintf(cdir,"%c:\\%s",drive+'A',Drives[drive]->curdir);
+< 			if (!DOS_GetSFNPath(cdir,ldir,true))
+< 				return false;
+<             strcpy(buffer,ldir+3);
+< 			if (DOS_GetSFNPath(cdir,ldir,false))
+< 				strcpy(Drives[drive]->curdir,ldir+3);
+<     } else {
+<             strcpy(buffer,Drives[drive]->curdir);
+<     }
+---
+> 	strcpy(buffer,Drives[drive]->curdir);
+348,351c250,252
+<     char currdir[DOS_PATHLENGTH]= { 0 }, lcurrdir[DOS_PATHLENGTH]= { 0 };
+<     DOS_GetCurrentDir(drive + 1 ,currdir, false);
+<     DOS_GetCurrentDir(drive + 1 ,lcurrdir, true);
+<     if(strcasecmp(currdir,fulldir) == 0 || uselfn && strcasecmp(lcurrdir,fulldir) == 0) {
+---
+> 	char currdir[DOS_PATHLENGTH]= { 0 };
+> 	DOS_GetCurrentDir(drive + 1 ,currdir);
+> 	if(strcmp(currdir,fulldir) == 0) {
+426d326
+< 	sdrive=drive;
+433c333
+<         dta.SetResult(pattern,pattern,0,0,0,DOS_ATTR_DEVICE);
+---
+> 		dta.SetResult(pattern,0,0,0,DOS_ATTR_DEVICE);
+446d345
+< 	if(uselfn && i >= DOS_DRIVES || !Drives[i]) i=sdrive;
+643d541
+< 		Drives[drive]->EmptyCache();
+699c597
+<         exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
+---
+> 		exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags);
+797,828d694
+< bool DOS_GetFileAttrEx(char const* const name, struct stat *status, Bit8u hdrive)
+< {
+< 	char fullname[DOS_PATHLENGTH];
+< 	Bit8u drive;
+< 	bool usehdrive=hdrive>=0&&hdrive<DOS_FILES;
+< 	if (usehdrive)
+< 		strcpy(fullname,name);
+< 	else if (!DOS_MakeName(name, fullname, &drive))
+< 		return false;
+< 	return Drives[usehdrive?hdrive:drive]->GetFileAttrEx(fullname, status);
+< }
+< 
+< unsigned long DOS_GetCompressedFileSize(char const* const name)
+< {
+< 	char fullname[DOS_PATHLENGTH];
+< 	Bit8u drive;
+< 	if (!DOS_MakeName(name, fullname, &drive))
+< 		return false;
+< 	return Drives[drive]->GetCompressedSize(fullname);
+< }
+< 
+< #if defined (WIN32)
+< HANDLE DOS_CreateOpenFile(char const* const name)
+< {
+< 	char fullname[DOS_PATHLENGTH];
+< 	Bit8u drive;
+< 	if (!DOS_MakeName(name, fullname, &drive))
+< 		return INVALID_HANDLE_VALUE;
+< 	return Drives[drive]->CreateOpenFile(fullname);
+< }
+< #endif
+< 
+1150,1151c1016
+<     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+<     Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
+---
+> 	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
+1153c1018
+< 	find_dta.GetResult(name,lname,size,date,time,attr);
+---
+> 	find_dta.GetResult(name,size,date,time,attr);
+1199c1064
+< 		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH],file_name[9],ext[4];
+---
+> 		char name[DOS_NAMELENGTH_ASCII],file_name[9],ext[4];
+1201c1066
+< 		find_dta.GetResult(name,lname,size,date,time,attr);
+---
+> 		find_dta.GetResult(name,size,date,time,attr);
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_misc.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_misc.cpp
+95d94
+<     char name[256];
+211,226d209
+<     case 0x1300:
+<     case 0x1302:
+<         reg_ax=0;
+<         return true;
+<     case 0x1612:
+<         reg_ax=0;
+<         name[0]=1;
+<         name[1]=0;
+<         MEM_BlockWrite(SegPhys(es)+reg_bx,name,0x20);
+<         return true;
+<     case 0x1613:    /* Get SYSTEM.DAT path */
+<         strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
+<         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
+<         reg_ax=0;
+<         reg_cx=strlen(name);
+<         return true;
+336,406d318
+< #ifdef WIN32
+< 	case 0xb800:																	// Network - installation check
+< 		reg_al = 1;																	// Installed
+< 		reg_bx = 8;																	// Bit 3 - redirector
+< 		return true;
+< 	case 0xb809:																	// Network - get version
+< 		reg_ax = 0x0201;															// Major-minor version as returned by NTVDM-Windows XP
+< 		return true;
+< 	case 0x1700:
+< 		reg_al = 1;
+< 		reg_ah = 1;
+< 		return true;
+< 	case 0x1701:
+< 		reg_ax=OpenClipboard(NULL)?1:0;
+< 		return true;
+< 	case 0x1702:
+< 		reg_ax=0;
+< 		if (OpenClipboard(NULL))
+< 			{
+< 			reg_ax=EmptyClipboard()?1:0;
+< 			CloseClipboard();
+< 			}
+< 		return true;
+< 	case 0x1703:
+< 		reg_ax=0;
+< 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+< 			{
+< 			char *text, *buffer;
+< 			text = new char[reg_cx];
+< 			MEM_StrCopy(SegPhys(es)+reg_bx,text,reg_cx);
+< 			*(text+reg_cx-1)=0;
+< 			HGLOBAL clipbuffer;
+< 			EmptyClipboard();
+< 			clipbuffer = GlobalAlloc(GMEM_DDESHARE, strlen(text)+1);
+< 			buffer = (char*)GlobalLock(clipbuffer);
+< 			strcpy(buffer, text);
+< 			delete[] text;
+< 			GlobalUnlock(clipbuffer);
+< 			SetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT,clipbuffer);
+< 			reg_ax++;
+< 			CloseClipboard();
+< 			}
+< 		return true;
+< 	case 0x1704:
+< 		reg_ax=0;
+< 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+< 			{
+< 			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
+< 				{
+< 				reg_ax=(Bit16u)strlen((char *)text)+1;
+< 				reg_dx=(Bit16u)((strlen((char *)text)+1)/65536);
+< 				}
+< 			CloseClipboard();
+< 			}
+< 		return true;
+< 	case 0x1705:
+< 		reg_ax=0;
+< 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+< 			{
+< 			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
+< 				{
+< 				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(strlen((char *)text)+1));
+< 				reg_ax++;
+< 				}
+< 			CloseClipboard();
+< 			}
+< 		return true;
+< 	case 0x1708:
+< 		reg_ax=CloseClipboard()?1:0;
+< 		return true;
+< #endif
+462,467d373
+<     case 0x4a16:    /* Open bootlog */
+<         return true;
+<     case 0x4a17:    /* Write bootlog */
+<         MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
+<         LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+<         return true;
+474,478d379
+< 	case 0x4a33:	/* Check MS-DOS Version 7 */
+< 		if (dos.version.major > 6) {
+< 			reg_ax=0;
+< 			return true;
+< 		}
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/dos_programs.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/dos_programs.cpp
+174,175c174
+<         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+<         Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+---
+>         char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+191c190
+<                 dta.GetResult(name,lname,size,date,time,attr);
+---
+>                 dta.GetResult(name,size,date,time,attr);
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_cache.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_cache.cpp
+136,137c136,137
+<         char* result = 0, *lresult = 0;
+<         ReadDir(id,result,lresult);
+---
+>         char* result = 0;
+>         ReadDir(id,result);
+217,219c217
+<         char sfile[DOS_NAMELENGTH];
+<         sfile[0]=0;
+<         CreateEntry(dir,file,sfile,false);
+---
+>         CreateEntry(dir,file,false);
+609c607
+<             char *result = 0, *lresult = 0;
+---
+>             char* result = 0;
+611c609
+<             ReadDir(id,result,lresult);
+---
+>             ReadDir(id,result);
+644c642
+< 					char *result = 0, *lresult = 0;
+---
+>                     char* result = 0;
+646c644
+<                     ReadDir(id,result,lresult);
+---
+>                     ReadDir(id,result);
+707c705
+< void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
+---
+> void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, bool is_directory) {
+709,710c707
+<     strcpy(info->shortname, sname);
+< 	strcpy(info->orgname, name);
+---
+>     strcpy(info->orgname, name);                
+715c712
+<     if (sname[0]==0) CreateShortName(dir, info);                   
+---
+>     CreateShortName(dir, info);     
+746,747c743,744
+<     strcpy(info->orgname, from->orgname);           
+<     strcpy(info->shortname, from->shortname);
+---
+>     strcpy(info->orgname, from->orgname);               
+>     strcpy(info->shortname, from->shortname);               
+754c751
+< bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
+---
+> bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result) {
+769c766
+<         char dir_name[CROSS_LEN], dir_sname[DOS_NAMELENGTH+1];
+---
+>         char dir_name[CROSS_LEN];
+771,774c768,771
+<         if (drive->read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
+<             CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+<             while (drive->read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
+<                 CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+---
+>         if (drive->read_directory_first(dirp, dir_name, is_directory)) {
+>             CreateEntry(dirSearch[id], dir_name, is_directory);
+>             while (drive->read_directory_next(dirp, dir_name, is_directory)) {
+>                 CreateEntry(dirSearch[id], dir_name, is_directory);
+791c788
+< 	if (SetResult(dirSearch[id], result, lresult, dirSearch[id]->nextEntry)) return true;
+---
+>     if (SetResult(dirSearch[id], result, dirSearch[id]->nextEntry)) return true;
+799c796
+< bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, char* &lresult, Bitu entryNr)
+---
+> bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, Bitu entryNr)
+802d798
+<     static char lres[CROSS_LEN] = { 0 };
+805,806d800
+<     lresult = lres;
+< 
+811d804
+<     strcpy(lres,info->orgname);
+870c863
+< bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
+---
+> bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result) {
+876c869
+<     if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
+---
+>     if (!SetResult(dirFindFirst[id], result, dirFindFirst[id]->nextEntry)) {
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_fat.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_fat.cpp
+628,630c628,629
+<                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+<                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+<                 imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+---
+> 				char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+> 				imgDTA->GetResult(find_name,find_size,find_date,find_time,find_attr);
+672,674c671,672
+<                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+<                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+< 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+---
+> 				char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+> 				imgDTA->GetResult(find_name,find_size,find_date,find_time,find_attr);
+1682c1680
+<     char srch_pattern[CROSS_LEN];
+---
+> 	char srch_pattern[DOS_NAMELENGTH_ASCII];
+1684d1681
+<     char lfind_name[LFN_NAMELENGTH+1];
+1691c1688
+< 	dta.GetSearchParams(attrs, srch_pattern,false);
+---
+> 	dta.GetSearchParams(attrs, srch_pattern);
+1726d1722
+< 	memset(lfind_name,0,LFN_NAMELENGTH);
+1729d1724
+< 	memcpy(lfind_name,&sectbuf[entryoffset].entryname[0],8);
+1734d1728
+< 		trimString(&lfind_name[0]);
+1739c1733
+<         if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
+---
+>         if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME))
+1741,1742c1735
+<             strcat(lfind_name, ".");
+< 		}
+---
+> 
+1744d1736
+<         strcat(lfind_name, extension);
+1762c1754
+< 	if(!WildFileCmp(find_name,srch_pattern)&&!LWildFileCmp(lfind_name,srch_pattern)) goto nextfile;
+---
+> 	if(!WildFileCmp(find_name,srch_pattern)) goto nextfile;
+1766c1758
+< 	dta.SetResult(find_name, lfind_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
+---
+> 	dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
+1809,1823d1800
+< bool fatDrive::GetFileAttrEx(char* name, struct stat *status) {
+< 	return false;
+< }
+< 
+< unsigned long fatDrive::GetCompressedSize(char* name) {
+< 	return 0;
+< }
+< 
+< #if defined (WIN32)
+< HANDLE fatDrive::CreateOpenFile(const char* name) {
+< 	DOS_SetError(1);
+< 	return INVALID_HANDLE_VALUE;
+< }
+< #endif
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_iso.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_iso.cpp
+31,32d30
+< char fullname[LFN_NAMELENGTH];
+< 
+285,286c283,284
+< 	char pattern[CROSS_LEN];
+<     dta.GetSearchParams(attr, pattern, true);
+---
+> 	char pattern[ISO_MAXPATHNAME];
+> 	dta.GetSearchParams(attr, pattern);
+289c287
+< 		dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+---
+> 		dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+294c292
+< 			dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+304,305c302,303
+< 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
+<     dta.GetSearchParams(attr, pattern, true);
+---
+> 	char pattern[DOS_NAMELENGTH_ASCII];
+> 	dta.GetSearchParams(attr, pattern);
+317,322c315
+< 		if (strcmp((char*)de.ident,(char*)fullname))
+< 			strcpy(lfindName,fullname);
+< 		else
+< 			GetLongName((char*)de.ident,lfindName);
+< 
+<         if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
+---
+> 		if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && WildFileCmp((char*)de.ident, pattern)
+335c328
+<             dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
+---
+> 			dta.SetResult(findName, findSize, findDate, findTime, findAttr);
+363,377d355
+< bool isoDrive::GetFileAttrEx(char* name, struct stat *status) {
+< 	return false;
+< }
+< 
+< unsigned long isoDrive::GetCompressedSize(char* name) {
+< 	return 0;
+< }
+< 
+< #if defined (WIN32)
+< HANDLE isoDrive::CreateOpenFile(const char* name) {
+< 	DOS_SetError(1);
+< 	return INVALID_HANDLE_VALUE;
+< }
+< #endif
+< 
+572c550
+< 	char isoPath[ISO_MAXPATHNAME], longname[ISO_MAXPATHNAME];
+---
+> 	char isoPath[ISO_MAXPATHNAME];
+592,593c570
+< 				GetLongName((char*)de->ident,longname);
+< 				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) ||0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME)) {
+---
+> 				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH))) {
+610,624d586
+< void isoDrive :: GetLongName(char *ident, char *lfindName) {
+<     char *c=ident+strlen(ident);
+<     int i,j=222-strlen(ident)-6;
+<     for (i=5;i<j;i++) {
+<         if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
+<             break;
+<         }
+<     if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
+<         strncpy(lfindName,c+i+5,*(c+i+2)-5);
+<         lfindName[*(c+i+2)-5]=0;
+<     } else
+<         strcpy(lfindName,ident);
+< }
+< 
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_local.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_local.cpp
+544,546d543
+< #if defined (WIN32)
+< #include <Shellapi.h>
+< #endif
+569,582d565
+< #if defined (WIN32)
+< 		if (uselfn&&strlen(fullname)>1&&!strcmp(fullname+strlen(fullname)-2,"\\*")||strlen(fullname)>3&&!strcmp(fullname+strlen(fullname)-4,"\\*.*"))
+< 			{
+< 			SHFILEOPSTRUCT op={0};
+< 			op.wFunc = FO_DELETE;
+< 			fullname[strlen(fullname)+1]=0;
+< 			op.pFrom = fullname;
+< 			op.pTo = NULL;
+< 			op.fFlags = FOF_FILESONLY | FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | 0x1000;
+< 			int err=SHFileOperation(&op);
+< 			if (err) DOS_SetError(err);
+< 			return !err;
+< 			}
+< #endif
+626d608
+< 	for (unsigned int i=0;i<strlen(tempDir);i++) tempDir[i]=toupper(tempDir[i]);
+648c630
+< 	dta.GetSearchParams(sAttr,tempDir,true);
+---
+> 	dta.GetSearchParams(sAttr,tempDir);
+653c635
+< 			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+665c647
+<             dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+671c653
+<                 dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 				dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+683c665
+<     char * dir_ent, *ldir_ent;
+---
+> 	char * dir_ent;
+685,686c667,668
+<     char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+<     char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
+---
+> 	char full_name[CROSS_LEN];
+> 	char dir_entcopy[CROSS_LEN];
+688c670
+<     Bit8u srch_attr;char srch_pattern[LFN_NAMELENGTH];
+---
+> 	Bit8u srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
+691c673
+<     dta.GetSearchParams(srch_attr,srch_pattern,true);
+---
+> 	dta.GetSearchParams(srch_attr,srch_pattern);
+695c677
+<     if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+---
+> 	if (!dirCache.FindNext(id,dir_ent)) {
+699c681
+<     if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
+---
+> 	if(!WildFileCmp(dir_ent,srch_pattern)) goto again;
+704,706d685
+< 	strcpy(lfull_name,srchInfo[id].srch_dir);
+<     strcat(lfull_name,ldir_ent);
+< 
+711d689
+<     strcpy(ldir_entcopy,ldir_ent);
+731,732c709
+< 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
+<     Bit16u find_date,find_time;Bit32u find_size;
+---
+> 	char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;
+740,742c717
+<     }
+< 	strcpy(lfind_name,ldir_entcopy);
+<     lfind_name[LFN_NAMELENGTH]=0;
+---
+>     } 
+753c728
+< 	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+---
+> 	dta.SetResult(find_name,find_size,find_date,find_time,find_attr);
+784,832d758
+< bool localDrive::GetFileAttrEx(char* name, struct stat *status) {
+< 	char newname[CROSS_LEN];
+< 	strcpy(newname,basedir);
+< 	strcat(newname,name);
+< 	CROSS_FILENAME(newname);
+< 	dirCache.ExpandName(newname);
+< 	return !stat(newname,status);
+< }
+< 
+< unsigned long localDrive::GetCompressedSize(char* name) {
+< #if !defined (WIN32)
+< 	return 0;
+< #else
+< 	char newname[CROSS_LEN];
+< 	strcpy(newname,basedir);
+< 	strcat(newname,name);
+< 	CROSS_FILENAME(newname);
+< 	dirCache.ExpandName(newname);
+< 	DWORD size = GetCompressedFileSize(newname, NULL);
+< 	if (size != INVALID_FILE_SIZE) {
+< 		if (size != 0 && size == GetFileSize(newname, NULL)) {
+< 			DWORD sectors_per_cluster, bytes_per_sector, free_clusters, total_clusters;
+< 			if (GetDiskFreeSpace(newname, &sectors_per_cluster, &bytes_per_sector, &free_clusters, &total_clusters)) {
+< 				size = ((size - 1) | (sectors_per_cluster * bytes_per_sector - 1)) + 1;
+< 			}
+< 		}
+< 		return size;
+< 	} else {
+< 		DOS_SetError((Bit16u)GetLastError());
+< 		return -1;
+< 	}
+< #endif
+< }
+< 
+< #if defined (WIN32)
+< HANDLE localDrive::CreateOpenFile(const char* name) {
+< 	char newname[CROSS_LEN];
+< 	strcpy(newname,basedir);
+< 	strcat(newname,name);
+< 	CROSS_FILENAME(newname);
+< 	dirCache.ExpandName(newname);
+< 	HANDLE handle=CreateFile(newname, FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+< 	if (handle==INVALID_HANDLE_VALUE)
+< 		DOS_SetError((Bit16u)GetLastError());
+< 	return handle;
+< 	return INVALID_HANDLE_VALUE;
+< }
+< #endif
+< 
+1073,1074c999,1000
+< bool localDrive::read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
+<     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
+---
+> bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_directory) {
+>     host_cnv_char_t tmp[MAX_PATH+1];
+1076c1002
+<     if (::read_directory_firstw((dir_information*)handle, tmp, stmp, is_directory)) {
+---
+>     if (::read_directory_firstw((dir_information*)handle, tmp, is_directory)) {
+1078,1079c1004,1005
+<         char *n_stemp_name = CodePageHostToGuest(stmp);
+<         if (n_stemp_name == NULL) {
+---
+>         char *n_temp_name = CodePageHostToGuest(tmp);
+>         if (n_temp_name == NULL) {
+1081c1007
+<             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
+---
+>             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+1083c1009
+<             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
+---
+>             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+1087,1092c1013
+< #if defined(WIN32)
+< 		wcstombs(entry_name, tmp, MAX_PATH);
+< #else
+<         strcpy(entry_name,tmp);
+< #endif
+<         strcpy(entry_sname,n_stemp_name);
+---
+>         strcpy(entry_name,n_temp_name);
+1099,1100c1020,1021
+< bool localDrive::read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
+<     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
+---
+> bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
+>     host_cnv_char_t tmp[MAX_PATH+1];
+1103c1024
+<     if (::read_directory_nextw((dir_information*)handle, tmp, stmp, is_directory)) {
+---
+>     if (::read_directory_nextw((dir_information*)handle, tmp, is_directory)) {
+1105,1106c1026,1027
+<         char *n_stemp_name = CodePageHostToGuest(stmp);
+<         if (n_stemp_name == NULL) {
+---
+>         char *n_temp_name = CodePageHostToGuest(tmp);
+>         if (n_temp_name == NULL) {
+1108c1029
+<             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
+---
+>             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+1110c1031
+<             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
+---
+>             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+1114,1119c1035
+< #if defined(WIN32)
+< 		wcstombs(entry_name, tmp, MAX_PATH);
+< #else
+<         strcpy(entry_name,tmp);
+< #endif
+<         strcpy(entry_sname,n_stemp_name);
+---
+>         strcpy(entry_name,n_temp_name);
+1424,1437d1339
+< bool cdromDrive::GetFileAttrEx(char* name, struct stat *status) {
+< 	return localDrive::GetFileAttrEx(name,status);
+< }
+< 
+< unsigned long cdromDrive::GetCompressedSize(char* name) {
+< 	return localDrive::GetCompressedSize(name);
+< }
+< 
+< #if defined (WIN32)
+< HANDLE cdromDrive::CreateOpenFile(const char* name) {
+< 		return localDrive::CreateOpenFile(name);
+< }
+< #endif
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drive_virtual.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drive_virtual.cpp
+31d30
+< 	const char * lname;
+59d57
+< 	new_file->lname=name;
+230,231c228,229
+< 	Bit8u attr;char pattern[CROSS_LEN];
+<     dta.GetSearchParams(attr,pattern,true);
+---
+> 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
+> 	dta.GetSearchParams(attr,pattern);
+233c231
+< 		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 		dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+237c235
+< 			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+245,246c243,244
+< 	Bit8u attr;char pattern[CROSS_LEN];
+<     dta.GetSearchParams(attr,pattern,true);
+---
+> 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
+> 	dta.GetSearchParams(attr,pattern);
+249c247
+< 			dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+---
+> 			dta.SetResult(search_file->name,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+271,285d268
+< bool Virtual_Drive::GetFileAttrEx(char* name, struct stat *status) {
+< 	return false;
+< }
+< 
+< unsigned long Virtual_Drive::GetCompressedSize(char* name) {
+< 	return 0;
+< }
+< 
+< #if defined (WIN32)
+< HANDLE Virtual_Drive::CreateOpenFile(const char* name) {
+< 	DOS_SetError(1);
+< 	return INVALID_HANDLE_VALUE;
+< }
+< #endif
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drives.cpp
+32,33c32,33
+<     char wild_name[10];
+<     char wild_ext[5];
+---
+> 	char wild_name[9];
+> 	char wild_ext[4];
+37,46c37,40
+<     for (r=0;r<9;r++) {
+<         file_name[r]=0;
+<         wild_name[r]=0;
+<     }
+<     wild_name[9]=0;
+<     for (r=0;r<4;r++) {
+<         file_ext[r]=0;
+<         wild_ext[r]=0;
+<     }
+<     wild_ext[4]=0;
+---
+> 	strcpy(file_name,"        ");
+> 	strcpy(file_ext,"   ");
+> 	strcpy(wild_name,"        ");
+> 	strcpy(wild_ext,"   ");
+62c56
+< 		if (size>9) size=9;
+---
+> 		if (size>8) size=8;
+65c59
+< 		memcpy(wild_ext,find_ext,(strlen(find_ext)>4) ? 4 : strlen(find_ext));
+---
+> 		memcpy(wild_ext,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext));
+67c61
+< 		memcpy(wild_name,wild,(strlen(wild) > 9) ? 9 : strlen(wild));
+---
+> 		memcpy(wild_name,wild,(strlen(wild) > 8) ? 8 : strlen(wild));
+77d70
+< 	if (wild_name[r]&&wild_name[r]!='*') return false;
+85d77
+<     if (wild_ext[r]&&wild_ext[r]!='*') return false;
+89,156d80
+< bool LWildFileCmp(const char * file, const char * wild)
+< {
+<     if (!uselfn) return false;
+<     char file_name[256];
+<     char file_ext[256];
+<     char wild_name[256];
+<     char wild_ext[256];
+<     const char * find_ext;
+<     Bitu r;
+< 
+<     for (r=0;r<256;r++) {
+<       file_name[r]=0;
+<       wild_name[r]=0;
+<     }
+<     for (r=0;r<256;r++) {
+<       file_ext[r]=0;
+<       wild_ext[r]=0;
+<     }
+< 
+<     Bitu size,elen;
+<     find_ext=strrchr(file,'.');
+<     if (find_ext) {
+<             size=(Bitu)(find_ext-file);
+<             if (size>255) size=255;
+<             memcpy(file_name,file,size);
+<             find_ext++;
+<             elen=strlen(find_ext);
+<             memcpy(file_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext));
+<     } else {
+<             size=strlen(file);
+<             elen=0;
+<             memcpy(file_name,file,(strlen(file) > 255) ? 255 : strlen(file));
+<     }
+<     upcase(file_name);upcase(file_ext);
+<     char nwild[LFN_NAMELENGTH+2];
+<     strcpy(nwild,wild);
+<     if (strrchr(nwild,'*')&&strrchr(nwild,'.')==NULL) strcat(nwild,".*");
+<     find_ext=strrchr(nwild,'.');
+<     if (find_ext) {
+<             Bitu size=(Bitu)(find_ext-nwild);
+<             if (size>255) size=255;
+<             memcpy(wild_name,nwild,size);
+<             find_ext++;
+<             memcpy(wild_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext));
+<     } else {
+<             memcpy(wild_name,nwild,(strlen(nwild) > 255) ? 255 : strlen(nwild));
+<     }
+<     upcase(wild_name);upcase(wild_ext);
+<     /* Names are right do some checking */
+<     r=0;
+<     while (r<size) {
+<             if (wild_name[r]=='*') goto checkext;
+<             if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
+<             r++;
+<     }
+<     if (wild_name[r]&&wild_name[r]!='*') return false;
+< checkext:
+<     r=0;
+<     while (r<elen) {
+<             if (wild_ext[r]=='*') return true;
+<             if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
+<             r++;
+<     }
+<     if (wild_ext[r]&&wild_ext[r]!='*') return false;
+< 
+<     return true;
+< }
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dos/drives.h dosbox-x-dosbox-x-v0.83.0 - Org/src/dos/drives.h
+29d28
+< bool LWildFileCmp(const char * file, const char * wild);
+70,74d68
+< 	virtual bool GetFileAttrEx(char* name, struct stat *status);
+< 	virtual unsigned long GetCompressedSize(char* name);
+< #if defined (WIN32)
+< 	virtual HANDLE CreateOpenFile(char const* const name);
+< #endif
+87,88c81,82
+< 	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+<     virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+---
+> 	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory);
+> 	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
+227,231d220
+< 	virtual bool GetFileAttrEx(char* name, struct stat *status);
+< 	virtual unsigned long GetCompressedSize(char* name);
+< #if defined (WIN32)
+< 	virtual HANDLE CreateOpenFile(char const* const name);
+< #endif
+328,332d316
+< 	virtual bool GetFileAttrEx(char* name, struct stat *status);
+< 	virtual unsigned long GetCompressedSize(char* name);
+< #if defined (WIN32)
+< 	virtual HANDLE CreateOpenFile(char const* const name);
+< #endif
+453,457d436
+< 	virtual bool GetFileAttrEx(char* name, struct stat *status);
+< 	virtual unsigned long GetCompressedSize(char* name);
+< #if defined (WIN32)
+< 	virtual HANDLE CreateOpenFile(char const* const name);
+< #endif
+481d459
+< 	void GetLongName(char *ident, char *lfindName);
+523,527d500
+< 	bool GetFileAttrEx(char* name, struct stat *status);
+< 	unsigned long GetCompressedSize(char* name);
+< #if defined (WIN32)
+< 	HANDLE CreateOpenFile(char const* const name);
+< #endif
+Only in dosbox-x-dosbox-x-v0.83.0/src: dosbox-x
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/dosbox.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/dosbox.cpp
+122a123
+> 
+Only in dosbox-x-dosbox-x-v0.83.0/src: dosbox.plist
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/hardware/hardware.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/hardware/hardware.cpp
+517,519c517,519
+<     char tempname[CROSS_LEN], sname[12];
+<     bool testRead = read_directory_first(dir, tempname, sname, is_directory );
+<     for ( ; testRead; testRead = read_directory_next(dir, tempname, sname, is_directory) ) {
+---
+> 	char tempname[CROSS_LEN];
+> 	bool testRead = read_directory_first(dir, tempname, is_directory );
+> 	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+559,561c559,560
+<     bool testRead = read_directory_first(dir, tempname, tempname, is_directory );
+<     for ( ; testRead; testRead = read_directory_next(dir, tempname, tempname, is_directory) ) {
+<         // didn't adapt this for long file names
+---
+> 	bool testRead = read_directory_first(dir, tempname, is_directory );
+> 	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/cbus: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/common: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/generic: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/sound: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/sound/getsnd: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/hardware/snd_pc98/x11: .dirstamp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/cross.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/cross.cpp
+211c211
+< bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory) {
+---
+> bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+222d221
+<     wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
+230c229
+< bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory) {
+---
+> bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+239d237
+< 	wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
+247c245
+< bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+259,260c257
+<     safe_strncpy(entry_sname,dirp->search_data.a.cAlternateFileName,13);
+<  
+---
+> 
+267c264
+< bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+---
+> bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+277d273
+< 	safe_strncpy(entry_sname,dirp->search_data.a.cAlternateFileName,13);
+301c297
+< bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {	
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+310d305
+< 	entry_sname[0]=0;
+334c329
+< bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+---
+> bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+343,344d337
+< 	entry_sname[0]=0;
+< 
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/programs.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/programs.cpp
+153,155c153,155
+<     MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+<     if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+<     else tail.buffer[CTBUF-1]=0;
+---
+> 	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
+> 	if (tail.count<127) tail.buffer[tail.count]=0;
+> 	else tail.buffer[126]=0;
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/misc/support.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/misc/support.cpp
+80,81c80
+< 	while (--p >= str && *reinterpret_cast<unsigned char*>(p) != '\f' && isspace(*reinterpret_cast<unsigned char*>(p))) {};
+< 
+---
+> 	while (--p >= str && isspace(*reinterpret_cast<unsigned char*>(p))) {}
+149,166d147
+< char * StripArg(char *&line) {
+<        char * scan=line;
+<        int q=0;
+<        scan=ltrim(scan);
+<        char * begin=scan;
+<        for (char c = *scan ;(c = *scan);scan++) {
+<                if (*scan=='"') {
+<                        q++;
+<                } else if (q/2*2==q && isspace(*reinterpret_cast<unsigned char*>(&c))) {
+< 			*scan++=0;
+< 			break;
+< 		}
+< 	}
+< 	line=scan;
+< 	return begin;
+< }
+< 
+< 
+Only in dosbox-x-dosbox-x-v0.83.0/src/mt32/freeverb: .dirstamp
+Only in dosbox-x-dosbox-x-v0.83.0/src/mt32/sha1: .dirstamp
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell.cpp
+636,638c636,638
+< 	MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+< 	if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+< 	else tail.buffer[CTBUF-1]=0;
+---
+> 	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
+> 	if (tail.count<127) tail.buffer[tail.count]=0;
+> 	else tail.buffer[126]=0;
+687c687
+< 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
+---
+> 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname is longer than 8 characters and/or contains spaces.\nTry \033[31mcd %s\033[0m\n");
+708d707
+<     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
+1176,1178c1175,1177
+< 	memset(&tail.buffer, 0, CTBUF);
+< 	strncpy(tail.buffer,init_line,CTBUF);
+< 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
+---
+> 	memset(&tail.buffer, 0, 127);
+> 	strncpy(tail.buffer,init_line,127);
+> 	MEM_BlockWrite(PhysMake(psp_seg,128),&tail,128);
+1181c1180
+< 	dos.dta(RealMake(psp_seg,CTBUF+1));
+---
+> 	dos.dta(RealMake(psp_seg,0x80));
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_cmds.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell_cmds.cpp
+411c411
+< 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
+---
+> 	char full[DOS_PATHLENGTH];
+416,421c416
+<     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH];
+< 	if (!DOS_GetSFNPath(args,spath,false)) {
+< 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
+< 		return;
+< 	}    sprintf(sargs,"\"%s\"",spath);
+<     bool res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+---
+> 	bool res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+429,430c424
+<     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+<     Bit32u size;Bit16u time,date;Bit8u attr;
+---
+> 	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u time,date;Bit8u attr;
+433c427
+< 		dta.GetResult(name,lname,size,date,time,attr);
+---
+> 		dta.GetResult(name,size,date,time,attr);	
+436,438c430
+< 			strcpy(sfull,full);
+< 			if (uselfn) sprintf(sfull,"\"%s\"",full);
+< 			if (!DOS_UnlinkFile(sfull)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),full);
+---
+> 			if (!DOS_UnlinkFile(full)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),full);
+465c457
+< 	char * arg1=StripArg(args);
+---
+> 	char * arg1=StripWord(args);
+493,494c485
+< 		if (!DOS_Rename(arg1,args))
+<             WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+---
+> 		DOS_Rename(arg1,target);
+497,498c488
+< 		if (!DOS_Rename(arg1,args))
+<             WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+---
+> 		DOS_Rename(arg1,args);
+539,543d528
+< 	char sargs[CROSS_LEN];
+< 	if (*args && !DOS_GetSFNPath(args,sargs,false)) {
+< 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+< 		return;
+< 	}
+547c532
+<         DOS_GetCurrentDir(0,dir,true);
+---
+> 		DOS_GetCurrentDir(0,dir);
+552c537
+<         if(!DOS_GetCurrentDir(targetdrive,dir,true)) { // verify that this should be true
+---
+> 		if(!DOS_GetCurrentDir(targetdrive,dir)) {
+563c548
+< 	} else if (!DOS_ChangeDir(sargs)) {
+---
+> 	} else 	if (!DOS_ChangeDir(args)) {
+572,573c557,558
+<         separator = temps.find_first_of("\"");
+<         if(separator != std::string::npos) temps.erase(separator);
+---
+> 		separator = temps.find_first_of("\\/");
+> 		if(separator != std::string::npos) temps.erase(separator);
+581a567,570
+> 		} else if (temps.size()>8) {
+> 			temps.erase(6);
+> 			temps += "~1";
+> 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
+647d635
+< 	char lname[LFN_NAMELENGTH+1];
+674d661
+< 	char sargs[CROSS_LEN];
+757,764c744
+< 		if(!DOS_GetSFNPath(args,sargs,false)) {
+< 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+< 			return;
+< 		}
+< 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
+< 			DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+< 			DOS_DTA dta(dos.dta());
+< 			strcpy(args,sargs);
+---
+> 		if(DOS_GetFileAttr(args,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
+768,772d747
+< 	if (!DOS_GetSFNPath(args,sargs,false)) {
+< 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+< 		return;
+< 	}
+<     sprintf(args,"\"%s\"",sargs);
+783,785c758,760
+< 	if (!DOS_GetSFNPath(path,sargs,true)) {
+< 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+< 		return;
+---
+> 	if (!optB) {
+> 		CMD_VOL(empty_string);
+> 		WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),path);
+787,788d761
+<     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
+<     if (!optB) WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),sargs);
+813c786
+< 		dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
+---
+> 		dta.GetResult(result.name,result.size,result.date,result.time,result.attr);
+843d815
+< 		char *lname = iter->lname;
+852,853c824,825
+<             if (strcmp(".",uselfn?lname:name) && strcmp("..",uselfn?lname:name)) {
+< 				WriteOut("%s\n",uselfn?lname:name);
+---
+> 			if (strcmp(".",name) && strcmp("..",name)) {
+> 				WriteOut("%s\n",name);
+876c848
+<                     WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,"<DIR>",day,month,year,hour,minute,uselfn?lname:"");
+---
+> 					WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d\n",name,ext,"<DIR>",day,month,year,hour,minute);
+884c856
+<                     WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,numformat,day,month,year,hour,minute,uselfn?lname:"");
+---
+> 					WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d\n",name,ext,numformat,day,month,year,hour,minute);
+938c910
+< 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
+---
+> 	char name[DOS_NAMELENGTH_ASCII];
+957d928
+< 	char q[]="\"";
+960c931
+< 	while ( (source_p = StripArg(args)) && *source_p ) {
+---
+> 	while ( (source_p = StripWord(args)) && *source_p ) {
+979,981c950,951
+<                 char spath[DOS_PATHLENGTH];
+<                 if (DOS_GetSFNPath(source_p,spath,false) && DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
+<                     dta.GetResult(name,lname,size,date,time,attr);
+---
+> 				if (DOS_FindFirst(source_p,0xffff & ~DOS_ATTR_VOLUME)) {
+> 					dta.GetResult(name,size,date,time,attr);
+1024c994
+< 		char pathSourcePre[DOS_PATHLENGTH], pathSource[DOS_PATHLENGTH+2];
+---
+> 		char pathSource[DOS_PATHLENGTH];
+1027c997
+< 		if (!DOS_Canonicalize(const_cast<char*>(source.filename.c_str()),pathSourcePre)) {
+---
+> 		if (!DOS_Canonicalize(const_cast<char*>(source.filename.c_str()),pathSource)) {
+1032,1033d1001
+< 		strcpy(pathSource,pathSourcePre);
+< 		if (uselfn) sprintf(pathSource,"\"%s\"",pathSourcePre);
+1050c1018
+< 				dta.GetResult(name,lname,size,date,time,attr);
+---
+> 				dta.GetResult(name,size,date,time,attr);
+1059,1060c1027
+< 		char sPath[DOS_PATHLENGTH];
+< 		bool ret = DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst(const_cast<char*>(sPath),0xffff & ~DOS_ATTR_VOLUME);
+---
+> 		bool ret = DOS_FindFirst(const_cast<char*>(source.filename.c_str()),0xffff & ~DOS_ATTR_VOLUME);
+1088d1054
+< 
+1118c1084
+< 			dta.GetResult(name,lname,size,date,time,attr);
+---
+> 			dta.GetResult(name,size,date,time,attr);
+1125d1090
+< 				
+1133,1134c1098
+< 					strcpy(nameTarget,q);
+<                     strcat(nameTarget,pathTarget);
+---
+> 					strcpy(nameTarget,pathTarget);
+1138c1102
+< 							strcat(nameTarget, (uselfn?lname:name) + replacementOffset);
+---
+> 							strcat(nameTarget, name + replacementOffset);
+1142c1106
+< 							strcat(nameTarget, strchr(uselfn?lname:name, '.'));
+---
+> 							strcat(nameTarget, strchr(name, '.'));
+1146,1147c1110
+<                     if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
+<                     strcat(nameTarget,q);
+---
+> 					if (nameTarget[pathTargetLen-1]=='\\') strcat(nameTarget,name);
+1173,1176c1136
+<                             if (strcmp(name,lname)&&uselfn)
+<                                 WriteOut(" %s [%s]\n",lname,name);
+<                             else
+<                                 WriteOut(" %s\n",uselfn?lname:name);
+---
+> 							WriteOut(" %s\n",name);
+1196d1155
+< 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
+1284c1243
+< 		char* word = StripArg(args);
+---
+> 		char* word = StripWord(args);
+1376c1335
+< 	word=StripArg(args);
+---
+> 	word=StripWord(args);
+1419c1378
+< 	word=StripArg(args);
+---
+> 	word=StripWord(args);
+1625,1629c1584,1585
+<         Bit8u drive;char dir[DOS_PATHLENGTH+2],fulldir[DOS_PATHLENGTH];
+<         if (strchr(arg.c_str(),'\"')==NULL)
+<             sprintf(dir,"\"%s\"",arg.c_str());
+<         else strcpy(dir,arg.c_str());
+<         if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
+---
+>    		Bit8u drive;char fulldir[DOS_PATHLENGTH];
+> 		if (!DOS_MakeName(const_cast<char*>(arg.c_str()),fulldir,&drive)) throw 0;
+diff -r -x '*.a' -x '*.o' -x '*.obj' -x '*.exe' -x '*.lib' -x '*.pdb' -x '*.conf' -x '*.log' -x '*.tlog' -x '*.txt' -x '*.sbr' -x '*.suo' -x '*.zip' -x '*.db' -x '*.m4' -x '*.sh' -x '*.status' -x vs2015 -x .deps -x 'Makefile*' -x configure -x CHANGELOG dosbox-x-dosbox-x-v0.83.0/src/shell/shell_misc.cpp dosbox-x-dosbox-x-v0.83.0 - Org/src/shell/shell_misc.cpp
+47c47
+< 	DOS_GetCurrentDir(0,dir,uselfn);
+---
+> 	DOS_GetCurrentDir(0,dir);
+470d469
+< 						int q=0, r=0, k=0;
+474,499d472
+< 						while (p_completion_start) {
+< 	                        q=0;
+< 	                        char *i;
+< 	                        for (i=line;i<p_completion_start;i++)
+< 	                           if (*i=='\"') q++;
+< 	                        if (q/2*2==q) break;
+< 	                        *i=0;
+< 	                        p_completion_start = strrchr(line, ' ');
+< 	                        *i=' ';
+< 	                    }
+< 						char c[]={'<','>','|'};
+< 						for (int j=0; j<sizeof(c); j++) {
+< 							char *sp = strrchr(line, c[j]);
+< 							while (sp) {
+< 								q=0;
+< 								char *i;
+< 								for (i=line;i<sp;i++)
+< 									if (*i=='\"') q++;
+< 								if (q/2*2==q) break;
+< 								*i=0;
+< 								sp = strrchr(line, c[j]);
+< 								*i=c[j];
+< 							}
+< 							if (!p_completion_start || p_completion_start<sp)
+< 								p_completion_start = sp;
+< 						}
+508d480
+< 						k=completion_index;
+511d482
+< 						if ((path = strrchr(line+completion_index,':'))) completion_index = (Bit16u)(path-line+1);
+516c487
+<                         char mask[DOS_PATHLENGTH+2] = {0}, smask[DOS_PATHLENGTH] = {0};
+---
+>                         char mask[DOS_PATHLENGTH] = {0};
+537,542c508,509
+< 						
+< 						bool res = false;
+< 						if (DOS_GetSFNPath(mask,smask,false)) {
+< 							sprintf(mask,"\"%s\"",smask);
+< 							res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
+< 						}
+---
+> 
+>                         bool res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
+549,550c516
+< 						char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
+<                         Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+---
+>                         char name[DOS_NAMELENGTH_ASCII];Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+553,562d518
+< 						q=0;r=0;
+< 						while (*p_completion_start) {
+< 							k++;
+< 							if (*p_completion_start++=='\"') {
+< 								if (k<=completion_index)
+< 									q++;
+< 								else
+< 									r++;
+< 							}
+< 						}
+564,568c520
+< 							dta.GetResult(name,lname,sz,date,time,att);
+< 							if (strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q||r)
+< 								sprintf(qlname,q/2*2!=q?"%s\"":"\"%s\"",uselfn?lname:name);
+< 							else
+<                                 strcpy(qlname,uselfn?lname:name);
+---
+>                             dta.GetResult(name,sz,date,time,att);
+573c525
+< 									if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
+---
+>                                     if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(name);
+578c530
+<                                         executable.push_front(qlname);
+---
+>                                         executable.push_front(name);
+580c532
+< 										l_completion.push_back(qlname);
+---
+>                                         l_completion.push_back(name);
+990,991c942,943
+<         memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is unitialized (valgrind)
+<         if (strlen(line)>=CTBUF) line[CTBUF-1]=0;
+---
+> 		memset(&cmdtail.buffer,0,127); //Else some part of the string is unitialized (valgrind)
+> 		if (strlen(line)>126) line[126]=0;
+996c948
+< 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,CTBUF+1);
+---
+> 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,128);
+1083,1084d1034
+< 	upcase(name);
+< 	if (DOS_FileExists(name)) return name;
+Only in dosbox-x-dosbox-x-v0.83.0: stamp-h1
