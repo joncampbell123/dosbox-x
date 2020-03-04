@@ -1,4 +1,10 @@
 0.83.1
+  - Added code to EMS emulation to print specific
+    debug information when a PC-98 specific call is
+    made to remap segment B000h to either system
+    memory or video memory. I do not have enough
+    test cases or a setup to test what really happens,
+    so it will remain a debug message for now.
   - Added dosbox.conf option to allow emulation of a
     DOS environment that lacks ANSI.SYS. NOTE: The
     option has no effect in PC-98 mode.
