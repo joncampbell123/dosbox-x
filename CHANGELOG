@@ -1,4 +1,7 @@
 0.83.1
+  - Added dosbox.conf option to allow emulation of a
+    DOS environment that lacks ANSI.SYS. NOTE: The
+    option has no effect in PC-98 mode.
   - INT 2Fh now responds to AX=1A00h which is an installation
     check to report whether ANSI.SYS is resident.
   - Added INT 21h debug logging for file I/O and general

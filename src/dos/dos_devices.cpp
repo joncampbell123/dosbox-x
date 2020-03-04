@@ -247,6 +247,13 @@ void DOS_ShutdownDevices(void) {
 // INT 29h emulation needs to keep track of CON
 device_CON *DOS_CON = NULL;
 
+bool ANSI_SYS_installed() {
+    if (DOS_CON != NULL)
+        return DOS_CON->ANSI_SYS_installed();
+
+    return false;
+}
+
 void DOS_SetupDevices(void) {
 	DOS_Device * newdev;
 	DOS_CON=new device_CON(); newdev=DOS_CON;

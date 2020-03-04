@@ -64,11 +64,13 @@ public:
 	Bit16u GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+    bool ANSI_SYS_installed();
 private:
 	void ClearAnsi(void);
 	void Output(Bit8u chr);
 	Bit8u readcache;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
+        bool installed;     // ANSI.SYS is installed (and therefore escapes are handled)
 		bool esc;
 		bool sci;
         bool equcurp;       // ????? ESC = Y X      cursor pos    (not sure if PC-98 specific or general to DOS ANSI.SYS)
@@ -770,7 +772,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         }
 
         if (!ansi.esc){
-            if(data[count]=='\033') {
+            if(data[count]=='\033' && ansi.installed) {
                 /*clear the datastructure */
                 ClearAnsi();
                 /* start the sequence */
@@ -1192,8 +1194,21 @@ Bit16u device_CON::GetInformation(void) {
 }
 
 device_CON::device_CON() {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
+
 	SetName("CON");
 	readcache=0;
+
+    if (IS_PC98_ARCH) {
+        /* On real MS-DOS for PC-98, ANSI.SYS is effectively part of the DOS kernel, and cannot be turned off. */
+        ansi.installed=true;
+    }
+    else {
+        /* Otherwise (including IBM systems), ANSI.SYS is not installed by default but can be added to CONFIG.SYS.
+         * For compatibility with DOSBox SVN and other forks ANSI.SYS is installed by default. */
+        ansi.installed=section->Get_bool("ansi.sys");
+    }
+
 	ansi.enabled=false;
 	ansi.attr=DefaultANSIAttr();
     if (IS_PC98_ARCH) {
@@ -1233,4 +1248,9 @@ void device_CON::Output(Bit8u chr) {
 		}
 		Real_INT10_TeletypeOutputAttr(chr,ansi.attr,true);
 	} else Real_INT10_TeletypeOutput(chr,DefaultANSIAttr());
- }
+}
+
+bool device_CON::ANSI_SYS_installed() {
+    return ansi.installed;
+}
+

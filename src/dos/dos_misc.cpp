@@ -28,6 +28,7 @@ Bit32u DOS_HMA_LIMIT();
 Bit32u DOS_HMA_FREE_START();
 Bit32u DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(Bit16u bytes);
+bool ANSI_SYS_installed();
 
 extern bool enable_share_exe_fake;
 
@@ -317,10 +318,17 @@ static bool DOS_MultiplexFunctions(void) {
 	   /* Removing warning */
 		return true;
     case 0x1a00:    /* ANSI.SYS installation check (MS-DOS 4.0 or higher) */
-        /* See also: [http://www.delorie.com/djgpp/doc/rbinter/id/71/46.html] */
-        /* Reported behavior was confirmed with ANSI.SYS loaded on a Windows 95 MS-DOS boot disk, result AX=1AFF */
-        reg_al = 0xFF; /* DOSBox/DOSBox-X console device emulates ANSI.SYS, so respond like it's installed */
-        return true;
+        if (ANSI_SYS_installed()) {
+            /* See also: [http://www.delorie.com/djgpp/doc/rbinter/id/71/46.html] */
+            /* Reported behavior was confirmed with ANSI.SYS loaded on a Windows 95 MS-DOS boot disk, result AX=1AFF */
+            reg_al = 0xFF; /* DOSBox/DOSBox-X console device emulates ANSI.SYS, so respond like it's installed */
+            return true;
+        }
+        else {
+            /* FIXME: What is normally returned then, if ANSI.SYS not resident? */
+            return false;
+        }
+        break;
 	case 0x4a01: {	/* Query free hma space */
 		Bit32u limit = DOS_HMA_LIMIT();
 
