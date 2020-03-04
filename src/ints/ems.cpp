@@ -976,6 +976,33 @@ static Bitu INT67_Handler(void) {
 			reg_ah=EMM_INVALID_SUB;
 		}
 		break;
+    case 0x70:              /* NEC PC-98 specific function group? */
+        if (reg_al == 1) {
+            if (IS_PC98_ARCH) {
+                /* NTS: EMM386.EXE for PC-98 will return an error code if BX > 1 */
+                /* NTS: VEMM486.EXE sets a flag but doesn't seem to care what BX is */
+                /* NTS: Neither one seems to remap segment B0000h as far as I can tell, so implementing this will be tricky and full of guesswork. */
+                if (reg_bx <= 1) {
+                    LOG(LOG_MISC,LOG_DEBUG)("EMS:Call 70 subfct %2X remapping EMS page frame at B000h to %s not yet implemented. Hope your DOS application does not rely on that.",
+                        reg_al,reg_bx == 1 ? "system memory" : "video memory");
+                }
+                else {
+                    LOG(LOG_MISC,LOG_DEBUG)("EMS:Call 70 subfct %2X given invalid value BX=%04x which will likely do nothing (master library EMS_ENABLEPAGEFRAME bug)",
+                        reg_al,reg_bx);
+                }
+
+                reg_ah=EMM_INVALID_SUB;
+            }
+            else {
+                LOG(LOG_MISC,LOG_DEBUG)("EMS:Call 70 subfct %2X not supported outside PC-98 mode",reg_al);
+                reg_ah=EMM_INVALID_SUB;
+            }
+        }
+        else {
+            LOG(LOG_MISC,LOG_ERROR)("EMS:Call 70 subfct %2X not supported",reg_al);
+            reg_ah=EMM_INVALID_SUB;
+        }
+        break;
 	case 0xDE:		/* VCPI Functions */
 		if (!vcpi.enabled) {
 			LOG(LOG_MISC,LOG_ERROR)("EMS:VCPI Call %2X not supported",reg_al);
