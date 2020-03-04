@@ -982,6 +982,7 @@ static Bitu INT67_Handler(void) {
                 /* NTS: EMM386.EXE for PC-98 will return an error code if BX > 1 */
                 /* NTS: VEMM486.EXE sets a flag but doesn't seem to care what BX is */
                 /* NTS: Neither one seems to remap segment B0000h as far as I can tell, so implementing this will be tricky and full of guesswork. */
+                /* See also [http://www.koizuka.jp/~koizuka/master.lib/MASTER.MAN.txt], section "ems_enablepageframe - NEC EMSページフレームバンクの操作" */
                 if (reg_bx <= 1) {
                     LOG(LOG_MISC,LOG_DEBUG)("EMS:Call 70 subfct %2X remapping EMS page frame at B000h to %s not yet implemented. Hope your DOS application does not rely on that.",
                         reg_al,reg_bx == 1 ? "system memory" : "video memory");
