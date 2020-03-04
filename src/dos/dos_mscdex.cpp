@@ -30,8 +30,8 @@
 
 #include "cdrom.h"
 
-#define MSCDEX_LOG LOG(LOG_MISC,LOG_ERROR)
-//#define MSCDEX_LOG
+#define MSCDEX_LOG LOG(LOG_MISC, LOG_DEBUG)
+#define MSCDEX_LOG_ERROR LOG(LOG_MISC, LOG_ERROR)
 
 #define MSCDEX_VERSION_HIGH	2
 #define MSCDEX_VERSION_LOW	23
@@ -927,7 +927,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					Bit8u addr_mode = mem_readb(buffer+1);
 					if (addr_mode==0) {			// HSG
 						Bit32u frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
-						if (frames<150) MSCDEX_LOG("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
+						if (frames<150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
 						else frames-=150;
 						mem_writed(buffer+2,frames);
 					} else if (addr_mode==1) {	// Red book
@@ -936,7 +936,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 						mem_writeb(buffer+4,pos.min);
 						mem_writeb(buffer+5,0x00);
 					} else {
-						MSCDEX_LOG("MSCDEX: Get position: invalid address mode %x",addr_mode);
+						MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid address mode %x",addr_mode);
 						return 0x03;		// invalid function
 					}
 				   }break;
@@ -1070,7 +1070,7 @@ static Bitu MSCDEX_Strategy_Handler(void) {
 
 static Bitu MSCDEX_Interrupt_Handler(void) {
 	if (curReqheaderPtr==0) {
-		MSCDEX_LOG("MSCDEX: invalid call to interrupt handler");						
+		MSCDEX_LOG_ERROR("MSCDEX: invalid call to interrupt handler");
 		return CBRET_NONE;
 	}
 	Bit8u	subUnit		= mem_readb(curReqheaderPtr+1);
@@ -1126,7 +1126,7 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 		case 0x88	:	/* Resume Audio */
 						mscdex->ResumeAudio(subUnit);
 						break;
-		default		:	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported Driver Request %02X",funcNr);
+		default		:	MSCDEX_LOG_ERROR("Unsupported Driver Request %02X",funcNr);
 						break;
 	
 	}
