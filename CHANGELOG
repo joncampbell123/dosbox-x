@@ -1,4 +1,6 @@
 0.83.1
+  - INT 2Fh now responds to AX=1A00h which is an installation
+    check to report whether ANSI.SYS is resident.
   - Added INT 21h debug logging for file I/O and general
     INT 21h usage [patch by ognjenmi]. Added enables for
     the logging which are off by default since the INT 21h
