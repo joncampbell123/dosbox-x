@@ -1,0 +1,507 @@
+● 履歴
+
+   ※変更内容の先頭の文字列によって、以下のものが該当します。
+               C SMALL  C MEDIUM  C COMPACT  C LARGE  PASCAL  MANUAL
+      ALL:       ○        ○        ○        ○       ○      -
+      SMALLDATA: ○        ○        -         -        -       -
+      SMALLCODE: ○        -         ○        -        -       -
+      C:         ○        ○        ○        ○       -       -
+      LARGECODE: -         ○        -         ○       ○      -
+      LARGEDATA: -         -         ○        ○       ○      -
+      PASCAL:    -         -         -         -        ○      -
+      MANUAL:    -         -         -         -        -       ○
+
+ 変更点 (0.22j -> 0.22k) 95/2/15公開
+    ALL: MODIFY get_machine() DOSBOX定数追加
+    ALL: MODIFY hmem_realloc() mem_AllocID対応
+    ALL: MODIFY bsprintf, vbprintf, bprintf削除(ソースのオリジナリティ云々)
+    ALL: MODIFY dos_getdiskfree() ハードエラー認識
+    ALL: MODIFY dos_getdiskfree(), dos_setdrive(), dos_getcwd(),
+           dos_get_driveinfo() ドライブ指定に英字'a','A'などが使えるようにした
+    ALL: MODIFY dos_getdiskfree() 1floppy構成のIBM PCで交換要求表示を飛ばす
+    ALL: MODIFY vtext_roll{up,down}_{c,ca} スクロール範囲のみの更新にした
+    ALL: MODIFY vtext_restore() ビデオモード再設定が必要なければ省略
+    ALL: MODIFY dac_init() ボーダーカラーを黒に設定
+    ALL: MODIFY font_at_init() 英語モードでも半角は見えるようにした
+    ALL: MODIFY super_change_erase_pat() 存在しないパターンは無視する
+    ALL: MODIFY super_zoom() vga4_super_zoom() 自己書き換えの一部変更
+    ALL: MODIFY vgc_circle,vgc_circle_x,grcg_circle,grcg_circle_x 縦倍対応
+    ALL: MODIFY vga_vsync_start() DOSBOX内だと補正処理するようにした
+    ALL: MODIFY vga_vsync_wait() vsync_Count1変数を見ないでVGAport直読みにした
+    ALL: MODIFY vga4_start(); vtextx_start用にテキスト変数を設定
+    ALL: MODIFY 内部ルーチン名ラベル変更(@rtc_int_set -> rtc_int_set)
+    ALL: BUGFIX get_machine(), font_at_init() SuperDrivers/32のbugに対処
+    ALL: BUGFIX <98> get_machine で DESKTOPビットの意味が逆になっていた
+    ALL: BUGFIX get_machine() 最初にFMR検査するようにした
+    ALL: BUGFIX hmem_alloc 異常に大きな値で確保しようとすると誤動作してた
+    ALL: BUGFIX hmem_free() ある特殊な条件のもとで、空き2つを接続しなかった
+    ALL: BUGFIX hmem_maxfree() 正しくない値を返すことがあった
+    ALL: BUGFIX hmem_realloc() 異常に大きな値で確保しようとすると誤動作してた
+    ALL: BUGFIX hmem_realloc() 内容転写がうまく動いていなかった
+    ALL: BUGFIX smem_wget(), smem_lget() mem_assign前だと誤動作していた
+    C: BUGFIX str_comma() バッファサイズの指定のはずが文字数として動作していた
+    ALL: BUGFIX read後のfile_flush()後、まれに現在位置がずれた
+    ALL: BUGFIX file_splitpath_slash() drv,dir,name,extがNULL対応してなかった
+    ALL: BUGFIX file_splitpath() '..'や'.'がdirに入っていた。nameに移動。
+    LARGEDATA: BUGFIX file_splitpath() drv,dirがNULLのときにおかしかった
+    LARGEDATA: BUGFIX: file_splitpath() extが誤ったアドレスに書き込まれていた
+    C: BUGFIX Symantec C++時、dos_getdrive()が正しく呼べなかった
+    ALL: BUGFIX PC/AT, bgm -> joystickの順に初期化すると音がおかしくなってた
+    ALL: BUGFIX vkey_to_98() shift+TabがTabに変換されていなかった
+    ALL: BUGFIX vkey_to_98 ctrl,alt等のときにTab,BackSpaceが変換されてなかった
+    ALL: BUGFIX vtext_put()動作してなかった
+    ALL: BUGFIX vtext_backup() EMS,MEM両方足りないときにも成功を返してた
+    ALL: BUGFIX vtext_colortable[] Red,Greenビットが逆になっていた
+    ALL: BUGFIX text_cursor_shown() 動いてなかった(馬鹿)
+    ALL: BUGFIX text_putnpa() 属性データで文字列を上塗りしていた
+    ALL: BUGFIX at98_showpage() 一部の機種でちらつくようになっていたのを修正
+    ALL: BUGFIX at98_VPage変数などをat98scrl.asmからat98sc.asmに分離
+    ALL: BUGFIX graph_backup() GRCGをONにしたまま終了していた
+    ALL: BUGFIX graph_pi_load_pack() 横幅奇数のときの誤動作修正
+    ALL: BUGFIX bfnt_entry_pat() InvalidData時、smemを開放していなかった
+    ALL: BUGFIX font_entry_bfnt() 同じ大きさのデータを再登録すると暴走していた
+    ALL: BUGFIX super_backup_ems() GeneralFailureが返っていなかった
+    ALL: BUGFIX super_change_erase_bfnt() InvalidDataが返らない場合があった
+    ALL: BUGFIX super_entry_pat() 失敗時、GeneralFailure等が返っていなかった
+    ALL: BUGFIX super_entry_pat() 失敗時、メモリを開放していなかった
+    ALL: BUGFIX super_restore_ems() load_to!=0時に異常だった
+    ALL: BUGFIX super_free() キャラクタを開放していなかった
+    ALL: BUGFIX vga4_super_zoom_v_put_1plane() 横640dot以外対応
+    ALL: BUGFIX vga4_virtual_vram_copy() 呼び出し時点でcy=1だと死んでいた
+    ALL: BUGFIX grcg_and() andではなくnandになっていた
+    ALL: BUGFIX grcg_trapezoid() ClipYT!=0時に誤動作していた
+    ALL: BUGFIX vgc_polygon_vcx() 横640dot以外に対応してなかった
+    ALL: BUGFIX vgc_circle() grcg_circle() クリップかかるとゴミが出た
+    ALL: BUGFIX pcm_convert() src,destの順序が逆だった
+    ALL: BUGFIX font_write() メモリ不足時にcy=1を返すようにした
+    ALL: BUGFIX font_at_entry_cgrom() メモリ不足時にInsufficientMemory返す
+    ALL: BUGFIX font_entry_cgrom() font_AnkPara設定していなかった
+    ALL: BUGFIX wfont_entry_bfnt() 8x8dotモノクロかどうか判定してなかった
+    ALL: BUGFIX wfont_entry_bfnt() エラー時ファイルを閉じていなかった
+    ALL: BUGFIX mousex_istart() <98> 外部マウスがないときに誤動作していた
+    ALL: BUGFIX bgm_init() EFSの確保単位が足りず、max要素のEFSでメモリ破壊した
+    ALL: ADD mem_AllocID変数, hmem_getid()マクロ追加
+    ALL: ADD vtextx_Seg, vtextx_Size変数				c
+    ALL: ADD mem_Reserve変数						-
+    C: ADD (master.h MASTER98=0) gaiji_read(), gaiji_read_all()
+
+
+ 変更点 (0.22a -> 0.22j) 95/2/2公開
+    ALL: MODIFY koizoidx.asm koizoid.asm 意味のないEXTRN make_lineworkを消した
+    C: MODIFY master.h/ClipYT_seg の const を外した
+    ALL: MODIFY vgc_readdot() vgc_clear() vgc_start() vgc_end()を
+                vga4_*に改名
+    ALL: MODIFY vga4_start/end(),vtext_clear() VTextState変数 bit15追加
+    ALL: MODIFY at_js_start(), at_js_sense() ジョイスティック対応
+    ALL: MODIFY at_js_sense() Home/Hend/PgUp/PgDnでのナナメ移動廃止
+    ALL: MODIFY cursor_*() VGA16色にも対応(強引)
+    ALL: MODIFY mousex_istart() 非98時は98用内蔵ドライバを使わなくした
+    ALL: MODIFY bgm_* AT互換機対応
+    ALL: MODIFY at98_showpage() at98_scroll() vga_startaddress() vga_setline()
+         vsync内でなければvsyncに入るまで待つようにした
+    ALL: MODIFY Cx486CacheInfo  ccr0, ccr1をint -> unsignedに
+    ALL: MODIFY key_start(), key_end()  多重起動防止にフラグ設置
+    ALL: MODIFY super_entry_bfnt() 16色でなければInvalidDataにした
+    ALL: MODIFY cursor_moveto() 範囲外の座標を指定しても正しく丸める
+    PAS: MODIFY コードセグメントが溢れたので master.tpuと masterv.tpuに分割
+    PAS: MODIFY TPU対策用に、セグメントの異なる可能性のある CODE EXTRNは
+             セグメント外に移動。このためコードサイズが増加
+    ALL: MODIFY font_at_read() size=0で 98のfont_read()相当に
+    ALL: MODIFY {vga4_,}super_zoom_put  y_rateが負なら縦反転
+    ALL: MODIFY graph_wfont_plane() 引き数追加
+    ALL: BUGFIX fep_exist 戻り値にfep_typeの値を返さなかった
+    LARGEDATA: BUGFIX palette_set_16 の中でpush DSしてるのにpopしてなかった
+    ALL: BUGFIX palette_show100() 青だけshiftしてなかった
+    ALL: BUGFIX set_video_mode 戻り値があるのにvoidって書いてあったのを訂正
+    ALL: BUGFIX ems_findname 見つからなかったときに0を返してなかった
+    ALL: BUGFIX vgc_clear 全く動いてなかった(^^;
+    ALL: BUGFIX vgc_setcolor() アクセスプレーンが効いてなかった
+    ALL: BUGFIX vgc_polygon_c エンバグによりsmall model以外で死んでたのを訂正
+    ALL: BUGFIX file_write バッファフラッシュの後は完了しても失敗を返していた
+    ALL: BUGFIX file_write file_BufferPosの更新が変だった
+    ALL: BUGFIX font_write()  font_AnkPara変数も設定
+    ALL: BUGFIX mag_load_pack ファイルバッファが確保できないとcloseしなかった
+    ALL: BUGFIX super_put_clip() 下クリップ時に化けていた
+    ALL: BUGFIX cursor_moveto() 横が640dot固定だったのを画面にあわせた
+    ALL: BUGFIX bgm_set_mode() 禁止が全くできなかった
+    ALL: BUGFIX font_entry_bfnt() エラー時ファイルを閉じてなかった
+    ALL: BUGFIX str_comma() 終了後spがずれてた(ひい)
+    ALL: BUGFIX mousex_istart() 復帰時、stack 4byteずれてた
+    C: BUGFIX key_table_grphではなく key_table_altが実体だった
+    C: ADD Symantec C++ 6.1J対応
+    ALL: ADD egc.lib併合
+    ALL: ADD supersfx.lib併合 from iR
+    ALL: ADD get_cpu()
+    ALL: ADD get_machine_98(), get_machine_at() (from hiper.lib)
+    ALL: ADD get_machine関係の定数を追加。(from hiper.lib)
+    ALL: ADD sjis_to_jis(), jis_to_sjis()追加
+    ALL: ADD file_sharingmode 変数
+    ALL: ADD ems_dos_read(), ems_dos_write() from benny
+    ALL: ADD FP2LONG() LONG2FP() FPADD() マクロ
+    ALL: ADD js_2player, js_shift変数 (js.asm, js_sense)
+    ALL: ADD js_keyassign() js_key2player()マクロ
+    ALL: ADD at_js_count,at_js_[xy][12],at_js_{min,max}{,tim}変数
+    ALL: ADD AT_JS_1P1定数など
+    ALL: ADD at_js_wait() at_js_calibrate()
+    ALL: ADD AT_JS_CALIBDATA型,AT_JS_RESID変数
+    ALL: ADD at_js_resptr at_js_get_calibrate()
+    ALL: ADD timer_start(), timer_end(), timer_Count,timer_Proc
+    ALL: ADD graph_bfnt_putc() vgc_bfnt_putc()
+    ALL: ADD graph_wkanji_put_left() graph_wkanji_put_right()
+    ALL: ADD grcg_bytemesh_x()
+    ALL: ADD key_back_buffer変数, key_back()
+    ALL: ADD TextVramWidth, TextVramSize変数
+    ALL: ADD text_width()
+    ALL: ADD text_boxfillca()
+    ALL: ADD text_roll_left_c(), text_roll_right_c()
+    ALL: ADD text_roll_left_ca(), text_roll_right_ca()
+    ALL: ADD VTextState変数
+    ALL: ADD backup_video_state(),restore_video_state() from SIVA
+    ALL: ADD vkey_wait() vkey_scan() vkey_to_98()
+    ALL: ADD vtext_start() vtext_height() vtext_width()
+    ALL: ADD vtext_font_height() vtext_getcurpos() vtext_locate()
+    ALL: ADD vtext_putsa() vtext_puts() vtext_putc() vtext_putca()
+    ALL: ADD vtext_putns(), vtext_putnsa()
+    ALL: ADD vtext_roll_{up,down}_{c,ca}()
+    ALL: ADD vtext_clear() vtext_frame() vtext_boxfilla()
+    ALL: ADD vtext_color_98()
+    ALL: ADD vtext_refresh() vtext_refresh_all() vtext_refresh_on()
+    ALL: ADD vtext_refresh_off() vtext_setcursor() vtext_getcursor()
+    ALL: ADD vtext_backup() vtext_restore()
+    ALL: ADD vtext_systemline_{show,hide,shown}
+    ALL: ADD vtextx_start() vtextx_end()
+    ALL: ADD vtext_colortable[]変数
+    ALL: ADD vga_vzoom_on()マクロ vga_vzoom_off()マクロ
+    ALL: ADD vgc_line() from あら
+    ALL: ADD vgc_line2()
+    ALL: ADD vgc_circle{,_x,fill}()
+    ALL: ADD vgc_byteboxfill_x(), vgc_bytemesh_x() vgc_byteboxfill_x_pset()
+    ALL: ADD vgc_polygon_cx()
+    C: ADD vgc_polygon_vcx()
+    ALL: ADD vgc_trapezoid() vgc_polygon_c(), vgc_thick_line()
+    ALL: ADD vgc_triangle()
+    ALL: ADD vgc_bfnt_puts()
+    ALL: ADD vgc_kanji_putc() vgc_kanji_puts()
+    ALL: ADD vgc_font_put() vgc_font_puts()
+    ALL: ADD vgc_round_boxfill()
+    ALL: ADD vga4_super_put_8()
+    ALL: ADD vga4_super_zoom()
+    ALL: ADD vga4_bfnt_puts()
+    ALL: ADD vga4_wfont_puts()
+    ALL: ADD vga4_bfnt_putc()
+    ALL: ADD vga4_byteget() vga4_byteput()
+    ALL: ADD vga4_super_zoom_put() vga4_super_put_clip()
+    ALL: ADD vga4_super_put_1plane() vga4_super_put_1plane_8()
+    ALL: ADD vga4_super_large_put()
+    ALL: ADD vga4_unpack_get_8()
+    ALL: ADD vga4_pack_get_8() vga4_unpack_put_8()
+    ALL: ADD vga4_super_put_rect() vga4_super_put_vrev()
+    ALL: ADD vga4_super_put_vrev_rect()
+    ALL: ADD vga4_super_roll_put() vga4_over_roll_put_8()
+    ALL: ADD vga4_virtual_copy() vga4_virtual_vram_copy()
+    ALL: ADD vga4_super_in() vga4_repair_out()
+    ALL: ADD vbeep_freq()
+    ALL: ADD dac_black_out()
+    ALL: ADD dac_black_in() dac_white_in() dac_white_out()
+    ALL: ADD cx486_read(), cx486_write(), cx486_cacheoff()
+    ALL: ADD at98_showpage() at98_scroll()
+    ALL: ADD at98_graph_400line()
+    ALL: ADD at98_accesspage()
+    C: ADD file_splitpath() file_splitpath_slash()
+    ALL: ADD resdata_exist() resdata_create()
+    ALL: ADD bfnt_header_load() dos_gets() dos_get_verify() dos_set_verify_on()
+    ALL: ADD dos_set_verify_off() dos_get_driveinfo()
+    ALL: ADD bios30_lock() bios30_unlock() bios30_getclock() 
+    ALL: ADD bios30_setclock() bios30_getvsync()
+    ALL: ADD vsync_Delay変数
+    ALL: ADD font_AnkFunc, font_KanjiFunc変数
+    ALL: ADD font_at_init()
+    ALL: ADD font_at_entry_cgrom()
+    ALL: ADD wfont_Reg変数
+    ALL: ADD super_hrev()
+    ALL: ADD super_duplicate()  super_dup()
+    ALL: ADD super_put_tiny_vrev() super_put_tiny_small_vrev()
+    ALL: ADD pf.lib 併合(詳細は以下)
+    ALL: ADD  pf_t型 bf_t型 pferrno変数 pfkey変数 bbufsiz変数
+    ALL: ADD  BBUFSIZ定数
+    C: ADD    bsprintf() vbprintf()
+    ALL: ADD  bopenr() bcloser() bgetc() bread() bseek() bseek_()
+    ALL: ADD  bopenw() bclosew() bputc() bputw() bputs() bwrite()
+    ALL: ADD  bprintf() bflush() bdopen() pfopen() pfclose() pfgetc()
+    ALL: ADD  pfgetc1() pfgetx0() pfgetx1() pfgetw() pfread() pfseek()
+    ALL: ADD  pfrewind() pftell() pfstart() pfend()
+    ALL: ADD  bsetbufsiz() pfsetbufsiz()
+    ALL: ADD bgm_系内部構造体(bgm_glb,bgm_part,bgm_esound)を公開
+
+ 変更点 (0.22 -> 0.22a) 94/ 2/21 公開
+    ALL: BUGFIX vgc_readdot()の戻り値がvoidだった(^^;
+    ALL: BUGFIX file_write() bufferありの時にfile_BufferPosが1しか進まなかった
+    MAN: BUGFIX vgc.man set_video_mode(), get_video_mode() の記述もれ
+    C: BUGFIX BC2.0で mgr.h が find_tが定義されなかった
+    C: MODIFY master.h で stdlib.h も include するようにした(mgr.hからは外した)
+    ALL: BUGFIX file_flush() 書き込みopen時, file_BufferPosを更新してなかった
+    ALL: ADD dos_filesize()
+    ALL: MODIFY file_size() dos_filesize呼び出しに変更
+    ALL: ADD graph_unpack_large_put_8()
+    ALL: MODIFY bgm効果音再生時、周波数が低すぎるときは丸めるようにした
+                (0除算は避けるようにした)
+    ALL: MODIFY MagHeader構造体に xsize, ysizeメンバ追加
+    ALL: BUGFIX file_gets() ファイルバッファの最後のバイトがendcharだったら
+                見落としていた
+    ALL: BUGFIX file_gets() bufがNULLのときも一部書き込んでしまっていた
+
+ 変更点 (0.21 -> 0.22) 94/ 2/ 7公開
+    ALL: MODIFY パレット(Palettes[])のRGB各ビットの幅を4bit->8bitに変更
+    ALL: MODIFY bios30_*(), TT 1.50に対応
+    ALL: MODIFY graph_pi_load_pack()の引数、戻り値を変更
+    ALL: MODIFY super_free() すでに開放されているときのチェック
+    ALL: MODIFY font_entry_bfnt() BFNTの大きさ情報を読み取る
+    SMALLDATA: MODIFY graph_{un,}pack_get_8() farポインタ化
+    PAS: MODIFY 開始部分の機種依存を廃止
+
+    ALL: BUGFIX grcg_vline()縦クリッピングにまだミスがあった
+    MANUAL: BUGFIX dos_findmany(), SinDeg(),CosDeg(),iatan2deg()の記述もれ
+    PAS: BUGFIX file_{l,}read()が、file_assign_buffer()しないと飛んだ
+    ALL: BUGFIX text_virtical() -> text_vertical()に改名
+    ALL: BUGFIX text_restore()の 30bios popのタイミングを修正
+    LARGEDATA: BUGFIX graph_font_puts() 半角が表示できなかった
+    ALL: BUGFIX graph_plazma() -> graph_plasma()に改名
+    ALL: MODIFY graph_enter() 常駐パレットがなければハードウェアパレットに
+         触らないようにした
+    ALL: BUGFIX graph_pi_load_pack()が、拡張領域に何かあると狂ってた
+    ALL: BUGFIX graph_pi_load_pack()無限ループに入ることがあった
+    ALL: BUGFIX smem_lget() 引数の上位ワードがランダムになってた
+    ALL: BUGFIX hmem_free() まだおかしかったので書き直しちゃった
+    ALL: BUGFIX dos_puts2()がSIを破壊していた
+    ALL: BUGFIX mouse_EventRoutine, DXに正しくyが入っていなかった
+    ALL: BUGFIX mouse_setmickey()が外部マウスに対応してなかった
+    ALL: BUGFIX super_entry_pat() パターンをsuper_cancel_pat()で全部開放した
+  		後だと、super_bufferを多重に確保していた
+    ALL: BUGFIX bfnt_extend_header_analysis()透明色があるとsmem開放しなかった
+    ALL: BUGFIX bfnt_change_erase_pat() すげーーー動くわけなかった
+    ALL: BUGFIX graph_scroll(), graph_scrollup() 200line対応
+
+    ALL: ADD TextShown変数, text_shown()
+    ALL: ADD video_mode_backup変数
+    ALL: ADD vgc_start(), vgc_end(), vgc_clear(), vga4_readdot(), vgc_setcolor()
+    ALL: ADD vgc_pset(), vgc_hline(), vgc_vline()
+    ALL: ADD vgc_boxfill()
+    ALL: ADD graph_extmode()
+    ALL: ADD graph_is31kHz(),graph_getextmode(),graph_setextmode()
+    ALL: ADD graph_31kHz(),graph_24kHz(),graph_480line()
+    ALL: ADD mag_load_pack()
+    ALL: ADD mag_free()
+    ALL: ADD graph_VramWidth変数
+    ALL: ADD graph_font_putp()
+    ALL: ADD dac_show(), dac_init(), vga4_pack_put_8()
+    ALL: ADD vga4_super_put(), vga4_over_put_8()
+    ALL: ADD vga_vsync_start()/vga_vsync_end()/vga_vsync_wait()
+    ALL: ADD vsync_Freq 変数
+    ALL: ADD at_js_start()/at_js_end()/at_js_sense()
+    ALL: ADD グローバル変数 mouse_Type
+    ALL: ADD mousex:  mousex_start(),  mousex_end(),   mousex_setmickey(),
+    mousex_setrect(), mousex_moveto()
+    ALL: ADD mousex_istart(), mousex_iend()
+    ALL: ADD K_S_DEL, K_[CA]_{UP,LEFT,RIGHT,DOWN,ROLLUP,ROLLDOWN,INS,DEL}定数
+    ALL: ADD font_at_read()
+    ALL: ADD hmem_getsize()マクロ
+    ALL: ADD hmem_maxfree()
+    ALL: ADD hmem_reallocbyte(),hmem_realloc()
+    ALL: ADD palette_set_all_16()
+    ALL: ADD cursor_pattern2()
+    ALL: ADD str_iskanji2()
+    ALL: ADD super_entry_at()
+    ALL: ADD super_backup_ems(),super_restore_mes(),supre_free_ems()
+    ALL: ADD super_clean()
+    ALL: ADD super_zoom_put(), super_zoom_put_1plane() from iR
+    ALL: ADD bgmlib併合
+    ALL: ADD get_machine() from hiper.lib
+    ALL: ADD get_machine_at() get_machine_98() from hiper.lib
+    ALL: ADD irand_init() irand()
+    ALL: ADD fep_exist(),fep_shown(),fep_show(),fep_hide()
+    ALL: ADD text_vputs() text_vputsa()
+    ALL: ADD graph_VramZoom変数
+    ALL: ADD font_AnkSize, font_AnkPara変数
+    ALL: ADD graph_bfnt_puts() graph_bfnt_putp()
+
+ ★ 0.21 -> 0.22 移行のための注意
+    　0.22では、パレット変数 Palettes[]の各要素の最大値が、15から255に変更に
+    なりました。このため、この変数を直接さわっているプログラムは変更が必要に
+    なります。
+    　この移行を手助けするため、最大値が15の要素でできた配列を Palettes に補
+    正しながらコピーする関数 palette_set_all_16() を用意しました。
+    　なお、Palettes[] を直接触らない場合( master.lib の他の関数を利用してパ
+    レットを扱う場合)は、 これらの関数も変更に対応していますので、手を付ける
+    必要はありません。
+
+ 変更点 (0.20 -> 0.21) 93/11/24公開
+    ALL: ADD key_reset()
+    ALL: ADD SinDeg(), CosDeg(), iatan2deg()
+    ALL: ADD __MASTER_VERSION定数
+    ALL: ADD gaiji_putni(), gaiji_putnia()
+    ALL: ADD key_pressed()
+    C: ADD dos_cputs2(), dos_puts2()
+    ALL: ADD key_wait_bios(), key_sense_bios()
+    C: ADD dos_findmany()
+    ALL: ADD graph_wank_putsa,graph_wank_putca
+    ALL: ADD vsync_enter(), vsync_leave()
+    ALL: BUGFIX dos_copy() メモリ解放ミス
+    ALL: BUGFIX rsl_linkmode, rsl_readlink rslが無いとヘンだった
+    PASCAL: BUGFIX mouse_vstart,mouse_istart の宣言に引数がなかった
+    ALL: MODIFY sio_setspeed()に SIO_MIDI追加
+    ALL: MODIFY key_startでCTRL_F･? 対応
+    ALL: MODIFY sio_start ハイレゾ対応したつもり(?)
+    MAN: MODIFY 表の対象機種部分の内容に空欄(特別な処理をしていないが使える)を追加。これに伴い、「○」は「特別な処理をしているので使える」という意味になった。
+    ALL: ADD bios30_tt_exist
+    ALL: ADD bios30_getlimit,bios30_getversion
+    ALL: MODIFY palette_{black|white}_{in|out} を palette_show使用に変更
+    ALL: BUGFIX palette_entry_rgb()がうごいてなかった(^^;
+    ALL: ADD mem_unassign(), mem_MyOwn
+    ALL: ADD super_charcount, super_free(), virtual_free()
+    ALL: ADD super_convert_tiny()
+    ALL: ADD super_put_tiny()
+    ALL: ADD super_put_tiny_small()
+    ALL: ADD super_roll_put_tiny()
+    ALL: MODIFY super_put系のプログラムサイズを減少
+    ALL: BUGFIX sio_read_signal()のビット意味が逆転してた
+    ALL: BUGFIX sio_bit_off()が暴走してた
+    ALL: ADD bios30_getparam()
+    PAS: BUGFIX grcg_vlineがinterfaceになかった, grcg_byteboxfill_xがなかった
+    ALL: BUGFIX graph_vline()の縦クリッピング異常
+    ALL: MODIFY graph_start()で表示,アクセスページを表画面に設定
+    ALL: BUGFIX dos_setdrive()の戻り値の上位バイトが不定,マニュアルもミス
+    ALL: BUGFIX dos_seek()が動かなかった
+    ALL: BUGFIX font_write()の半角ANK登録ができなかった
+    ALL: ADD graph_plazma(), graph_crt()
+    ALL: ADD graph_xorboxfill() (ほんとは前からあったけど)
+    ALL: BUGFIX dos_move()が DS を破壊していた
+    ALL: ADD dos_maxfree()
+    ALL: MODIFY graph_{,un}pack_put_8() の linepatをfar固定にした
+    ALL: BUGFIX hmem_free()が…(;_;)
+    ALL: BUGFIX dos_copy() サイズ指定時にGeneralFailureだった(;_;)
+    ALL: ADD super_put_vrev(), super_put_vrev_rect()
+    ALL: ADD font_entry_cgrom(), font_entry_kcg()
+    MAN: BUGFIX gc_poly.manの grc_setclipの項目のミス
+    MAN: BUGFIX font_entry_gaiji()がマニュアルに書いてなかった(^^;
+    ALL: ADD graph_pi_load_pack(), graph_pi_comment_load(), graph_pi_free()
+    ALL: BUGFIX super_change_erase_bfnt(),graph_wkanji_put(),graph_kanji_large_put(),graph_kanji_put()のret <n>値ミス
+    ALL: ADD super_entry_pack()
+
+    バグみっけ。gdc_circleは、まだクリッピングにバグあるよ。
+    クリッピングで縦と横2箇所同時に切断したときにヘンだ。
+
+ 変更点 (0.19 -> 0.20) 93/8/11公開
+    ALL: BUGFIX mouse_cmoveto()暴走
+    ALL: ADD graph_unpack_put_8(), graph_unpack_get_8()
+    LARGEDATA: BUGFIX graph_pack_put_8(), セグメントロードミスで暴走!
+    ALL: ADD graph_wkanji_put(), graph_wkanji_puts()
+    ALL: ADD wfont_entry_bfnt()
+    ALL: ADD graph_wank_putc(), graph_wank_puts()
+    ALL: ADD graph_wfont_put(), graph_wfont_puts()
+    ALL: ADD graph_wfont_plane()
+    ALL: BUGFIX file_delete() dos_axdx呼び出しに伴う変更で、暴走してた
+    ALL: BUGFIX super_put_rect()で、xが負のときに変だった
+    ALL: BUGFIX super_put_rect()で、 shiftありのときにハングアップすることが
+    あった
+    LARGECODE: BUGFIX mouse_int_end()が、マウス割り込みを再び許可するとき暴走
+    LARGEDATA: BUGFIX str_pastoc()が、リターン時のスタック調整が足りなかった
+    C: ADD dos_get_argv0()
+    PASCAL: BUGFIX xms関数のための内部変数定義がなかった
+    ALL: ADD ems_size(), ems_space(), ems_reallocate()
+    ALL: ADD xms_size(), xms_space(), xms_reallocate(), xms_maxfree()
+    ALL: ADD graph_gaiji_puts(), graph_gaiji_putc()
+    ALL: MODIFY sio_start()が内部で割り込み許可していたのをpushf->popfに変更
+    ALL: ADD ems_maphandlepage(),  ems_savepagemap(),  ems_restorepagemap(),
+    ems_getsegment(), ems_findname()
+    ALL: BUGFIX graph_scroll() GDC 2.5MHzのときに動かなかった
+    ALL: ADD graph_scrollup()
+    ALL: BUGFIX mouse int15hの中でEOI発行時割り込み禁止してなかった
+    C: BUGFIX master.h に dos_putp() がなかった
+    ALL: MODIFY sio_*の第一引数にポート番号追加。今は0以外駄目ね。
+    ALL: MODIFY sio_read_signal(),sio_read_err(),  sio_read_dr()をマクロから
+    関数に変更。
+    ALL: MODIFY plane系の引数put_planeの型 int(Integer) -> unsigned(Word)
+    LARGEDATA: BUGFIX graph_ank_puts() far文字列のセグメントをみてなかった
+    ALL: ADD sio_putp(), graph_ank_putp()
+    C: BUGFIX master.h のマクロ vsync_proc_set(), vsync_proc_reset()  が直接
+    _enable() 等を使っていたので CLI() などに訂正。
+    ALL: MODIFY mouse_setmickey() マクロから関数に変更
+    ALL: BUGFIX mouse_vstart(), mouse_istart()がうごいてなかった(もう笑)
+    PASCAL: ADD *_puts系の、C文字列関数も入れた。一応。
+    ALL: MODIFY graph_pack_put_8()をちょいと加速
+    ALL: ADD dos_copy()
+    ALL: BUGFIX graph_kanji_large_put() が死んでた
+    C: BUGFIX master.h graph_{pack/unpack}_{get/put}_8()のプロトタイプ宣言の
+    ポインタ部分に MASTER_PTR がついてなかった
+    ALL: ADD dos_create()
+    ALL: BUGFIX perform_stop() ベクタ復元ミス
+    MANUAL: BUGFIX いくつかの誤字などの修正
+    ALL: MODIFY vsync_waitを vsyncwai.asmに分離, vsync変数はvs.asmに分離
+    ALL: BUGFIX font_entry_bfnt(), wfont_entry_bfnt() 拡張ヘッダがあれば飛ばす
+
+ 変更点 (0.18 -> 0.19) 93/6/27公開
+    MANUAL: super.manを master.manに吸収。super.manはなくなったよーん
+    C: メモリモデル強制一致機構をヘッダから削除した。
+       これで pre-compiled headerが使えるぞ。
+    C: dos_setvect()の宣言を修正(QC2でエラーが発生していた)
+    C: str_printf() format と str の seg が異なるときの bug fix
+    SMALLDATA: grc_clip_line 暴走したのをfix
+    ALL: palette_initでデジタルパレットも初期化
+    ALL: graph_xorboxfill で x1,x2がともに負のときの異常をfix
+    ALL: mouse_cmoveto()の追加
+    ALL: palette_set_all(), palette_black(), palette_white() (それぞれマクロ)
+    ALL: key_sense()追加
+    ALL: js_start()を、SAJ-98があればサウンドボードを無視するようにした
+    ALL: js_analog()追加
+    ALL: graph_pack_put_8()追加
+    ALL: graph_enter()が 30bios対応(なにそれ)
+    PASCAL: グローバルポインタ変数の初期値をnilにしていなかったので
+            vsync_startなどが暴走したのを修正
+    C: super_put_clip_8()の宣言が super_put_mitchのままだった
+    ALL: super_put_clip_8()がちゃんと動いてなかった(あれれ(･_･)?)
+    ALL: grcg_polygon_cx()が 2点以下ならば描画しないようにした
+    C: grcg_polygon_vcx() (grcg_polygon_cxの可変引数版)追加。
+    ALL: super_put_rect()追加
+
+
+   変更点 (0.17 -> 0.18) 93/6/1公開
+    PaletteLED 変数の名前を PaletteNoteに変更
+    palette_show()が Noteのリバースモードか否かに対応するようにした
+    bfnt_entry_pat()が 32x32dotより大きいパターンを正しく読み取れなかった
+    のを修正
+
+    TurboCなどの古いBorlandのリンカも通るように修正(完璧かどうかは不明)
+    ヘッダに gdc_circleの宣言の入れ忘れなどの修正
+
+    grcg_byteboxfill_xの修正
+    など
+
+
+   変更点概略 ( 0.00 -> 0.17 )
+   0.00 : 92/11/15 プロトタイプ。テキスト画面のみ。
+               manファイルなし。
+   0.01 : 92/11/16 プロトタイプ2
+               EMS,GRAPH,PAL,SDI,RESPAL追加。
+   0.02 : 92/11/17 manをやっと書きはじめた。
+               FILE,DOS追加。 Pascalは後回し。
+   0.03 : 92/11/19 EMS関連のバグを Mikio氏の指摘により訂正。
+   0.04 : 92/11/22 VSYNC(簡易版)追加など。
+   0.05 : 92/11/25 XMS,GAIJI,FONT,MOUSE1,MOUSE2,BEEP追加など。
+   0.06 : 92/12/02 画面退避/復帰追加など。(原作:Mikio)
+   0.07 : 92/12/08 RS-232C追加。BEEP PCM追加(原作:SuCa)
+   0.08 : 92/12/15 file_lread/file_lwrite追加など。
+   0.09 : 92/12/20 text_putp追加など。バグ取りが多い。
+   0.10 : 93/ 1/26 数多くのバグ取りと数少ない関数追加。(text_show等)
+   0.11 : 93/ 2/13 sio_check_cs削除ほか、スクロールや外字強化。
+               CURSOR追加。
+   0.12 : 93/ 3/ 8 バグ取りたくさん
+   0.13 : 93/ 3/11 ↑はsuper.libと激突するので即刻削除したので
+               修正したバージョン。graph_enter追加。
+   0.14 : 93/ 3/23 super.lib併合。セミグラフィックやスクロール
+               追加など。そのほかバグ取り。
+               pascal版はまだ未完成。manも半端かも。ぐた
+   0.15 : 93/ 4/11 gc_poly.lib併合。text_showpage/accespage追加など
+          93/ 4/17 マニュアルのみ訂正。
+   0.16 : 93/ 5/16 Pascal版復活,js_*,text_frame追加ほか。
+               ascii-net公開。
+   0.17 : 93/ 5/17 file_ropenの0.16エンバグ修正他、ドキュメント修正
