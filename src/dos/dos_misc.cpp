@@ -318,7 +318,12 @@ static bool DOS_MultiplexFunctions(void) {
 	   /* Removing warning */
 		return true;
     case 0x1a00:    /* ANSI.SYS installation check (MS-DOS 4.0 or higher) */
-        if (ANSI_SYS_installed()) {
+        if (IS_PC98_ARCH) {
+            /* NTS: PC-98 MS-DOS has ANSI handling directly within the kernel HOWEVER it does NOT
+             *      respond to this INT 2Fh call. */
+            return false;
+        }
+        else if (ANSI_SYS_installed()) {
             /* See also: [http://www.delorie.com/djgpp/doc/rbinter/id/71/46.html] */
             /* Reported behavior was confirmed with ANSI.SYS loaded on a Windows 95 MS-DOS boot disk, result AX=1AFF */
             reg_al = 0xFF; /* DOSBox/DOSBox-X console device emulates ANSI.SYS, so respond like it's installed */
