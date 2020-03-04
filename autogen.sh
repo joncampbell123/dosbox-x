@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # If an error occurs, quit the script and inform the user. This ensures scripts
 # like ./build-macosx etc. don't continue on if Autotools isn't installed.
