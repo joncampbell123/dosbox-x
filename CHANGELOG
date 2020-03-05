@@ -1,4 +1,6 @@
 0.83.1
+  - Corrected return value when using option to
+    fake the installation of SHARE. (Allofich)
   - Added code to EMS emulation to print specific
     debug information when a PC-98 specific call is
     made to remap segment B000h to either system

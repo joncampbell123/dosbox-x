@@ -112,14 +112,11 @@ static bool DOS_MultiplexFunctions(void) {
         reg_di = DOS_DriveDataListHead;
         break;
 	/* ert, 20100711: Locking extensions */
-	case 0x1000:	/* SHARE.EXE installation check */
-		if (enable_share_exe_fake) {
-			reg_ax=0xffff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
-		}
-		else {
-			return false; /* pass it on */
-		}
-		break;
+    case 0x1000:    /* SHARE.EXE installation check */
+        if (enable_share_exe_fake) {
+            reg_al = 0xff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
+        }
+        return true;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
 		// reg_bx is a system file table entry, should coincide with
 		// the file handle so just use that
@@ -208,9 +205,10 @@ static bool DOS_MultiplexFunctions(void) {
 
 		}
 		return true;
-	case 0x1600:	/* Windows enhanced mode installation check */
-		// Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode nor Windows/386 2.x is running, nor is XMS version 1 driver installed
-		return true;
+    case 0x1600:    /* Windows enhanced mode installation check */
+        // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
+        // nor Windows 95 are running, nor is XMS version 1 driver installed
+        return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
 			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
@@ -321,7 +319,7 @@ static bool DOS_MultiplexFunctions(void) {
         if (IS_PC98_ARCH) {
             /* NTS: PC-98 MS-DOS has ANSI handling directly within the kernel HOWEVER it does NOT
              *      respond to this INT 2Fh call. */
-            return false;
+            return true;
         }
         else if (ANSI_SYS_installed()) {
             /* See also: [http://www.delorie.com/djgpp/doc/rbinter/id/71/46.html] */
@@ -330,10 +328,14 @@ static bool DOS_MultiplexFunctions(void) {
             return true;
         }
         else {
-            /* FIXME: What is normally returned then, if ANSI.SYS not resident? */
-            return false;
+            /* MS-DOS without ANSI.SYS loaded doesn't modify any registers in response to this call. */
+            return true;
         }
         break;
+    case 0x4680:    /* Windows v3.0 check */
+        // Leave AX as 0x4680, indicating that Windows 3.0 is not running in real (/R) or standard (/S) mode,
+        // nor is DOS 5 DOSSHELL active
+        return true;
 	case 0x4a01: {	/* Query free hma space */
 		Bit32u limit = DOS_HMA_LIMIT();
 
