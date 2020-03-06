@@ -4039,9 +4039,9 @@ void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 Bitu DEBUG_EnableDebugger(void)
 {
 	exitLoop = true;
-    
-    if (!debugging)
-        DEBUG_Enable_Handler(true);
+
+	if (!debugging)
+		DEBUG_Enable_Handler(true);
 
 	CPU_Cycles=CPU_CycleLeft=0;
 	return 0;

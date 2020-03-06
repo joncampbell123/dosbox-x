@@ -136,10 +136,10 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
 	strcat(newcom,test->GetName());	strcat(newcom," ");
 	strcat(newcom,cmd_in);
-    if (line != NULL)
-        strcat(newcom, line);
-    else
-        E_Exit("'line' in CheckConfig is NULL");
+	if (line != NULL)
+		strcat(newcom, line);
+	else
+		E_Exit("'line' in CheckConfig is NULL");
 	DoCommand(newcom);
 	return true;
 }

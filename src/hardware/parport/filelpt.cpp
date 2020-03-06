@@ -85,8 +85,8 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 		}
 	}
 
-    if (timeout == ~0u)
-        timeout = is_file ? 0 : 500;
+	if (timeout == ~0u)
+		timeout = is_file ? 0 : 500;
 
 	InstallationSuccessful = true;
 }

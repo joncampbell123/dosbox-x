@@ -184,8 +184,9 @@ static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
         cache.last_page = cpagehandler;
         if (!cache.used_pages) cache.used_pages = cpagehandler;
     }
-    else
+    else {
         E_Exit("NULL cache.free_pages in MakeCodePage");
+    }
 
 	// initialize the code page handler and add the handler to the memory page
 	cpagehandler->SetupAt(phys_page,handler);
