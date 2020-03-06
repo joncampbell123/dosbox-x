@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Look for GCC-7.5
-x=`which gcc-7.5 2>/dev/null`
+# Look for GCC-9.2
+x=`which gcc-9.2 2>/dev/null`
 if [ -n "$x" ]; then
     gdir=`dirname $x`
-elif [ -f "/usr/gcc-7.5/bin/gcc" ]; then
-    gdir="/usr/gcc-7.5/bin"
+elif [ -f "/usr/gcc-9.2/bin/gcc" ]; then
+    gdir="/usr/gcc-9.2/bin"
 else
-    echo Cannot find GCC 7.5
+    echo Cannot find GCC 9.2
     exit 1
 fi
 
