@@ -57,7 +57,7 @@ struct SDL_OpenGL {
     int menudraw_countdown;
     int clear_countdown;
 #if defined(C_SDL2)
-    SDL_GLContext context = NULL;
+    SDL_GLContext context;
 #endif
 };
 
