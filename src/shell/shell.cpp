@@ -635,9 +635,9 @@ static Bitu INT2E_Handler(void) {
 
 	/* Read and fix up command string */
 	CommandTail tail;
-	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
-	if (tail.count<127) tail.buffer[tail.count]=0;
-	else tail.buffer[126]=0;
+	MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+	if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+	else tail.buffer[CTBUF-1]=0;
 	char* crlf=strpbrk(tail.buffer,"\r\n");
 	if (crlf) *crlf=0;
 
@@ -686,7 +686,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
-	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname is longer than 8 characters and/or contains spaces.\nTry \033[31mcd %s\033[0m\n");
+	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
 	MSG_Add("SHELL_CMD_DATE_HELP","Displays or changes the internal date.\n");
 	MSG_Add("SHELL_CMD_DATE_ERROR","The specified date is not correct.\n");
@@ -707,6 +707,7 @@ void SHELL_Init() {
 									"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
+    MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","Are you sure[Y,N]?");
 	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
@@ -1174,12 +1175,12 @@ void SHELL_Init() {
 	/* Set the command line for the shell start up */
 	CommandTail tail;
 	tail.count=(Bit8u)strlen(init_line);
-	memset(&tail.buffer, 0, 127);
-	strncpy(tail.buffer,init_line,127);
-	MEM_BlockWrite(PhysMake(psp_seg,128),&tail,128);
+	memset(&tail.buffer, 0, CTBUF);
+	strncpy(tail.buffer,init_line,CTBUF);
+	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
 	
 	/* Setup internal DOS Variables */
-	dos.dta(RealMake(psp_seg,0x80));
+	dos.dta(RealMake(psp_seg,CTBUF+1));
 	dos.psp(psp_seg);
 
     /* settings */

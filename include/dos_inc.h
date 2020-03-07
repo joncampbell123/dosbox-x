@@ -21,6 +21,7 @@
 #define DOSBOX_DOS_INC_H
 
 #include <stddef.h>
+#define CTBUF 127
 
 #ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
@@ -28,7 +29,6 @@
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
-
 #include <stddef.h> //for offsetof
 
 #ifdef _MSC_VER
@@ -36,7 +36,7 @@
 #endif
 struct CommandTail{
   Bit8u count;				/* number of bytes returned */
-  char buffer[127];			 /* the buffer itself */
+  char buffer[CTBUF];		/* the buffer itself */
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack ()
@@ -180,6 +180,7 @@ bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry,bool fcb = false)
 bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bit16u action, Bit16u *entry, Bit16u* status);
 bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
+bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
 bool DOS_FindFirst(char *search,Bit16u attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
 bool DOS_Canonicalize(char const * const name,char * const big);
@@ -192,7 +193,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive);
 Bit8u DOS_GetDefaultDrive(void);
 void DOS_SetDefaultDrive(Bit8u drive);
 bool DOS_SetDrive(Bit8u drive);
-bool DOS_GetCurrentDir(Bit8u drive,char * const buffer);
+bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN);
 bool DOS_ChangeDir(char const * const dir);
 bool DOS_MakeDir(char const * const dir);
 bool DOS_RemoveDir(char const * const dir);
@@ -200,6 +201,11 @@ bool DOS_Rename(char const * const oldname,char const * const newname);
 bool DOS_GetFreeDiskSpace(Bit8u drive,Bit16u * bytes,Bit8u * sectors,Bit16u * clusters,Bit16u * free);
 bool DOS_GetFileAttr(char const * const name,Bit16u * attr);
 bool DOS_SetFileAttr(char const * const name,Bit16u attr);
+bool DOS_GetFileAttrEx(char const* const name, struct stat *status, Bit8u hdrive=-1);
+unsigned long DOS_GetCompressedFileSize(char const* const name);
+#if defined (WIN32)
+HANDLE DOS_CreateOpenFile(char const* const name);
+#endif
 
 /* IOCTL Stuff */
 bool DOS_IOCTL(void);
@@ -387,7 +393,9 @@ public:
 	RealPt	GetInt22			(void)					{ return sGet(sPSP,int_22);			};
 	void	SetFCB1				(RealPt src);
 	void	SetFCB2				(RealPt src);
-	void	SetCommandTail		(RealPt src);	
+	void	SetCommandTail		(RealPt src);
+	void    StoreCommandTail    (void);
+	void    RestoreCommandTail  (void);
 	bool	SetNumFiles			(Bit16u fileNum);
 	Bit16u	FindEntryByHandle	(Bit8u handle);
 			
@@ -542,12 +550,14 @@ class DOS_DTA:public MemStruct{
 public:
 	DOS_DTA(RealPt addr) { SetPt(addr); }
 
+    int GetFindData(int fmt,char * finddata);
+	
 	void SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern);
-	void SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
 	
 	Bit8u GetSearchDrive(void);
-	void GetSearchParams(Bit8u & attr,char * pattern);
-	void GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+	void GetSearchParams(Bit8u & _sattr,char * _spattern,bool lfn);
+    void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
 
 	void	SetDirID(Bit16u entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(Bit16u entry)	{ sSave(sDTA,dirCluster,entry); };
@@ -560,8 +570,8 @@ private:
 	#endif
 	struct sDTA {
 		Bit8u sdrive;						/* The Drive the search is taking place */
-		Bit8u sname[8];						/* The Search pattern for the filename */		
-		Bit8u sext[3];						/* The Search pattern for the extenstion */
+        Bit8u spname[8];                    /* The Search pattern for the filename */              
+        Bit8u spext[3];                     /* The Search pattern for the extension */
 		Bit8u sattr;						/* The Attributes that need to be found */
 		Bit16u dirID;						/* custom: dir-search ID for multiple searches at the same time */
 		Bit16u dirCluster;					/* custom (drive_fat only): cluster number for multiple searches at the same time */

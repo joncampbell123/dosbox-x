@@ -85,6 +85,7 @@ bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 
+bool uselfn;
 extern bool int15_wait_force_unmask_irq;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
@@ -164,7 +165,7 @@ extern unsigned int ENV_KEEPFREE;// = 83;
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 
-extern bool dos_kernel_disabled;
+extern bool force, dos_kernel_disabled;
 
 Bit16u DOS_Block::psp() {
 	if (dos_kernel_disabled) {
@@ -281,6 +282,23 @@ static inline void overhead() {
 extern bool date_host_forced;
 
 static Bitu DOS_21Handler(void);
+void DOS_Int21_7139(char *name1, char *name2);
+void DOS_Int21_713a(char *name1, char *name2);
+void DOS_Int21_713b(char *name1, char *name2);
+void DOS_Int21_7141(char *name1, char *name2);
+void DOS_Int21_7143(char *name1, char *name2);
+void DOS_Int21_7147(char *name1, char *name2);
+void DOS_Int21_714e(char *name1, char *name2);
+void DOS_Int21_714f(char *name1, char *name2);
+void DOS_Int21_7156(char *name1, char *name2);
+void DOS_Int21_7160(char *name1, char *name2);
+void DOS_Int21_716c(char *name1, char *name2);
+void DOS_Int21_71a0(char *name1, char *name2);
+void DOS_Int21_71a1(char *name1, char *name2);
+void DOS_Int21_71a6(char *name1, char *name2);
+void DOS_Int21_71a7(char *name1, char *name2);
+void DOS_Int21_71a8(char* name1, char* name2);
+void DOS_Int21_71aa(char* name1, char* name2);
 Bitu DEBUG_EnableDebugger(void);
 void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
 
@@ -413,6 +431,20 @@ bool disk_io_unmask_irq0 = true;
 bool dos_program_running = false;
 
 void XMS_DOS_LocalA20EnableIfNotEnabled(void);
+
+typedef struct {
+	UINT16 size_of_structure;
+	UINT16 structure_version;
+	UINT32 sectors_per_cluster;
+	UINT32 bytes_per_sector;
+	UINT32 available_clusters_on_drive;
+	UINT32 total_clusters_on_drive;
+	UINT32 available_sectors_on_drive;
+	UINT32 total_sectors_on_drive;
+	UINT32 available_allocation_units;
+	UINT32 total_allocation_units;
+	UINT8 reserved[8];
+} ext_space_info_t;
 
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
@@ -1193,16 +1225,27 @@ static Bitu DOS_21Handler(void) {
             diskio_delay(2048);
             break;
         case 0x3d:      /* OPEN Open existing file */
+		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+			force = true;
+			Bit8u oldal=reg_al;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
+				force = false;
                 CALLBACK_SCF(false);
             } else {
+				force = false;
+				if (uselfn&&DOS_OpenFile(name1,oldal,&reg_ax)) {
+					CALLBACK_SCF(false);
+					break;
+				}
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
             diskio_delay(1024);
+			force = false;
             break;
+		}
         case 0x3e:      /* CLOSE Close file */
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx)) {
@@ -1368,7 +1411,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x47:                  /* CWD Get current directory */
-            if (DOS_GetCurrentDir(reg_dl,name1)) {
+			if (DOS_GetCurrentDir(reg_dl,name1,false)) {
                 MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));   
                 reg_ax=0x0100;
                 CALLBACK_SCF(false);
@@ -1864,11 +1907,110 @@ static Bitu DOS_21Handler(void) {
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:6F ROM functions not implemented");
             goto default_fallthrough;
         case 0x71:                  /* Unknown probably 4dos detection */
-            reg_ax=0x7100;
-            CALLBACK_SCF(true); //Check this! What needs this ? See default case
             LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
+            if (!uselfn) {
+                    reg_ax=0x7100;
+                    CALLBACK_SCF(true); //Check this! What needs this ? See default case
+                    break;
+            }
+            switch(reg_al)          {
+                    case 0x39:              /* LFN MKDIR */
+							DOS_Int21_7139(name1, name2);
+                            break;
+                    case 0x3a:              /* LFN RMDIR */
+							DOS_Int21_713a(name1, name2);
+                            break;
+                    case 0x3b:              /* LFN CHDIR */
+							DOS_Int21_713b(name1, name2);
+                            break;
+                    case 0x41:              /* LFN UNLINK */
+							DOS_Int21_7141(name1, name2);
+                            break;
+                    case 0x43:              /* LFN ATTR */
+							DOS_Int21_7143(name1, name2);
+                            break;
+                    case 0x47:              /* LFN PWD */
+							DOS_Int21_7147(name1, name2);
+                            break;
+                    case 0x4e:              /* LFN FindFirst */
+							DOS_Int21_714e(name1, name2);
+                            break;           
+                    case 0x4f:              /* LFN FindNext */
+							DOS_Int21_714f(name1, name2);
+                            break;
+                    case 0x56:              /* LFN Rename */
+							DOS_Int21_7156(name1, name2);
+                            break;         
+                    case 0x60:              /* LFN GetName */
+							DOS_Int21_7160(name1, name2);
+                            break;
+                    case 0x6c:              /* LFN Create */
+							DOS_Int21_716c(name1, name2);
+                            break;
+                    case 0xa0:              /* LFN VolInfo */
+							DOS_Int21_71a0(name1, name2);
+                            break;
+                    case 0xa1:              /* LFN FileClose */
+							DOS_Int21_71a1(name1, name2);
+							break;
+                    case 0xa6:              /* LFN GetFileInfoByHandle */
+							DOS_Int21_71a6(name1, name2);
+							break;
+                    case 0xa7:              /* LFN TimeConv */
+							DOS_Int21_71a7(name1, name2);
+                            break;
+                    case 0xa8:              /* LFN GenSFN */
+							DOS_Int21_71a8(name1, name2);
+                            break;
+					case 0xaa:              /* LFN Subst */
+							DOS_Int21_71aa(name1, name2);
+							break;
+					case 0xa9:              /* LFN Server Create */
+							reg_ax=0x7100; // not implemented yet
+                    default:
+                            reg_ax=0x7100;
+                            CALLBACK_SCF(true); //Check this! What needs this ? See default case
+            }
             break;
-        case 0xE0:
+		case 0x73:
+			if (reg_al==3)
+			{
+			MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
+			if (name1[1]==':'&&name1[2]=='\\')
+				reg_dl=name1[0]-'A'+1;
+			else {
+				reg_ax=0xffff;
+				CALLBACK_SCF(true);
+				break;
+			}
+			Bit16u bytes_per_sector,total_clusters,free_clusters;
+			Bit8u sectors_per_cluster;
+			if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+				{
+				ext_space_info_t *info = new ext_space_info_t;
+				info->size_of_structure = sizeof(ext_space_info_t);
+				info->structure_version = 0;
+				info->sectors_per_cluster = sectors_per_cluster;
+				info->bytes_per_sector = bytes_per_sector;
+				info->available_clusters_on_drive = free_clusters;
+				info->total_clusters_on_drive = total_clusters;
+				info->available_sectors_on_drive = sectors_per_cluster * free_clusters;
+				info->total_sectors_on_drive = sectors_per_cluster * total_clusters;
+				info->available_allocation_units = free_clusters;
+				info->total_allocation_units = total_clusters;
+				MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
+				delete(info);
+				reg_ax=0;
+				CALLBACK_SCF(false);
+				}
+			else
+				{
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+				}
+			break;
+			}
+		case 0xE0:
         case 0xEF:                  /* Used in Ancient Art Of War CGA */
         default:
             default_fallthrough:
@@ -2236,7 +2378,6 @@ public:
             else
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
-
         dos_in_hma = section->Get_bool("dos in hma");
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
@@ -2610,6 +2751,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
+		uselfn = dos.version.major>6;
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -2753,3 +2895,581 @@ void DOS_Init() {
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
+void DOS_Int21_7139(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (DOS_MakeDir(name1)) {
+				reg_ax=0;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_713a(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if  (DOS_RemoveDir(name1)) {
+				reg_ax=0;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+				LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
+		}
+}
+
+void DOS_Int21_713b(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if  (DOS_ChangeDir(name1)) {
+				reg_ax=0;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_7141(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (DOS_UnlinkFile(name1)) {
+				reg_ax=0;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_7143(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		switch (reg_bl) {
+				case 0x00:                              /* Get */
+				{
+					Bit16u attr_val=reg_cx;
+					if (DOS_GetFileAttr(name1,&attr_val)) {
+							reg_cx=attr_val;
+							reg_ax=0;
+							CALLBACK_SCF(false);
+					} else {
+							CALLBACK_SCF(true);
+							reg_ax=dos.errorcode;
+					}
+					break;
+				};
+				case 0x01:                              /* Set */
+					if (DOS_SetFileAttr(name1,reg_cx)) {
+							reg_ax=0;
+							CALLBACK_SCF(false);
+					} else {
+							CALLBACK_SCF(true);
+							reg_ax=dos.errorcode;
+					}
+					break;
+				case 0x02:				/* Get compressed file size */
+				{
+					reg_ax=0;
+					reg_dx=0;
+					unsigned long size = DOS_GetCompressedFileSize(name1);
+					if (size >= 0) {
+#if defined (WIN32)
+						reg_ax = LOWORD(size);
+						reg_dx = HIWORD(size);
+#endif
+						CALLBACK_SCF(false);
+					} else {
+						CALLBACK_SCF(true);
+						reg_ax=dos.errorcode;
+					}
+					break;
+				}
+				case 0x03:
+				case 0x05:
+				case 0x07:
+				{
+#if defined (WIN32)
+					HANDLE hFile = DOS_CreateOpenFile(name1);
+					if (hFile != INVALID_HANDLE_VALUE) {
+						time_t clock = time(NULL), ttime;
+						struct tm *t = localtime(&clock);
+						FILETIME time;
+						t->tm_isdst = -1;
+						t->tm_sec  = (((int)reg_cx) << 1) & 0x3e;
+						t->tm_min  = (((int)reg_cx) >> 5) & 0x3f;
+						t->tm_hour = (((int)reg_cx) >> 11) & 0x1f;
+						t->tm_mday = (int)(reg_di) & 0x1f;
+						t->tm_mon  = ((int)(reg_di >> 5) & 0x0f) - 1;
+						t->tm_year = ((int)(reg_di >> 9) & 0x7f) + 80;
+						ttime=mktime(t);
+						LONGLONG ll = Int32x32To64(ttime, 10000000) + 116444736000000000 + (reg_bl==0x07?reg_si*100000:0);
+						time.dwLowDateTime = (DWORD) ll;
+						time.dwHighDateTime = (DWORD) (ll >> 32);
+						if (!SetFileTime(hFile, reg_bl==0x07?&time:NULL,reg_bl==0x05?&time:NULL,reg_bl==0x03?&time:NULL)) {
+							CloseHandle(hFile);
+							CALLBACK_SCF(true);
+							reg_ax=dos.errorcode;
+							break;
+						}
+						CloseHandle(hFile);
+						reg_ax=0;
+						CALLBACK_SCF(false);
+					} else
+#endif
+					{
+						CALLBACK_SCF(true);
+						reg_ax=dos.errorcode;
+					}
+					break;
+				}
+				case 0x04:
+				case 0x06:
+				case 0x08:
+					struct stat status;
+					if (DOS_GetFileAttrEx(name1, &status)) {
+						struct tm * ltime;
+						time_t ttime=reg_bl==0x04?status.st_mtime:reg_bl==0x06?status.st_atime:status.st_ctime;
+						if ((ltime=localtime(&ttime))!=0) {
+							reg_cx=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+							reg_di=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+						}
+						if (reg_bl==0x08)
+							reg_si = 0;
+						reg_ax=0;
+						CALLBACK_SCF(false);
+					} else {
+						CALLBACK_SCF(true);
+						reg_ax=dos.errorcode;
+					}
+					break;
+				default:
+						E_Exit("DOS:Illegal LFN Attr call %2X",reg_bl);
+		}
+}
+
+void DOS_Int21_7147(char *name1, char *name2) {
+		DOS_PSP psp(dos.psp());
+		psp.StoreCommandTail();
+		if (DOS_GetCurrentDir(reg_dl,name1,true)) {
+				MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));
+				psp.RestoreCommandTail();
+				reg_ax=0;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_714e(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (!DOS_GetSFNPath(name1,name2,false)) {
+			reg_ax=dos.errorcode;
+			CALLBACK_SCF(true);
+			return;
+		}
+		Bit16u entry;
+		Bit8u i,handle=DOS_FILES;
+		for (i=1;i<DOS_FILES;i++) {
+			if (!Files[i]) {
+				handle=i;
+				break;
+			}
+		}
+		if (handle==DOS_FILES) {
+			reg_ax=DOSERR_TOO_MANY_OPEN_FILES;
+			CALLBACK_SCF(true);
+			return;
+		}
+		bool b=DOS_FindFirst(name2,reg_cx,handle);
+		int error=dos.errorcode;
+		Bit16u attribute = 0;
+		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
+			strcat(name2,"\\*.*");
+			b=DOS_FindFirst(name2,reg_cx,handle);
+			error=dos.errorcode;
+		}
+		if (b) {
+				DOS_PSP psp(dos.psp());
+				entry = psp.FindFreeFileEntry();
+				if (entry==0xff) {
+					reg_ax=DOSERR_TOO_MANY_OPEN_FILES;
+					CALLBACK_SCF(true);
+					return;
+				}
+				if (handle>=DOS_DEVICES||!Devices[handle])
+					{
+					int m=0;
+					for (int i=1;i<DOS_DEVICES;i++)
+						if (Devices[i]) m=i;
+					Files[handle]=new DOS_Device(*Devices[m]);
+					}
+				else
+					Files[handle]=new DOS_Device(*Devices[handle]);
+				Files[handle]->AddRef();
+				psp.SetFileHandle(entry,handle);
+				reg_ax=handle;
+				DOS_DTA dta(dos.dta());
+				char finddata[CROSS_LEN];
+				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_714f(char *name1, char *name2) {
+		Bit8u handle=(Bit8u)reg_bx;
+		if (!handle || handle>=DOS_FILES || !Files[handle]) {
+			reg_ax=DOSERR_INVALID_HANDLE;
+			CALLBACK_SCF(true);
+			return;
+		}
+		if (DOS_FindNext()) {
+				DOS_DTA dta(dos.dta());
+				char finddata[CROSS_LEN];
+				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+				CALLBACK_SCF(false);
+				reg_ax=0x4f00+handle;
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_7156(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		MEM_StrCopy(SegPhys(es)+reg_di,name2+1,DOSNAMEBUF);
+		*name2='\"';
+		p=name2+strlen(name2);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (DOS_Rename(name1,name2)) {
+				reg_ax=0;
+				CALLBACK_SCF(false);                   
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+void DOS_Int21_7160(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (DOS_Canonicalize(name1,name2)) {
+				strcpy(name1,"\"");
+				strcat(name1,name2);
+				strcat(name1,"\"");
+				switch(reg_cl)          {
+						case 0:         // Canonoical path name
+								strcpy(name2,name1);
+								MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+								reg_ax=0;
+								CALLBACK_SCF(false);
+								break;
+						case 1:         // SFN path name
+								if (DOS_GetSFNPath(name1,name2,false)) {
+									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+									reg_ax=0;
+									CALLBACK_SCF(false);
+								} else {
+									reg_ax=2;
+									CALLBACK_SCF(true);								
+								}
+								break;
+						case 2:         // LFN path name
+								if (DOS_GetSFNPath(name1,name2,true)) {
+									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+									reg_ax=0;
+									CALLBACK_SCF(false);
+								} else {
+									reg_ax=2;
+									CALLBACK_SCF(true);								
+								}
+								break;
+						default:
+								E_Exit("DOS:Illegal LFN GetName call %2X",reg_cl);
+				}
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_716c(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+		*name1='\"';
+		char *p=name1+strlen(name1);
+		while (*p==' '||*p==0) p--;
+		*(p+1)='\"';
+		*(p+2)=0;
+		if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_71a0(char *name1, char *name2) {
+		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+		if (DOS_Canonicalize(name1,name2)) {
+				if (reg_cx > 3)
+						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
+				reg_ax=0;
+				reg_bx=0x4006;
+				reg_cx=0xff;
+				reg_dx=0x104;
+				CALLBACK_SCF(false);
+		} else {
+				reg_ax=dos.errorcode;
+				CALLBACK_SCF(true);
+		}
+}
+
+void DOS_Int21_71a1(char *name1, char *name2) {
+		Bit8u handle=(Bit8u)reg_bx;
+		if (!handle || handle>=DOS_FILES || !Files[handle]) {
+			reg_ax=DOSERR_INVALID_HANDLE;
+			CALLBACK_SCF(true);
+			return;
+		}
+		DOS_PSP psp(dos.psp());
+		Bit16u entry=psp.FindEntryByHandle(handle);
+		if (entry>0&&entry!=0xff) psp.SetFileHandle(entry,0xff);
+		if (entry>0&&Files[handle]->RemoveRef()<=0) {
+			delete Files[handle];
+			Files[handle]=0;
+		}
+		reg_ax=0;
+		CALLBACK_SCF(false);
+}
+
+void DOS_Int21_71a6(char *name1, char *name2) {
+	char buf[64];
+	unsigned long serial_number=0,st=0,cdate,ctime,adate,atime,mdate,mtime;
+	Bit8u entry=(Bit8u)reg_bx, handle;
+	if (entry>=DOS_FILES) {
+		reg_ax=DOSERR_INVALID_HANDLE;
+		CALLBACK_SCF(true);
+		return;
+	}
+	DOS_PSP psp(dos.psp());
+	for (int i=0;i<=DOS_FILES;i++)
+		if (Files[i] && psp.FindEntryByHandle(i)==entry)
+			handle=i;
+	if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
+		char volume[] = "A:\\";
+		volume[0]+=Files[handle]->GetDrive();
+#if defined (WIN32)
+		GetVolumeInformation(volume, NULL, 0, &serial_number, NULL, NULL, NULL, 0);
+#endif
+		struct stat status;
+		if (DOS_GetFileAttrEx(Files[handle]->name, &status, Files[handle]->GetDrive())) {
+			time_t ttime;
+			struct tm * ltime;
+			ttime=status.st_ctime;
+			if ((ltime=localtime(&ttime))!=0) {
+				ctime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+				cdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+			}
+			ttime=status.st_atime;
+			if ((ltime=localtime(&ttime))!=0) {
+				atime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+				adate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+			}
+			ttime=status.st_mtime;
+			if ((ltime=localtime(&ttime))!=0) {
+				mtime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
+				mdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+			}
+			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",&st,&ctime,&cdate,&atime,&adate,&mtime,&mdate,&serial_number,&st,&st,&st,&st,&handle);
+			for (int i=32;i<36;i++) buf[i]=0;
+			buf[36]=(char)((Bit32u)status.st_size%256);
+			buf[37]=(char)(((Bit32u)status.st_size%65536)/256);
+			buf[38]=(char)(((Bit32u)status.st_size%16777216)/65536);
+			buf[39]=(char)((Bit32u)status.st_size/16777216);
+			buf[40]=(char)status.st_nlink;
+			for (int i=41;i<47;i++) buf[i]=0;
+			buf[52]=0;
+			MEM_BlockWrite(SegPhys(ds)+reg_dx,buf,53);
+			reg_ax=0;
+			CALLBACK_SCF(false);
+		} else {
+			reg_ax=dos.errorcode;
+			CALLBACK_SCF(true);
+		}
+	} else {
+		reg_ax=dos.errorcode;
+		CALLBACK_SCF(true);
+	}
+}
+
+void DOS_Int21_71a7(char *name1, char *name2) {
+	switch (reg_bl) {
+			case 0x00:
+					reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
+					reg_ch=mem_readb(SegPhys(ds)+reg_si+1);	//but MS-DOS 7 and 4DOS DIR should
+					reg_dl=mem_readb(SegPhys(ds)+reg_si+4);	//show date/time correctly now
+					reg_dh=mem_readb(SegPhys(ds)+reg_si+5);
+					reg_bh=0;
+					reg_ax=0;
+					CALLBACK_SCF(false);
+					break;
+			case 0x01:
+					mem_writeb(SegPhys(es)+reg_di,reg_cl);
+					mem_writeb(SegPhys(es)+reg_di+1,reg_ch);
+					mem_writeb(SegPhys(es)+reg_di+4,reg_dl);
+					mem_writeb(SegPhys(es)+reg_di+5,reg_dh);
+					reg_ax=0;
+					CALLBACK_SCF(false);
+					break;
+			default:
+					E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
+	}
+}
+
+void DOS_Int21_71a8(char* name1, char* name2) {
+	if (reg_dh == 0 || reg_dh == 1) {
+			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
+			int i,j=0;
+			char c[13],*s=strrchr(name1,'.');
+			for (i=0;i<8;j++) {
+					if (name1[j] == 0 || s-name1 <= j) break;
+					if (name1[j] == '.') continue;
+					sprintf(c,"%s%c",c,toupper(name1[j]));
+					i++;
+			}
+			if (s != NULL) {
+					s++;
+					if (s != 0 && reg_dh == 1) strcat(c,".");
+					for (i=0;i<3;i++) {
+							if (*(s+i) == 0) break;
+							sprintf(c,"%s%c",c,toupper(*(s+i)));
+					}
+			}
+			MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+			reg_ax=0;
+			CALLBACK_SCF(false);
+	} else {
+			reg_ax=1;
+			CALLBACK_SCF(true);
+	}
+}
+
+void DOS_Int21_71aa(char* name1, char* name2) {
+	if (reg_bh>-1 && reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
+			reg_ax = DOSERR_INVALID_DRIVE;
+			CALLBACK_SCF(true);
+			return;
+	}
+	switch (reg_bh) {
+		case 0:
+		{
+			Bit8u drive=reg_bl-1;
+			if (drive==DOS_GetDefaultDrive() || Drives[drive] || drive==25) {
+				reg_ax = DOSERR_INVALID_DRIVE;
+				CALLBACK_SCF(true);
+			} else {
+				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+				char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+				strcpy(mountstring,"MOUNT ");
+				char temp_str[3] = { 0,0,0 };
+				temp_str[0]=(char)('A'+reg_bl-1);
+				temp_str[1]=' ';
+				strcat(mountstring,temp_str);
+				strcat(mountstring,name1);
+				strcat(mountstring," >nul");
+				DOS_Shell temp;
+				temp.ParseLine(mountstring);
+				if (Drives[drive]) {
+					reg_ax=0;
+					CALLBACK_SCF(false);
+				} else {
+					reg_ax=DOSERR_PATH_NOT_FOUND;
+					CALLBACK_SCF(true);
+				}
+			}
+			break;
+		}
+		case 1:
+		{
+			Bit8u drive=reg_bl-1;
+			if (drive==DOS_GetDefaultDrive() || !Drives[drive] || drive==25) {
+				reg_ax = DOSERR_INVALID_DRIVE;
+				CALLBACK_SCF(true);
+			} else {
+				char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+				strcpy(mountstring,"MOUNT -u ");
+				char temp_str[2] = { 0,0 };
+				temp_str[0]=(char)('A'+reg_bl-1);
+				strcat(mountstring,temp_str);
+				strcat(mountstring," >nul");
+				DOS_Shell temp;
+				temp.ParseLine(mountstring);
+				if (!Drives[drive]) {
+					reg_ax =0;
+					CALLBACK_SCF(false);
+				} else {
+					reg_ax=5;
+					CALLBACK_SCF(true);
+				}
+			}
+			break;
+		}
+		case 2:
+		{
+			Bit8u drive=reg_bl>0?reg_bl-1:DOS_GetDefaultDrive();
+			if (Drives[drive]&&!strncmp(Drives[drive]->GetInfo(),"local directory ",16)) {
+				strcpy(name1,Drives[drive]->GetInfo()+16);
+				MEM_BlockWrite(SegPhys(ds)+reg_dx,name1,(Bitu)(strlen(name1)+1));
+				reg_ax=0;
+				CALLBACK_SCF(false);
+			} else {
+				reg_ax=3;
+				CALLBACK_SCF(true);						
+			}
+			break;
+		}
+		default:
+			E_Exit("DOS:Illegal LFN Subst call %2X",reg_bl);
+	}
+}

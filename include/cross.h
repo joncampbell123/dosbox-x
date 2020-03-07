@@ -106,11 +106,11 @@ typedef struct dir_struct {
 
 // TODO: offer a config.h option to opt out of Windows widechar functions
 dir_information* open_directory(const char* dirname);
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
 dir_information* open_directoryw(const wchar_t* dirname);
-bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
-bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
+bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory);
+bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, wchar_t* entry_sname, bool& is_directory);
 
 #else
 
@@ -123,8 +123,9 @@ typedef struct dir_struct {
 } dir_information;
 
 dir_information* open_directory(const char* dirname);
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+
 #define open_directoryw open_directory
 #define read_directory_firstw read_directory_first
 #define read_directory_nextw read_directory_next

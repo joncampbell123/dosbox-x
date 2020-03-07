@@ -26,6 +26,7 @@
 #include "shell.h" /* for DOS_Shell */
 
 bool WildFileCmp(const char * file, const char * wild);
+bool LWildFileCmp(const char * file, const char * wild);
 void Set_Label(char const * const input, char * const output, bool cdrom);
 
 class DriveManager {
@@ -66,6 +67,11 @@ public:
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual bool FindNext(DOS_DTA & dta);
 	virtual bool GetFileAttr(const char * name,Bit16u * attr);
+	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	virtual unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name);
+#endif
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters);
 	virtual bool FileExists(const char* name);
@@ -78,8 +84,8 @@ public:
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) { dirCache.SetLabel(label,iscdrom,updatable); };
 	virtual void *opendir(const char *name);
 	virtual void closedir(void *handle);
-	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory);
-	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
+	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
@@ -218,6 +224,11 @@ public:
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual bool FindNext(DOS_DTA & dta);
 	virtual bool GetFileAttr(const char * name,Bit16u * attr);
+	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	virtual unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name);
+#endif
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters);
 	virtual bool FileExists(const char* name);
@@ -314,6 +325,11 @@ public:
 	virtual bool MakeDir(const char * dir);
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool GetFileAttr(const char * name,Bit16u * attr);
+	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	virtual unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name);
+#endif
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual void SetDir(const char* path);
 	virtual bool isRemote(void);
@@ -434,6 +450,11 @@ public:
 	virtual bool FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst);
 	virtual bool FindNext(DOS_DTA &dta);
 	virtual bool GetFileAttr(const char *name, Bit16u *attr);
+	virtual bool GetFileAttrEx(char* name, struct stat *status);
+	virtual unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name);
+#endif
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool AllocationInfo(Bit16u *bytes_sector, Bit8u *sectors_cluster, Bit16u *total_clusters, Bit16u *free_clusters);
 	virtual bool FileExists(const char *name);
@@ -457,6 +478,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(Bit8u** buffer, const Bit32u sector);
+	void GetLongName(char *ident, char *lfindName);
 	
 	struct DirIterator {
 		bool valid;
@@ -498,6 +520,11 @@ public:
 	bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst);
 	bool FindNext(DOS_DTA & dta);
 	bool GetFileAttr(const char * name,Bit16u * attr);
+	bool GetFileAttrEx(char* name, struct stat *status);
+	unsigned long GetCompressedSize(char* name);
+#if defined (WIN32)
+	HANDLE CreateOpenFile(char const* const name);
+#endif
 	bool Rename(const char * oldname,const char * newname);
 	bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters);
 	bool FileExists(const char* name);

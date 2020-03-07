@@ -44,7 +44,7 @@
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
-	DOS_GetCurrentDir(0,dir);
+	DOS_GetCurrentDir(0,dir,uselfn);
 	std::string line;
 	const char * promptstr = "\0";
 
@@ -467,9 +467,36 @@ void DOS_Shell::InputCommand(char * line) {
                         // build new completion list
                         // Lines starting with CD will only get directories in the list
                         bool dir_only = (strncasecmp(line,"CD ",3)==0);
+						int q=0, r=0, k=0;
 
                         // get completion mask
                         char *p_completion_start = strrchr(line, ' ');
+						while (p_completion_start) {
+	                        q=0;
+	                        char *i;
+	                        for (i=line;i<p_completion_start;i++)
+	                           if (*i=='\"') q++;
+	                        if (q/2*2==q) break;
+	                        *i=0;
+	                        p_completion_start = strrchr(line, ' ');
+	                        *i=' ';
+	                    }
+						char c[]={'<','>','|'};
+						for (int j=0; j<sizeof(c); j++) {
+							char *sp = strrchr(line, c[j]);
+							while (sp) {
+								q=0;
+								char *i;
+								for (i=line;i<sp;i++)
+									if (*i=='\"') q++;
+								if (q/2*2==q) break;
+								*i=0;
+								sp = strrchr(line, c[j]);
+								*i=c[j];
+							}
+							if (!p_completion_start || p_completion_start<sp)
+								p_completion_start = sp;
+						}
 
                         if (p_completion_start) {
                             p_completion_start ++;
@@ -478,13 +505,15 @@ void DOS_Shell::InputCommand(char * line) {
                             p_completion_start = line;
                             completion_index = 0;
                         }
+						k=completion_index;
 
                         char *path;
+						if ((path = strrchr(line+completion_index,':'))) completion_index = (Bit16u)(path-line+1);
                         if ((path = strrchr(line+completion_index,'\\'))) completion_index = (Bit16u)(path-line+1);
                         if ((path = strrchr(line+completion_index,'/'))) completion_index = (Bit16u)(path-line+1);
 
                         // build the completion list
-                        char mask[DOS_PATHLENGTH] = {0};
+                        char mask[DOS_PATHLENGTH+2] = {0}, smask[DOS_PATHLENGTH] = {0};
                         if (p_completion_start && strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
                             //Beep;
                             break;
@@ -505,31 +534,50 @@ void DOS_Shell::InputCommand(char * line) {
 
                         RealPt save_dta=dos.dta();
                         dos.dta(dos.tables.tempdta);
-
-                        bool res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
+						
+						bool res = false;
+						if (DOS_GetSFNPath(mask,smask,false)) {
+							sprintf(mask,"\"%s\"",smask);
+							res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
+						}
                         if (!res) {
                             dos.dta(save_dta);
                             break;	// TODO: beep
                         }
 
                         DOS_DTA dta(dos.dta());
-                        char name[DOS_NAMELENGTH_ASCII];Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+						char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
+                        Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
 
                         std::list<std::string> executable;
+						q=0;r=0;
+						while (*p_completion_start) {
+							k++;
+							if (*p_completion_start++=='\"') {
+								if (k<=completion_index)
+									q++;
+								else
+									r++;
+							}
+						}
                         while (res) {
-                            dta.GetResult(name,sz,date,time,att);
+							dta.GetResult(name,lname,sz,date,time,att);
+							if (strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q||r)
+								sprintf(qlname,q/2*2!=q?"%s\"":"\"%s\"",uselfn?lname:name);
+							else
+                                strcpy(qlname,uselfn?lname:name);
                             // add result to completion list
 
                             if (strcmp(name, ".") && strcmp(name, "..")) {
                                 if (dir_only) { //Handle the dir only case different (line starts with cd)
-                                    if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(name);
+									if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
                                 } else {
                                     char *ext = strrchr(name, '.'); // file extension
                                     if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
                                         // we add executables to the a seperate list and place that list infront of the normal files
-                                        executable.push_front(name);
+                                        executable.push_front(qlname);
                                     else
-                                        l_completion.push_back(name);
+										l_completion.push_back(qlname);
                                 }
                             }
                             res=DOS_FindNext();
@@ -939,13 +987,13 @@ continue_1:
 		/* Fill the command line */
 		CommandTail cmdtail;
 		cmdtail.count = 0;
-		memset(&cmdtail.buffer,0,127); //Else some part of the string is unitialized (valgrind)
-		if (strlen(line)>126) line[126]=0;
+        memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is unitialized (valgrind)
+        if (strlen(line)>=CTBUF) line[CTBUF-1]=0;
 		cmdtail.count=(Bit8u)strlen(line);
 		memcpy(cmdtail.buffer,line,strlen(line));
 		cmdtail.buffer[strlen(line)]=0xd;
 		/* Copy command line in stack block too */
-		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,128);
+		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,CTBUF+1);
 		
 		/* Split input line up into parameters, using a few special rules, most notable the one for /AAA => A\0AA
 		 * Qbix: It is extremly messy, but this was the only way I could get things like /:aa and :/aa to work correctly */
@@ -1031,6 +1079,8 @@ char * DOS_Shell::Which(char * name) {
 	/* Parse through the Path to find the correct entry */
 	/* Check if name is already ok but just misses an extension */
 
+	if (DOS_FileExists(name)) return name;
+	upcase(name);
 	if (DOS_FileExists(name)) return name;
 	/* try to find .com .exe .bat */
 	strcpy(which_ret,name);

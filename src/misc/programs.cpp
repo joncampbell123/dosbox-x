@@ -150,9 +150,9 @@ Program::Program() {
 	while (mem_readb(envscan)) envscan+=(PhysPt)(mem_strlen(envscan)+1);	
 	envscan+=3;
 	CommandTail tail;
-	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
-	if (tail.count<127) tail.buffer[tail.count]=0;
-	else tail.buffer[126]=0;
+    MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+    if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+    else tail.buffer[CTBUF-1]=0;
 	char filename[256+1];
 	MEM_StrCopy(envscan,filename,256);
 	cmd = new CommandLine(filename,tail.buffer);

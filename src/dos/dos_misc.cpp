@@ -93,6 +93,7 @@ extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive 
 
 // INT 2F
 static bool DOS_MultiplexFunctions(void) {
+    char name[256];
 	switch (reg_ax) {
     case 0x0800:    /* DRIVER.SYS function */
     case 0x0801:    /* DRIVER.SYS function */
@@ -205,6 +206,22 @@ static bool DOS_MultiplexFunctions(void) {
 
 		}
 		return true;
+    case 0x1300:
+    case 0x1302:
+        reg_ax=0;
+        return true;
+    case 0x1612:
+        reg_ax=0;
+        name[0]=1;
+        name[1]=0;
+        MEM_BlockWrite(SegPhys(es)+reg_bx,name,0x20);
+        return true;
+    case 0x1613:    /* Get SYSTEM.DAT path */
+        strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
+        MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
+        reg_ax=0;
+        reg_cx=strlen(name);
+        return true;
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
@@ -315,6 +332,70 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */
 		return true;
+#ifdef WIN32
+	case 0x1700:
+		reg_al = 1;
+		reg_ah = 1;
+		return true;
+	case 0x1701:
+		reg_ax=OpenClipboard(NULL)?1:0;
+		return true;
+	case 0x1702:
+		reg_ax=0;
+		if (OpenClipboard(NULL))
+			{
+			reg_ax=EmptyClipboard()?1:0;
+			CloseClipboard();
+			}
+		return true;
+	case 0x1703:
+		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+			{
+			char *text, *buffer;
+			text = new char[reg_cx];
+			MEM_StrCopy(SegPhys(es)+reg_bx,text,reg_cx);
+			*(text+reg_cx-1)=0;
+			HGLOBAL clipbuffer;
+			EmptyClipboard();
+			clipbuffer = GlobalAlloc(GMEM_DDESHARE, strlen(text)+1);
+			buffer = (char*)GlobalLock(clipbuffer);
+			strcpy(buffer, text);
+			delete[] text;
+			GlobalUnlock(clipbuffer);
+			SetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT,clipbuffer);
+			reg_ax++;
+			CloseClipboard();
+			}
+		return true;
+	case 0x1704:
+		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+			{
+			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
+				{
+				reg_ax=(Bit16u)strlen((char *)text)+1;
+				reg_dx=(Bit16u)((strlen((char *)text)+1)/65536);
+				}
+			CloseClipboard();
+			}
+		return true;
+	case 0x1705:
+		reg_ax=0;
+		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
+			{
+			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
+				{
+				MEM_BlockWrite(SegPhys(es)+reg_bx,text,(Bitu)(strlen((char *)text)+1));
+				reg_ax++;
+				}
+			CloseClipboard();
+			}
+		return true;
+	case 0x1708:
+		reg_ax=CloseClipboard()?1:0;
+		return true;
+#endif
     case 0x1a00:    /* ANSI.SYS installation check (MS-DOS 4.0 or higher) */
         if (IS_PC98_ARCH) {
             /* NTS: PC-98 MS-DOS has ANSI handling directly within the kernel HOWEVER it does NOT
@@ -397,6 +478,17 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x4a11: { /* Microsoft DoubleSpace (DBLSPACE.BIN) API */
         LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
+    case 0x4a16:    /* Open bootlog */
+        return true;
+    case 0x4a17:    /* Write bootlog */
+        MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
+        LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+        return true;
+	case 0x4a33:	/* Check MS-DOS Version 7 */
+		if (dos.version.major > 6) {
+			reg_ax=0;
+			return true;
+		}
     }
 
 	return false;

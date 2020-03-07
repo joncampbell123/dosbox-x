@@ -29,15 +29,21 @@ bool WildFileCmp(const char * file, const char * wild)
 {
 	char file_name[9];
 	char file_ext[4];
-	char wild_name[9];
-	char wild_ext[4];
+    char wild_name[10];
+    char wild_ext[5];
 	const char * find_ext;
 	Bitu r;
 
-	strcpy(file_name,"        ");
-	strcpy(file_ext,"   ");
-	strcpy(wild_name,"        ");
-	strcpy(wild_ext,"   ");
+    for (r=0;r<9;r++) {
+        file_name[r]=0;
+        wild_name[r]=0;
+    }
+    wild_name[9]=0;
+    for (r=0;r<4;r++) {
+        file_ext[r]=0;
+        wild_ext[r]=0;
+    }
+    wild_ext[4]=0;
 
 	find_ext=strrchr(file,'.');
 	if (find_ext) {
@@ -53,12 +59,12 @@ bool WildFileCmp(const char * file, const char * wild)
 	find_ext=strrchr(wild,'.');
 	if (find_ext) {
 		Bitu size=(Bitu)(find_ext-wild);
-		if (size>8) size=8;
+		if (size>9) size=9;
 		memcpy(wild_name,wild,size);
 		find_ext++;
-		memcpy(wild_ext,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext));
+		memcpy(wild_ext,find_ext,(strlen(find_ext)>4) ? 4 : strlen(find_ext));
 	} else {
-		memcpy(wild_name,wild,(strlen(wild) > 8) ? 8 : strlen(wild));
+		memcpy(wild_name,wild,(strlen(wild) > 9) ? 9 : strlen(wild));
 	}
 	upcase(wild_name);upcase(wild_ext);
 	/* Names are right do some checking */
@@ -68,6 +74,7 @@ bool WildFileCmp(const char * file, const char * wild)
 		if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
 		r++;
 	}
+	if (wild_name[r]&&wild_name[r]!='*') return false;
 checkext:
     r=0;
 	while (r<3) {
@@ -75,7 +82,76 @@ checkext:
 		if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
 		r++;
 	}
+    if (wild_ext[r]&&wild_ext[r]!='*') return false;
 	return true;
+}
+
+bool LWildFileCmp(const char * file, const char * wild)
+{
+    if (!uselfn) return false;
+    char file_name[256];
+    char file_ext[256];
+    char wild_name[256];
+    char wild_ext[256];
+    const char * find_ext;
+    Bitu r;
+
+    for (r=0;r<256;r++) {
+      file_name[r]=0;
+      wild_name[r]=0;
+    }
+    for (r=0;r<256;r++) {
+      file_ext[r]=0;
+      wild_ext[r]=0;
+    }
+
+    Bitu size,elen;
+    find_ext=strrchr(file,'.');
+    if (find_ext) {
+            size=(Bitu)(find_ext-file);
+            if (size>255) size=255;
+            memcpy(file_name,file,size);
+            find_ext++;
+            elen=strlen(find_ext);
+            memcpy(file_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext));
+    } else {
+            size=strlen(file);
+            elen=0;
+            memcpy(file_name,file,(strlen(file) > 255) ? 255 : strlen(file));
+    }
+    upcase(file_name);upcase(file_ext);
+    char nwild[LFN_NAMELENGTH+2];
+    strcpy(nwild,wild);
+    if (strrchr(nwild,'*')&&strrchr(nwild,'.')==NULL) strcat(nwild,".*");
+    find_ext=strrchr(nwild,'.');
+    if (find_ext) {
+            Bitu size=(Bitu)(find_ext-nwild);
+            if (size>255) size=255;
+            memcpy(wild_name,nwild,size);
+            find_ext++;
+            memcpy(wild_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext));
+    } else {
+            memcpy(wild_name,nwild,(strlen(nwild) > 255) ? 255 : strlen(nwild));
+    }
+    upcase(wild_name);upcase(wild_ext);
+    /* Names are right do some checking */
+    r=0;
+    while (r<size) {
+            if (wild_name[r]=='*') goto checkext;
+            if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
+            r++;
+    }
+    if (wild_name[r]&&wild_name[r]!='*') return false;
+checkext:
+    r=0;
+    while (r<elen) {
+            if (wild_ext[r]=='*') return true;
+            if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
+            r++;
+    }
+    if (wild_ext[r]&&wild_ext[r]!='*') return false;
+
+    return true;
 }
 
 void Set_Label(char const * const input, char * const output, bool cdrom) {

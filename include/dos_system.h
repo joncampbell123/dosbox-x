@@ -33,12 +33,14 @@
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
+#include <ctype.h>
 
 #define DOS_NAMELENGTH 12
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)
+#define LFN_NAMELENGTH 255
 #define DOS_FCBNAME 15
 #define DOS_DIRDEPTH 8
-#define DOS_PATHLENGTH 80
+#define DOS_PATHLENGTH 255
 #define DOS_TEMPSIZE 1024
 
 enum {
@@ -176,14 +178,14 @@ public:
 	void		SetBaseDir			(const char* baseDir, DOS_Drive *drive);
 	void		SetDirSort			(TDirSort sort) { sortDirType = sort; };
 	bool		OpenDir				(const char* path, Bit16u& id);
-	bool		ReadDir				(Bit16u id, char* &result);
+    bool        ReadDir             (Bit16u id, char* &result, char * &lresult);
 
 	void		ExpandName			(char* path);
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 
 	bool		FindFirst			(char* path, Bit16u& id);
-	bool		FindNext			(Bit16u id, char* &result);
+    bool        FindNext            (Bit16u id, char* &result, char* &lresult);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExists = false);
@@ -227,12 +229,12 @@ private:
 	void		CreateShortName		(CFileInfo* curDir, CFileInfo* info);
 	Bitu		CreateShortNameID	(CFileInfo* curDir, const char* name);
 	int		CompareShortname	(const char* compareName, const char* shortName);
-	bool		SetResult		(CFileInfo* dir, char * &result, Bitu entryNr);
+    bool        SetResult       (CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
 	bool		IsCachedIn		(CFileInfo* curDir);
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
 	bool		OpenDir			(CFileInfo* dir, const char* expand, Bit16u& id);
-	void		CreateEntry		(CFileInfo* dir, const char* name, bool is_directory);
+    void        CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	Bit16u		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
@@ -270,6 +272,11 @@ public:
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false)=0;
 	virtual bool FindNext(DOS_DTA & dta)=0;
 	virtual bool GetFileAttr(const char * name,Bit16u * attr)=0;
+	virtual bool GetFileAttrEx(char* name, struct stat *status)=0;
+	virtual unsigned long GetCompressedSize(char* name)=0;
+#if defined (WIN32)
+	virtual HANDLE CreateOpenFile(char const* const name)=0;
+#endif
 	virtual bool Rename(const char * oldname,const char * newname)=0;
 	virtual bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters)=0;
 	virtual bool FileExists(const char* name)=0;
@@ -284,8 +291,8 @@ public:
 	/* these 4 may only be used by DOS_Drive_Cache because they have special calling conventions */
 	virtual void *opendir(const char *dir) { (void)dir; return NULL; };
 	virtual void closedir(void *handle) { (void)handle; };
-	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
-	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+    virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
 
 	virtual const char * GetInfo(void);
 	char * GetBaseDir(void);
