@@ -791,6 +791,7 @@ bool localDrive::GetFileAttrEx(char* name, struct stat *status) {
 }
 
 unsigned long localDrive::GetCompressedSize(char* name) {
+    (void)name;
 #if !defined (WIN32)
 	return 0;
 #else

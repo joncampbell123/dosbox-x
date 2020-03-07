@@ -3000,7 +3000,7 @@ void DOS_Int21_7143(char *name1, char *name2) {
 					reg_ax=0;
 					reg_dx=0;
 					unsigned long size = DOS_GetCompressedFileSize(name1);
-					if (size >= 0) {
+					if (size != (unsigned long)(-1l)) {
 #if defined (WIN32)
 						reg_ax = LOWORD(size);
 						reg_dx = HIWORD(size);

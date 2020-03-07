@@ -214,7 +214,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char dir_current[DOS_PATHLENGTH + 1], pdir[LFN_NAMELENGTH], *p;
     Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
-    int w=0;
+//    int w=0;
     DOS_DTA dta(dos.dta());
     Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
@@ -351,7 +351,7 @@ bool DOS_RemoveDir(char const * const dir) {
     char currdir[DOS_PATHLENGTH]= { 0 }, lcurrdir[DOS_PATHLENGTH]= { 0 };
     DOS_GetCurrentDir(drive + 1 ,currdir, false);
     DOS_GetCurrentDir(drive + 1 ,lcurrdir, true);
-    if(strcasecmp(currdir,fulldir) == 0 || uselfn && strcasecmp(lcurrdir,fulldir) == 0) {
+    if(strcasecmp(currdir,fulldir) == 0 || (uselfn && strcasecmp(lcurrdir,fulldir) == 0)) {
 		DOS_SetError(DOSERR_REMOVE_CURRENT_DIRECTORY);
 		return false;
 	}
@@ -815,7 +815,7 @@ bool DOS_GetFileAttrEx(char const* const name, struct stat *status, Bit8u hdrive
 {
 	char fullname[DOS_PATHLENGTH];
 	Bit8u drive;
-	bool usehdrive=hdrive>=0&&hdrive<DOS_FILES;
+	bool usehdrive=/*hdrive>=0&&(always true)*/hdrive<DOS_FILES;
 	if (usehdrive)
 		strcpy(fullname,name);
 	else if (!DOS_MakeName(name, fullname, &drive))

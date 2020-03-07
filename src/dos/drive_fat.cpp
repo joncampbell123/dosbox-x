@@ -1807,15 +1807,19 @@ bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
 }
 
 bool fatDrive::GetFileAttrEx(char* name, struct stat *status) {
+    (void)name;
+    (void)status;
 	return false;
 }
 
 unsigned long fatDrive::GetCompressedSize(char* name) {
+    (void)name;
 	return 0;
 }
 
 #if defined (WIN32)
 HANDLE fatDrive::CreateOpenFile(const char* name) {
+    (void)name;
 	DOS_SetError(1);
 	return INVALID_HANDLE_VALUE;
 }

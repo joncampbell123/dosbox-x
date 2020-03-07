@@ -482,7 +482,7 @@ void DOS_Shell::InputCommand(char * line) {
 	                        *i=' ';
 	                    }
 						char c[]={'<','>','|'};
-						for (int j=0; j<sizeof(c); j++) {
+						for (unsigned int j=0; j<sizeof(c); j++) {
 							char *sp = strrchr(line, c[j]);
 							while (sp) {
 								q=0;

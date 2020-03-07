@@ -269,15 +269,19 @@ bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool Virtual_Drive::GetFileAttrEx(char* name, struct stat *status) {
+    (void)name;
+    (void)status;
 	return false;
 }
 
 unsigned long Virtual_Drive::GetCompressedSize(char* name) {
+    (void)name;
 	return 0;
 }
 
 #if defined (WIN32)
 HANDLE Virtual_Drive::CreateOpenFile(const char* name) {
+    (void)name;
 	DOS_SetError(1);
 	return INVALID_HANDLE_VALUE;
 }

@@ -303,7 +303,9 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	Bit8u attr;
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, true);
-	
+
+    (void)findName;
+
 	int dirIterator = dta.GetDirID();
 	bool isRoot = dirIterators[dirIterator].root;
 	
@@ -361,15 +363,19 @@ bool isoDrive::GetFileAttr(const char *name, Bit16u *attr) {
 }
 
 bool isoDrive::GetFileAttrEx(char* name, struct stat *status) {
+    (void)name;
+    (void)status;
 	return false;
 }
 
 unsigned long isoDrive::GetCompressedSize(char* name) {
+    (void)name;
 	return 0;
 }
 
 #if defined (WIN32)
 HANDLE isoDrive::CreateOpenFile(const char* name) {
+    (void)name;
 	DOS_SetError(1);
 	return INVALID_HANDLE_VALUE;
 }
@@ -590,7 +596,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 			int dirIterator = GetDirIterator(de);
 			while (!found && GetNextDirEntry(dirIterator, de)) {
 				GetLongName((char*)de->ident,longname);
-				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) ||0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME)) {
+				if (!IS_ASSOC(FLAGS2) && ((0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) || 0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME))) {
 					found = true;
 				}
 			}
