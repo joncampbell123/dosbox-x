@@ -291,8 +291,8 @@ public:
 	/* these 4 may only be used by DOS_Drive_Cache because they have special calling conventions */
 	virtual void *opendir(const char *dir) { (void)dir; return NULL; };
 	virtual void closedir(void *handle) { (void)handle; };
-    virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
-    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)is_directory; return false; };
+    virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
+    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
 
 	virtual const char * GetInfo(void);
 	char * GetBaseDir(void);
