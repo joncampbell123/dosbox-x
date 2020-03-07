@@ -3123,6 +3123,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			b=DOS_FindFirst(name2,reg_cx,handle);
 			error=dos.errorcode;
 		}
+        (void)error;/* silence "set but not used" */
 		if (b) {
 				DOS_PSP psp(dos.psp());
 				entry = psp.FindFreeFileEntry();
@@ -3306,7 +3307,7 @@ void DOS_Int21_71a6(char *name1, char *name2) {
 		return;
 	}
 	DOS_PSP psp(dos.psp());
-	for (int i=0;i<=DOS_FILES;i++)
+	for (unsigned int i=0;i<=DOS_FILES;i++)
 		if (Files[i] && psp.FindEntryByHandle(i)==entry)
 			handle=i;
 	if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
@@ -3413,7 +3414,8 @@ void DOS_Int21_71a8(char* name1, char* name2) {
 
 void DOS_Int21_71aa(char* name1, char* name2) {
     (void)name2;
-	if (reg_bh>-1 && reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
+    /* reg_bh is unsigned, so "reg_bh > -1" aka "reg_bh >= 0" is always true */
+	if (reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
 			reg_ax = DOSERR_INVALID_DRIVE;
 			CALLBACK_SCF(true);
 			return;
