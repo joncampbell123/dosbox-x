@@ -1,4 +1,6 @@
 0.83.1
+  - Long filename support added, adapted from
+    the vDosPlus project (Wengier)
   - Corrected return value when using option to
     fake the installation of SHARE. (Allofich)
   - Added code to EMS emulation to print specific
