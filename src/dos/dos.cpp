@@ -2896,6 +2896,7 @@ void DOS_Init() {
 }
 
 void DOS_Int21_7139(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -2912,6 +2913,7 @@ void DOS_Int21_7139(char *name1, char *name2) {
 }
 
 void DOS_Int21_713a(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -2929,6 +2931,7 @@ void DOS_Int21_713a(char *name1, char *name2) {
 }
 
 void DOS_Int21_713b(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -2945,6 +2948,7 @@ void DOS_Int21_713b(char *name1, char *name2) {
 }
 
 void DOS_Int21_7141(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -2961,6 +2965,7 @@ void DOS_Int21_7141(char *name1, char *name2) {
 }
 
 void DOS_Int21_7143(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -3071,6 +3076,7 @@ void DOS_Int21_7143(char *name1, char *name2) {
 }
 
 void DOS_Int21_7147(char *name1, char *name2) {
+    (void)name2;
 		DOS_PSP psp(dos.psp());
 		psp.StoreCommandTail();
 		if (DOS_GetCurrentDir(reg_dl,name1,true)) {
@@ -3148,6 +3154,8 @@ void DOS_Int21_714e(char *name1, char *name2) {
 }
 
 void DOS_Int21_714f(char *name1, char *name2) {
+    (void)name1;
+    (void)name2;
 		Bit8u handle=(Bit8u)reg_bx;
 		if (!handle || handle>=DOS_FILES || !Files[handle]) {
 			reg_ax=DOSERR_INVALID_HANDLE;
@@ -3235,6 +3243,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 }
 
 void DOS_Int21_716c(char *name1, char *name2) {
+    (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
 		*name1='\"';
 		char *p=name1+strlen(name1);
@@ -3266,6 +3275,8 @@ void DOS_Int21_71a0(char *name1, char *name2) {
 }
 
 void DOS_Int21_71a1(char *name1, char *name2) {
+    (void)name1;
+    (void)name2;
 		Bit8u handle=(Bit8u)reg_bx;
 		if (!handle || handle>=DOS_FILES || !Files[handle]) {
 			reg_ax=DOSERR_INVALID_HANDLE;
@@ -3284,6 +3295,8 @@ void DOS_Int21_71a1(char *name1, char *name2) {
 }
 
 void DOS_Int21_71a6(char *name1, char *name2) {
+    (void)name1;
+    (void)name2;
 	char buf[64];
 	unsigned long serial_number=0,st=0,cdate,ctime,adate,atime,mdate,mtime;
 	Bit8u entry=(Bit8u)reg_bx, handle;
@@ -3344,6 +3357,8 @@ void DOS_Int21_71a6(char *name1, char *name2) {
 }
 
 void DOS_Int21_71a7(char *name1, char *name2) {
+    (void)name1;
+    (void)name2;
 	switch (reg_bl) {
 			case 0x00:
 					reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
@@ -3368,6 +3383,7 @@ void DOS_Int21_71a7(char *name1, char *name2) {
 }
 
 void DOS_Int21_71a8(char* name1, char* name2) {
+    (void)name2;
 	if (reg_dh == 0 || reg_dh == 1) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0;
@@ -3396,6 +3412,7 @@ void DOS_Int21_71a8(char* name1, char* name2) {
 }
 
 void DOS_Int21_71aa(char* name1, char* name2) {
+    (void)name2;
 	if (reg_bh>-1 && reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
 			reg_ax = DOSERR_INVALID_DRIVE;
 			CALLBACK_SCF(true);
