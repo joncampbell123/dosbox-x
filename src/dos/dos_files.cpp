@@ -211,17 +211,14 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 }
 
 bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
-    char dir_current[DOS_PATHLENGTH + 1], pdir[LFN_NAMELENGTH], *p;
+    char pdir[LFN_NAMELENGTH], *p;
     Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
-//    int w=0;
     DOS_DTA dta(dos.dta());
     Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
     sprintf(SFNPath,"%c:\\",drive+'A');
     strcpy(LFNPath,SFNPath);
-    strcpy(dir_current,Drives[drive]->curdir);
-    Drives[drive]->curdir,"";
     p = fulldir;
     if (*p==0) return true;
     for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
@@ -237,7 +234,6 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 				dta.GetResult(name,lname,size,date,time,attr);
 				strcat(SFNPath,name);
 				strcat(LFNPath,lname);
-				Drives[drive]->curdir,SFNPath+3;
 				strcat(SFNPath,"\\");
 				strcat(LFNPath,"\\");
 			}
@@ -264,7 +260,6 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			strcat(LFNPath,p);
 		}
     }
-    Drives[drive]->curdir,dir_current;
     if (LFN) strcpy(SFNPath,LFNPath);
     return true;
 }

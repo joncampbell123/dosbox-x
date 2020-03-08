@@ -303,9 +303,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	Bit8u attr;
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, true);
-
-    (void)findName;
-
+	
 	int dirIterator = dta.GetDirID();
 	bool isRoot = dirIterators[dirIterator].root;
 	
@@ -325,7 +323,6 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 			&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
 			
 			/* file is okay, setup everything to be copied in DTA Block */
-			char findName[DOS_NAMELENGTH_ASCII];		
 			findName[0] = 0;
 			if(strlen((char*)de.ident) < DOS_NAMELENGTH_ASCII) {
 				strcpy(findName, (char*)de.ident);

@@ -30,7 +30,6 @@
 #include "menu.h"
 #include "mapper.h"
 #include "drives.h"
-#include "dos_inc.h"
 #include "setup.h"
 #include "support.h"
 #include "parport.h"
@@ -3123,7 +3122,6 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			b=DOS_FindFirst(name2,reg_cx,handle);
 			error=dos.errorcode;
 		}
-        (void)error;/* silence "set but not used" */
 		if (b) {
 				DOS_PSP psp(dos.psp());
 				entry = psp.FindFreeFileEntry();
@@ -3149,6 +3147,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
 				CALLBACK_SCF(false);
 		} else {
+				dos.errorcode=error;
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 		}
@@ -3335,7 +3334,7 @@ void DOS_Int21_71a6(char *name1, char *name2) {
 				mtime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
 				mdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
 			}
-			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",&st,&ctime,&cdate,&atime,&adate,&mtime,&mdate,&serial_number,&st,&st,&st,&st,&handle);
+			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",(char*)&st,(char*)&ctime,(char*)&cdate,(char*)&atime,(char*)&adate,(char*)&mtime,(char*)&mdate,(char*)&serial_number,(char*)&st,(char*)&st,(char*)&st,(char*)&st,(char*)&handle);
 			for (int i=32;i<36;i++) buf[i]=0;
 			buf[36]=(char)((Bit32u)status.st_size%256);
 			buf[37]=(char)(((Bit32u)status.st_size%65536)/256);
@@ -3389,6 +3388,7 @@ void DOS_Int21_71a8(char* name1, char* name2) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0;
 			char c[13],*s=strrchr(name1,'.');
+			*c=0;
 			for (i=0;i<8;j++) {
 					if (name1[j] == 0 || s-name1 <= j) break;
 					if (name1[j] == '.') continue;
@@ -3414,7 +3414,6 @@ void DOS_Int21_71a8(char* name1, char* name2) {
 
 void DOS_Int21_71aa(char* name1, char* name2) {
     (void)name2;
-    /* reg_bh is unsigned, so "reg_bh > -1" aka "reg_bh >= 0" is always true */
 	if (reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
 			reg_ax = DOSERR_INVALID_DRIVE;
 			CALLBACK_SCF(true);
@@ -3489,6 +3488,6 @@ void DOS_Int21_71aa(char* name1, char* name2) {
 			break;
 		}
 		default:
-			E_Exit("DOS:Illegal LFN Subst call %2X",reg_bl);
+			E_Exit("DOS:Illegal LFN Subst call %2X",reg_bh);
 	}
 }

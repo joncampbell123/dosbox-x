@@ -443,9 +443,9 @@ void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,Bit16u & _dat
 
 int DOS_DTA::GetFindData(int fmt, char * fdstr) {
 	if (fmt==1)
-		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",&fd.attr,&fd.fres1,&fd.mtime,&fd.mdate,&fd.mtime,&fd.hsize,&fd.size,&fd.fres2,&fd.lname,&fd.sname);
+		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.mtime,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
 	else
-		sprintf(fdstr,"%-1s%-19s%-4s%-4s%-4s%-4s%-8s%-260s%-14s",&fd.attr,&fd.fres1,&fd.mtime,&fd.mdate,&fd.hsize,&fd.size,&fd.fres2,&fd.lname,&fd.sname);
+		sprintf(fdstr,"%-1s%-19s%-4s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
 	for (int i=0;i<4;i++) fdstr[28+i]=0;
     fdstr[32]=(char)fd.size%256;
     fdstr[33]=(char)((fd.size%65536)/256);

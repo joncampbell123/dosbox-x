@@ -562,7 +562,7 @@ void DOS_Shell::InputCommand(char * line) {
 						}
                         while (res) {
 							dta.GetResult(name,lname,sz,date,time,att);
-							if (strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q||r)
+							if ((strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q)||r)
 								sprintf(qlname,q/2*2!=q?"%s\"":"\"%s\"",uselfn?lname:name);
 							else
                                 strcpy(qlname,uselfn?lname:name);
