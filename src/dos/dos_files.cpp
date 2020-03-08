@@ -798,6 +798,15 @@ bool DOS_UnlinkFile(char const * const name) {
 bool DOS_GetFileAttr(char const * const name,Bit16u * attr) {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+#if defined (WIN32)
+	if (DOS_FindDevice(name) != DOS_DEVICES) {
+		char * find_last;
+		find_last=strrchr(fullname,'\\');
+		if (find_last!=NULL)
+			if (!stricmp(find_last+1, "CLIP"))
+				return true;
+	}
+#endif
 	if (Drives[drive]->GetFileAttr(fullname,attr)) {
 		return true;
 	} else {

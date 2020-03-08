@@ -1,4 +1,6 @@
 0.83.1
+  - Added CLIP character device so that it is possible
+    for DOS programs to send data to the clipboard (Wengier)
   - Long filename support added, adapted from
     the vDosPlus project (Wengier)
   - Corrected return value when using option to
