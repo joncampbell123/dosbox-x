@@ -441,7 +441,7 @@ bool DOS_FindFirst(char * search,Bit16u attr,bool fcb_findfirst) {
 bool DOS_FindNext(void) {
 	DOS_DTA dta(dos.dta());
 	Bit8u i = dta.GetSearchDrive();
-	if(uselfn && i >= DOS_DRIVES || !Drives[i]) i=sdrive;
+	if(uselfn && (i >= DOS_DRIVES || !Drives[i])) i=sdrive;
 	if(i >= DOS_DRIVES || !Drives[i]) {
 		/* Corrupt search. */
 		LOG(LOG_FILES,LOG_ERROR)("Corrupt search!!!!");
