@@ -3727,32 +3727,32 @@ void CPU_SaveState(Section *sec) {
             zip_nv_write_hex(*ent,"eip",        reg_eip);
             zip_nv_write_hex(*ent,"eflags",     (unsigned long)reg_flags);
 
-            zip_nv_write_hex(*ent,"es.val",         Segs.val[es]);
+            zip_nv_write_hex(*ent,"es.val",         (unsigned long)Segs.val[es]);
             zip_nv_write_hex(*ent,"es.phys",        Segs.phys[es]);
             zip_nv_write_hex(*ent,"es.limit",       Segs.limit[es]);
             zip_nv_write(*ent,"es.expanddown",      Segs.expanddown[es]);
 
-            zip_nv_write_hex(*ent,"cs.val",         Segs.val[cs]);
+            zip_nv_write_hex(*ent,"cs.val",         (unsigned long)Segs.val[cs]);
             zip_nv_write_hex(*ent,"cs.phys",        Segs.phys[cs]);
             zip_nv_write_hex(*ent,"cs.limit",       Segs.limit[cs]);
             zip_nv_write(*ent,"cs.expanddown",      Segs.expanddown[cs]);
 
-            zip_nv_write_hex(*ent,"ss.val",         Segs.val[ss]);
+            zip_nv_write_hex(*ent,"ss.val",         (unsigned long)Segs.val[ss]);
             zip_nv_write_hex(*ent,"ss.phys",        Segs.phys[ss]);
             zip_nv_write_hex(*ent,"ss.limit",       Segs.limit[ss]);
             zip_nv_write(*ent,"ss.expanddown",      Segs.expanddown[ss]);
 
-            zip_nv_write_hex(*ent,"ds.val",         Segs.val[ds]);
+            zip_nv_write_hex(*ent,"ds.val",         (unsigned long)Segs.val[ds]);
             zip_nv_write_hex(*ent,"ds.phys",        Segs.phys[ds]);
             zip_nv_write_hex(*ent,"ds.limit",       Segs.limit[ds]);
             zip_nv_write(*ent,"ds.expanddown",      Segs.expanddown[ds]);
 
-            zip_nv_write_hex(*ent,"fs.val",         Segs.val[fs]);
+            zip_nv_write_hex(*ent,"fs.val",         (unsigned long)Segs.val[fs]);
             zip_nv_write_hex(*ent,"fs.phys",        Segs.phys[fs]);
             zip_nv_write_hex(*ent,"fs.limit",       Segs.limit[fs]);
             zip_nv_write(*ent,"fs.expanddown",      Segs.expanddown[fs]);
 
-            zip_nv_write_hex(*ent,"gs.val",         Segs.val[gs]);
+            zip_nv_write_hex(*ent,"gs.val",         (unsigned long)Segs.val[gs]);
             zip_nv_write_hex(*ent,"gs.phys",        Segs.phys[gs]);
             zip_nv_write_hex(*ent,"gs.limit",       Segs.limit[gs]);
             zip_nv_write(*ent,"gs.expanddown",      Segs.expanddown[gs]);

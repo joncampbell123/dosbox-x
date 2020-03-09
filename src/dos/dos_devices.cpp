@@ -287,7 +287,7 @@ public:
 		while (numSpaces--)
 			*(datadst++) = ' ';
 		captUsed += *size;
-		if (Bit16u newsize = datadst - data)											// If data
+		if (Bit16u newsize = (Bit16u)(datadst - data))									// If data
 			{
 			if (rawdata.capacity() < 100000)											// Prevent repetive size allocations
 				rawdata.reserve(100000);
@@ -338,7 +338,7 @@ public:
 		rawdata.erase(rawdata.find_last_not_of(" \n\r\t")+1);							// Remove trailing white space
 		if (!rawdata.size())															// Nothing captured/to do
 			return false;
-		int len = rawdata.size();
+		int len = (int)rawdata.size();
 		if (len > 2 && rawdata[len-3] == 0x0c && rawdata[len-2] == 27 && rawdata[len-1] == 64)	// <ESC>@ after last FF?
 			rawdata.erase(len-2, 2);
 		CommitData();

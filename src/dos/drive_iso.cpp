@@ -612,7 +612,7 @@ void isoDrive :: MediaChange() {
 
 void isoDrive :: GetLongName(char *ident, char *lfindName) {
     char *c=ident+strlen(ident);
-    int i,j=222-strlen(ident)-6;
+    int i,j=(int)(222-strlen(ident)-6);
     for (i=5;i<j;i++) {
         if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
             break;

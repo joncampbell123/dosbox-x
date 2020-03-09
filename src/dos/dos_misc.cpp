@@ -221,7 +221,7 @@ static bool DOS_MultiplexFunctions(void) {
         strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
         reg_ax=0;
-        reg_cx=strlen(name);
+        reg_cx=(Bit16u)strlen(name);
         return true;
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
