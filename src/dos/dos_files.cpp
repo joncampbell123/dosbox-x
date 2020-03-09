@@ -266,27 +266,33 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 }
 
 bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN) {
-	if (drive==0) drive=DOS_GetDefaultDrive();
-	else drive--;
-	if ((drive>=DOS_DRIVES) || (!Drives[drive])) {
-		DOS_SetError(DOSERR_INVALID_DRIVE);
-		return false;
-	}
-    if (LFN && uselfn) {
-            char cdir[DOS_PATHLENGTH],ldir[DOS_PATHLENGTH];
-		if (strchr(Drives[drive]->curdir,' '))
-			sprintf(cdir,"\"%c:\\%s\"",drive+'A',Drives[drive]->curdir);
-		else
-			sprintf(cdir,"%c:\\%s",drive+'A',Drives[drive]->curdir);
-			if (!DOS_GetSFNPath(cdir,ldir,true))
-				return false;
-            strcpy(buffer,ldir+3);
-			if (DOS_GetSFNPath(cdir,ldir,false))
-				strcpy(Drives[drive]->curdir,ldir+3);
-    } else {
-            strcpy(buffer,Drives[drive]->curdir);
+    if (drive==0) drive=DOS_GetDefaultDrive();
+    else drive--;
+
+    if ((drive>=DOS_DRIVES) || (!Drives[drive])) {
+        DOS_SetError(DOSERR_INVALID_DRIVE);
+        return false;
     }
-	return true;
+
+    if (LFN && uselfn) {
+        char cdir[DOS_PATHLENGTH+8],ldir[DOS_PATHLENGTH];
+
+        if (strchr(Drives[drive]->curdir,' '))
+            sprintf(cdir,"\"%c:\\%s\"",drive+'A',Drives[drive]->curdir);
+        else
+            sprintf(cdir,"%c:\\%s",drive+'A',Drives[drive]->curdir);
+
+        if (!DOS_GetSFNPath(cdir,ldir,true))
+            return false;
+
+        strcpy(buffer,ldir+3);
+        if (DOS_GetSFNPath(cdir,ldir,false))
+            strcpy(Drives[drive]->curdir,ldir+3);
+    } else {
+        strcpy(buffer,Drives[drive]->curdir);
+    }
+
+    return true;
 }
 
 bool DOS_ChangeDir(char const * const dir) {
