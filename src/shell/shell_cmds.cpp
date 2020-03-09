@@ -413,7 +413,7 @@ continue_1:
 	args = ExpandDot(args,buffer, CROSS_LEN);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return; }
-    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH];
+    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4/*make room for quotes*/];
 	if (!DOS_GetSFNPath(args,spath,false)) {
 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
 		return;
