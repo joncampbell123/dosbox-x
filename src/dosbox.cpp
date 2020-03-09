@@ -2973,7 +2973,8 @@ void DOSBOX_SetupConfigSections(void) {
             "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
-            "7.0                              Windows 95 (pure DOS mode) emulation\n");
+            "7.0                              MS-DOS 7.0 (Windows 95 pure DOS mode) emulation\n"
+            "LFN (Long filename support) will be enabled with an initial DOS version of 7.0 or higher.\n");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic mount.");
@@ -3056,6 +3057,10 @@ void DOSBOX_SetupConfigSections(void) {
             "related to uninitialized variables in the data or stack segment. If you intend to run a\n"
             "game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
             "set to false. When enabled this option may incur a slight to moderate performance penalty.");
+
+    Pstring = secprop->Add_string("dos clipboard device",Property::Changeable::WhenIdle, "_CLIP");
+    Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the Windows clipboard.\n"
+            "If not set, the default name _CLIP will be used (e.g. \"TYPE _CLIP\" will show its contents).");
 
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
     Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);

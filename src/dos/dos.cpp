@@ -83,6 +83,7 @@ bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
+char *dos_clipboard_device;
 
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
@@ -2397,6 +2398,7 @@ public:
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
+		dos_clipboard_device = (char *)section->Get_string("dos clipboard device");
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;

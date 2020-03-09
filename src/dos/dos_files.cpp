@@ -42,6 +42,7 @@
 
 extern bool log_int21;
 extern bool log_fileio;
+extern char * dos_clipboard_device;
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
@@ -803,7 +804,7 @@ bool DOS_GetFileAttr(char const * const name,Bit16u * attr) {
 		char * find_last;
 		find_last=strrchr(fullname,'\\');
 		if (find_last!=NULL)
-			if (!stricmp(find_last+1, "CLIP"))
+			if (!stricmp(find_last+1, *dos_clipboard_device&&strlen(dos_clipboard_device)<9?dos_clipboard_device:"_CLIP"))
 				return true;
 	}
 #endif

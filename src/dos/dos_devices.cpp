@@ -33,6 +33,7 @@
 
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
+extern char * dos_clipboard_device;
 
 class device_NUL : public DOS_Device {
 public:
@@ -172,7 +173,7 @@ private:
 	std::string rawdata;				// the raw data sent to LPTx...
 public:
 	device_CLIP() {
-		SetName("CLIP");
+		SetName(*dos_clipboard_device&&strlen(dos_clipboard_device)<9?dos_clipboard_device:"_CLIP");
 		strcat(strcat(strcpy(tmpAscii, "#"), GetName()), ".asc");
 		strcat(strcat(strcpy(tmpUnicode, "#"), GetName()), ".txt");
 	}
