@@ -575,6 +575,8 @@ public:
 		if ( !command_found ) { 
 			if ( secure ) autoexec[12].Install("z:\\config.com -securemode");
 		}
+#else
+		if (secure) autoexec[i++].Install("z:\\config.com -securemode");
 #endif
 
 		if (addexit) autoexec[i++].Install("exit");

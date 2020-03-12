@@ -22,6 +22,7 @@
 #include "mem.h"
 #include "regs.h"
 #include "dos_inc.h"
+#include "control.h"
 #include <list>
 
 Bit32u DOS_HMA_LIMIT();
@@ -334,13 +335,16 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 #ifdef WIN32
 	case 0x1700:
+		if(control->SecureMode()) return false;
 		reg_al = 1;
 		reg_ah = 1;
 		return true;
 	case 0x1701:
+		if(control->SecureMode()) return false;
 		reg_ax=OpenClipboard(NULL)?1:0;
 		return true;
 	case 0x1702:
+		if(control->SecureMode()) return false;
 		reg_ax=0;
 		if (OpenClipboard(NULL))
 			{
@@ -349,6 +353,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1703:
+		if(control->SecureMode()) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -369,6 +374,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1704:
+		if(control->SecureMode()) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -381,6 +387,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1705:
+		if(control->SecureMode()) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -393,6 +400,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1708:
+		if(control->SecureMode()) return false;
 		reg_ax=CloseClipboard()?1:0;
 		return true;
 #endif

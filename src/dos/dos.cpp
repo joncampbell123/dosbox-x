@@ -83,7 +83,9 @@ bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
-char *dos_clipboard_device;
+int dos_clipboard_device_access;
+char *dos_clipboard_device_name;
+const char dos_clipboard_device_default[]="CLIP$";
 
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
@@ -2398,7 +2400,28 @@ public:
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
-		dos_clipboard_device = (char *)section->Get_string("dos clipboard device");
+#if defined (WIN32)
+        char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
+		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
+		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
+		if (dos_clipboard_device_access) {
+			bool valid=true;
+			char ch[]="*? .|<>/\\\"";
+			if (!*dos_clipboard_device_name||strlen(dos_clipboard_device_name)>8||!strcasecmp(dos_clipboard_device_name, "con")||!strcasecmp(dos_clipboard_device_name, "nul")||!strcasecmp(dos_clipboard_device_name, "prn"))
+				valid=false;
+			else for (int i=0; i<strlen(ch); i++) {
+				if (strchr(dos_clipboard_device_name, *(ch+i))!=NULL) {
+					valid=false;
+					break;
+				}
+			}
+			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
+			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
+		}
+#else
+        dos_clipboard_device_access = 0;
+		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
+#endif
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;

@@ -33,7 +33,8 @@
 
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
-extern char * dos_clipboard_device;
+extern int dos_clipboard_device_access;
+extern char * dos_clipboard_device_name;
 
 class device_NUL : public DOS_Device {
 public:
@@ -173,11 +174,15 @@ private:
 	std::string rawdata;				// the raw data sent to LPTx...
 public:
 	device_CLIP() {
-		SetName(*dos_clipboard_device&&strlen(dos_clipboard_device)<9?dos_clipboard_device:"_CLIP");
-		strcat(strcat(strcpy(tmpAscii, "#"), GetName()), ".asc");
-		strcat(strcat(strcpy(tmpUnicode, "#"), GetName()), ".txt");
+		SetName(*dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$");
+		strcpy(tmpAscii, "#clip$.asc");
+		strcpy(tmpUnicode, "#clip$.txt");
 	}
 	virtual bool Read(Bit8u * data,Bit16u * size) {
+		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
+			*size = 0;
+			return true;
+		}
 		if (!clipSize)																// If no data, we have to read the Windows CLipboard (clipSize gets reset on device close)
 			{
 			getClipboard();
@@ -194,6 +199,10 @@ public:
 		return true;
 	}
 	virtual bool Write(const Bit8u * data,Bit16u * size) {
+		if(control->SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
 		Bit8u * datasrc = (Bit8u *) data;
 		Bit8u * datadst = (Bit8u *) data;
 
@@ -224,6 +233,10 @@ public:
 		return true;
 	}
 	virtual bool Seek(Bit32u * pos,Bit32u type) {
+		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
+			*pos = 0;
+			return true;
+		}
 		if (clipSize == 0)																// No data yet
 			{
 			getClipboard();
@@ -319,6 +332,8 @@ public:
 		return;
 	}
 	virtual bool Close() {
+		if(control->SecureMode()||dos_clipboard_device_access<2)
+			return false;
 		clipSize = 0;																	// Reset clipboard read
 		rawdata.erase(rawdata.find_last_not_of(" \n\r\t")+1);							// Remove trailing white space
 		if (!rawdata.size())															// Nothing captured/to do
@@ -502,9 +517,11 @@ void DOS_SetupDevices(void) {
 	newdev3=new device_PRN();
 	DOS_AddDevice(newdev3);
 #if defined(WIN32)
-	DOS_Device * newdev4;
-	newdev4=new device_CLIP();
-	DOS_AddDevice(newdev4);
+	if (dos_clipboard_device_access) {
+		DOS_Device * newdev4;
+		newdev4=new device_CLIP();
+		DOS_AddDevice(newdev4);
+	}
 #endif
 }
 

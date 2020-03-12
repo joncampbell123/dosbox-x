@@ -2974,7 +2974,7 @@ void DOSBOX_SetupConfigSections(void) {
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
             "7.0                              MS-DOS 7.0 (Windows 95 pure DOS mode) emulation\n"
-            "LFN (Long filename support) will be enabled with an initial DOS version of 7.0 or higher.\n");
+            "LFN (long filename) support will be enabled with an initial DOS version of 7.0 or higher.\n");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic mount.");
@@ -3058,9 +3058,16 @@ void DOSBOX_SetupConfigSections(void) {
             "game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
             "set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
-    Pstring = secprop->Add_string("dos clipboard device",Property::Changeable::WhenIdle, "_CLIP");
+    Pstring = secprop->Add_string("dos clipboard device enable",Property::Changeable::WhenIdle, "false");
+    Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the Windows clipboard.\n"
+			"Setting to \"read\" will only allow read access, and setting to \"write\" will only allow write access.\n"
+			"Setting to \"full\" or \"true\" enables both; setting to \"dummy\" or \"false\" disables the access or device.\n"
+            "The default device name is CLIP$, but can be changed with the \"dos clipboard device name\" setting below.");
+
+    Pstring = secprop->Add_string("dos clipboard device name",Property::Changeable::WhenIdle, "CLIP$");
     Pstring->Set_help("Set DOS device name (up to 8 characters) for bidirectional communications with the Windows clipboard.\n"
-            "If not set, the default name _CLIP will be used (e.g. \"TYPE _CLIP\" will show its contents).");
+            "If unset or invalid, the default name CLIP$ will be used (e.g. \"TYPE CLIP$\" shows the clipboard contents).\n"
+			"It has no effect if \"dos clipboard device enable\" is false, and it is deactivated if the secure mode is enabled.");
 
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
     Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);

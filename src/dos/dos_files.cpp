@@ -29,6 +29,7 @@
 #include "dos_inc.h"
 #include "drives.h"
 #include "cross.h"
+#include "control.h"
 #include "dos_network2.h"
 
 #define DOS_FILESTART 4
@@ -42,7 +43,8 @@
 
 extern bool log_int21;
 extern bool log_fileio;
-extern char * dos_clipboard_device;
+extern int dos_clipboard_device_access;
+extern char *dos_clipboard_device_name;
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
@@ -806,11 +808,11 @@ bool DOS_GetFileAttr(char const * const name,Bit16u * attr) {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 #if defined (WIN32)
-	if (DOS_FindDevice(name) != DOS_DEVICES) {
+	if (!control->SecureMode()&&dos_clipboard_device_access) {
 		char * find_last;
 		find_last=strrchr(fullname,'\\');
 		if (find_last!=NULL)
-			if (!stricmp(find_last+1, *dos_clipboard_device&&strlen(dos_clipboard_device)<9?dos_clipboard_device:"_CLIP"))
+			if (!strcasecmp(find_last+1, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
 				return true;
 	}
 #endif
