@@ -1,4 +1,18 @@
 0.83.1
+  - Added support for DOS programs to communicate
+    with the clipboard in Windows builds. If the
+    "dos clipboard device enable" setting in
+    dosbox.conf is set to "true" or "full", a DOS
+    device (default name: CLIP$) will be added to
+    allow bidirectional communications with the
+    clipboard (e.g. "DIR >CLIP$" will write the
+    output to the clipboard, and "TYPE CLIP$" will
+    show the clipboard contents). Alternatively,
+    you can set it to "read" or "write" to allow
+    only read or write access for security reasons.
+    The DOS device name can also be changed with
+    the "dos clipboard device name" setting in
+    dosbox.conf. (Wengier)
   - Added CLIP character device so that it is possible
     for DOS programs to send data to the clipboard (Wengier)
   - Long filename support added, adapted from
