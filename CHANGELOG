@@ -13,10 +13,11 @@
     The DOS device name can also be changed with
     the "dos clipboard device name" setting in
     dosbox.conf. (Wengier)
-  - Added CLIP character device so that it is possible
-    for DOS programs to send data to the clipboard (Wengier)
+  - Updated the PasteClipboard feature to support
+    Unicode text translations. (Wengier)
   - Long filename support added, adapted from
-    the vDosPlus project (Wengier)
+    the vDosPlus project. It will be enabled with
+    an initial DOS version of 7.0 or higher. (Wengier)
   - Corrected return value when using option to
     fake the installation of SHARE. (Allofich)
   - Added code to EMS emulation to print specific

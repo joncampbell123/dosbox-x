@@ -5532,12 +5532,45 @@ static bool PasteClipboardNext()
         if (bModCntrl != bModCntrlOn) GenKBStroke(uiScanCodeCntrl, bModCntrlOn, sdlmMods);
         if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, bModAltOn, sdlmMods);
         //putchar(cKey); // For debugging dropped strokes
+    } else {
+		if (KEYBOARD_BufferSpaceAvail() < (10+kPasteMinBufExtra)) // For simplicity, we just mimic Alt+<3 digits>
+			return false;
+
+		const SDLMod sdlmModsOn = SDL_GetModState();
+		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
+		const bool bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT|KMOD_RSHIFT)) > 0);
+		const bool bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL|KMOD_RCTRL )) > 0);
+		const bool bModAltOn = ((sdlmModsOn&(KMOD_LALT|KMOD_RALT)) > 0);
+		const SDLMod sdlmMods = (SDLMod)((sdlmModsOn&~(KMOD_LSHIFT|KMOD_RSHIFT|KMOD_LCTRL|KMOD_RCTRL|KMOD_LALT|KMOD_RALT)) |
+												 (bModShiftOn ? KMOD_LSHIFT : 0) |
+												 (bModCntrlOn ? KMOD_LCTRL  : 0) |
+												 (bModAltOn   ? KMOD_LALT   : 0));
+	   
+		if (!bModAltOn)                                                // Alt down if not already down
+			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
+		   
+		Bit8u ansiVal = cKey;
+		for (int i = 100; i; i /= 10)
+			{
+			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
+			ansiVal %= i;
+			UINT uiScanCode = MapVirtualKey(numKey+VK_NUMPAD0, MAPVK_VK_TO_VSC);
+			GenKBStroke(uiScanCode, true, sdlmMods);
+			GenKBStroke(uiScanCode, false, sdlmMods);
+			}
+		GenKBStroke(uiScanCodeAlt, false, sdlmMods);                // Alt up
+		if (bModAltOn)                                                // Alt down if is was already down
+			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
     }
 
     // Pop head. Could be made more efficient, but this is neater.
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
     return true;
 }
+
+extern Bit8u* clipAscii;
+extern Bit32u clipSize;
+extern void Unicode2Ascii(Bit16u *unicode);
 
 void PasteClipboard(bool bPressed)
 {
@@ -5547,28 +5580,30 @@ void PasteClipboard(bool bPressed)
 
     if (SDL_GetWMInfo(&wmiInfo) != 1) return;
     if (!::OpenClipboard(wmiInfo.window)) return;
-    if (!::IsClipboardFormatAvailable(CF_TEXT)) return;
+    if (!::IsClipboardFormatAvailable(CF_UNICODETEXT)) return;
 
-    HANDLE hContents = ::GetClipboardData(CF_TEXT);
+    HANDLE hContents = ::GetClipboardData(CF_UNICODETEXT);
     if (!hContents) return;
 
-    const char* szClipboard = (const char*)::GlobalLock(hContents);
+    Bit16u *szClipboard = (Bit16u *)::GlobalLock(hContents);
     if (szClipboard)
     {
+		clipSize=0;
+		Unicode2Ascii(szClipboard);
         // Create a copy of the string, and filter out Linefeed characters (ASCII '10')
-        size_t sClipboardLen = strlen(szClipboard);
-        char* szFilteredText = reinterpret_cast<char*>(alloca(sClipboardLen + 1));
+        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
         char* szFilterNextChar = szFilteredText;
-        for (size_t i = 0; i < sClipboardLen; ++i)
-            if (szClipboard[i] != 0x0A) // Skip linefeeds
+        for (size_t i = 0; i < clipSize; ++i)
+            if (clipAscii[i] != 0x0A) // Skip linefeeds
             {
-                *szFilterNextChar = szClipboard[i];
+                *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
             }
         *szFilterNextChar = '\0'; // Cap it.
 
         strPasteBuffer.append(szFilteredText);
         ::GlobalUnlock(hContents);
+		clipSize=0;
     }
 
     ::CloseClipboard();

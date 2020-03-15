@@ -105,7 +105,7 @@ int captUsed = 0;
 Bit8u *clipAscii = NULL;
 Bit32u clipSize = 0, fPointer;
 
-static void Unicode2Ascii(Bit16u *unicode)
+void Unicode2Ascii(Bit16u *unicode)
 	{
 	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
@@ -172,6 +172,69 @@ private:
 	char	tmpAscii[20];
 	char	tmpUnicode[20];
 	std::string rawdata;				// the raw data sent to LPTx...
+	virtual void CommitData() {
+		FILE* fh = fopen(tmpAscii, "wb");			// Append or write to ASCII file
+		if (fh)
+			{
+			fwrite(rawdata.c_str(), rawdata.size(), 1, fh);
+			fclose(fh);
+			fh = fopen(tmpUnicode, "w+b");			// The same for Unicode file (it's eventually read)
+			if (fh)
+				{
+				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
+				for (Bit32u i = 0; i < rawdata.size(); i++)
+					{
+					Bit16u textChar =  (Bit8u)rawdata[i];
+					switch (textChar)
+						{
+					case 9:																// Tab
+					case 12:															// Formfeed
+						fwrite(&textChar, 1, 2, fh);
+						break;
+					case 10:															// Linefeed (combination)
+					case 13:
+						fwrite("\x0d\x00\x0a\x00", 1, 4, fh);
+						if (i < rawdata.size() -1 && textChar == 23-rawdata[i+1])
+							i++;
+						break;
+					default:
+						if (textChar >= 32)												// Forget about further control characters?
+							fwrite(cpMap+textChar, 1, 2, fh);
+						break;
+						}
+					}
+				}
+			}
+		if (!fh)
+			{
+			rawdata.clear();
+			return;
+			}
+		if (OpenClipboard(NULL))
+			{
+			if (EmptyClipboard())
+				{
+				int bytes = ftell(fh);
+				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
+				Bit8u* pChData = (Bit8u*)GlobalLock(hCbData);
+				if (pChData)
+					{
+					fseek(fh, 2, SEEK_SET);											// Skip Unicode signature
+					fread(pChData, 1, bytes-2, fh);
+					pChData[bytes-2] = 0;
+					pChData[bytes-1] = 0;
+					SetClipboardData(CF_UNICODETEXT, hCbData);
+					GlobalUnlock(hCbData);
+					}
+				}
+			CloseClipboard();
+			}
+		fclose(fh);
+		remove(tmpAscii);
+		remove(tmpUnicode);
+		rawdata.clear();
+		return;
+	}
 public:
 	device_CLIP() {
 		SetName(*dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$");
@@ -267,69 +330,6 @@ public:
 		*pos = newPos;
 		fPointer = newPos;
 		return true;
-	}
-	virtual private void CommitData() {
-		FILE* fh = fopen(tmpAscii, "wb");			// Append or write to ASCII file
-		if (fh)
-			{
-			fwrite(rawdata.c_str(), rawdata.size(), 1, fh);
-			fclose(fh);
-			fh = fopen(tmpUnicode, "w+b");			// The same for Unicode file (it's eventually read)
-			if (fh)
-				{
-				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
-				for (Bit32u i = 0; i < rawdata.size(); i++)
-					{
-					Bit16u textChar =  (Bit8u)rawdata[i];
-					switch (textChar)
-						{
-					case 9:																// Tab
-					case 12:															// Formfeed
-						fwrite(&textChar, 1, 2, fh);
-						break;
-					case 10:															// Linefeed (combination)
-					case 13:
-						fwrite("\x0d\x00\x0a\x00", 1, 4, fh);
-						if (i < rawdata.size() -1 && textChar == 23-rawdata[i+1])
-							i++;
-						break;
-					default:
-						if (textChar >= 32)												// Forget about further control characters?
-							fwrite(cpMap+textChar, 1, 2, fh);
-						break;
-						}
-					}
-				}
-			}
-		if (!fh)
-			{
-			rawdata.clear();
-			return;
-			}
-		if (OpenClipboard(NULL))
-			{
-			if (EmptyClipboard())
-				{
-				int bytes = ftell(fh);
-				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
-				Bit8u* pChData = (Bit8u*)GlobalLock(hCbData);
-				if (pChData)
-					{
-					fseek(fh, 2, SEEK_SET);											// Skip Unicode signature
-					fread(pChData, 1, bytes-2, fh);
-					pChData[bytes-2] = 0;
-					pChData[bytes-1] = 0;
-					SetClipboardData(CF_UNICODETEXT, hCbData);
-					GlobalUnlock(hCbData);
-					}
-				}
-			CloseClipboard();
-			}
-		fclose(fh);
-		remove(tmpAscii);
-		remove(tmpUnicode);
-		rawdata.clear();
-		return;
 	}
 	virtual bool Close() {
 		if(control->SecureMode()||dos_clipboard_device_access<2)
