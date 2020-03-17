@@ -351,12 +351,12 @@ void DOS_PSP::SetCommandTail(RealPt src) {
 }
 
 void DOS_PSP::StoreCommandTail() {
-	int len=mem_strlen(pt+offsetof(sPSP,cmdtail.buffer));
+	int len=(int)mem_strlen(pt+offsetof(sPSP,cmdtail.buffer));
 	MEM_StrCopy(pt+offsetof(sPSP,cmdtail.buffer),storect,len>CTBUF?CTBUF:len);
 }
 
 void DOS_PSP::RestoreCommandTail() {
-	mem_writeb(pt+offsetof(sPSP,cmdtail.count),strlen(storect)>0?strlen(storect)-1:0);
+	mem_writeb(pt+offsetof(sPSP,cmdtail.count),strlen(storect)>0?(Bit8u)(strlen(storect)-1):0);
 	MEM_BlockWrite(pt+offsetof(sPSP,cmdtail.buffer),storect,strlen(storect));
 }
 

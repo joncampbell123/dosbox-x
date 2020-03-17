@@ -3127,7 +3127,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			return;
 		}
 		Bit16u entry;
-		Bit8u i,handle=DOS_FILES;
+		Bit8u i,handle=(Bit8u)DOS_FILES;
 		for (i=1;i<DOS_FILES;i++) {
 			if (!Files[i]) {
 				handle=i;
