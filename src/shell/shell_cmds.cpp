@@ -339,10 +339,10 @@ void DOS_Shell::CMD_CLS(char * args) {
 
 void DOS_Shell::CMD_DELETE(char * args) {
 	HELP("DELETE");
+	bool optP=ScanCMDBool(args,"P");
 	bool optQ1=ScanCMDBool(args,"Q");
 
-	// ignore /p /f, /s, /ar, /as, /ah and /aa switches for compatibility
-	ScanCMDBool(args,"P");
+	// ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
 	ScanCMDBool(args,"F");
 	ScanCMDBool(args,"S");
 	ScanCMDBool(args,"AR");
@@ -351,8 +351,9 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	ScanCMDBool(args,"AA");
 
 	StripSpaces(args);
+	args=trim(args);
 	if (!strcasecmp(args,"*")) args=(char*)("*.*"); // 'del *' should be 'del *.*'?
-	if (!strcasecmp(args,"*.*")) {
+	if (!strcasecmp(args,"*.*")||!strcasecmp(args,".")) {
 		if (!optQ1) {
 first_1:
 			WriteOut(MSG_Get("SHELL_CMD_DEL_SURE"));
@@ -366,6 +367,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); return;
+					case 0x03: WriteOut("^C\n");return;
 					case 0x08: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
@@ -375,10 +377,12 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); goto continue_1;
+					case 0x03: WriteOut("^C\n");return;
 					case 0x08: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
 			case 0xD: WriteOut("\n"); goto first_1;
+			case 0x03: WriteOut("^C\n");return;
 			case '\t':
 			case 0x08:
 				goto first_2;
@@ -388,6 +392,7 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); goto first_1;
+					case 0x03: WriteOut("^C\n");return;
 					case 0x08: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 				goto first_2;
@@ -425,7 +430,9 @@ continue_1:
 		return;
 	}
 	//end can't be 0, but if it is we'll get a nice crash, who cares :)
+	strcpy(sfull,full);
 	char * end=strrchr(full,'\\')+1;*end=0;
+	char * lend=strrchr(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     Bit32u size;Bit16u time,date;Bit8u attr;
 	DOS_DTA dta(dos.dta());
@@ -433,9 +440,18 @@ continue_1:
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!(attr & (DOS_ATTR_DIRECTORY|DOS_ATTR_READ_ONLY))) {
 			strcpy(end,name);
-			strcpy(sfull,full);
-			if (uselfn) sprintf(sfull,"\"%s\"",full);
-			if (!DOS_UnlinkFile(sfull)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),full);
+			strcpy(lend,lname);
+			if (optP) {
+				WriteOut("Delete %s (Y/N)?", uselfn?sfull:full);
+				Bit8u c;
+				Bit16u n=1;
+				DOS_ReadFile (STDIN,&c,&n);
+				if (c==3) {WriteOut("^C\r\n");break;}
+				c = c=='y'||c=='Y' ? 'Y':'N';
+				WriteOut("%c\r\n", c);
+				if (c=='N') {res = DOS_FindNext();continue;}
+			}
+			if (!DOS_UnlinkFile(full)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
 		}
 		res=DOS_FindNext();
 	}
@@ -941,8 +957,16 @@ void DOS_Shell::CMD_COPY(char * args) {
 	while(ScanCMDBool(args,"B")) ;
 	while(ScanCMDBool(args,"T")) ; //Shouldn't this be A ?
 	while(ScanCMDBool(args,"A")) ;
-	ScanCMDBool(args,"Y");
-	ScanCMDBool(args,"-Y");
+	bool optY=ScanCMDBool(args,"Y");
+	std::string line;
+	if(GetEnvStr("COPYCMD",line)){
+		std::string::size_type idx = line.find('=');
+		std::string value=line.substr(idx +1 , std::string::npos);
+		char copycmd[CROSS_LEN];
+		strcpy(copycmd, value.c_str());
+		if (ScanCMDBool(copycmd, "Y") && !ScanCMDBool(copycmd, "-Y")) optY = true;
+	}
+	if (ScanCMDBool(args,"-Y")) optY=false;
 	ScanCMDBool(args,"V");
 
 	char * rem=ScanCMDRemain(args);
@@ -968,7 +992,18 @@ void DOS_Shell::CMD_COPY(char * args) {
 				if (strlen(++source_p)==0) break;
 				plus = strchr(source_p,'+');
 			}
-			if (plus) *plus++ = 0;
+			if (plus) {
+				char *c=source_p+strlen(source_p)-1;
+				if (*source_p=='"'&&*c=='"') {
+					*c=0;
+					if (strchr(source_p+1,'"'))
+						*plus++ = 0;
+					else
+						plus=NULL;
+					*c='"';
+				} else
+					*plus++ = 0;
+			}
 			safe_strncpy(source_x,source_p,CROSS_LEN);
 			bool has_drive_spec = false;
 			size_t source_x_len = strlen(source_x);
@@ -1066,7 +1101,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 		Bit16u sourceHandle,targetHandle = 0;
 		char nameTarget[DOS_PATHLENGTH];
-		char nameSource[DOS_PATHLENGTH];
+		char nameSource[DOS_PATHLENGTH], nametmp[DOS_PATHLENGTH+2];
 		
 		// Cache so we don't have to recalculate
 		size_t pathTargetLen = strlen(pathTarget);
@@ -1113,7 +1148,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			}
 		}
 
-		bool second_file_of_current_source = false;
+		bool echo=dos.echo, second_file_of_current_source = false;
 		while (ret) {
 			dta.GetResult(name,lname,size,date,time,attr);
 
@@ -1150,11 +1185,44 @@ void DOS_Shell::CMD_COPY(char * args) {
 					bool special = second_file_of_current_source && target_is_file;
 					second_file_of_current_source = true; 
 					if (special) oldsource.concat = true;
+					if (*nameSource&&*nameTarget) {
+						strcpy(nametmp, nameSource[0]!='\"'&&nameTarget[0]=='\"'?"\"":"");
+						strcat(nametmp, nameSource);
+						strcat(nametmp, nameSource[strlen(nameSource)-1]!='\"'&&nameTarget[strlen(nameTarget)-1]=='\"'?"\"":"");
+					} else
+						strcpy(nametmp, nameSource);
+					if (!oldsource.concat && (!strcasecmp(nameSource, nameTarget) || !strcasecmp(nametmp, nameTarget)))
+						{
+						WriteOut("File cannot be copied onto itself\r\n");
+						dos.dta(save_dta);
+						DOS_CloseFile(sourceHandle);
+						if (targetHandle)
+							DOS_CloseFile(targetHandle);
+						return;
+						}
+					Bit16u fattr;
+					bool exist = DOS_GetFileAttr(nameTarget, &fattr);
+					if (!optY && !oldsource.concat && exist && !(fattr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES)
+						{
+						dos.echo=false;
+						WriteOut("Overwrite %s (Yes/No/All)?", nameTarget);
+						Bit8u c;
+						Bit16u n=1;
+						while (true)
+							{
+							DOS_ReadFile (STDIN,&c,&n);
+							if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
+							if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
+							if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
+							if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
+							}
+						if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+						}
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
 
-                        if (!DOS_SetFileDate(targetHandle, ftime, fdate))
+                        if (DOS_FindDevice(name) == DOS_DEVICES && !DOS_SetFileDate(targetHandle, ftime, fdate))
                             LOG_MSG("WARNING: COPY unable to apply date/time to dest");
 
 						//In concat mode. Open the target and seek to the eof
@@ -1164,10 +1232,40 @@ void DOS_Shell::CMD_COPY(char * args) {
 							static Bit8u buffer[0x8000]; // static, otherwise stack overflow possible.
 							bool	failed = false;
 							Bit16u	toread = 0x8000;
+							bool iscon=DOS_FindDevice(name)==DOS_FindDevice("con");
+							if (iscon) dos.echo=true;
+							bool cont;
 							do {
 								failed |= DOS_ReadFile(sourceHandle,buffer,&toread);
-								failed |= DOS_WriteFile(targetHandle,buffer,&toread);
-							} while (toread==0x8000);
+								if (iscon)
+									{
+									if (dos.errorcode==77)
+										{
+										WriteOut("^C\r\n");
+										dos.dta(save_dta);
+										DOS_CloseFile(sourceHandle);
+										DOS_CloseFile(targetHandle);
+										if (!exist) DOS_UnlinkFile(nameTarget);
+										dos.echo=echo;
+										return;
+										}
+									cont=true;
+									for (int i=0;i<toread;i++)
+										if (buffer[i]==26)
+											{
+											toread=i;
+											cont=false;
+											break;
+											}
+									DOS_WriteFile(targetHandle,buffer,&toread);
+									if (cont) toread=0x8000;
+									}
+								else
+									{
+									failed |= DOS_WriteFile(targetHandle,buffer,&toread);
+									cont=toread == 0x8000;
+									}
+							} while (cont);
 							failed |= DOS_CloseFile(sourceHandle);
 							failed |= DOS_CloseFile(targetHandle);
                             if (strcmp(name,lname)&&uselfn)
@@ -1193,6 +1291,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 	WriteOut(MSG_Get("SHELL_CMD_COPY_SUCCESS"),count);
 	dos.dta(save_dta);
+	dos.echo=echo;
 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
 

@@ -733,6 +733,13 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			break;
 		default:
 			data[count++]=reg_al;
+			if (*size > 1 && reg_al == 3)
+				{
+				dos.errorcode=77;
+				*size=count;
+				reg_ax=oldax;
+				return false;
+				}
 			break;
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
@@ -740,6 +747,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
+	dos.errorcode=0;
 	*size=count;
 	reg_ax=oldax;
 	return true;

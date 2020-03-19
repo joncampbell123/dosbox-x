@@ -1288,9 +1288,15 @@ static Bitu DOS_21Handler(void) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
                     CALLBACK_SCF(false);
-                } else {
-                    reg_ax=dos.errorcode;
-                    CALLBACK_SCF(true);
+                } else if (dos.errorcode==77) {
+					DOS_BreakFlag = true;
+					if (!DOS_BreakTest()) {
+						dos.echo = false;
+						return CBRET_NONE;
+					} else {
+						reg_ax=dos.errorcode;
+						CALLBACK_SCF(true);
+					}
                 }
                 diskio_delay(reg_ax);
                 dos.echo=false;

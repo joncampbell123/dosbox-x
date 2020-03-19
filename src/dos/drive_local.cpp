@@ -645,7 +645,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	dta.SetDirID(id);
 	
 	Bit8u sAttr;
-	dta.GetSearchParams(sAttr,tempDir,true);
+	dta.GetSearchParams(sAttr,tempDir,uselfn);
 
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
@@ -688,7 +688,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
     Bit8u srch_attr;char srch_pattern[LFN_NAMELENGTH];
 	Bit8u find_attr;
 
-    dta.GetSearchParams(srch_attr,srch_pattern,true);
+    dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
 	Bit16u id = dta.GetDirID();
 
 again:

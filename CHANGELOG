@@ -1,4 +1,11 @@
 0.83.1
+  - Various improvements to DEL and COPY commands, e.g.
+    fixed the DEL /P option having no effect, and "DEL ."
+    deleted all files in the current directory silently;
+    the COPY command now asks for confirmation before
+    overwriting files, and it now supports /Y and /-Y
+    options to change this behavior, which can also be
+    set from the COPYCMD environment variable. (Wengier)
   - Added support for DOS programs to communicate
     with the clipboard in Windows builds. If the
     "dos clipboard device enable" setting in

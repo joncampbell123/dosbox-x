@@ -886,7 +886,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ECHO_HELP","Display messages and enable/disable command echoing.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exit from the shell.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Show help.\n");
-//	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [command]\n");
+	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Make Directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
@@ -932,7 +932,6 @@ void SHELL_Init() {
 	        "REN [drive:][path]filename1 filename2.\n\n"
 	        "Note that you can not specify a new drive or path for your destination file.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
-	MSG_Add("SHELL_CMD_COPY_HELP","Copy files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/Q] names\n"
 		   "ERASE [/P] [/Q] names\n\n"
 		   "  names\t\tSpecifies a list of one or more files or directories.\n"
@@ -941,6 +940,12 @@ void SHELL_Init() {
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
 		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
+	MSG_Add("SHELL_CMD_COPY_HELP","Copy files.\n");
+	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
+		   "  source\tSpecifies the file or files to be copied.\n"
+		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
+		   "  /Y\t\tSuppresses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n"
+		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP","Start a batch file from within another batch file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP_LONG","CALL [drive:][path]filename [batch-parameters]\n\n"
 		   "batch-parameters   Specifies any command-line information required by\n"
