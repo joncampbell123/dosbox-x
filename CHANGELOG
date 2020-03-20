@@ -1,4 +1,9 @@
 0.83.1
+  - Minimum MCB free default changed to better reflect
+    a typical MS-DOS setup with minimal to no drivers.
+    This should result in a report of 600K-ish memory
+    free, which is equivalent to Windows 95 without
+    anything loaded except COMMAND.COM.
   - Various improvements to DEL and COPY commands, e.g.
     fixed the DEL /P option having no effect, and "DEL ."
     deleted all files in the current directory silently;
