@@ -801,7 +801,17 @@ void DOS_Shell::CMD_DIR(char * args) {
 		return;
 	}
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
-    if (!optB) WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),sargs);
+    if (!optB) {
+		if (strlen(sargs)>2&&sargs[1]==':') {
+			char c[]=" _:";
+			c[1]=toupper(sargs[0]);
+			CMD_VOL(c[1]>='A'&&c[1]<='Z'?c:empty_string);
+		} else
+			CMD_VOL(empty_string);
+			if (optP)
+				p_count+=optW?15:3;
+		WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),sargs);
+	}
 
 	/* Command uses dta so set it to our internal dta */
 	RealPt save_dta=dos.dta();
@@ -907,7 +917,11 @@ void DOS_Shell::CMD_DIR(char * args) {
 			}
 		}
 		if (optP && !(++p_count%(22*w_size))) {
-			CMD_PAUSE(empty_string);
+			WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+			Bit8u c;Bit16u n=1;
+			DOS_ReadFile(STDIN,&c,&n);
+			if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);return;}
+			if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 		}
 	}
 
@@ -1182,7 +1196,7 @@ void DOS_Shell::CMD_COPY(char * args) {
                     strcat(nameTarget,q);
 
 					//Special variable to ensure that copy * a_file, where a_file is not a directory concats.
-					bool special = second_file_of_current_source && target_is_file;
+					bool special = second_file_of_current_source && target_is_file && strchr(target.filename.c_str(), '*')==NULL;
 					second_file_of_current_source = true; 
 					if (special) oldsource.concat = true;
 					if (*nameSource&&*nameTarget) {

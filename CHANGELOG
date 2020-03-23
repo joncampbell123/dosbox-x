@@ -1,4 +1,7 @@
 0.83.1
+  - DIR command fixed to show the volume label of the
+    drive you are listing, instead of always the current
+    drive (rderooy)
   - Minimum MCB free default changed to better reflect
     a typical MS-DOS setup with minimal to no drivers.
     This should result in a report of 600K-ish memory
