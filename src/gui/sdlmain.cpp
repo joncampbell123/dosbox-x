@@ -5315,8 +5315,13 @@ void GFX_Events() {
     // keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
     // while (PasteClipboardNext());
     // Doesn't really matter though, it's fast enough as it is...
+    int paste_speed = 20;
+    Section* sec = control->GetSection("dos");
+    Section_prop* section = static_cast<Section_prop*>(sec);
+    paste_speed = (unsigned int)section->Get_int("dos clipboard paste speed");
+
     static Bitu iPasteTicker = 0;
-    if ((iPasteTicker++ % 20) == 0) // emendelson: was %2, %20 is good for WP51
+    if ((iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
         PasteClipboardNext();   // end added emendelson from dbDOS
 #endif
 }
