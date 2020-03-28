@@ -1,4 +1,7 @@
 0.83.1
+  - Increased DOS device limit, to avoid E_Exit() crash
+    if all LPT and COM devices are enabled along with
+    the new CLIP$ device.
   - DIR command fixed to show the volume label of the
     drive you are listing, instead of always the current
     drive (rderooy)
