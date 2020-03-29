@@ -1,4 +1,11 @@
 0.83.1
+  - Fixed PC speaker emulation to allow higher PC speaker
+    frequencies (10x the value of pcrate) to reduce
+    hiss/noise/aliasing noise that occurs when games
+    program ultrasonic frequencies into the counter to
+    "silence" the speaker. "Titus the Fox Marrakech and
+    Back" should no longer have audible hissing noises
+    between beeps when the game is using the PC speaker.
   - Increased DOS device limit, to avoid E_Exit() crash
     if all LPT and COM devices are enabled along with
     the new CLIP$ device.
