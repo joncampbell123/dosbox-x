@@ -66,7 +66,7 @@ typedef struct {
 #define SPKR_ENTRIES 1024
 #define SPKR_VOLUME 10000
 //#define SPKR_SHIFT 8
-#define SPKR_SPEED (pic_tickindex_t)((SPKR_VOLUME*2)/0.050) // TODO: replace with runtime value
+pic_tickindex_t SPKR_SPEED = 1.0;
 
 struct DelayEntry {
 	pic_tickindex_t index;
@@ -702,8 +702,11 @@ public:
 		spkr.pit_new_half=spkr.pit_half;
 		spkr.pit_index=0;
 
-		//spkr.minimum_counter = (PIT_TICK_RATE + spkr.rate/2-1)/(spkr.rate/2);
-		spkr.minimum_counter = 2*PIT_TICK_RATE/spkr.rate;
+		/* set minimum counter value with some headroom so that when games "silence" the PC speaker
+		 * by setting the counter to an ultrasonic frequency, it averages out into a quiet hiss rather
+		 * than noisy aliasing noise. */
+		spkr.minimum_counter = PIT_TICK_RATE/(spkr.rate*10);
+		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.050*spkr.rate)); /* calibrated around DOSBox-X default rate 44100h */
 		spkr.used=0;
 		/* Register the sound channel */
 		spkr.chan=MixerChan.Install(&PCSPEAKER_CallBack,spkr.rate,"SPKR");
