@@ -101,6 +101,15 @@ static void outc(Bit8u c) {
 	DOS_WriteFile(STDOUT,&c,&n);
 }
 
+static void backone() {
+	BIOS_NCOLS;
+	const Bit8u page(0);
+	if (CURSOR_POS_COL(page)>0)
+		outc(8);
+	else if (CURSOR_POS_ROW(page)>0)
+		INT10_SetCursorPos(CURSOR_POS_ROW(page)-1, ncols-1, page);
+}
+
 //! \brief Moves the caret to prev row/last column when column is 0 (video mode 0).
 void MoveCaretBackwards()
 {
@@ -248,7 +257,7 @@ void DOS_Shell::InputCommand(char * line) {
 
             case 0x4B00:	/* LEFT */
                 if (str_index) {
-                    outc(8);
+                    backone();
                     str_index --;
                 	MoveCaretBackwards();
                 }
@@ -293,7 +302,7 @@ void DOS_Shell::InputCommand(char * line) {
 					const auto lgt = abs(MAX(pos, beg) - (line + str_index));
 					
 					for (auto i = 0; i < lgt; i++) {
-						outc(8);
+						backone();
 						str_index--;
 						MoveCaretBackwards();
 					}
@@ -307,7 +316,7 @@ void DOS_Shell::InputCommand(char * line) {
 
             case 0x4700:	/* HOME */
                 while (str_index) {
-                    outc(8);
+                    backone();
                     str_index--;
                 }
                 break;
@@ -343,7 +352,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                 for (;str_index>0; str_index--) {
                     // removes all characters
-                    outc(8); outc(' '); outc(8);
+                    backone(); outc(' '); backone();
                 }
                 strcpy(line, it_history->c_str());
                 len = (Bit16u)it_history->length();
@@ -377,7 +386,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                 for (;str_index>0; str_index--) {
                     // removes all characters
-                    outc(8); outc(' '); outc(8);
+                    backone(); outc(' '); backone();
                 }
                 strcpy(line, it_history->c_str());
                 len = (Bit16u)it_history->length();
@@ -393,10 +402,10 @@ void DOS_Shell::InputCommand(char * line) {
                     Bit16u a=str_len-str_index-1;
                     Bit8u* text=reinterpret_cast<Bit8u*>(&line[str_index+1]);
                     DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                    outc(' ');outc(8);
+                    outc(' ');backone();
                     for(Bitu i=str_index;i<(str_len-1u);i++) {
                         line[i]=line[i+1u];
-                        outc(8);
+                        backone();
                     }
                     line[--str_len]=0;
                     size++;
@@ -410,7 +419,7 @@ void DOS_Shell::InputCommand(char * line) {
                     if (it_completion->length()) {
                         for (;str_index > completion_index; str_index--) {
                             // removes all characters
-                            outc(8); outc(' '); outc(8);
+                            backone(); outc(' '); backone();
                         }
 
                         strcpy(&line[completion_index], it_completion->c_str());
@@ -423,7 +432,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
             case 0x08:				/* BackSpace */
                 if (str_index) {
-                    outc(8);
+                    backone();
                     Bit32u str_remain=(Bit32u)(str_len - str_index);
                     size++;
                     if (str_remain) {
@@ -437,9 +446,9 @@ void DOS_Shell::InputCommand(char * line) {
                         line[--str_index] = '\0';
                         str_len--;
                     }
-                    outc(' ');	outc(8);
+                    outc(' ');	backone();
                     // moves the cursor left
-                    while (str_remain--) outc(8);
+                    while (str_remain--) backone();
                 }
                 if (l_completion.size()) l_completion.clear();
                 break;
@@ -591,7 +600,7 @@ void DOS_Shell::InputCommand(char * line) {
                     if (l_completion.size() && it_completion->length()) {
                         for (;str_index > completion_index; str_index--) {
                             // removes all characters
-                            outc(8); outc(' '); outc(8);
+                            backone(); outc(' '); backone();
                         }
 
                         strcpy(&line[completion_index], it_completion->c_str());
@@ -622,15 +631,14 @@ void DOS_Shell::InputCommand(char * line) {
                 //
                 //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
                 //      we'll emulate DOSKEY behavior here.
-
                 while (str_index < str_len) {
                     outc(' ');
                     str_index++;
                 }
                 while (str_index > 0) {
-                    outc(8);
+                    backone();
                     outc(' ');
-                    outc(8);
+                    backone();
                     MoveCaretBackwards();
                     str_index--;
                 }
@@ -651,7 +659,7 @@ void DOS_Shell::InputCommand(char * line) {
                     outc(8);//undo the cursor the right.
                     for(Bitu i=str_len;i>str_index;i--) {
                         line[i]=line[i-1]; //move internal buffer
-                        outc(8); //move cursor back (from write buffer to screen)
+                        backone(); //move cursor back (from write buffer to screen)
                     }
                     line[++str_len]=0;//new end (as the internal buffer moved one place to the right
                     size--;

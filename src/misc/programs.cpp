@@ -799,6 +799,10 @@ void CONFIG::Run(void) {
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			// split on the ' '
 			if (spcpos != std::string::npos) {
+				if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',') {
+					std::string::size_type spck=pvars[0].find_first_of(' ', spcpos+1);
+					if (spck != std::string::npos) spcpos=spck;
+				}
 				pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
 				pvars[0].erase(spcpos);
 			}
@@ -844,7 +848,7 @@ void CONFIG::Run(void) {
 				// section + property
 				Section* sec = control->GetSection(pvars[0].c_str());
 				if (!sec) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"));
+					WriteOut(MSG_Get("PROGRAM_CONFIG_SECTION_ERROR"), pvars[0].c_str());
 					return;
 				}
 				std::string val = sec->GetPropValue(pvars[1].c_str());
