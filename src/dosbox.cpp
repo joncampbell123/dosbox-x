@@ -3069,6 +3069,11 @@ void DOSBOX_SetupConfigSections(void) {
             "If unset or invalid, the default name CLIP$ will be used (e.g. \"TYPE CLIP$\" shows the clipboard contents).\n"
 			"It has no effect if \"dos clipboard device enable\" is false, and it is deactivated if the secure mode is enabled.");
 
+    Pint = secprop->Add_int("dos clipboard paste speed", Property::Changeable::WhenIdle, 20);
+    Pint->Set_help("Set keyboard speed for pasting from the windows clipboard.\n"
+        "If the default setting of 20 causes lost keystrokes, increase the number.\n"
+        "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
+
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
     Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Enable ipx over UDP/IP emulation.");
