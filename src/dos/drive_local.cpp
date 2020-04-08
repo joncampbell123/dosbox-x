@@ -804,6 +804,7 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	if (ht_stat(host_name,&status)==0) {
 		*attr=DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
+		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
 		return true;
 	}
 	*attr=0;
