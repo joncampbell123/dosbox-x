@@ -710,6 +710,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","Are you sure[Y,N]?");
 	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
@@ -940,7 +942,7 @@ void SHELL_Init() {
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
 		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
-	MSG_Add("SHELL_CMD_COPY_HELP","Copy files.\n");
+	MSG_Add("SHELL_CMD_COPY_HELP","Copy one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source\tSpecifies the file or files to be copied.\n"
 		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
@@ -958,7 +960,16 @@ void SHELL_Init() {
 	        "  /N  -  Do not display the choices at end of prompt.\n"
 	        "  /S  -  Enables case-sensitive choices to be selected.\n"
 	        "  text  -  The text to display as a prompt.\n");
-	MSG_Add("SHELL_CMD_ATTRIB_HELP","Does nothing. Provided for compatibility.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays/changes file attributes.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename]\n\n"
+			"  +	Sets an attribute.\n"
+			"  -	Clears an attribute.\n"
+			"  R	Read-only file attribute.\n"
+			"  A	Archive file attribute.\n"
+			"  S	System file attribute.\n"
+			"  H	Hidden file attribute.\n"
+			"  [drive:][path][filename]\n"
+			"	Specifies file(s) for ATTRIB to process.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP","Displays/Sets a search path for executable files.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP_LONG","PATH [[drive:]path[;...][;%PATH%]\n"
 		   "PATH ;\n\n"

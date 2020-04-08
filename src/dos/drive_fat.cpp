@@ -517,7 +517,11 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 		findFile = findDir;
 		findDir = strtok(NULL,"\\");
 	}
-	strcpy(entname, findFile);
+	if (strlen(findFile)>12)
+		strncpy(entname, findFile, 12);
+	else
+		strcpy(entname, findFile);
+	upcase(entname);
 	return true;
 }
 
@@ -1774,6 +1778,41 @@ bool fatDrive::FindNext(DOS_DTA &dta) {
     direntry dummyClust = {};
 
 	return FindNextInternal(dta.GetDirIDCluster(), dta, &dummyClust);
+}
+
+
+bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
+    direntry fileEntry = {};
+	Bit32u dirClust, subEntry;
+	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
+		char dirName[DOS_NAMELENGTH_ASCII];
+		char pathName[11];
+
+		/* Can we even get the name of the directory itself? */
+		if(!getEntryName(name, &dirName[0])) return false;
+		convToDirFile(&dirName[0], &pathName[0]);
+
+		/* Get parent directory starting cluster */
+		if(!getDirClustNum(name, &dirClust, true)) return false;
+
+		/* Find directory entry in parent directory */
+		Bit32s fileidx = 2;
+		if (dirClust==0) fileidx = 0;	// root directory
+		Bit32s last_idx=0;
+		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
+			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
+				fileEntry.attrib=attr;
+				directoryChange(dirClust, &fileEntry, fileidx);
+				return true;
+			}
+			fileidx++;
+		}
+		return false;
+	} else {
+		fileEntry.attrib=attr;
+		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
+	}
+	return true;
 }
 
 bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {

@@ -1,4 +1,7 @@
 0.83.1
+  - Implemented ATTRIB command to view and set attributes
+    of files or directories (Wengier)
+  - Fixed PC DOS 2000 crash during installation.
   - Fixed PC speaker emulation to allow higher PC speaker
     frequencies (10x the value of pcrate) to reduce
     hiss/noise/aliasing noise that occurs when games

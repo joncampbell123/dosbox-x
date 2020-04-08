@@ -1377,7 +1377,6 @@ static Bitu DOS_21Handler(void) {
                         break;
                     }
                 case 0x01:              /* Set */
-                    LOG(LOG_MISC,LOG_ERROR)("DOS:Set File Attributes for %s not supported",name1);
                     if (DOS_SetFileAttr(name1,reg_cx)) {
                         reg_ax=0x202;   /* ax destroyed */
                         CALLBACK_SCF(false);

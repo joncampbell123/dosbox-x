@@ -256,6 +256,12 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	return false;
 }
 
+bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
+    (void)name;
+    (void)attr;
+	return false;
+}
+
 bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 	VFILE_Block * cur_file=first_file;
 	while (cur_file) {

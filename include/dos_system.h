@@ -271,6 +271,7 @@ public:
 	virtual bool TestDir(const char * _dir)=0;
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false)=0;
 	virtual bool FindNext(DOS_DTA & dta)=0;
+	virtual bool SetFileAttr(const char * name,Bit16u attr)=0;
 	virtual bool GetFileAttr(const char * name,Bit16u * attr)=0;
 	virtual bool GetFileAttrEx(char* name, struct stat *status)=0;
 	virtual unsigned long GetCompressedSize(char* name)=0;

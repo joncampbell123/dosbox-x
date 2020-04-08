@@ -799,12 +799,12 @@ void CONFIG::Run(void) {
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			// split on the ' '
 			if (spcpos != std::string::npos) {
-				if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',') {
-					std::string::size_type spck=pvars[0].find_first_of(' ', spcpos+1);
-					if (spck != std::string::npos) spcpos=spck;
+				if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
+					spcpos=pvars[0].find_first_of(' ', spcpos+1);
+				if (spcpos != std::string::npos) {
+					pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
+					pvars[0].erase(spcpos);
 				}
-				pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
-				pvars[0].erase(spcpos);
 			}
 			switch(pvars.size()) {
 			case 1: {

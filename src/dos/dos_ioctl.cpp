@@ -125,8 +125,14 @@ bool DOS_IOCTL(void) {
 		return true;
 	case 0x08:		/* Check if block device removable */
 		/* cdrom drives and drive a&b are removable */
-		if (drive < 2) reg_ax=0;
-		else if (!Drives[drive]->isRemovable()) reg_ax=1;
+		if (drive < 2) {
+			if (Drives[drive])
+				reg_ax=0;
+			else {
+				DOS_SetError(DOSERR_INVALID_DRIVE);
+				return false;
+			}
+		} else if (!Drives[drive]->isRemovable()) reg_ax=1;
 		else {
 			DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 			return false;

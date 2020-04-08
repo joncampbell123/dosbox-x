@@ -754,6 +754,25 @@ again:
 	return true;
 }
 
+bool localDrive::SetFileAttr(const char * name,Bit16u attr) {
+#if defined (WIN32)
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,name);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	if (!SetFileAttributes(newname, attr))
+		{
+		DOS_SetError((Bit16u)GetLastError());
+		return false;
+		}
+	dirCache.EmptyCache();
+	return true;
+#else
+	return GetFileAttr(name, &attr);
+#endif
+}
+
 bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
     if (nocachedir) EmptyCache();
 
@@ -763,6 +782,16 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 
+#if defined (WIN32)
+	Bitu attribs = GetFileAttributes(newname);
+	if (attribs == INVALID_FILE_ATTRIBUTES)
+		{
+		DOS_SetError((Bit16u)GetLastError());
+		return false;
+		}
+	*attr = attribs&0x3f;
+	return true;
+#else
     // guest to host code page translation
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
@@ -779,6 +808,7 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	}
 	*attr=0;
 	return false; 
+#endif
 }
 
 bool localDrive::GetFileAttrEx(char* name, struct stat *status) {
@@ -827,7 +857,6 @@ HANDLE localDrive::CreateOpenFile(const char* name) {
 	if (handle==INVALID_HANDLE_VALUE)
 		DOS_SetError((Bit16u)GetLastError());
 	return handle;
-	return INVALID_HANDLE_VALUE;
 }
 #endif
 

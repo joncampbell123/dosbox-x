@@ -654,11 +654,13 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry,bool fcb)
 	}
 	bool foundit=Drives[drive]->FileCreate(&Files[handle],fullname,attributes);
 	if (foundit) { 
-		Files[handle]->SetDrive(drive);
-		Files[handle]->AddRef();
-		Files[handle]->drive = drive;
+		if (Files[handle]) {
+			Files[handle]->SetDrive(drive);
+			Files[handle]->AddRef();
+			Files[handle]->drive = drive;
+		}
 		if (!fcb) psp.SetFileHandle(*entry,handle);
-		Drives[drive]->EmptyCache();
+		if (Files[handle]) Drives[drive]->EmptyCache();
 		return true;
 	} else {
 		if(!PathExists(name)) DOS_SetError(DOSERR_PATH_NOT_FOUND); 
@@ -856,19 +858,18 @@ HANDLE DOS_CreateOpenFile(char const* const name)
 }
 #endif
 
-bool DOS_SetFileAttr(char const * const name,Bit16u /*attr*/) 
+bool DOS_SetFileAttr(char const * const name,Bit16u attr) 
 // this function does not change the file attributs
 // it just does some tests if file is available 
 // returns false when using on cdrom (stonekeep)
 {
-	Bit16u attrTemp;
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
 	if (!DOS_MakeName(name,fullname,&drive)) return false;	
 	if (strncmp(Drives[drive]->GetInfo(),"CDRom ",6)==0 || strncmp(Drives[drive]->GetInfo(),"isoDrive ",9)==0) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	return Drives[drive]->GetFileAttr(fullname,&attrTemp);
+	return Drives[drive]->SetFileAttr(fullname,attr);
 }
 
 bool DOS_Canonicalize(char const * const name,char * const big) {

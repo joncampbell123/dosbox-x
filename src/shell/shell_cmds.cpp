@@ -1843,7 +1843,83 @@ void DOS_Shell::CMD_CHOICE(char * args){
 
 void DOS_Shell::CMD_ATTRIB(char *args){
 	HELP("ATTRIB");
-	// No-Op for now.
+	StripSpaces(args);
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+
+	char * rem=ScanCMDRemain(args);
+	if (rem) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
+		return;
+	}
+	
+	bool adda=false, adds=false, addh=false, addr=false, suba=false, subs=false, subh=false, subr=false;
+	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
+	char* arg1;
+	strcpy(sfull, "*.*");
+	do {
+		arg1=StripArg(args);
+		if (!strcasecmp(arg1, "+A")) adda=true;
+		else if (!strcasecmp(arg1, "+S")) adds=true;
+		else if (!strcasecmp(arg1, "+H")) addh=true;
+		else if (!strcasecmp(arg1, "+R")) addr=true;
+		else if (!strcasecmp(arg1, "-A")) suba=true;
+		else if (!strcasecmp(arg1, "-S")) subs=true;
+		else if (!strcasecmp(arg1, "-H")) subh=true;
+		else if (!strcasecmp(arg1, "-R")) subr=true;
+		else if (*arg1) strcpy(sfull, strcmp(arg1, "*")?arg1:"*.*");
+	} while (*args);
+
+	char buffer[CROSS_LEN];
+	args = ExpandDot(sfull,buffer, CROSS_LEN);
+	StripSpaces(args);
+	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return; }
+    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4/*make room for quotes*/];
+	if (!DOS_GetSFNPath(args,spath,false)) {
+		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		return;
+	}    sprintf(sargs,"\"%s\"",spath);
+    bool res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+	if (!res) {
+		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		dos.dta(save_dta);
+		return;
+	}
+	//end can't be 0, but if it is we'll get a nice crash, who cares :)
+	strcpy(sfull,full);
+	char * end=strrchr(full,'\\')+1;*end=0;
+	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+    Bit32u size;Bit16u time,date;Bit8u attr;Bit16u fattr;
+	DOS_DTA dta(dos.dta());
+	while (res) {
+		dta.GetResult(name,lname,size,date,time,attr);
+		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
+			strcpy(end,name);
+			strcpy(lend,lname);
+			if (DOS_GetFileAttr(full, &fattr)) {
+				bool attra=fattr&32, attrs=fattr&4, attrh=fattr&2, attrr=fattr&1;
+				if (adda||adds||addh||addr||suba||subs||subh||subr) {
+					if (adda) fattr|=32;
+					if (adds) fattr|=4;
+					if (addh) fattr|=2;
+					if (addr) fattr|=1;
+					if (suba) fattr&=~32;
+					if (subs) fattr&=~4;
+					if (subh) fattr&=~2;
+					if (subr) fattr&=~1;
+					if (DOS_SetFileAttr(full, fattr))
+						WriteOut("  %c  %c%c%c	%s\n", fattr&32?'A':' ', fattr&4?'S':' ', fattr&2?'H':' ', fattr&1?'R':' ', uselfn?sfull:full);
+					else
+						WriteOut(MSG_Get("SHELL_CMD_ATTRIB_SET_ERROR"),uselfn?sfull:full);
+				} else
+					WriteOut("  %c  %c%c%c	%s\n", attra?'A':' ', attrs?'S':' ', attrh?'H':' ', attrr?'R':' ', uselfn?sfull:full);
+			} else
+				WriteOut(MSG_Get("SHELL_CMD_ATTRIB_GET_ERROR"),uselfn?sfull:full);
+		}
+		res=DOS_FindNext();
+	}
+	dos.dta(save_dta);
 }
 
 void DOS_Shell::CMD_PROMPT(char *args){
