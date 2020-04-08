@@ -1,4 +1,7 @@
 0.83.1
+  - Added emulation of R (readonly) attribute bit for
+    Linux and Unix systems through the user-writable
+    file mode bits of the filesystem.
   - Implemented ATTRIB command to view and set attributes
     of files or directories (Wengier)
   - Fixed PC DOS 2000 crash during installation.
