@@ -713,6 +713,7 @@ public:
 		if (!spkr.chan) {
 			E_Exit(__FILE__ ": Unable to register channel with mixer.");
 		}
+		spkr.chan->SetLowpassFreq(14000);
 		spkr.chan->Enable(true);
 #ifdef SPKR_DEBUGGING
 		PCSpeakerLog = fopen("PCSpeakerLog.txt", "w");
