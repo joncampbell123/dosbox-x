@@ -755,12 +755,12 @@ again:
 }
 
 bool localDrive::SetFileAttr(const char * name,Bit16u attr) {
-#if defined (WIN32)
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
+#if defined (WIN32)
 	if (!SetFileAttributes(newname, attr))
 		{
 		DOS_SetError((Bit16u)GetLastError());
@@ -769,7 +769,34 @@ bool localDrive::SetFileAttr(const char * name,Bit16u attr) {
 	dirCache.EmptyCache();
 	return true;
 #else
-	return GetFileAttr(name, &attr);
+	// guest to host code page translation
+	host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+	if (host_name == NULL) {
+		LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+		return false;
+	}
+
+	ht_stat_t status;
+	if (ht_stat(host_name,&status)==0) {
+		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
+			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,newname);
+
+		if (attr & DOS_ATTR_READ_ONLY)
+			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
+		else
+			status.st_mode |=  S_IWUSR;
+
+		if (chmod(host_name,status.st_mode) < 0) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+
+		return true;
+	}
+
+	DOS_SetError(DOSERR_FILE_NOT_FOUND);
+	return false;
 #endif
 }
 
