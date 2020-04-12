@@ -525,12 +525,19 @@ void DOS_Shell::InputCommand(char * line) {
                         // build the completion list
                         char mask[DOS_PATHLENGTH+2] = {0}, smask[DOS_PATHLENGTH] = {0};
                         if (p_completion_start && strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
-							IO_Write(0x43,0xb6);
-							IO_Write(0x42,1750&0xff);
-							IO_Write(0x42,1750>>8);
-							IO_Write(0x61,IO_Read(0x61)|0x3);
-							for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
-							IO_Write(0x61,IO_Read(0x61)&~0x3);
+							// TODO: This really should be done in the CON driver so that this code can just print ASCII code 7 instead
+							if (IS_PC98_ARCH) {
+								// TODO: BEEP. I/O PORTS ARE DIFFERENT AS IS THE PIT CLOCK RATE
+							}
+							else {
+								// IBM PC/XT/AT
+								IO_Write(0x43,0xb6);
+								IO_Write(0x42,1750&0xff);
+								IO_Write(0x42,1750>>8);
+								IO_Write(0x61,IO_Read(0x61)|0x3);
+								for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
+								IO_Write(0x61,IO_Read(0x61)&~0x3);
+							}
                             break;
                         }
                         if (p_completion_start) {
@@ -557,12 +564,19 @@ void DOS_Shell::InputCommand(char * line) {
 						}
                         if (!res) {
                             dos.dta(save_dta);
-							IO_Write(0x43,0xb6);
-							IO_Write(0x42,1750&0xff);
-							IO_Write(0x42,1750>>8);
-							IO_Write(0x61,IO_Read(0x61)|0x3);
-							for(Bitu i=0; i < 300; i++) CALLBACK_Idle();
-							IO_Write(0x61,IO_Read(0x61)&~0x3);
+							// TODO: This really should be done in the CON driver so that this code can just print ASCII code 7 instead
+							if (IS_PC98_ARCH) {
+								// TODO: BEEP. I/O PORTS ARE DIFFERENT AS IS THE PIT CLOCK RATE
+							}
+							else {
+								// IBM PC/XT/AT
+								IO_Write(0x43,0xb6);
+								IO_Write(0x42,1750&0xff);
+								IO_Write(0x42,1750>>8);
+								IO_Write(0x61,IO_Read(0x61)|0x3);
+								for(Bitu i=0; i < 300; i++) CALLBACK_Idle();
+								IO_Write(0x61,IO_Read(0x61)&~0x3);
+							}
                             break;
                         }
 
