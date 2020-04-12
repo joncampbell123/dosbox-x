@@ -41,6 +41,8 @@
 #define FAT16		   1
 #define FAT32		   2
 
+extern bool         wpcolon;
+
 class fatFile : public DOS_File {
 public:
 	fatFile(const char* name, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive);
@@ -543,7 +545,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-    if (fattype == FAT32) return;
+    if (readonly || fattype == FAT32) return;
 
     if (*label != 0) {
         /* Add a volume label entry, by appending to the root directory.
@@ -905,7 +907,8 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
 
-	diskfile = fopen64(sysFilename, "rb+");
+	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
+	diskfile = fopen64(readonly?sysFilename+1:sysFilename, readonly?"rb":"rb+");
 	if(!diskfile) {created_successfully = false;return;}
 
     // all disk I/O is in sector-sized blocks.
@@ -934,32 +937,32 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
             return;
         }
 
-        const char *ext = strrchr(sysFilename,'.');
+        const char *ext = strrchr(sysFilename,'.'), *fname=readonly?sysFilename+1:sysFilename;
 
         if (ext != NULL && !strcasecmp(ext, ".d88")) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskD88(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskD88(diskfile, (Bit8u *)fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootbuffer.bootcode,"VFD1.",5)) { /* FDD files */
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskVFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+            loadedDisk = new imageDiskVFD(diskfile, (Bit8u *)fname, filesize, (filesize > 2880));
         }
         else if (!memcmp(bootbuffer.bootcode,"T98FDDIMAGE.R0\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880), 0);
+            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)fname, filesize, (filesize > 2880), 0);
         }
         else if (!memcmp(bootbuffer.bootcode,"T98FDDIMAGE.R1\0\0",16)) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880), 1);
+            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)fname, filesize, (filesize > 2880), 1);
         }
         else {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+            loadedDisk = new imageDisk(diskfile, (Bit8u *)fname, filesize, (filesize > 2880));
         }
 	}
 
@@ -1474,7 +1477,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	curFatSect = 0xffffffff;
 
 	strcpy(info, "fatDrive ");
-	strcat(info, sysFilename);
+	strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 }
 
 bool fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
@@ -1519,6 +1522,10 @@ Bits fatDrive::UnMount(void) {
 Bit8u fatDrive::GetMediaByte(void) { return loadedDisk->GetBiosType(); }
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	char dirName[DOS_NAMELENGTH_ASCII];
@@ -1601,6 +1608,10 @@ bool fatDrive::FileStat(const char * /*name*/, FileStat_Block *const /*stat_bloc
 }
 
 bool fatDrive::FileUnlink(const char * name) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 
@@ -1610,6 +1621,7 @@ bool fatDrive::FileUnlink(const char * name) {
 	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 
 	if(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust, 0);
+	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 
 	return true;
 }
@@ -1758,7 +1770,7 @@ nextfile:
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else {
-		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME | DOS_ATTR_SYSTEM | DOS_ATTR_HIDDEN) ) goto nextfile;
+		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) goto nextfile;
 	}
 
 
@@ -1782,6 +1794,10 @@ bool fatDrive::FindNext(DOS_DTA &dta) {
 
 
 bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
@@ -1997,6 +2013,10 @@ void fatDrive::zeroOutCluster(Bit32u clustNumber) {
 }
 
 bool fatDrive::MakeDir(const char *dir) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
 	Bit32u dummyClust, dirClust;
 	direntry tmpentry;
 	char dirName[DOS_NAMELENGTH_ASCII];
@@ -2053,11 +2073,16 @@ bool fatDrive::MakeDir(const char *dir) {
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
 	addDirectoryEntry(dummyClust, tmpentry);
+	if(!getDirClustNum(dir, &dummyClust, false)) return false;
 
 	return true;
 }
 
 bool fatDrive::RemoveDir(const char *dir) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
 	Bit32u dummyClust, dirClust;
     direntry tmpentry = {};
 	char dirName[DOS_NAMELENGTH_ASCII];
@@ -2111,6 +2136,10 @@ bool fatDrive::RemoveDir(const char *dir) {
 }
 
 bool fatDrive::Rename(const char * oldname, const char * newname) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
     direntry fileEntry1 = {};
 	Bit32u dirClust1, subEntry1;
 	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) return false;

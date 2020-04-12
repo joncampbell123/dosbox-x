@@ -1,4 +1,12 @@
 0.83.1
+  - Write-protecting a disk image in IMGMOUNT and BOOT
+    commands now supported by putting a leading colon (:)
+    before the image file name. Works with disk swapping;
+    e.g. "BOOT :C:\DISK1.IMG C:\DISK2.IMG" only write-
+    protects C:\DISK1.IMG but not C:\DISK2.IMG. The new
+    config option "leading colon write protect image" can
+    be used to disable or enable this behavior (Wengier)
+  - Improved -get & -set options for the CONFIG command.
   - Added emulation of R (readonly) attribute bit for
     Linux and Unix systems through the user-writable
     file mode bits of the filesystem.
@@ -15,6 +23,10 @@
   - Increased DOS device limit, to avoid E_Exit() crash
     if all LPT and COM devices are enabled along with
     the new CLIP$ device.
+  - DIR command now supports /A, /AS, /A-S, /AH, /A-H,
+    /AR, /A-R, /AA, /A-A options; DIR /A shows all entries
+    whereas DIR alone shows all except system/hidden ones
+    as in a real DOS system (Wengier)
   - DIR command fixed to show the volume label of the
     drive you are listing, instead of always the current
     drive (rderooy)

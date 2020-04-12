@@ -35,7 +35,7 @@
 
 Bitu call_program;
 
-extern bool dos_kernel_disabled;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -871,11 +871,11 @@ void CONFIG::Run(void) {
 			// Code for the configuration changes
 			// Official format: config -set "section property=value"
 			// Accepted: with or without -set, 
-			// "section property value"
 			// "section property=value"
 			// "property" "value"
 			// "section" "property=value"
 			// "section" "property=value" "value" "value" ...
+			// "section" "property" "value"
 			// "section" "property" "value" "value" ...
 			// "section property" "value" "value" ...
 			// "property" "value" "value" ...
@@ -892,6 +892,9 @@ void CONFIG::Run(void) {
 
 			// attempt to split off the first word
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
+			if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
+				spcpos=pvars[0].find_first_of(' ', spcpos+1);
+
 			std::string::size_type equpos = pvars[0].find_first_of('=');
 
 			if ((equpos != std::string::npos) && 
@@ -908,8 +911,7 @@ void CONFIG::Run(void) {
 				}
 				// order in the vector should be ok now
 			} else {
-				if ((spcpos != std::string::npos) &&
-					((equpos == std::string::npos) || (spcpos < equpos))) {
+				if (equpos != std::string::npos && spcpos < equpos) {
 					// ' ' before a possible '=', split on the ' '
 					pvars.insert(pvars.begin()+1,pvars[0].substr(spcpos+1));
 					pvars[0].erase(spcpos);
@@ -931,18 +933,11 @@ void CONFIG::Run(void) {
 						WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
 						return;
 					}
-					std::string::size_type spcpos2 = pvars[1].find_first_of(' ');
 					std::string::size_type equpos2 = pvars[1].find_first_of('=');
-					if ((equpos2 != std::string::npos) && 
-						((spcpos2 == std::string::npos) || (equpos2 < spcpos2))) {
+					if (equpos2 != std::string::npos) {
 						// split on the =
 						pvars.insert(pvars.begin()+2,pvars[1].substr(equpos2+1));
 						pvars[1].erase(equpos2);
-					} else if ((spcpos2 != std::string::npos) &&
-						((equpos2 == std::string::npos) || (spcpos2 < equpos2))) {
-						// split on the ' '
-						pvars.insert(pvars.begin()+2,pvars[1].substr(spcpos2+1));
-						pvars[1].erase(spcpos2);
 					}
 					// is this a property?
 					Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
@@ -981,7 +976,32 @@ void CONFIG::Run(void) {
 			std::string inputline = pvars[1] + "=" + value;
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
-			if (!change_success) WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
+			if (change_success) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")) {
+					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
+					if (section != NULL) {
+						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
+							force_nocachedir = section->Get_bool("nocachedir");
+							wpcolon = section->Get_bool("leading colon write protect image");
+						} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
+							std::string ver = section->Get_string("ver");
+							if (!ver.empty()) {
+								const char *s = ver.c_str();
+								if (isdigit(*s)) {
+									dos.version.minor=0;
+									dos.version.major=(int)strtoul(s,(char**)(&s),10);
+									if (*s == '.' || *s == ' ') {
+										s++;
+										if (isdigit(*s))
+											dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
+									}
+									uselfn = dos.version.major>6;
+								}
+							}
+						}
+					}
+				}
+			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
 				value.c_str(),pvars[1].c_str());
 			return;
 		}
@@ -1077,7 +1097,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_VALUE_ERROR","\"%s\" is not a valid value for property %s.\n");
 	MSG_Add("PROGRAM_CONFIG_PROPERTY_ERROR","No such section or property.\n");
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
-	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property\".\n");
+	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
 	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox was started with the following command line parameters:\n%s");
 	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");

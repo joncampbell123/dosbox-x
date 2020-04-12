@@ -309,9 +309,8 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	
     isoDirEntry de = {};
 	while (GetNextDirEntry(dirIterator, &de)) {
-		Bit8u findAttr = 0;
+		Bit8u findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
-		else findAttr |= DOS_ATTR_ARCHIVE;
 		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
 
 		if (strcmp((char*)de.ident,(char*)fullname))
@@ -548,6 +547,7 @@ int isoDrive :: readDirEntry(isoDirEntry *de, Bit8u *data) {
 			if (de->ident[tmp - 1] == '.') de->ident[tmp - 1] = 0;
 		}
 	}
+	strcpy((char*)fullname,(char*)de->ident);
 	char* dotpos = strchr((char*)de->ident, '.');
 	if (dotpos!=NULL) {
 		if (strlen(dotpos)>4) dotpos[4]=0;

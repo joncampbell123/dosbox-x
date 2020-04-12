@@ -438,7 +438,11 @@ continue_1:
 	DOS_DTA dta(dos.dta());
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
-		if (!(attr & (DOS_ATTR_DIRECTORY|DOS_ATTR_READ_ONLY))) {
+		if (attr & DOS_ATTR_READ_ONLY) {
+			strcpy(end,name);
+			strcpy(lend,lname);
+			WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
+		} else if (!(attr & DOS_ATTR_DIRECTORY)) {
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (optP) {
@@ -704,8 +708,17 @@ void DOS_Shell::CMD_DIR(char * args) {
 		optW=optP=true;
 	}
 	bool optB=ScanCMDBool(args,"B");
+	bool optA=ScanCMDBool(args,"A");
 	bool optAD=ScanCMDBool(args,"AD");
 	bool optAminusD=ScanCMDBool(args,"A-D");
+	bool optAS=ScanCMDBool(args,"AS");
+	bool optAminusS=ScanCMDBool(args,"A-S");
+	bool optAH=ScanCMDBool(args,"AH");
+	bool optAminusH=ScanCMDBool(args,"A-H");
+	bool optAR=ScanCMDBool(args,"AR");
+	bool optAminusR=ScanCMDBool(args,"A-R");
+	bool optAA=ScanCMDBool(args,"AA");
+	bool optAminusA=ScanCMDBool(args,"A-A");
 	// Sorting flags
 	bool reverseSort = false;
 	bool optON=ScanCMDBool(args,"ON");
@@ -841,6 +854,15 @@ void DOS_Shell::CMD_DIR(char * args) {
 		/* Skip non-directories if option AD is present, or skip dirs in case of A-D */
 		if(optAD && !(result.attr&DOS_ATTR_DIRECTORY) ) continue;
 		else if(optAminusD && (result.attr&DOS_ATTR_DIRECTORY) ) continue;
+		else if(optAS && !(result.attr&DOS_ATTR_SYSTEM) ) continue;
+		else if(optAminusS && (result.attr&DOS_ATTR_SYSTEM) ) continue;
+		else if(optAH && !(result.attr&DOS_ATTR_HIDDEN) ) continue;
+		else if(optAminusH && (result.attr&DOS_ATTR_HIDDEN) ) continue;
+		else if(optAR && !(result.attr&DOS_ATTR_READ_ONLY) ) continue;
+		else if(optAminusR && (result.attr&DOS_ATTR_READ_ONLY) ) continue;
+		else if(optAA && !(result.attr&DOS_ATTR_ARCHIVE) ) continue;
+		else if(optAminusA && (result.attr&DOS_ATTR_ARCHIVE) ) continue;
+		else if(!(optA||optAD||optAminusD||optAS||optAminusS||optAH||optAminusH||optAR||optAminusR||optAA||optAminusA) && (result.attr&DOS_ATTR_SYSTEM || result.attr&DOS_ATTR_HIDDEN) ) continue;
 
 		results.push_back(result);
 
@@ -1898,19 +1920,20 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (DOS_GetFileAttr(full, &fattr)) {
-				bool attra=fattr&32, attrs=fattr&4, attrh=fattr&2, attrr=fattr&1;
+				bool attra=fattr&DOS_ATTR_ARCHIVE, attrs=fattr&DOS_ATTR_SYSTEM, attrh=fattr&DOS_ATTR_HIDDEN, attrr=fattr&DOS_ATTR_READ_ONLY;
 				if (adda||adds||addh||addr||suba||subs||subh||subr) {
-					if (adda) fattr|=32;
-					if (adds) fattr|=4;
-					if (addh) fattr|=2;
-					if (addr) fattr|=1;
-					if (suba) fattr&=~32;
-					if (subs) fattr&=~4;
-					if (subh) fattr&=~2;
-					if (subr) fattr&=~1;
-					if (DOS_SetFileAttr(full, fattr))
-						WriteOut("  %c  %c%c%c	%s\n", fattr&32?'A':' ', fattr&4?'S':' ', fattr&2?'H':' ', fattr&1?'R':' ', uselfn?sfull:full);
-					else
+					if (adda) fattr|=DOS_ATTR_ARCHIVE;
+					if (adds) fattr|=DOS_ATTR_SYSTEM;
+					if (addh) fattr|=DOS_ATTR_HIDDEN;
+					if (addr) fattr|=DOS_ATTR_READ_ONLY;
+					if (suba) fattr&=~DOS_ATTR_ARCHIVE;
+					if (subs) fattr&=~DOS_ATTR_SYSTEM;
+					if (subh) fattr&=~DOS_ATTR_HIDDEN;
+					if (subr) fattr&=~DOS_ATTR_READ_ONLY;
+					if (DOS_SetFileAttr(full, fattr)) {
+						if (DOS_GetFileAttr(full, &fattr))
+							WriteOut("  %c  %c%c%c	%s\n", fattr&DOS_ATTR_ARCHIVE?'A':' ', fattr&DOS_ATTR_SYSTEM?'S':' ', fattr&DOS_ATTR_HIDDEN?'H':' ', fattr&DOS_ATTR_READ_ONLY?'R':' ', uselfn?sfull:full);
+					} else
 						WriteOut(MSG_Get("SHELL_CMD_ATTRIB_SET_ERROR"),uselfn?sfull:full);
 				} else
 					WriteOut("  %c  %c%c%c	%s\n", attra?'A':' ', attrs?'S':' ', attrh?'H':' ', attrr?'R':' ', uselfn?sfull:full);
@@ -1965,7 +1988,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		} else if (*args == 0 && *word && (strchr(word,'.') != 0)) { //Allow: ver set 5.1
 			const char * p = strchr(word,'.');
 			dos.version.major = (Bit8u)(atoi(word));
-			dos.version.minor = (Bit8u)(atoi(p+1));
+			dos.version.minor = (Bit8u)(strlen(p+1)==1&&*(p+1)>'0'&&*(p+1)<='9'?atoi(p+1)*10:atoi(p+1));
 		} else { //Official syntax: ver set 5 2
 			dos.version.major = (Bit8u)(atoi(word));
 			dos.version.minor = (Bit8u)(atoi(args));

@@ -120,6 +120,7 @@ void CheckSSESupport()
 extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
 extern bool         force_nocachedir;
+extern bool         wpcolon;
 
 extern Bitu         frames;
 extern Bitu         cycle_count;
@@ -770,6 +771,7 @@ void Init_VGABIOS() {
     assert(MemBase != NULL);
 
     force_nocachedir = section->Get_bool("nocachedir");
+    wpcolon = section->Get_bool("leading colon write protect image");
 
     VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
@@ -1525,6 +1527,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("nocachedir",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir by default.");
+
+    Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
 
     Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(512,65536);
@@ -2974,6 +2979,7 @@ void DOSBOX_SetupConfigSections(void) {
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
             "7.0                              MS-DOS 7.0 (Windows 95 pure DOS mode) emulation\n"
+            "7.1                              MS-DOS 7.1 (Windows 98 pure DOS mode) emulation\n"
             "LFN (long filename) support will be enabled with an initial DOS version of 7.0 or higher.\n");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
@@ -3070,7 +3076,7 @@ void DOSBOX_SetupConfigSections(void) {
 			"It has no effect if \"dos clipboard device enable\" is false, and it is deactivated if the secure mode is enabled.");
 
     Pint = secprop->Add_int("dos clipboard paste speed", Property::Changeable::WhenIdle, 20);
-    Pint->Set_help("Set keyboard speed for pasting from the windows clipboard.\n"
+    Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
         "If the default setting of 20 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
 

@@ -28,6 +28,7 @@
 #include "regs.h"
 #include "callback.h"
 #include "support.h"
+#include "inout.h"
 #include "../ints/int10.h"
 #ifdef WIN32
 #include "../dos/cdrom.h"
@@ -524,7 +525,12 @@ void DOS_Shell::InputCommand(char * line) {
                         // build the completion list
                         char mask[DOS_PATHLENGTH+2] = {0}, smask[DOS_PATHLENGTH] = {0};
                         if (p_completion_start && strlen(p_completion_start) + 3 >= DOS_PATHLENGTH) {
-                            //Beep;
+							IO_Write(0x43,0xb6);
+							IO_Write(0x42,1750&0xff);
+							IO_Write(0x42,1750>>8);
+							IO_Write(0x61,IO_Read(0x61)|0x3);
+							for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
+							IO_Write(0x61,IO_Read(0x61)&~0x3);
                             break;
                         }
                         if (p_completion_start) {
@@ -551,7 +557,13 @@ void DOS_Shell::InputCommand(char * line) {
 						}
                         if (!res) {
                             dos.dta(save_dta);
-                            break;	// TODO: beep
+							IO_Write(0x43,0xb6);
+							IO_Write(0x42,1750&0xff);
+							IO_Write(0x42,1750>>8);
+							IO_Write(0x61,IO_Read(0x61)|0x3);
+							for(Bitu i=0; i < 300; i++) CALLBACK_Idle();
+							IO_Write(0x61,IO_Read(0x61)&~0x3);
+                            break;
                         }
 
                         DOS_DTA dta(dos.dta());
@@ -656,7 +668,7 @@ void DOS_Shell::InputCommand(char * line) {
                     Bit16u a = str_len - str_index;
                     Bit8u* text=reinterpret_cast<Bit8u*>(&line[str_index]);
                     DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                    outc(8);//undo the cursor the right.
+                    backone();//undo the cursor the right.
                     for(Bitu i=str_len;i>str_index;i--) {
                         line[i]=line[i-1]; //move internal buffer
                         backone(); //move cursor back (from write buffer to screen)

@@ -873,14 +873,19 @@ void SHELL_Init() {
 	        "Type CD without parameters to display the current drive and directory.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP","Clear screen.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Directory View.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/AD] [/O[N|E|S|D]\n\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[-][D|S|H|R|A]] [/O[N|E|S|D]]\n\n"
 		   "   [drive:][path][filename]\n"
 		   "       Specifies drive, directory, and/or files to list.\n\n"
 		   "   /W\tUses wide list format.\n"
 		   "   /B\tUses bare format (no heading information or summary).\n"
 		   "   /S\tDisplays files in specified directory and all subdirectories.\n\t(not supported)\n"
 		   "   /P\tPauses after each screenful of information.\n"
-		   "   /AD\tDisplays directories.\n"
+		   "   /A\tDisplays all files and directories.\n"
+		   "   /AD\tDisplays all directories.\n"
+		   "   /AS\tDisplays files with system attributes.\n"
+		   "   /AH\tDisplays files with hidden attributes.\n"
+		   "   /AR\tDisplays files with read-only attributes.\n"
+		   "   /AA\tDisplays files with archive attributes.\n"
 		   "   /ON\tList files sorted by name (alphabetic).\n"
 		   "   /OE\tList files sorted by extension (alphabetic).\n"
 		   "   /OS\tList files sorted by size (smallest first).\n"

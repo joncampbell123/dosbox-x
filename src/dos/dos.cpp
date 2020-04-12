@@ -2761,11 +2761,10 @@ public:
 			if (isdigit(*s)) {
 				dos.version.minor=0;
 				dos.version.major=(int)strtoul(s,(char**)(&s),10);
-				if (*s == '.') {
+				if (*s == '.' || *s == ' ') {
 					s++;
-					if (isdigit(*s)) {
-						dos.version.minor=(int)strtoul(s,(char**)(&s),10);
-					}
+					if (isdigit(*s))
+						dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
 				}
 
 				/* warn about unusual version numbers */
@@ -3144,6 +3143,8 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			CALLBACK_SCF(true);
 			return;
 		}
+		if (strlen(name2)>2&&name2[strlen(name2)-2]=='\\'&&name2[strlen(name2)-1]=='*')
+			strcat(name2, ".*");
 		bool b=DOS_FindFirst(name2,reg_cx,handle);
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
