@@ -41,7 +41,7 @@
 #define FAT16		   1
 #define FAT32		   2
 
-extern bool         wpcolon;
+extern bool         wpcolon, faux;
 
 class fatFile : public DOS_File {
 public:
@@ -519,6 +519,12 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 		findFile = findDir;
 		findDir = strtok(NULL,"\\");
 	}
+	if (uselfn) {
+		int j=0;
+		for (int i=0; i<strlen(findFile); i++)
+			if (findFile[i]!=' '&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
+		findFile[j]=0;
+	}
 	if (strlen(findFile)>12)
 		strncpy(entname, findFile, 12);
 	else
@@ -618,6 +624,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	strcpy(dirtoken,filename);
 	findFile=dirtoken;
 
+	faux=true;
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
@@ -647,7 +654,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	/* Search found directory for our file */
 	imgDTA->SetupSearch(0,0x7,findFile);
 	imgDTA->SetDirID(0);
-	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) return false;
+	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {faux=false;return false;}
+	faux=false;
 
 	memcpy(useEntry, &foundEntry, sizeof(direntry));
 	*dirClust = (Bit32u)currentClust;
@@ -667,14 +675,17 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 		//LOG_MSG("Testing for dir %s", dir);
 		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
+			faux=true;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
 			findDir = strtok(NULL,"\\");
-			if(parDir && (findDir == NULL)) break;
+			if(parDir && (findDir == NULL)) {faux=false;break;}
 
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
+				faux=false;
 				return false;
 			} else {
+				faux=false;
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
@@ -1700,6 +1711,7 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
     char lfind_name[LFN_NAMELENGTH+1];
 	char extension[4];
 
+
     size_t dirent_per_sector = getSectSize() / sizeof(direntry);
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
@@ -2073,7 +2085,7 @@ bool fatDrive::MakeDir(const char *dir) {
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
 	addDirectoryEntry(dummyClust, tmpentry);
-	if(!getDirClustNum(dir, &dummyClust, false)) return false;
+	//if(!getDirClustNum(dir, &dummyClust, false)) return false;
 
 	return true;
 }

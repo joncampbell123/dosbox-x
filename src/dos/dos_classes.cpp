@@ -24,7 +24,8 @@
 #include "dos_inc.h"
 #include "support.h"
 
-char sname[LFN_NAMELENGTH+1],storect[CTBUF];
+bool faux=false;
+char sname[LFN_NAMELENGTH+1],fname[LFN_NAMELENGTH+1],storect[CTBUF];
 struct finddata {
        Bit8u attr;
        Bit8u fres1[19];
@@ -397,9 +398,9 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
     int i;
     for (i=0;i<LFN_NAMELENGTH;i++) {
         if (pattern[i]==0) break;
-			sname[i]=pattern[i];
+			(faux?fname:sname)[i]=pattern[i];
     }
-    while (i<=LFN_NAMELENGTH) sname[i++]=0;
+    while (i<=LFN_NAMELENGTH) (faux?fname:sname)[i++]=0;
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
     char * find_ext;
@@ -463,7 +464,7 @@ Bit8u DOS_DTA::GetSearchDrive(void) {
 void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
 	attr=(Bit8u)sGet(sDTA,sattr);
     if (lfn) {
-        memcpy(pattern,sname,LFN_NAMELENGTH);
+        memcpy(pattern,faux?fname:sname,LFN_NAMELENGTH);
            pattern[LFN_NAMELENGTH]=0;
     } else {
         char temp[11];

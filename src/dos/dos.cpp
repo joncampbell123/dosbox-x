@@ -1053,13 +1053,16 @@ static Bitu DOS_21Handler(void) {
                 reg_al = 0;                     // OK
                 break;
             }
-            LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Set System Time not supported");
             //Check input parameters nonetheless
             if( reg_ch > 23 || reg_cl > 59 || reg_dh > 59 || reg_dl > 99 )
                 reg_al = 0xff; 
             else { //Allow time to be set to zero. Restore the orginal time for all other parameters. (QuickBasic)
                 if (reg_cx == 0 && reg_dx == 0) {time_start = mem_readd(BIOS_TIMER);LOG_MSG("Warning: game messes with DOS time!");}
                 else time_start = 0;
+				Bit32u ticks=(Bit32u)(((double)(reg_ch*3600+
+												reg_cl*60+
+												reg_dh))*18.206481481);
+				mem_writed(BIOS_TIMER,ticks);
                 reg_al = 0;
             }
             break;
@@ -3145,12 +3148,12 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		}
 		if (strlen(name2)>2&&name2[strlen(name2)-2]=='\\'&&name2[strlen(name2)-1]=='*')
 			strcat(name2, ".*");
-		bool b=DOS_FindFirst(name2,reg_cx,handle);
+		bool b=DOS_FindFirst(name2,reg_cx,false);
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
 		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
-			b=DOS_FindFirst(name2,reg_cx,handle);
+			b=DOS_FindFirst(name2,reg_cx,false);
 			error=dos.errorcode;
 		}
 		if (b) {

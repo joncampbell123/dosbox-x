@@ -30,10 +30,13 @@
 #include "support.h"
 #include "builtin.h"
 #include "mapper.h"
+#include <unistd.h>
+#include <time.h>
 #include "build_timestamp.h"
 
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
+bool usecon = true;
 
 Bit16u shell_psp = 0;
 
@@ -183,11 +186,12 @@ DOS_Shell::DOS_Shell():Program(){
 	exit=false;
 	bf=0;
 	call=false;
+	lfnfor = uselfn;
     input_eof=false;
     completion_index = 0;
 }
 
-Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
+Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append) {
 
 	char * lr=s;
 	char * lw=s;
@@ -195,6 +199,7 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 	Bitu num=0;
 	bool quote = false;
 	char* t;
+	int q;
 
 	while ( (ch=*lr++) ) {
 		if(quote && ch != '"') { /* don't parse redirection within quotes. Not perfect yet. Escaped quotes will mess the count up */
@@ -207,45 +212,55 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 			quote = !quote;
 			break;
 		case '>':
-			*append=((*lr)=='>');
-			if (*append) lr++;
-			lr=ltrim(lr);
-			if (*ofn) free(*ofn);
-			*ofn=lr;
-			while (*lr && *lr!=' ' && *lr!='<' && *lr!='|') lr++;
-			//if it ends on a : => remove it.
-			if((*ofn != lr) && (lr[-1] == ':')) lr[-1] = 0;
-//			if(*lr && *(lr+1)) 
-//				*lr++=0; 
-//			else 
-//				*lr=0;
-			t = (char*)malloc((size_t)(lr-*ofn+1)); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
-            if (t != NULL)
-                safe_strncpy(t, *ofn, lr - *ofn + 1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
-            else
-                E_Exit("Memory allocation failed in GetRedirection");
-			*ofn=t;
+			*append = ((*lr) == '>');
+			if (*append)
+				lr++;
+			lr = ltrim(lr);
+			if (*ofn)
+				free(*ofn);
+			*ofn = lr;
+			q = 0;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '<' && *lr != '|') {
+				if (*lr=='"')
+					q++;
+				lr++;
+			}
+			// if it ends on a : => remove it.
+			if ((*ofn != lr) && (lr[-1] == ':'))
+				lr[-1] = 0;
+			t = (char*)malloc(lr-*ofn+1);
+			safe_strncpy(t, *ofn, lr-*ofn+1);
+			*ofn = t;
 			continue;
 		case '<':
-			if (*ifn) free(*ifn);
-			lr=ltrim(lr);
-			*ifn=lr;
-			while (*lr && *lr!=' ' && *lr!='>' && *lr != '|') lr++;
-			if((*ifn != lr) && (lr[-1] == ':')) lr[-1] = 0;
-//			if(*lr && *(lr+1)) 
-//				*lr++=0; 
-//			else 
-//				*lr=0;
-			t = (char*)malloc((size_t)(lr-*ifn+1)); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
-            if (t != NULL)
-                safe_strncpy(t, *ifn, lr - *ifn + 1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
-            else
-                E_Exit("Memory allocation failed in GetRedirection");
-			*ifn=t;
+			if (*ifn)
+				free(*ifn);
+			lr = ltrim(lr);
+			*ifn = lr;
+			q = 0;
+			while (*lr && (q/2*2!=q || *lr != ' ') && *lr != '>' && *lr != '|') {
+				if (*lr=='"')
+					q++;
+				lr++;
+			}
+			if ((*ifn != lr) && (lr[-1] == ':'))
+				lr[-1] = 0;
+			t = (char*)malloc(lr-*ifn+1);
+			safe_strncpy(t, *ifn, lr-*ifn+1);
+			*ifn = t;
 			continue;
 		case '|':
-			ch=0;
 			num++;
+			if (*toc)
+				free(*toc);
+			lr = ltrim(lr);
+			*toc = lr;
+			while (*lr)
+				lr++;
+			t = (char*)malloc(lr-*toc+1);
+			safe_strncpy(t, *toc, lr-*toc+1);
+			*toc = t;
+			continue;
 		}
 		*lw++=ch;
 	}
@@ -263,6 +278,7 @@ void DOS_Shell::ParseLine(char * line) {
 	
 	char * in  = 0;
 	char * out = 0;
+	char * toc = 0;
 
 	Bit16u dummy,dummy2;
 	Bit32u bigdummy = 0;
@@ -271,9 +287,8 @@ void DOS_Shell::ParseLine(char * line) {
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
-	num = GetRedirection(line,&in, &out,&append);
-	if (num>1) LOG_MSG("SHELL:Multiple command on 1 line not supported");
-	if (in || out) {
+	num = GetRedirection(line,&in, &out, &toc, &append);
+	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff); 
 		normalstdout = (psp->GetFileHandle(1) != 0xff); 
 	}
@@ -283,25 +298,69 @@ void DOS_Shell::ParseLine(char * line) {
 			LOG_MSG("SHELL:Redirect input from %s",in);
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
+		} else
+			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File open error - %s\n"), in);
+	}
+	bool fail=false;
+	char pipetmp[270];
+	Bit16u fattr;
+	if (toc) {
+#ifdef WIN32
+		srand(GetTickCount());
+#else
+		struct timespec ts;
+		unsigned theTick = 0U;
+		clock_gettime( CLOCK_REALTIME, &ts );
+		theTick  = ts.tv_nsec / 1000000;
+		theTick += ts.tv_sec * 1000;
+		srand(theTick);
+#endif
+		std::string line;
+		if (!GetEnvStr("TEMP",line)&&!GetEnvStr("TMP",line))
+			sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
+		else {
+			std::string::size_type idx = line.find('=');
+			std::string temp=line.substr(idx +1 , std::string::npos);
+			if (DOS_GetFileAttr(temp.c_str(), &fattr) && fattr&DOS_ATTR_DIRECTORY)
+				sprintf(pipetmp, "%s\\pipe%d.tmp", temp.c_str(), rand()%10000);
+			else
+				sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
 		}
 	}
-	if (out){
-		LOG_MSG("SHELL:Redirect output to %s",out);
+	if (out||toc) {
+		if (out&&toc)
+			WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
+		LOG_MSG("SHELL:Redirect output to %s",toc?pipetmp:out);
 		if(normalstdout) DOS_CloseFile(1);
 		if(!normalstdin && !in) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		bool status = true;
 		/* Create if not exist. Open if exist. Both in read/write mode */
-		if(append) {
-			if( (status = DOS_OpenFile(out,OPEN_READWRITE,&dummy)) ) {
+		if(!toc&&append) {
+			if (DOS_GetFileAttr(out, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
+				DOS_SetError(DOSERR_ACCESS_DENIED);
+				status = false;
+			} else if( (status = DOS_OpenFile(out,OPEN_READWRITE,&dummy)) ) {
 				 DOS_SeekFile(1,&bigdummy,DOS_SEEK_END);
 			} else {
 				status = DOS_CreateFile(out,DOS_ATTR_ARCHIVE,&dummy);	//Create if not exists.
 			}
+		} else if (!toc&&DOS_GetFileAttr(out, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			status = false;
 		} else {
-			status = DOS_OpenFileExtended(out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
+			if (toc&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
+				fail=true;
+			status = DOS_OpenFileExtended(toc?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
 		}
 		
-		if(!status && normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy); //Read only file, open con again
+		if(!status && normalstdout) {
+			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
+			if (!toc) {
+				WriteOut(!*out?"File creation error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?"Access denied - %s\n":"File creation error - %s\n"), out);
+				DOS_CloseFile(1);
+				DOS_OpenFile("nul", OPEN_READWRITE, &dummy);
+			}
+		}
 		if(!normalstdin && !in) DOS_CloseFile(0);
 	}
 	/* Run the actual command */
@@ -311,6 +370,7 @@ void DOS_Shell::ParseLine(char * line) {
 	int Reflect_Menu(void);
 	Reflect_Menu();
 #endif
+	if (toc||(!toc&&((out&&DOS_FindDevice(out)!=DOS_FindDevice("con"))||(in&&DOS_FindDevice(in)!=DOS_FindDevice("con"))))) usecon=false;
 
 	DoCommand(line);
 
@@ -326,13 +386,32 @@ void DOS_Shell::ParseLine(char * line) {
 		if(normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		free(in);
 	}
-	if(out) {
+	if(out||toc) {
 		DOS_CloseFile(1);
 		if(!normalstdin) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		if(normalstdout) DOS_OpenFile("con",OPEN_READWRITE,&dummy);
 		if(!normalstdin) DOS_CloseFile(0);
-		free(out);
+		if (out) free(out);
 	}
+	if (toc)
+		{
+		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
+			{
+			DOS_CloseFile(dummy);
+			if (normalstdin)
+				DOS_CloseFile(0);												// Close stdin
+			DOS_OpenFile(pipetmp, OPEN_READ, &dummy);							// Open new stdin
+			ParseLine(toc);
+			DOS_CloseFile(0);
+			if (normalstdin)
+				DOS_OpenFile("con", OPEN_READWRITE, &dummy);
+			}
+		else
+			WriteOut("Failed to create or open a temporary file for piping.\n");
+		free(toc);
+		if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)) DOS_UnlinkFile(pipetmp);
+		}
+	usecon=true;
 }
 
 
@@ -702,16 +781,19 @@ void SHELL_Init() {
                                     "  /F:         Switch back to DOSBox internal time (opposite of /S)\n"\
 									"  /T:         Only display date\n"\
 									"  /H:         Synchronize with host\n");
-	MSG_Add("SHELL_CMD_TIME_HELP","Displays the internal time.\n");
+	MSG_Add("SHELL_CMD_TIME_HELP","Displays or changes the internal time.\n");
+	MSG_Add("SHELL_CMD_TIME_ERROR","The specified time is not correct.\n");
 	MSG_Add("SHELL_CMD_TIME_NOW","Current time: ");
-	MSG_Add("SHELL_CMD_TIME_HELP_LONG","TIME [/T] [/H]\n"\
+	MSG_Add("SHELL_CMD_TIME_SETHLP","Type 'time hh:mm:ss' to change.\n");
+	MSG_Add("SHELL_CMD_TIME_HELP_LONG","TIME [[/T] [/H] | hh:mm:ss]\n"\
+									"  hh:mm:ss:   new time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
-	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s.\n");
-	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
+	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","Are you sure[Y,N]?");
 	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
@@ -724,9 +806,10 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_GOTO_LABEL_NOT_FOUND","GOTO: Label %s not found.\n");
 	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File %s not found.\n");
 	MSG_Add("SHELL_CMD_FILE_EXISTS","File %s already exists.\n");
-	MSG_Add("SHELL_CMD_DIR_INTRO"," Directory of %s.\n\n");
-	MSG_Add("SHELL_CMD_DIR_BYTES_USED","%5d File(s) %17s Bytes.\n");
-	MSG_Add("SHELL_CMD_DIR_BYTES_FREE","%5d Dir(s)  %17s Bytes free.\n");
+	MSG_Add("SHELL_CMD_DIR_INTRO"," Directory of %s\n\n");
+	MSG_Add("SHELL_CMD_DIR_BYTES_USED","%5d File(s) %17s Bytes\n");
+	MSG_Add("SHELL_CMD_DIR_BYTES_FREE","%5d Dir(s)  %17s Bytes free\n");
+	MSG_Add("SHELL_CMD_DIR_FILES_LISTED","Total files listed:\n");
 	MSG_Add("SHELL_EXECUTE_DRIVE_NOT_FOUND","Drive %c does not exist!\nYou must \033[31mmount\033[0m it first. Type \033[1;33mintro\033[0m or \033[1;33mintro mount\033[0m for more information.\n");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_CDROM","Do you want to give DOSBox access to your real CD-ROM drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY","Do you want to give DOSBox access to your real floppy drive %c [Y/N]?");
@@ -863,7 +946,9 @@ void SHELL_Init() {
                );
     }
 
-	MSG_Add("SHELL_CMD_CHDIR_HELP","Displays/changes the current directory.\n");
+	MSG_Add("SHELL_CMD_BREAK_HELP","Sets or clears extended CTRL+C checking.\n");
+	MSG_Add("SHELL_CMD_BREAK_HELP_LONG","BREAK [ON | OFF]\n\nType BREAK without a parameter to display the current BREAK setting.\n");
+	MSG_Add("SHELL_CMD_CHDIR_HELP","Displays or changes the current directory.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HELP_LONG","CHDIR [drive:][path]\n"
 	        "CHDIR [..]\n"
 	        "CD [drive:][path]\n"
@@ -872,13 +957,14 @@ void SHELL_Init() {
 	        "Type CD drive: to display the current directory in the specified drive.\n"
 	        "Type CD without parameters to display the current drive and directory.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP","Clear screen.\n");
+	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Directory View.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[-][D|S|H|R|A]] [/O[N|E|S|D]]\n\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D]]\n\n"
 		   "   [drive:][path][filename]\n"
 		   "       Specifies drive, directory, and/or files to list.\n\n"
 		   "   /W\tUses wide list format.\n"
 		   "   /B\tUses bare format (no heading information or summary).\n"
-		   "   /S\tDisplays files in specified directory and all subdirectories.\n\t(not supported)\n"
+		   "   /S\tDisplays files in specified directory and all subdirectories.\n"
 		   "   /P\tPauses after each screenful of information.\n"
 		   "   /A\tDisplays all files and directories.\n"
 		   "   /AD\tDisplays all directories.\n"
@@ -889,9 +975,15 @@ void SHELL_Init() {
 		   "   /ON\tList files sorted by name (alphabetic).\n"
 		   "   /OE\tList files sorted by extension (alphabetic).\n"
 		   "   /OS\tList files sorted by size (smallest first).\n"
-		   "   /OD\tList files sorted by date (oldest first).\n");
+		   "   /OD\tList files sorted by date (oldest first).\n\n"
+		   "   The \"-\" sign can be used in /A[D|S|H|R|A] and /O[N|E|S|D] commands,\n"
+		   "   meaning \"not\". For example, /A-D displays all files (not directories),\n"
+		   "   and /O-S lists files reversely sorted by size (biggest first).\n"
+		   );
 	MSG_Add("SHELL_CMD_ECHO_HELP","Display messages and enable/disable command echoing.\n");
+	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exit from the shell.\n");
+	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Show help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Make Directory.\n");
@@ -928,12 +1020,15 @@ void SHELL_Init() {
 		   "   label   Specifies a text string used in the batch program as a label.\n\n"
 		   "You type a label on a line by itself, beginning with a colon.\n");
 	MSG_Add("SHELL_CMD_SHIFT_HELP","Leftshift commandline parameters in a batch script.\n");
-	MSG_Add("SHELL_CMD_FOR_HELP","Does nothing. Provided for compatibility.\n");
+	MSG_Add("SHELL_CMD_SHIFT_HELP_LONG","SHIFT\n");
+	MSG_Add("SHELL_CMD_FOR_HELP","Runs a specified command for each file in a set of files.\n");
+	MSG_Add("SHELL_CMD_FOR_HELP_LONG","FOR %%variable IN (set) DO command [command-parameters]\n\n  %%variable  Specifies a replaceable parameter.\n  (set)      Specifies a set of one or more files. Wildcards may be used.\n  command    Specifies the command to carry out for each file.\n  command-parameters\n             Specifies parameters or switches for the specified command.\n\nTo use the command in a batch program, specify %%%%variable instead of %%variable.\n");
+	MSG_Add("SHELL_CMD_LFNFOR_HELP","Enables or disables long filenames when processing FOR wildcards.\n");
+	MSG_Add("SHELL_CMD_LFNFOR_HELP_LONG","LFNFOR [ON | OFF]\n\nType LFNFOR without a parameter to display the current LFNFOR setting.\n\nThis command is only useful if LFN support is currently enabled.\n");
 	MSG_Add("SHELL_CMD_TYPE_HELP","Display the contents of a text-file.\n");
 	MSG_Add("SHELL_CMD_TYPE_HELP_LONG","TYPE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_REM_HELP","Add comments in a batch file.\n");
 	MSG_Add("SHELL_CMD_REM_HELP_LONG","REM [comment]\n");
-	MSG_Add("SHELL_CMD_NO_WILD","This is a simple version of the command, no wildcards allowed!\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP","Renames one or more files.\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path]filename1 filename2.\n"
 	        "REN [drive:][path]filename1 filename2.\n\n"
@@ -958,35 +1053,41 @@ void SHELL_Init() {
 		   "batch-parameters   Specifies any command-line information required by\n"
 		   "                   the batch program.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP","Assign an internal directory to a drive.\n");
+	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires xms=true,umb=true).\n");
+	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
 	        "  /N  -  Do not display the choices at end of prompt.\n"
 	        "  /S  -  Enables case-sensitive choices to be selected.\n"
 	        "  text  -  The text to display as a prompt.\n");
-	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays/changes file attributes.\n");
-	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename]\n\n"
+	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
+	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
 			"  +	Sets an attribute.\n"
 			"  -	Clears an attribute.\n"
 			"  R	Read-only file attribute.\n"
 			"  A	Archive file attribute.\n"
 			"  S	System file attribute.\n"
 			"  H	Hidden file attribute.\n"
-			"  [drive:][path][filename]\n"
-			"	Specifies file(s) for ATTRIB to process.\n");
-	MSG_Add("SHELL_CMD_PATH_HELP","Displays/Sets a search path for executable files.\n");
+			"  [drive:][path][filename] Specifies file(s) for ATTRIB to process.\n"
+			"  /S Processes files in all directories in the specified path.\n");
+	MSG_Add("SHELL_CMD_PATH_HELP","Displays or sets a search path for executable files.\n");
 	MSG_Add("SHELL_CMD_PATH_HELP_LONG","PATH [[drive:]path[;...][;%PATH%]\n"
 		   "PATH ;\n\n"
 		   "Type PATH ; to clear all search path settings.\n"
 		   "Type PATH without parameters to display the current path.\n");
+	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify that your files are written correctly to a disk.\n");
+	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","View and set the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
-		   "VER SET [major minor]\n\n" 
-		   "  major minor   Set the reported DOS version. (e.g. VER SET 5 1)\n\n" 
+		   "VER SET [major minor] or VER SET [major.minor]\n\n" 
+		   "  [major minor] or [major.minor]  Set the reported DOS version.\n"
+		   "  e.g. \"VER SET 5 0\" or \"VER SET 7.1\" for DOS 5.0 or 7.1 resp.\n\n" 
 		   "Type VER without parameters to display the current DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP","Generates artificial keypresses.\n");
+	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");
 	MSG_Add("SHELL_CMD_VOL_HELP_LONG","VOL [drive]\n");
 	MSG_Add("SHELL_CMD_PROMPT_HELP","Change the command prompt.\n");
@@ -1012,8 +1113,10 @@ void SHELL_Init() {
 		   "  $$   $ (dollar sign)\n");
 	MSG_Add("SHELL_CMD_LABEL_HELP","Creates or changes the volume label of a disk.\n");
 	MSG_Add("SHELL_CMD_LABEL_HELP_LONG","LABEL [volume]\n\n\tvolume\t\tSpecifies the drive letter.\n");
+	MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
+	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
-	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [filename]\n");
+	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();

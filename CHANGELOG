@@ -6,12 +6,23 @@
     protects C:\DISK1.IMG but not C:\DISK2.IMG. The new
     config option "leading colon write protect image" can
     be used to disable or enable this behavior (Wengier)
-  - Improved -get & -set options for the CONFIG command.
+  - Support for changing DOSBox-X internal time (Wengier)
+  - Support for pipes (|), e.g. "DIR | MORE" should now
+    work as expected; it is recommended to set the %TEMP%
+    environment variable before using pipes (Wengier)
+  - Improved -get & -set options for the CONFIG command,
+    e.g. support for config options with spaces (Wengier)
+  - Improved REN (or RENAME) command to support wildcards
+    (* and ?) in the source and/or target files (Wengier) 
+  - Implemented FOR command to run a specified command for
+    each file in a set of files. Also added LFNFOR command
+    to control whether to use long filenames in the FOR
+    command as in MS-DOS 7+ (Wengier)
+  - Implemented ATTRIB command to view and set attributes
+    of files or directories (Wengier)
   - Added emulation of R (readonly) attribute bit for
     Linux and Unix systems through the user-writable
     file mode bits of the filesystem.
-  - Implemented ATTRIB command to view and set attributes
-    of files or directories (Wengier)
   - Fixed PC DOS 2000 crash during installation.
   - Fixed PC speaker emulation to allow higher PC speaker
     frequencies (10x the value of pcrate) to reduce
@@ -23,18 +34,20 @@
   - Increased DOS device limit, to avoid E_Exit() crash
     if all LPT and COM devices are enabled along with
     the new CLIP$ device.
-  - DIR command now supports /A, /AS, /A-S, /AH, /A-H,
-    /AR, /A-R, /AA, /A-A options; DIR /A shows all entries
-    whereas DIR alone shows all except system/hidden ones
-    as in a real DOS system (Wengier)
-  - DIR command fixed to show the volume label of the
-    drive you are listing, instead of always the current
-    drive (rderooy)
   - Minimum MCB free default changed to better reflect
     a typical MS-DOS setup with minimal to no drivers.
     This should result in a report of 600K-ish memory
     free, which is equivalent to Windows 95 without
     anything loaded except COMMAND.COM.
+  - DIR command now supports /S (search all directories)
+    as well as /A, /AS, /A-S, /AH, /A-H, /AR, /A-R, /AA,
+    /A-A options for file attribute support; Note that
+    DIR /A shows all files and directories whereas DIR
+    alone (without /A) shows all except system/hidden
+    ones as in a real DOS system (Wengier)
+  - DIR command fixed to show the volume label of the
+    drive you are listing, instead of always the current
+    drive (rderooy)
   - Various improvements to DEL and COPY commands, e.g.
     fixed the DEL /P option having no effect, and "DEL ."
     deleted all files in the current directory silently;

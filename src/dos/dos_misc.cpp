@@ -211,13 +211,25 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1302:
         reg_ax=0;
         return true;
+    case 0x1611:    /* Get shell parameters */
+		if (dos.version.major < 7) return false;
+        strcpy(name,"COMMAND.COM");
+        MEM_BlockWrite(SegPhys(ds)+reg_di,name,(Bitu)(strlen(name)+1));
+        strcpy(name+1,"Z:\\COMMAND.COM /P");
+		name[0]=(char)strlen(name+1);
+        MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name)+1));
+        reg_ax=0;
+        reg_bx=0;
+        return true;
     case 0x1612:
+		if (dos.version.major < 7) return false;
         reg_ax=0;
         name[0]=1;
         name[1]=0;
         MEM_BlockWrite(SegPhys(es)+reg_bx,name,0x20);
         return true;
     case 0x1613:    /* Get SYSTEM.DAT path */
+		if (dos.version.major < 7) return false;
         strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
         reg_ax=0;
@@ -491,6 +503,8 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x4a17:    /* Write bootlog */
         MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
         LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+        return true;
+    case 0x4a18:    /* Close bootlog */
         return true;
 	case 0x4a33:	/* Check MS-DOS Version 7 */
 		if (dos.version.major > 6) {

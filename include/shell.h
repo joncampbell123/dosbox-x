@@ -102,7 +102,7 @@ public:
 
     /*! \brief      Redirection handling
      */
-	Bitu GetRedirection(char *s, char **ifn, char **ofn,bool * append);
+	Bitu GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append);
 
     /*! \brief      Command line input and keyboard handling
      */
@@ -134,6 +134,10 @@ public:
     /*! \brief      Online HELP for the shell
      */
 	void CMD_HELP(char * args);
+
+    /*! \brief      Exteneded Ctrl+C switch
+     */
+	void CMD_BREAK(char * args);
 
     /*! \brief      Clear screen (CLS)
      */
@@ -239,6 +243,10 @@ public:
      */
 	void CMD_SHIFT(char * args);
 
+    /*! \brief      File verification switch
+     */
+	void CMD_VERIFY(char * args);
+
     /*! \brief      Print DOS version (VER)
      */
 	void CMD_VER(char * args);
@@ -268,6 +276,10 @@ public:
      */
 	void CMD_FOR(char * args);
 
+    /*! \brief      LFN switch for FOR
+     */
+	void CMD_LFNFOR(char * args);
+
 #if C_DEBUG
     /*! \brief      Execute command within debugger (break at entry point)
      */
@@ -279,6 +291,7 @@ public:
 	bool echo;
 	bool exit;
 	bool call;
+	bool lfnfor;
     /* Status */
     bool input_eof;                     //! STDIN has hit EOF
 };
