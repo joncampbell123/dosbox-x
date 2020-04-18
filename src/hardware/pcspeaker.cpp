@@ -63,7 +63,7 @@ typedef struct {
 
 #endif
 
-#define SPKR_ENTRIES 1024
+#define SPKR_ENTRIES 8192
 #define SPKR_VOLUME 10000
 //#define SPKR_SHIFT 8
 pic_tickindex_t SPKR_SPEED = 1.0;
