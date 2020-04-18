@@ -1,4 +1,7 @@
 0.83.1
+  - Tandy/PCjr 3-voice fixed to respond to I/O port 0xC0
+    regardless of 8-bit or 16-bit I/O (fixes Prince of
+    Persia).
   - Write-protecting a disk image in IMGMOUNT and BOOT
     commands now supported by putting a leading colon (:)
     before the image file name. Works with disk swapping;
