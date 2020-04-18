@@ -680,7 +680,6 @@ static inline void OPL3_STATUS_RESET(OPL3 *chip,int flag)
 	}
 }
 
-#if 0
 /* IRQ mask set */
 static inline void OPL3_STATUSMASK_SET(OPL3 *chip,int flag)
 {
@@ -689,7 +688,7 @@ static inline void OPL3_STATUSMASK_SET(OPL3 *chip,int flag)
 	OPL3_STATUS_SET(chip,0);
 	OPL3_STATUS_RESET(chip,0);
 }
-#endif
+
 
 /* advance LFO to next sample */
 static inline void advance_lfo(OPL3 *chip)
@@ -758,7 +757,7 @@ static inline void advance(OPL3 *chip)
 				{
 					op->volume += eg_inc[op->eg_sel_dr + ((chip->eg_cnt>>op->eg_sh_dr)&7)];
 
-					if ( (uint32_t)op->volume >= op->sl )
+					if ( op->volume >= op->sl )
 						op->state = EG_SUS;
 
 				}
@@ -819,6 +818,7 @@ static inline void advance(OPL3 *chip)
 		/* Phase Generator */
 		if(op->vib)
 		{
+			uint8_t block;
 			unsigned int block_fnum = CH->block_fnum;
 
 			unsigned int fnum_lfo   = (block_fnum&0x0380) >> 7;
@@ -828,7 +828,7 @@ static inline void advance(OPL3 *chip)
 			if (lfo_fn_table_index_offset)  /* LFO phase modulation active */
 			{
 				block_fnum += lfo_fn_table_index_offset;
-				uint8_t block = (block_fnum&0x1c00) >> 10;
+				block = (block_fnum&0x1c00) >> 10;
 				op->Cnt += (chip->fn_tab[block_fnum&0x03ff] >> (7-block)) * op->mul;
 			}
 			else    /* LFO phase modulation  = zero */
@@ -1385,17 +1385,17 @@ static void OPL3_initalize(OPL3 *chip)
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
-	chip->lfo_am_inc = (uint32_t)((1.0 / 64.0 ) * (1<<LFO_SH) * chip->freqbase);
+	chip->lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * chip->freqbase;
 
 	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
-	chip->lfo_pm_inc = (uint32_t)((1.0 / 1024.0) * (1<<LFO_SH) * chip->freqbase);
+	chip->lfo_pm_inc = (1.0 / 1024.0) * (1<<LFO_SH) * chip->freqbase;
 
 	/*logerror ("chip->lfo_am_inc = %8x ; chip->lfo_pm_inc = %8x\n", chip->lfo_am_inc, chip->lfo_pm_inc);*/
 
 	/* Noise generator: a step takes 1 sample */
-	chip->noise_f = (uint32_t)((1.0 / 1.0) * (1<<FREQ_SH) * chip->freqbase);
+	chip->noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * chip->freqbase;
 
-	chip->eg_timer_add  = (uint32_t)((1<<EG_SH)  * chip->freqbase);
+	chip->eg_timer_add  = (1<<EG_SH)  * chip->freqbase;
 	chip->eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("YMF262init eg_timer_add=%8x eg_timer_overflow=%8x\n", chip->eg_timer_add, chip->eg_timer_overflow);*/
 
@@ -1490,6 +1490,19 @@ static inline void set_mul(OPL3 *chip,int slot,int v)
 		//else normal 2 operator function
 		switch(chan_no)
 		{
+		case 0: case 1: case 2:
+		case 9: case 10: case 11:
+			if (CH->extended)
+			{
+				/* normal */
+				CALC_FCSLOT(CH,SLOT);
+			}
+			else
+			{
+				/* normal */
+				CALC_FCSLOT(CH,SLOT);
+			}
+		break;
 		case 3: case 4: case 5:
 		case 12: case 13: case 14:
 			if ((CH-3)->extended)
@@ -1540,6 +1553,19 @@ static inline void set_ksl_tl(OPL3 *chip,int slot,int v)
 		//else normal 2 operator function
 		switch(chan_no)
 		{
+		case 0: case 1: case 2:
+		case 9: case 10: case 11:
+			if (CH->extended)
+			{
+				/* normal */
+				SLOT->TLL = SLOT->TL + (CH->ksl_base>>SLOT->ksl);
+			}
+			else
+			{
+				/* normal */
+				SLOT->TLL = SLOT->TL + (CH->ksl_base>>SLOT->ksl);
+			}
+		break;
 		case 3: case 4: case 5:
 		case 12: case 13: case 14:
 			if ((CH-3)->extended)
@@ -1611,8 +1637,6 @@ static inline void set_sl_rr(OPL3 *chip,int slot,int v)
 
 static void update_channels(OPL3 *chip, OPL3_CH *CH)
 {
-    (void)chip;
-
 	/* update channel passed as a parameter and a channel at CH+=3; */
 	if (CH->extended)
 	{   /* we've just switched to combined 4 operator mode */
@@ -1631,7 +1655,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 	OPL3_CH *CH;
 	unsigned int ch_offset = 0;
 	int slot;
-	unsigned int block_fnum;
+	int block_fnum;
 
 	if(r&0x100)
 	{
@@ -1751,8 +1775,8 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 					if (chip->timer_handler) (chip->timer_handler)(chip->TimerParam,0,period);
 				}
 			}
-		break;
 #endif
+		break;
 		case 0x08:  /* x,NTS,x,x, x,x,x,x */
 			chip->nts = v;
 		break;
@@ -2089,7 +2113,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 
 		chip->pan_ctrl_value[ (r&0xf) + ch_offset ] = v;    /* store control value for OPL3/OPL2 mode switching on the fly */
 
-		CH->SLOT[SLOT1].FB  = ((v>>1)&7) ? ((v>>1)&7) + 7 : 0;
+		CH->SLOT[SLOT1].FB  = (v>>1)&7 ? ((v>>1)&7) + 7 : 0;
 		CH->SLOT[SLOT1].CON = v&1;
 
 		if( chip->OPL3_mode & 1 )
@@ -2259,8 +2283,6 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 /* lock/unlock for common table */
 static int OPL3_LockTable(device_t *device)
 {
-    (void)device;
-
 	num_lock++;
 	if(num_lock>1) return 0;
 
@@ -2437,8 +2459,6 @@ static int OPL3TimerOver(OPL3 *chip,int c)
 }
 
 static void OPL3_save_state(OPL3 *chip, device_t *device) {
-    (void)chip;
-    (void)device;
 #if 0 
 	for (int ch=0; ch<18; ch++) {
 		OPL3_CH *channel = &chip->P_CH[ch];

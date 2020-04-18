@@ -922,13 +922,12 @@ struct FM_OPL
 
 	void WriteReg(int r, int v);
 	void ResetChip();
+	void postload();
 
 
 	/* lock/unlock for common table */
 	static int LockTable(device_t *device)
 	{
-        (void)device;
-
 		num_lock++;
 		if(num_lock>1) return 0;
 
@@ -1465,17 +1464,17 @@ void FM_OPL::initialize()
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
-	lfo_am_inc = (uint32_t)((1.0 / 64.0 ) * (1<<LFO_SH) * freqbase);
+	lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * freqbase;
 
 	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
-	lfo_pm_inc = (uint32_t)((1.0 / 1024.0) * (1<<LFO_SH) * freqbase);
+	lfo_pm_inc = (1.0 / 1024.0) * (1<<LFO_SH) * freqbase;
 
 	/*logerror ("lfo_am_inc = %8x ; lfo_pm_inc = %8x\n", lfo_am_inc, lfo_pm_inc);*/
 
 	/* Noise generator: a step takes 1 sample */
-	noise_f = (uint32_t)((1.0 / 1.0) * (1<<FREQ_SH) * freqbase);
+	noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * freqbase;
 
-	eg_timer_add  = (uint32_t)((1<<EG_SH)  * freqbase);
+	eg_timer_add  = (1<<EG_SH)  * freqbase;
 	eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("OPLinit eg_timer_add=%8x eg_timer_overflow=%8x\n", eg_timer_add, eg_timer_overflow);*/
 }
@@ -1486,7 +1485,7 @@ void FM_OPL::WriteReg(int r, int v)
 {
 	OPL_CH *CH;
 	int slot;
-	unsigned int block_fnum;
+	int block_fnum;
 
 
 	/* adjust bus to 8 bits */
@@ -1731,7 +1730,7 @@ void FM_OPL::WriteReg(int r, int v)
 		/* FB,C */
 		if( (r&0x0f) > 8) return;
 		CH = &P_CH[r&0x0f];
-		CH->SLOT[SLOT1].FB  = ((v>>1)&7) ? ((v>>1)&7) + 7 : 0;
+		CH->SLOT[SLOT1].FB  = (v>>1)&7 ? ((v>>1)&7) + 7 : 0;
 		CH->SLOT[SLOT1].CON = v&1;
 		CH->SLOT[SLOT1].connect1 = CH->SLOT[SLOT1].CON ? &output[0] : &phase_modulation;
 		break;
@@ -1764,15 +1763,15 @@ void FM_OPL::ResetChip()
 	WriteReg(0x02,0); /* Timer1 */
 	WriteReg(0x03,0); /* Timer2 */
 	WriteReg(0x04,0); /* IRQ mask clear */
-	for(unsigned int i = 0xff ; i >= 0x20 ; i-- ) WriteReg(i,0);
+	for(int i = 0xff ; i >= 0x20 ; i-- ) WriteReg(i,0);
 
 	/* reset operator parameters */
 //	for(OPL_CH &CH : P_CH)
-	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
 	{
 		OPL_CH &CH = P_CH[ch];
 //		for(OPL_SLOT &SLOT : CH.SLOT)
-		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
 		{
 		    
 			OPL_SLOT &SLOT = CH.SLOT[slot];
@@ -1792,6 +1791,59 @@ void FM_OPL::ResetChip()
 		DELTAT->portshift = 5;
 		DELTAT->output_range = 1<<23;
 		DELTAT->ADPCM_Reset(0,YM_DELTAT::EMULATION_MODE_NORMAL,device);
+	}
+#endif
+}
+
+
+void FM_OPL::postload()
+{
+	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	{
+		OPL_CH &CH = P_CH[ch];
+		/* Look up key scale level */
+		uint32_t const block_fnum = CH.block_fnum;
+		CH.ksl_base = static_cast<uint32_t>(ksl_tab[block_fnum >> 6]);
+		CH.fc       = fn_tab[block_fnum & 0x03ff] >> (7 - (block_fnum >> 10));
+
+		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		{
+			OPL_SLOT &SLOT = CH.SLOT[slot];
+			/* Calculate key scale rate */
+			SLOT.ksr = CH.kcode >> SLOT.KSR;
+
+			/* Calculate attack, decay and release rates */
+			if ((SLOT.ar + SLOT.ksr) < 16+62)
+			{
+				SLOT.eg_sh_ar  = eg_rate_shift [SLOT.ar + SLOT.ksr ];
+				SLOT.eg_sel_ar = eg_rate_select[SLOT.ar + SLOT.ksr ];
+			}
+			else
+			{
+				SLOT.eg_sh_ar  = 0;
+				SLOT.eg_sel_ar = 13*RATE_STEPS;
+			}
+			SLOT.eg_sh_dr  = eg_rate_shift [SLOT.dr + SLOT.ksr ];
+			SLOT.eg_sel_dr = eg_rate_select[SLOT.dr + SLOT.ksr ];
+			SLOT.eg_sh_rr  = eg_rate_shift [SLOT.rr + SLOT.ksr ];
+			SLOT.eg_sel_rr = eg_rate_select[SLOT.rr + SLOT.ksr ];
+
+			/* Calculate phase increment */
+			SLOT.Incr = CH.fc * SLOT.mul;
+
+			/* Total level */
+			SLOT.TLL = SLOT.TL + (CH.ksl_base >> SLOT.ksl);
+
+			/* Connect output */
+			SLOT.connect1 = SLOT.CON ? &output[0] : &phase_modulation;
+		}
+	}
+#if BUILD_Y8950
+	if ( (type & OPL_TYPE_ADPCM) && (deltat) )
+	{
+		// We really should call the postlod function for the YM_DELTAT, but it's hard without registers
+		// (see the way the YM2610 does it)
+		//deltat->postload(REGS);
 	}
 #endif
 }

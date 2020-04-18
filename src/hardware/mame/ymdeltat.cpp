@@ -465,8 +465,6 @@ void YM_DELTAT::savestate(device_t *device)
 	device->save_item(NAME(DELTAT->prev_acc));
 	device->save_item(NAME(DELTAT->adpcmd));
 	device->save_item(NAME(DELTAT->adpcml));
-#else
-    (void)device;
 #endif
 }
 
@@ -479,11 +477,13 @@ void YM_DELTAT::savestate(device_t *device)
 
 static inline void YM_DELTAT_synthesis_from_external_memory(YM_DELTAT *DELTAT)
 {
+	uint32_t step;
+	int data;
+
 	DELTAT->now_step += DELTAT->step;
 	if ( DELTAT->now_step >= (1<<YM_DELTAT_SHIFT) )
 	{
-		int data;
-		uint32_t step = DELTAT->now_step >> YM_DELTAT_SHIFT;
+		step = DELTAT->now_step >> YM_DELTAT_SHIFT;
 		DELTAT->now_step &= (1<<YM_DELTAT_SHIFT)-1;
 		do{
 			if ( DELTAT->now_addr == (DELTAT->limit<<1) )
@@ -558,11 +558,13 @@ static inline void YM_DELTAT_synthesis_from_external_memory(YM_DELTAT *DELTAT)
 
 static inline void YM_DELTAT_synthesis_from_CPU_memory(YM_DELTAT *DELTAT)
 {
+	uint32_t step;
+	int data;
+
 	DELTAT->now_step += DELTAT->step;
 	if ( DELTAT->now_step >= (1<<YM_DELTAT_SHIFT) )
 	{
-		uint32_t step = DELTAT->now_step >> YM_DELTAT_SHIFT;
-		int data;
+		step = DELTAT->now_step >> YM_DELTAT_SHIFT;
 		DELTAT->now_step &= (1<<YM_DELTAT_SHIFT)-1;
 		do{
 			if( DELTAT->now_addr&1 )

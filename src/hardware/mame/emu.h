@@ -56,9 +56,6 @@ public:
 	sound_stream temp;
 
 	sound_stream* stream_alloc(int whatever, int channels, int size) {
-        (void)whatever;
-        (void)channels;
-        (void)size;
 		return &temp;
 	};
 	
@@ -66,8 +63,6 @@ public:
 	virtual void sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples) = 0;
 
 	device_sound_interface(const machine_config &mconfig, device_t& _device) {
-        (void)mconfig;
-        (void)_device;
 	}
 
 };
@@ -76,7 +71,6 @@ struct attotime {
 	int whatever;
 
 	static attotime from_hz(int hz) {
-        (void)hz;
 		return attotime();
 	}
 };
@@ -124,28 +118,18 @@ public:
 	}
 
 	void save_item(int wtf, int blah= 0) {
-        (void)wtf;
-        (void)blah;
 	}
 
 	device_t(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 _clock) : clockRate( _clock ) {
-        (void)mconfig;
-        (void)type;
-        (void)tag;
-        (void)owner;
-        (void)_clock;
 	}
 
-    virtual ~device_t() {
-        // silence GCC warning about deleting polymorphic classes
-    }
-
+	virtual ~device_t() {
+	}
 };
 
 
 
-inline static void auto_free(const device_t::machine_t& machine, void * buffer) {
-    (void)machine;
+static void auto_free(const device_t::machine_t& machine, void * buffer) {
 	free(buffer);
 }
 

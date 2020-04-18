@@ -155,7 +155,6 @@ saa1099_device::saa1099_device(const machine_config &mconfig, const char *tag, d
 	, m_sync_state(0)
 	, m_selected_reg(0)
 	, m_sample_rate(0.0)
-    , m_master_clock(0)
 {
 	FILL_ARRAY( m_noise_params );
 	FILL_ARRAY( m_env_enable );
@@ -175,11 +174,11 @@ saa1099_device::saa1099_device(const machine_config &mconfig, const char *tag, d
 void saa1099_device::device_start()
 {
 	/* copy global parameters */
-	m_master_clock = (int)clock();
-	m_sample_rate = (int)clock() / 256;
+	m_master_clock = clock();
+	m_sample_rate = clock() / 256;
 
 	/* for each chip allocate one stream */
-	m_stream = stream_alloc(0, 2, (int)m_sample_rate);
+	m_stream = stream_alloc(0, 2, m_sample_rate);
 
 	save_item(NAME(m_noise_params));
 	save_item(NAME(m_env_enable));
@@ -220,15 +219,13 @@ void saa1099_device::device_start()
 
 void saa1099_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
 {
-    (void)stream;
-    (void)inputs;
 	int j, ch;
 	/* if the channels are disabled we're done */
 	if (!m_all_ch_enable)
 	{
 		/* init output data */
-		memset(outputs[LEFT],0,(unsigned int)samples*sizeof(*outputs[LEFT]));
-		memset(outputs[RIGHT],0,(unsigned int)samples*sizeof(*outputs[RIGHT]));
+		memset(outputs[LEFT],0,samples*sizeof(*outputs[LEFT]));
+		memset(outputs[RIGHT],0,samples*sizeof(*outputs[RIGHT]));
 		return;
 	}
 
@@ -363,9 +360,6 @@ void saa1099_device::envelope_w(int ch)
 
 WRITE8_MEMBER( saa1099_device::control_w )
 {
-    (void)offset;
-    (void)space;
-
 	if ((data & 0xff) > 0x1c)
 	{
 		/* Error! */
@@ -388,9 +382,6 @@ WRITE8_MEMBER( saa1099_device::data_w )
 {
 	int reg = m_selected_reg;
 	int ch;
-
-    (void)offset;
-    (void)space;
 
 	/* first update the stream to this point in time */
 	m_stream->update();
