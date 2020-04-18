@@ -289,14 +289,6 @@ public:
 		if (machine == MCH_PCJR) activeDevice = &device_sn76496;
 		else activeDevice = &device_ncr8496;
 
-		/* ports from second DMA controller conflict with tandy ports at 0xC0.
-		 * Furthermore, the default I/O handlers after de-registration are needed
-		 * to ensure the SN76496 is writeable at port 0xC0 whether you're doing
-		 * normal 8-bit I/O or your a weirdo like Prince of Persia using 16-bit
-		 * I/O to write frequency values. (bugfix for Tandy mode of Prince of
-		 * Persia). */
-		CloseSecondDMAController();
-
 		if (IS_TANDY_ARCH) {
 			/* enable tandy sound if tandy=true/auto */
 			if ((strcmp(section->Get_string("tandy"),"true")!=0) &&
@@ -314,6 +306,13 @@ public:
 			}
 		}
 
+		/* ports from second DMA controller conflict with tandy ports at 0xC0.
+		 * Furthermore, the default I/O handlers after de-registration are needed
+		 * to ensure the SN76496 is writeable at port 0xC0 whether you're doing
+		 * normal 8-bit I/O or your a weirdo like Prince of Persia using 16-bit
+		 * I/O to write frequency values. (bugfix for Tandy mode of Prince of
+		 * Persia). */
+		CloseSecondDMAController();
 
 		Bit32u sample_rate = section->Get_int("tandyrate");
 		tandy.chan=MixerChan.Install(&SN76496Update,sample_rate,"TANDY");
