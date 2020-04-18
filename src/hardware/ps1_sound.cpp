@@ -25,8 +25,11 @@
 #include "setup.h"
 #include "pic.h"
 #include "dma.h"
-#include "sn76496.h"
+#include "mame/emu.h"
+#include "mame/sn76496.h"
 #include "control.h"
+
+// FIXME: MAME updates broke this code!
 
 extern bool PS1AudioCard;
 #define DAC_CLOCK 1000000
@@ -64,8 +67,10 @@ struct PS1AUDIO
 	Bitu last_writeSN;
 	int SampleRate;
 
+#if 0
 	// SN76496.
 	struct SN76496 sn;
+#endif
 
 	// "DAC".
 	Bit8u FIFO[FIFOSIZE];
@@ -211,7 +216,9 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 				PS1DAC_Reset(true);
 			break;
 		case 0x0205:
+#if 0
 			SN76496Write(&ps1.sn,port,data);
+#endif
 			break;
 		default:break;
 	}
@@ -325,7 +332,9 @@ static void PS1SN76496Update(Bitu length)
 	}
 
 	Bit16s * buffer=(Bit16s *)MixTemp;
+#if 0
 	SN76496Update(&ps1.sn,buffer,length);
+#endif
 	ps1.chanSN->AddSamples_m16(length,(Bit16s *)MixTemp);
 }
 
@@ -383,7 +392,9 @@ public:
 //
 // NTS: I do not have anything to test this change! --J.C.
 //		SN76496Reset( &ps1.sn, 3579545, sample_rate );
-		SN76496Reset( &ps1.sn, 4000000, sample_rate );
+#if 0
+        SN76496Reset( &ps1.sn, 4000000, sample_rate );
+#endif
 	}
 	~PS1SOUND(){ }
 };
