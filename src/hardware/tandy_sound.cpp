@@ -269,6 +269,8 @@ static void TandyDACUpdate(Bitu length) {
 		 * with the 8-bit DAC stepping noise on return to zero. In any case, this
 		 * modification makes the Tandy DAC sound effects in Prince of Persia much
 		 * more enjoyable to listen to and match the apparent sound of real hardware. */
+		/* NTS: This doesn't quite make the DAC step noise heard on real hardware, but
+		 *      it's good enough for now. */
 	} else if (tandy.dac.dma.last_sample != 128) {
 		for (Bitu ct=0; ct < length; ct++) {
 			tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
