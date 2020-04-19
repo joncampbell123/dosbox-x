@@ -343,6 +343,8 @@ public:
 
 			tandy.dac.enabled=true;
 			tandy.dac.chan=MixerChanDAC.Install(&TandyDACUpdate,sample_rate,"TANDYDAC");
+			tandy.dac.chan->SetLowpassFreq(6000);
+			tandy.dac.chan->SetSlewFreq(22050);
 
 			tandy.dac.hw.base=0xc4;
 			tandy.dac.hw.irq =7;
