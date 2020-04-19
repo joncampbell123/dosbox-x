@@ -1,4 +1,11 @@
 0.83.1
+  - Tandy DAC output fixed to slowly ramp last sample to
+    zero DC sample (128) when switched off. This fixes
+    loud popping (DC offset) problems with Tandy DAC
+    sound effects in Prince of Persia. This new behavior
+    also seems to match real Tandy 1000 hardware according
+    to video captures of it's audio/video outputs while
+    playing Prince of Persia on it.
   - Tandy/PCjr 3-voice fixed to respond to I/O port 0xC0
     regardless of 8-bit or 16-bit I/O (fixes Prince of
     Persia).
