@@ -274,10 +274,8 @@ static void TandyDACUpdate(Bitu length) {
 	} else if (tandy.dac.dma.last_sample != 128) {
 		for (Bitu ct=0; ct < length; ct++) {
 			tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
-			if (tandy.dac.dma.last_sample > 128)
-				tandy.dac.dma.last_sample--;
-			else if (tandy.dac.dma.last_sample < 128)
-				tandy.dac.dma.last_sample++;
+			if (tandy.dac.dma.last_sample != 128)
+				tandy.dac.dma.last_sample = (Bit8u)(((((int)tandy.dac.dma.last_sample - 128) * 63) / 64) + 128);
 		}
 	} else {
 		tandy.dac.chan->AddSilence();
