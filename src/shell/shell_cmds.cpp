@@ -87,6 +87,7 @@ static SHELL_Cmd cmd_list[]={
 {	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"LFNFOR",	1,			&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
+{	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,		"SHELL_CMD_TRUENAME_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes.\n"},
 {   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture.\n"},
 #if C_DEBUG
@@ -874,7 +875,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
 
 	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
-	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true;
 	if (ret) {
 		std::vector<DtaResult> results;
 
@@ -981,19 +982,23 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			}
 		}
 
-		if (optW&&w_count%5) shell->WriteOut("\n");
+		if (!results.size())
+			found=false;
+		else if (optW&&w_count%5)
+			shell->WriteOut("\n");
 	} else
-		if (!optB) {
-			shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
-			p_count+=optW?5:1;
-			if (optP && p_count%(22*w_size)<1) {
-				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-				Bit8u c;Bit16u n=1;
-				DOS_ReadFile(STDIN,&c,&n);
-				if (c==3) {shell->WriteOut("^C\r\n");return false;}
-				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
-			}
+		found=false;
+	if (!found&&!optB) {
+		shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		p_count+=optW?5:1;
+		if (optP && p_count%(22*w_size)<1) {
+			shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+			Bit8u c;Bit16u n=1;
+			DOS_ReadFile(STDIN,&c,&n);
+			if (c==3) {shell->WriteOut("^C\r\n");return false;}
+			if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 		}
+	}
 	if (optS) {
 		size_t len=strlen(sargs);
 		strcat(sargs, "*.*");
@@ -2022,7 +2027,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 	}
 }
 
-void DOS_Shell::CMD_SUBST (char * args) {
+void DOS_Shell::CMD_SUBST(char * args) {
 /* If more that one type can be substed think of something else 
  * E.g. make basedir member dos_drive instead of localdrive
  */
@@ -2381,6 +2386,25 @@ void DOS_Shell::CMD_VOL(char *args){
 	WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL"));
 	WriteOut("0000-1234\n"); // fake serial number
 	return;
+}
+
+void DOS_Shell::CMD_TRUENAME(char * args) {
+	HELP("TRUENAME");
+	args = trim(args);
+	if (!*args) {
+		WriteOut("No file name given.\n");
+		return;
+	}
+	if (char* rem = ScanCMDRemain(args)) {
+		WriteOut("Invalid switch - %s\n", rem);
+		return;
+	}
+	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
+	Bit8u drive;
+	if (DOS_MakeName(name, fullname, &drive))
+		WriteOut("%c:\\%s\r\n", drive+'A', fullname);
+	else
+		WriteOut(dos.errorcode==DOSERR_PATH_NOT_FOUND?"Path not found\n":"File not found\n");
 }
 
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);

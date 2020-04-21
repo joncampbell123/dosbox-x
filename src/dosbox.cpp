@@ -3075,11 +3075,6 @@ void DOSBOX_SetupConfigSections(void) {
             "If unset or invalid, the default name CLIP$ will be used (e.g. \"TYPE CLIP$\" shows the clipboard contents).\n"
 			"It has no effect if \"dos clipboard device enable\" is false, and it is deactivated if the secure mode is enabled.");
 
-    Pint = secprop->Add_int("dos clipboard paste speed", Property::Changeable::WhenIdle, 20);
-    Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
-        "If the default setting of 20 causes lost keystrokes, increase the number.\n"
-        "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
-
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
     Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Enable ipx over UDP/IP emulation.");
@@ -3286,8 +3281,8 @@ void DOSBOX_SetupConfigSections(void) {
         "You can put your MOUNT lines here.\n"
     );
     MSG_Add("CONFIGFILE_INTRO",
-            "# This is the configuration file for DOSBox %s. (Please use the latest version of DOSBox)\n"
-            "# Lines starting with a # are comment lines and are ignored by DOSBox.\n"
+            "# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)\n"
+            "# Lines starting with a # are comment lines and are ignored by DOSBox-X.\n"
             "# They are used to (briefly) document the effect of each option.\n"
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");

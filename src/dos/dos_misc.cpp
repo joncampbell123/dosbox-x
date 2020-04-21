@@ -93,6 +93,7 @@ static Bitu INT2A_Handler(void) {
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 
 // INT 2F
+char regpath[CROSS_LEN+1]="C:\\WINDOWS\\SYSTEM.DAT";
 static bool DOS_MultiplexFunctions(void) {
     char name[256];
 	switch (reg_ax) {
@@ -230,10 +231,15 @@ static bool DOS_MultiplexFunctions(void) {
         return true;
     case 0x1613:    /* Get SYSTEM.DAT path */
 		if (dos.version.major < 7) return false;
-        strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
+        strcpy(name,regpath);
         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
         reg_ax=0;
         reg_cx=(Bit16u)strlen(name);
+        return true;
+    case 0x1614:    /* Set SYSTEM.DAT path */
+		if (dos.version.major < 7) return false;
+        MEM_StrCopy(SegPhys(es)+reg_di,regpath,CROSS_LEN+1);
+        reg_ax=0;
         return true;
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
@@ -502,7 +508,7 @@ static bool DOS_MultiplexFunctions(void) {
         return true;
     case 0x4a17:    /* Write bootlog */
         MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
-        LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+        LOG_MSG("BOOTLOG: %s\n",name);
         return true;
     case 0x4a18:    /* Close bootlog */
         return true;

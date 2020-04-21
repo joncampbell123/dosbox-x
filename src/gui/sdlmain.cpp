@@ -499,6 +499,9 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+void PasteClipboard(bool bPressed);
+void CopyClipboard(void);
+
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
@@ -659,6 +662,8 @@ bool                        dos_kernel_disabled = true;
 bool                        startup_state_numlock = false; // Global for keyboard initialisation
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
+int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed;
+const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -965,7 +970,7 @@ void PushDummySDL(void) {
 }
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion);
-static void HandleMouseButton(SDL_MouseButtonEvent * button);
+static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion);
 
 #if defined(C_SDL2)
 # if !defined(IGNORE_TOUCHSCREEN)
@@ -1075,10 +1080,10 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
             if (touchscreen_finger_lock == no_finger_id &&
                 touchscreen_touch_lock == no_touch_id &&
                 event.button.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
-                HandleMouseButton(&event.button);
+                HandleMouseButton(&event.button,&event.motion);
             }
 #else
-            HandleMouseButton(&event.button);
+            HandleMouseButton(&event.button,&event.motion);
 #endif
             break;
 #if defined(C_SDL2)
@@ -3344,6 +3349,9 @@ static void GUI_StartUp() {
     else if (feedback == "flash")
         sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
 
+	modifier = section->Get_string("clip_key_modifier");
+    paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
+
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
@@ -3477,7 +3485,6 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-    void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
     MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clipboard"); //end emendelson
 #if C_DEBUG
     /* Pause binds with activate-debugger */
@@ -3887,8 +3894,18 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = false;
     else if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
         inputToScreen = true;
-    else
+    else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
+#if defined (WIN32)
+		if (mouse_start_x >= 0 && &mouse_start_y >= 0) {
+			if (fx>=0 && fy>=0)
+				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+			fx=motion->x;
+			fy=motion->y;
+		}
+#endif
+	}
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     if (GFX_GetPreventFullscreen()) {
@@ -4051,7 +4068,7 @@ void MenuFreeScreen(void) {
 }
 #endif
 
-static void HandleMouseButton(SDL_MouseButtonEvent * button) {
+static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
     bool inputToScreen = false;
     bool inMenu = false;
 
@@ -4554,6 +4571,17 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
+#if defined(WIN32)
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && (!strcmp(modifier,"none")
+			|| (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN
+			|| (!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN || (!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN
+			|| (!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN || (!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN
+			)) {
+			mouse_start_x=motion->x;
+			mouse_start_y=motion->y;
+			break;
+		} else
+#endif
         if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
             CaptureMouseNotify();
             GFX_CaptureMouse();
@@ -4585,6 +4613,28 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         }
         break;
     case SDL_RELEASED:
+#if defined(WIN32)
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && mouse_start_x >= 0 && &mouse_start_y >= 0) {
+			mouse_end_x=motion->x;
+			mouse_end_y=motion->y;
+			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
+				PasteClipboard(true);
+			else {
+				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
+					PasteClipboard(true);
+				} else
+					CopyClipboard();
+			}
+			mouse_start_x = -1;
+			mouse_start_y = -1;
+			mouse_end_x = -1;
+			mouse_end_y = -1;
+			fx = -1;
+			fy = -1;
+			break;
+		}
+#endif
         switch (button->button) {
         case SDL_BUTTON_LEFT:
             Mouse_ButtonReleased(0);
@@ -4611,6 +4661,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 void GFX_LosingFocus(void) {
     sdl.laltstate=SDL_KEYUP;
     sdl.raltstate=SDL_KEYUP;
+    sdl.lctrlstate=SDL_KEYUP;
+    sdl.rctrlstate=SDL_KEYUP;
+    sdl.lshiftstate=SDL_KEYUP;
+    sdl.rshiftstate=SDL_KEYUP;
     MAPPER_LosingFocus();
     DoExtendedKeyboardHook(false);
 }
@@ -4716,7 +4770,7 @@ static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
         fakeb.button = SDL_BUTTON_LEFT;
         fakeb.x = fake.x;
         fakeb.y = fake.y;
-        HandleMouseButton(&fakeb);
+        HandleMouseButton(&fakeb,&fake);
     }
 }
 
@@ -5020,10 +5074,10 @@ void GFX_Events() {
             if (touchscreen_finger_lock == no_finger_id &&
                 touchscreen_touch_lock == no_touch_id &&
                 event.button.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
-                HandleMouseButton(&event.button);
+                HandleMouseButton(&event.button,&event.motion);
             }
 #else
-            HandleMouseButton(&event.button);
+            HandleMouseButton(&event.button,&event.motion);
 #endif
             break;
 #if !defined(IGNORE_TOUCHSCREEN)
@@ -5271,7 +5325,7 @@ void GFX_Events() {
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            HandleMouseButton(&event.button);
+            HandleMouseButton(&event.button,&event.motion);
             break;
         case SDL_VIDEORESIZE:
             UpdateWindowDimensions(); // FIXME: Use SDL window dimensions, except that on Windows, SDL won't tell us our actual dimensions
@@ -5289,6 +5343,10 @@ void GFX_Events() {
             // ignore event alt+tab
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_LCTRL) sdl.lctrlstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
             if (((event.key.keysym.sym==SDLK_TAB)) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
@@ -5315,18 +5373,15 @@ void GFX_Events() {
     // keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
     // while (PasteClipboardNext());
     // Doesn't really matter though, it's fast enough as it is...
-    int paste_speed = 20;
-    Section* sec = control->GetSection("dos");
-    Section_prop* section = static_cast<Section_prop*>(sec);
-    paste_speed = (unsigned int)section->Get_int("dos clipboard paste speed");
+	if (paste_speed < 0) paste_speed = 20;
 
     static Bitu iPasteTicker = 0;
-    if ((iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
+    if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
         PasteClipboardNext();   // end added emendelson from dbDOS
 #endif
 }
 
-// added emendelson from dbDos
+// added emendelson from dbDos; improved by Wengier
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 #include <cassert>
 
@@ -5614,13 +5669,27 @@ void PasteClipboard(bool bPressed)
     ::CloseClipboard();
 }
 /// TODO: add menu items here 
-#else // end emendelson from dbDOS
+#else // end emendelson from dbDOS; improved by Wengier
+# if defined(WIN32) && defined(C_SDL2)
+void PasteClipboard(bool bPressed) {
+	if (!bPressed) return;
+	char *text = NULL;
+	long len = 0;
+	if (OpenClipboard(NULL)) {
+		text = (char*)GetClipboardData(CF_OEMTEXT);
+	if (text!=NULL)
+		for (unsigned int i=0;i<strlen(text);i++)
+			if (text[i] != 0x0A)
+				BIOS_AddKeyToBuffer(text[i]);
+	}
+	CloseClipboard();
+}
+# else
 void PasteClipboard(bool bPressed) {
     (void)bPressed;//UNUSED
     // stub
 }
 
-# if !defined(C_SDL2)
 bool PasteClipboardNext() {
     // stub
     return false;
@@ -5630,6 +5699,21 @@ bool PasteClipboardNext() {
 
 
 #if defined (WIN32)
+void CopyClipboard(void) {
+	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+	if (OpenClipboard(NULL)) {
+		HGLOBAL clipbuffer;
+		char * buffer;
+		EmptyClipboard();
+		clipbuffer = GlobalAlloc(GMEM_DDESHARE, strlen(text)+1);
+		buffer = (char*)GlobalLock(clipbuffer);
+		strcpy(buffer, text);
+		GlobalUnlock(clipbuffer);
+		SetClipboardData(CF_OEMTEXT,clipbuffer);
+		CloseClipboard();
+	}
+}
+
 static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     switch (event) {
     case CTRL_SHUTDOWN_EVENT:
@@ -5733,6 +5817,17 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
+
+	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", "disabled", 0};
+	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "disabled");
+	Pstring->Set_values(clipboardmodifier);
+	Pstring->Set_help("Change the keyboard modifier for the Windows clipboard copy/paste function using the right mouse button.\n"
+		"Set to \"none\" if no modifier is desired. Set to \"disabled\" will disable this feature (default).");
+
+    Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
+    Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
+        "If the default setting of 20 causes lost keystrokes, increase the number.\n"
+        "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
 
     Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
     Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
@@ -5961,10 +6056,11 @@ static void printconfiglocation() {
 }
 
 static void eraseconfigfile() {
-    FILE* f = fopen("dosbox.conf","r");
+    FILE* f = fopen("dosbox-x.conf","r");
+	if (!f) f = fopen("dosbox.conf","r");
     if(f) {
         fclose(f);
-        show_warning("Warning: dosbox.conf exists in current working directory.\nThis will override the configuration file at runtime.\n");
+        show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nThis will override the configuration file at runtime.\n");
     }
     std::string path,file;
     Cross::GetPlatformConfigDir(path);
@@ -5978,11 +6074,12 @@ static void eraseconfigfile() {
 }
 
 static void erasemapperfile() {
-    FILE* g = fopen("dosbox.conf","r");
+    FILE* g = fopen("dosbox-x.conf","r");
+	if (!g) g = fopen("dosbox.conf","r");
     if(g) {
         fclose(g);
-        show_warning("Warning: dosbox.conf exists in current working directory.\nKeymapping might not be properly reset.\n"
-                     "Please reset configuration as well and delete the dosbox.conf.\n");
+        show_warning("Warning: dosbox-x.conf (or dosbox.conf) exists in current working directory.\nKeymapping might not be properly reset.\n"
+                     "Please reset configuration as well and delete the dosbox-x.conf (or dosbox.conf).\n");
     }
 
     std::string path,file=MAPPERFILE;
@@ -6108,9 +6205,9 @@ bool DOSBOX_parse_argv() {
         if (optname == "version") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2019 DOSBox Team.\n\n",VERSION,SDL_STRING);
-            fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-            fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
+            fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"DOSBox-X comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
             fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
 
@@ -6120,12 +6217,13 @@ bool DOSBOX_parse_argv() {
 
             return 0;
         }
-        else if (optname == "h" || optname == "help") {
+        else if (optname == "?" || optname == "h" || optname == "help") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\ndosbox [options]\n");
-            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2019 DOSBox Team.\n\n",VERSION,SDL_STRING);
-            fprintf(stderr,"  -h     -help                            Show this help\n");
+            fprintf(stderr,"\ndosbox-x [options]\n");
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
+            fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"  -?, -h, -help                           Show this help\n");
             fprintf(stderr,"  -editconf                               Launch editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
             fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
@@ -7625,7 +7723,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
-        /* -- -- if none found, use dosbox.conf */
+        /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
+        if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
 
         /* -- -- if none found, use userlevel conf */
@@ -7815,6 +7914,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* assume L+R ALT keys are up */
         sdl.laltstate = SDL_KEYUP;
         sdl.raltstate = SDL_KEYUP;
+        sdl.lctrlstate = SDL_KEYUP;
+        sdl.rctrlstate = SDL_KEYUP;
+        sdl.lshiftstate = SDL_KEYUP;
+        sdl.rshiftstate = SDL_KEYUP;
 
 #if defined(WIN32) && !defined(C_SDL2)
 # if SDL_VERSION_ATLEAST(1, 2, 10)

@@ -169,8 +169,9 @@ struct SDL_Block {
     Bit32u focus_ticks = 0;
 #endif
     // state of alt-keys for certain special handlings
-    Bit16u laltstate = 0;
-    Bit16u raltstate = 0;
+    Bit16u laltstate = 0, raltstate = 0;
+    Bit16u lctrlstate = 0, rctrlstate = 0;
+    Bit16u lshiftstate = 0, rshiftstate = 0;
     bool must_redraw_all = false;
     bool deferred_resize = false;
     bool init_ignore = false;

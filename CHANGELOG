@@ -1,4 +1,6 @@
 0.83.1
+  - dosbox-x.conf is now recognized as the default config
+    file name in addition to dosbox.conf (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
     zero DC sample (128) when switched off. This fixes
     loud popping (DC offset) problems with Tandy DAC
@@ -20,10 +22,14 @@
   - Support for pipes (|), e.g. "DIR | MORE" should now
     work as expected; it is recommended to set the %TEMP%
     environment variable before using pipes (Wengier)
+  - Improved redirections using "<" or ">" (Wengier)
+  - Improved Ctrl+C handling in some commands (Wengier)
   - Improved -get & -set options for the CONFIG command,
     e.g. support for config options with spaces (Wengier)
   - Improved REN (or RENAME) command to support wildcards
     (* and ?) in the source and/or target files (Wengier) 
+  - Added BREAK, VERIFY and TRUENAME commands as in a real
+    DOS system. Type "[command] /?" for help info (Wengier)
   - Implemented FOR command to run a specified command for
     each file in a set of files. Also added LFNFOR command
     to control whether to use long filenames in the FOR
@@ -79,8 +85,19 @@
     The DOS device name can also be changed with
     the "dos clipboard device name" setting in
     dosbox.conf. (Wengier)
-  - Updated the PasteClipboard feature to support
-    Unicode text translations. (Wengier)
+  - Added support for using the right mouse button
+    to copy and paste from the Windows clipboard; the
+    config option "clip_key_modifier" can be used to
+    Change the keyboard modifier such as none, alt, ctrl,
+    shift, or disable this feature (default). (Wengier)
+  - Updated the PasteClipboard feature in SDL1 build
+    to support Unicode text translations. (Wengier)
+  - Fixed the PasteClipboard feature in SDL2 build;
+    a keyboard buffer expansion program like keybuf.com
+    is recommended to paste long contents from the
+    Windows clipboard in SDL2 build. (Wengier)
+  - Support for DOSLIB2's w95sysrg/w95sysrs utils to
+    get/set system registry location in DOS 7+. (Wengier)
   - Long filename support added, adapted from
     the vDosPlus project. It will be enabled with
     an initial DOS version of 7.0 or higher. (Wengier)

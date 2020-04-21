@@ -1117,6 +1117,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
+	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
+	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
+
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();

@@ -903,7 +903,8 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
-					case 0x08: WriteOut("\b \b"); goto first_2;
+					case 0x3: WriteOut("^C\n");return true;
+					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
 			case 'y':			case 'Y':
@@ -912,9 +913,11 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x08: WriteOut("\b \b"); goto first_2;
+					case 0x3: WriteOut("^C\n");return true;
+					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 			}
+			case 0x3: WriteOut("^C\n");return true;
 			case 0xD: WriteOut("\n"); goto first_1;
 			case '\t': case 0x08: goto first_2;
 			default:
@@ -923,7 +926,8 @@ first_2:
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
 					case 0xD: WriteOut("\n");goto first_1;
-					case 0x08: WriteOut("\b \b"); goto first_2;
+					case 0x3: WriteOut("^C\n");return true;
+					case 0x8: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 				goto first_2;
 			}

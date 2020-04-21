@@ -629,8 +629,8 @@ void CONFIG::Run(void) {
 				// write config to startup directory
 				writeconf(pvars[0], false, all);
 			} else {
-				// -wcp without parameter: write dosbox.conf to startup directory
-				if (control->configfiles.size()) writeconf(std::string("dosbox.conf"), false, all);
+				// -wcp without parameter: write dosbox-x.conf to startup directory
+				if (control->configfiles.size()) writeconf(std::string("dosbox-x.conf"), false, all);
 				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
@@ -1058,7 +1058,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NOCONFIGFILE","No config file loaded!\n");
 	MSG_Add("PROGRAM_CONFIG_PRIMARY_CONF","Primary config file: \n%s\n");
 	MSG_Add("PROGRAM_CONFIG_ADDITIONAL_CONF","Additional config files:\n");
-	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox %s configuration directory: \n%s\n\n");
+	MSG_Add("PROGRAM_CONFIG_CONFDIR","DOSBox-X %s configuration directory: \n%s\n\n");
 	
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
@@ -1070,7 +1070,7 @@ void PROGRAMS_Init() {
 		"-writeconf or -wc with filename: write file to config directory.\n"\
 		"Use -writelang or -wl filename to write the current language strings.\n"\
 		"-all  Use -all with -wc and -writeconf to write ALL options to the file.\n"\
-		"-wcp [filename]\n Write config file to the program directory, dosbox.conf or the specified \n filename.\n"\
+		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
 		"-wcd\n Write to the default config file in the config directory.\n"\
 		"-l lists configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
@@ -1083,13 +1083,13 @@ void PROGRAMS_Init() {
         " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
         " as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value." );
+		"-set \"section property=value\" sets the value.\n" );
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_POSINT","positive integer"); 
 	MSG_Add("PROGRAM_CONFIG_HLP_SECTHLP","Section %s contains the following properties:\n");				
-	MSG_Add("PROGRAM_CONFIG_HLP_SECTLIST","DOSBox configuration contains the following sections:\n\n");
+	MSG_Add("PROGRAM_CONFIG_HLP_SECTLIST","DOSBox-X configuration contains the following sections:\n\n");
 
 	MSG_Add("PROGRAM_CONFIG_SECURE_ON","Switched to secure mode.\n");
 	MSG_Add("PROGRAM_CONFIG_SECURE_DISALLOW","This operation is not permitted in secure mode.\n");
@@ -1099,6 +1099,6 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
-	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox was started with the following command line parameters:\n%s");
+	MSG_Add("PROGRAM_CONFIG_PRINT_STARTUP","\nDOSBox-X was started with the following command line parameters:\n%s");
 	MSG_Add("PROGRAM_CONFIG_MISSINGPARAM","Missing parameter.");
 }

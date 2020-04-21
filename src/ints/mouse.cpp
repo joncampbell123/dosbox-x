@@ -707,6 +707,77 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
+#if defined(WIN32)
+char text[50*81];
+const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h) {
+	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+	char str[2];
+	if (c1>c2) {
+		t=c1;
+		c1=c2;
+		c2=t;
+	}
+	if (r1>r2) {
+		t=r1;
+		r1=r2;
+		r2=t;
+	}
+	Bit16u result;
+	text[0]=0;
+	for (int i=r1; i<=r2; i++) {
+		for (int j=c1; j<=c2; j++) {
+			ReadCharAttr(j,i,page,&result);
+			sprintf(str,"%c",result);
+			if (str[0]==0) continue;
+			strcat(text,str);
+		}
+		while (strlen(text)>0&&text[strlen(text)-1]==32) text[strlen(text)-1]=0;
+		if (i<r2) strcat(text,"\r\n");
+	}
+	return text;
+}
+
+void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
+	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+	if (c1>c2) {
+		t=c1;
+		c1=c2;
+		c2=t;
+	}
+	if (r1>r2) {
+		t=r1;
+		r1=r2;
+		r2=t;
+	}
+	for (int i=r1; i<=r2; i++)
+		for (int j=c1; j<=c2; j++)
+			real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
+}
+
+void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
+	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+	if (c1>c2) {
+		t=c1;
+		c1=c2;
+		c2=t;
+	}
+	if (r1>r2) {
+		t=r1;
+		r1=r2;
+		r2=t;
+	}
+	for (int i=r1; i<=r2; i++)
+		for (int j=c1; j<=c2; j++)
+			real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
+}
+#endif
+
 void Mouse_ButtonPressed(Bit8u button) {
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         switch (button) {

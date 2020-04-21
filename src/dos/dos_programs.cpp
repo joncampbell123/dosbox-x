@@ -1675,6 +1675,11 @@ static void BOOT_ProgramStart(Program * * make) {
 class LOADROM : public Program {
 public:
     void Run(void) {
+		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+			WriteOut(MSG_Get("PROGRAM_LOADROM_HELP"));
+			return;
+		}
+
         if (!(cmd->FindCommand(1, temp_line))) {
             WriteOut(MSG_Get("PROGRAM_LOADROM_SPECIFY_FILE"));
             return;
@@ -2383,7 +2388,7 @@ void LOADFIX::Run(void)
         kb = 1024;
     }
 
-    if (cmd->FindExist("-?", false)) {
+    if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
         WriteOut(MSG_Get("PROGRAM_LOADFIX_HELP"));
         return;
     }
@@ -4539,7 +4544,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
-        "Reduces the amount of available conventional or XMS memory\n\n"
+        "Reduces the amount of available conventional or XMS memory.\n\n"
         "LOADFIX [-xms] [-{ram}] [{program}]\n"
         "LOADFIX -f [-xms]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
@@ -4566,23 +4571,23 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_RESCAN_SUCCESS","Drive cache cleared.\n");
 
     MSG_Add("PROGRAM_INTRO",
-        "\033[2J\033[32;1mWelcome to DOSBox\033[0m, an x86 emulator with sound and graphics.\n"
-        "DOSBox creates a shell for you which looks like old plain DOS.\n"
+        "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an x86 emulator with sound and graphics.\n"
+        "DOSBox-X creates a shell for you which looks like old plain DOS.\n"
         "\n"
-        "\033[31;1mDOSBox will stop/exit without a warning if an error occurred!\033[0m\n"
+        "\033[31;1mDOSBox-X will stop/exit without a warning if an error occurred!\033[0m\n"
         "\n"
         "\n" );
     if (machine == MCH_PC98) {
         MSG_Add("PROGRAM_INTRO_MENU_UP",
             "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox Introduction \033[0m\n"
+            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox-X Introduction \033[0m\n"
             "\033[44m\033[K\033[1m\033[1m \x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\033[0m\n"
             "\033[44m\033[K\033[0m\n"
             );
     } else {
         MSG_Add("PROGRAM_INTRO_MENU_UP",
             "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox Introduction \033[0m\n"
+            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox-X Introduction \033[0m\n"
             "\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
             "\033[44m\033[K\033[0m\n"
             );
@@ -4592,18 +4597,18 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_INTRO_MENU_USAGE","Usage");
     MSG_Add("PROGRAM_INTRO_MENU_INFO","Information");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT","Quit");
-    MSG_Add("PROGRAM_INTRO_MENU_BASIC_HELP","\n\033[1m   \033[1m\033[KMOUNT allows you to connect real hardware to DOSBox's emulated PC.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox, you have to specify some additional options\n   when mounting the CD-ROM.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_USAGE_HELP","\n\033[1m   \033[1m\033[KAn overview of the command line options you can give to DOSBox.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_INFO_HELP","\n\033[1m   \033[1m\033[KHow to get more information about DOSBox.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_BASIC_HELP","\n\033[1m   \033[1m\033[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox-X, you have to specify some additional options\n   when mounting the CD-ROM.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_USAGE_HELP","\n\033[1m   \033[1m\033[KAn overview of the command line options you can give to DOSBox-X.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_INFO_HELP","\n\033[1m   \033[1m\033[KHow to get more information about DOSBox-X.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT_HELP","\n\033[1m   \033[1m\033[KExit from Intro.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_USAGE_TOP",
-        "\033[2J\033[32;1mAn overview of the command line options you can give to DOSBox.\033[0m\n"
+        "\033[2J\033[32;1mAn overview of the command line options you can give to DOSBox-X.\033[0m\n"
         "Windows Users must open cmd.exe or command.com or edit the shortcut to\n"
-        "DOSBox.exe for this.\n\n"
-        "dosbox [name] [-exit] [-c command] [-fullscreen] [-conf congfigfile]\n"
-        "       [-lang languagefile] [-machine machinetype] [-noconsole]\n"
-        "       [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n       [-version]\n\n"
+        "DOSBox-X.exe for this.\n\n"
+        "dosbox-x [name] [-exit] [-c command] [-fullscreen] [-conf congfigfile]\n"
+        "         [-lang languagefile] [-machine machinetype] [-noconsole]\n"
+        "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n       [-version]\n\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_1",
         "\033[33;1m  name\033[0m\n"
@@ -4611,7 +4616,7 @@ void DOS_SetupPrograms(void) {
         "\tIf name is an executable it will mount the directory of name\n"
         "\tas the C: drive and execute name.\n\n"
         "\033[33;1m  -exit\033[0m\n"
-        "\tDOSBox will close itself when the DOS application name ends.\n\n"
+        "\tDOSBox-X will close itself when the DOS application name ends.\n\n"
         "\033[33;1m  -c\033[0m command\n"
         "\tRuns the specified command before running name. Multiple commands\n"
         "\tcan be specified. Each command should start with -c, though.\n"
@@ -4620,19 +4625,19 @@ void DOS_SetupPrograms(void) {
         );
     MSG_Add("PROGRAM_INTRO_USAGE_2",
         "\033[33;1m  -fullscreen\033[0m\n"
-        "\tStarts DOSBox in fullscreen mode.\n\n"
+        "\tStarts DOSBox-X in fullscreen mode.\n\n"
         "\033[33;1m  -conf\033[0m configfile\n"
-        "\tStart DOSBox with the options specified in configfile.\n"
+        "\tStart DOSBox-X with the options specified in configfile.\n"
         "\tSee README for more details.\n\n"
         "\033[33;1m  -lang\033[0m languagefile\n"
-        "\tStart DOSBox using the language specified in languagefile.\n\n"
+        "\tStart DOSBox-X using the language specified in languagefile.\n\n"
         "\033[33;1m  -noconsole\033[0m (Windows Only)\n"
-        "\tStart DOSBox without showing the console window. Output will\n"
+        "\tStart DOSBox-X without showing the console window. Output will\n"
         "\tbe redirected to stdout.txt and stderr.txt\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_3",
         "\033[33;1m  -machine\033[0m machinetype\n"
-        "\tSetup DOSBox to emulate a specific type of machine. Valid choices are:\n"
+        "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices are:\n"
         "\thercules, cga, pcjr, tandy, vga (default). The machinetype affects\n"
         "\tboth the videocard and the available soundcards.\n\n"
         "\033[33;1m  -startmapper\033[0m\n"
@@ -4649,11 +4654,11 @@ void DOS_SetupPrograms(void) {
         "For information about CD-ROM support, type \033[34;1mintro cdrom\033[0m\n"
         "For information about special keys, type \033[34;1mintro special\033[0m\n"
         "For information about usage, type \033[34;1mintro usage\033[0m\n\n"
-        "For the latest version of DOSBox, go to \033[34;1mhttp://www.dosbox.com\033[0m\n"
+        "For the latest version of DOSBox-X, go to \033[34;1mhttp://www.dosbox-x.com\033[0m\n"
         "\n"
-        "For more information about DOSBox, read README first!\n"
+        "For more information about DOSBox-X, read README first!\n"
         "\n"
-        "\033[34;1mhttp://www.dosbox.com/wiki\033[0m\n"
+        "\033[34;1mhttps://github.com/joncampbell123/dosbox-x/wiki\033[0m\n"
         "\033[34;1mhttp://vogons.zetafleet.com\033[0m\n"
         );
     MSG_Add("PROGRAM_INTRO_MOUNT_START",
@@ -4736,14 +4741,14 @@ void DOS_SetupPrograms(void) {
             );
     }
     MSG_Add("PROGRAM_INTRO_CDROM",
-        "\033[2J\033[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox:\033[0m\n"
-        "DOSBox provides CD-ROM emulation on several levels.\n"
+        "\033[2J\033[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:\033[0m\n"
+        "DOSBox-X provides CD-ROM emulation on several levels.\n"
         "\n"
         "The \033[33mbasic\033[0m level works on all CD-ROM drives and normal directories.\n"
         "It installs MSCDEX and marks the files read-only.\n"
         "Usually this is enough for most games:\n"
         "\033[34;1mmount d \033[0;31mD:\\\033[34;1m -t cdrom\033[0m   or   \033[34;1mmount d C:\\example -t cdrom\033[0m\n"
-        "If it doesn't work you might have to tell DOSBox the label of the CD-ROM:\n"
+        "If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:\n"
         "\033[34;1mmount d C:\\example -t cdrom -label CDLABEL\033[0m\n"
         "\n"
         "The \033[33mnext\033[0m level adds some low-level support.\n"
@@ -4763,7 +4768,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_NOT_EXIST","Bootdisk file does not exist.  Failing.\n");
     MSG_Add("PROGRAM_BOOT_NOT_OPEN","Cannot open bootdisk file.  Failing.\n");
     MSG_Add("PROGRAM_BOOT_WRITE_PROTECTED","Image file is read-only! Boot in write-protected mode.\n");
-    MSG_Add("PROGRAM_BOOT_PRINT_ERROR","This command boots DOSBox from either a floppy or hard disk image.\n\n"
+    MSG_Add("PROGRAM_BOOT_PRINT_ERROR","This command boots DOSBox-X from either a floppy or hard disk image.\n\n"
         "For this command, one can specify a succession of floppy disks swappable\n"
         "by pressing Ctrl-F4, and -l specifies the mounted drive to boot from.  If\n"
         "no drive letter is specified, this defaults to booting from the A drive.\n"
@@ -4783,6 +4788,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
+    MSG_Add("PROGRAM_LOADROM_HELP","LOADROM ROM_file\n");
+    MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_SPECIFY_FILE","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_CANT_OPEN","ROM file not accessible.\n");
     MSG_Add("PROGRAM_LOADROM_TOO_LARGE","ROM file too large.\n");

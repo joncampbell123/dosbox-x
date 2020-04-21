@@ -3379,12 +3379,12 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             uint64_t n;
 
             n = ((unsigned int)(drivehead&0xF)<<24)+((unsigned int)lba[2]<<16)+((unsigned int)lba[1]<<8)+(unsigned int)lba[0];
-            LOG_MSG("IDE ATA command %02x dh=0x%02x count=0x%02x lba=%07llx/%07llx\n",cmd,
+            LOG(LOG_SB,LOG_DEBUG)("IDE ATA command %02x dh=0x%02x count=0x%02x lba=%07llx/%07llx\n",cmd,
                 drivehead,count,(unsigned long long)n,
                 (unsigned long long)(phys_sects * phys_cyls * phys_heads));
         }
         else {
-            LOG_MSG("IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
+            LOG(LOG_SB,LOG_DEBUG)("IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
                 drivehead,count,((unsigned int)lba[2]<<8)+(unsigned int)lba[1],(unsigned int)(drivehead&0xF),(unsigned int)lba[0]);
         }
 

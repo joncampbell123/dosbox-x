@@ -1299,7 +1299,7 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
     SDL_Surface *sdlscreen;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration");
 
     sdlscreen = screen->getSurface();
     auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, configString);
@@ -1359,7 +1359,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration");
 
     sdlscreen = screen->getSurface();
     switch (select) {
