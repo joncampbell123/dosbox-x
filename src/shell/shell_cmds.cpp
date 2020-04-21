@@ -1800,15 +1800,21 @@ void DOS_Shell::CMD_MORE(char * args) {
 		while (true) {
 			DOS_ReadFile (STDIN,&c,&n);
 			if (c==3) {WriteOut("^C\r\n");dos.echo=echo;return;}
-			else if ((c==10&&last==10) || (c==13&&last==26)) {dos.echo=echo;return;}
+			else if (n==0) {if (last!=10) WriteOut("\r\n");dos.echo=echo;return;}
+			else if (c==13&&last==26) {dos.echo=echo;return;}
 			else {
 				if (c==10);
 				else if (c==13) {
 					linecount++;
 					WriteOut("\r\n");
+				} else if (c=='\t') {
+					do {
+						WriteOut(" ");
+						nchars++;
+					} while ( nchars < COLS && nchars % TABSIZE );
 				} else {
 					nchars++;
-					WriteOut("%c", c=='\t'?' ':c);
+					WriteOut("%c", c);
 				}
 				if (c == 13 || nchars >= COLS) {
 					nlines++;
@@ -2335,7 +2341,12 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
-	if(args && *args) {
+	bool optR=ScanCMDBool(args,"R");
+	if (char* rem = ScanCMDRemain(args)) {
+		WriteOut("Invalid switch - %s\n", rem);
+		return;
+	}
+	if(!optR && args && *args) {
 		char* word = StripWord(args);
 		if(strcasecmp(word,"set")) return;
 		word = StripWord(args);

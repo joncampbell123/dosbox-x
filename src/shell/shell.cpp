@@ -407,7 +407,7 @@ void DOS_Shell::ParseLine(char * line) {
 				DOS_OpenFile("con", OPEN_READWRITE, &dummy);
 			}
 		else
-			WriteOut("Failed to create or open a temporary file for piping.\n");
+			WriteOut("\nFailed to create/open a temporary file for piping. Check the %%TEMP%% variable.\n");
 		free(toc);
 		if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)) DOS_UnlinkFile(pipetmp);
 		}
@@ -462,7 +462,7 @@ void DOS_Shell::Run(void) {
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
     }
     else {
-        WriteOut("DOSBox command shell %s %s\n\n",VERSION,UPDATED_STR);
+        WriteOut("DOSBox-X command shell %s %s\n\n",VERSION,UPDATED_STR);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
@@ -778,7 +778,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DATE_HELP_LONG","DATE [[/T] [/H] [/S] | MM-DD-YYYY]\n"\
 									"  MM-DD-YYYY: new date to set\n"\
 									"  /S:         Permanently use host time and date as DOS time\n"\
-                                    "  /F:         Switch back to DOSBox internal time (opposite of /S)\n"\
+                                    "  /F:         Switch back to DOSBox-X internal time (opposite of /S)\n"\
 									"  /T:         Only display date\n"\
 									"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_TIME_HELP","Displays or changes the internal time.\n");
@@ -811,9 +811,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DIR_BYTES_FREE","%5d Dir(s)  %17s Bytes free\n");
 	MSG_Add("SHELL_CMD_DIR_FILES_LISTED","Total files listed:\n");
 	MSG_Add("SHELL_EXECUTE_DRIVE_NOT_FOUND","Drive %c does not exist!\nYou must \033[31mmount\033[0m it first. Type \033[1;33mintro\033[0m or \033[1;33mintro mount\033[0m for more information.\n");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_CDROM","Do you want to give DOSBox access to your real CD-ROM drive %c [Y/N]?");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY","Do you want to give DOSBox access to your real floppy drive %c [Y/N]?");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox access to everything\non your real drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_CDROM","Do you want to give DOSBox-X access to your real CD-ROM drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY","Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting c:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Illegal command: %s.\n");
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue.\n");
@@ -869,7 +869,7 @@ void SHELL_Init() {
         MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
+                "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox-X directory. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
         MSG_Add("SHELL_STARTUP_PC98","\x86\x46 DOSBox-X is now running in NEC PC-98 emulation mode.               \x86\x46\n"
@@ -908,11 +908,11 @@ void SHELL_Init() {
         MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
+                "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox-X directory. \xBA\n"
                 "\xBA                                                                    \xBA\n"
                );
         if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox supports Composite CGA mode.                                \xBA\n"
+            MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox-X supports Composite CGA mode.                                \xBA\n"
                     "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
                     "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
                     "\xBA                                                                    \xBA\n"
@@ -1079,13 +1079,13 @@ void SHELL_Init() {
 		   "Type PATH without parameters to display the current path.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify that your files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
-	MSG_Add("SHELL_CMD_VER_HELP","View and set the reported DOS version.\n");
+	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
 		   "VER SET [major minor] or VER SET [major.minor]\n\n" 
 		   "  [major minor] or [major.minor]  Set the reported DOS version.\n"
 		   "  e.g. \"VER SET 5 0\" or \"VER SET 7.1\" for DOS 5.0 or 7.1 resp.\n\n" 
 		   "Type VER without parameters to display the current DOS version.\n");
-	MSG_Add("SHELL_CMD_VER_VER","DOSBox version %s (%s). Reported DOS version %d.%02d.\n");
+	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP","Generates artificial keypresses.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");

@@ -21,13 +21,15 @@
   - Support for changing DOSBox-X internal time (Wengier)
   - Support for pipes (|), e.g. "DIR | MORE" should now
     work as expected; it is recommended to set the %TEMP%
-    environment variable before using pipes (Wengier)
+    (or %TMP%) environment variable to a writable directory
+    inside DOSBox-X before using pipes (Wengier)
   - Improved redirections using "<" or ">" (Wengier)
   - Improved Ctrl+C handling in some commands (Wengier)
   - Improved -get & -set options for the CONFIG command,
     e.g. support for config options with spaces (Wengier)
   - Improved REN (or RENAME) command to support wildcards
-    (* and ?) in the source and/or target files (Wengier) 
+    (* and ?) in the source and/or target files (Wengier)
+  - Some improvements to commands like MORE & VER (Wengier)
   - Added BREAK, VERIFY and TRUENAME commands as in a real
     DOS system. Type "[command] /?" for help info (Wengier)
   - Implemented FOR command to run a specified command for
@@ -88,13 +90,14 @@
   - Added support for using the right mouse button
     to copy and paste from the Windows clipboard; the
     config option "clip_key_modifier" can be used to
-    Change the keyboard modifier such as none, alt, ctrl,
+    change the keyboard modifier such as none, alt, ctrl,
     shift, or disable this feature (default). (Wengier)
   - Updated the PasteClipboard feature in SDL1 build
     to support Unicode text translations. (Wengier)
   - Fixed the PasteClipboard feature in SDL2 build;
     a keyboard buffer expansion program like keybuf.com
-    is recommended to paste long contents from the
+    (e.g. "KEYBUF 1024") is recommended to be loaded
+    (just once) before pasting long contents from the
     Windows clipboard in SDL2 build. (Wengier)
   - Support for DOSLIB2's w95sysrg/w95sysrs utils to
     get/set system registry location in DOS 7+. (Wengier)
