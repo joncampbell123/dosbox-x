@@ -507,6 +507,7 @@ static Bitu DOS_21Handler(void) {
 
                 DOS_Terminate(f_cs,false,0);
             } else if (reg_sp == 0xE224)
+                /* "As for SP=E224h, it fixes the bug that DIR /S from MS-DOS 7.1 may crash hard within DOSBox-X. With this change it works properly in DOSBox-X now." -Wengier */
                 DOS_Terminate(dos.psp(),false,0);
 			else
                 DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
