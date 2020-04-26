@@ -506,7 +506,7 @@ static Bitu DOS_21Handler(void) {
                 LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 20h/INT 21h AH=00h recovered CS segment %04x",f_cs);
 
                 DOS_Terminate(f_cs,false,0);
-            } else if (reg_sp == 0xE224)
+            } else if (reg_sp == 0xE224 && dos.version.major >= 7)
                 /* "As for SP=E224h, it fixes the bug that DIR /S from MS-DOS 7.1 may crash hard within DOSBox-X. With this change it works properly in DOSBox-X now." -Wengier */
                 DOS_Terminate(dos.psp(),false,0);
 			else
