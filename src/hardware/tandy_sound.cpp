@@ -81,7 +81,7 @@ static void SN76496Write(Bitu /*port*/,Bitu data,Bitu /*iolen*/) {
 	// this hack allows sample accurate rendering without enabling sample accurate mode in the mixer.
 	tandy.chan->FillUp();
 
-	device.write(data);
+	device.write((uint8_t)data);
 
 //	LOG_MSG("3voice write %X at time %7.3f",data,PIC_FullIndex());
 }
@@ -100,7 +100,7 @@ static void SN76496Update(Bitu length) {
 	Bit16s* outputs = buffer;
 
 	device_sound_interface::sound_stream stream;
-	static_cast<device_sound_interface&>(device).sound_stream_update(stream, 0, &outputs, length);
+	static_cast<device_sound_interface&>(device).sound_stream_update(stream, 0, &outputs, (int)length);
 	tandy.chan->AddSamples_m16(length, buffer);
 }
 

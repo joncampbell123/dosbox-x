@@ -1464,17 +1464,17 @@ void FM_OPL::initialize()
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
-	lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * freqbase;
+	lfo_am_inc = (uint32_t)((1.0 / 64.0 ) * (1<<LFO_SH) * freqbase);
 
 	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
-	lfo_pm_inc = (1.0 / 1024.0) * (1<<LFO_SH) * freqbase;
+	lfo_pm_inc = (uint32_t)((1.0 / 1024.0) * (1<<LFO_SH) * freqbase);
 
 	/*logerror ("lfo_am_inc = %8x ; lfo_pm_inc = %8x\n", lfo_am_inc, lfo_pm_inc);*/
 
 	/* Noise generator: a step takes 1 sample */
-	noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * freqbase;
+	noise_f = (uint32_t)((1.0 / 1.0) * (1<<FREQ_SH) * freqbase);
 
-	eg_timer_add  = (1<<EG_SH)  * freqbase;
+	eg_timer_add = (uint32_t)((1<<EG_SH) * freqbase);
 	eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("OPLinit eg_timer_add=%8x eg_timer_overflow=%8x\n", eg_timer_add, eg_timer_overflow);*/
 }

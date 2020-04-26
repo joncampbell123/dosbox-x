@@ -757,7 +757,7 @@ static inline void advance(OPL3 *chip)
 				{
 					op->volume += eg_inc[op->eg_sel_dr + ((chip->eg_cnt>>op->eg_sh_dr)&7)];
 
-					if ( op->volume >= op->sl )
+					if ( (uint32_t)op->volume >= op->sl )
 						op->state = EG_SUS;
 
 				}
@@ -1385,17 +1385,17 @@ static void OPL3_initalize(OPL3 *chip)
 
 	/* Amplitude modulation: 27 output levels (triangle waveform); 1 level takes one of: 192, 256 or 448 samples */
 	/* One entry from LFO_AM_TABLE lasts for 64 samples */
-	chip->lfo_am_inc = (1.0 / 64.0 ) * (1<<LFO_SH) * chip->freqbase;
+	chip->lfo_am_inc = (uint32_t)((1.0 / 64.0 ) * (1<<LFO_SH) * chip->freqbase);
 
 	/* Vibrato: 8 output levels (triangle waveform); 1 level takes 1024 samples */
-	chip->lfo_pm_inc = (1.0 / 1024.0) * (1<<LFO_SH) * chip->freqbase;
+	chip->lfo_pm_inc = (uint32_t)((1.0 / 1024.0) * (1<<LFO_SH) * chip->freqbase);
 
 	/*logerror ("chip->lfo_am_inc = %8x ; chip->lfo_pm_inc = %8x\n", chip->lfo_am_inc, chip->lfo_pm_inc);*/
 
 	/* Noise generator: a step takes 1 sample */
-	chip->noise_f = (1.0 / 1.0) * (1<<FREQ_SH) * chip->freqbase;
+	chip->noise_f = (uint32_t)((1.0 / 1.0) * (1<<FREQ_SH) * chip->freqbase);
 
-	chip->eg_timer_add  = (1<<EG_SH)  * chip->freqbase;
+	chip->eg_timer_add = (uint32_t)((1<<EG_SH)  * chip->freqbase);
 	chip->eg_timer_overflow = ( 1 ) * (1<<EG_SH);
 	/*logerror("YMF262init eg_timer_add=%8x eg_timer_overflow=%8x\n", chip->eg_timer_add, chip->eg_timer_overflow);*/
 

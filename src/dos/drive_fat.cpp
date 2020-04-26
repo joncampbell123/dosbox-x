@@ -1851,7 +1851,7 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
 		Bit32s last_idx=0;
 		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
 			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
-				fileEntry.attrib=attr;
+				fileEntry.attrib=(Bit8u)attr;
 				directoryChange(dirClust, &fileEntry, fileidx);
 				return true;
 			}
@@ -1859,7 +1859,7 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
 		}
 		return false;
 	} else {
-		fileEntry.attrib=attr;
+		fileEntry.attrib=(Bit8u)attr;
 		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 	}
 	return true;
