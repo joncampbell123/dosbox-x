@@ -323,7 +323,7 @@ public:
                 str_size="512,32,0,0";
                 mediaid=0xF8;       /* Hard Disk */
             } else if (type=="cdrom") {
-                str_size="2048,1,32765,0";
+                str_size="2048,1,65535,0";
                 mediaid=0xF8;       /* Hard Disk */
             } else {
                 WriteOut(MSG_Get("PROGAM_MOUNT_ILL_TYPE"),type.c_str());
@@ -597,9 +597,9 @@ public:
         return;
 showusage:
 #if defined (WIN32) || defined(OS2)
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
+       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
 #else
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");
+       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");
 #endif
         return;
     }
@@ -4537,6 +4537,7 @@ void DOS_SetupPrograms(void) {
 		"MOUNT -nocachedir c %s mounts C: without caching the drive.\n"
 		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
 		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
+		"MOUNT -t cdrom c %s mounts the C: drive as a CD-ROM drive.\n"
 		"MOUNT -u c unmounts the C: drive.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c isn't mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");

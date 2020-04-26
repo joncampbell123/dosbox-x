@@ -1072,7 +1072,7 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 		if (res) {
 			unsigned long total = df.total_clusters * df.sectors_per_cluster;
 			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
-			*_bytes_sector = 512;
+			*_bytes_sector = df.bytes_per_sector;
 			*_sectors_cluster = ratio;
 			*_total_clusters = total > 4194240? 65535 : df.total_clusters * df.sectors_per_cluster / ratio;
 			*_free_clusters = total > 4194240? 61440 : df.avail_clusters * df.sectors_per_cluster / ratio;
@@ -1084,12 +1084,12 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 		struct statvfs stat;
 		res = statvfs(basedir, &stat) == 0;
 		if (res) {
-			int ratio = stat.f_blocks / 65535, tmp=ratio;
+			int ratio = stat.f_blocks / 65536, tmp=ratio;
 			*_bytes_sector = 512;
 			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
 			if (ratio>1) {
 				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
-				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio;
+				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio * (*_sectors_cluster);
 				ratio = tmp;
 			}
 			*_total_clusters = stat.f_blocks > 65535? 65535 : stat.f_blocks;
