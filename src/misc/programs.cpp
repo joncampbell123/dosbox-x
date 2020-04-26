@@ -35,7 +35,9 @@
 
 Bitu call_program;
 
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon;
+extern int paste_speed;
+extern const char *modifier;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -977,12 +979,16 @@ void CONFIG::Run(void) {
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "dos")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
 							force_nocachedir = section->Get_bool("nocachedir");
+							freesizecap = section->Get_bool("freesizecap");
 							wpcolon = section->Get_bool("leading colon write protect image");
+						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
+							modifier = section->Get_string("clip_key_modifier");
+							paste_speed = section->Get_int("clip_paste_speed");
 						} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 							std::string ver = section->Get_string("ver");
 							if (!ver.empty()) {

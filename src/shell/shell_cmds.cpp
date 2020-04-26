@@ -96,7 +96,9 @@ static SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 }; 
 
-extern bool date_host_forced, usecon;
+extern int faux;
+extern bool date_host_forced, usecon, rsize;
+extern unsigned long freec;
 
 /* support functions */
 static char empty_char = 0;
@@ -495,7 +497,13 @@ void DOS_Shell::CMD_HELP(char * args){
 	while (cmd_list[cmd_index].name) {
 		if (optall || !cmd_list[cmd_index].flags) {
 			WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
-			if(!(++write_count%22)) CMD_PAUSE(empty_string);
+			if(!(++write_count%22)) {
+				WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+				Bit8u c;Bit16u n=1;
+				DOS_ReadFile(STDIN,&c,&n);
+				if (c==3) {WriteOut("^C\r\n");break;}
+				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+			}
 		}
 		cmd_index++;
 	}
@@ -793,15 +801,21 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 	}
 }
 
-static void FormatNumber(Bit32u num,char * buf) {
-	Bit32u numm,numk,numb,numg;
+static void FormatNumber(Bit64u num,char * buf) {
+	Bit32u numm,numk,numb,numg,numt;
 	numb=num % 1000;
 	num/=1000;
 	numk=num % 1000;
 	num/=1000;
 	numm=num % 1000;
 	num/=1000;
-	numg=num;
+	numg=num % 1000;
+	num/=1000;
+	numt=num;
+	if (numt) {
+		sprintf(buf,"%u,%03u,%03u,%03u,%03u",numt,numg,numm,numk,numb);
+		return;
+	}
 	if (numg) {
 		sprintf(buf,"%u,%03u,%03u,%03u",numg,numm,numk,numb);
 		return;
@@ -875,10 +889,14 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
 
 	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
+	int fbak=faux;
+	faux=uselfn?255:256;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true;
+	faux=fbak;
 	if (ret) {
 		std::vector<DtaResult> results;
 
+		faux=uselfn?255:256;
 		do {    /* File name and extension */
 			DtaResult result;
 			dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
@@ -899,6 +917,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			results.push_back(result);
 
 		} while ( (ret=DOS_FindNext()) );
+		faux=fbak;
 
 		if (optON) {
 			// Sort by name
@@ -1154,7 +1173,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
 	}
-	if (!strrchr(sargs,'.'))
+	if (!(uselfn&&strchr(sargs,'*'))&&!strrchr(sargs,'.'))
 		strcat(sargs,".*");	// if no extension, get them all
     sprintf(args,"\"%s\"",sargs);
 
@@ -1205,8 +1224,11 @@ void DOS_Shell::CMD_DIR(char * args) {
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+			rsize=true;
+			freec=0;
 			Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-			free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)free_clusters;
+			free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
+			rsize=false;
 		}
 		FormatNumber(free_space,numformat);
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
@@ -1291,6 +1313,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			size_t source_x_len = strlen(source_x);
 			if (source_x_len>0) {
 				if (source_x[source_x_len-1]==':') has_drive_spec = true;
+				else if (uselfn&&source_x[source_x_len-1]=='*'&&strchr(source_x, '.')==NULL) strcat(source_x, ".*");
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
                 char spath[DOS_PATHLENGTH];
@@ -2162,6 +2185,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	Bit16u n=1;
 	do {
 		DOS_ReadFile (STDIN,&c,&n);
+		if (c==3) {WriteOut("^C\r\n");dos.return_code=0;return;}
 	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
 	c = optS?c:(Bit8u)toupper(c);
 	DOS_WriteFile (STDOUT,&c, &n);
@@ -2274,7 +2298,10 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 		else if (!strcasecmp(arg1, "-S")) subs=true;
 		else if (!strcasecmp(arg1, "-H")) subh=true;
 		else if (!strcasecmp(arg1, "-R")) subr=true;
-		else if (*arg1) strcpy(sfull, strcmp(arg1, "*")?arg1:"*.*");
+		else if (*arg1) {
+			strcpy(sfull, arg1);
+			if (uselfn&&sfull[strlen(sfull)-1]=='*'&&strchr(sfull, '.')==NULL) strcat(sfull, ".*");
+		}
 	} while (*args);
 
 	char buffer[CROSS_LEN];

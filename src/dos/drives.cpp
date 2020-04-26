@@ -25,6 +25,32 @@
 #include "support.h"
 #include "control.h"
 
+bool wild_match(char *haystack, char *needle) {
+	size_t max, i;
+    for (; *needle != '\0'; ++needle) {
+        switch (*needle) {
+        case '?':
+            if (*haystack == '\0')
+                return false;
+            ++haystack;
+            break;
+        case '*':
+            if (needle[1] == '\0')
+                return true;
+            max = strlen(haystack);
+            for (i = 0; i < max; i++)
+                if (wild_match(haystack + i, needle + 1))
+                    return true;
+            return false;
+        default:
+            if (toupper(*haystack) != *needle)
+                return false;
+            ++haystack;
+        }
+    }
+    return *haystack == '\0';
+}
+
 bool WildFileCmp(const char * file, const char * wild) 
 {
 	char file_name[9];
@@ -68,22 +94,34 @@ bool WildFileCmp(const char * file, const char * wild)
 	}
 	upcase(wild_name);upcase(wild_ext);
 	/* Names are right do some checking */
-	r=0;
-	while (r<8) {
-		if (wild_name[r]=='*') goto checkext;
-		if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
-		r++;
+	if (uselfn&&strchr(wild_name, '*')) {
+		if (strchr(wild,'.')) {
+			if (!wild_match(file_name, wild_name)) return false;
+			goto checkext;
+		} else
+			return wild_match((char *)file, wild_name);
+	} else {
+		r=0;
+		while (r<8) {
+			if (wild_name[r]=='*') goto checkext;
+			if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
+			r++;
+		}
+		if (wild_name[r]&&wild_name[r]!='*') return false;
 	}
-	if (wild_name[r]&&wild_name[r]!='*') return false;
 checkext:
-    r=0;
-	while (r<3) {
-		if (wild_ext[r]=='*') return true;
-		if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
-		r++;
+	if (uselfn&&strchr(wild_ext, '*'))
+		return wild_match(file_ext, wild_ext);
+	else {
+		r=0;
+		while (r<3) {
+			if (wild_ext[r]=='*') return true;
+			if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
+			r++;
+		}
+		if (wild_ext[r]&&wild_ext[r]!='*') return false;
+		return true;
 	}
-    if (wild_ext[r]&&wild_ext[r]!='*') return false;
-	return true;
 }
 
 bool LWildFileCmp(const char * file, const char * wild)
@@ -135,23 +173,34 @@ bool LWildFileCmp(const char * file, const char * wild)
     }
     upcase(wild_name);upcase(wild_ext);
     /* Names are right do some checking */
-    r=0;
-    while (r<size) {
-            if (wild_name[r]=='*') goto checkext;
-            if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
-            r++;
-    }
-    if (wild_name[r]&&wild_name[r]!='*') return false;
+	if (strchr(wild_name, '*')) {
+		if (strchr(wild,'.')) {
+			if (!wild_match(file_name, wild_name)) return false;
+			goto checkext;
+		} else
+			return wild_match((char *)file, wild_name);
+	} else {
+		r=0;
+		while (r<size) {
+				if (wild_name[r]=='*') goto checkext;
+				if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
+				r++;
+		}
+		if (wild_name[r]&&wild_name[r]!='*') return false;
+	}
 checkext:
-    r=0;
-    while (r<elen) {
-            if (wild_ext[r]=='*') return true;
-            if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
-            r++;
-    }
-    if (wild_ext[r]&&wild_ext[r]!='*') return false;
-
-    return true;
+	if (strchr(wild_ext, '*'))
+		return wild_match(file_ext, wild_ext);
+	else {
+		r=0;
+		while (r<elen) {
+				if (wild_ext[r]=='*') return true;
+				if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
+				r++;
+		}
+		if (wild_ext[r]&&wild_ext[r]!='*') return false;
+		return true;
+	}
 }
 
 void Set_Label(char const * const input, char * const output, bool cdrom) {

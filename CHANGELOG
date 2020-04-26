@@ -63,6 +63,11 @@
     DIR /A shows all files and directories whereas DIR
     alone (without /A) shows all except system/hidden
     ones as in a real DOS system (Wengier)
+  - DIR command now shows the real free disk space on
+    local drives. It is possible to limit this free space
+    for certain programs with the -freesize option of
+    MOUNT command. A new config option "freesizecap" is
+    added to change the behavior of this option (Wengier)	
   - DIR command fixed to show the volume label of the
     drive you are listing, instead of always the current
     drive (rderooy)

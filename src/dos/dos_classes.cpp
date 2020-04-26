@@ -24,8 +24,10 @@
 #include "dos_inc.h"
 #include "support.h"
 
-bool faux=false;
-char sname[LFN_NAMELENGTH+1],fname[LFN_NAMELENGTH+1],storect[CTBUF];
+Bit8u sattr[260], fattr;
+char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
+extern int faux;
+
 struct finddata {
        Bit8u attr;
        Bit8u fres1[19];
@@ -394,13 +396,15 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	sSave(sDTA,sdrive,_sdrive);
 	sSave(sDTA,sattr,_sattr);
 
-	/* Fill with char 0 */
-    int i;
-    for (i=0;i<LFN_NAMELENGTH;i++) {
-        if (pattern[i]==0) break;
-			(faux?fname:sname)[i]=pattern[i];
-    }
-    while (i<=LFN_NAMELENGTH) (faux?fname:sname)[i++]=0;
+	int i;
+	if (faux<256) {
+		sattr[faux]=_sattr;
+		for (i=0;i<LFN_NAMELENGTH;i++) {
+			if (pattern[i]==0) break;
+				sname[faux][i]=pattern[i];
+		}
+		while (i<=LFN_NAMELENGTH) sname[faux][i++]=0;
+	}
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
     char * find_ext;
@@ -462,11 +466,12 @@ Bit8u DOS_DTA::GetSearchDrive(void) {
 }
 
 void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
-	attr=(Bit8u)sGet(sDTA,sattr);
-    if (lfn) {
-        memcpy(pattern,faux?fname:sname,LFN_NAMELENGTH);
-           pattern[LFN_NAMELENGTH]=0;
+    if (lfn&&faux<256) {
+		attr=sattr[faux];
+        memcpy(pattern,sname[faux],LFN_NAMELENGTH);
+        pattern[LFN_NAMELENGTH]=0;
     } else {
+		attr=(Bit8u)sGet(sDTA,sattr);
         char temp[11];
         MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
         for (int i=0;i<13;i++) pattern[i]=0;

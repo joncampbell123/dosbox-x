@@ -869,7 +869,7 @@ void SHELL_Init() {
         MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox-X directory. \x86\x46\n"
+                "\x86\x46 For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
         MSG_Add("SHELL_STARTUP_PC98","\x86\x46 DOSBox-X is now running in NEC PC-98 emulation mode.               \x86\x46\n"
@@ -908,7 +908,7 @@ void SHELL_Init() {
         MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox-X directory. \xBA\n"
+                "\xBA For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \xBA\n"
                 "\xBA                                                                    \xBA\n"
                );
         if (!mono_cga) {

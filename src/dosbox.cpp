@@ -120,6 +120,7 @@ void CheckSSESupport()
 extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
 extern bool         force_nocachedir;
+extern bool         freesizecap;
 extern bool         wpcolon;
 
 extern Bitu         frames;
@@ -771,6 +772,7 @@ void Init_VGABIOS() {
     assert(MemBase != NULL);
 
     force_nocachedir = section->Get_bool("nocachedir");
+	freesizecap = section->Get_bool("freesizecap");
     wpcolon = section->Get_bool("leading colon write protect image");
 
     VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
@@ -1527,6 +1529,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("nocachedir",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir by default.");
+
+    Pbool = secprop->Add_bool("freesizecap",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the value of MOUNT -freesize will be applied only if the actual free size is greater than the specified value.");
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");

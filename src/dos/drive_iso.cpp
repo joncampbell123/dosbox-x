@@ -29,6 +29,8 @@
 #define FLAGS2	((iso) ? de->fileFlags : de->timeZone)
 
 char fullname[LFN_NAMELENGTH];
+static Bit16u sdid[256];
+extern int faux;
 
 using namespace std;
 
@@ -279,7 +281,10 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	int dirIterator = GetDirIterator(&de);
 	bool isRoot = (*dir == 0);
 	dirIterators[dirIterator].root = isRoot;
-	dta.SetDirID((Bit16u)dirIterator);
+	if (faux>=255)
+		dta.SetDirID((Bit16u)dirIterator);
+	else
+		sdid[faux]=dirIterator;
 
 	Bit8u attr;
 	char pattern[CROSS_LEN];
@@ -304,7 +309,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, uselfn);
 	
-	int dirIterator = dta.GetDirID();
+	int dirIterator = faux>=255?dta.GetDirID():(sdid?sdid[faux]:0);
 	bool isRoot = dirIterators[dirIterator].root;
 	
     isoDirEntry de = {};

@@ -50,7 +50,7 @@ Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 bool force = false;
-int sdrive;
+int sdrive, faux = 256;
 
 bool shiftjis_lead_byte(int c);
 
@@ -217,13 +217,16 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char pdir[LFN_NAMELENGTH], *p;
     Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
-    DOS_DTA dta(dos.dta());
     Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
     sprintf(SFNPath,"%c:\\",drive+'A');
     strcpy(LFNPath,SFNPath);
     p = fulldir;
     if (*p==0) return true;
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+	DOS_DTA dta(dos.dta());
+	int fbak=faux;
     for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
 		*s = 0;
 		if (SFNPath[strlen(SFNPath)-1]=='\\')
@@ -233,7 +236,9 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 		if (!strrchr(p,'*') && !strrchr(p,'?')) {
 			*s = '\\';
 			p = s + 1;
+			faux=255;
 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
+				faux=fbak;
 				dta.GetResult(name,lname,size,date,time,attr);
 				strcat(SFNPath,name);
 				strcat(LFNPath,lname);
@@ -241,7 +246,10 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 				strcat(LFNPath,"\\");
 			}
 			else {
-			return false;}
+				faux=fbak;
+				dos.dta(save_dta);
+				return false;
+			}
 		} else {
 			strcat(SFNPath,p);
 			strcat(LFNPath,p);
@@ -254,6 +262,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     }
     if (p != 0) {
 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
+		faux=255;
 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
 			dta.GetResult(name,lname,size,date,time,attr);
 			strcat(SFNPath,name);
@@ -262,7 +271,9 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			strcat(SFNPath,p);
 			strcat(LFNPath,p);
 		}
+		faux=fbak;
     }
+	dos.dta(save_dta);
     if (LFN) strcpy(SFNPath,LFNPath);
     return true;
 }
@@ -374,10 +385,25 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	if (!DOS_MakeName(oldname,fullold,&driveold)) return false;
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
 	/* No tricks with devices */
+	bool clip=false;
 	if ( (DOS_FindDevice(oldname) != DOS_DEVICES) ||
 	     (DOS_FindDevice(newname) != DOS_DEVICES) ) {
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
-		return false;
+#if defined (WIN32)
+	if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
+		if (DOS_FindDevice(oldname) == DOS_DEVICES) {
+			char * find_last;
+			find_last=strrchr(fullnew,'\\');
+			if (find_last==NULL) find_last=fullnew;
+			else find_last++;
+			if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
+				clip=true;
+		}
+	}
+#endif
+		if (!clip) {
+			DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
 	}
 	/* Must be on the same drive */
 	if(driveold != drivenew) {
@@ -396,7 +422,21 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		return false;
 	}
 
-	if (Drives[drivenew]->Rename(fullold,fullnew)) return true;
+#if defined (WIN32)
+	if (clip) {
+		Bit16u sourceHandle, targetHandle, toread = 0x8000;
+		static Bit8u buffer[0x8000];
+		bool failed = false;
+		if (DOS_OpenFile(oldname,OPEN_READ,&sourceHandle) && DOS_OpenFile(newname,OPEN_WRITE,&targetHandle)) {
+			do {
+				if (!DOS_ReadFile(sourceHandle,buffer,&toread) || !DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
+			} while (toread == 0x8000);
+			if (!DOS_CloseFile(sourceHandle)||!DOS_CloseFile(targetHandle)) failed=true;
+		} else failed=true;
+		if (!failed&&Drives[drivenew]->FileUnlink(fullold)) return true;
+	} else
+#endif
+		if (Drives[drivenew]->Rename(fullold,fullnew)) return true;
 	/* If it still fails, which error should we give ? PATH NOT FOUND or EACCESS */
 	if (dos.errorcode!=DOSERR_ACCESS_DENIED&&dos.errorcode!=DOSERR_WRITE_PROTECTED) {
 		LOG(LOG_FILES,LOG_NORMAL)("Rename fails for %s to %s, no proper errorcode returned.",oldname,newname);
@@ -815,9 +855,10 @@ bool DOS_GetFileAttr(char const * const name,Bit16u * attr) {
 	if (!control->SecureMode()&&dos_clipboard_device_access) {
 		char * find_last;
 		find_last=strrchr(fullname,'\\');
-		if (find_last!=NULL)
-			if (!strcasecmp(find_last+1, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
-				return true;
+		if (find_last==NULL) find_last=fullname;
+		else find_last++;
+		if (!strcasecmp(find_last, *dos_clipboard_device_name?dos_clipboard_device_name:"CLIP$"))
+			return true;
 	}
 #endif
 	if (Drives[drive]->GetFileAttr(fullname,attr)) {

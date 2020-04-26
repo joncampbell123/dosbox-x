@@ -244,6 +244,10 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x1600:    /* Windows enhanced mode installation check */
         // Leave AX as 0x1600, indicating that neither Windows 3.x enhanced mode, Windows/386 2.x
         // nor Windows 95 are running, nor is XMS version 1 driver installed
+#ifdef WIN32
+		if (!control->SecureMode() && (reg_sp == 0xFFF6 && mem_readw(SegPhys(ss)+reg_sp) == 0x142A || reg_sp >= 0xFF7A && reg_sp <= 0xFF8F && mem_readw(SegPhys(ss)+reg_sp) == reg_sp + 21))
+			reg_ax = 0x301;
+#endif
         return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
@@ -344,6 +348,15 @@ static bool DOS_MultiplexFunctions(void) {
 			return true;
 		}
 		else return false;
+	case 0x160A:
+		// Report Windows version 4.0 (95) to NESTICLE x.xx so that it uses LFN when available
+		if (uselfn && reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp) == 0x1FBB) {
+			reg_ax = 0;
+			reg_bx = 0x400;
+			reg_cx = 2;
+			return true;
+		}
+		return false;
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
 		//TODO Maybe do some idling but could screw up other systems :)
 		return true; //So no warning in the debugger anymore
@@ -359,7 +372,11 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1701:
 		if(control->SecureMode()) return false;
-		reg_ax=OpenClipboard(NULL)?1:0;
+		reg_ax=0;
+		if (OpenClipboard(NULL)) {
+			reg_ax=1;
+			CloseClipboard();
+		}
 		return true;
 	case 0x1702:
 		if(control->SecureMode()) return false;
@@ -401,6 +418,8 @@ static bool DOS_MultiplexFunctions(void) {
 				reg_ax=(Bit16u)strlen((char *)text)+1;
 				reg_dx=(Bit16u)((strlen((char *)text)+1)/65536);
 				}
+			else
+				reg_dx=0;
 			CloseClipboard();
 			}
 		return true;
@@ -419,7 +438,8 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1708:
 		if(control->SecureMode()) return false;
-		reg_ax=CloseClipboard()?1:0;
+		reg_ax=1;
+		CloseClipboard();
 		return true;
 #endif
     case 0x1a00:    /* ANSI.SYS installation check (MS-DOS 4.0 or higher) */

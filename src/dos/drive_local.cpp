@@ -74,6 +74,11 @@ typedef char host_cnv_char_t;
 #endif
 
 static host_cnv_char_t cpcnv_temp[4096];
+static Bit16u ldid[256];
+static std::string ldir[256];
+extern bool rsize, freesizecap;
+extern int faux;
+extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 	host_cnv_char_t *df = d + CROSS_LEN - 1;
@@ -641,8 +646,13 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
-	strcpy(srchInfo[id].srch_dir,tempDir);
-	dta.SetDirID(id);
+	if (faux>=255) {
+		dta.SetDirID(id);
+		strcpy(srchInfo[id].srch_dir,tempDir);
+	} else {
+		ldid[faux]=id;
+		ldir[faux]=tempDir;
+	}
 	
 	Bit8u sAttr;
 	dta.GetSearchParams(sAttr,tempDir,uselfn);
@@ -689,19 +699,23 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 	Bit8u find_attr;
 
     dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
-	Bit16u id = dta.GetDirID();
+	Bit16u id = faux>=255?dta.GetDirID():ldid[faux];
 
 again:
     if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+		if (faux<255) {
+			ldid[faux]=0;
+			ldir[faux]="";
+		}
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
     if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
-	strcpy(full_name,srchInfo[id].srch_dir);
-	strcat(full_name,dir_ent);
+	strcpy(full_name,faux>=255?srchInfo[id].srch_dir:(ldir[faux]!=""?ldir[faux].c_str():"\\"));
+	strcpy(lfull_name,full_name);
 	
-	strcpy(lfull_name,srchInfo[id].srch_dir);
+	strcat(full_name,dir_ent);
     strcat(lfull_name,ldir_ent);
 
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
@@ -719,9 +733,8 @@ again:
 		goto again;//No symlinks and such
     }
 
-	if (ht_stat(host_name,&stat_block)!=0) { 
+	if (ht_stat(host_name,&stat_block)!=0)
 		goto again;//No symlinks and such
-	}	
 
 	if(stat_block.st_mode & S_IFDIR) find_attr=DOS_ATTR_DIRECTORY;
 	else find_attr=0;
@@ -730,11 +743,8 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	ht_stat_t status;
-	if (ht_stat(host_name,&status)==0) {
-		find_attr|=DOS_ATTR_ARCHIVE;
-		if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
-	}
+	find_attr|=DOS_ATTR_ARCHIVE;
+	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
 	
@@ -1046,11 +1056,94 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 
 }
 
+#if !defined(WIN32)
+#include <sys/statvfs.h>
+#endif
 bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters) {
 	*_bytes_sector=allocation.bytes_sector;
 	*_sectors_cluster=allocation.sectors_cluster;
 	*_total_clusters=allocation.total_clusters;
 	*_free_clusters=allocation.free_clusters;
+	if ((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
+		bool res=false;
+#if defined(WIN32)
+		struct _diskfree_t df = {0};
+		res = _getdiskfree(toupper(basedir[0])-'A'+1, &df) == 0;
+		if (res) {
+			unsigned long total = df.total_clusters * df.sectors_per_cluster;
+			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
+			*_bytes_sector = 512;
+			*_sectors_cluster = ratio;
+			*_total_clusters = total > 4194240? 65535 : df.total_clusters * df.sectors_per_cluster / ratio;
+			*_free_clusters = total > 4194240? 61440 : df.avail_clusters * df.sectors_per_cluster / ratio;
+			if (rsize) {
+				totalc=df.total_clusters * df.sectors_per_cluster / ratio;
+				freec=df.avail_clusters * df.sectors_per_cluster / ratio;
+			}
+#else
+		struct statvfs stat;
+		res = statvfs(basedir, &stat) == 0;
+		if (res) {
+			int ratio = stat.f_blocks / 65535, tmp=ratio;
+			*_bytes_sector = 512;
+			*_sectors_cluster = stat.f_bsize/512 > 64? 64 : stat.f_bsize/512;
+			if (ratio>1) {
+				if (ratio * (*_sectors_cluster) > 64) tmp = (*_sectors_cluster+63)/(*_sectors_cluster);
+				*_sectors_cluster = ratio * (*_sectors_cluster) > 64? 64 : ratio;
+				ratio = tmp;
+			}
+			*_total_clusters = stat.f_blocks > 65535? 65535 : stat.f_blocks;
+			*_free_clusters = stat.f_bavail > 61440? 61440 : stat.f_bavail;
+			if (rsize) {
+				totalc=stat.f_blocks;
+				freec=stat.f_bavail;
+				if (ratio>1) {
+					totalc/=ratio;
+					freec/=ratio;
+				}
+			}
+#endif
+			if (allocation.total_clusters || allocation.free_clusters) {
+				bool g1=*_bytes_sector * *_sectors_cluster * *_total_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.total_clusters;
+				bool g2=*_bytes_sector * *_sectors_cluster * *_free_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.free_clusters;
+				if (g1||g2) {
+					*_bytes_sector = allocation.bytes_sector;
+					*_sectors_cluster = allocation.sectors_cluster;
+					if (g1) *_total_clusters = allocation.total_clusters;
+					if (g2) *_free_clusters = allocation.free_clusters;
+					if (*_total_clusters<*_free_clusters) {
+						if (*_free_clusters>65525)
+							*_total_clusters=65535;
+						else
+							*_total_clusters=*_free_clusters+10;
+					}
+					if (rsize) {
+						if (g1) totalc=*_total_clusters;
+						if (g2) freec=*_free_clusters;
+					}
+				}
+			}
+		} else if (!allocation.total_clusters && !allocation.free_clusters) {
+            if (allocation.mediaid==0xF0) {
+				*_bytes_sector = 512;
+				*_sectors_cluster = 1;
+				*_total_clusters = 2880;
+				*_free_clusters = 2880;
+            } else if (allocation.bytes_sector==2048) {
+				*_bytes_sector = 2048;
+				*_sectors_cluster = 1;
+				*_total_clusters = 65535;
+				*_free_clusters = 0;
+            } else {
+                // 512*32*32765==~500MB total size
+                // 512*32*16000==~250MB total free size
+				*_bytes_sector = 512;
+				*_sectors_cluster = 32;
+				*_total_clusters = 32765;
+				*_free_clusters = 16000;
+			}
+		}
+	}
 	return true;
 }
 

@@ -49,6 +49,7 @@
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
+bool freesizecap = true;
 bool wpcolon = true;
 
 void DOS_EnableDriveMenu(char drv);
@@ -314,20 +315,15 @@ public:
             Bit8u mediaid;
             std::string str_size;
             if (type=="floppy") {
-                str_size="512,1,2880,2880";/* All space free */
+                str_size="512,1,2880,2880";
                 mediaid=0xF0;       /* Floppy 1.44 media */
             } else if (type=="dir") {
                 // 512*32*32765==~500MB total size
                 // 512*32*16000==~250MB total free size
-#if defined(__WIN32__) && !defined(C_SDL2) && !defined(HX_DOS)
-                GetDefaultSize();
-                str_size=hdd_size;
-#else
-                str_size="512,32,32765,16000";
-#endif
+                str_size="512,32,0,0";
                 mediaid=0xF8;       /* Hard Disk */
             } else if (type=="cdrom") {
-                str_size="2048,1,65535,0";
+                str_size="2048,1,32765,0";
                 mediaid=0xF8;       /* Hard Disk */
             } else {
                 WriteOut(MSG_Get("PROGAM_MOUNT_ILL_TYPE"),type.c_str());
@@ -340,14 +336,18 @@ public:
                 Bit16u freesize = static_cast<Bit16u>(atoi(mb_size.c_str()));
                 if (type=="floppy") {
                     // freesize in kb
-                    sprintf(teststr,"512,1,2880,%d",freesize*1024/(512*1));
+                    sprintf(teststr,"512,1,2880,%d",freesize*1024/(512*1)>2880?2880:freesize*1024/(512*1));
                 } else {
+					if (freesize>1919) freesize=1919;
+					Bit16u numc=type=="cdrom"?1:32;
                     Bit32u total_size_cyl=32765;
-                    Bit32u free_size_cyl=(Bit32u)freesize*1024*1024/(512*32);
+					Bit32u tmp=(Bit32u)freesize*1024*1024/(type=="cdrom"?2048*1:512*32);
+					if (tmp>65534) numc=type=="cdrom"?(tmp+65535)/65536:64;
+                    Bit32u free_size_cyl=(Bit32u)freesize*1024*1024/(numc*(type=="cdrom"?2048:512));
                     if (free_size_cyl>65534) free_size_cyl=65534;
                     if (total_size_cyl<free_size_cyl) total_size_cyl=free_size_cyl+10;
                     if (total_size_cyl>65534) total_size_cyl=65534;
-                    sprintf(teststr,"512,32,%u,%u",total_size_cyl,free_size_cyl);
+                    sprintf(teststr,type=="cdrom"?"2048,%u,%u,%u":"512,%u,%u,%u",numc,total_size_cyl,free_size_cyl);
                 }
                 str_size=teststr;
             }
@@ -517,7 +517,11 @@ public:
                 if (is_physfs) {
                     LOG_MSG("ERROR:This build does not support physfs");
                 } else {
-                    newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
+					if (Drives[drive-'A']) {
+						WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+						return;
+					}
+                    newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error);
                 }
                 // Check Mscdex, if it worked out...
                 switch (error) {
@@ -593,9 +597,9 @@ public:
         return;
 showusage:
 #if defined (WIN32) || defined(OS2)
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
+       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
 #else
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");         
+       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");
 #endif
         return;
     }
@@ -4530,9 +4534,10 @@ void DOS_SetupPrograms(void) {
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
         "The directory has to exist.\n"
 		"Options are accepted. For example:\n"
-		"MOUNT -nocachedir c %s will mount C: without caching the drive.\n"
-		"MOUNT -ro c %s will mount the C: drive in read-only mode.\n"
-		"MOUNT -u c will unmount the C: drive.\n");
+		"MOUNT -nocachedir c %s mounts C: without caching the drive.\n"
+		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
+		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
+		"MOUNT -u c unmounts the C: drive.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c isn't mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");

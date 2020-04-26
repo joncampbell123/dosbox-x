@@ -101,9 +101,9 @@ public:
 };
 
 #if defined(WIN32)
-int captUsed = 0;
+bool lastwrite = false;
 Bit8u *clipAscii = NULL;
-Bit32u clipSize = 0, fPointer;
+Bit32u clipSize = 0, cPointer = 0, fPointer;
 
 void Unicode2Ascii(Bit16u *unicode)
 	{
@@ -171,8 +171,23 @@ class device_CLIP : public DOS_Device {
 private:
 	char	tmpAscii[20];
 	char	tmpUnicode[20];
-	std::string rawdata;				// the raw data sent to LPTx...
+	std::string rawdata;				// the raw data sent to CLIP$...
 	virtual void CommitData() {
+		if (cPointer>0) {
+			if (!clipSize)
+				getClipboard();
+			if (cPointer>clipSize)
+				cPointer=clipSize;
+			if (clipSize) {
+				if (rawdata.capacity() < 100000)
+					rawdata.reserve(100000);
+				std::string temp=std::string((char *)clipAscii).substr(0, cPointer);
+				if (temp[temp.length()-1]!='\n') temp+="\n";
+				rawdata.insert(0, temp);
+				clipSize=0;
+			}
+			cPointer=0;
+		}
 		FILE* fh = fopen(tmpAscii, "wb");			// Append or write to ASCII file
 		if (fh)
 			{
@@ -246,6 +261,7 @@ public:
 			*size = 0;
 			return true;
 		}
+		lastwrite=false;
 		if (!clipSize)																// If no data, we have to read the Windows CLipboard (clipSize gets reset on device close)
 			{
 			getClipboard();
@@ -266,6 +282,7 @@ public:
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
+		lastwrite=true;
 		Bit8u * datasrc = (Bit8u *) data;
 		Bit8u * datadst = (Bit8u *) data;
 
@@ -286,7 +303,6 @@ public:
 			}
 		while (numSpaces--)
 			*(datadst++) = ' ';
-		captUsed += *size;
 		if (Bit16u newsize = (Bit16u)(datadst - data))									// If data
 			{
 			if (rawdata.capacity() < 100000)											// Prevent repetive size allocations
@@ -300,6 +316,7 @@ public:
 			*pos = 0;
 			return true;
 		}
+		lastwrite=false;
 		if (clipSize == 0)																// No data yet
 			{
 			getClipboard();
@@ -328,6 +345,7 @@ public:
 		else if (newPos < 0)
 			newPos = 0;
 		*pos = newPos;
+		cPointer = newPos;
 		fPointer = newPos;
 		return true;
 	}
@@ -336,8 +354,9 @@ public:
 			return false;
 		clipSize = 0;																	// Reset clipboard read
 		rawdata.erase(rawdata.find_last_not_of(" \n\r\t")+1);							// Remove trailing white space
-		if (!rawdata.size())															// Nothing captured/to do
+		if (!rawdata.size()&&!lastwrite)												// Nothing captured/to do
 			return false;
+		lastwrite=false;
 		int len = (int)rawdata.size();
 		if (len > 2 && rawdata[len-3] == 0x0c && rawdata[len-2] == 27 && rawdata[len-1] == 64)	// <ESC>@ after last FF?
 			rawdata.erase(len-2, 2);

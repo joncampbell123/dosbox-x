@@ -36,9 +36,9 @@
 #include "serialport.h"
 #include "dos_network.h"
 
-extern bool log_int21;
-extern bool log_fileio;
-
+extern bool log_int21, log_fileio;
+extern int faux;
+unsigned long totalc, freec;
 Bitu INT29_HANDLER(void);
 Bit32u BIOS_get_PC98_INT_STUB(void);
 
@@ -81,6 +81,7 @@ bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
+bool rsize = false;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
@@ -505,10 +506,10 @@ static Bitu DOS_21Handler(void) {
                 LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 20h/INT 21h AH=00h recovered CS segment %04x",f_cs);
 
                 DOS_Terminate(f_cs,false,0);
-            }
-            else {
+            } else if (reg_sp == 0xE224)
+                DOS_Terminate(dos.psp(),false,0);
+			else
                 DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
-            }
 
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
@@ -1487,6 +1488,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x4e:                  /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+			faux=256;
             if (DOS_FindFirst(name1,reg_cx)) {
                 CALLBACK_SCF(false);    
                 reg_ax=0;           /* Undocumented */
@@ -1995,6 +1997,8 @@ static Bitu DOS_21Handler(void) {
 			}
 			Bit16u bytes_per_sector,total_clusters,free_clusters;
 			Bit8u sectors_per_cluster;
+			rsize=true;
+			totalc=freec=0;
 			if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
 				{
 				ext_space_info_t *info = new ext_space_info_t;
@@ -2002,12 +2006,12 @@ static Bitu DOS_21Handler(void) {
 				info->structure_version = 0;
 				info->sectors_per_cluster = sectors_per_cluster;
 				info->bytes_per_sector = bytes_per_sector;
-				info->available_clusters_on_drive = free_clusters;
-				info->total_clusters_on_drive = total_clusters;
-				info->available_sectors_on_drive = sectors_per_cluster * free_clusters;
-				info->total_sectors_on_drive = sectors_per_cluster * total_clusters;
-				info->available_allocation_units = free_clusters;
-				info->total_allocation_units = total_clusters;
+				info->available_clusters_on_drive = freec?freec:free_clusters;
+				info->total_clusters_on_drive = totalc?totalc:total_clusters;
+				info->available_sectors_on_drive = sectors_per_cluster * (freec?freec:free_clusters);
+				info->total_sectors_on_drive = sectors_per_cluster * (totalc?totalc:total_clusters);
+				info->available_allocation_units = freec?freec:free_clusters;
+				info->total_allocation_units = totalc?totalc:total_clusters;
 				MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
 				delete(info);
 				reg_ax=0;
@@ -2018,6 +2022,7 @@ static Bitu DOS_21Handler(void) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 				}
+			rsize=false;
 			break;
 			}
 		case 0xE0:
@@ -3148,12 +3153,16 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		}
 		if (strlen(name2)>2&&name2[strlen(name2)-2]=='\\'&&name2[strlen(name2)-1]=='*')
 			strcat(name2, ".*");
+		faux=handle;
 		bool b=DOS_FindFirst(name2,reg_cx,false);
+		faux=256;
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
 		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
+			faux=handle;
 			b=DOS_FindFirst(name2,reg_cx,false);
+			faux=256;
 			error=dos.errorcode;
 		}
 		if (b) {
@@ -3196,6 +3205,7 @@ void DOS_Int21_714f(char *name1, char *name2) {
 			CALLBACK_SCF(true);
 			return;
 		}
+		faux=handle;
 		if (DOS_FindNext()) {
 				DOS_DTA dta(dos.dta());
 				char finddata[CROSS_LEN];
@@ -3206,6 +3216,7 @@ void DOS_Int21_714f(char *name1, char *name2) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 		}
+		faux=256;
 }
 
 void DOS_Int21_7156(char *name1, char *name2) {

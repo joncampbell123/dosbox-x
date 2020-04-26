@@ -41,7 +41,10 @@
 #define FAT16		   1
 #define FAT32		   2
 
-extern bool         wpcolon, faux;
+static Bit16u dpos[256];
+static Bit32u dnum[256];
+extern bool wpcolon;
+extern int faux;
 
 class fatFile : public DOS_File {
 public:
@@ -624,7 +627,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	strcpy(dirtoken,filename);
 	findFile=dirtoken;
 
-	faux=true;
+	int fbak=faux;
+	faux=256;
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
@@ -654,8 +658,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	/* Search found directory for our file */
 	imgDTA->SetupSearch(0,0x7,findFile);
 	imgDTA->SetDirID(0);
-	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {faux=false;return false;}
-	faux=false;
+	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {faux=fbak;return false;}
+	faux=fbak;
 
 	memcpy(useEntry, &foundEntry, sizeof(direntry));
 	*dirClust = (Bit32u)currentClust;
@@ -669,23 +673,24 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 	direntry foundEntry;
 	strcpy(dirtoken,dir);
 
+	int fbak=faux;
 	/* Skip if testing for root directory */
 	if ((len>0) && (dir[len-1]!='\\')) {
 		Bit32u currentClust = 0;
 		//LOG_MSG("Testing for dir %s", dir);
 		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
-			faux=true;
+			faux=256;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
 			findDir = strtok(NULL,"\\");
-			if(parDir && (findDir == NULL)) {faux=false;break;}
+			if(parDir && (findDir == NULL)) {faux=fbak;break;}
 
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
-				faux=false;
+				faux=fbak;
 				return false;
 			} else {
-				faux=false;
+				faux=fbak;
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
@@ -1655,8 +1660,13 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
         }
     }
 
-	dta.SetDirID(0);
-	dta.SetDirIDCluster((Bit16u)(cwdDirCluster&0xffff));
+	if (faux>=255) {
+		dta.SetDirID(0);
+		dta.SetDirIDCluster((Bit16u)(cwdDirCluster&0xffff));
+	} else {
+		dpos[faux]=0;
+		dnum[faux]=cwdDirCluster&0xffff;
+	}
 	return FindNextInternal(cwdDirCluster, dta, &dummyClust);
 }
 
@@ -1711,13 +1721,12 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
     char lfind_name[LFN_NAMELENGTH+1];
 	char extension[4];
 
-
     size_t dirent_per_sector = getSectSize() / sizeof(direntry);
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	dta.GetSearchParams(attrs, srch_pattern,false);
-	dirPos = dta.GetDirID();
+	dta.GetSearchParams(attrs, srch_pattern,uselfn);
+	dirPos = faux>=255?dta.GetDirID():dpos[faux];
 
 nextfile:
 	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
@@ -1725,6 +1734,10 @@ nextfile:
 
 	if(dirClustNumber==0) {
 		if(dirPos >= bootbuffer.rootdirentries) {
+			if (faux<255) {
+				dpos[faux]=0;
+				dnum[faux]=0;
+			}
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
 		}
@@ -1733,19 +1746,28 @@ nextfile:
 		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 		/* A zero sector number can't happen */
 		if(tmpsector == 0) {
+			if (faux<255) {
+				dpos[faux]=0;
+				dnum[faux]=0;
+			}
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
 		}
 		readSector(tmpsector,sectbuf);
 	}
 	dirPos++;
-	dta.SetDirID(dirPos);
+	if (faux>=255) dta.SetDirID(dirPos);
+	else dpos[faux]=dirPos;
 
 	/* Deleted file entry */
 	if (sectbuf[entryoffset].entryname[0] == 0xe5) goto nextfile;
 
 	/* End of directory list */
 	if (sectbuf[entryoffset].entryname[0] == 0x00) {
+			if (faux<255) {
+				dpos[faux]=0;
+				dnum[faux]=0;
+			}
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
@@ -1801,7 +1823,7 @@ nextfile:
 bool fatDrive::FindNext(DOS_DTA &dta) {
     direntry dummyClust = {};
 
-	return FindNextInternal(dta.GetDirIDCluster(), dta, &dummyClust);
+	return FindNextInternal(faux>=255?dta.GetDirIDCluster():(dnum[faux]?dnum[faux]:0), dta, &dummyClust);
 }
 
 
