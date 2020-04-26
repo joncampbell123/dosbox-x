@@ -3899,8 +3899,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if defined (WIN32)
 		if (mouse_start_x >= 0 && &mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
-				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
-			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 			fx=motion->x;
 			fy=motion->y;
 		}
@@ -4620,7 +4620,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
 				PasteClipboard(true);
 			else {
-				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
 				} else
@@ -5700,7 +5700,7 @@ bool PasteClipboardNext() {
 
 #if defined (WIN32)
 void CopyClipboard(void) {
-	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y);
+	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 	if (OpenClipboard(NULL)) {
 		HGLOBAL clipbuffer;
 		char * buffer;
