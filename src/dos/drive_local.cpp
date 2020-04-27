@@ -548,6 +548,8 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 
 #if defined (WIN32)
 #include <Shellapi.h>
+#else
+#include <glob.h>
 #endif
 bool localDrive::FileUnlink(const char * name) {
     if (readonly) {
@@ -571,9 +573,8 @@ bool localDrive::FileUnlink(const char * name) {
 
 	if (ht_unlink(host_name)) {
 		//Unlink failed for some reason try finding it.
+		if (uselfn&&strchr(name, '*')&&strchr(fullname, '*')) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*"
 #if defined (WIN32)
-		if (uselfn&&strlen(fullname)>1&&!strcmp(fullname+strlen(fullname)-2,"\\*")||strlen(fullname)>3&&!strcmp(fullname+strlen(fullname)-4,"\\*.*"))
-			{
 			SHFILEOPSTRUCT op={0};
 			op.wFunc = FO_DELETE;
 			fullname[strlen(fullname)+1]=0;
@@ -583,8 +584,34 @@ bool localDrive::FileUnlink(const char * name) {
 			int err=SHFileOperation(&op);
 			if (err) DOS_SetError(err);
 			return !err;
+#else
+			char temp[CROSS_LEN];
+			int ret[] = {1,1,1};
+			glob_t globbuf = {0};
+			for (int k=0; k<3; k++) {
+				if (k>0) {
+					strcpy(temp, name);
+					k==1?upcase(temp):lowcase(temp);
+					strcpy(newname,basedir);
+					strcat(newname,temp);
+					CROSS_FILENAME(newname);
+					fullname = dirCache.GetExpandName(newname);
+				}
+				if (strlen(fullname)>2&&!strcmp(fullname+strlen(fullname)-3, "*.*")) *(fullname+strlen(fullname)-2)=0;
+				ret[k]=glob(fullname, GLOB_DOOFFS, NULL, &globbuf);
+				for (size_t i = 0; i < globbuf.gl_pathc; ++i) {
+					if (!ht_unlink(globbuf.gl_pathv[i]))
+						dirCache.DeleteEntry(globbuf.gl_pathv[i]);
+				}
+			}
+			globfree(&globbuf);
+			if (!ret[0]||!ret[1]||!ret[2]) return true;
+			else {
+				DOS_SetError(DOSERR_FILE_NOT_FOUND);
+				return false;
 			}
 #endif
+		}
 		ht_stat_t buffer;
 		if(ht_stat(host_name,&buffer)) return false; // File not found.
 

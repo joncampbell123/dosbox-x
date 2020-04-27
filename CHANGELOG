@@ -98,12 +98,10 @@
     change the keyboard modifier such as none, alt, ctrl,
     shift, or disable this feature (default). (Wengier)
   - Updated the PasteClipboard feature in SDL1 build
-    to support Unicode text translations. (Wengier)
-  - Fixed the PasteClipboard feature in SDL2 build;
-    a keyboard buffer expansion program like keybuf.com
-    (e.g. "KEYBUF 1024") is recommended to be loaded
-    (just once) before pasting long contents from the
-    Windows clipboard in SDL2 build. (Wengier)
+    to support Unicode text translations; also fixed this
+    feature not working in SDL2 build. The config option
+    "clip_paste_speed" is added to speed up or slow down
+    the pasting speed for different DOS programs (Wengier)
   - Support for DOSLIB2's w95sysrg/w95sysrs utils to
     get/set system registry location in DOS 7+. (Wengier)
   - Long filename support added, adapted from

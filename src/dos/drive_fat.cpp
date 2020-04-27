@@ -1632,6 +1632,45 @@ bool fatDrive::FileUnlink(const char * name) {
 	Bit32u dirClust, subEntry;
 
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
+	if(uselfn&&(strchr(name, '*')||strchr(name, '?'))) {
+		char dir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], fullname[DOS_PATHLENGTH], temp[DOS_PATHLENGTH];
+		strcpy(fullname, name);
+		char * find_last=strrchr(fullname,'\\');
+		if (!find_last) {
+			strcpy(pattern,fullname);
+			dir[0]=0;
+		} else {
+			*find_last=0;
+			strcpy(pattern,find_last+1);
+			strcpy(dir,fullname);
+		}
+		int fbak=faux;
+		faux=256;
+		imgDTA->SetupSearch(0,0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY,pattern);
+		imgDTA->SetDirID(0);
+		direntry foundEntry;
+		std::vector<std::string> cdirs;
+		cdirs.clear();
+		while (true) {
+			if(!FindNextInternal(dirClust, *imgDTA, &foundEntry)) break;
+			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+			Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+			imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+			if (!(find_attr & DOS_ATTR_DIRECTORY)&&strlen(find_name)&&!strchr(find_name, '*')&&!strchr(find_name, '?')) {
+				strcpy(temp, dir);
+				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
+				strcat(temp, find_name);
+				cdirs.push_back(std::string(temp));
+			}
+		}
+		faux=fbak;
+		bool removed=false;
+		while (!cdirs.empty()) {
+			if (FileUnlink(cdirs.begin()->c_str())) removed=true;
+			cdirs.erase(cdirs.begin());
+		}
+		return removed;
+	}
 
 	fileEntry.entryname[0] = 0xe5;
 	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
