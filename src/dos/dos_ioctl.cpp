@@ -179,7 +179,19 @@ bool DOS_IOCTL(void) {
 				mem_writeb(ptr+6,0x00);					// media type (00=other type)
 				// bios parameter block following
 				mem_writew(ptr+7,0x0200);				// bytes per sector (Win3 File Mgr. uses it)
+				mem_writew(ptr+9,(drive>=2)?0x20:0x01);	// sectors per cluster
+				mem_writew(ptr+0xa,0x0001);				// number of reserved sectors
+				mem_writew(ptr+0xc,0x02);				// number of FATs
+				mem_writew(ptr+0xd,(drive>=2)?0x0200:0x00E0);	// number of root entries
+				mem_writew(ptr+0xf,(drive>=2)?0x0000:0x0B40);	// number of small sectors
+				mem_writew(ptr+0x11,(drive>=2)?0xF8:0xF0);		// media type
+				mem_writew(ptr+0x12,(drive>=2)?0x00C9:0x0009);	// sectors per FAT
+				mem_writew(ptr+0x14,(drive>=2)?0x003F:0x0012);	// sectors per track
+				mem_writew(ptr+0x16,(drive>=2)?0x10:0x02);		// number of heads
+				for (int i=0x17; i<0x22; i++)
+					mem_writew(ptr+i,0);
 				break;
+			case 0x40:	/* Set Device parameters */
 			case 0x46:	/* Set volume serial number */
 				break;
 			case 0x66:	/* Get volume serial number */
