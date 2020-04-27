@@ -377,8 +377,13 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	else if (!strcasecmp(args,".")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='.')) {
 		args[strlen(args)-1]='*';
 		strcat(args, ".*");
-	} else if (uselfn&&(!strcasecmp(args,"*")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='*')))
-		strcat(args, ".*");
+	} else if (uselfn&&strchr(args, '*')) {
+		char * find_last;
+		find_last=strrchr(args,'\\');
+		if (find_last==NULL) find_last=args;
+		else find_last++;
+		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
+	}
 	if (!strcmp(args,"*.*")||(strlen(args)>3&&(!strcmp(args+strlen(args)-4, "\\*.*") || !strcmp(args+strlen(args)-4, ":*.*")))) {
 		if (!optQ1) {
 first_1:
@@ -1313,7 +1318,13 @@ void DOS_Shell::CMD_COPY(char * args) {
 			size_t source_x_len = strlen(source_x);
 			if (source_x_len>0) {
 				if (source_x[source_x_len-1]==':') has_drive_spec = true;
-				else if (uselfn&&source_x[source_x_len-1]=='*'&&strchr(source_x, '.')==NULL) strcat(source_x, ".*");
+				else if (uselfn&&strchr(source_x, '*')) {
+					char * find_last;
+					find_last=strrchr(source_x,'\\');
+					if (find_last==NULL) find_last=source_x;
+					else find_last++;
+					if (strlen(find_last)>0&&source_x[source_x_len-1]=='*'&&strchr(find_last, '.')==NULL) strcat(source_x, ".*");
+				}
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
                 char spath[DOS_PATHLENGTH];
@@ -1476,7 +1487,8 @@ void DOS_Shell::CMD_COPY(char * args) {
 					if (ext) { // substitute parts if necessary
 						if (!ext[-1]) { // substitute extension
 							strcat(nameTarget, (uselfn?lname:name) + replacementOffset);
-							strcpy(strchr(nameTarget, '.'), ext);
+							char *p=strchr(nameTarget, '.');
+							strcpy(p==NULL?nameTarget+strlen(nameTarget):p, ext);
 						}
 						if (ext[1] == '*') { // substitute name (so just add the extension)
 							strcat(nameTarget, strchr(uselfn?lname:name, '.'));
@@ -2300,7 +2312,13 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 		else if (!strcasecmp(arg1, "-R")) subr=true;
 		else if (*arg1) {
 			strcpy(sfull, arg1);
-			if (uselfn&&sfull[strlen(sfull)-1]=='*'&&strchr(sfull, '.')==NULL) strcat(sfull, ".*");
+			if (uselfn&&strchr(sfull, '*')) {
+				char * find_last;
+				find_last=strrchr(sfull,'\\');
+				if (find_last==NULL) find_last=sfull;
+				else find_last++;
+				if (sfull[strlen(sfull)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(sfull, ".*");
+			}
 		}
 	} while (*args);
 
