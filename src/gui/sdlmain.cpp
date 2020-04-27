@@ -4669,9 +4669,7 @@ void GFX_LosingFocus(void) {
     DoExtendedKeyboardHook(false);
 }
 
-#if !defined(C_SDL2)
 static bool PasteClipboardNext(); // added emendelson from dbDOS
-#endif
 
 bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
@@ -5368,7 +5366,8 @@ void GFX_Events() {
             MAPPER_CheckEvent(&event);
         }
     }
-    // start emendelson from dbDOS
+#endif
+    // start emendelson from dbDOS; improved by Wengier
     // Disabled multiple characters per dispatch b/c occasionally
     // keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
     // while (PasteClipboardNext());
@@ -5377,8 +5376,7 @@ void GFX_Events() {
 
     static Bitu iPasteTicker = 0;
     if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
-        PasteClipboardNext();   // end added emendelson from dbDOS
-#endif
+        PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
 }
 
 // added emendelson from dbDos; improved by Wengier
@@ -5638,14 +5636,13 @@ void PasteClipboard(bool bPressed)
     SDL_SysWMinfo wmiInfo;
     SDL_VERSION(&wmiInfo.version);
 
-    if (SDL_GetWMInfo(&wmiInfo) != 1) return;
-    if (!::OpenClipboard(wmiInfo.window)) return;
-    if (!::IsClipboardFormatAvailable(CF_UNICODETEXT)) return;
+    if (SDL_GetWMInfo(&wmiInfo) != 1||!OpenClipboard(wmiInfo.window)) return;
+    if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
 
-    HANDLE hContents = ::GetClipboardData(CF_UNICODETEXT);
-    if (!hContents) return;
+    HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
+    if (!hContents) {CloseClipboard();return;}
 
-    Bit16u *szClipboard = (Bit16u *)::GlobalLock(hContents);
+    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
     if (szClipboard)
     {
 		clipSize=0;
@@ -5662,29 +5659,52 @@ void PasteClipboard(bool bPressed)
         *szFilterNextChar = '\0'; // Cap it.
 
         strPasteBuffer.append(szFilteredText);
-        ::GlobalUnlock(hContents);
+        GlobalUnlock(hContents);
 		clipSize=0;
     }
-
-    ::CloseClipboard();
+    CloseClipboard();
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-# if defined(WIN32) && defined(C_SDL2)
+#if defined(WIN32) && defined(C_SDL2) // Add by Wengier
+static std::string strPasteBuffer;
+extern Bit8u* clipAscii;
+extern Bit32u clipSize;
+extern void Unicode2Ascii(Bit16u *unicode);
 void PasteClipboard(bool bPressed) {
-	if (!bPressed) return;
-	char *text = NULL;
-	long len = 0;
-	if (OpenClipboard(NULL)) {
-		text = (char*)GetClipboardData(CF_OEMTEXT);
-	if (text!=NULL)
-		for (unsigned int i=0;i<strlen(text);i++)
-			if (text[i] != 0x0A)
-				BIOS_AddKeyToBuffer(text[i]);
-	}
+	if (!bPressed||!OpenClipboard(NULL)) return;
+    if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
+    HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
+    if (!hContents) {CloseClipboard();return;}
+    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
+    if (szClipboard)
+    {
+		clipSize=0;
+		Unicode2Ascii(szClipboard);
+        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
+        char* szFilterNextChar = szFilteredText;
+        for (size_t i = 0; i < clipSize; ++i)
+            if (clipAscii[i] != 0x0A) // Skip linefeeds
+            {
+                *szFilterNextChar = clipAscii[i];
+                ++szFilterNextChar;
+            }
+        *szFilterNextChar = '\0'; // Cap it.
+
+        strPasteBuffer.append(szFilteredText);
+        GlobalUnlock(hContents);
+		clipSize=0;
+    }
 	CloseClipboard();
 }
-# else
+
+bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#else
 void PasteClipboard(bool bPressed) {
     (void)bPressed;//UNUSED
     // stub
@@ -5694,7 +5714,7 @@ bool PasteClipboardNext() {
     // stub
     return false;
 }
-# endif
+#endif
 #endif
 
 
