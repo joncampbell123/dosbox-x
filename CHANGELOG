@@ -1,8 +1,4 @@
 0.83.1
-  - PC speaker: Mode 3 (square wave) and a counter value
-    of 1 produces a low frequency square wave. Ulrasonic
-    frequencies do not begin until count == 2. This fixes
-    helicopter noises in Paratrooper.
   - dosbox-x.conf is now recognized as the default config
     file name in addition to dosbox.conf (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
@@ -47,6 +43,10 @@
     Linux and Unix systems through the user-writable
     file mode bits of the filesystem.
   - Fixed PC DOS 2000 crash during installation.
+  - PC speaker: Mode 3 (square wave) and a counter value
+    of 1 produces a low frequency square wave. Ulrasonic
+    frequencies do not begin until count == 2. This fixes
+    helicopter noises in Paratrooper.
   - Fixed PC speaker emulation to allow higher PC speaker
     frequencies (10x the value of pcrate) to reduce
     hiss/noise/aliasing noise that occurs when games
@@ -83,6 +83,7 @@
     overwriting files, and it now supports /Y and /-Y
     options to change this behavior, which can also be
     set from the COPYCMD environment variable. (Wengier)
+  - Added or fixed help infos for some commands (Wengier) 
   - Added support for DOS programs to communicate
     with the clipboard in Windows builds. If the
     "dos clipboard device enable" setting in
