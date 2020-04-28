@@ -1522,7 +1522,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					if (!(attr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES) {
 						if (exist && !optY && !oldsource.concat) {
 							dos.echo=false;
-							WriteOut("Overwrite %s (Yes/No/All)?", nameTarget);
+							WriteOut(MSG_Get("SHELL_CMD_COPY_CONFIRM"), nameTarget);
 							Bit8u c;
 							Bit16u n=1;
 							while (true)
@@ -1544,7 +1544,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 								Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
 								rsize=false;
 								if ((Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters)<size) {
-									WriteOut("Insufficient disk space - %s\n", uselfn?lname:name);
+									WriteOut(MSG_Get("SHELL_CMD_COPY_NOSPACE"), uselfn?lname:name);
 									DOS_CloseFile(sourceHandle);
 									ret = DOS_FindNext();
 									continue;
@@ -1603,7 +1603,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							if (!DOS_CloseFile(sourceHandle)) failed=true;
 							if (!DOS_CloseFile(targetHandle)) failed=true;
 							if (failed)
-                                WriteOut("Error in copying file %s\n",uselfn?lname:name);
+                                WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
                             else if (strcmp(name,lname)&&uselfn)
                                 WriteOut(" %s [%s]\n",lname,name);
                             else
