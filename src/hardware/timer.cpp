@@ -691,7 +691,13 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //
 //        This is the picture I have of the hardware:
 //
-//        IBM PC:
+//        IBM PC/XT:
+//
+//        Port 61h
+//        - bit 0 PIT 2 counter gate (write)
+//        - bit 1 PIT 2 counter output gate (write)
+//
+//        IBM PC/AT:
 //
 //        Port 61h
 //        - bit 0 PIT 2 counter gate (write)
@@ -706,7 +712,15 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //        - On PC-9821, this bit controls the clock gate of PIT 1 and therefore whether the PC speaker makes sound
 //        - On PC-9801, the clock gate of PIT 1 is always on, and this bit controls whether the PC speaker makes sound
 //
-//        IBM PC:
+//        IBM PC/XT:
+//
+//                        +------+                    +----------+
+//        counter gate -> | 8254 | -> PIT 2 output -> | AND GATE | -> PC speaker
+//                        +------+                    +----------+
+//                                                         |
+//        counter output gate -> --------------------------+
+//
+//        IBM PC/AT:
 //
 //        counter output readback <- --------+
 //                                           |
