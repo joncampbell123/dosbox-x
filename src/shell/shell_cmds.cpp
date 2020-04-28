@@ -2113,7 +2113,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 			this->ParseLine(mountstring);
 			return;
 		}
-		if(Drives[temp_str[0]-'A'] ) throw 0; //targetdrive in use
+		if(Drives[temp_str[0]-'A'] ) throw 2; //targetdrive in use
 		strcat(mountstring,temp_str);
 		strcat(mountstring," ");
 
@@ -2124,7 +2124,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
         if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
 	
 		localDrive* ldp=0;
-		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 0;
+		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 3;
 		char newname[CROSS_LEN];   
 		strcpy(newname, ldp->basedir);	   
 		strcat(newname,fulldir);
@@ -2136,10 +2136,18 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		this->ParseLine(mountstring);
 	}
 	catch(int a){
-		if(a == 0) {
-			WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
-		} else {
+		switch (a) {
+			case 1:
 		       	WriteOut(MSG_Get("SHELL_CMD_SUBST_NO_REMOVE"));
+				break;
+			case 2:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_IN_USE"));
+				break;
+			case 3:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_NOT_LOCAL"));
+				break;
+			default:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
 		}
 		return;
 	}

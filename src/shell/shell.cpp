@@ -830,7 +830,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
 	MSG_Add("SHELL_CMD_COPY_ERROR","Error in copying file %s\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
-	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
+	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
+	MSG_Add("SHELL_CMD_SUBST_NOT_LOCAL","It is only possible to use SUBST on local drives.\n");
+	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
 
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
