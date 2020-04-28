@@ -832,6 +832,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_NOT_LOCAL","It is only possible to use SUBST on local drives.\n");
+	MSG_Add("SHELL_CMD_SUBST_INVALID_PATH","The specified path is invalid.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
 
     std::string mapper_keybind = mapper_event_keybind_string("host");

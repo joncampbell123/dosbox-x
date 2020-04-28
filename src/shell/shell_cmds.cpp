@@ -2121,7 +2121,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
         if (strchr(arg.c_str(),'\"')==NULL)
             sprintf(dir,"\"%s\"",arg.c_str());
         else strcpy(dir,arg.c_str());
-        if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
+        if (!DOS_MakeName(dir,fulldir,&drive)) throw 4;
 	
 		localDrive* ldp=0;
 		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 3;
@@ -2145,6 +2145,9 @@ void DOS_Shell::CMD_SUBST(char * args) {
 				break;
 			case 3:
 				WriteOut(MSG_Get("SHELL_CMD_SUBST_NOT_LOCAL"));
+				break;
+			case 4:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_INVALID_PATH"));
 				break;
 			default:
 				WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
