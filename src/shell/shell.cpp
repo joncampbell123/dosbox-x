@@ -436,7 +436,9 @@ void DOS_Shell::RunInternal(void) {
 void DOS_Shell::Run(void) {
 	char input_line[CMD_MAXLINE] = {0};
 	std::string line;
-	if (cmd->FindStringRemainBegin("/C",line)) {
+	bool optC=cmd->FindStringRemainBegin("/C",line), optK=false;
+	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);	
+	if (optC||optK) {
 		input_line[CMD_MAXLINE-1u] = 0;
 		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
 		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
@@ -445,6 +447,10 @@ void DOS_Shell::Run(void) {
 		temp.echo = echo;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
+		if (!optK||temp.exit)
+			return;
+	} else if (cmd->FindStringRemain("/?",line)) {
+		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
 		return;
 	}
 
@@ -462,7 +468,7 @@ void DOS_Shell::Run(void) {
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
     }
     else {
-        WriteOut("DOSBox-X command shell %s %s\n\n",VERSION,UPDATED_STR);
+        WriteOut(optK?"\n":"DOSBox-X command shell %s %s\n\n",VERSION,UPDATED_STR);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
@@ -847,9 +853,9 @@ void SHELL_Init() {
     else {
 // "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
         host_key_help =
-            std::string("\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
+            std::string("\033[44;1m\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
             (mapper_keybind + "                                     ").substr(0,20) +
-            std::string(" \xBA\n");
+            std::string(" \xBA\033[0m\n");
     }
 
     if (machine == MCH_PC98) {
@@ -898,48 +904,49 @@ void SHELL_Init() {
         MSG_Add("SHELL_STARTUP_BEGIN",
                 "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-                "\xBA \033[32mWelcome to DOSBox-X %-8s (%-4s) %-25s\033[37m      \xBA\n"
-                "\xBA                                                                    \xBA\n"
-                "\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
-                "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
-                "\xBA                                                                    \xBA\n"
-                "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n");
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m\n"
+                "\033[44;1m\xBA \033[32mWelcome to DOSBox-X %-8s (%-4s) %-25s\033[37m      \xBA\033[0m\n"
+                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+                "\033[44;1m\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\033[0m\n"
+                "\033[44;1m\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\033[0m\n"
+                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+                "\033[44;1m\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\033[0m\n"
+			   );
         MSG_Replace("SHELL_STARTUP_BEGIN2",
                 host_key_help.c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\xBA For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \xBA\n"
-                "\xBA                                                                    \xBA\n"
+                "\033[44;1m\xBA For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \xBA\033[0m\n"
+                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
                );
         if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox-X supports Composite CGA mode.                                \xBA\n"
-                    "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
-                    "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
-                    "\xBA                                                                    \xBA\n"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                              \xBA\033[0m\n"
+                    "\033[44;1m\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\033[0m\n"
+                    "\033[44;1m\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\033[0m\n"
+                    "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
                    );
         } else {
-            MSG_Add("SHELL_STARTUP_CGA","\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\n"
-                    "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\033[0m\n"
+                    "\033[44;1m\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\033[0m\n"
                    );
         }
         MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
                 "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-        MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
-                "\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
-                "\xBA                                                                    \xBA\n"
+        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\033[0m\n"
+                "\033[44;1m\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\033[0m\n"
+                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
                );
         MSG_Add("SHELL_STARTUP_DEBUG",
 #if defined(MACOSX)
-                "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
+                "\033[44;1m\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\033[0m\n"
 #else
-                "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
+                "\033[44;1m\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\033[0m\n"
 #endif
-                "\xBA                                                                    \xBA\n"
+                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
                );
         MSG_Add("SHELL_STARTUP_END",
-                "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
-                "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
-                "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\033[44;1m\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\033[0m\n"
+                "\033[44;1m\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\033[0m\n"
+                "\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
                 "\033[1m\033[32mHAVE FUN!\033[0m\n"
@@ -1119,7 +1126,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
-
+	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /INIT\tInitializes the command shell.\n");
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();
