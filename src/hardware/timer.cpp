@@ -694,6 +694,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //           - Port A (input)           Keyboard scan code / SW1 dip switches (depends on port 61h bit 7)
 //           - Port B (output)          Timer 2 gate speaker / Speaker data aka output gate / ... / bit 7 set to clear keyboard and read SW1
 //           - Port C (input)           I/O Read/Write Memory SW2 / Cassette Data In / Timer Channel 2 Out / ...
+//           - Command byte             0x99 (IBM Technical Ref listing)
 //
 //        This is the picture I have of the hardware:
 //
