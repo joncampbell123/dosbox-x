@@ -1,4 +1,8 @@
 0.83.1
+  - PC speaker: Mode 3 (square wave) and a counter value
+    of 1 produces a low frequency square wave. Ulrasonic
+    frequencies do not begin until count == 2. This fixes
+    helicopter noises in Paratrooper.
   - dosbox-x.conf is now recognized as the default config
     file name in addition to dosbox.conf (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to

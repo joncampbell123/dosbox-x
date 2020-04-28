@@ -454,6 +454,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
             else
                 p->set_next_counter(9999/*check this*/);
         }
+        else if (p->write_latch == 1 && p->mode == 3/*square wave, count by 2*/) { /* counter==1 and mode==3 makes a low frequency buzz (Paratrooper) */
+            if (p->bcd == false)
+                p->set_next_counter(0x10001);
+            else
+                p->set_next_counter(10000/*check this*/);
+        }
         else {
             p->set_next_counter(p->write_latch);
         }
