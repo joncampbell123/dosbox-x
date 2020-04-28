@@ -1519,22 +1519,39 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 					Bit16u fattr;
 					bool exist = DOS_GetFileAttr(nameTarget, &fattr);
-					if (!optY && !oldsource.concat && exist && !(fattr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES)
-						{
-						dos.echo=false;
-						WriteOut("Overwrite %s (Yes/No/All)?", nameTarget);
-						Bit8u c;
-						Bit16u n=1;
-						while (true)
-							{
-							DOS_ReadFile (STDIN,&c,&n);
-							if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
-							if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
-							if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
-							if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
-							}
-						if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+					if (!(attr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES) {
+						if (exist && !optY && !oldsource.concat) {
+							dos.echo=false;
+							WriteOut("Overwrite %s (Yes/No/All)?", nameTarget);
+							Bit8u c;
+							Bit16u n=1;
+							while (true)
+								{
+								DOS_ReadFile (STDIN,&c,&n);
+								if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
+								if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
+								if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
+								if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
+								}
+							if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
+						if (!exist&&size) {
+							int drive=strlen(nameTarget)>1&&nameTarget[1]==':'||nameTarget[2]==':'?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
+							if (drive>=0&&Drives[drive]) {
+								Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+								rsize=true;
+								freec=0;
+								Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
+								rsize=false;
+								if ((Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters)<size) {
+									WriteOut("Insufficient disk space - %s\n", uselfn?lname:name);
+									DOS_CloseFile(sourceHandle);
+									ret = DOS_FindNext();
+									continue;
+								}
+							}
+						}
+					}
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
@@ -1553,7 +1570,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							if (iscon) dos.echo=true;
 							bool cont;
 							do {
-								failed |= DOS_ReadFile(sourceHandle,buffer,&toread);
+								if (!DOS_ReadFile(sourceHandle,buffer,&toread)) failed=true;
 								if (iscon)
 									{
 									if (dos.errorcode==77)
@@ -1574,18 +1591,20 @@ void DOS_Shell::CMD_COPY(char * args) {
 											cont=false;
 											break;
 											}
-									DOS_WriteFile(targetHandle,buffer,&toread);
+									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									if (cont) toread=0x8000;
 									}
 								else
 									{
-									failed |= DOS_WriteFile(targetHandle,buffer,&toread);
+									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									cont=toread == 0x8000;
 									}
 							} while (cont);
-							failed |= DOS_CloseFile(sourceHandle);
-							failed |= DOS_CloseFile(targetHandle);
-                            if (strcmp(name,lname)&&uselfn)
+							if (!DOS_CloseFile(sourceHandle)) failed=true;
+							if (!DOS_CloseFile(targetHandle)) failed=true;
+							if (failed)
+                                WriteOut("Error in copying file %s\n",uselfn?lname:name);
+                            else if (strcmp(name,lname)&&uselfn)
                                 WriteOut(" %s [%s]\n",lname,name);
                             else
                                 WriteOut(" %s\n",uselfn?lname:name);
