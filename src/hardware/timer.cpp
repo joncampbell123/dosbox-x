@@ -702,6 +702,9 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //        Port 61h
 //        - bit 0 PIT 2 counter gate (write)
 //        - bit 1 PIT 2 counter output gate (write)
+//        Port 62h
+//        - bit 5 PIT 2 counter output (read). The connection point lies BEFORE the AND gate.
+//            You will see the output toggle even if the speaker was muted by clearing the output gate bit.
 //
 //        IBM PC/AT:
 //
@@ -718,15 +721,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //        - On PC-9821, this bit controls the clock gate of PIT 1 and therefore whether the PC speaker makes sound
 //        - On PC-9801, the clock gate of PIT 1 is always on, and this bit controls whether the PC speaker makes sound
 //
-//        IBM PC/XT:
-//
-//                        +------+                    +----------+
-//        counter gate -> | 8254 | -> PIT 2 output -> | AND GATE | -> PC speaker
-//                        +------+                    +----------+
-//                                                         |
-//        counter output gate -> --------------------------+
-//
-//        IBM PC/AT:
+//        IBM PC/XT/AT:
 //
 //        counter output readback <- --------+
 //                                           |
