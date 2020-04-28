@@ -689,6 +689,12 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //        that either enables the PIT to count or stops it and resets the counter.
 //        Verify this on real hardware (DOSLIB TPCRAPI6.EXE)
 //
+//        Note that on IBM PC/XT hardware, ports 60h-63h are the same PPI used in the
+//        PC-98 systems, though wired differently. It is configured (According to IBM).
+//           - Port A (input)           Keyboard scan code / SW1 dip switches (depends on port 61h bit 7)
+//           - Port B (output)          Timer 2 gate speaker / Speaker data aka output gate / ... / bit 7 set to clear keyboard and read SW1
+//           - Port C (input)           I/O Read/Write Memory SW2 / Cassette Data In / Timer Channel 2 Out / ...
+//
 //        This is the picture I have of the hardware:
 //
 //        IBM PC/XT:
