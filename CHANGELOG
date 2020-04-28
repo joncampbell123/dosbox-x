@@ -29,6 +29,7 @@
     inside DOSBox-X before using pipes (Wengier)
   - Improved redirections using "<" or ">" (Wengier)
   - Improved Ctrl+C handling in some commands (Wengier)
+  - Improved Tab completion in the command shell (Wengier)
   - Improved -get & -set options for the CONFIG command,
     e.g. support for config options with spaces (Wengier)
   - Improved REN (or RENAME) command to support wildcards
