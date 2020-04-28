@@ -826,6 +826,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for 1 keystroke to continue.\n");
 	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure : %s.\n");
 	MSG_Add("SHELL_CMD_COPY_SUCCESS","   %d File(s) copied.\n");
+	MSG_Add("SHELL_CMD_COPY_CONFIRM","Overwrite %s (Yes/No/All)?");
+	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
+	MSG_Add("SHELL_CMD_COPY_ERROR","Error in copying file %s\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
 
