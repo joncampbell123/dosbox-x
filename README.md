@@ -1,11 +1,10 @@
-DOSBox-X Manual (always use the latest version from [dosbox-x.com](dosbox-x.com))
+DOSBox-X Manual (always use the latest version from [dosbox-x.com](http://dosbox-x.com))
 
-DOSBox-X is a fork of the original DOSBox project (www.dosbox.com)
+DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com)
 
+For more information please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 This project has a Code of Conduct in CODE_OF_CONDUCT.md, please read it.
-
-
 
 I am rewriting this README, and new information will be added over time --J.C.
 
@@ -658,7 +657,7 @@ The entry point main() is in src/gui/sdlmain.cpp,
 somewhere closer to the bottom.
 
 
-Configuration and control state (from dosbox.conf and
+Configuration and control state (from dosbox-x.conf and
 the command line) are accessible through a globally
 scoped pointer named "control".
 
@@ -1323,7 +1322,7 @@ Mixer audio framework
 Audio is rendered from all sources once a millisecond (once per tick).
 
 Audio is rendered to 16-bit stereo at the sample rate of the user's
-choice (in dosbox.conf).
+choice (in dosbox-x.conf).
 
 Audio may be rendered within the 1ms tick at any point if code calls
 the MIXER_FillUp() function or FillUp() member of a mixer channel.
