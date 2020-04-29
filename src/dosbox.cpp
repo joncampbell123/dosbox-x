@@ -1917,7 +1917,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");
     Pstring->Set_values(vsyncmode);
-    Pstring->Set_help("Synchronize vsync timing to the host display. Requires calibration within dosbox.");
+    Pstring->Set_help("Synchronize vsync timing to the host display. Requires calibration within DOSBox-X.");
     Pstring = secprop->Add_string("vsyncrate",Property::Changeable::WhenIdle,"75");
     Pstring->Set_values(vsyncrate);
     Pstring->Set_help("Vsync rate used if vsync is enabled. Ignored if vsyncmode is set to host (win32).");
@@ -2128,7 +2128,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("mididevice",Property::Changeable::WhenIdle,"default");
     Pstring->Set_values(devices);
-    Pstring->Set_help("Device that will receive the MIDI data from MPU-401.");
+    Pstring->Set_help("Device that will receive the MIDI data from MPU-401. Use \"synth\" for FluidSynth.");
 
     Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Special configuration options for the device driver. This is usually the id or part of the name of the device you want to use (find the id/name with mixer/listmidi).\n"
@@ -3156,7 +3156,7 @@ void DOSBOX_SetupConfigSections(void) {
         "If set, and int13fakeio is set, certain INT 13h commands will\n"
         "cause floppy emulation to issue fake CPU I/O traps (GPF) in\n"
         "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-        "if you want 32-bit floppy access in Windows 95 to work with DOSBox.");
+        "if you want 32-bit floppy access in Windows 95 to work with DOSBox-X.");
 
     Pbool = secprop->Add_bool("instant mode",Property::Changeable::WhenIdle,false);
     Pbool->Set_help(
@@ -3242,14 +3242,14 @@ void DOSBOX_SetupConfigSections(void) {
                 "IDE registers will be changed as if BIOS had carried out the action.\n"
                 "If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
                 "you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
-                "disk access to work correctly in DOSBox.");
+                "disk access to work correctly in DOSBox-X.");
 
         Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
                 "If set, and int13fakeio is set, certain INT 13h commands will\n"
                 "cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
                 "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-                "if you want 32-bit disk access in Windows 95 to work with DOSBox.");
+                "if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
 
         Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
