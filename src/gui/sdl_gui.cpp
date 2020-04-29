@@ -981,7 +981,7 @@ public:
             fullpath += CROSS_FILESPLIT;
             fullpath += file;
         } else
-            fullpath = "dosbox.conf";
+            fullpath = "dosbox-x.conf";
         name->setText(fullpath.c_str());
         (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
         (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
