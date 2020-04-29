@@ -5775,10 +5775,10 @@ void SDL_SetupConfigSection() {
     Prop_multival* Pmulti;
 
     Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
-    Pbool->Set_help("Start dosbox directly in fullscreen. (Press ALT-Enter to go back)");
+    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press ALT-Enter to go back)");
      
     Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
-    Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox.");
+    Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
 
     //Pbool = sdl_sec->Add_bool("sdlresize",Property::Changeable::Always,false);
     //Pbool->Set_help("Makes window resizable (depends on scalers)");
@@ -5871,11 +5871,11 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(emulation);
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
-    Pbool->Set_help("Wait before closing the console if dosbox has an error.");
+    Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
 
     Pmulti = sdl_sec->Add_multi("priority", Property::Changeable::Always, ",");
     Pmulti->SetValue("higher,normal",/*init*/true);
-    Pmulti->Set_help("Priority levels for dosbox. Second entry behind the comma is for when dosbox is not focused/minimized.\n"
+    Pmulti->Set_help("Priority levels for DOSBox-X. Second entry behind the comma is for when DOSBox-X is not focused/minimized.\n"
                      "  pause is only valid for the second entry.");
 
     const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
@@ -5907,7 +5907,7 @@ void SDL_SetupConfigSection() {
     Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
 
     Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
-    Pstring->Set_help("Change the string displayed in the DOSBox title bar.");
+    Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
 
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
