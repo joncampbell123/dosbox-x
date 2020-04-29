@@ -41,7 +41,7 @@ my @filelist = ();
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
+my @files = ('dosbox-x.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
 
 foreach $platform (@platforms) {
 	foreach $build (@builds) {

@@ -1,6 +1,8 @@
 0.83.1
   - dosbox-x.conf is now recognized as the default config
-    file name in addition to dosbox.conf (Wengier)
+    file name in addition to dosbox.conf. The sample config
+    file "dosbox.reference.conf" has been renamed to
+    "dosbox-x.reference.conf" as well (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
     zero DC sample (128) when switched off. This fixes
     loud popping (DC offset) problems with Tandy DAC
@@ -88,7 +90,7 @@
   - Added support for DOS programs to communicate
     with the clipboard in Windows builds. If the
     "dos clipboard device enable" setting in
-    dosbox.conf is set to "true" or "full", a DOS
+    dosbox-x.conf is set to "true" or "full", a DOS
     device (default name: CLIP$) will be added to
     allow bidirectional communications with the
     clipboard (e.g. "DIR >CLIP$" will write the
@@ -98,7 +100,7 @@
     only read or write access for security reasons.
     The DOS device name can also be changed with
     the "dos clipboard device name" setting in
-    dosbox.conf. (Wengier)
+    dosbox-x.conf. (Wengier)
   - Added support for using the right mouse button
     to copy and paste from the Windows clipboard; the
     config option "clip_key_modifier" can be used to
@@ -122,7 +124,7 @@
     memory or video memory. I do not have enough
     test cases or a setup to test what really happens,
     so it will remain a debug message for now.
-  - Added dosbox.conf option to allow emulation of a
+  - Added dosbox-x.conf option to allow emulation of a
     DOS environment that lacks ANSI.SYS. NOTE: The
     option has no effect in PC-98 mode.
   - INT 2Fh now responds to AX=1A00h which is an installation
@@ -1232,7 +1234,7 @@
     to control the base I/O port of the MPU-401 interface.
     The option can be set to "0" to tell DOSBox-X to pick the
     best default. Works in either IBM PC or NEC PC-98 mode.
-    See dosbox.reference.conf for more details.
+    See dosbox-x.reference.conf for more details.
   - Fixed Sound Blaster 16 mixer IRQ/DMA select registers
     to work in PC-98 mode as they apparently do on real
     hardware.

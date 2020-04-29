@@ -17,12 +17,12 @@ Scenario 1
 
 Scenario 2
 
-- Mouse integration driver is installed and defined in dosbox.conf
+- Mouse integration driver is installed and defined in dosbox-x.conf
 - DOSBox-X has been reset at least once with <kbd>F11</kbd>+<kbd>R</kbd>
 
 ### Video
 
-This guide assumes you are using the default DOSBox-X machine `svga_s3` for which DOSBox-X sets video memory to `512Kb` by default. To use higher resolutions and color depths, adjust `vmemsize` in `[dosbox]` accordingly to your needs (see `dosbox.reference.conf`).
+This guide assumes you are using the default DOSBox-X machine `svga_s3` for which DOSBox-X sets video memory to `512Kb` by default. To use higher resolutions and color depths, adjust `vmemsize` in `[dosbox]` accordingly to your needs (see `dosbox-x.reference.conf`).
 
 ## Installation
 
@@ -32,7 +32,7 @@ This guide assumes you are using the default DOSBox-X machine `svga_s3` for whic
 - next to `DOSBox-X.exe`, create a `VirtualHD` directory
 - inside `VirtualHD` create a `WINSETUP` directory
 - extract Windows 3.1 floppies into it ([7-Zip](https://www.7-zip.org/) can extract IMG files)
-- next to `DOSBox-x.exe` create a `dosbox.conf` with the following content:
+- next to `DOSBox-x.exe` create a `dosbox-x.conf` with the following content:
 ```
 [cpu]
 cycles=25000

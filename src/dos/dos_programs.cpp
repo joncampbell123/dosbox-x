@@ -2901,6 +2901,11 @@ public:
             if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
         }
 
+		if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",false)) {
+			Unmount(temp_line[0]);
+			return;
+		}
+
         //default fstype is fat
         std::string fstype="fat";
         cmd->FindString("-fs",fstype,true);
@@ -3058,7 +3063,7 @@ public:
             }
             else {
                 if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
-                    WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?el_torito.c_str():"-"));
+                    WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
 
                     if (paths.size() > 1) {
                         for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
@@ -3298,13 +3303,14 @@ private:
                 imageDiskList[index]->Release();
                 imageDiskList[index] = NULL;
                 imageDiskChange[index] = true;
+				WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS"), letter);
                 return true;
             }
             WriteOut("No drive loaded at specified point\n");
             return false;
         }
         else {
-            WriteOut("Unknown imgmount unmount usage\n");
+            WriteOut("Incorrect IMGMOUNT unmount usage\n");
             return false;
         }
     }
@@ -4520,27 +4526,29 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
     MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
-    MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as el torito floppy\n");
-    MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as ram drive\n");
+    MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as El Torito floppy drive\n");
+    MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
-    MSG_Add("PROGRAM_MOUNT_ERROR_2","%s isn't a directory\n");
+    MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");
     MSG_Add("PROGRAM_MOUNT_USAGE",
-        "Usage \033[34;1mMOUNT [option] Drive-Letter Local-Directory\033[0m\n"
+        "Mounts drives from directories or drives in the host system.\n\n"
+        "Usage: \033[34;1mMOUNT [option] Drive-Letter Local-Directory\033[0m\n\n"
         "For example: MOUNT c %s\n"
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
-        "The directory has to exist.\n"
+        "The directory has to exist in the host system.\n\n"
 		"Options are accepted. For example:\n"
 		"MOUNT -nocachedir c %s mounts C: without caching the drive.\n"
 		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
 		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
 		"MOUNT -t cdrom c %s mounts the C: drive as a CD-ROM drive.\n"
 		"MOUNT -u c unmounts the C: drive.\n");
-    MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c isn't mounted.\n");
+    MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
+    MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting c:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");

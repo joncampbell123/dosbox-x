@@ -7,7 +7,7 @@ bin_PROGRAMS = dosbox-x
 resdir = $(datarootdir)/dosbox-x
 
 res_DATA = \
-	../dosbox.reference.conf \
+	../dosbox-x.reference.conf \
 	../font/FREECG98.BMP \
 	../CHANGELOG
 

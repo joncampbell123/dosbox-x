@@ -1122,8 +1122,8 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,true);
 #endif
-    Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox is DPI aware.\n"
-            "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
+    Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
+            "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
@@ -1138,7 +1138,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
-    Pstring->Set_help("The type of machine DOSBox tries to emulate.");
+    Pstring->Set_help("The type of machine DOSBox-X tries to emulate.");
 
     Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
@@ -1201,7 +1201,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
-    Pint->Set_help("Size of the initial DOSBox shell environment block, in bytes. This does not affect the environment block of sub-processes spawned from the shell.\n"
+    Pint->Set_help("Size of the initial DOSBox-X shell environment block, in bytes. This does not affect the environment block of sub-processes spawned from the shell.\n"
             "This option has no effect unless dynamic kernel allocation is enabled.");
 
     Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
@@ -1370,7 +1370,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
     Pint->SetMinMax(1,3584); // 3.5GB
     Pint->Set_help(
-        "Amount of memory DOSBox has in megabytes.\n"
+        "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
         "though few games might require a higher value.\n"
         "There is generally no speed advantage when raising this value.n"
@@ -1379,7 +1379,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,524288);
     Pint->Set_help(
-        "Amount of memory DOSBox has in kilobytes.\n"
+        "Amount of memory DOSBox-X has in kilobytes.\n"
         "This value should normally be set to 0.\n"
         "If nonzero, it is added to the memsize parameter.\n"
         "Finer grained control of total memory may be useful in\n"
@@ -2797,9 +2797,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of XMS handles available for the DOS environment, or 0 to use a reasonable default");
 
     Pbool = secprop->Add_bool("shell configuration as commands",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Allow entering dosbox.conf configuration parameters as shell commands to get and set settings.\n"
+    Pbool->Set_help("Allow entering dosbox-x.conf configuration parameters as shell commands to get and set settings.\n"
                     "This is disabled by default to avoid conflicts between commands and executables.\n"
-                    "It is recommended to get and set dosbox.conf settings using the CONFIG command instead.\n"
+                    "It is recommended to get and set dosbox-x.conf settings using the CONFIG command instead.\n"
                     "Compatibility with DOSBox SVN can be improved by enabling this option.");
 
     Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
