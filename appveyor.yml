@@ -23,7 +23,7 @@ after_build:
   - ps : >-
         $shortHash = $env:APPVEYOR_REPO_COMMIT.Substring(0, 7);
         7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\changelog.txt;
-        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\dosbox.reference.conf;
+        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\dosbox-x.reference.conf;
         7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\dosbox-x.exe;
         7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\FREECG98.BMP;
   
