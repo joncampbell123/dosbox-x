@@ -475,8 +475,9 @@ void DOS_Shell::InputCommand(char * line) {
                         if (it_completion == l_completion.end()) it_completion = l_completion.begin();
                     } else {
                         // build new completion list
-                        // Lines starting with CD will only get directories in the list
-                        bool dir_only = (strncasecmp(line,"CD ",3)==0);
+                        // Lines starting with CD/MD/RD will only get directories in the list
+						bool dir_only = (strncasecmp(line,"CD ",3)==0)||(strncasecmp(line,"MD ",3)==0)||(strncasecmp(line,"RD ",3)==0)||
+								(strncasecmp(line,"CHDIR ",6)==0)||(strncasecmp(line,"MKDIR ",3)==0)||(strncasecmp(line,"RMDIR ",6)==0);
 						int q=0, r=0, k=0;
 
                         // get completion mask

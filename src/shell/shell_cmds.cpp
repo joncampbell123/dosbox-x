@@ -1328,10 +1328,17 @@ void DOS_Shell::CMD_COPY(char * args) {
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
                 char spath[DOS_PATHLENGTH];
-                if (DOS_GetSFNPath(source_p,spath,false) && DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
+                if (DOS_GetSFNPath(source_p,spath,false)) {
+					bool root=false;
+					if (strlen(spath)==3&&spath[1]==':'&&spath[2]=='\\') {
+						root=true;
+						strcat(spath, "*.*");
+					}
+					if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
                     dta.GetResult(name,lname,size,date,time,attr);
-					if (attr & DOS_ATTR_DIRECTORY)
+					if (attr & DOS_ATTR_DIRECTORY || root)
 						strcat(source_x,"\\*.*");
+					}
 				}
 			}
             std::string source_xString = std::string(source_x);
@@ -1519,22 +1526,39 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 					Bit16u fattr;
 					bool exist = DOS_GetFileAttr(nameTarget, &fattr);
-					if (!optY && !oldsource.concat && exist && !(fattr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES)
-						{
-						dos.echo=false;
-						WriteOut("Overwrite %s (Yes/No/All)?", nameTarget);
-						Bit8u c;
-						Bit16u n=1;
-						while (true)
-							{
-							DOS_ReadFile (STDIN,&c,&n);
-							if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
-							if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
-							if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
-							if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
-							}
-						if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+					if (!(attr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES) {
+						if (exist && !optY && !oldsource.concat) {
+							dos.echo=false;
+							WriteOut(MSG_Get("SHELL_CMD_COPY_CONFIRM"), nameTarget);
+							Bit8u c;
+							Bit16u n=1;
+							while (true)
+								{
+								DOS_ReadFile (STDIN,&c,&n);
+								if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
+								if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
+								if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
+								if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
+								}
+							if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
+						if (!exist&&size) {
+							int drive=strlen(nameTarget)>1&&nameTarget[1]==':'||nameTarget[2]==':'?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
+							if (drive>=0&&Drives[drive]) {
+								Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+								rsize=true;
+								freec=0;
+								Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
+								rsize=false;
+								if ((Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters)<size) {
+									WriteOut(MSG_Get("SHELL_CMD_COPY_NOSPACE"), uselfn?lname:name);
+									DOS_CloseFile(sourceHandle);
+									ret = DOS_FindNext();
+									continue;
+								}
+							}
+						}
+					}
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
@@ -1553,7 +1577,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							if (iscon) dos.echo=true;
 							bool cont;
 							do {
-								failed |= DOS_ReadFile(sourceHandle,buffer,&toread);
+								if (!DOS_ReadFile(sourceHandle,buffer,&toread)) failed=true;
 								if (iscon)
 									{
 									if (dos.errorcode==77)
@@ -1574,18 +1598,20 @@ void DOS_Shell::CMD_COPY(char * args) {
 											cont=false;
 											break;
 											}
-									DOS_WriteFile(targetHandle,buffer,&toread);
+									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									if (cont) toread=0x8000;
 									}
 								else
 									{
-									failed |= DOS_WriteFile(targetHandle,buffer,&toread);
+									if (!DOS_WriteFile(targetHandle,buffer,&toread)) failed=true;
 									cont=toread == 0x8000;
 									}
 							} while (cont);
-							failed |= DOS_CloseFile(sourceHandle);
-							failed |= DOS_CloseFile(targetHandle);
-                            if (strcmp(name,lname)&&uselfn)
+							if (!DOS_CloseFile(sourceHandle)) failed=true;
+							if (!DOS_CloseFile(targetHandle)) failed=true;
+							if (failed)
+                                WriteOut(MSG_Get("SHELL_CMD_COPY_ERROR"),uselfn?lname:name);
+                            else if (strcmp(name,lname)&&uselfn)
                                 WriteOut(" %s [%s]\n",lname,name);
                             else
                                 WriteOut(" %s\n",uselfn?lname:name);
@@ -2094,7 +2120,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 			this->ParseLine(mountstring);
 			return;
 		}
-		if(Drives[temp_str[0]-'A'] ) throw 0; //targetdrive in use
+		if(Drives[temp_str[0]-'A'] ) throw 2; //targetdrive in use
 		strcat(mountstring,temp_str);
 		strcat(mountstring," ");
 
@@ -2102,10 +2128,10 @@ void DOS_Shell::CMD_SUBST(char * args) {
         if (strchr(arg.c_str(),'\"')==NULL)
             sprintf(dir,"\"%s\"",arg.c_str());
         else strcpy(dir,arg.c_str());
-        if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
+        if (!DOS_MakeName(dir,fulldir,&drive)) throw 4;
 	
 		localDrive* ldp=0;
-		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 0;
+		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 3;
 		char newname[CROSS_LEN];   
 		strcpy(newname, ldp->basedir);	   
 		strcat(newname,fulldir);
@@ -2117,10 +2143,21 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		this->ParseLine(mountstring);
 	}
 	catch(int a){
-		if(a == 0) {
-			WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
-		} else {
+		switch (a) {
+			case 1:
 		       	WriteOut(MSG_Get("SHELL_CMD_SUBST_NO_REMOVE"));
+				break;
+			case 2:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_IN_USE"));
+				break;
+			case 3:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_NOT_LOCAL"));
+				break;
+			case 4:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_INVALID_PATH"));
+				break;
+			default:
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
 		}
 		return;
 	}
