@@ -1328,10 +1328,17 @@ void DOS_Shell::CMD_COPY(char * args) {
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
                 char spath[DOS_PATHLENGTH];
-                if (DOS_GetSFNPath(source_p,spath,false) && DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
+                if (DOS_GetSFNPath(source_p,spath,false)) {
+					bool root=false;
+					if (strlen(spath)==3&&spath[1]==':'&&spath[2]=='\\') {
+						root=true;
+						strcat(spath, "*.*");
+					}
+					if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
                     dta.GetResult(name,lname,size,date,time,attr);
-					if (attr & DOS_ATTR_DIRECTORY)
+					if (attr & DOS_ATTR_DIRECTORY || root)
 						strcat(source_x,"\\*.*");
+					}
 				}
 			}
             std::string source_xString = std::string(source_x);
