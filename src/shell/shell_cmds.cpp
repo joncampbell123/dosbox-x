@@ -88,6 +88,7 @@ static SHELL_Cmd cmd_list[]={
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"LFNFOR",	1,			&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,		"SHELL_CMD_TRUENAME_HELP"},
+// The following are additional commands for debugging purposes in DOSBox-X
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes.\n"},
 {   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture.\n"},
 #if C_DEBUG
@@ -2105,6 +2106,10 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		StripSpaces(args);
 		std::string arg;
 		CommandLine command(0,args);
+		if (!command.GetCount()) {
+		    WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
+			return;
+		}
 
 		if (command.GetCount() != 2) throw 0 ;
   
@@ -2128,10 +2133,10 @@ void DOS_Shell::CMD_SUBST(char * args) {
         if (strchr(arg.c_str(),'\"')==NULL)
             sprintf(dir,"\"%s\"",arg.c_str());
         else strcpy(dir,arg.c_str());
-        if (!DOS_MakeName(dir,fulldir,&drive)) throw 4;
+        if (!DOS_MakeName(dir,fulldir,&drive)) throw 3;
 	
 		localDrive* ldp=0;
-		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 3;
+		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 4;
 		char newname[CROSS_LEN];   
 		strcpy(newname, ldp->basedir);	   
 		strcat(newname,fulldir);
@@ -2151,10 +2156,10 @@ void DOS_Shell::CMD_SUBST(char * args) {
 				WriteOut(MSG_Get("SHELL_CMD_SUBST_IN_USE"));
 				break;
 			case 3:
-				WriteOut(MSG_Get("SHELL_CMD_SUBST_NOT_LOCAL"));
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_INVALID_PATH"));
 				break;
 			case 4:
-				WriteOut(MSG_Get("SHELL_CMD_SUBST_INVALID_PATH"));
+				WriteOut(MSG_Get("SHELL_CMD_SUBST_NOT_LOCAL"));
 				break;
 			default:
 				WriteOut(MSG_Get("SHELL_CMD_SUBST_FAILURE"));
@@ -2464,6 +2469,7 @@ void DOS_Shell::CMD_VOL(char *args){
 			}
 			break;
 		default:
+			WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 			return;
 		}
 	}
