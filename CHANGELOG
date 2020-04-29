@@ -1,6 +1,8 @@
 0.83.1
   - dosbox-x.conf is now recognized as the default config
-    file name in addition to dosbox.conf (Wengier)
+    file name in addition to dosbox.conf. The sample config
+    file "dosbox.reference.conf" has been renamed to
+    "dosbox-x.reference.conf" as well (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
     zero DC sample (128) when switched off. This fixes
     loud popping (DC offset) problems with Tandy DAC
@@ -1232,7 +1234,7 @@
     to control the base I/O port of the MPU-401 interface.
     The option can be set to "0" to tell DOSBox-X to pick the
     best default. Works in either IBM PC or NEC PC-98 mode.
-    See dosbox.reference.conf for more details.
+    See dosbox-x.reference.conf for more details.
   - Fixed Sound Blaster 16 mixer IRQ/DMA select registers
     to work in PC-98 mode as they apparently do on real
     hardware.
