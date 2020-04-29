@@ -23,7 +23,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment (please complete the following information):**
  - Operating system
  - DOSBox-X release version or commit SHA1 this issue occurred on
- - Used configuration, e.g. ```dosbox.conf```
+ - Used configuration, e.g. ```dosbox-x.conf```
 
 **Additional context**
 Add any other context about the problem here.
