@@ -28,7 +28,6 @@
 #include "programs.h"
 #include "zipfile.h"
 #include "regs.h"
-#include "../dos/drives.h"
 #ifndef WIN32
 # include <stdlib.h>
 # include <unistd.h>
@@ -1594,9 +1593,6 @@ public:
 			WriteOut("Restarts the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
 			return;
 		}
-		for (int i=0; i < DOS_DRIVES; i++)
-			if (Drives[i])
-				DriveManager::UnmountDrive(i);
         throw int(6);
     }
 };
