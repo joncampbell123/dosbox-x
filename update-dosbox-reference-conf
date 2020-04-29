@@ -1,5 +1,0 @@
-#!/bin/bash
-src/dosbox-x -c 'config -all -wc dosbox.reference.conf' -c 'exit' || exit 1
-sed $'s/$/\r/' 'dosbox.reference.conf' >'dosbox.reference.conf.tmp' || exit 1
-mv -v 'dosbox.reference.conf.tmp' 'dosbox.reference.conf' || exit 1
-
