@@ -90,7 +90,7 @@
   - Added support for DOS programs to communicate
     with the clipboard in Windows builds. If the
     "dos clipboard device enable" setting in
-    dosbox.conf is set to "true" or "full", a DOS
+    dosbox-x.conf is set to "true" or "full", a DOS
     device (default name: CLIP$) will be added to
     allow bidirectional communications with the
     clipboard (e.g. "DIR >CLIP$" will write the
@@ -100,7 +100,7 @@
     only read or write access for security reasons.
     The DOS device name can also be changed with
     the "dos clipboard device name" setting in
-    dosbox.conf. (Wengier)
+    dosbox-x.conf. (Wengier)
   - Added support for using the right mouse button
     to copy and paste from the Windows clipboard; the
     config option "clip_key_modifier" can be used to
@@ -124,7 +124,7 @@
     memory or video memory. I do not have enough
     test cases or a setup to test what really happens,
     so it will remain a debug message for now.
-  - Added dosbox.conf option to allow emulation of a
+  - Added dosbox-x.conf option to allow emulation of a
     DOS environment that lacks ANSI.SYS. NOTE: The
     option has no effect in PC-98 mode.
   - INT 2Fh now responds to AX=1A00h which is an installation
