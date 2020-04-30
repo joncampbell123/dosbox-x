@@ -507,7 +507,7 @@ static Bitu DOS_21Handler(void) {
 
                 DOS_Terminate(f_cs,false,0);
             } else if (reg_sp == 0xE224 && dos.version.major >= 7)
-                /* "As for SP=E224h, it fixes the bug that DIR /S from MS-DOS 7.1 may crash hard within DOSBox-X. With this change it works properly in DOSBox-X now." -Wengier */
+                /* Wengier: The SP=E224h case fixes the bug that DIR /S from MS-DOS 7.1 may crash hard within DOSBox-X. With this change it should now work properly. */
                 DOS_Terminate(dos.psp(),false,0);
 			else
                 DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
@@ -2436,6 +2436,8 @@ public:
         dos_clipboard_device_access = 0;
 		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
 #endif
+		for (int i=0; i < DOS_DRIVES; i++)
+			if (Drives[i]) DriveManager::UnmountDrive(i);
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
