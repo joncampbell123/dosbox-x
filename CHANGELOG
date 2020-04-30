@@ -1,5 +1,11 @@
 0.83.1
-  - Goldplay stereo is not longer enabled by default.
+  - Sound Blaster emulation fixed to better handle Goldplay
+    mode detection false positive in 1994 demoscene demo
+    myth_dw.zip when using Sound Blaster Pro setting in
+    the demo. The initial state before music starts is
+    like Goldplay mode, but when music actually starts the
+    DMA programmed to normal state without restarting
+    DMA playback.
   - dosbox-x.conf is now recognized as the default config
     file name in addition to dosbox.conf. The sample config
     file "dosbox.reference.conf" has been renamed to
