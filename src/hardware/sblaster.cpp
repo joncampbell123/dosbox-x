@@ -739,6 +739,8 @@ static void DMA_Silent_Event(Bitu val) {
 
 #include <assert.h>
 
+void updateSoundBlasterFilter(Bitu rate);
+
 static void DMA_DAC_Event(Bitu val) {
     (void)val;//UNUSED
     unsigned char tmp[4];
@@ -752,6 +754,25 @@ static void DMA_DAC_Event(Bitu val) {
     }
     if (!sb.dma.left)
         return;
+
+    /* Fix for 1994 Demoscene entry myth_dw: The demo's Sound Blaster Pro initialization will start DMA with
+     * count == 1 or 2 (triggering Goldplay mode) but will change the DMA initial counter when it begins
+     * normal playback. If goldplay stereo hack is enabled and we do not catch this case, the first 0.5 seconds
+     * of music will play twice as fast. */
+    if (sb.dma.chan != NULL &&
+        sb.dma.chan->basecnt < ((sb.dma.mode==DSP_DMA_16_ALIASED?2:1)*((sb.dma.stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+        sb.single_sample_dma = 1;
+    else
+        sb.single_sample_dma = 0;
+
+    if (!sb.single_sample_dma) {
+        // WARNING: This assumes Sound Blaster Pro emulation!
+        LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows"); 
+        sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
+        sb.chan->SetFreq(sb.dma_dac_srcrate);
+        updateSoundBlasterFilter(sb.dma_dac_srcrate);
+        return;
+    }
 
     /* NTS: chan->Read() deals with DMA unit transfers.
      *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
@@ -847,8 +868,6 @@ static void DSP_ChangeMode(DSP_MODES mode) {
 static void DSP_RaiseIRQEvent(Bitu /*val*/) {
     SB_RaiseIRQ(SB_IRQ_8);
 }
-
-void updateSoundBlasterFilter(Bitu rate);
 
 static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
     char const * type;
