@@ -598,6 +598,8 @@ static void GenerateDMASound(Bitu size) {
     // don't read if the DMA channel is masked
     if (sb.dma.chan->masked) return;
 
+    if (sb.dma_dac_mode) return;
+
     if(sb.dma.autoinit) {
         if (sb.dma.left <= size) size = sb.dma.left;
     } else {
@@ -768,6 +770,7 @@ static void DMA_DAC_Event(Bitu val) {
     if (!sb.single_sample_dma) {
         // WARNING: This assumes Sound Blaster Pro emulation!
         LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows"); 
+        sb.dma_dac_mode = 0;
         sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
         sb.chan->SetFreq(sb.dma_dac_srcrate);
         updateSoundBlasterFilter(sb.dma_dac_srcrate);
