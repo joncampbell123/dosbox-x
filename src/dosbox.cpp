@@ -1647,10 +1647,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable PC/XT style NMI mask register (0xA0). Note that this option conflicts with the secondary PIC and will be ignored if the slave PIC is enabled.");
 
     Pbool = secprop->Add_bool("rom bios 8x8 CGA font",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, or mainline compatible bios mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
+    Pbool->Set_help("If set, or mainline DOSBox compatible BIOS mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
 
     Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox-X will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
+    Pbool->Set_help("If set, or mainline DOSBox compatible BIOS mapping, DOSBox-X will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
 
     Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
     Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
@@ -2965,7 +2965,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("kernel allocation in umb",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, dynamic kernel allocation=1, and private area in umb=1, all kernel structures will be allocated from the private area in UMB.\n"
-            "If you intend to run Windows 3.1 in DOSBox, you must set this option to false else Windows 3.1 will not start.");
+            "If you intend to run Windows 3.1 in DOSBox-X, you must set this option to false else Windows 3.1 will not start.");
 
     Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
