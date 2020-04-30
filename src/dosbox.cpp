@@ -2344,7 +2344,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable goldplay emulation.");
 
-    Pbool = secprop->Add_bool("goldplay stereo",Property::Changeable::WhenIdle,true);
+    Pbool = secprop->Add_bool("goldplay stereo",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable workaround for goldplay stereo playback. Many DOS demos using this technique\n"
             "don't seem to know they need to double the frequency when programming the DSP time constant for Pro stereo output.\n"
             "If stereo playback seems to have artifacts consider enabling this option. For accurate emulation of Sound Blaster\n"
