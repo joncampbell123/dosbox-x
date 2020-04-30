@@ -171,9 +171,6 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 //		vga.vmemwrap = 256*1024;
 	}
 
-    // FIXME: What? Is this needed?
-	vga.config.compatible_chain4 = false;
-
 	VGA_SetupHandlers();
 }
 
