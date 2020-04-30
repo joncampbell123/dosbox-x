@@ -1650,7 +1650,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, or mainline compatible bios mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
 
     Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
+    Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox-X will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
 
     Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
     Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
@@ -1792,11 +1792,11 @@ void DOSBOX_SetupConfigSections(void) {
             "by default. If you intend to run certain DOS games and demos like DoWhackaDo, enable this option.");
 
     Pbool = secprop->Add_bool("resize only on vga active display width increase",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, changes to the Display End register of the CRTC do not trigger DOSBox to resize it's window\n"
+    Pbool->Set_help("If set, changes to the Display End register of the CRTC do not trigger DOSBox-X to resize its window\n"
             "IF the value written is less than the current value. Some demos like DoWhackaDo need this option set\n"
-            "because of the way it's raster effects work. If the DOSBox window rapidly changes size during a demo\n"
+            "because of the way its raster effects work. If the DOSBox-X window rapidly changes size during a demo\n"
             "try setting this option. Else, leave it turned off. Changes to other VGA CRTC registers will trigger\n"
-            "a DOSBox mode change as normal regardless of this setting.");
+            "a DOSBox-X mode change as normal regardless of this setting.");
 
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
@@ -1813,7 +1813,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
     Pint->SetMinMax(0,10);
-    Pint->Set_help("How many frames DOSBox skips before drawing one.");
+    Pint->Set_help("How many frames DOSBox-X skips before drawing one.");
 
     Pbool = secprop->Add_bool("alt render",Property::Changeable::Always,false);
     Pbool->Set_help("If set, use a new experimental rendering engine");
@@ -1987,7 +1987,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
     Pmulti_remain->Set_help(
-        "Amount of instructions DOSBox tries to emulate each millisecond.\n"
+        "Amount of instructions DOSBox-X tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"
         "Cycles can be set in 3 ways:\n"
         "  'auto'          tries to guess what a game needs.\n"
@@ -2045,13 +2045,13 @@ void DOSBOX_SetupConfigSections(void) {
             "Please note at this time that 32-bit APM is unstable under Windows ME");
 
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
+    Pbool->Set_help("Enable DOSBox-X integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
 
     Pbool = secprop->Add_bool("integration device pnp",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("List DOSBox integration I/O device as part of ISA PnP enumeration. This has no purpose yet.");
+    Pbool->Set_help("List DOSBox-X integration I/O device as part of ISA PnP enumeration. This has no purpose yet.");
 
     Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
+    Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox-X to run a PnP aware DOS program or if booting Windows 9x.\n"
             "Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
 
     Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
@@ -2219,7 +2219,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
     Pint->Set_values(irqssb);
-    Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
+    Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
 
     Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
     Pint->Set_help( "Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds. Set to -1 for default.\n"
@@ -2248,11 +2248,11 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
+    Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
 
     Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
+    Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
 
     Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Start the DOS virtual machine with the sound blaster IRQ already unmasked at the PIC.\n"
@@ -2292,7 +2292,7 @@ void DOSBOX_SetupConfigSections(void) {
             "   Inconexia by Iguana (1993)");
 
     Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
+    Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox-X mixer.");
 
     Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(oplmodes);
@@ -2382,7 +2382,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("stereo control with sbpro only",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Default on. If set, Sound Blaster Pro stereo is not available when emulating sb16 or sb16vibra.\n"
             "If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
-            "honor the stereo bit, and this option allows DOSBox emulate that fact. Accuracy setting.");
+            "honor the stereo bit, and this option allows DOSBox-X emulate that fact. Accuracy setting.");
 
     /* NTS: It turns out (SB16 at least) the DSP will periodically set bit 7 (busy) by itself at some
      *      clock rate even if it's idle. Casual testing on an old Pentium system with a ViBRA shows
@@ -2887,7 +2887,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
+    Pbool->Set_help("If set, DOSBox-X will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
             "at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
             "A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"
             "to a20=mask as opposed to a20=fast. This option is enabled by default.");
@@ -2971,7 +2971,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
     Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, keep the DOSBox private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+    Pbool->Set_help("If set, keep the DOSBox-X private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
 
     Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
@@ -3259,7 +3259,7 @@ void DOSBOX_SetupConfigSections(void) {
         Pbool = secprop->Add_bool("ignore pio32",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
                 "If 32-bit I/O is enabled, attempts to read/write 32-bit I/O will be ignored entirely.\n"
-                "In this way, you can have DOSBox emulate one of the strange quirks of 1995-1997 era\n"
+                "In this way, you can have DOSBox-X emulate one of the strange quirks of 1995-1997 era\n"
                 "laptop hardware");
 
         Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
@@ -3273,7 +3273,7 @@ void DOSBOX_SetupConfigSections(void) {
         Pint = secprop->Add_int("cd-rom insertion delay",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
         if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will report \"medium not present\"\n"
                 "to emulate the time it takes for someone to take out a CD and insert a new one when\n"
-                "DOSBox is instructed to swap or change CDs.\n"
+                "DOSBox-X is instructed to swap or change CDs.\n"
                 "When running Windows 95 or higher a delay of 4000ms is recommended to ensure that\n"
                 "auto-insert notification triggers properly.\n"
                 "Set to 0 to use controller or CD-ROM drive-specific default.");
