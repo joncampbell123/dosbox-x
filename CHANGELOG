@@ -1,4 +1,5 @@
 0.83.1
+  - Goldplay stereo is not longer enabled by default.
   - dosbox-x.conf is now recognized as the default config
     file name in addition to dosbox.conf. The sample config
     file "dosbox.reference.conf" has been renamed to
