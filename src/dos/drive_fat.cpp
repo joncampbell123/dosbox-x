@@ -1635,7 +1635,7 @@ bool fatDrive::FileUnlink(const char * name) {
 		}
 		int fbak=faux;
 		faux=256;
-		imgDTA->SetupSearch(0,0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY,pattern);
+		imgDTA->SetupSearch((Bit8u)0,(Bit8u)(0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY),pattern);
 		imgDTA->SetDirID(0);
 		direntry foundEntry;
 		std::vector<std::string> cdirs;
