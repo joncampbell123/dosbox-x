@@ -180,9 +180,9 @@ enum {
 #define UNICODE_BOM 0xFEFF
 #endif
 
-int utf8_encode(char **ptr,char *fence,uint32_t code);
+int utf8_encode(char **ptr,const char *fence,uint32_t code);
 int utf8_decode(const char **ptr,const char *fence);
-int utf16le_encode(char **ptr,char *fence,uint32_t code);
+int utf16le_encode(char **ptr,const char *fence,uint32_t code);
 int utf16le_decode(const char **ptr,const char *fence);
 
 typedef char utf8_t;
