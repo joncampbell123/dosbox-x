@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"> <html style lang=ja-JP><!--
+ Page saved with SingleFile 
+ url: http://www.satotomi.com/sl9821/sl9821_tec5.html 
+ saved date: Sun May 03 2020 02:10:21 GMT-0700 (Pacific Daylight Time)
+--><meta charset=utf-8>
+<meta http-equiv=content-language content=ja>
+<meta http-equiv=Content-Style-Type content=text/css>
+<meta name=viewport content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=no">
+<style>:root{--sf-img-1:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHoAAAABCAYAAAARvLrmAAAATklEQVQY02NQUlL6D8KKior/QBgbHwf7HyE1QPwf2Ux8GF0/mjko4qSYgW4OLjuQ1eIx6x8U/yfGDmxqYOGGJ8z+ofsJl1+xuR8Jo5gHAAdSqT9I37gmAAAAAElFTkSuQmCC")}body{background:#eee var(--sf-img-1) left repeat-y;margin:0;font:10pt/1.6 "ヒラギノ角ゴ Pro W3","メイリオ","Hiragino Kaku Gothic Pro","Meiryo",sans-serif}a{text-decoration:none}p{border:solid 0px;margin:0px;line-height:1.6}p.title{font-size:18pt;color:#fff;background:#222;border:solid 2px #222;padding-left:8px}td.empty{color:#fff;background:#222}td.chapter a{display:block;height:100%;width:100%}td.chapter a:link{color:#fff}td.chapter a:visited{color:#fff}td.chapter a:active{color:#fff}td.chapter a:hover{color:#fff;background-color:#888}td.chapter td.select{color:#000;background-color:#eee}td.chapter p.s2{border-left:solid 8px #222}td.chapter p{font-size:11pt}td.chapter{color:#fff;background-color:#222}td.content a:hover{text-decoration:underline}td.content h3{font-size:14pt;text-align:center}td.content h4{font-size:12pt;padding:6px 8px 2px;border-left:solid 6px #000;border-bottom:solid 1px #000;background:#ccc}td.content{font-size:11pt;text-align:left;padding:8px 4px;color:#000}div#navi table{font-size:11pt;text-align:center}div#port table{font-size:11pt;text-align:left}div#port th{background:#ddd;border-bottom:solid 1px;text-align:center}div#port td{background:#eee;padding:0pt 2px;border-bottom:solid 1px;vertical-align:top}div#mio table{font-size:11pt;text-align:center}div#mio th{background:#ddd;border-bottom:solid 1px}div#mio td{background:#eee;padding:0pt 2px;border-bottom:solid 1px;vertical-align:top}.left{text-align:left}</style>
+<title>SL9821 - 技術的なはなし - PEGC</title>
+<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEtUlEQVRYw81XWUiVWxT+JcUEx4ecQjTRFDEfNFA0MBxKE1ESxAFBw0gQLEjM1CA1owcVHwKNNCXQB596cCJxHjGnVDBES01R80pO5XCOfnevxf0Px+GcK+Tl3A0fnH+vtfb+9lprr72OBEDSJaT/AwGdjhMEFhYWUFJSgri4OAQEBCAoKAj37t1DZWUl1tfXVXp7e3sIDQ1FREQEdnd3/5zAwcEBMjMzYWBggCtXriArKws1NTV4//49UlNTYWRkBFNTU5SXl7M+kZGEAwlLS0t/TuDVq1e82PXr1/Hr168TiiMjI0xAT08Pra2t508gODiYFyssLNSoXFFRgZCQEMzMzJw/geLiYl7My8vrSKw1jXMncHh4iNzcXFy8eBFWVlacA6Ojo5wb/ymBrq4udHd3o6enB729vairq8Pjx48RGBiIS5cuwdzcHHfu3MGLFy8wODiIlZUV/Pz5kzc9FwJ9fX3QhurqaqSkpLBX9PX1kZSUxESbm5tVBDo7O/Ht2zcmt729zd48M4FPnz7hLGhvb4e7uztvSNeSboJMoLGx8Yju0NAQJicnuaZsbm5qJSTR9SIkJCTgxo0bGBgYgDx3HBQG2tDV1ZVPLRMgb2iyIYyNjWF+fh5bW1snCUxMTGB8fBz29va8GCUizZ2G2NhY1qGcoDDIBNra2jTaHMf09DR7RUXgy5cvINTW1sLMzAyGhoachHRCWdbU1IT4+HguQo6Ojujo6GBPyQQokWXds4LCo1AoIBEjGXQqqvs2Nja8sIWFBZOijZ2dnZGRkcHeIt3Pnz/zPOlRgtra2p6KtLQ0qO+hDipo0uzsLE4DJRKd/OPHjxzD03RaWlpQX1+vFZQDmvYgSN+/f4cuIVER0SWk1dVVHAddmcXFRZwmIxBzjfIfP/CXkGuyXV5ePvItUVklrK2tIT8/H56enoiKisLt27fh7+/P1ZDkpJydnc3yu3fvIjw8nH8XFRWxfOPrV+wWFEApKuX+s2dQPniAPbHeush2eY+YmBi+wvI3QaLiQEhPT8fVq1f5dPJcQ0MDZzjN5eXlwdraGnNzcyo5JSc9XlVVVVA8fw7lkyfYEo8Uyzc2oBRrKp4+ZfIFghzdGjqYbE+QdnZ2QHBxceH7L3/LuHz5Mt68ecMFysHBgT0lyyhUxsbGePfuHXZEE7Mj3gF1W6XoLQ7v32f7nJwc3Lp1i/sJdR2JigGBHhwPDw92izw3PDyMCxcu4AmdTLAlYycnJzx8+JD1ySOJiYncH8o2DJEHB69fQ9R3KMWbIM9TJaUQqOuq+gFi8+jRI67zVDySk5Nx7do1mJiY4KlwY39/PxcmygOqglS0iISdnR0XFB7UnL59C7ET8OEDxA5H6j5V07CwMO1dMZ1mamqKY/3792+OMTWmxJw65ePDx8eHX0eImEMknshk4JRH518JlJWVwdvbW6yzoRJS4pFHiAh5x83NjUMkD8oBS0tLbuNFkIGXL7W+/VoJUDyoM/b19UV0dDT/J4iMjOT7TmN/f5+fYyJJ15T+D/j5+aG0tBSH1BHdvAnxWECk+0n8Q5ryhey0hkAmo6kXlOVKpfLoJMVfE9TsFMfyQvd/zYRbdAqdj78BYe97ONQ/SskAAAAASUVORK5CYII="><link rel=canonical href=http://www.satotomi.com/sl9821/sl9821_tec5.html></head>
+<body>
+<p class=title><b>SL9821</b></p>
+<table width=100% cellspacing=0><colgroup><col><col>
+ <tbody><tr>
+ <td class=empty width=120px><img src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="122" height="1"><rect fill-opacity="0"/></svg>' style="background-blend-mode:normal!important;background-clip:content-box!important;background-position:50% 50%!important;background-color:rgba(0,0,0,0)!important;background-image:var(--sf-img-1)!important;background-size:100% 100%!important;background-origin:content-box!important;background-repeat:no-repeat!important" width=120 border=0></td>
+ </tr>
+ <tr valign=top>
+ <td class=chapter height=100%>
+ <table width=100% cellspacing=0 cellpadding=0>
+ <tbody><tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821.html>はじめに</a></p></tr>
+ <tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821_dl.html>ダウンロード</a></p></tr>
+ <tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821_htu.html>使い方</a></p></tr>
+ <tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821_faq.html>FAQ</a></p></tr>
+ <tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821_demo.html>実行画面</a></p></tr>
+ <tr><td><p><a href=http://www.satotomi.com/sl9821/sl9821_tec.html>技術的なはなし</a></p></tr>
+ <tr><td><p class=s2><a href=http://www.satotomi.com/sl9821/sl9821_tec1.html>プログラム構成</a></p></tr>
+ <tr><td><p class=s2><a href=http://www.satotomi.com/sl9821/sl9821_tec2.html>CPU</a></p></tr>
+ <tr><td><p class=s2><a href=http://www.satotomi.com/sl9821/sl9821_tec3.html>テキスト</a></p></tr>
+ <tr><td><p class=s2><a href=http://www.satotomi.com/sl9821/sl9821_tec4.html>グラフィック</a></p></tr>
+ <tr><td class=select><p class=s2>PEGC</p></tr>
+ <tr><td><p class=s2><a href=http://www.satotomi.com/sl9821/sl9821_tec6.html>サウンド</a></p></tr>
+ </table>
+ </td>
+ <td class=content>
+ <div id=navi>
+ <table width=100%><colgroup><col width=60><col><col width=60>
+ <tbody><tr>
+ <td><a href=http://www.satotomi.com/sl9821/sl9821_tec4.html>前へ</a></td>
+ <td><h3>技術的なはなし - PEGC</h3></td>
+ <td><a href=http://www.satotomi.com/sl9821/sl9821_tec6.html>次へ</a></td>
+ </tr>
+ </table>
+ </div>
+ <p>PEGCは初期のPC-9821(multi、MATE A)に搭載された1677万色中256色の出力が可能な画面モードです。今更どれほどの価値があるものでもないのですが、せっかくですのでここで分かっている範囲の内容にはなりますが、ずいぶん昔に解析して今回のエミュレータ作成においても参考にしたPEGCの機能をここに書いておこうと思います。(一部の内容は、技術評論社「ざべ no124 1993年9月」の記事「PC-9821の拡張機能解析 [第1回]これが「拡張グラフアーキテクチャ」でござ～る」を参考にしています)</p>
+ <h4>PEGCの概要</h4>
+ <p>まず、グラフィックV-RAMのサイズは512Kバイトで、画面モードとしては400ライン2画面のほか、480ライン1画面のモードを持ちます。<br>
+ プログラム的な側面としては、描画の方法として1バイト1パレット情報として扱うパックトピクセルモードと8プレーン同時アクセスでEGCのような描画が可能なプレーンモードの2種類があります。<br>
+ GDCとの関係ですが、これはエミュレータを作って初めて分かったことですが、GDCのPITCHコマンドに対応しています。Windowsのドライバではこの値に128を設定し横幅を1024ドットとして描画処理をしています(縦横の計算がしやすいから?)。その他、SYNCやRESETコマンドは対応していますが、描画系のコマンドやSCROLL、CSRFORMコマンドなどのコマンドの対応状況は不明です。エミュレータとしての実装は非対応です。<br>
+ </p>
+ <h4>使用するポート</h4>
+ <p>256色モードに関連するポートと設定は以下の通りです。<br>
+ <div id=port>
+ <table width=100%><colgroup><col width=80><col width=80><col>
+ <tbody><tr><th>ポート<th>入出力<th>説明</tr>
+ <tr><td>6Ah<td>OUT</td>
+ <td><dl><dt>画面モード切替</dt>
+ <dd>21h : 拡張(256色)モード<br>
+ 20h : 標準モード<br>
+ 68h : 2画面モード<br>
+ 69h : 1画面モード</dd>
+ </dl></td>
+ </tr>
+ <tr><td>A4h<td>IN/OUT</td>
+ <td><dl><dt>表示面設定(2画面モードの時のみ有効)</dt>
+ <dd>00h : VRAMの前半256KByteを表示面として使用<br>
+ 01h : VRAMの後半256KByteを表示面として使用</dd>
+ </dl></td>
+ </tr>
+ <tr><td>A6h<td>OUT</td>
+ <td><dl><dt>描画面設定(2画面モードの時のみ有効)</dt>
+ <dd>00h : プレーンモード時の描画面としてVRAMの前半256KByteを使用<br>
+ 01h : プレーンモード時の描画面としてVRAMの後半256KByteを使用</dd>
+ </dl></td>
+ </tr>
+ <tr><td>A8h<td>OUT<td>パレット番号(0～255)</tr>
+ <tr><td>AAh<td>IN/OUT<td>緑の輝度(0～255)</tr>
+ <tr><td>ACh<td>IN/OUT<td>赤の輝度(0～255)</tr>
+ <tr><td>AEh<td>IN/OUT<td>青の輝度(0～255)</tr>
+ <tr><td>09A8h<td>IN/OUT</td>
+ <td><dl><dt>水平走査線切り替え</dt>
+ <dd>00h : 24.823KHz(400ライン)<br>
+ 01h : 31.778KHz(480ライン)</dd>
+ ※エミュレータ上で定義している理論値です。<br>
+ </dl></td>
+ </tr>
+ </table>
+ </div>
+ <p></p>
+ <h4>使用するアドレス</h4>
+ <p>256色モードでも従来のモードで使用するVRAMと同じアドレス領域を使用しますが、使い方がかなり異なります。<br>
+ <div id=port>
+ <table width=100%><colgroup><col width=160><col>
+ <tbody><tr><th>アドレス<th>説明</tr>
+ <tr><td>A8000h～AFFFFh</td>
+ <td>パックトピクセルモード時にバンク切り替えでVRAMをウインドウ表示させる領域1、バンクの切り替えは後述のE0004hで設定<br>
+ プレーンモード時にVRAMへアクセスする領域</td>
+ </tr>
+ <tr><td>B0000h～B7FFFh</td>
+ <td>パックトピクセルモード時にバンク切り替えでVRAMをウインドウ表示させる領域2、バンクの切り替えは後述のE0006hで設定<br>
+ プレーンモード時にVRAMへアクセスする領域、1画面モードのときにのみVRAM全体のうちの後半の領域として使用可能</td>
+ </tr>
+ <tr><td>B8000h～BFFFFh</td>
+ <td>未使用</td>
+ </tr>
+ <tr><td>E0000h～E7FFFh<td>メモリマップトIO</tr>
+ </table>
+ </div>
+ <p></p>
+ <h4>メモリマップトIO</h4>
+ <p>メモリマップトIOはパックトピクセルモード時のバンク切り替えのページ切り替えと、プレーンモードにおける機能設定のための領域になります。未使用のビットがクリアされることはありますが、基本的に有効なアドレスに対してのリードライトは可能です。<br>
+ 表中の、"-"は書き込んだ後読み込んでも値が反映されていないビット(おそらく機能なし)、"○"は機能がある程度分かっているビット、"?"は書き込んだ値が反映されるものの機能が不明なビットです。"△"は32ビットでVRAMへアクセスするときにのみ有効になるビットです。<br>
+ また以降、表中のラスタオペレーション等の説明でよく使われる言葉として、<br>
+ ソースデータとは、CPUからVRAMへ書き込むデータで、設定により直前に読み出したVRAMデータとCPUのデータのいずれかを選択します。シフトバッファを経由するのでシフト設定の影響を受けます。<br>
+ ディスティネーションデータとは、書き込むアドレスの演算前のVRAMデータのことです。<br>
+ パターンレジスタは、PEGCの内部データとして持っているデータで、設定によりVRAM読み出し時に更新されます。また、PEGCの場合E0120h以降を参照することでパターンレジスタの内容が確認できます。<br>
+ <div id=mio>
+ <table width=100%><colgroup><col width=80><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col width=24><col>
+ <tbody><tr><th rowspan=2>アドレス<th colspan=16>ビット<th rowspan=2>説明</tr>
+ <tr><th>15<th>14<th>13<th>12<th>11<th>10<th>9<th>8<th>7<th>6<th>5<th>4<th>3<th>2<th>1<th>0</tr>
+ <tr><td class=left rowspan=2>E0004h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ 領域A8000h～AFFFFhのバンク指定<br>
+ 512KバイトのVRAM領域を32Kバイト単位に区切った先頭からのインデックス番号を指定、パックトピクセルモードで使用
+ </tr>
+ 
+ <tr><td class=left rowspan=2>E0006h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ 領域B0000h～B7FFFhのバンク指定<br>
+ 512KバイトのVRAM領域を32Kバイト単位に区切った先頭からのインデックス番号を指定、パックトピクセルモードで使用
+ </tr>
+ 
+ <tr><td class=left rowspan=2>E0100h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>モード切替</dt>
+ <dd>0 : パックトピクセルモード<br>
+ 1 : プレーンモードモード</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0102h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>?<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>アッパーメモリ領域のVRAM切り替え<br>
+ <dd>0 : アドレス00F00000h～00F80000h、FFF00000h～FFF80000hをVRAMとして使用しない<br>
+ 1 : アドレス00F00000h～00F80000h、FFF00000h～FFF80000hをVRAMとして使用する</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0104h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>アクセスプレーン(EGCにおけるポート04A0hに相当)</dt>
+ <dt>bit 7～0</dt>
+ <dd>0 : プレーンへのアクセスは有効<br>
+ 1 : プレーンへのアクセスは無効</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0108h<td>○<td>?<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>ラスタオペレーション設定(EGCにおけるポート04A4hに近い機能)</dt>
+ <dt>bit 15 アドレスE0120h以降の領域で読み出し可能なパターンレジスタのデータ構成を指定</dt>
+ <dd>0 : プレーン毎に分割した2バイト(4バイト)データ×8プレーン<br>
+ 1 : ピクセル毎に分割した1バイトのデータ×16ピクセル(32ピクセル)<br>
+ (括弧内はパターンレジスタが更新されるアクセスを32ビットで行った場合)</dd>
+ <dt>bit 13 パターンレジスタの更新</dt>
+ <dd>0 : VRAMへアクセスしたときにパターンレジスタを更新しない<br>
+ 1 : VRAMへアクセスしたときにアクセスしたVRAMデータでパターンレジスタを更新する(bit 8が0である必要があります)</dd>
+ <dt>bit 12 表示方式の設定</dt>
+ <dd>0 : VRAMへのライトに対しソースデータの値に応じて以下の条件で更新する<br>
+ <dl><dd>
+ ソースデータのビットが、<br>
+ 0に対してはアクセスプレーン(E0104h)とディスティネーションデータの論理積(and)<br>
+ 1に対してはアクセスプレーンのnot値とディスティネーションデータの論理和(or)
+ </dl>
+ 1 : VRAMへのライトはこのレジスタのビット11～0で決定される描画方法を用いる(以下のビットの説明はbit 12が1のとき)</dd>
+ bit 11、10 論理演算の方法を指定<br>
+ <dd>00 : ソースデータとディスティネーションデータとパターンレジスタを使用してラスタオペレーションを行う<br>
+ ラスタオペレーションの構成はこのレジスタのbit7～0で指定し、各ビットの意味は以下の通り(EGCと同じ)
+ <dl><dd>bit 7 : S and D and P<br>
+ bit 6 : S and D and ~P<br>
+ bit 5 : S and ~D and P<br>
+ bit 4 : S and ~D and ~P<br>
+ bit 3 : ~S and D and P<br>
+ bit 2 : ~S and D and ~P<br>
+ bit 1 : ~S and ~D and P<br>
+ bit 0 : ~S and ~D and ~P<br>
+ ※ここで、Sはソースデータ、Dはディスティネーションデータ、Pはパターンレジスタを表し、~はnot値のこと
+ </dl>
+ 01 : ソースデータとディスティネーションデータとE0118hで指定されるパレットデータを使用して、ラスタオペレーションを行う
+ <dl><dd>bit 7 : S and D and C8<br>
+ bit 6 : S and D and ~C8<br>
+ bit 5 : S and ~D and C8<br>
+ bit 4 : S and ~D and ~C8<br>
+ bit 3 : ~S and D and C8<br>
+ bit 2 : ~S and D and ~C8<br>
+ bit 1 : ~S and ~D and C8<br>
+ bit 0 : ~S and ~D and ~C8<br>
+ ※ここで、Sはソースデータ、Dはディスティネーションデータ、C8はE0118hの値を表し、~はnot値のこと
+ </dl>
+ 10 : ソースデータとディスティネーションデータとE0114hで指定されるパレットデータを使用して、ラスタオペレーションを行う<br>
+ 参照するカラーパレットが異なるほかは、設定値01と同じ<br>
+ 11 : ソースデータとディスティネーションデータとE0114h、E0118hで指定されるパレットデータを使用して、ラスタオペレーションを行う(EGCには対応する機能がない設定)
+ <dl><dd>bit 7 : S and D and C4<br>
+ bit 6 : S and D and ~C4<br>
+ bit 5 : S and ~D and C4<br>
+ bit 4 : S and ~D and ~C4<br>
+ bit 3 : ~S and D and C8<br>
+ bit 2 : ~S and D and ~C8<br>
+ bit 1 : ~S and ~D and C8<br>
+ bit 0 : ~S and ~D and ~C8<br>
+ ※ここで、Sはソースデータ、Dはディスティネーションデータ、C4はE0114hの値、C8はE0118hの値を表し、~はnot値のこと
+ </dl>
+ </dd>
+ <dt>bit 9 シフタの方向設定(EGCのポート04AChのビット12に相当)</dt>
+ <dd>0 : 右方向(インクリメンタル)シフト<br>
+ 1 : 左方向(デクリメンタル)シフト</dd>
+ <dt>bit 8 ソースデータの内容</dt>
+ <dd>0 : 直前に読み出したVRAMデータ<br>
+ 1 : CPUのデータ</dd>
+ <dt>bit 7～0 ラスタオペレーションの指定、セットしたビットの演算の論理和が最終的な演算結果になる。詳細は上記bit11、10を参照</dt>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E010Ah<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>VRAMをリードしたときに読み出されるデータの選択</dt>
+ <dt>bit 0</dt>
+ <dd>0 : 不定値(意味のない値)が読める<br>
+ 1 : 読み出したVRAMのビットがE0114hで指定したカラーパレットと同じ場合は1、異なるときは0になるような値を返す。このときの比較はE0104hのアクセスプレーンの影響を受けるためアクセスプレーンで許可されたプレーンのみチェックされる。またこの機能を有効にするためにはE0108hのビット8が0である必要がある</dd>
+ </dl><tr><td class=left rowspan=2>E010Ch<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>マスクレジスタ(EGCにおけるポート04A8hに相当)</dt>
+ <dt>bit 15～0(32ビットアクセス時はE010ChからE010Fhまでのbit 31～0)</dt>
+ <dd>0 : マスクする(書き込みは無視される)<br>
+ 1 : マスクしない</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0110h<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>ブロック転送ビット長、転送サイズ-1を設定。最大値は4095(EGCにおけるポート04AEhに相当)</dt>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0112h<td>-<td>-<td>-<td>△<td>○<td>○<td>○<td>○<td>-<td>-<td>-<td>△<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>シフタへの読み込み時および書き込み時のシフト数を設定する(EGCにおける04AChのbit7～4、bit3～0に相当)</dt>
+ <dt>なお、表中の上位8ビットへはE0113hへの8ビットアクセスでもリードライト可能(表の都合上ひとまとめで説明しています)</dt>
+ <dt>bit 11(12)～8</dt>
+ <dd>ライト時のビットシフト数を指定、最大5ビットまで有効でVRAMへ32ビットでライトした場合に5ビット目が有効になる</dd>
+ <dt>bit 3(4)～0</dt>
+ <dd>リード時のビットシフト数を指定、最大5ビットまで有効でVRAMへ32ビットでリードした場合に5ビット目が有効になる</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0114h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>カラーパレット1(EGCにおけるポート04A6h、フォアグラウンドカラーに相当)</dt>
+ <dt>bit 7～0</dt>
+ <dd>カラーパレット番号</dd>
+ </dl></tr>
+ 
+ <tr><td class=left rowspan=2>E0118h<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>-<td>○<td>○<td>○<td>○<td>○<td>○<td>○<td>○</tr>
+ <tr><td class=left colspan=17>
+ <dl><dt>カラーパレット2(EGCにおけるポート04AAh、バックグラウンドカラーに相当)</dt>
+ <dt>bit 7～0</dt>
+ <dd>カラーパレット番号</dd>
+ </dl></tr>
+ 
+ <tr><td class=left>E0120h～<td class=left colspan=17>
+ <dl><dt>パターンレジスタの内容<br>
+ この領域はE0108hのbit 15の値により2種類の読み方が出来る<br>
+ また、パターンレジスタは更新時のメモリアクセスのサイズにより16ビットと32ビットのいずれかのサイズをとる<br>
+ データは常に4バイトアライメントで配置され、並びかたは以下の通り<br>
+ ・E0108h bit 15 が0のとき、16(32)ドット×8プレーン構成</dt>
+ <dd>E0120h bit 15(31) ～ 0 プレーン0のビットパターン(以下同様)</dd>
+ <dd>E0124h bit 15(31) ～ 0 プレーン1</dd>
+ <dd>E0128h bit 15(31) ～ 0 プレーン2</dd>
+ <dd>E012Ch bit 15(31) ～ 0 プレーン3</dd>
+ <dd>E0130h bit 15(31) ～ 0 プレーン4</dd>
+ <dd>E0134h bit 15(31) ～ 0 プレーン5</dd>
+ <dd>E0138h bit 15(31) ～ 0 プレーン6</dd>
+ <dd>E013Ch bit 15(31) ～ 0 プレーン7</dd>
+ <dt>・E0108h bit 15 が1のとき、1パレットデータ×16(32)ピクセル</dt>
+ <dd>E0120h bit 7 ～ 0 (左から数えて)ピクセル 0のパレット番号(以下同様)</dd>
+ <dd>E0124h bit 7 ～ 0 ピクセル 1</dd>
+ <dd>E0128h bit 7 ～ 0 ピクセル 2</dd>
+ <dd>E012Ch bit 7 ～ 0 ピクセル 3</dd>
+ <dd>E0130h bit 7 ～ 0 ピクセル 4</dd>
+ <dd>E0134h bit 7 ～ 0 ピクセル 5</dd>
+ <dd>E0138h bit 7 ～ 0 ピクセル 6</dd>
+ <dd>E013Ch bit 7 ～ 0 ピクセル 7</dd>
+ <dd>E0140h bit 7 ～ 0 ピクセル 8</dd>
+ <dd>E0144h bit 7 ～ 0 ピクセル 9</dd>
+ <dd>E0148h bit 7 ～ 0 ピクセル 10</dd>
+ <dd>E014Ch bit 7 ～ 0 ピクセル 11</dd>
+ <dd>E0150h bit 7 ～ 0 ピクセル 12</dd>
+ <dd>E0154h bit 7 ～ 0 ピクセル 13</dd>
+ <dd>E0158h bit 7 ～ 0 ピクセル 14</dd>
+ <dd>E015Ch bit 7 ～ 0 ピクセル 15</dd>
+ <dd>※以降はパターンレジスタが32ビットのとき</dd>
+ <dd>E0160h bit 7 ～ 0 ピクセル 16</dd>
+ <dd>E0164h bit 7 ～ 0 ピクセル 17</dd>
+ <dd>E0168h bit 7 ～ 0 ピクセル 18</dd>
+ <dd>E016Ch bit 7 ～ 0 ピクセル 19</dd>
+ <dd>E0170h bit 7 ～ 0 ピクセル 20</dd>
+ <dd>E0174h bit 7 ～ 0 ピクセル 21</dd>
+ <dd>E0178h bit 7 ～ 0 ピクセル 22</dd>
+ <dd>E017Ch bit 7 ～ 0 ピクセル 23</dd>
+ <dd>E0180h bit 7 ～ 0 ピクセル 24</dd>
+ <dd>E0184h bit 7 ～ 0 ピクセル 25</dd>
+ <dd>E0188h bit 7 ～ 0 ピクセル 26</dd>
+ <dd>E018Ch bit 7 ～ 0 ピクセル 27</dd>
+ <dd>E0190h bit 7 ～ 0 ピクセル 28</dd>
+ <dd>E0194h bit 7 ～ 0 ピクセル 29</dd>
+ <dd>E0198h bit 7 ～ 0 ピクセル 30</dd>
+ <dd>E019Ch bit 7 ～ 0 ピクセル 31</dd>
+ </dl></tr>
+ 
+ </table>
+ </div>
+ <p></p>
+ <h4>プレーンモードの設定例</h4>
+ <p>最後に簡単な設定例を例示します。<br>
+ PEGCのプレーンモードはほぼEGCに対応する機能があるため、EGCと同じように設定することで動作させることが可能です。<br>
+ 前のページでEGCを使って画面全体を2ドット左へシフトするときの設定を例として出しましたが、それと同じことをPEGCのプレーンモードで行うときのことを考えてみます。<br>
+ まず、EGCのケースを再度確認すると以下のようになっています。<br>
+ <dl>
+ <dd>・ポート04A0hにFFF0hを設定、すべてのプレーンへのアクセスを許可<br>
+ ・ポート04A2hに00FFhを設定、フォアグラウンドカラーとバックグラウンドカラーは無効<br>
+ ・ポート04A6hに28F0hを設定、ROPモード、ソースデータはリードしたVRAMデータ、ROPパターンはソースデータのみ<br>
+ ・ポート04A8hにFFFFhを設定、全ビット使用許可(マスクビットなし)<br>
+ ・ポート04AChに0002hを設定、転送方向インクリメンタル、ソースシフト2ビット、ディスティネーションシフト0ビット<br>
+ ・ポート04AEhに637を設定、転送サイズを638ビット<br>
+ </dl>
+ これに対し、機能的な対応関係を元にPEGCのプレーンモードの場合を考えると、<br>
+ <dl>
+ <dd>・E0100hに0001hを設定、描画モードにプレーンモードを指定<br>
+ ・E0104hにFF00hを設定、すべてのプレーンへのアクセスを許可<br>
+ ・E0108hに10F0hを設定、ROPモードを指定、転送方向インクリメンタル、ソースデータはリードしたVRAMデータ、ROPパターンはソースデータのみ<br>
+ ・E010ChにFFFFhを設定、全ビット使用許可(マスクビットなし)<br>
+ ・E0110hに637を設定、転送サイズを638ビット<br>
+ ・E0112hに0002hを設定、ソースシフト2ビット、ディスティネーションシフト0ビット<br>
+ </dl>
+ 以上のような設定になります。なお、ROPの結果ライトされるのはソースデータのみなので、E0108hのbit11、10に関しては値を変えても結果は変わりません。<br>
+ VRAMへのアクセスの注意点はEGCと同じで、最初の手順としてオフセット0のリード、オフセット2のリード、オフセット0へのライト、以降オフセットをずらしながらリードとライトを繰り返すという手順は同じです。違う点としては、PEGCは32ビットアクセスが可能なので32ビットでアクセスすればより高速に処理が実行できます。<br>
+ 余談ですが、画面を左へシフトする処理としては、転送方向をデクリメンタル、ソースシフトを0ビット、ディスティネーションシフトを2ビットに設定し、画面の右側からアドレスをデクリメントしながら転送処理をするという方法でも実現可能です。この場合はリードとライトは初めから交互に同じオフセットに対して行います。インクリメンタルな方向での実現方法を例に取り上げたのは、シフトバッファがアンダーフロー状態になりうることとその対処方法についての説明のためです。<br>
+ <p></p>
+ <br>
+ <div id=navi>
+ <p align=center>Copyright ©satotomi 2017</p>
+ <table width=100%><colgroup><col width=60><col><col width=60>
+ <tbody><tr>
+ <td><a href=http://www.satotomi.com/sl9821/sl9821_tec4.html>前へ</a></td>
+ <td></td>
+ <td><a href=http://www.satotomi.com/sl9821/sl9821_tec6.html>次へ</a></td>
+ </tr>
+ </table>
+ </div>
+ </td>
+ </table>

@@ -1,0 +1,390 @@
+<html style><!--
+ Page saved with SingleFile 
+ url: http://nickle.shimbe.net/pegc.html 
+ saved date: Sun May 03 2020 02:06:51 GMT-0700 (Pacific Daylight Time)
+--><meta charset=utf-8>
+<meta name=GENERATOR content="HOTALL Ver.7.0iW">
+<title>PC-9821 PEGC</title>
+<link type=image/x-icon rel="shortcut icon" href="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="><link rel=canonical href=http://nickle.shimbe.net/pegc.html></head>
+<body>
+<p>
+<div align=CENTER><font size=6><b>PC-9821 グラフィック機能(PEGC)</b></font><br></div>
+<div align=LEFT><hr><br>
+<font size=4><b>メモリマップ</b></font><br>
+<br>
+まず最初に２５６色モード時のグラフィック制御に関連するメモリマップを簡単に書いておきます。VRAMの位置は１６色モードの位置を使用するのですが、VRAMサイズが大きいためメインメモリに展開しきれないためにVRAMの一部だけを見せるようなウインドウ方式をとっています。<br>
+<br>
+<table border>
+<tbody><tr>
+<td>
+<div align=CENTER>:<br>
+FFFFFH<br>
+:<br>
+:</div><td colspan=2><br></td>
+</tr>
+<tr>
+<td>
+<div align=CENTER>E7FFFH<br>
+:<br>
+E0000H</div><td colspan=2>
+PEGC<br>
+メモリマップトI/O</td>
+</tr>
+<tr>
+<td>
+<div align=CENTER>:<br>
+:</div><td colspan=2><br></td>
+</tr>
+<tr>
+<td>
+<div align=CENTER>B7FFFH<br>
+:<br>
+B0000H</div><td>
+パックトピクセルモード<br>
+VRAMウインドウ２<td rowspan=2>
+プレーンモード<br>
+プレーンアクセス領域</td>
+</tr>
+<tr>
+<td>
+<div align=CENTER>AF000H<br>
+:<br>
+A8000H</div><td>VRAMウインドウ１</td>
+</tr>
+<tr>
+<td>
+<div align=CENTER>:<br>
+:<br>
+０００００H</div><td colspan=2><br></td>
+</tr>
+</table><br>
+<hr><br>
+<font size=4><b>メモリマップトI/O</b></font><br>
+以前書いた資料をもとに書いているのですが書きながら意味不明なところがあったりします。現状はそのままにしていますが確認次第補足したいと思います。<br>
+EGCを知っている場合EGCと対比しながらのほうがわかりやすいと思います。説明が下手なもので...(＾＾)ゞ<br>
+それと、あくまで設定をいろいろ変えて現象から推定した機能であるため間違いがあるかもしれませんが、あらかじめご了承ください。<br>
+参考までに調べていたのは初代の無印9821です。この機種ではVRAMへの32ビットアクセスが可能でしたが、後継の機種では16ビットアクセスしか許されていないという話も聞くので、パターンデータ関連でダブルワードのことを書いてありますが、この辺は対応していない機種もあるかもしれません。<br>
+無印9821では一応動作確認しています。<br>
+<br>
+<b>記号の意味</b><br>
+○...機能あり<br>
+×...機能なし<br>
+？...機能なしもしくは不明(ライトデータのリードは可能だがが機能がわからない)<br>
+<br>
+<br>
+<table border>
+<tbody><tr>
+<td rowspan=2><div align=CENTER>メモリ</div><td colspan=16><div align=CENTER>ビット</div><td rowspan=2><div align=LEFT>説明</div></td>
+</tr>
+<tr>
+<td><div align=CENTER><font size=2>15</font></div><td><font size=2>14</font><td><font size=2>13</font><td><font size=2>12</font><td><font size=2>11</font><td><font size=2>10</font><td><font size=2>9</font><td><font size=2>8</font><td><font size=2>7</font><td><font size=2>6</font><td><font size=2>5</font><td><font size=2>4</font><td><font size=2>3</font><td><font size=2>2</font><td><font size=2>1</font><td><font size=2>0</font></td>
+</tr>
+<tr>
+<td><div align=CENTER>E0004H</div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<div align=LEFT><font size=2>パックトピクセルモード時A8000H～AFFFFHに呼び出すVRAMバンク領域</font><br>
+<font size=2>(実際に取りうる範囲は００００H～０００FH)</font></div></td>
+</tr>
+<tr>
+<td><div align=CENTER>E0006H</div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<div align=LEFT><font size=2>パックトピクセルモード時B0000H～B7FFFHに呼び出すVRAMバンク領域</font><br>
+<font size=2>(実際に取りうる範囲は００００H～０００FH)</font></div></td>
+</tr>
+<tr>
+<td>E0100H<td colspan=8><br><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>0 : パックトピクセルモード</font><br>
+<font size=2>１ : プレーンモード</font></td>
+</tr>
+<tr>
+<td>E0102H<td colspan=8><br><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>？</font></div><td><div align=CENTER><font size=2>？</font></div><td><font size=2>未確認</font></td>
+</tr>
+<tr>
+<td>E0104H<td colspan=8><br><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>プレーンごとのアクセスプレーン(AP)の有効/無効設定(論理演算処理を行うプレーンの指定)</font><br>
+<font size=2>0 : 有効</font><br>
+<font size=2>1 : 無効</font></td>
+</tr>
+<tr>
+<td rowspan=8><div align=CENTER>E0108H</div><td><font size=2>○</font><td colspan=15><br><td>
+<font size=2>ラスタオペレーション(ROP)時に使用するE0120H以降のパターンデータの形態を指定する</font><br>
+<font size=2>0 : プレーンごとに分割した2(4)バイトデータ×8プレーン</font><br>
+<font size=2>1 : ドットごとに分割した1バイトデータ×16(32)ドット</font><br>
+<font size=2>※よく覚えてませんが括弧のなかと外の違いはアドレスへのアクセスによって違ったような...ワードアクセスとダブルワードアクセスってことで、バイトアクセスは無効だったのかな？</font></td>
+</tr>
+<tr>
+<td><br><td><div align=CENTER><font size=2>？</font></div><td colspan=14><br><td><div align=LEFT><font size=2>不明</font></div></td>
+</tr>
+<tr>
+<td colspan=2><br><td><div align=CENTER><font size=2>○</font></div><td colspan=13><br><td>
+<div align=LEFT><font size=2>1 : VRAMを読み込んだ位置のデータをパターンデータの領域(E0120H～)にビット15で指定した形式で展開する。ビット8が0である必要がある</font><br>
+<font size=2>0 : 上記機能の無効</font></div></td>
+</tr>
+<tr>
+<td colspan=3><br><td><div align=CENTER><font size=2>○</font></div><td colspan=12><br><td>
+<div align=LEFT><font size=2>VRAMへのライト時の表示方式の設定</font><br>
+<font size=2>0 : CPUデータのビットが</font><br>
+<font size=2> 0のとき AP and D</font><br>
+<font size=2> 1のとき (not AP) or D</font><br>
+<font size=2>※ AP ... アクセスプレーン(E0104H)</font><br>
+<font size=2>D ... ディスティネーションデータ(VRAM上のデータ)</font><br>
+<br>
+<font size=2>1: ビット11～0を用いて表示方式を設定する。</font><br>
+<font size=2>ビット11～0の説明はビット12が1のときのもので、0のときは無効</font></div></td>
+</tr>
+<tr>
+<td colspan=4><br><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td colspan=10><br><td>
+<div align=LEFT><font size=2>ラスタオペレーション(ROP)の方法を指定する。</font><br>
+<font size=2>ROPにはビット7～0を使用し、表示結果には各ROPデータの論理和が出力される。</font><br>
+<font size=2>00 : CPUデータ、ディスティネーションデータ、パターンデータを使用する。</font><br>
+<font size=2>01 : CPUデータ、ディスティネーションデータ、カラーコード2(E0118H)を使用する。</font><br>
+<font size=2>10 : CPUデータ、ディスティネーションデータ、カラーコード1(E0114H)を使用する。</font><br>
+<font size=2>11 : CPUデータ、ディスティネーションデータ、カラーコード1および2を使用する。</font></div></td>
+</tr>
+<tr>
+<td colspan=6><br><td><div align=CENTER><font size=2>○</font></div><td colspan=9><br><td>
+<div align=LEFT><font size=2>E0112H,E0113Hのビットシフトの方向を決定する</font><br>
+<font size=2>0 : 右方向へのシフト</font><br>
+<font size=2>1 : 左方向へのシフト</font></div></td>
+</tr>
+<tr>
+<td colspan=7><br><td><div align=CENTER><font size=2>○</font></div><td colspan=8><br><td>
+<div align=LEFT><font size=2>CPUデータの内容</font><br>
+<font size=2>0 : 直前に読み込んだVRAMデータ</font><br>
+<font size=2>1 : レジスタの内容</font></div></td>
+</tr>
+<tr>
+<td colspan=8><br><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<div align=LEFT><font size=2>ROPデータ。ビット11,10で指定されたデータを使用してROPを行う。</font><br>
+<table height=0 cellspacing=0>
+<tbody><tr>
+<td><font size=2>bit7:</font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>P</font></td>
+</tr>
+<tr>
+<td><font size=2>bit6: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>(not P)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit5: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>P</font></td>
+</tr>
+<tr>
+<td><font size=2>bit4: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>(not P)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit3: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>P</font></td>
+</tr>
+<tr>
+<td><font size=2>bit2: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>(not P)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit1: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>P</font></td>
+</tr>
+<tr>
+<td><font size=2>bit0: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>(not P)</font></td>
+</tr>
+</table><br>
+<font size=2>S...CPUデータ</font><br>
+<font size=2>D...ディスティネーションデータ(書きこみ先のVRAMデータ)</font><br>
+<font size=2>P...ビット11,10が00のときパターンデータ、01のときカラーコード2、10のときカラーコード1</font><br>
+<br>
+<font size=2>ただしビット11,10が11のときは下記のようになる。</font><br>
+<table height=0 cellspacing=0>
+<tbody><tr>
+<td><font size=2>bit7:</font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>C1</font></td>
+</tr>
+<tr>
+<td><font size=2>bit6: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>(not C1)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit5: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>C1</font></td>
+</tr>
+<tr>
+<td><font size=2>bit4: </font><td><font size=2>S</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>(not C1)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit3: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>C2</font></td>
+</tr>
+<tr>
+<td><font size=2>bit2: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>D</font><td><font size=2> and </font><td><font size=2>(not C2)</font></td>
+</tr>
+<tr>
+<td><font size=2>bit1: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>C2</font></td>
+</tr>
+<tr>
+<td><font size=2>bit0: </font><td><font size=2>(not S)</font><td><font size=2> and </font><td><font size=2>(not D)</font><td><font size=2> and </font><td><font size=2>(not C2)</font></td>
+</tr>
+</table><br>
+<font size=2>C1...カラーコード1</font><br>
+<font size=2>C2...カラーコード2</font></div></td>
+</tr>
+<tr>
+<td>E010AH<td colspan=8><br><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>1 : A8000H以降のVRAM領域にE0114Hで指定したパレットナンバーとディスティネーションデータのプレーンごとの論理積を書き出す。その際E0104Hのアクセスプレーンの制約を受ける。</font><br>
+<font size=2>E0108Hのビットが0である必要がある。</font><br>
+<font size=2>AP and D and C1</font></td>
+</tr>
+<tr>
+<td>E010CH<td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td rowspan=2>
+<font size=2>マスクレジスタ</font><br>
+<font size=2>ビット15～0または31～0の範囲で指定</font><br>
+<font size=2>0 : マスクする</font><br>
+<font size=2>1 : マスクしない</font></td>
+</tr>
+<tr>
+<td>E010EH<td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font></td>
+</tr>
+<tr>
+<td>E0110H<td><font size=2>×</font><td><font size=2>×</font><td><font size=2>×</font><td><font size=2>×</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td><font size=2>○</font><td>
+<font size=2>ブロック転送ビット長</font><br>
+<font size=2>(0～4095) + 1ビット(ドット)</font><br>
+<font size=2>(特別なことをしない限り639を設定するのが無難)</font></td>
+</tr>
+<tr>
+<td>E0112H<td colspan=8><br><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>読み出し時のビットシフト長。ビット4は32ビットアクセスのみ有効</font><br>
+<font size=2>VRAMデータを読み込む際、右(左)シフトしたところから読み出す。ただし、E0112Hの値がE0113Hより大きいときは一番最初の読み出しだけではデータが不足するため(シフトして空いた下位(上位)のビットは次の読み込みの際にシフトによってあふれたデータが入るようになっている)そのまま書き込んでも表示が無視されるため、書き込む前にもう一度読み込みを行う必要がある</font></td>
+</tr>
+<tr>
+<td>E0113H<td colspan=8><br><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>×</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>書きこみ時のビットシフト長。ビット4は32ビットアクセスのみ有効</font><br>
+<font size=2>VRAMデータを書き込む際、右(左)にシフトして書き込む。シフトによって空いたスペースには直前に書き込んだデータの、シフトによってあふれた部分が書かれる。</font></td>
+</tr>
+<tr>
+<td>E0114H<td colspan=8><br><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>カラーコード1</font><br>
+<font size=2>ROPで使用する</font></td>
+</tr>
+<tr>
+<td>E0118H<td colspan=8><br><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td>
+<font size=2>カラーコード2</font><br>
+<font size=2>ROPで使用する</font></td>
+</tr>
+<tr>
+<td>E0120H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td rowspan=16>
+<font size=2>ROPのパターンデータ</font><br>
+<font size=2>上位16ビット(△)はダブルワードアクセス時のみ有効</font><br>
+</td>
+</tr>
+<tr>
+<td>E0122H<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E0124H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E0126H<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E0128H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E012AH<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E012CH<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E012EH<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E0130H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E0132H<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E0134H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E0136H<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E0138H<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E013AH<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+<tr>
+<td>E013CH<td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div><td><div align=CENTER><font size=2>○</font></div></td>
+</tr>
+<tr>
+<td>E013EH<td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div><td><div align=CENTER><font size=2>△</font></div></td>
+</tr>
+</table><br>
+<hr><br>
+<font size=4><b>I/Oポート</b></font><br>
+<br>
+256制御に関連するI/Oポートも紹介しておきます。ほかにもあったような気がするのですが、手元に資料が残ってないのでわかるものだけです。<br>
+(確かテキストとグラフィックを合成するときにテキストをずらして表示させるポートがあったと思うのですが...)<br>
+<br>
+<table border>
+<tbody><tr>
+<td>ポート<td>説明</td>
+</tr>
+<tr>
+<td>6AH<td>
+<font size=2>ライトモードレジスタ(それ以外の機能については省略)</font><br>
+<font size=2>68H : 2画面モード</font><br>
+<font size=2>69H : 1画面モード</font></td>
+</tr>
+<tr>
+<td>A4H<td>
+<font size=2>表示画面選択(0,1)</font><br>
+<font size=2>2画面モード時のみ有効</font></td>
+</tr>
+<tr>
+<td>A6H<td>
+<font size=2>描画画面選択(0,1)</font><br>
+<font size=2>2画面モード時のみ有効</font></td>
+</tr>
+<tr>
+<td>A8H<td><font size=2>パレット番号(00H～FFH)</font></td>
+</tr>
+<tr>
+<td>AAH<td><font size=2>緑成分(00H～FFH)</font></td>
+</tr>
+<tr>
+<td>ACH<td><font size=2>赤成分(00H～FFH)</font></td>
+</tr>
+<tr>
+<td>AEH<td><font size=2>青成分(00H～FFH)</font></td>
+</tr>
+</table><br>
+<hr><br>
+<font size=4><b>パックトピクセルモード時の表示範囲とVRAMバンク領域の関係</b></font><br>
+パックトピクセルモード時のVRAMアクセスはVRAM領域を32kバイトごとに区切り、その単位でウインドウ領域に表示して行います。<br>
+そこでバンク範囲とドットの関係をわかりやすく表にしておきます。<br>
+<br>
+<table border>
+<tbody><tr>
+<td>バンク<td>範囲</td>
+</tr>
+<tr>
+<td>0<td>(0,0)-(127,51)</td>
+</tr>
+<tr>
+<td>1<td>(128,51)-(255,102)</td>
+</tr>
+<tr>
+<td>2<td>(256,102)-(383,153)</td>
+</tr>
+<tr>
+<td>3<td>(384,153)-(511,204)</td>
+</tr>
+<tr>
+<td>4<td>(512,204)-(639,255)</td>
+</tr>
+<tr>
+<td>5<td>(0,256)-(127,307)</td>
+</tr>
+<tr>
+<td>6<td>(127,307)-(255,358)</td>
+</tr>
+<tr>
+<td>7<td>(256,358)-(383,409)</td>
+</tr>
+<tr>
+<td>8<td>(384,409)-(511,460)</td>
+</tr>
+<tr>
+<td>9<td>(512,460)-(639,511)</td>
+</tr>
+</table><br></div>
+<br><p></p>
