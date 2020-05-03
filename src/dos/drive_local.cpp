@@ -1095,7 +1095,8 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 		bool res=false;
 #if defined(WIN32)
 		struct _diskfree_t df = {0};
-		res = _getdiskfree(toupper(basedir[0])-'A'+1, &df) == 0;
+		Bit8u drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
+		res = _getdiskfree(drive>26?0:drive, &df) == 0;
 		if (res) {
 			unsigned long total = df.total_clusters * df.sectors_per_cluster;
 			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
