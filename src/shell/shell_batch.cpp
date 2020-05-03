@@ -154,7 +154,7 @@ emptyline:
 	return true;	
 }
 
-bool BatchFile::Goto(char * where) {
+bool BatchFile::Goto(const char * where) {
 	//Open bat file and search for the where string
 	if (!DOS_OpenFile(filename.c_str(),128,&file_handle)) {
 		LOG(LOG_MISC,LOG_ERROR)("SHELL:Goto Can't open BatchFile %s",filename.c_str());
@@ -188,7 +188,7 @@ again:
 			nospace++;
 
 		//label is until space/=/eol
-		char* const beginlabel = nospace;
+		const char* beginlabel = nospace;
 		while(*nospace && !isspace(*reinterpret_cast<unsigned char*>(nospace)) && (*nospace != '=')) 
 			nospace++;
 

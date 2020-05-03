@@ -481,7 +481,7 @@ void DOS_Shell::InputCommand(char * line) {
 						int q=0, r=0, k=0;
 
                         // get completion mask
-                        char *p_completion_start = strrchr(line, ' ');
+                        const char *p_completion_start = strrchr(line, ' ');
 						while (p_completion_start) {
 	                        q=0;
 	                        char *i;
@@ -494,7 +494,7 @@ void DOS_Shell::InputCommand(char * line) {
 	                    }
 						char c[]={'<','>','|'};
 						for (unsigned int j=0; j<sizeof(c); j++) {
-							char *sp = strrchr(line, c[j]);
+							const char *sp = strrchr(line, c[j]);
 							while (sp) {
 								q=0;
 								char *i;
@@ -518,7 +518,7 @@ void DOS_Shell::InputCommand(char * line) {
                         }
 						k=completion_index;
 
-                        char *path;
+                        const char *path;
 						if ((path = strrchr(line+completion_index,':'))) completion_index = (Bit16u)(path-line+1);
                         if ((path = strrchr(line+completion_index,'\\'))) completion_index = (Bit16u)(path-line+1);
                         if ((path = strrchr(line+completion_index,'/'))) completion_index = (Bit16u)(path-line+1);
@@ -543,10 +543,10 @@ void DOS_Shell::InputCommand(char * line) {
                         }
                         if (p_completion_start) {
                             safe_strncpy(mask, p_completion_start,DOS_PATHLENGTH);
-                            char* dot_pos=strrchr(mask,'.');
-                            char* bs_pos=strrchr(mask,'\\');
-                            char* fs_pos=strrchr(mask,'/');
-                            char* cl_pos=strrchr(mask,':');
+                            const char* dot_pos = strrchr(mask, '.');
+                            const char* bs_pos = strrchr(mask, '\\');
+                            const char* fs_pos = strrchr(mask, '/');
+                            const char* cl_pos = strrchr(mask, ':');
                             // not perfect when line already contains wildcards, but works
                             if ((dot_pos-bs_pos>0) && (dot_pos-fs_pos>0) && (dot_pos-cl_pos>0))
                                 strncat(mask, "*",DOS_PATHLENGTH - 1);
@@ -608,7 +608,7 @@ void DOS_Shell::InputCommand(char * line) {
                                 if (dir_only) { //Handle the dir only case different (line starts with cd)
 									if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
                                 } else {
-                                    char *ext = strrchr(name, '.'); // file extension
+                                    const char *ext = strrchr(name, '.'); // file extension
                                     if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
                                         // we add executables to the a seperate list and place that list infront of the normal files
                                         executable.push_front(qlname);
@@ -727,7 +727,8 @@ void DOS_Shell::InputCommand(char * line) {
  * Buffer pointed to by "line" must be at least CMD_MAXLINE+1 bytes long! */
 void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 	char temp[CMD_MAXLINE]; /* <- NTS: Currently 4096 which is very generous indeed! */
-	char *w=temp,*wf=temp+sizeof(temp)-1;
+    char* w = temp;
+    const char* wf = temp + sizeof(temp) - 1;
 	char *r=line;
 
 	/* initial scan: is there anything to substitute? */
@@ -742,7 +743,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 	}
 
 	/* copy the string down up to that point */
-	for (char *c=line;c < r;) {
+    for (const char* c = line; c < r;) {
 		assert(w < wf);
 		*w++ = *c++;
 	}
@@ -759,7 +760,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 				else break;
 			}
 			else {
-				char *name = r; /* store pointer, 'r' is first char of the name following '%' */
+                const char* name = r; /* store pointer, 'r' is first char of the name following '%' */
 				int spaces = 0,chars = 0;
 
 				/* continue scanning for the ending '%'. variable names are apparently meant to be
@@ -826,7 +827,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 					while (*r == ' ') r++; /* skip spaces */
 					name--; /* step "name" back to cover the first '%' we found */
 
-					for (char *c=name;c < r;) {
+                    for (const char* c = name; c < r;) {
 						if (w >= wf) goto overflow;
 						*w++ = *c++;
 					}
@@ -858,11 +859,11 @@ overflow:
 }
 
 std::string full_arguments = "";
-bool DOS_Shell::Execute(char * name,char * args) {
+bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
 	char fullname[DOS_PATHLENGTH+4]; //stores results from Which
-	char* p_fullname;
+    const char* p_fullname;
 	char line[CMD_MAXLINE];
 	if(strlen(args)!= 0){
 		if(*args != ' '){ //put a space in front
@@ -884,7 +885,7 @@ bool DOS_Shell::Execute(char * name,char * args) {
 		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
-			Section_prop * sec=0; sec=static_cast<Section_prop *>(control->GetSection("dos"));
+            const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			if((GetDriveType(name)==3) && (strcasecmp(name,"c:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
@@ -965,7 +966,8 @@ continue_1:
 	{
 		//Check if the result will fit in the parameters. Else abort
 		if(strlen(fullname) >( DOS_PATHLENGTH - 1) ) return false;
-		char temp_name[DOS_PATHLENGTH+4],* temp_fullname;
+        char temp_name[DOS_PATHLENGTH + 4];
+        const char* temp_fullname;
 		//try to add .com, .exe and .bat extensions to filename
 		
 		strcpy(temp_name,fullname);

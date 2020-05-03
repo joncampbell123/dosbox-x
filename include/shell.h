@@ -54,7 +54,7 @@ public:
 	BatchFile(DOS_Shell * host,char const* const resolved_name,char const* const entered_name, char const * const cmd_line);
 	virtual ~BatchFile();
 	virtual bool ReadLine(char * line);
-	bool Goto(char * where);
+	bool Goto(const char * where);
 	void Shift(void);
 	Bit16u file_handle;
 	Bit32u location;
@@ -118,7 +118,7 @@ public:
 
     /*! \brief      Execute a command
      */
-	bool Execute(char * name,char * args);
+    bool Execute(char* name, const char* args);
 
 	/*! \brief      Checks if it matches a hardware-property */
 	bool CheckConfig(char* cmd_in,char*line);

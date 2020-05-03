@@ -263,7 +263,7 @@ void menu_update_cputype(void) {
 }
 
 void menu_update_core(void) {
-	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
     bool allow_dynamic = false;
 
@@ -488,7 +488,7 @@ void Descriptor::Load(PhysPt address) {
 }
 void Descriptor:: Save(PhysPt address) {
 	cpu.mpl=0;
-	Bit32u* data = (Bit32u*)&saved;
+	const Bit32u* data = (Bit32u*)&saved;
 	mem_writed(address,*data);
 	mem_writed(address+4,*(data+1));
 	cpu.mpl=3;
@@ -653,11 +653,6 @@ void CPU_CheckSegments(void) {
 class TaskStateSegment {
 public:
 	TaskStateSegment() {
-		valid=false;
-        base = 0;
-        is386 = 0;
-        limit = 0;
-        selector = 0;
 	}
 	bool IsValid(void) {
 		return valid;
@@ -712,11 +707,11 @@ public:
 	}
 
 	TSS_Descriptor desc;
-	Bitu selector;
-	PhysPt base;
-	Bitu limit;
-	Bitu is386;
-	bool valid;
+	Bitu selector = 0;
+	PhysPt base = 0;
+	Bitu limit = 0;
+	Bitu is386 = 0;
+	bool valid = false;
 };
 
 TaskStateSegment cpu_tss;
@@ -1296,7 +1291,7 @@ do_interrupt:
 			E_Exit("Illegal descriptor type %X for int %X",(int)gate.Type(),(int)num);
 		}
 		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
             (void)pf;//UNUSED
 			LOG_MSG("CPU_Interrupt() interrupted");
 			CPU_SetSegGeneral(ss,old_ss);
@@ -1376,7 +1371,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				}
 				}
-				catch (GuestPageFaultException &pf) {
+				catch (const GuestPageFaultException &pf) {
                     (void)pf;//UNUSED
                     LOG_MSG("CPU_IRET() interrupted prot vm86");
 					reg_esp = orig_esp;
@@ -1438,7 +1433,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
 				}
-				catch (GuestPageFaultException &pf) {
+				catch (const GuestPageFaultException &pf) {
                     (void)pf;//UNUSED
                     LOG_MSG("CPU_IRET() interrupted prot use32");
 					reg_esp = orig_esp;
@@ -1671,7 +1666,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bit32u oldeip) {
 			reg_eip=(Bit32u)offset;
 		}
 		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
             (void)pf;//UNUSED
 			reg_esp = old_esp;
 			reg_eip = old_eip;
@@ -1725,7 +1720,7 @@ call_code:
 				reg_eip=(Bit32u)offset;
 			}
 			}
-			catch (GuestPageFaultException &pf) {
+			catch (const GuestPageFaultException &pf) {
                 (void)pf;//UNUSED
                 reg_esp = old_esp;
 				reg_eip = old_eip;
@@ -1886,7 +1881,7 @@ call_code:
 						CPU_Push16(oldeip);
 					}
 					}
-					catch (GuestPageFaultException &pf) {
+					catch (const GuestPageFaultException &pf) {
                         (void)pf;//UNUSED
                         reg_esp = old_esp;
 						reg_eip = old_eip;
@@ -1956,7 +1951,7 @@ void CPU_RET(bool use32,Bitu bytes,Bit32u oldeip) {
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 		}
-		catch (GuestPageFaultException &pf) {
+		catch (const GuestPageFaultException &pf) {
             (void)pf;//UNUSED
             LOG_MSG("CPU_RET() interrupted real/vm86");
 			reg_esp = orig_esp;
@@ -2017,7 +2012,7 @@ RET_same_level:
 				selector=CPU_Pop32() & 0xffff;
 			}
 			}
-			catch (GuestPageFaultException &pf) {
+			catch (const GuestPageFaultException &pf) {
                 (void)pf;//UNUSED
                 LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
 				reg_esp = orig_esp;
@@ -2077,7 +2072,7 @@ RET_same_level:
 				n_ss = CPU_Pop16();
 			}
 			}
-			catch (GuestPageFaultException &pf) {
+			catch (const GuestPageFaultException &pf) {
                 (void)pf;//UNUSED
                 LOG_MSG("CPU_RET() interrupted prot #2");
 				reg_esp = orig_esp;
@@ -2875,7 +2870,7 @@ void CPU_SyncCycleMaxToProp(void) {
     char tmp[64];
 
     Section* sec=control->GetSection("cpu");
-	Section_prop * secprop = static_cast<Section_prop *>(sec);
+	const Section_prop * secprop = static_cast<Section_prop *>(sec);
     Prop_multival* p = secprop->Get_multival("cycles");
     Property* prop = p->GetSection()->Get_prop("type");
     sprintf(tmp,"%llu",(unsigned long long)CPU_CycleMax);
@@ -3117,7 +3112,7 @@ private:
 	static bool inited;
 public:
 	CPU(Section* configuration):Module_base(configuration) {
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+		const Section_prop * section=static_cast<Section_prop *>(configuration);
 		DOSBoxMenu::item *item;
 
 		if(inited) {
@@ -3242,7 +3237,7 @@ public:
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
 	bool Change_Config(Section* newconfig){
-		Section_prop * section=static_cast<Section_prop *>(newconfig);
+		const Section_prop * section=static_cast<Section_prop *>(newconfig);
 		CPU_AutoDetermineMode=CPU_AUTODETERMINE_NONE;
 		//CPU_CycleLeft=0;//needed ?
 		CPU_Cycles=0;
@@ -3544,7 +3539,7 @@ public:
 
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
-	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	        const Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
 
             enable_weitek = dsection->Get_bool("weitek");
             if (enable_weitek) {

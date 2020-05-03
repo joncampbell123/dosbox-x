@@ -57,29 +57,29 @@ public:
     void Flush(void);
 	bool UpdateDateTimeFromHost(void);   
 	Bit32u GetSeekPos(void);
-public:
 	Bit32u firstCluster;
-	Bit32u seekpos;
+	Bit32u seekpos = 0;
 	Bit32u filelength;
-	Bit32u currentSector;
-	Bit32u curSectOff;
+	Bit32u currentSector = 0;
+	Bit32u curSectOff = 0;
 	Bit8u sectorBuffer[SECTOR_SIZE_MAX];
 	/* Record of where in the directory structure this file is located */
-	Bit32u dirCluster;
-	Bit32u dirIndex;
+	Bit32u dirCluster = 0;
+	Bit32u dirIndex = 0;
 
-    bool modified;
-	bool loadedSector;
+    bool modified = false;
+	bool loadedSector = false;
 	fatDrive *myDrive;
-private:
+
 #if 0/*unused*/
+private:
     enum { NONE,READ,WRITE } last_action;
 	Bit16u info;
 #endif
 };
 
 void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
-    struct tm *tm = localtime(&unix_time);
+    const struct tm *tm = localtime(&unix_time);
     if (tm == NULL) return;
 
     /* NTS: tm->tm_year = years since 1900,
@@ -108,20 +108,10 @@ static void convToDirFile(const char *filename, char *filearray) {
 	}
 }
 
-fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive) {
+fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive) : firstCluster(startCluster), filelength(fileLen), myDrive(useDrive) {
 	Bit32u seekto = 0;
-	firstCluster = startCluster;
-	myDrive = useDrive;
-	filelength = fileLen;
-    modified = false;
 	open = true;
-	loadedSector = false;
-	curSectOff = 0;
-	seekpos = 0;
 	memset(&sectorBuffer[0], 0, sizeof(sectorBuffer));
-    currentSector = 0;
-    dirCluster = 0;
-    dirIndex = 0;
 	
 	if(filelength > 0) {
 		Seek(&seekto, DOS_SEEK_SET);
@@ -912,8 +902,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
-fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options) : loadedDisk(NULL) {
-	created_successfully = true;
+fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
 	Bit32u filesize;
 	
@@ -985,7 +974,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) : loadedDisk(NULL) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) {
 	if (sourceLoadedDisk == 0) {
 		created_successfully = false;
 		return;
@@ -1074,7 +1063,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
     }
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options) {
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector<std::string> &options) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;
@@ -1160,7 +1149,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                 }
 
                 i = (unsigned int)opt_partition_index;
-                _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+                const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
                 /* unfortunately start and end are in C/H/S geometry, so we have to translate.
                  * this is why it matters so much to read the geometry from the HDI header.
@@ -1185,7 +1174,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
             }
             else {
                 for (i=0;i < max_entries;i++) {
-                    _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+                    const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
                     if (pe->mid == 0 && pe->sid == 0 &&
                             pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
@@ -1646,7 +1635,7 @@ bool fatDrive::FileUnlink(const char * name) {
 		}
 		int fbak=faux;
 		faux=256;
-		imgDTA->SetupSearch(0,0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY,pattern);
+		imgDTA->SetupSearch((Bit8u)0,(Bit8u)(0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY),pattern);
 		imgDTA->SetDirID(0);
 		direntry foundEntry;
 		std::vector<std::string> cdirs;
@@ -1991,7 +1980,7 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	return true;
 }
 
-bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum) {
+bool fatDrive::directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector = 0;
@@ -2031,7 +2020,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	}
 }
 
-bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry& useEntry) {
+bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
