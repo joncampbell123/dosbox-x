@@ -514,7 +514,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	}
 	if (uselfn) {
 		int j=0;
-		for (int i=0; i<strlen(findFile); i++)
+		for (int i=0; i<(int)strlen(findFile); i++)
 			if (findFile[i]!=' '&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
 		findFile[j]=0;
 	}
@@ -1635,7 +1635,7 @@ bool fatDrive::FileUnlink(const char * name) {
 		}
 		int fbak=faux;
 		faux=256;
-		imgDTA->SetupSearch((Bit8u)0,(Bit8u)(0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY),pattern);
+		imgDTA->SetupSearch((Bit8u)0,0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY/*NTS: Parameter is Bit8u*/,pattern);
 		imgDTA->SetDirID(0);
 		direntry foundEntry;
 		std::vector<std::string> cdirs;
