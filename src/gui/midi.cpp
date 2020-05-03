@@ -614,9 +614,9 @@ public:
 				}
 			}
 			if (handler == NULL)
-				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Can't find device:%s, finding default handler.",dev);
+				LOG_MSG("MIDI:Cannot find device:%s. Finding default handler.",dev);
 			else if (!opened)
-				LOG(LOG_MISC,LOG_WARN)("MIDI:Can't open device:%s with config:%s.",dev,conf);
+				LOG_MSG("MIDI:Cannot open device:%s with config:%s. Finding default handler.",dev,conf);
 		}
 
 		if (!opened) {
@@ -628,7 +628,7 @@ public:
 
 		if (!opened) {
 			// This shouldn't be possible
-			LOG(LOG_MISC,LOG_WARN)("MIDI:Couldn't open a handler");
+			LOG_MSG("MIDI:Could not open a handler");
 			return;
 		}
 
