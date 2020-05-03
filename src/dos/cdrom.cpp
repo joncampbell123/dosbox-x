@@ -215,7 +215,7 @@ bool CDROM_Interface_SDL::LoadUnloadMedia(bool unload) {
 #endif
 }
 
-int CDROM_GetMountType(char* path, int forceCD) {
+int CDROM_GetMountType(const char* path, int forceCD) {
     (void)forceCD;
 // 0 - physical CDROM
 // 1 - Iso file

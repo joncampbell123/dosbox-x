@@ -76,7 +76,7 @@ typedef struct SCtrl {
     Bit8u           vol[4];
 } TCtrl;
 
-extern int CDROM_GetMountType(char* path, int forceCD);
+extern int CDROM_GetMountType(const char* path, int forceCD);
 
 //! \brief Base CD-ROM interface class
 //!
@@ -299,11 +299,11 @@ static  struct imagePlayer {
 	} player;
 	
 	void 	ClearTracks();
-	bool	LoadIsoFile(char *filename);
+	bool	LoadIsoFile(const char *filename);
 	bool	CanReadPVD(TrackFile *file, int sectorSize, bool mode2);
 	// cue sheet processing
-	bool	LoadCueSheet(char *cuefile);
-	bool	GetRealFileName(std::string& filename, std::string& pathname);
+	bool	LoadCueSheet(const char *cuefile);
+	bool	GetRealFileName(std::string& filename, const std::string& pathname);
 	bool	GetCueKeyword(std::string &keyword, std::istream &in);
 	bool	GetCueFrame(int &frames, std::istream &in);
 	bool	GetCueString(std::string &str, std::istream &in);

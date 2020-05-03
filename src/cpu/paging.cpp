@@ -116,7 +116,7 @@ Bits PageFaultCore(void) {
 	if (ret) 
 		return ret;
 	if (!pf_queue.used) E_Exit("PF Core without PF");
-	PF_Entry * entry=&pf_queue.entries[pf_queue.used-1];
+    const PF_Entry* entry = &pf_queue.entries[pf_queue.used - 1];
 	X86PageEntry pentry;
 	pentry.load=phys_readd((PhysPt)entry->page_addr);
 	if (pentry.block.p && entry->cs == SegValue(cs) && entry->eip==reg_eip) {
@@ -226,7 +226,7 @@ static const Bit8u fault_table[] = {
 static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
 	return paging.base.addr | ((lin_addr >> 22u) << 2u);
 }
-static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, X86PageEntry& dir_entry) {
+static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, const X86PageEntry& dir_entry) {
 	return ((PhysPt)dir_entry.block.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
 }
 /*

@@ -257,8 +257,8 @@ int CDROM_Interface_Image::GetTrack(int sector)
 	vector<Track>::iterator end = tracks.end() - 1;
 	
 	while(i != end) {
-		Track &curr = *i;
-		Track &next = *(i + 1);
+		const Track &curr = *i;
+		const Track &next = *(i + 1);
 		if (curr.start <= sector && sector < next.start) return curr.number;
 		++i;
 	}
@@ -349,7 +349,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	player.bufLen -= (int)len;
 }
 
-bool CDROM_Interface_Image::LoadIsoFile(char* filename)
+bool CDROM_Interface_Image::LoadIsoFile(const char* filename)
 {
 	tracks.clear();
 	
@@ -408,7 +408,7 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 
 #if defined(WIN32)
 static string dirname(char * file) {
-	char * sep = strrchr(file, '\\');
+	const char * sep = strrchr(file, '\\');
 	if (sep == NULL)
 		sep = strrchr(file, '/');
 	if (sep == NULL)
@@ -422,7 +422,7 @@ static string dirname(char * file) {
 }
 #endif
 
-bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
+bool CDROM_Interface_Image::LoadCueSheet(const char *cuefile)
 {
 	Track track = {0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
@@ -603,7 +603,7 @@ bool CDROM_Interface_Image::HasDataTrack(void)
 }
 
 
-bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
+bool CDROM_Interface_Image::GetRealFileName(string &filename, const string &pathname)
 {
 	// check if file exists
 	struct stat test;
@@ -699,9 +699,9 @@ void CDROM_Interface_Image::ClearTracks()
 	vector<Track>::iterator i = tracks.begin();
 	vector<Track>::iterator end = tracks.end();
 
-	TrackFile* last = NULL;	
+	const TrackFile* last = NULL;
 	while(i != end) {
-		Track &curr = *i;
+		const Track &curr = *i;
 		if (curr.file != last) {
 			delete curr.file;
 			last = curr.file;
@@ -711,6 +711,6 @@ void CDROM_Interface_Image::ClearTracks()
 	tracks.clear();
 }
 
-void CDROM_Image_Destroy(Section*) {
+void CDROM_Image_Destroy(const Section*) {
 }
 

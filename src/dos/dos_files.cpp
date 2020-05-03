@@ -391,7 +391,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 #if defined (WIN32)
 	if (!control->SecureMode()&&(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
 		if (DOS_FindDevice(oldname) == DOS_DEVICES) {
-			char * find_last;
+            const char* find_last;
 			find_last=strrchr(fullnew,'\\');
 			if (find_last==NULL) find_last=fullnew;
 			else find_last++;
@@ -853,7 +853,7 @@ bool DOS_GetFileAttr(char const * const name,Bit16u * attr) {
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 #if defined (WIN32)
 	if (!control->SecureMode()&&dos_clipboard_device_access) {
-		char * find_last;
+        const char* find_last;
 		find_last=strrchr(fullname,'\\');
 		if (find_last==NULL) find_last=fullname;
 		else find_last++;
@@ -1047,7 +1047,7 @@ static bool isvalid(const char in){
 #define PARSE_RET_BADDRIVE      0xff
 
 Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *change) {
-	char * string_begin=string;
+    const char* string_begin = string;
 	Bit8u ret=0;
 	if (!(parser & PARSE_DFLT_DRIVE)) {
 		// default drive forced, this intentionally invalidates an extended FCB
@@ -1192,7 +1192,7 @@ savefcb:
 	return ret;
 }
 
-static void DTAExtendNameVolumeLabel(char * const name,char * const filename,char * const ext) {
+static void DTAExtendNameVolumeLabel(const char* const name, char* const filename, char* const ext) {
     size_t i,s;
 
     i=0;

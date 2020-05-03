@@ -591,7 +591,7 @@ class DOS_FCB: public MemStruct {
 public:
 	DOS_FCB(Bit16u seg,Bit16u off,bool allow_extended=true);
 	void Create(bool _extended);
-	void SetName(Bit8u _drive,char * _fname,char * _ext);
+    void SetName(Bit8u _drive, const char* _fname, const char* _ext);
 	void SetSizeDateTime(Bit32u _size,Bit16u _date,Bit16u _time);
 	void GetSizeDateTime(Bit32u & _size,Bit16u & _date,Bit16u & _time);
     void GetVolumeName(char * fillname);

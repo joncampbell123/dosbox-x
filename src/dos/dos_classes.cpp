@@ -407,7 +407,7 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	}
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
-    char * find_ext;
+    const char* find_ext;
     find_ext=strchr(pattern,'.');
     if (find_ext) {
         Bitu size=(Bitu)(find_ext-pattern);
@@ -511,7 +511,7 @@ void DOS_FCB::Create(bool _extended) {
 	} else extended=false;
 }
 
-void DOS_FCB::SetName(Bit8u _drive,char * _fname,char * _ext) {
+void DOS_FCB::SetName(Bit8u _drive, const char* _fname, const char* _ext) {
 	sSave(sFCB,drive,_drive);
 	MEM_BlockWrite(pt+offsetof(sFCB,filename),_fname,8);
 	MEM_BlockWrite(pt+offsetof(sFCB,ext),_ext,3);

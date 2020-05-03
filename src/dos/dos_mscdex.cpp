@@ -672,7 +672,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	char	entryName[256];
 	bool	foundComplete = false;
 	bool	nextPart = true;
-	char*	useName = 0;
+    const char* useName = NULL;
     Bit8u   entryLength, nameLength;
 	// clear error
 	error = 0;
