@@ -653,11 +653,6 @@ void CPU_CheckSegments(void) {
 class TaskStateSegment {
 public:
 	TaskStateSegment() {
-		valid=false;
-        base = 0;
-        is386 = 0;
-        limit = 0;
-        selector = 0;
 	}
 	bool IsValid(void) {
 		return valid;
@@ -712,11 +707,11 @@ public:
 	}
 
 	TSS_Descriptor desc;
-	Bitu selector;
-	PhysPt base;
-	Bitu limit;
-	Bitu is386;
-	bool valid;
+	Bitu selector = 0;
+	PhysPt base = 0;
+	Bitu limit = 0;
+	Bitu is386 = 0;
+	bool valid = false;
 };
 
 TaskStateSegment cpu_tss;

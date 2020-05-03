@@ -59,17 +59,17 @@ public:
 	Bit32u GetSeekPos(void);
 public:
 	Bit32u firstCluster;
-	Bit32u seekpos;
+	Bit32u seekpos = 0;
 	Bit32u filelength;
-	Bit32u currentSector;
-	Bit32u curSectOff;
+	Bit32u currentSector = 0;
+	Bit32u curSectOff = 0;
 	Bit8u sectorBuffer[SECTOR_SIZE_MAX];
 	/* Record of where in the directory structure this file is located */
-	Bit32u dirCluster;
-	Bit32u dirIndex;
+	Bit32u dirCluster = 0;
+	Bit32u dirIndex = 0;
 
-    bool modified;
-	bool loadedSector;
+    bool modified = false;
+	bool loadedSector = false;
 	fatDrive *myDrive;
 private:
 #if 0/*unused*/
@@ -108,20 +108,10 @@ static void convToDirFile(const char *filename, char *filearray) {
 	}
 }
 
-fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive) {
+fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive) : firstCluster(startCluster), filelength(fileLen), myDrive(useDrive) {
 	Bit32u seekto = 0;
-	firstCluster = startCluster;
-	myDrive = useDrive;
-	filelength = fileLen;
-    modified = false;
 	open = true;
-	loadedSector = false;
-	curSectOff = 0;
-	seekpos = 0;
 	memset(&sectorBuffer[0], 0, sizeof(sectorBuffer));
-    currentSector = 0;
-    dirCluster = 0;
-    dirIndex = 0;
 	
 	if(filelength > 0) {
 		Seek(&seekto, DOS_SEEK_SET);
@@ -912,8 +902,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
-fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options) : loadedDisk(NULL) {
-	created_successfully = true;
+fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
 	Bit32u filesize;
 	
@@ -985,7 +974,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) : loadedDisk(NULL) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) {
 	if (sourceLoadedDisk == 0) {
 		created_successfully = false;
 		return;

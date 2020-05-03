@@ -252,8 +252,8 @@ public:
 	Bit32u getFirstFreeClust(void);
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
 	bool directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum);
-	imageDisk *loadedDisk;
-	bool created_successfully;
+	imageDisk *loadedDisk = NULL;
+	bool created_successfully = true;
 private:
 	Bit32u getClusterValue(Bit32u clustNum);
 	void setClusterValue(Bit32u clustNum, Bit32u clustValue);
