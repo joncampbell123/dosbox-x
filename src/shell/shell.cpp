@@ -116,7 +116,7 @@ void AutoexecObject::CreateAutoexec(void) {
 	size_t auto_len;
 	for(auto_it it = autoexec_strings.begin(); it != autoexec_strings.end(); ++it) {
 
-		std::string linecopy = (*it);
+		std::string linecopy = *it;
 		std::string::size_type offset = 0;
 		//Lets have \r\n as line ends in autoexec.bat.
 		while(offset < linecopy.length()) {
