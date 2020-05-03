@@ -57,7 +57,6 @@ public:
     void Flush(void);
 	bool UpdateDateTimeFromHost(void);   
 	Bit32u GetSeekPos(void);
-public:
 	Bit32u firstCluster;
 	Bit32u seekpos = 0;
 	Bit32u filelength;
@@ -71,8 +70,9 @@ public:
     bool modified = false;
 	bool loadedSector = false;
 	fatDrive *myDrive;
-private:
+
 #if 0/*unused*/
+private:
     enum { NONE,READ,WRITE } last_action;
 	Bit16u info;
 #endif

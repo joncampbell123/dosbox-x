@@ -740,7 +740,6 @@ public:
             }
         }
     }
-public:
     /*! \brief      Array of disk images to add to floppy swaplist
      */
     imageDisk* newDiskSwap[MAX_SWAPPABLE_DISKS] = {};
@@ -2830,7 +2829,6 @@ bool FDC_UnassignINT13Disk(unsigned char drv);
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
-public:
     void Run(void) {
         //Hack To allow long commandlines
         ChangeToLongCmd();
