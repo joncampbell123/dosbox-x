@@ -3431,7 +3431,7 @@ static Bitu INT18_PC98_Handler(void) {
                 unsigned char b597 = mem_readb(0x597);
                 unsigned char tstat = mem_readb(0x53C);
                 unsigned char b54C = mem_readb(0x54C);
-                unsigned char ret = 0x05; // according to NP2
+                unsigned char ret = 0x05; // according to NP2
 
                 // assume the same as AH=42h
                 while (!(IO_ReadB(0x60) & 0x20/*vertical retrace*/)) {
@@ -6189,7 +6189,7 @@ static Bitu INT15_Handler(void) {
                     //       on APM idle calls? Allow selection between "nothing" "hlt"
                     //       and "software delay".
                     if (!(reg_flags&0x200)) {
-                        LOG_MSG("APM BIOS warning: CPU IDLE called with IF=0, not HLTing\n");
+                        LOG(LOG_BIOS,LOG_WARN)("APM BIOS warning: CPU IDLE called with IF=0, not HLTing\n");
                     }
                     else if (cpudecoder == &HLT_Decode) { /* do not re-execute HLT, it makes DOSBox hang */
                         LOG_MSG("APM BIOS warning: CPU IDLE HLT within HLT (DOSBox core failure)\n");

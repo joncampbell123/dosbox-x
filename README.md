@@ -2,9 +2,9 @@ DOSBox-X Manual (always use the latest version from [dosbox-x.com](http://dosbox
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com)
 
-For more information please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
-This project has a Code of Conduct in CODE_OF_CONDUCT.md, please read it.
+This project has a Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), please read it.
 
 I am rewriting this README, and new information will be added over time --J.C.
 

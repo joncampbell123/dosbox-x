@@ -1,5 +1,11 @@
 0.83.2
-  - 
+  - Improved support for FluidSynth MIDI device by porting
+    code from DOSBox ECE. Set "mididevice=fluidsynth" along
+    with other required options such as "fluid.soundfont"
+    in dosbox-x.conf to use it. The previous config setting
+    "mididevice=synth" is still supported for alternative
+    implementation of FluidSynth. (Wengier)
+
 0.83.1
   - Sound Blaster emulation fixed to better handle Goldplay
     mode detection false positive in 1994 demoscene demo
