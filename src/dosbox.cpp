@@ -264,7 +264,7 @@ void                INT10_Init(Section*);
 void                PRINTER_Init(Section*);
 #endif
 
-signed long long time_to_clockdom(ClockDomain &src,double t) {
+signed long long time_to_clockdom(const ClockDomain &src,double t) {
     signed long long lt = (signed long long)t;
 
     lt *= (signed long long)src.freq;
@@ -385,7 +385,7 @@ static Bitu Normal_Loop(void) {
             }
         }
     }
-    catch (GuestPageFaultException& pf) {
+    catch (const GuestPageFaultException& pf) {
         Bitu FillFlags(void);
 
         ret = 0;
@@ -3293,7 +3293,7 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
 }
 
-int utf8_encode(char **ptr,char *fence,uint32_t code) {
+int utf8_encode(char **ptr, const char *fence, uint32_t code) {
     int uchar_size=1;
     char *p = *ptr;
 
@@ -3412,7 +3412,7 @@ int utf8_decode(const char **ptr,const char *fence) {
     return ret;
 }
 
-int utf16le_encode(char **ptr,char *fence,uint32_t code) {
+int utf16le_encode(char **ptr, const char *fence, uint32_t code) {
     char *p = *ptr;
 
     if (!p) return UTF8ERR_NO_ROOM;

@@ -214,7 +214,7 @@ class fatDrive : public DOS_Drive {
 public:
 	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options);
 	fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options);
-    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options);
+    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector<std::string> &options);
     virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes);
@@ -251,7 +251,7 @@ public:
 	void deleteClustChain(Bit32u startCluster, Bit32u bytePos);
 	Bit32u getFirstFreeClust(void);
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
-	bool directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum);
+	bool directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum);
 	imageDisk *loadedDisk = NULL;
 	bool created_successfully = true;
 private:
@@ -261,7 +261,7 @@ private:
 	bool FindNextInternal(Bit32u dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
 	bool getDirClustNum(const char * dir, Bit32u * clustNum, bool parDir);
 	bool getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry);
-	bool addDirectoryEntry(Bit32u dirClustNumber, direntry& useEntry);
+	bool addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry);
 	void zeroOutCluster(Bit32u clustNumber);
 	bool getEntryName(const char *fullname, char *entname);
 	friend void DOS_Shell::CMD_SUBST(char* args); 	

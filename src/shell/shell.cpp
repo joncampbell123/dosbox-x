@@ -520,7 +520,7 @@ private:
 public:
 	AUTOEXEC(Section* configuration):Module_base(configuration) {
 		/* Register a virtual AUTOEXEC.BAT file */
-		Section_line * section=static_cast<Section_line *>(configuration);
+		const Section_line * section=static_cast<Section_line *>(configuration);
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
 		bool secure = control->opt_securemode;
@@ -555,7 +555,7 @@ public:
         }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
-		char * extra = const_cast<char*>(section->data.c_str());
+		const char * extra = const_cast<char*>(section->data.c_str());
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
 			size_t firstline_length = strcspn(extra,"\r\n");
@@ -1329,7 +1329,7 @@ void SHELL_Init() {
 
     /* settings */
     {
-        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+        const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
         enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
     }
 }

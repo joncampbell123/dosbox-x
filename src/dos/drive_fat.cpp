@@ -79,7 +79,7 @@ private:
 };
 
 void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
-    struct tm *tm = localtime(&unix_time);
+    const struct tm *tm = localtime(&unix_time);
     if (tm == NULL) return;
 
     /* NTS: tm->tm_year = years since 1900,
@@ -1063,7 +1063,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
     }
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options) {
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector<std::string> &options) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;
@@ -1149,7 +1149,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                 }
 
                 i = (unsigned int)opt_partition_index;
-                _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+                const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
                 /* unfortunately start and end are in C/H/S geometry, so we have to translate.
                  * this is why it matters so much to read the geometry from the HDI header.
@@ -1174,7 +1174,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
             }
             else {
                 for (i=0;i < max_entries;i++) {
-                    _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+                    const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
                     if (pe->mid == 0 && pe->sid == 0 &&
                             pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
@@ -1980,7 +1980,7 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	return true;
 }
 
-bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum) {
+bool fatDrive::directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector = 0;
@@ -2020,7 +2020,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	}
 }
 
-bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry& useEntry) {
+bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
