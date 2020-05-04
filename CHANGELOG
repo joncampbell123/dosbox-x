@@ -1,7 +1,7 @@
 0.83.2
   - The copy & paste Windows clipboard text via the right
-    mouse button feature now supports PC-98 mode too just
-    like the standard mode. (Wengier)
+    mouse button feature now has limited support for PC-98
+    mode too in addition to other modes. (Wengier)
   - Improved support for FluidSynth MIDI device by porting
     code from DOSBox ECE. Set "mididevice=fluidsynth" along
     with other required options such as "fluid.soundfont"
