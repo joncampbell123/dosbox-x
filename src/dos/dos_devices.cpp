@@ -105,7 +105,7 @@ bool lastwrite = false;
 Bit8u *clipAscii = NULL;
 Bit32u clipSize = 0, cPointer = 0, fPointer;
 
-void Unicode2Ascii(Bit16u *unicode)
+void Unicode2Ascii(const Bit16u* unicode)
 	{
 	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
@@ -283,7 +283,7 @@ public:
 			return false;
 		}
 		lastwrite=true;
-		Bit8u * datasrc = (Bit8u *) data;
+        const Bit8u* datasrc = (Bit8u*)data;
 		Bit8u * datadst = (Bit8u *) data;
 
 		int numSpaces = 0;
@@ -397,17 +397,8 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcod
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
-DOS_File::DOS_File(const DOS_File& orig) {
-	flags=orig.flags;
-	time=orig.time;
-	date=orig.date;
-	attr=orig.attr;
-	refCtr=orig.refCtr;
-	open=orig.open;
-	hdrive=orig.hdrive;
-    drive = 0;
-    newtime = false;
-	name=0;
+DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
+time(orig.time), date(orig.date), refCtr(orig.refCtr), hdrive(orig.hdrive) {
 	if(orig.name) {
 		name=new char [strlen(orig.name) + 1];strcpy(name,orig.name);
 	}

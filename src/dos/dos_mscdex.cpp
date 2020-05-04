@@ -68,7 +68,6 @@ public:
 	void	SetInterrupt		(Bit16u ofs)	{ sSave(sDeviceHeader,interrupt,ofs);			};
 	void	SetStrategy			(Bit16u ofs)	{ sSave(sDeviceHeader,strategy,ofs);			};
 
-public:
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif
@@ -138,7 +137,7 @@ public:
 	void SaveState( std::ostream& stream );
 	void LoadState( std::istream& stream );
 
-	Bit16u		numDrives;
+	Bit16u		numDrives = 0;
 
 	typedef struct SDriveInfo {
 		Bit8u	drive;			// drive letter in dosbox
@@ -153,22 +152,16 @@ public:
 		TCtrl	audioCtrl;		// audio channel control
 	} TDriveInfo;
 
-	Bit16u				defaultBufSeg;
+	Bit16u				defaultBufSeg = 0;
 	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
-	
-public:
-	Bit16u		rootDriverHeaderSeg;
+	Bit16u		rootDriverHeaderSeg = 0;
 
 	bool		ChannelControl		(Bit8u subUnit, TCtrl ctrl);
 	bool		GetChannelControl	(Bit8u subUnit, TCtrl& ctrl);
 };
 
 CMscdex::CMscdex(void) {
-	numDrives			= 0;
-	rootDriverHeaderSeg	= 0;
-	defaultBufSeg		= 0;
-
 	memset(dinfo,0,sizeof(dinfo));
 	for (Bit32u i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
 }
@@ -672,7 +665,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	char	entryName[256];
 	bool	foundComplete = false;
 	bool	nextPart = true;
-	char*	useName = 0;
+    const char* useName = NULL;
     Bit8u   entryLength, nameLength;
 	// clear error
 	error = 0;
@@ -1274,8 +1267,8 @@ public:
 	Bit16u GetInformation(void){return 0xc880;}
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
-private:
-//	Bit8u cache;
+// private:
+//  Bit8u cache;
 };
 
 bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 

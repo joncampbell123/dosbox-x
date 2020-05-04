@@ -458,7 +458,6 @@ static bool DOS_MultiplexFunctions(void) {
             /* MS-DOS without ANSI.SYS loaded doesn't modify any registers in response to this call. */
             return true;
         }
-        break;
     case 0x4680:    /* Windows v3.0 check */
         // Leave AX as 0x4680, indicating that Windows 3.0 is not running in real (/R) or standard (/S) mode,
         // nor is DOS 5 DOSSHELL active

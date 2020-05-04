@@ -360,7 +360,7 @@ static void DrawSubWinBox(WINDOW *wnd,const char *title) {
 
     if (wnd == NULL) return;
 
-    WINDOW *active_win = dbg.get_active_win();
+    const WINDOW *active_win = dbg.get_active_win();
 
     if (wnd == active_win)
         active = true;
@@ -810,7 +810,7 @@ void LOG::Init() {
 	LOG_MSG("Logging init: beginning logging proper. This is the end of the early init logging");
 
 	/* get the [log] section */
-	Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
+	const Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
 	assert(sect != NULL);
 
 	/* do we write to a logfile, or not? */

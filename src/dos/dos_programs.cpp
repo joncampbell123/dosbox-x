@@ -195,7 +195,7 @@ public:
             } else name[0] = 0;
 
             /* Change 8.3 to 11.0 */
-            char* dot = strchr(name,'.');
+            const char* dot = strchr(name, '.');
             if(dot && (dot - name == 8) ) { 
                 name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
             }
@@ -3261,9 +3261,9 @@ private:
                     FDC_UnassignINT13Disk(i_drive);
 
                 //get reference to image and cdrom before they are possibly destroyed
-                fatDrive * drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+                const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
                 imageDisk* image = drive ? drive->loadedDisk : NULL;
-                isoDrive * cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
+                const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
 
                 switch (DriveManager::UnmountDrive(i_drive)) {
                 case 0: //success
@@ -3524,7 +3524,7 @@ private:
         std::vector<DOS_Drive*>::size_type ct;
 
         for (i = 0; i < paths.size(); i++) {
-            char* errorMessage = NULL;
+            const char* errorMessage = NULL;
             imageDisk* vhdImage = NULL;
 
             //detect hard drive geometry
@@ -3556,7 +3556,7 @@ private:
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
                                 skipDetectGeometry = true;
-                                imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
+                                const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
                                 if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
                                     delete vhdDisk;
                                     vhdDisk = 0;

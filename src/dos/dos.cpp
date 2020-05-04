@@ -285,23 +285,23 @@ static inline void overhead() {
 extern bool date_host_forced;
 
 static Bitu DOS_21Handler(void);
-void DOS_Int21_7139(char *name1, char *name2);
-void DOS_Int21_713a(char *name1, char *name2);
-void DOS_Int21_713b(char *name1, char *name2);
-void DOS_Int21_7141(char *name1, char *name2);
-void DOS_Int21_7143(char *name1, char *name2);
-void DOS_Int21_7147(char *name1, char *name2);
+void DOS_Int21_7139(char *name1, const char *name2);
+void DOS_Int21_713a(char *name1, const char *name2);
+void DOS_Int21_713b(char *name1, const char *name2);
+void DOS_Int21_7141(char *name1, const char *name2);
+void DOS_Int21_7143(char *name1, const char *name2);
+void DOS_Int21_7147(char *name1, const char *name2);
 void DOS_Int21_714e(char *name1, char *name2);
-void DOS_Int21_714f(char *name1, char *name2);
+void DOS_Int21_714f(const char *name1, const char *name2);
 void DOS_Int21_7156(char *name1, char *name2);
 void DOS_Int21_7160(char *name1, char *name2);
-void DOS_Int21_716c(char *name1, char *name2);
+void DOS_Int21_716c(char *name1, const char *name2);
 void DOS_Int21_71a0(char *name1, char *name2);
-void DOS_Int21_71a1(char *name1, char *name2);
-void DOS_Int21_71a6(char *name1, char *name2);
-void DOS_Int21_71a7(char *name1, char *name2);
-void DOS_Int21_71a8(char* name1, char* name2);
-void DOS_Int21_71aa(char* name1, char* name2);
+void DOS_Int21_71a1(const char *name1, const char *name2);
+void DOS_Int21_71a6(const char *name1, const char *name2);
+void DOS_Int21_71a7(const char *name1, const char *name2);
+void DOS_Int21_71a8(char* name1, const char* name2);
+void DOS_Int21_71aa(char* name1, const char* name2);
 Bitu DEBUG_EnableDebugger(void);
 void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
 
@@ -2383,7 +2383,7 @@ public:
     }
 
 	DOS(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+        const Section_prop* section = static_cast<Section_prop*>(configuration);
 
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
         if (::disk_data_rate < 0) {
@@ -2934,7 +2934,7 @@ void DOS_Init() {
     for (char drv='A';drv <= 'Z';drv++) DOS_EnableDriveMenu(drv);
 }
 
-void DOS_Int21_7139(char *name1, char *name2) {
+void DOS_Int21_7139(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -2951,7 +2951,7 @@ void DOS_Int21_7139(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_713a(char *name1, char *name2) {
+void DOS_Int21_713a(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -2969,7 +2969,7 @@ void DOS_Int21_713a(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_713b(char *name1, char *name2) {
+void DOS_Int21_713b(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -2986,7 +2986,7 @@ void DOS_Int21_713b(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_7141(char *name1, char *name2) {
+void DOS_Int21_7141(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -3003,7 +3003,7 @@ void DOS_Int21_7141(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_7143(char *name1, char *name2) {
+void DOS_Int21_7143(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -3095,7 +3095,7 @@ void DOS_Int21_7143(char *name1, char *name2) {
 #if !defined(HX_DOS)
 					struct stat status;
 					if (DOS_GetFileAttrEx(name1, &status)) {
-						struct tm * ltime;
+						const struct tm * ltime;
 						time_t ttime=reg_bl==0x04?status.st_mtime:reg_bl==0x06?status.st_atime:status.st_ctime;
 						if ((ltime=localtime(&ttime))!=0) {
 							reg_cx=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
@@ -3117,7 +3117,7 @@ void DOS_Int21_7143(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_7147(char *name1, char *name2) {
+void DOS_Int21_7147(char *name1, const char *name2) {
     (void)name2;
 		DOS_PSP psp(dos.psp());
 		psp.StoreCommandTail();
@@ -3202,7 +3202,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_714f(char *name1, char *name2) {
+void DOS_Int21_714f(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 		Bit8u handle=(Bit8u)reg_bx;
@@ -3293,7 +3293,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_716c(char *name1, char *name2) {
+void DOS_Int21_716c(char *name1, const char *name2) {
     (void)name2;
 		MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
 		*name1='\"';
@@ -3325,7 +3325,7 @@ void DOS_Int21_71a0(char *name1, char *name2) {
 		}
 }
 
-void DOS_Int21_71a1(char *name1, char *name2) {
+void DOS_Int21_71a1(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 		Bit8u handle=(Bit8u)reg_bx;
@@ -3345,7 +3345,7 @@ void DOS_Int21_71a1(char *name1, char *name2) {
 		CALLBACK_SCF(false);
 }
 
-void DOS_Int21_71a6(char *name1, char *name2) {
+void DOS_Int21_71a6(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 	char buf[64];
@@ -3370,7 +3370,7 @@ void DOS_Int21_71a6(char *name1, char *name2) {
 		if (DOS_GetFileAttrEx(Files[handle]->name, &status, Files[handle]->GetDrive())) {
 #if !defined(HX_DOS)
 			time_t ttime;
-			struct tm * ltime;
+			const struct tm * ltime;
 			ttime=status.st_ctime;
 			if ((ltime=localtime(&ttime))!=0) {
 				ctime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
@@ -3409,7 +3409,7 @@ void DOS_Int21_71a6(char *name1, char *name2) {
 	}
 }
 
-void DOS_Int21_71a7(char *name1, char *name2) {
+void DOS_Int21_71a7(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 	switch (reg_bl) {
@@ -3435,12 +3435,13 @@ void DOS_Int21_71a7(char *name1, char *name2) {
 	}
 }
 
-void DOS_Int21_71a8(char* name1, char* name2) {
+void DOS_Int21_71a8(char* name1, const char* name2) {
     (void)name2;
 	if (reg_dh == 0 || reg_dh == 1) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
 			int i,j=0;
-			char c[13],*s=strrchr(name1,'.');
+            char c[13];
+            const char* s = strrchr(name1, '.');
 			*c=0;
 			for (i=0;i<8;j++) {
 					if (name1[j] == 0 || s-name1 <= j) break;
@@ -3465,7 +3466,7 @@ void DOS_Int21_71a8(char* name1, char* name2) {
 	}
 }
 
-void DOS_Int21_71aa(char* name1, char* name2) {
+void DOS_Int21_71aa(char* name1, const char* name2) {
     (void)name2;
 	if (reg_bh<3 && (reg_bl<1 || reg_bl>26)) {
 			reg_ax = DOSERR_INVALID_DRIVE;

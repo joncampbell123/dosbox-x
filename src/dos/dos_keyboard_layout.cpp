@@ -217,7 +217,7 @@ static Bit32u read_kcl_file(const char* kcl_file_name, const char* layout_id, bo
 	return 0;
 }
 
-static Bit32u read_kcl_data(Bit8u * kcl_data, Bit32u kcl_data_size, const char* layout_id, bool first_id_only) {
+static Bit32u read_kcl_data(const Bit8u* kcl_data, Bit32u kcl_data_size, const char* layout_id, bool first_id_only) {
 	// check ID-bytes
 	if ((kcl_data[0]!=0x4b) || (kcl_data[1]!=0x43) || (kcl_data[2]!=0x46)) {
 		return 0;
@@ -786,7 +786,6 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 						break;
 			default: 
 				return KEYB_INVALIDCPFILE;
-				break;
 		}
 		upxfound=true;
 		found_at_pos=0x29;
@@ -1133,7 +1132,7 @@ const char* DOS_GetLoadedLayout(void) {
 class DOS_KeyboardLayout: public Module_base {
 public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+        const Section_prop* section = static_cast<Section_prop*>(configuration);
 		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
 		loaded_layout=new keyboard_layout();
 

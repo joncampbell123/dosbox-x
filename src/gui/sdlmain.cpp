@@ -5628,7 +5628,7 @@ static bool PasteClipboardNext()
 
 extern Bit8u* clipAscii;
 extern Bit32u clipSize;
-extern void Unicode2Ascii(Bit16u *unicode);
+extern void Unicode2Ascii(const Bit16u* unicode);
 
 void PasteClipboard(bool bPressed)
 {
@@ -5670,7 +5670,7 @@ void PasteClipboard(bool bPressed)
 static std::string strPasteBuffer;
 extern Bit8u* clipAscii;
 extern Bit32u clipSize;
-extern void Unicode2Ascii(Bit16u *unicode);
+extern void Unicode2Ascii(const Bit16u* unicode);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed||!OpenClipboard(NULL)) return;
     if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}

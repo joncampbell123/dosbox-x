@@ -98,8 +98,8 @@ public:
 	Bit8u GetDrive(void) { return hdrive;}
     virtual void    Flush(void) { }
 
-	char* name;
-	Bit8u drive;
+	char* name = NULL;
+	Bit8u drive = 0;
 	Bit32u flags;
 	bool open;
 
@@ -107,7 +107,7 @@ public:
 	Bit16u time;
 	Bit16u date;
 	Bits refCtr;
-	bool newtime;
+	bool newtime = false;
 	/* Some Device Specific Stuff */
 private:
 	Bit8u hdrive;
