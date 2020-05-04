@@ -786,7 +786,6 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 						break;
 			default: 
 				return KEYB_INVALIDCPFILE;
-				break;
 		}
 		upxfound=true;
 		found_at_pos=0x29;
