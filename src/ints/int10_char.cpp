@@ -520,6 +520,15 @@ void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
             *result=mem_readw(where);
         }
         return;
+    case M_PC98:
+        {
+            // Compute the address  
+            Bit16u address=((row*80)+col)*2;
+            // Write the char 
+            PhysPt where = CurMode->pstart+address;
+            *result=mem_readw(where);
+        }
+        return;
     case M_CGA4:
     case M_CGA2:
     case M_TANDY16:
