@@ -1105,8 +1105,8 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
 			*_bytes_sector = (Bit16u)dwBytesPerSect;
 			*_sectors_cluster = ratio;
-			*_total_clusters = total > 4194240? 65535 : dwTotalClusters * dwSectPerClust / ratio;
-			*_free_clusters = total > 4194240? 61440 : dwFreeClusters * dwSectPerClust / ratio;
+			*_total_clusters = total > 4194240? 65535 : (Bit16u)(dwTotalClusters * dwSectPerClust / ratio);
+			*_free_clusters = total > 4194240? 61440 : (Bit16u)(dwFreeClusters * dwSectPerClust / ratio);
 			if (rsize) {
 				totalc=dwTotalClusters * dwSectPerClust / ratio;
 				freec=dwFreeClusters * dwSectPerClust / ratio;
