@@ -31,11 +31,6 @@
 #include "cdrom.h"
 
 CDROM_Interface_SDL::CDROM_Interface_SDL(void) {
-	driveID		= 0;
-	oldLeadOut	= 0;
-#if !defined(C_SDL2)
-	cd			= 0;
-#endif
 }
 
 CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {

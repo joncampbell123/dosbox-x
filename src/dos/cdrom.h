@@ -168,10 +168,10 @@ private:
 
 #if !defined(C_SDL2)
     //! \brief SDL 1.x CD-ROM device object
-	SDL_CD*	cd;
+    SDL_CD* cd = NULL;
 #endif
-	int		driveID;
-	Uint32	oldLeadOut;
+    int driveID = 0;
+    Uint32 oldLeadOut = 0;
 };
 
 //! \brief Dummy CD-ROM interface

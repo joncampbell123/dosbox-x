@@ -138,7 +138,7 @@ public:
 	void SaveState( std::ostream& stream );
 	void LoadState( std::istream& stream );
 
-	Bit16u		numDrives;
+	Bit16u		numDrives = 0;
 
 	typedef struct SDriveInfo {
 		Bit8u	drive;			// drive letter in dosbox
@@ -153,22 +153,18 @@ public:
 		TCtrl	audioCtrl;		// audio channel control
 	} TDriveInfo;
 
-	Bit16u				defaultBufSeg;
+	Bit16u				defaultBufSeg = 0;
 	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
 	
 public:
-	Bit16u		rootDriverHeaderSeg;
+	Bit16u		rootDriverHeaderSeg = 0;
 
 	bool		ChannelControl		(Bit8u subUnit, TCtrl ctrl);
 	bool		GetChannelControl	(Bit8u subUnit, TCtrl& ctrl);
 };
 
 CMscdex::CMscdex(void) {
-	numDrives			= 0;
-	rootDriverHeaderSeg	= 0;
-	defaultBufSeg		= 0;
-
 	memset(dinfo,0,sizeof(dinfo));
 	for (Bit32u i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
 }

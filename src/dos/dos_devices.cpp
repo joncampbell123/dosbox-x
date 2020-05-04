@@ -397,17 +397,8 @@ bool DOS_Device::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcod
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
-DOS_File::DOS_File(const DOS_File& orig) {
-	flags=orig.flags;
-	time=orig.time;
-	date=orig.date;
-	attr=orig.attr;
-	refCtr=orig.refCtr;
-	open=orig.open;
-	hdrive=orig.hdrive;
-    drive = 0;
-    newtime = false;
-	name=0;
+DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
+time(orig.time), date(orig.date), refCtr(orig.refCtr), hdrive(orig.hdrive) {
 	if(orig.name) {
 		name=new char [strlen(orig.name) + 1];strcpy(name,orig.name);
 	}

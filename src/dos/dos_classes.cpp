@@ -484,7 +484,6 @@ void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
 DOS_FCB::DOS_FCB(Bit16u seg,Bit16u off,bool allow_extended) { 
 	SetPt(seg,off); 
 	real_pt=pt;
-	extended=false;
 	if (allow_extended) {
 		if (sGet(sFCB,drive)==0xff) {
 			pt+=7;

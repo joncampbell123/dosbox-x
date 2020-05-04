@@ -612,7 +612,7 @@ public:
 	bool Valid(void);
 	void ClearBlockRecsize(void);
 private:
-	bool extended;
+	bool extended = false;
 	PhysPt real_pt;
 	#ifdef _MSC_VER
 	#pragma pack (1)
