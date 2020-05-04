@@ -1094,19 +1094,22 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 	if ((!allocation.total_clusters && !allocation.free_clusters) || freesizecap) {
 		bool res=false;
 #if defined(WIN32)
-		struct _diskfree_t df = {0};
+		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
 		Bit8u drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
-		res = _getdiskfree(drive>26?0:drive, &df) == 0;
+		if (drive>26) drive=0;
+		char root[4]="A:\\";
+		root[0]='A'+drive-1;
+		res = GetDiskFreeSpace(drive?root:NULL, &dwSectPerClust, &dwBytesPerSect, &dwFreeClusters, &dwTotalClusters);
 		if (res) {
-			unsigned long total = df.total_clusters * df.sectors_per_cluster;
+			unsigned long total = dwTotalClusters * dwSectPerClust;
 			int ratio = total > 2097120 ? 64 : (total > 1048560 ? 32 : (total > 524280 ? 16 : (total > 262140 ? 8 : (total > 131070 ? 4 : (total > 65535 ? 2 : 1)))));
-			*_bytes_sector = df.bytes_per_sector;
+			*_bytes_sector = (Bit16u)dwBytesPerSect;
 			*_sectors_cluster = ratio;
-			*_total_clusters = total > 4194240? 65535 : df.total_clusters * df.sectors_per_cluster / ratio;
-			*_free_clusters = total > 4194240? 61440 : df.avail_clusters * df.sectors_per_cluster / ratio;
+			*_total_clusters = total > 4194240? 65535 : dwTotalClusters * dwSectPerClust / ratio;
+			*_free_clusters = total > 4194240? 61440 : dwFreeClusters * dwSectPerClust / ratio;
 			if (rsize) {
-				totalc=df.total_clusters * df.sectors_per_cluster / ratio;
-				freec=df.avail_clusters * df.sectors_per_cluster / ratio;
+				totalc=dwTotalClusters * dwSectPerClust / ratio;
+				freec=dwFreeClusters * dwSectPerClust / ratio;
 			}
 #else
 		struct statvfs stat;
