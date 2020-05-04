@@ -268,7 +268,12 @@ public:
 
 	bool Open(const char * conf) {
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
-		soundfont.assign(section->Get_string("fluid.soundfont"));
+		const char * sf = section->Get_string("fluid.soundfont");
+		if (!*sf) {
+			LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
+			return false;
+		}
+		soundfont.assign(sf);
 		settings = new_fluid_settings();
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
 			fluid_settings_setstr(settings, "audio.driver", section->Get_string("fluid.driver"));
@@ -312,13 +317,12 @@ public:
 				soundfont_id = -1;
 			}
 			else {
-				LOG_MSG("MIDI:fluidsynth: loaded soundfont: %s",
-					soundfont.c_str());
+				LOG_MSG("MIDI:fluidsynth: Loaded SoundFont: %s", soundfont.c_str());
 			}
 		}
 		else {
 			soundfont_id = -1;
-			LOG_MSG("MIDI:fluidsynth: no soundfont loaded");
+			LOG_MSG("MIDI:fluidsynth: No SoundFont loaded");
 		}
 		return true;
 	}

@@ -634,7 +634,7 @@ public:
 
 		midi.available=true;
 		midi.handler=handler;
-		LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
+		LOG_MSG("MIDI:Opened device:%s",handler->GetName());
 
 		// force reset to prevent crashes (when not properly shutdown)
 		// ex. Roland VSC = unexpected hard system crash

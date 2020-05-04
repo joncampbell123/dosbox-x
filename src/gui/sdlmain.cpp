@@ -957,6 +957,7 @@ static bool IsFullscreen() {
 
 bool is_paused = false;
 bool unpause_now = false;
+bool pausewithinterrupts_enable = false;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
 int pause_menu_item_tag = -1;
 #endif
@@ -3111,6 +3112,15 @@ static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u col
 
 void ResetSystem(bool pressed) {
     if (!pressed) return;
+	
+	if (is_paused) {
+		is_paused = false;
+		mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
+	}
+	if (pausewithinterrupts_enable) {
+        pausewithinterrupts_enable = false;
+		mainMenu.get_item("mapper_pauseints").check(false).refresh_item(mainMenu);
+	}
 
     throw int(3);
 }
@@ -3349,7 +3359,7 @@ static void GUI_StartUp() {
     else if (feedback == "flash")
         sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
 
-	modifier = section->Get_string("clip_key_modifier");
+    modifier = section->Get_string("clip_key_modifier");
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
 
     Prop_multival* p3 = section->Get_multival("sensitivity");
@@ -7220,8 +7230,6 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 }
 
 void CALLBACK_Idle(void);
-
-bool pausewithinterrupts_enable = false;
 
 void PauseWithInterruptsEnabled(Bitu /*val*/) {
     /* we can ONLY do this when the CPU is either in real mode or v86 mode.
