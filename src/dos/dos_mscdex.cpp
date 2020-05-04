@@ -68,7 +68,6 @@ public:
 	void	SetInterrupt		(Bit16u ofs)	{ sSave(sDeviceHeader,interrupt,ofs);			};
 	void	SetStrategy			(Bit16u ofs)	{ sSave(sDeviceHeader,strategy,ofs);			};
 
-public:
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif
@@ -156,8 +155,6 @@ public:
 	Bit16u				defaultBufSeg = 0;
 	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
-	
-public:
 	Bit16u		rootDriverHeaderSeg = 0;
 
 	bool		ChannelControl		(Bit8u subUnit, TCtrl ctrl);
@@ -1270,8 +1267,8 @@ public:
 	Bit16u GetInformation(void){return 0xc880;}
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
-private:
-//	Bit8u cache;
+// private:
+//  Bit8u cache;
 };
 
 bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
