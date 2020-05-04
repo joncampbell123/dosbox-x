@@ -524,7 +524,7 @@ void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
         {
             // Compute the address  
             Bit16u address=((row*80)+col)*2;
-            // Write the char 
+            // read the char 
             PhysPt where = CurMode->pstart+address;
             *result=mem_readw(where);
         }
