@@ -5666,7 +5666,7 @@ void PasteClipboard(bool bPressed)
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-#if defined(WIN32) && defined(C_SDL2) // Add by Wengier
+#if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
 extern Bit8u* clipAscii;
 extern Bit32u clipSize;
