@@ -735,7 +735,12 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h) {
 	text[0]=0;
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
-			ReadCharAttr(j,i,page,&result);
+			if (IS_PC98_ARCH) {
+				Bit16u address=((i*80)+j)*2;
+				PhysPt where = CurMode->pstart+address;
+				result=mem_readw(where);
+			} else
+				ReadCharAttr(j,i,page,&result);
 			sprintf(str,"%c",result);
 			if (str[0]==0) continue;
 			strcat(text,str);
