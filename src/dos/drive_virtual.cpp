@@ -90,15 +90,12 @@ public:
 	Bit16u GetInformation(void);
 private:
 	Bit32u file_size;
-	Bit32u file_pos;
+    Bit32u file_pos = 0;
 	Bit8u * file_data;
 };
 
 
-Virtual_File::Virtual_File(Bit8u * in_data,Bit32u in_size) {
-	file_size=in_size;
-	file_data=in_data;
-	file_pos=0;
+Virtual_File::Virtual_File(Bit8u* in_data, Bit32u in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
 	time=DOS_PackTime(12,34,56);
 	open=true;
@@ -154,13 +151,12 @@ Bit16u Virtual_File::GetInformation(void) {
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
-	search_file=0;
 }
 
 
 bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 /* Scan through the internal list of files */
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) {
 		/* We have a match */
@@ -201,7 +197,7 @@ bool Virtual_Drive::TestDir(const char * dir) {
 }
 
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) {
 			stat_block->attr=DOS_ATTR_ARCHIVE;
@@ -216,7 +212,7 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 }
 
 bool Virtual_Drive::FileExists(const char* name){
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) return true;
 		cur_file=cur_file->next;
@@ -263,7 +259,7 @@ bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
 }
 
 bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) { 
 			*attr = DOS_ATTR_ARCHIVE;	//Maybe readonly ?

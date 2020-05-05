@@ -36,7 +36,7 @@ using namespace std;
 
 class isoFile : public DOS_File {
 public:
-	isoFile(isoDrive *drive, const char *name, FileStat_Block *stat, Bit32u offset);
+    isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset);
 	bool Read(Bit8u *data, Bit16u *size);
 	bool Write(const Bit8u *data, Bit16u *size);
 	bool Seek(Bit32u *pos, Bit32u type);
@@ -46,22 +46,19 @@ public:
 private:
 	isoDrive *drive;
     Bit8u buffer[ISO_FRAMESIZE] = {};
-	int cachedSector;
+    int cachedSector = -1;
 	Bit32u fileBegin;
 	Bit32u filePos;
 	Bit32u fileEnd;
 //	Bit16u info;
 };
 
-isoFile::isoFile(isoDrive *drive, const char *name, FileStat_Block *stat, Bit32u offset) {
-	this->drive = drive;
+isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset) : drive(drive), fileBegin(offset) {
 	time = stat->time;
 	date = stat->date;
 	attr = stat->attr;
-	fileBegin = offset;
 	filePos = fileBegin;
 	fileEnd = fileBegin + stat->size;
-	cachedSector = -1;
 	open = true;
 	this->name = NULL;
 	SetName(name);
@@ -152,13 +149,7 @@ Bit8u MSCDEX_GetSubUnit(char driveLetter);
 
 bool CDROM_Interface_Image::images_init = false;
 
-isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error)
-         :iso(false),
-          dataCD(false),
-          mediaid(0),
-          subUnit(0),
-          driveLetter('\0')
- {
+isoDrive::isoDrive(char driveLetter, const char* fileName, Bit8u mediaid, int& error) {
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
@@ -522,7 +513,7 @@ inline bool isoDrive :: readSector(Bit8u *buffer, Bit32u sector) {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
-int isoDrive :: readDirEntry(isoDirEntry *de, Bit8u *data) {	
+int isoDrive::readDirEntry(isoDirEntry* de, const Bit8u* data) {
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
 	memcpy(de, data, data[0]);//Perharps care about a zero at the end.
@@ -621,8 +612,8 @@ void isoDrive :: MediaChange() {
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
 
-void isoDrive :: GetLongName(char *ident, char *lfindName) {
-    char *c=ident+strlen(ident);
+void isoDrive::GetLongName(const char* ident, char* lfindName) {
+    const char* c = ident + strlen(ident);
     int i,j=(int)(222-strlen(ident)-6);
     for (i=5;i<j;i++) {
         if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)

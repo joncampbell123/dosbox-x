@@ -81,7 +81,7 @@ void DOS_GetMemory_unmap() {
 }
 
 bool DOS_User_Wants_UMBs() {
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+    const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
     return section->Get_bool("umb");
 }
 

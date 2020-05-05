@@ -216,7 +216,7 @@ void DOS_SetupDevices(void);
 /* Execute and new process creation */
 bool DOS_NewPSP(Bit16u segment,Bit16u size);
 bool DOS_ChildPSP(Bit16u segment,Bit16u size);
-bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags);
+bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags);
 void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode);
 
 /* Memory Handling Routines */

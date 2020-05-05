@@ -472,7 +472,7 @@ public:
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
-	int  readDirEntry(isoDirEntry *de, Bit8u *data);
+    int  readDirEntry(isoDirEntry* de, const Bit8u* data);
 	bool loadImage();
 	bool lookupSingle(isoDirEntry *de, const char *name, Bit32u sectorStart, Bit32u length);
 	bool lookup(isoDirEntry *de, const char *path);
@@ -481,7 +481,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(Bit8u** buffer, const Bit32u sector);
-	void GetLongName(char *ident, char *lfindName);
+    void GetLongName(const char* ident, char* lfindName);
 	
 	struct DirIterator {
 		bool valid;
@@ -499,13 +499,13 @@ private:
 		Bit8u data[ISO_FRAMESIZE];
 	} sectorHashEntries[ISO_MAX_HASH_TABLE_SIZE];
 
-	bool iso;
-	bool dataCD;
+    bool iso = false;
+    bool dataCD = false;
 	isoDirEntry rootEntry;
-	Bit8u mediaid;
+    Bit8u mediaid = 0;
 	char fileName[CROSS_LEN];
-	Bit8u subUnit;
-	char driveLetter;
+    Bit8u subUnit = 0;
+    char driveLetter = '\0';
 	char discLabel[32];
 };
 
@@ -541,7 +541,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const* GetLabel(void);
 private:
-	VFILE_Block * search_file;
+    VFILE_Block* search_file = 0;
 };
 
 
