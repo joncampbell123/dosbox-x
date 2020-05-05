@@ -1,19 +1,10 @@
-
 #include <assert.h>
 
 #include "bitop.h"
 
-/* I don't know when this happened.... but suddenly Microsoft C++ doesn't like these constexpr tests or static_assert >:( */
-#if defined(_MSC_VER)
-# define DISABLE_SELF_TEST
-#endif
-
 namespace bitop {
 
 void self_test(void) {
-#ifdef DISABLE_SELF_TEST
-# pragma message ("bitop self-test disabled for your compiler")
-#else
     // DEBUG
     static_assert(bitcount2masklsb<0u>() == 0u, "whoops");
     static_assert(bitcount2masklsb<1u>() == 1u, "whoops");
@@ -293,7 +284,6 @@ void self_test(void) {
     assert(bitseqlengthandpos(252) == bitseqlengthandpos_ret_t(2,6));
     assert(bitseqlengthandpos(508) == bitseqlengthandpos_ret_t(2,7));
     assert(bitseqlengthandpos(1020)== bitseqlengthandpos_ret_t(2,8));
-#endif
 }
 
 }
