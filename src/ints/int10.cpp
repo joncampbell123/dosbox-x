@@ -889,6 +889,7 @@ void INT10_OnResetComplete() {
 extern bool vesa_zero_on_get_information;
 extern bool unmask_irq0_on_int10_setmode;
 extern bool int16_unmask_irq1_on_read;
+extern bool int10_vga_bios_vector;
 extern bool int16_ah_01_cf_undoc;
 
 #if 0 /* reference */
@@ -1119,6 +1120,7 @@ void INT10_Startup(Section *sec) {
     unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
     int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
+    int10_vga_bios_vector = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int 10h points at vga bios");
 
     if (!IS_PC98_ARCH) {
         INT10_InitVGA();

@@ -24,6 +24,7 @@
 #include "int10.h"
 #include "callback.h"
 
+bool int10_vga_bios_vector = true;
 bool rom_bios_8x8_cga_font = true;
 bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
 bool VIDEO_BIOS_always_carry_14_high_font = true;
@@ -276,10 +277,12 @@ void INT10_SetupRomMemory(void) {
 		// and that INT 10h is provided by the EGA/VGA BIOS so it can function normally.
 		//
 		// [https://github.com/joncampbell123/dosbox-x/issues/1473]
-		{
+		if (int10_vga_bios_vector) {
 			const RealPt biosint10 = GetSystemBiosINT10Vector();
 
 			if (biosint10 != 0) {
+				LOG(LOG_MISC,LOG_DEBUG)("Redirecting INT 10h to point at the VGA BIOS");
+
 				phys_writeb(rom_base+0xEE,0xEA); // JMP FAR
 				phys_writew(rom_base+0xEF,(Bit16u)(biosint10 & 0xFFFFu));
 				phys_writew(rom_base+0xF1,(Bit16u)((biosint10 >> 16u) & 0xFFFFu));

@@ -1661,6 +1661,10 @@ void DOSBOX_SetupConfigSections(void) {
             "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
             "This allows you to emulate PC/XT style memory extensions.");
 
+    Pbool = secprop->Add_bool("int 10h points at vga bios",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, INT 10h points at the VGA BIOS. If clear, INT 10h points into the system BIOS. This option only affects EGA/VGA/SVGA emulation.\n"
+                    "This option is needed for some older DOS applications that make additional checks before detecting EGA/VGA hardware (SuperCalc).");
+
     Pbool = secprop->Add_bool("vesa zero buffer on get information",Property::Changeable::Always,true);
     Pbool->Set_help("This setting affects VESA BIOS function INT 10h AX=4F00h. If set, the VESA BIOS will zero the\n"
                     "256-byte buffer defined by the standard at ES:DI, then fill in the structure. If clear, only\n"
