@@ -281,7 +281,7 @@ static void SetupCMDLine(Bit16u pspseg, const DOS_ParamBlock& block) {
  *        shell without any error message. The least we could do is return
  *        an error code so that the INT 21h EXEC call can print an informative
  *        error message! --J.C. */
-bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
+bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
 	EXE_Header head;Bitu i;
 	Bit16u fhandle;Bit16u len;Bit32u pos;
 	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;

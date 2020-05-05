@@ -160,7 +160,7 @@ Virtual_Drive::Virtual_Drive() {
 
 bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 /* Scan through the internal list of files */
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) {
 		/* We have a match */
@@ -201,7 +201,7 @@ bool Virtual_Drive::TestDir(const char * dir) {
 }
 
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) {
 			stat_block->attr=DOS_ATTR_ARCHIVE;
@@ -216,7 +216,7 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 }
 
 bool Virtual_Drive::FileExists(const char* name){
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) return true;
 		cur_file=cur_file->next;
@@ -263,7 +263,7 @@ bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
 }
 
 bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
-	VFILE_Block * cur_file=first_file;
+    const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0) { 
 			*attr = DOS_ATTR_ARCHIVE;	//Maybe readonly ?

@@ -321,7 +321,7 @@ void DriveManager::CycleDisks(int drive, bool notify) {
 	if (numDisks > 1) {
 		// cycle disk
 		unsigned int currentDisk = (unsigned int)driveInfos[drive].currentDisk;
-		DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
+        const DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
 		currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
@@ -345,7 +345,7 @@ void DriveManager::CycleAllCDs(void) {
 		if (numDisks > 1) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
-			DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+            const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
 			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
@@ -386,7 +386,7 @@ bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 
 void DriveManager::Init(Section* s) {
-	Section_prop * section=static_cast<Section_prop *>(s);
+    const Section_prop* section = static_cast<Section_prop*>(s);
 
 	drivemanager_init = true;
 

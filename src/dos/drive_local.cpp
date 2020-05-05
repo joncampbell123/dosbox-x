@@ -81,7 +81,7 @@ extern int faux;
 extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
-	host_cnv_char_t *df = d + CROSS_LEN - 1;
+    const host_cnv_char_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
@@ -103,7 +103,7 @@ bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_L
 }
 
 template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-	host_cnv_char_t *df = d + CROSS_LEN - 1;
+    const host_cnv_char_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
@@ -126,7 +126,7 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
 }
 
 template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-	host_cnv_char_t *df = d + CROSS_LEN - 1;
+    const host_cnv_char_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
@@ -189,7 +189,7 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
 
 template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
-    char *df = d + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -223,7 +223,7 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
 
 template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
-    char *df = d + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -250,7 +250,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
 
 bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
     const host_cnv_char_t *sf = s + CROSS_LEN - 1;
-    char *df = d + CROSS_LEN - 1;
+    const char* df = d + CROSS_LEN - 1;
 
     while (*s != 0 && s < sf) {
         int ic;
@@ -366,12 +366,12 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u attribute
 	strcpy(newname,basedir);
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
-	char* temp_name = dirCache.GetExpandName(newname); //Can only be used in till a new drive_cache action is preformed */
+    const char* temp_name = dirCache.GetExpandName(newname); // Can only be used until a new drive_cache action is performed
 	/* Test if file exists (so we need to truncate it). don't add to dirCache then */
 	bool existing_file=false;
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
 		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
@@ -502,7 +502,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return NULL;
@@ -531,7 +531,7 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 	dirCache.ExpandName(sysName);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(sysName);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(sysName);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,sysName);
         return false;
@@ -564,7 +564,7 @@ bool localDrive::FileUnlink(const char * name) {
 	char *fullname = dirCache.GetExpandName(newname);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(fullname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(fullname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,fullname);
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
@@ -754,7 +754,7 @@ again:
     char *temp_name = dirCache.GetExpandName(full_name);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,temp_name);
 		goto again;//No symlinks and such
@@ -790,7 +790,7 @@ again:
     lfind_name[LFN_NAMELENGTH]=0;
 
 	find_size=(Bit32u) stat_block.st_size;
-	struct tm *time;
+    const struct tm* time;
 	if((time=localtime(&stat_block.st_mtime))!=0){
 		find_date=DOS_PackDate((Bit16u)(time->tm_year+1900),(Bit16u)(time->tm_mon+1),(Bit16u)time->tm_mday);
 		find_time=DOS_PackTime((Bit16u)time->tm_hour,(Bit16u)time->tm_min,(Bit16u)time->tm_sec);
@@ -949,10 +949,10 @@ bool localDrive::MakeDir(const char * dir) {
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
 
-    char *temp_name = dirCache.GetExpandName(newdir);
+    const char* temp_name = dirCache.GetExpandName(newdir);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
 		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
@@ -982,10 +982,10 @@ bool localDrive::RemoveDir(const char * dir) {
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
 
-    char *temp_name = dirCache.GetExpandName(newdir);
+    const char* temp_name = dirCache.GetExpandName(newdir);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
@@ -1011,7 +1011,7 @@ bool localDrive::TestDir(const char * dir) {
 	dirCache.ExpandName(newdir);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newdir);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newdir);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
         return false;
@@ -1035,7 +1035,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
         return false;
     }
 
-    host_cnv_char_t *ht;
+    const host_cnv_char_t* ht;
 
 	char newold[CROSS_LEN];
 	strcpy(newold,basedir);
@@ -1188,7 +1188,7 @@ bool localDrive::FileExists(const char* name) {
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
@@ -1210,7 +1210,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
@@ -1220,7 +1220,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	if(ht_stat(host_name,&temp_stat)!=0) return false;
 
 	/* Convert the stat to a FileStat */
-	struct tm *time;
+    const struct tm* time;
 	if((time=localtime(&temp_stat.st_mtime))!=0) {
 		stat_block->time=DOS_PackTime((Bit16u)time->tm_hour,(Bit16u)time->tm_min,(Bit16u)time->tm_sec);
 		stat_block->date=DOS_PackDate((Bit16u)(time->tm_year+1900),(Bit16u)(time->tm_mon+1),(Bit16u)time->tm_mday);
@@ -1250,7 +1250,7 @@ Bits localDrive::UnMount(void) {
 /* helper functions for drive cache */
 void *localDrive::opendir(const char *name) {
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(name);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,name);
         return NULL;
@@ -1268,7 +1268,7 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 
     if (::read_directory_firstw((dir_information*)handle, tmp, stmp, is_directory)) {
         // guest to host code page translation
-        char *n_stemp_name = CodePageHostToGuest(stmp);
+        const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
 #ifdef host_cnv_use_wchar
             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
@@ -1295,7 +1295,7 @@ bool localDrive::read_directory_next(void *handle, char* entry_name, char* entry
 next:
     if (::read_directory_nextw((dir_information*)handle, tmp, stmp, is_directory)) {
         // guest to host code page translation
-        char *n_stemp_name = CodePageHostToGuest(stmp);
+        const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
 #ifdef host_cnv_use_wchar
             LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,stmp);
@@ -1527,7 +1527,7 @@ bool localFile::UpdateDateTimeFromHost(void) {
 	if(!open) return false;
 	struct stat temp_stat;
 	fstat(fileno(fhandle),&temp_stat);
-	struct tm * ltime;
+    const struct tm* ltime;
 	if((ltime=localtime(&temp_stat.st_mtime))!=0) {
 		time=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
 		date=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);

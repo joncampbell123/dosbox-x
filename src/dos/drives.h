@@ -472,7 +472,7 @@ public:
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
-	int  readDirEntry(isoDirEntry *de, Bit8u *data);
+    int  readDirEntry(isoDirEntry* de, const Bit8u* data);
 	bool loadImage();
 	bool lookupSingle(isoDirEntry *de, const char *name, Bit32u sectorStart, Bit32u length);
 	bool lookup(isoDirEntry *de, const char *path);
@@ -481,7 +481,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(Bit8u** buffer, const Bit32u sector);
-	void GetLongName(char *ident, char *lfindName);
+    void GetLongName(const char* ident, char* lfindName);
 	
 	struct DirIterator {
 		bool valid;

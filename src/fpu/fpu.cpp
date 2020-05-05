@@ -144,7 +144,7 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_F32(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -374,7 +374,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_I32(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -399,7 +399,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_F80(addr);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -519,7 +519,7 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_F64(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -642,7 +642,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_I16(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -667,7 +667,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FBLD(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
@@ -682,7 +682,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 				FPU_PREP_PUSH();
 				FPU_FLD_I64(addr,TOP);
 			}
-			catch (GuestPageFaultException &pf) {
+            catch (const GuestPageFaultException& pf) {
 				(void)pf;
 				TOP = old_TOP;
 				throw;
