@@ -1222,7 +1222,7 @@ public:
     virtual ~ISAPNP_SysDevNode() {
         if (own) delete[] raw;
     }
-public:
+
     unsigned char*      raw;
     size_t              raw_len;
     bool                own;
