@@ -959,18 +959,7 @@ unsigned int APMBIOS_connected_already_err() {
 }
 
 ISAPnPDevice::ISAPnPDevice() {
-    CSN = 0;
-    logical_device = 0;
     memset(ident,0,sizeof(ident));
-    ident_bp = 0;
-    ident_2nd = 0;
-    resource_data_len = 0;
-    resource_data_pos = 0;
-    resource_data = NULL;
-    resource_ident = 0;
-    alloc_res = NULL;
-    alloc_write = 0;
-    alloc_sz = 0;
 }
 
 bool ISAPnPDevice::alloc(size_t sz) {

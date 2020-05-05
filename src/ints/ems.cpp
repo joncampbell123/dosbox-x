@@ -186,8 +186,7 @@ static Bit16u GEMMIS_seg;
 
 class device_EMM : public DOS_Device {
 public:
-	device_EMM(bool is_emm386_avail) {
-		is_emm386=is_emm386_avail;
+    device_EMM(bool is_emm386_avail) : is_emm386(is_emm386_avail) {
 		SetName("EMMXXXX0");
 		GEMMIS_seg=0;
 	}
@@ -1544,23 +1543,19 @@ Bitu call_int67 = 0;
 
 class EMS: public Module_base {
 private:
-	Bit16u ems_baseseg;
-	DOS_Device * emm_device;
-	unsigned int oshandle_memsize_16kb;
-	RealPt /*old4b_pointer,*/old67_pointer;
+    Bit16u ems_baseseg = 0;
+    DOS_Device* emm_device = NULL;
+    unsigned int oshandle_memsize_16kb = 0;
+    RealPt /*old4b_pointer,*/old67_pointer = 0/*NULL*/;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
 
 public:
 	EMS(Section* configuration):Module_base(configuration) {
-		emm_device=NULL;
-        old67_pointer = 0/*NULL*/;
-        oshandle_memsize_16kb = 0;
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
 		call_vdma.Set_RealVec(0x4b);
 
-		ems_baseseg=0;
 		vcpi.enabled=false;
 		GEMMIS_seg=0;
 

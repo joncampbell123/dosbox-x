@@ -77,25 +77,27 @@ public:
 	imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive);
 	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
-	IMAGE_TYPE class_id;
+    IMAGE_TYPE class_id = ID_BASE;
 	std::string diskname;
-	bool active;
-	Bit32u sector_size;
-	Bit32u heads, cylinders, sectors;
-	bool hardDrive;
-	Bit64u diskSizeK;
+    bool active = false;
+    Bit32u sector_size = 512;
+    Bit32u heads = 0;
+    Bit32u cylinders = 0;
+    Bit32u sectors = 0;
+    bool hardDrive = false;
+    Bit64u diskSizeK = 0;
 
 protected:
 	imageDisk(IMAGE_TYPE class_id);
-	FILE *diskimg;
-	Bit8u floppytype;
+    FILE* diskimg = NULL;
+    Bit8u floppytype = 0;
 
-	Bit32u reserved_cylinders;
-    Bit64u image_base;
-	Bit64u image_length;
+    Bit32u reserved_cylinders = 0;
+    Bit64u image_base = 0;
+    Bit64u image_length = 0;
 
 private:
-	volatile int refcount;
+    volatile int refcount = 0;
 
 public:
 	int Addref() {
@@ -246,8 +248,8 @@ private:
 	Bit32u sectors_per_chunk;
 	Bit32u chunk_size;
 	Bit32u total_chunks;
-	Bit32u total_sectors;
-	imageDisk* underlyingImage;
+    Bit32u total_sectors = 0;
+    imageDisk* underlyingImage = NULL;
 
 	diskGeo floppyInfo;
 };

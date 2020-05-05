@@ -314,21 +314,7 @@ Bit32u imageDisk::Get_Reserved_Cylinders() {
     return reserved_cylinders;
 }
 
-imageDisk::imageDisk(IMAGE_TYPE class_id) {
-    heads = 0;
-    cylinders = 0;
-    image_base = 0;
-    sectors = 0;
-    refcount = 0;
-    sector_size = 512;
-    image_length = 0;
-    reserved_cylinders = 0;
-    diskimg = NULL;
-    this->class_id = class_id;
-    active = false;
-    hardDrive = false;
-    diskSizeK = 0;
-    floppytype = 0;
+imageDisk::imageDisk(IMAGE_TYPE class_id) : class_id(class_id) {
 }
 
 imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive) {
@@ -424,20 +410,7 @@ typedef struct {
 }NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
 #pragma pack(pop)
 
-imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
-    heads = 0;
-    cylinders = 0;
-    image_base = 0;
-    image_length = (Bit64u)imgSizeK * (Bit64u)1024;
-    sectors = 0;
-    refcount = 0;
-    sector_size = 512;
-    reserved_cylinders = 0;
-    diskimg = imgFile;
-    class_id = ID_BASE;
-    diskSizeK = imgSizeK;
-    floppytype = 0;
-
+imageDisk::imageDisk(FILE* imgFile, Bit8u* imgName, Bit32u imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((Bit64u)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = (const char*)imgName;
 
