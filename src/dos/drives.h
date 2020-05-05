@@ -499,13 +499,13 @@ private:
 		Bit8u data[ISO_FRAMESIZE];
 	} sectorHashEntries[ISO_MAX_HASH_TABLE_SIZE];
 
-	bool iso;
-	bool dataCD;
+    bool iso = false;
+    bool dataCD = false;
 	isoDirEntry rootEntry;
-	Bit8u mediaid;
+    Bit8u mediaid = 0;
 	char fileName[CROSS_LEN];
-	Bit8u subUnit;
-	char driveLetter;
+    Bit8u subUnit = 0;
+    char driveLetter = '\0';
 	char discLabel[32];
 };
 
@@ -541,7 +541,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const* GetLabel(void);
 private:
-	VFILE_Block * search_file;
+    VFILE_Block* search_file = 0;
 };
 
 

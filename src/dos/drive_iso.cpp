@@ -46,22 +46,19 @@ public:
 private:
 	isoDrive *drive;
     Bit8u buffer[ISO_FRAMESIZE] = {};
-	int cachedSector;
+    int cachedSector = -1;
 	Bit32u fileBegin;
 	Bit32u filePos;
 	Bit32u fileEnd;
 //	Bit16u info;
 };
 
-isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset) {
-	this->drive = drive;
+isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset) : drive(drive), fileBegin(offset) {
 	time = stat->time;
 	date = stat->date;
 	attr = stat->attr;
-	fileBegin = offset;
 	filePos = fileBegin;
 	fileEnd = fileBegin + stat->size;
-	cachedSector = -1;
 	open = true;
 	this->name = NULL;
 	SetName(name);
@@ -152,13 +149,7 @@ Bit8u MSCDEX_GetSubUnit(char driveLetter);
 
 bool CDROM_Interface_Image::images_init = false;
 
-isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error)
-         :iso(false),
-          dataCD(false),
-          mediaid(0),
-          subUnit(0),
-          driveLetter('\0')
- {
+isoDrive::isoDrive(char driveLetter, const char* fileName, Bit8u mediaid, int& error) {
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;

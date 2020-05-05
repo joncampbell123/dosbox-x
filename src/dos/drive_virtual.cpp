@@ -90,15 +90,12 @@ public:
 	Bit16u GetInformation(void);
 private:
 	Bit32u file_size;
-	Bit32u file_pos;
+    Bit32u file_pos = 0;
 	Bit8u * file_data;
 };
 
 
-Virtual_File::Virtual_File(Bit8u * in_data,Bit32u in_size) {
-	file_size=in_size;
-	file_data=in_data;
-	file_pos=0;
+Virtual_File::Virtual_File(Bit8u* in_data, Bit32u in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
 	time=DOS_PackTime(12,34,56);
 	open=true;
@@ -154,7 +151,6 @@ Bit16u Virtual_File::GetInformation(void) {
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
-	search_file=0;
 }
 
 
