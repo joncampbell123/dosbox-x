@@ -1104,6 +1104,13 @@ void INT10_EnterPC98(Section *sec) {
     /* deprecated */
 }
 
+RealPt GetSystemBiosINT10Vector(void) {
+    if (call_10 != 0)
+        return CALLBACK_RealPointer(call_10);
+    else
+        return 0;
+}
+
 void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");

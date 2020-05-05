@@ -1,4 +1,9 @@
 0.83.2
+  - INT 10h vector now points into VGA BIOS as a workaround
+    for DOS programs that use vector location as part of
+    their EGA/VGA detection. This fixes blink attribute
+    and EGA/VGA detection failure with SuperCalc 3 and
+    SuperCalc 4.
   - The copy & paste Windows clipboard text via the right
     mouse button feature now has limited support for PC-98
     mode too in addition to other modes. (Wengier)

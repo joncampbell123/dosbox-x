@@ -176,6 +176,8 @@ void INT10_RemoveVGABIOS(void) { /* PC-98 does not have VGA BIOS */
     }
 }
 
+RealPt GetSystemBiosINT10Vector(void);
+
 void INT10_SetupRomMemory(void) {
 	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
 	if (VGA_BIOS_Size == 0) {
@@ -263,6 +265,31 @@ void INT10_SetupRomMemory(void) {
         // VGA BIOS copyright
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
+
+		// JMP to INT 10h in the system BIOS.
+		//
+		// SuperCalc 3 and 4 fails to detect EGA/VGA if INT 10h points at a location higher than segment 0xFE00 in the system BIOS.
+		// It will also not attempt EGA/VGA detect unless there is an adapter ROM signature (AA55h) at 0xC000:0x0000.
+		// The check does not attempt EGA/VGA detection if ((segment >> 4) + offset) >= 0xFE00.
+		//
+		// The idea is to point INT 10h at this JMP so that DOS programs like SuperCalc will think there is in fact an EGA/VGA BIOS
+		// and that INT 10h is provided by the EGA/VGA BIOS so it can function normally.
+		//
+		// [https://github.com/joncampbell123/dosbox-x/issues/1473]
+		{
+			const RealPt biosint10 = GetSystemBiosINT10Vector();
+
+			if (biosint10 != 0) {
+				phys_writeb(rom_base+0xEE,0xEA); // JMP FAR
+				phys_writew(rom_base+0xEF,(Bit16u)(biosint10 & 0xFFFFu));
+				phys_writew(rom_base+0xF1,(Bit16u)((biosint10 >> 16u) & 0xFFFFu));
+
+				/* WARNING: This overwrites the INT 10 startup code's vector successfully only because this
+				 *          code is called AFTER it has initialized the INT 10h vector. If initialization
+				 *          order changes this could stop working. */
+				RealSetVec(0x10,RealMake(0xC000,0x00EE));
+			}
+		}
 
         // and then other data follows
 		int10.rom.used=0x100;
