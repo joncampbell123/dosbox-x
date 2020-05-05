@@ -3,7 +3,8 @@
     for DOS programs that use vector location as part of
     their EGA/VGA detection. This fixes blink attribute
     and EGA/VGA detection failure with SuperCalc 3 and
-    SuperCalc 4.
+    SuperCalc 4. This option, enabled by default, can be
+    disabled or enabled from dosbox.conf.
   - The copy & paste Windows clipboard text via the right
     mouse button feature now has limited support for PC-98
     mode too in addition to other modes. (Wengier)
