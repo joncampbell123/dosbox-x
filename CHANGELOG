@@ -1,4 +1,9 @@
 0.83.2
+  - Added -set command-line option to change config options.
+    It can be specified multiple times for multiple options,
+    overridding any options in the config file. For example,
+    the command "dosbox-x.exe -set machine=pc98" will force
+    DOSBox-X to start in PC-98 mode. (Wengier)
   - Re-added full drive menu items for the Windows platform.
     The "Boot from drive" item (A:, C: and D: drives only)
     should work in other platforms too. The BOOT command is
@@ -9,6 +14,7 @@
     and EGA/VGA detection failure with SuperCalc 3 and
     SuperCalc 4. This option, enabled by default, can be
     disabled or enabled from dosbox.conf.
+  - Improved long filename support for PC-98 mode. (Wengier)
   - The copy & paste Windows clipboard text via the right
     mouse button feature now has limited support for PC-98
     mode too in addition to other modes. (Wengier)
