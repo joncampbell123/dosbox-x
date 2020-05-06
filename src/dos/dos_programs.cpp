@@ -466,33 +466,29 @@ search:
 
 		_splitpath (path, drive2, dir, fname, ext);
 
-		if((!strcmp(ext,".ima")) || (!strcmp(ext,".img")) || (!strcmp(ext,".iso")) || (!strcmp(ext,".cue")) || (!strcmp(ext,".bin")) || (!strcmp(ext,".mdf"))) {
-			char type[15];
-			if(!strcmp(ext,".img"))
-				strcpy(type,"");
-			else if(!strcmp(ext,".ima"))
-				strcpy(type,"-t floppy ");
-			else
-				strcpy(type,"-t iso ");
-			char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-			strcpy(mountstring,"IMGMOUNT ");
-			strcat(mountstring,type);
-			char temp_str[4] = { 0,0,0 };
-			temp_str[0]=' ';
-			temp_str[1]=drive;
-			temp_str[2]=' ';
-			strcat(mountstring,temp_str);
-			strcat(mountstring,path);
-			strcat(mountstring," >nul");
-			DOS_Shell temp;
-			temp.ParseLine(mountstring);
-			if (!Drives[drive-'A']) {
-				drive_warn="Drive "+str+": was not mounted successfully.";
-				MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
-				return;
-			}
-		} else
-			LOG_MSG("GUI: Unsupported filename extension.");
+		char type[15];
+		if(!strcasecmp(ext,".ima"))
+			strcpy(type,"-t floppy ");
+		else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".mdf")))
+			strcpy(type,"-t iso ");
+		else
+			strcpy(type,"");
+		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+		strcpy(mountstring,"IMGMOUNT ");
+		strcat(mountstring,type);
+		char temp_str[3] = { 0,0,0 };
+		temp_str[0]=drive;
+		temp_str[1]=' ';
+		strcat(mountstring,temp_str);
+		strcat(mountstring,path);
+		strcat(mountstring," >nul");
+		DOS_Shell temp;
+		temp.ParseLine(mountstring);
+		if (!Drives[drive-'A']) {
+			drive_warn="Drive "+str+": failed to mounted.";
+			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+			return;
+		}
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
 #endif
@@ -1850,7 +1846,7 @@ public:
 			strcat(msg, "Booting from drive ");
 			strcat(msg, std::string(1, drive).c_str());
 			strcat(msg, "...\r\n");
-			Bit8u out;Bit16u s=strlen(msg);
+			Bit16u s=strlen(msg);
 			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
 
             if (IS_PC98_ARCH) {

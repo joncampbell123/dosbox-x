@@ -74,6 +74,7 @@ typedef char host_cnv_char_t;
 #endif
 
 static host_cnv_char_t cpcnv_temp[4096];
+static host_cnv_char_t cpcnv_ltemp[4096];
 static Bit16u ldid[256];
 static std::string ldir[256];
 extern bool rsize, freesizecap;
@@ -328,6 +329,13 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
     return (char*)cpcnv_temp;
 }
 
+char *CodePageHostToGuestL(const host_cnv_char_t *s) {
+    if (!CodePageHostToGuest((char*)cpcnv_ltemp,s))
+        return NULL;
+
+    return (char*)cpcnv_ltemp;
+}
+
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
     if (nocachedir) EmptyCache();
 
@@ -455,7 +463,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	}
 
     // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
@@ -766,7 +774,7 @@ again:
 	if(stat_block.st_mode & S_IFDIR) find_attr=DOS_ATTR_DIRECTORY;
 	else find_attr=0;
 #if defined (WIN32)
-	Bitu attribs = GetFileAttributes(temp_name);
+	Bitu attribs = GetFileAttributesW(host_name);
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
@@ -808,8 +816,17 @@ bool localDrive::SetFileAttr(const char * name,Bit16u attr) {
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
+
+	// guest to host code page translation
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+	if (host_name == NULL) {
+		LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+		return false;
+	}
+
 #if defined (WIN32)
-	if (!SetFileAttributes(newname, attr))
+	if (!SetFileAttributesW(host_name, attr))
 		{
 		DOS_SetError((Bit16u)GetLastError());
 		return false;
@@ -817,14 +834,6 @@ bool localDrive::SetFileAttr(const char * name,Bit16u attr) {
 	dirCache.EmptyCache();
 	return true;
 #else
-	// guest to host code page translation
-	host_cnv_char_t *host_name = CodePageGuestToHost(newname);
-	if (host_name == NULL) {
-		LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
-		return false;
-	}
-
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
 		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
@@ -857,8 +866,16 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 
+    // guest to host code page translation
+    const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+        return false;
+    }
+
 #if defined (WIN32)
-	Bitu attribs = GetFileAttributes(newname);
+	Bitu attribs = GetFileAttributesW(host_name);
 	if (attribs == INVALID_FILE_ATTRIBUTES)
 		{
 		DOS_SetError((Bit16u)GetLastError());
@@ -867,14 +884,6 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	*attr = attribs&0x3f;
 	return true;
 #else
-    // guest to host code page translation
-    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
-    if (host_name == NULL) {
-        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
-        return false;
-    }
-
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
 		*attr=DOS_ATTR_ARCHIVE;
@@ -1277,11 +1286,24 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 #endif
             return false;
         }
-#if defined(WIN32)
-		wcstombs(entry_name, tmp, MAX_PATH);
+		if (IS_PC98_ARCH) {
+			const char* n_temp_name = CodePageHostToGuestL(tmp);
+			if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+				LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
 #else
-        strcpy(entry_name,tmp);
+				LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
 #endif
+				strcpy(entry_name,n_stemp_name);
+			} else
+				strcpy(entry_name,n_temp_name);
+		} else {
+#if defined(WIN32)
+			wcstombs(entry_name, tmp, MAX_PATH);
+#else
+			strcpy(entry_name,tmp);
+#endif
+		}
         strcpy(entry_sname,n_stemp_name);
         return true;
     }
@@ -1304,11 +1326,24 @@ next:
 #endif
             goto next;
         }
+		if (IS_PC98_ARCH) {
+			const char* n_temp_name = CodePageHostToGuestL(tmp);
+			if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+				LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#else
+				LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#endif
+				strcpy(entry_name,n_stemp_name);
+			} else
+				strcpy(entry_name,n_temp_name);
+		} else {
 #if defined(WIN32)
 		wcstombs(entry_name, tmp, MAX_PATH);
 #else
         strcpy(entry_name,tmp);
 #endif
+		}
         strcpy(entry_sname,n_stemp_name);
         return true;
     }
