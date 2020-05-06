@@ -121,6 +121,7 @@ public:
     std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
     std::vector<std::string> config_file_list;
     std::vector<std::string> opt_c;
+    std::vector<std::string> opt_set;
 
     bool opt_disable_dpi_awareness;
     bool opt_disable_numlock_check;
