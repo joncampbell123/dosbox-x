@@ -1,4 +1,8 @@
 0.83.2
+  - Re-added full drive menu items for the Windows platform.
+    The "Boot from drive" item (A:, C: and D: drives only)
+    should work in other platforms too. The BOOT command is
+    also slightly improved. (Wengier)
   - INT 10h vector now points into VGA BIOS as a workaround
     for DOS programs that use vector location as part of
     their EGA/VGA detection. This fixes blink attribute

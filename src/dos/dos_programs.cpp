@@ -46,6 +46,14 @@
 #include "menu.h"
 #include "render.h"
 #include "mouse.h"
+#include "../ints/int10.h"
+#if defined(WIN32)
+#include "../dos/cdrom.h"
+#include <ShlObj.h>
+#if !defined(HX_DOS)
+#include <Commdlg.h>
+#endif
+#endif
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
@@ -152,10 +160,8 @@ static const char* UnmountHelper(char umount) {
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
-        if (i_drive == DOS_GetDefaultDrive()) {
+        if (i_drive == DOS_GetDefaultDrive())
             DOS_SetDrive(ZDRIVE_NUM);
-        }
-
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
@@ -166,8 +172,362 @@ static const char* UnmountHelper(char umount) {
     return MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
 }
 
-void MenuUnmountDrive(char drv) {
-    UnmountHelper(drv);
+#if defined(WIN32)
+void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
+	DOS_Drive * newdrive;
+	std::string temp_line;
+	std::string str_size;
+	Bit16u sizes[4];
+	Bit8u mediaid;
+
+	if(drive_type=="CDROM") {
+		mediaid=0xF8;		/* Hard Disk */
+        str_size="2048,1,65535,0";
+	} else {
+		if(drive_type=="FLOPPY") {
+			mediaid=0xF0;			/* Floppy 1.44 media */
+			str_size="512,1,2880,2880";	/* All space free */
+		} else if(drive_type=="LOCAL") {
+			mediaid=0xF8;
+			str_size="512,32,0,0";
+		}
+	}
+
+	char number[20]; const char * scan=str_size.c_str();
+	Bitu index=0; Bitu count=0;
+		while (*scan) {
+			if (*scan==',') {
+				number[index]=0;sizes[count++]=atoi(number);
+				index=0;
+			} else number[index++]=*scan;
+			scan++;
+		}
+	number[index]=0; sizes[count++]=atoi(number);
+
+	temp_line = drive2;
+	if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
+	if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
+	Bit8u bit8size=(Bit8u) sizes[1];
+
+	if(drive_type=="CDROM") {
+		int num = -1;
+		int error;
+
+		int id, major, minor;
+		DOSBox_CheckOS(id, major, minor);
+		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
+			// Vista/above
+			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
+		} else {
+			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
+		}
+		newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
+		std::string errmsg;
+		switch (error) {
+			case 0  :   errmsg=MSG_Get("MSCDEX_SUCCESS");                break;
+			case 1  :   errmsg=MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");  break;
+			case 2  :   errmsg=MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED");    break;
+			case 3  :   errmsg=MSG_Get("MSCDEX_ERROR_PATH");             break;
+			case 4  :   errmsg=MSG_Get("MSCDEX_TOO_MANY_DRIVES");        break;
+			case 5  :   errmsg=MSG_Get("MSCDEX_LIMITED_SUPPORT");        break;
+			default :   errmsg=MSG_Get("MSCDEX_UNKNOWN_ERROR");          break;
+		}
+		if (error) {
+			MessageBox(GetHWND(),errmsg.c_str(),error==5?"Warning":"Error",MB_OK);
+			if (error!=5) {
+				delete newdrive;
+				return;
+			}
+		}
+	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
+
+	if (!newdrive) E_Exit("DOS:Can't create drive");
+	Drives[drive-'A']=newdrive;
+	DOS_EnableDriveMenu(drive);
+	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
+	if(drive_type=="CDROM")
+		LOG_MSG("GUI: Drive %c is mounted as CD-ROM",drive);
+	else
+		LOG_MSG("GUI: Drive %c is mounted as local directory",drive);
+    if(drive == drive2[0] && strlen(drive2) == 3) {
+        // automatic mount
+    } else {
+        if(drive_type=="CDROM") return;
+        std::string label;
+        label = drive;
+        if(drive_type=="LOCAL")
+            label += "_DRIVE";
+        else
+            label += "_FLOPPY";
+        newdrive->SetLabel(label.c_str(),false,true);
+    }
+}
+
+void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
+	std::string str(1, drive);
+	std::string drive_warn;
+	if (Drives[drive-'A']) {
+		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
+		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+		return;
+	}
+	if(control->SecureMode()) {
+		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
+		return;
+	}
+	DOS_Drive * newdrive;
+	std::string temp_line;
+	std::string str_size;
+	Bit16u sizes[4];
+	Bit8u mediaid;
+	drive_warn="Do you really want to give DOSBox-X access to";
+	int type=GetDriveType(drive2);
+	if(type==DRIVE_NO_ROOT_DIR) {
+		MessageBox(GetHWND(),("Drive "+str+": does not exist in the system.").c_str(),"Error",MB_OK);
+		return;
+	} else if(type==DRIVE_CDROM)
+		drive_warn += " your real CD-ROM drive ";
+	else if(type==DRIVE_REMOVABLE)
+		drive_warn += " your real floppy drive ";
+	else
+		drive_warn += " everything on your real drive ";
+
+	if (MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
+
+	if(type==DRIVE_CDROM) {
+		mediaid=0xF8;		/* Hard Disk */
+        str_size="2048,1,65535,0";
+	} else if(type==DRIVE_REMOVABLE) {
+		mediaid=0xF0;			/* Floppy 1.44 media */
+		str_size="512,1,2880,2880";	/* All space free */
+	} else {
+		mediaid=0xF8;
+		str_size="512,32,0,0";
+	}
+
+	char number[20]; const char * scan=str_size.c_str();
+	Bitu index=0; Bitu count=0;
+		while (*scan) {
+			if (*scan==',') {
+				number[index]=0;sizes[count++]=atoi(number);
+				index=0;
+			} else number[index++]=*scan;
+			scan++;
+		}
+	number[index]=0; sizes[count++]=atoi(number);
+	Bit8u bit8size=(Bit8u) sizes[1];
+
+	temp_line = drive2;
+	int error, num = -1;
+	if(type==DRIVE_CDROM) {
+		int id, major, minor;
+		DOSBox_CheckOS(id, major, minor);
+
+		if ((id==VER_PLATFORM_WIN32_NT) && (major>5)) {
+			// Vista/above
+			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
+		} else {
+			MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
+		}
+		newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
+		std::string errmsg;
+		switch (error) {
+			case 0  :   errmsg=MSG_Get("MSCDEX_SUCCESS");                break;
+			case 1  :   errmsg=MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");  break;
+			case 2  :   errmsg=MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED");    break;
+			case 3  :   errmsg=MSG_Get("MSCDEX_ERROR_PATH");             break;
+			case 4  :   errmsg=MSG_Get("MSCDEX_TOO_MANY_DRIVES");        break;
+			case 5  :   errmsg=MSG_Get("MSCDEX_LIMITED_SUPPORT");        break;
+			default :   errmsg=MSG_Get("MSCDEX_UNKNOWN_ERROR");          break;
+		}
+		if (error) {
+			MessageBox(GetHWND(),errmsg.c_str(),error==5?"Warning":"Error",MB_OK);
+			if (error!=5) {
+				delete newdrive;
+				return;
+			}
+		}
+	} else newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
+
+	if (!newdrive) E_Exit("DOS:Can't create drive");
+	if(error && (type==DRIVE_CDROM)) return;
+	Drives[drive-'A']=newdrive;
+	DOS_EnableDriveMenu(drive);
+	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
+	if(type==DRIVE_CDROM) LOG_MSG("GUI: Drive %c is mounted as CD-ROM %c:\\",drive,drive);
+	else LOG_MSG("GUI: Drive %c is mounted as local directory %c:\\",drive,drive);
+    if(drive == drive2[0] && strlen(drive2) == 3) {
+        // automatic mount
+    } else {
+        if(type == DRIVE_CDROM) return;
+        std::string label;
+        label = drive;
+        if(type == DRIVE_FIXED)
+            label += "_DRIVE";
+        else
+            label += "_FLOPPY";
+        newdrive->SetLabel(label.c_str(),false,true);
+    }
+}
+
+void MenuBrowseFolder(char drive, std::string drive_type) {
+	if (Drives[drive-'A']) {
+		std::string str(1, drive);
+		std::string drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
+		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+		return;
+	}
+	if(control->SecureMode()) {
+		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
+		return;
+	}
+#if !defined(HX_DOS)
+	std::string title = "Select a drive/directory to mount";
+	char path[MAX_PATH];
+	BROWSEINFO bi = { 0 };
+	if(drive_type=="CDROM")
+		bi.lpszTitle = ( title + " CD-ROM\nMounting a directory as CD-ROM gives an limited support" ).c_str();
+	else if(drive_type=="FLOPPY")
+		bi.lpszTitle = ( title + " as Floppy" ).c_str();
+	else if(drive_type=="LOCAL")
+		bi.lpszTitle = ( title + " as Local").c_str();
+	else
+		bi.lpszTitle = (title.c_str());
+	LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+
+	if ( pidl != 0 ) {
+		SHGetPathFromIDList ( pidl, path );
+//		SetCurrentDirectory ( path );
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		hFind = FindFirstFile ( "*.*", &FindFileData );
+		if ( hFind != INVALID_HANDLE_VALUE ) MountHelper(drive,path,drive_type);
+		FindClose ( hFind );
+		IMalloc * imalloc = 0;
+		if ( SUCCEEDED( SHGetMalloc ( &imalloc )) ) {
+			imalloc->Free ( pidl );
+			imalloc->Release ( );
+		}
+	}
+#endif
+}
+
+void MenuBrowseImageFile(char drive) {
+	std::string str(1, drive);
+	std::string drive_warn;
+	if (Drives[drive-'A']) {
+		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
+		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+		return;
+	}
+	if(control->SecureMode()) {
+		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
+		return;
+	}
+#if !defined(HX_DOS)
+	OPENFILENAME OpenFileName;
+	char szFile[MAX_PATH];
+	char CurrentDir[MAX_PATH];
+	const char * Temp_CurrentDir = CurrentDir;
+
+	szFile[0] = 0;
+	GetCurrentDirectory( MAX_PATH, CurrentDir );
+	OpenFileName.lStructSize = sizeof( OPENFILENAME );
+	OpenFileName.hwndOwner = NULL;
+	OpenFileName.lpstrFilter = "Image/Zip files(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0All files(*.*)\0*.*\0";
+	OpenFileName.lpstrCustomFilter = NULL;
+	OpenFileName.nMaxCustFilter = 0;
+	OpenFileName.nFilterIndex = 0;
+	OpenFileName.lpstrFile = szFile;
+	OpenFileName.nMaxFile = sizeof( szFile );
+	OpenFileName.lpstrFileTitle = NULL;
+	OpenFileName.nMaxFileTitle = 0;
+	OpenFileName.lpstrInitialDir = CurrentDir;
+	OpenFileName.lpstrTitle = "Select an image file";
+	OpenFileName.nFileOffset = 0;
+	OpenFileName.nFileExtension = 0;
+	OpenFileName.lpstrDefExt = NULL;
+	OpenFileName.lCustData = 0;
+	OpenFileName.lpfnHook = NULL;
+	OpenFileName.lpTemplateName = NULL;
+	OpenFileName.Flags = OFN_EXPLORER;
+
+search:
+	if(GetOpenFileName( &OpenFileName )) {
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		hFind = FindFirstFile(szFile, &FindFileData);
+		if (hFind == INVALID_HANDLE_VALUE) goto search;
+		char drive2	[_MAX_DRIVE]; 
+		char dir	[_MAX_DIR]; 
+		char fname	[_MAX_FNAME]; 
+		char ext	[_MAX_EXT]; 
+		char * path = szFile;
+
+		_splitpath (path, drive2, dir, fname, ext);
+
+		if((!strcmp(ext,".ima")) || (!strcmp(ext,".img")) || (!strcmp(ext,".iso")) || (!strcmp(ext,".cue")) || (!strcmp(ext,".bin")) || (!strcmp(ext,".mdf"))) {
+			char type[15];
+			if(!strcmp(ext,".img"))
+				strcpy(type,"");
+			else if(!strcmp(ext,".ima"))
+				strcpy(type,"-t floppy ");
+			else
+				strcpy(type,"-t iso ");
+			char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+			strcpy(mountstring,"IMGMOUNT ");
+			strcat(mountstring,type);
+			char temp_str[4] = { 0,0,0 };
+			temp_str[0]=' ';
+			temp_str[1]=drive;
+			temp_str[2]=' ';
+			strcat(mountstring,temp_str);
+			strcat(mountstring,path);
+			strcat(mountstring," >nul");
+			DOS_Shell temp;
+			temp.ParseLine(mountstring);
+			if (!Drives[drive-'A']) {
+				drive_warn="Drive "+str+": was not mounted successfully.";
+				MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+				return;
+			}
+		} else
+			LOG_MSG("GUI: Unsupported filename extension.");
+	}
+	SetCurrentDirectory( Temp_CurrentDir );
+#endif
+}
+#endif
+
+void MenuUnmountDrive(char drive) {
+	if (!Drives[drive-'A']) {
+#if defined(WIN32)
+		std::string drive_warn="Drive "+std::string(1, drive)+": is not yet mounted.";
+		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+#endif
+		return;
+	}
+    UnmountHelper(drive);
+}
+
+void MenuBootDrive(char drive) {
+	if(control->SecureMode()) {
+#if defined(WIN32)
+		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
+#endif
+		return;
+	}
+	std::string str(1, drive);
+	char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
+	strcpy(bootstring,"BOOT -L ");
+	strcat(bootstring,str.c_str());
+	strcat(bootstring," >nul");
+	DOS_Shell temp;
+	temp.ParseLine(bootstring);
+	std::string drive_warn="Drive "+str+": failed to boot.";
+#if defined(WIN32)
+	MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+#endif
 }
 
 class MOUNT : public Program {
@@ -1007,8 +1367,20 @@ public:
         if(!cmd->GetCount()) {
             printError();
             return;
-        }
-        while(i<cmd->GetCount()) {
+        } else if (cmd->GetCount()==1) {
+			cmd->FindCommand(1, temp_line);
+			if (temp_line.length()==2&&toupper(temp_line[0])>='A'&&toupper(temp_line[0])<='Z'&&temp_line[1]==':') {
+				drive=toupper(temp_line[0]);
+				if ((drive != 'A') && (drive != 'C') && (drive != 'D')) {
+					printError();
+					return;
+				}
+				bootbyDrive = true;
+			}
+		}
+
+		if (!bootbyDrive)
+		while(i<cmd->GetCount()) {
             if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
 				if ((temp_line == "/?") || (temp_line == "-?")) {
 					printError();
@@ -1019,7 +1391,10 @@ public:
                     bootbyDrive = true;
                     i++;
                     if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
-                        drive=toupper(temp_line[0]);
+						if (temp_line.length()==1&&isdigit(temp_line[0]))
+							drive='A'+(temp_line[0]-'0');
+						else
+							drive=toupper(temp_line[0]);
                         if ((drive != 'A') && (drive != 'C') && (drive != 'D')) {
                             printError();
                             return;
@@ -1468,7 +1843,15 @@ public:
                 return;
             }
 
-            WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
+			char msg[30];
+			const Bit8u page(0);
+			BIOS_NCOLS;
+			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
+			strcat(msg, "Booting from drive ");
+			strcat(msg, std::string(1, drive).c_str());
+			strcat(msg, "...\r\n");
+			Bit8u out;Bit16u s=strlen(msg);
+			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
 
             if (IS_PC98_ARCH) {
                 for(i=0;i<bootsize;i++) real_writeb((Bit16u)load_seg, (Bit16u)i, bootarea.rawdata[i]);
@@ -3505,6 +3888,7 @@ private:
 
         AddToDriveManager(drive, newDrive, 0xF0);
         AttachToBiosByLetter(newImage, drive);
+        DOS_EnableDriveMenu(drive);
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
 
@@ -3614,6 +3998,7 @@ private:
         }
 
         AddToDriveManager(drive, imgDisks, isHardDrive ? 0xF8 : 0xF0);
+        DOS_EnableDriveMenu(drive);
 
         std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
         for (i = 1; i < paths.size(); i++) {
@@ -3728,6 +4113,7 @@ private:
         }
 
         AddToDriveManager(drive, newDrive, dsk->hardDrive ? 0xF8 : 0xF0);
+        DOS_EnableDriveMenu(drive);
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
 
@@ -4013,6 +4399,7 @@ private:
             DriveManager::AppendDisk(drive - 'A', isoDisks[ct]);
         }
         DriveManager::InitializeDrive(drive - 'A');
+        DOS_EnableDriveMenu(drive);
 
         // Set the correct media byte in the table 
         mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * dos.tables.dpb_size, mediaid);
@@ -4796,10 +5183,9 @@ void DOS_SetupPrograms(void) {
         "An image file with a leading colon (:) will be booted in write-protected mode\n"
 		"if the \"leading colon write protect image\" option is enabled.\n"
         );
-    MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c");
+    MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
-    MSG_Add("PROGRAM_BOOT_IMAGE_NOT_OPEN","Cannot open %s");
-    MSG_Add("PROGRAM_BOOT_BOOT","Booting from drive %c...\n");
+    MSG_Add("PROGRAM_BOOT_IMAGE_NOT_OPEN","Cannot open %s\n");
     MSG_Add("PROGRAM_BOOT_CART_WO_PCJR","PCjr cartridge found, but machine is not PCjr");
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");

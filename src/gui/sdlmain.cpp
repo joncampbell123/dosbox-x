@@ -175,6 +175,148 @@ ScreenSizeInfo          screen_size_info;
 
 extern bool dos_kernel_disabled;
 
+void MenuBootDrive(char drive);
+void MenuUnmountDrive(char drive);
+#if defined(WIN32)
+void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
+void MenuBrowseFolder(char drive, std::string drive_type);
+void MenuBrowseImageFile(char drive);
+
+bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+	char root[4]="A:\\";
+	root[0]=drive+'A';
+    MenuMountDrive(drive+'A', root);
+
+    return true;
+}
+
+bool drive_mounthd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseFolder(drive+'A', "LOCAL");
+
+    return true;
+}
+
+bool drive_mountcd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseFolder(drive+'A', "CDROM");
+
+    return true;
+}
+
+bool drive_mountfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseFolder(drive+'A', "FLOPPY");
+
+    return true;
+}
+
+bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A');
+
+    return true;
+}
+#endif
+
+bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuUnmountDrive(drive+'A');
+
+    return true;
+}
+
 bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -200,9 +342,7 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
-void MenuUnmountDrive(char drv);
-
-bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool drive_boot_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
@@ -211,7 +351,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     const char *mname = menuitem->get_name().c_str();
     if (!strncmp(mname,"drive_",6)) {
         drive = mname[6] - 'A';
-        if (drive < 0 || drive >= DOS_DRIVES) return false;
+        if (drive != 0 && drive != 2 && drive != 3) return false;
     }
     else {
         return false;
@@ -219,20 +359,37 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
-    MenuUnmountDrive(drive+'A');
+    MenuBootDrive(drive+'A');
 
     return true;
 }
 
+
 const DOSBoxMenu::callback_t drive_callbacks[] = {
-    drive_rescan_menu_callback,
+#if defined(WIN32)
+    drive_mountauto_menu_callback,
+    drive_mounthd_menu_callback,
+    drive_mountcd_menu_callback,
+    drive_mountfd_menu_callback,
+    drive_mountimg_menu_callback,
+#endif
     drive_unmount_menu_callback,
+    drive_rescan_menu_callback,
+    drive_boot_menu_callback,
     NULL
 };
 
 const char *drive_opts[][2] = {
-    { "rescan",                 "Rescan" },
+#if defined(WIN32)
+	{ "mountauto",              "Mount Automatically" },
+	{ "mounthd",                "Mount as Hard Disk" },
+	{ "mountcd",                "Mount as CD-ROM" },
+	{ "mountfd",                "Mount as Floppy" },
+	{ "mountimg",               "Mount disk image" },
+#endif
     { "unmount",                "Unmount" },
+    { "rescan",                 "Rescan" },
+	{ "boot",                   "Boot from drive" },
     { NULL, NULL }
 };
 
@@ -8232,6 +8389,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ditem.set_text(dmenut.c_str());
 
                 for (size_t i=0;drive_opts[i][0] != NULL;i++) {
+					if (!strcmp(drive_opts[i][0], "boot")&&(c!='A'&&c!='C'&&c!='D')) continue;
                     const std::string name = std::string("drive_") + c + "_" + drive_opts[i][0];
 
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).
