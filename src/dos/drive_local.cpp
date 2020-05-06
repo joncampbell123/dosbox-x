@@ -1286,7 +1286,7 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 #endif
             return false;
         }
-		if (IS_PC98_ARCH) {
+		{
 			const char* n_temp_name = CodePageHostToGuestL(tmp);
 			if (n_temp_name == NULL) {
 #ifdef host_cnv_use_wchar
@@ -1295,17 +1295,12 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 				LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
 #endif
 				strcpy(entry_name,n_stemp_name);
-			} else
+			} else {
 				strcpy(entry_name,n_temp_name);
-		} else {
-#if defined(WIN32)
-			wcstombs(entry_name, tmp, MAX_PATH);
-#else
-			strcpy(entry_name,tmp);
-#endif
+			}
 		}
-        strcpy(entry_sname,n_stemp_name);
-        return true;
+		strcpy(entry_sname,n_stemp_name);
+		return true;
     }
 
     return false;
@@ -1326,7 +1321,7 @@ next:
 #endif
             goto next;
         }
-		if (IS_PC98_ARCH) {
+		{
 			const char* n_temp_name = CodePageHostToGuestL(tmp);
 			if (n_temp_name == NULL) {
 #ifdef host_cnv_use_wchar
@@ -1335,14 +1330,9 @@ next:
 				LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
 #endif
 				strcpy(entry_name,n_stemp_name);
-			} else
+			} else {
 				strcpy(entry_name,n_temp_name);
-		} else {
-#if defined(WIN32)
-		wcstombs(entry_name, tmp, MAX_PATH);
-#else
-        strcpy(entry_name,tmp);
-#endif
+			}
 		}
         strcpy(entry_sname,n_stemp_name);
         return true;
