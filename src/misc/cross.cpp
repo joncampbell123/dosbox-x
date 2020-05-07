@@ -170,6 +170,28 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 
 #if defined (WIN32)
 
+/* does the filename fit the 8.3 format? */
+static bool is_filename_8by3w(const wchar_t* fname) {
+    int i;
+
+    /* Is the first part 8 chars or less? */
+    i=0;
+    while (*fname != 0 && *fname != L'.') { fname++; i++; };
+    if (i > 8) return false;
+
+    if (*fname == '.') fname++;
+
+    /* Is the second part 3 chars or less? A second '.' also makes it a LFN */
+    i=0;
+    while (*fname != 0 && *fname != L'.') { fname++; i++; };
+    if (i > 3) return false;
+
+    /* if there is anything beyond this point, it's an LFN */
+    if (*fname != 0) return false;
+
+    return true;
+}
+
 dir_information* open_directoryw(const wchar_t* dirname) {
 	if (dirname == NULL) return NULL;
 
@@ -217,9 +239,12 @@ bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, wchar_t* 
 		return false;
 	}
 
-    // TODO: offer a config.h option to opt out of Windows widechar functions
+	// TODO: offer a config.h option to opt out of Windows widechar functions
 	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
-    wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
+	if (is_filename_8by3w(entry_name))
+		wcsncpy(entry_sname,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	else
+		wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
 
 	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
@@ -236,7 +261,10 @@ bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, wchar_t* e
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
-	wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
+	if (is_filename_8by3w(entry_name))
+		wcsncpy(entry_sname,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	else
+		wcsncpy(entry_sname,dirp->search_data.w.cAlternateFileName,13);
 
 	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
