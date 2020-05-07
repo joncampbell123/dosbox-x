@@ -179,7 +179,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     while (*fname != 0 && *fname != L'.') { fname++; i++; };
     if (i > 8) return false;
 
-    if (*fname == '.') fname++;
+    if (*fname == L'.') fname++;
 
     /* Is the second part 3 chars or less? A second '.' also makes it a LFN */
     i=0;
