@@ -1846,7 +1846,7 @@ public:
 			strcat(msg, "Booting from drive ");
 			strcat(msg, std::string(1, drive).c_str());
 			strcat(msg, "...\r\n");
-			Bit16u s=strlen(msg);
+            Bit16u s = (Bit16u)strlen(msg);
 			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
 
             if (IS_PC98_ARCH) {
