@@ -41,16 +41,16 @@ enum PRIORITY_LEVELS {
     PRIORITY_LEVEL_HIGHEST
 };
 
+enum method {
+    METHOD_NONE = 0,
+    METHOD_X11,
+    METHOD_XRANDR,
+    METHOD_WIN98BASE,
+    METHOD_COREGRAPHICS
+};
+
 // Screen DPI and size info
 class ScreenSizeInfo {
-public:
-    enum method {
-        METHOD_NONE=0,
-        METHOD_X11,
-        METHOD_XRANDR,
-        METHOD_WIN98BASE,
-        METHOD_COREGRAPHICS
-    };
 public:
     struct wxh {
         double      width = -1;

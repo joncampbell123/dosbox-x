@@ -473,7 +473,7 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
             CGRect drct = CGDisplayBounds(did);
             CGSize dsz = CGDisplayScreenSize(did);
 
-            info.method = ScreenSizeInfo::METHOD_COREGRAPHICS;
+            info.method = METHOD_COREGRAPHICS;
 
             info.screen_position_pixels.x        = drct.origin.x;
             info.screen_position_pixels.y        = drct.origin.y;

@@ -678,11 +678,11 @@ void PrintScreenSizeInfo(void) {
     const char *method = "?";
 
     switch (screen_size_info.method) {
-        case ScreenSizeInfo::METHOD_NONE:       method = "None";        break;
-        case ScreenSizeInfo::METHOD_X11:        method = "X11";         break;
-        case ScreenSizeInfo::METHOD_XRANDR:     method = "XRandR";      break;
-        case ScreenSizeInfo::METHOD_WIN98BASE:  method = "Win98base";   break;
-        case ScreenSizeInfo::METHOD_COREGRAPHICS:method = "CoreGraphics";break;
+        case METHOD_NONE:       method = "None";        break;
+        case METHOD_X11:        method = "X11";         break;
+        case METHOD_XRANDR:     method = "XRandR";      break;
+        case METHOD_WIN98BASE:  method = "Win98base";   break;
+        case METHOD_COREGRAPHICS:method = "CoreGraphics";break;
         default:                                                        break;
     }
 
@@ -714,7 +714,7 @@ void Windows_GetWindowDPI(ScreenSizeInfo &info) {
     HMONITOR mon;
     HWND hwnd;
 
-    info.method = ScreenSizeInfo::METHOD_WIN98BASE;
+    info.method = METHOD_WIN98BASE;
 
     hwnd = GetHWND();
     if (hwnd == NULL) return;
