@@ -489,7 +489,7 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
                             result = true;
 
                             /* choose this combo to determine screen size, and dimensions */
-                            info.method = ScreenSizeInfo::METHOD_XRANDR;
+                            info.method = METHOD_XRANDR;
 
                             info.screen_position_pixels.x        = chk->x;
                             info.screen_position_pixels.y        = chk->y;
@@ -556,7 +556,7 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
                 if (rootWindow != 0) {
                     int screen = 0;
 
-                    info.method = ScreenSizeInfo::METHOD_X11;
+                    info.method = METHOD_X11;
 
                     /* found on StackOverflow */
 
@@ -600,7 +600,7 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
                 if (rootWindow != 0) {
                     int screen = 0;
 
-                    info.method = ScreenSizeInfo::METHOD_X11;
+                    info.method = METHOD_X11;
 
                     /* found on StackOverflow */
 
