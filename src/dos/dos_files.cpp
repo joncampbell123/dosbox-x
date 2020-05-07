@@ -195,8 +195,10 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 					}
 					
 					ext[4] = 0;
-					if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
-				} else tempdir[8]=0;
+					// if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
+                } else {
+                    // tempdir[8] = 0;
+                }
 			}
 
 			if (strlen(fullname)+strlen(tempdir)>=DOS_PATHLENGTH) {

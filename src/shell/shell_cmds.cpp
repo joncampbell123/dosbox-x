@@ -91,6 +91,7 @@ static SHELL_Cmd cmd_list[]={
 // The following are additional commands for debugging purposes in DOSBox-X
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes.\n"},
 {   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture.\n"},
+{   "ALIAS",1,         &DOS_Shell::CMD_ALIAS,  "Define or display aliases.\n"},
 #if C_DEBUG
 {	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point.\n"},
 #endif
@@ -157,6 +158,14 @@ bool enable_config_as_shell_commands = false;
 
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
+    char* orign_cmd_line = line;
+    std::string last_alias_cmd;
+    std::string altered_cmd_line;
+    int alias_counter = 0;
+__do_command_begin:
+    if (alias_counter > 64) {
+        WriteOut(MSG_Get("SHELL_EXECUTE_ALIAS_EXPAND_OVERFLOW"), orign_cmd_line);
+    }
 	line=trim(line);
 	char cmd_buffer[CMD_MAXLINE];
 	char * cmd_write=cmd_buffer;
@@ -181,6 +190,15 @@ void DOS_Shell::DoCommand(char * line) {
 	}
 	*cmd_write=0;
 	if (strlen(cmd_buffer)==0) return;
+    cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
+    if (iter != cmd_alias.end() && last_alias_cmd != cmd_buffer) {
+        alias_counter++;
+        altered_cmd_line = iter->second + " " + line;
+        line = (char*)altered_cmd_line.c_str();
+        last_alias_cmd = iter->first;
+        goto __do_command_begin;
+    }
+
 /* Check the internal list */
 	Bit32u cmd_index=0;
 	while (cmd_list[cmd_index].name) {
@@ -2844,6 +2862,40 @@ void DOS_Shell::CMD_LFNFOR(char * args) {
 		lfnfor = true;
 	else
 		WriteOut("Must specify ON or OFF\n");
+}
+
+void DOS_Shell::CMD_ALIAS(char* args) {
+    HELP("ALIAS");
+    if (!*args) {
+        for (cmd_alias_map_t::iterator iter = cmd_alias.begin(), end = cmd_alias.end();
+            iter != end; ++iter) {
+            WriteOut("ALIAS %s='%s'\n", iter->first.c_str(), iter->second.c_str());
+        }
+    } else {
+        char alias_name[256] = { 0 };
+        char* cmd = 0;
+        args = trim(args);
+        for (int offset = 0; *args && offset < sizeof(alias_name)-1; ++offset, ++args) {
+            if (*args == '=') {
+                cmd = trim(alias_name);
+                ++args;
+                args = trim(args);
+                size_t args_len = strlen(args);
+                if ((*args == '"' && args[args_len - 1] == '"') || (*args == '\'' && args[args_len - 1] == '\'')) {
+                    args[args_len - 1] = 0;
+                    ++args;
+                }
+                if (!*args) {
+                    cmd_alias.erase(cmd);
+                } else {
+                    cmd_alias[cmd] = args;
+                }
+                break;
+            } else {
+                alias_name[offset] = *args;
+            }
+        }
+    }
 }
 
 void CAPTURE_StartCapture(void);
