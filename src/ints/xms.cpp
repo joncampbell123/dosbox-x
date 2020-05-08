@@ -625,7 +625,7 @@ bool XMS_HMA_EXISTS() {
 	return XMS_IS_ACTIVE() && xms_hma_exists;
 }
 
-Bitu GetEMSType(Section_prop * section);
+Bitu GetEMSType(const Section_prop* section);
 void DOS_GetMemory_Choose();
 
 void ROMBIOS_FreeUnusedMinToLoc(Bitu phys);

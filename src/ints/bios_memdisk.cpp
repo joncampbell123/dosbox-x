@@ -41,7 +41,7 @@
 */
 
 // Create a hard drive image of a specified size; automatically select c/h/s
-imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
+imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) : imageDisk(ID_MEMORY) {
 	//notes:
 	//  this code always returns HARD DRIVES with 512 byte sectors
 	//  the code will round up in case it cannot make an exact match
@@ -113,12 +113,12 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) : imageDisk(ID_MEMORY), total_
 }
 
 // Create a floppy image of a specified geometry
-imageDiskMemory::imageDiskMemory(diskGeo& floppyGeometry) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
+imageDiskMemory::imageDiskMemory(const diskGeo& floppyGeometry) : imageDisk(ID_MEMORY) {
 	init(floppyGeometry, false, 0);
 }
 
 // Create a hard drive image of a specified geometry
-imageDiskMemory::imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
+imageDiskMemory::imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size) : imageDisk(ID_MEMORY) {
 	diskGeo diskParams;
 	diskParams.secttrack = sectors;
 	diskParams.cylcount = cylinders;
@@ -134,7 +134,7 @@ imageDiskMemory::imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors,
 }
 
 // Create a copy-on-write memory image of an existing image
-imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
+imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) : imageDisk(ID_MEMORY) {
 	diskGeo diskParams;
 	Bit32u heads, cylinders, sectors, bytesPerSector;
 	underlyingImage->Get_Geometry(&heads, &cylinders, &sectors, &bytesPerSector);

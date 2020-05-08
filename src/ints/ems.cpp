@@ -186,8 +186,7 @@ static Bit16u GEMMIS_seg;
 
 class device_EMM : public DOS_Device {
 public:
-	device_EMM(bool is_emm386_avail) {
-		is_emm386=is_emm386_avail;
+    device_EMM(bool is_emm386_avail) : is_emm386(is_emm386_avail) {
 		SetName("EMMXXXX0");
 		GEMMIS_seg=0;
 	}
@@ -406,7 +405,7 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, thi
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_ReallocatePages(Bit16u handle,Bit16u & pages) {
+static Bit8u EMM_ReallocatePages(Bit16u handle, const Bit16u& pages) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
 	if (emm_handles[handle].pages != 0) {
@@ -656,7 +655,6 @@ static Bit8u EMM_PartialPageMapping(void) {
 			data+=sizeof(EMM_Mapping);
 		}
 		return EMM_RestoreMappingTable();
-		break;
 	case 0x02:	/* Get Partial Page Map Array Size */
 		reg_al=(Bit8u)(2u+reg_bx*(2u+sizeof(EMM_Mapping)));
 		break;
@@ -1517,7 +1515,7 @@ static Bitu INT4B_Handler() {
 	return CBRET_NONE;
 }
 
-Bitu GetEMSType(Section_prop * section) {
+Bitu GetEMSType(const Section_prop* section) {
 	std::string emstypestr = section->Get_string("ems");
 	Bitu rtype = 0;
 
@@ -1544,23 +1542,19 @@ Bitu call_int67 = 0;
 
 class EMS: public Module_base {
 private:
-	Bit16u ems_baseseg;
-	DOS_Device * emm_device;
-	unsigned int oshandle_memsize_16kb;
-	RealPt /*old4b_pointer,*/old67_pointer;
+    Bit16u ems_baseseg = 0;
+    DOS_Device* emm_device = NULL;
+    unsigned int oshandle_memsize_16kb = 0;
+    RealPt /*old4b_pointer,*/old67_pointer = 0/*NULL*/;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
 
 public:
 	EMS(Section* configuration):Module_base(configuration) {
-		emm_device=NULL;
-        old67_pointer = 0/*NULL*/;
-        oshandle_memsize_16kb = 0;
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
 		call_vdma.Set_RealVec(0x4b);
 
-		ems_baseseg=0;
 		vcpi.enabled=false;
 		GEMMIS_seg=0;
 
