@@ -1,7 +1,8 @@
 0.83.2
+  - Added ALIAS command to define or display aliases.
   - Added -set command-line option to change config options.
     It can be specified multiple times for multiple options,
-    overridding any options in the config file. For example,
+    overriding any options in the config file. For example,
     the command "dosbox-x.exe -set machine=pc98" will force
     DOSBox-X to start in PC-98 mode. (Wengier)
   - Re-added full drive menu items for the Windows platform.
@@ -14,10 +15,11 @@
     and EGA/VGA detection failure with SuperCalc 3 and
     SuperCalc 4. This option, enabled by default, can be
     disabled or enabled from dosbox.conf.
-  - Improved long filename support for PC-98 mode. (Wengier)
+  - Improved long filename (LFN) and SetFileAttr/GetFileAttr
+    support for PC-98 mode. (Wengier)
   - The copy & paste Windows clipboard text via the right
-    mouse button feature now has limited support for PC-98
-    mode too in addition to other modes. (Wengier)
+    mouse button feature now has support for PC-98 mode too
+    in addition to other modes. (Wengier)
   - Improved support for FluidSynth MIDI device by porting
     code from DOSBox ECE. Set "mididevice=fluidsynth" along
     with other required options such as "fluid.soundfont"
