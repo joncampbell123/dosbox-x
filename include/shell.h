@@ -30,6 +30,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 
 #include <SDL.h>
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -75,6 +76,18 @@ class DOS_Shell : public Program {
 private:
 	friend class AutoexecEditor;
 	std::list<std::string> l_history, l_completion;
+    template<class _Type>
+    struct less_ignore_case {
+        typedef _Type first_argument_type;
+        typedef _Type second_argument_type;
+        typedef bool result_type;
+
+        constexpr bool operator()(const _Type& _Left, const _Type& _Right) const {
+            return strcasecmp(_Left.c_str(), _Right.c_str()) < 0;
+        }
+    };
+    typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t;
+    cmd_alias_map_t cmd_alias;
 
 	Bit16u completion_index;
 	
@@ -280,6 +293,10 @@ public:
     /*! \brief      LFN switch for FOR
      */
 	void CMD_LFNFOR(char * args);
+
+    /*! \brief      ALIAS
+    */
+    void CMD_ALIAS(char* args);
 
 #if C_DEBUG
     /*! \brief      Execute command within debugger (break at entry point)
