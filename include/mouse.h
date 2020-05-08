@@ -36,7 +36,7 @@ void Mouse_ChangePS2Callback(Bit16u pseg, Bit16u pofs);
 
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
 #if defined(WIN32)
-const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h);
+const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit16u *textlen);
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h);
 void Restore_Text(int x1, int y1, int x2, int y2, int w, int h);
 #endif
