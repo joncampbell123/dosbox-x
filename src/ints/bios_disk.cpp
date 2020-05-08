@@ -420,7 +420,7 @@ imageDisk::imageDisk(FILE* imgFile, Bit8u* imgName, Bit32u imgSizeK, bool isHard
         bool founddisk = false;
 
         if (imgName != NULL) {
-            char *ext = strrchr((char*)imgName,'.');
+            const char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
                 if (!strcasecmp(ext,".fdi")) {
                     if (imgSizeK >= 160) {
@@ -1231,7 +1231,7 @@ void BIOS_SetupDisks(void) {
 // VFD *.FDD floppy disk format support
 
 Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
-    vfdentry *ent;
+    const vfdentry *ent;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -1289,7 +1289,7 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
     }
 
     while (i != dents.end()) {
-        imageDiskVFD::vfdentry &ent = *i;
+        const imageDiskVFD::vfdentry &ent = *i;
 
         if (ent.head == head &&
             ent.track == track &&
@@ -1514,7 +1514,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
              * and head numbers or odd sized sectors.
              *
              * First, determine sector size according to the boot sector. */
-            vfdentry *ent;
+            const vfdentry *ent;
 
             ent = findSector(/*head*/0,/*track*/0,/*sector*/1,~0U);
             if (ent != NULL) {
@@ -1543,7 +1543,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
             if (sector_size != 0) {
                 i=0;
                 while (DiskGeometryList[i].ksize != 0) {
-                    diskGeo &diskent = DiskGeometryList[i];
+                    const diskGeo &diskent = DiskGeometryList[i];
 
                     if (diskent.bytespersect == sector_size) {
                         ent = findSector(0,0,diskent.secttrack);
@@ -1561,7 +1561,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
             if (sector_size != 0 && sectors != 0) {
                 i=0;
                 while (DiskGeometryList[i].ksize != 0) {
-                    diskGeo &diskent = DiskGeometryList[i];
+                    const diskGeo &diskent = DiskGeometryList[i];
 
                     if (diskent.bytespersect == sector_size && diskent.secttrack >= sectors) {
                         ent = findSector(0,diskent.cylcount-1,sectors);
@@ -1647,7 +1647,7 @@ typedef struct D88SEC {
 #pragma pack(pop)
 
 Bit8u imageDiskD88::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
-    vfdentry *ent;
+    const vfdentry *ent;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -1686,7 +1686,7 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u se
         req_sector_size = sector_size;
 
     while (i != dents.end()) {
-        imageDiskD88::vfdentry &ent = *i;
+        const imageDiskD88::vfdentry &ent = *i;
 
         if (ent.head == head &&
             ent.track == track &&
@@ -1701,7 +1701,7 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u se
 }
 
 Bit8u imageDiskD88::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
-    vfdentry *ent;
+    const vfdentry *ent;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -1845,7 +1845,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
          *
          * First, determine sector size according to the boot sector. */
         bool founddisk = false;
-        vfdentry *ent;
+        const vfdentry *ent;
 
         ent = findSector(/*head*/0,/*track*/0,/*sector*/1,~0U);
         if (ent != NULL) {
@@ -1873,7 +1873,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         if (sector_size != 0) {
             unsigned int i = 0;
             while (DiskGeometryList[i].ksize != 0) {
-                diskGeo &diskent = DiskGeometryList[i];
+                const diskGeo &diskent = DiskGeometryList[i];
 
                 if (diskent.bytespersect == sector_size) {
                     ent = findSector(0,0,diskent.secttrack);
@@ -1891,7 +1891,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         if (sector_size != 0 && sectors != 0) {
             unsigned int i = 0;
             while (DiskGeometryList[i].ksize != 0) {
-                diskGeo &diskent = DiskGeometryList[i];
+                const diskGeo &diskent = DiskGeometryList[i];
 
                 if (diskent.bytespersect == sector_size && diskent.secttrack >= sectors) {
                     ent = findSector(0,diskent.cylcount-1,sectors);
@@ -1943,7 +1943,7 @@ imageDiskD88::~imageDiskD88() {
 /*--------------------------------*/
 
 Bit8u imageDiskNFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
-    vfdentry *ent;
+    const vfdentry *ent;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -1982,7 +1982,7 @@ imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u se
         req_sector_size = sector_size;
 
     while (i != dents.end()) {
-        imageDiskNFD::vfdentry &ent = *i;
+        const imageDiskNFD::vfdentry &ent = *i;
 
         if (ent.head == head &&
             ent.track == track &&
@@ -1997,7 +1997,7 @@ imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u se
 }
 
 Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
-    vfdentry *ent;
+    const vfdentry *ent;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -2200,7 +2200,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
          *
          * First, determine sector size according to the boot sector. */
         bool founddisk = false;
-        vfdentry *ent;
+        const vfdentry *ent;
 
         ent = findSector(/*head*/0,/*track*/0,/*sector*/1,~0U);
         if (ent != NULL) {
@@ -2228,7 +2228,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         if (sector_size != 0) {
             unsigned int i = 0;
             while (DiskGeometryList[i].ksize != 0) {
-                diskGeo &diskent = DiskGeometryList[i];
+                const diskGeo &diskent = DiskGeometryList[i];
 
                 if (diskent.bytespersect == sector_size) {
                     ent = findSector(0,0,diskent.secttrack);
@@ -2246,7 +2246,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         if (sector_size != 0 && sectors != 0) {
             unsigned int i = 0;
             while (DiskGeometryList[i].ksize != 0) {
-                diskGeo &diskent = DiskGeometryList[i];
+                const diskGeo &diskent = DiskGeometryList[i];
 
                 if (diskent.bytespersect == sector_size && diskent.secttrack >= sectors) {
                     ent = findSector(0,diskent.cylcount-1,sectors);

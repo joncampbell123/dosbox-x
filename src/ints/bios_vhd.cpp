@@ -211,7 +211,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 
 	string.reserve((size_t)(string.size() + (dataLength / 2) + 10)); //allocate a few extra bytes
 	char* indata = (char*)data;
-	char* lastchar = indata + dataLength;
+    const char* lastchar = indata + dataLength;
 #if !defined (WIN32) && !defined(OS2)
 	char temp[10];
 	char* tempout;
@@ -244,7 +244,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 	return true;
 }
 
-imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId) {
+imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry& entry, const Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId) {
 	std::string str = "";
 	const char* slashpos = NULL;
 
@@ -261,7 +261,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 #endif
 		if (slashpos != NULL) {
 			//copy all characters up to and including the slash, to str
-			for (char* pos = (char*)childFileName; pos <= slashpos; pos++) {
+            for (const char* pos = (char*)childFileName; pos <= slashpos; pos++) {
 				str += *pos;
 			}
 		}
@@ -379,7 +379,7 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 	imageDisk* disk;
 	if (Open(fileName, true, &disk)) return VHD_TYPE_NONE;
-	imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
+    const imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
 	VHDTypes ret = VHD_TYPE_FIXED; //fixed if an imageDisk was returned
 	if (vhd) ret = vhd->footer.diskType; //get the actual type if an imageDiskVHD was returned
 	delete disk;
@@ -442,7 +442,7 @@ Bit32u imageDiskVHD::VHDFooter::CalculateChecksum() {
 	//however, the checksum must be stored in the correct byte order or it will not match
 
 	Bit32u ret = 0;
-	Bit8u* dat = (Bit8u*)this->cookie;
+    const Bit8u* dat = (Bit8u*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(VHDFooter); i++) {
@@ -489,7 +489,7 @@ Bit32u imageDiskVHD::DynamicHeader::CalculateChecksum() {
 	//however, the checksum must be stored in the correct byte order or it will not match
 
 	Bit32u ret = 0;
-	Bit8u* dat = (Bit8u*)this->cookie;
+    const Bit8u* dat = (Bit8u*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(DynamicHeader); i++) {

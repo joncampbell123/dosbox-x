@@ -113,7 +113,7 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) : imageDisk(ID_MEMORY) {
 }
 
 // Create a floppy image of a specified geometry
-imageDiskMemory::imageDiskMemory(diskGeo& floppyGeometry) : imageDisk(ID_MEMORY) {
+imageDiskMemory::imageDiskMemory(const diskGeo& floppyGeometry) : imageDisk(ID_MEMORY) {
 	init(floppyGeometry, false, 0);
 }
 

@@ -364,14 +364,14 @@ void dosbox_integration_trigger_read() {
 
         case 0x6845C3: /* query VGA capture current crop rectangle (position) will not reflect new rectangle until VGA capture finishes capture. */
             {
-                SDL_Rect &r = VGA_CaptureRectCurrent();
+                const SDL_Rect &r = VGA_CaptureRectCurrent();
                 dosbox_int_register = ((uint32_t)r.y << (uint32_t)16ul) + (uint32_t)r.x;
             }
             break;
 
         case 0x6845C4: /* query VGA capture current crop rectangle (size). will not reflect new rectangle until VGA capture finishes capture. */
             {
-                SDL_Rect &r = VGA_CaptureRectCurrent();
+                const SDL_Rect &r = VGA_CaptureRectCurrent();
                 dosbox_int_register = ((uint32_t)r.h << (uint32_t)16ul) + (uint32_t)r.w;
             }
             break;
@@ -1442,7 +1442,7 @@ static Bitu INT15_Handler(void);
 //        It might also be appropriate to move this into the BIOS init sequence.
 void ISAPNP_Cfg_Reset(Section *sec) {
     (void)sec;//UNUSED
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+    const Section_prop* section = static_cast<Section_prop*>(control->GetSection("cpu"));
 
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
 
@@ -1958,7 +1958,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
                 break;
             }
 
-            ISAPNP_SysDevNode *nd = ISAPNP_SysDevNodes[Node];
+            const ISAPNP_SysDevNode *nd = ISAPNP_SysDevNodes[Node];
 
             mem_writew(devNodeBuffer_ptr+0,(Bit16u)(nd->raw_len+3)); /* Length */
             mem_writeb(devNodeBuffer_ptr+2,Node); /* on most PnP BIOS implementations I've seen "handle" is set to the same value as Node */
@@ -2910,7 +2910,7 @@ void PC98_InitDefFuncRow(void) {
 
 #include "int10.h"
 
-void draw_pc98_function_row_elem(unsigned int o,unsigned int co,struct pc98_func_key_shortcut_def &key) {
+void draw_pc98_function_row_elem(unsigned int o, unsigned int co, const struct pc98_func_key_shortcut_def& key) {
     const unsigned char *str = key.shortcut;
     unsigned int j = 0,i = 0;
 
@@ -2949,7 +2949,7 @@ void draw_pc98_function_row_elem(unsigned int o,unsigned int co,struct pc98_func
     }
 }
 
-void draw_pc98_function_row(unsigned int o,struct pc98_func_key_shortcut_def *keylist) {
+void draw_pc98_function_row(unsigned int o, const struct pc98_func_key_shortcut_def* keylist) {
     for (unsigned int i=0u;i < 5u;i++)
         draw_pc98_function_row_elem(o,4u + (i * 7u),keylist[i]);
     for (unsigned int i=5u;i < 10u;i++)
@@ -4600,7 +4600,7 @@ unsigned char pc98_dec2bcd(unsigned char c) {
 static Bitu INT1C_PC98_Handler(void) {
     if (reg_ah == 0x00) { /* get time and date */
         time_t curtime;
-        struct tm *loctime;
+        const struct tm *loctime;
         curtime = time (NULL);
         loctime = localtime (&curtime);
 
@@ -5297,7 +5297,7 @@ static void BIOS_HostTimeSync() {
     struct timeb timebuffer;
     ftime(&timebuffer);
     
-    struct tm *loctime;
+    const struct tm *loctime;
     loctime = localtime (&timebuffer.time);
     milli = (Bit32u) timebuffer.millitm;
 #endif
@@ -6607,7 +6607,7 @@ void BIOS_ZeroExtendedSize(bool in) {
     }
 }
 
-unsigned char do_isapnp_chksum(unsigned char *d,int i) {
+unsigned char do_isapnp_chksum(const unsigned char* d, int i) {
     unsigned char sum = 0;
 
     while (i-- > 0)
@@ -6651,8 +6651,8 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
 #include "src/gui/dosbox.cga640.bmp.h"
 
 void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
-    unsigned char *s = dosbox_cga640_bmp;
-    unsigned char *sf = s + sizeof(dosbox_cga640_bmp);
+    const unsigned char *s = dosbox_cga640_bmp;
+    const unsigned char *sf = s + sizeof(dosbox_cga640_bmp);
     uint32_t width,height;
     unsigned int dx,dy;
     uint32_t off;
@@ -6689,8 +6689,8 @@ void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
 
 /* HACK: Re-use the VGA logo */
 void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
-    unsigned char *s = dosbox_vga16_bmp;
-    unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
+    const unsigned char *s = dosbox_vga16_bmp;
+    const unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
     unsigned int bit,dx,dy;
     uint32_t width,height;
     unsigned char p[4];
@@ -6746,8 +6746,8 @@ void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
 }
 
 void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
-    unsigned char *s = dosbox_vga16_bmp;
-    unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
+    const unsigned char *s = dosbox_vga16_bmp;
+    const unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
     unsigned int bit,dx,dy;
     uint32_t width,height;
     uint32_t vram;
