@@ -169,21 +169,30 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 }
 
 #if defined (WIN32)
+typedef wchar_t host_cnv_char_t;
+extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 
 /* does the filename fit the 8.3 format? */
 static bool is_filename_8by3w(const wchar_t* fname) {
+	if (CodePageHostToGuest(fname)==NULL) return false;
     int i;
 
     /* Is the first part 8 chars or less? */
     i=0;
-    while (*fname != 0 && *fname != L'.') { fname++; i++; };
+    while (*fname != 0 && *fname != L'.') {
+		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		fname++; i++; 
+	}
     if (i > 8) return false;
 
     if (*fname == L'.') fname++;
 
     /* Is the second part 3 chars or less? A second '.' also makes it a LFN */
     i=0;
-    while (*fname != 0 && *fname != L'.') { fname++; i++; };
+    while (*fname != 0 && *fname != L'.') {
+		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
+		fname++; i++;
+	}
     if (i > 3) return false;
 
     /* if there is anything beyond this point, it's an LFN */
