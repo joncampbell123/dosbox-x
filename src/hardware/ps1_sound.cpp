@@ -331,7 +331,7 @@ static void PS1SN76496Update(Bitu length)
 		ps1.chanSN->Enable(false);
 	}
 
-	Bit16s * buffer=(Bit16s *)MixTemp;
+	//Bit16s * buffer=(Bit16s *)MixTemp;
 #if 0
 	SN76496Update(&ps1.sn,buffer,length);
 #endif

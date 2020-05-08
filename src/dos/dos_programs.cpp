@@ -1857,6 +1857,7 @@ public:
 			char msg[30];
 			const Bit8u page(0);
 			BIOS_NCOLS;
+            (void)ncols;
 			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
 			strcat(msg, "Booting from drive ");
 			strcat(msg, std::string(1, drive).c_str());
