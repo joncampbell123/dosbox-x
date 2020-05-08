@@ -4064,7 +4064,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
 #if defined (WIN32)
-		if (mouse_start_x >= 0 && &mouse_start_y >= 0) {
+		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
@@ -4739,6 +4739,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
 #if defined(WIN32)
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && !strcmp(modifier,"none") && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
+			Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+			mouse_start_x = -1;
+			mouse_start_y = -1;
+			mouse_end_x = -1;
+			mouse_end_y = -1;
+			fx = -1;
+			fy = -1;
+		}
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && (!strcmp(modifier,"none")
 			|| (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN
 			|| (!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN || (!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN
@@ -4781,13 +4790,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         break;
     case SDL_RELEASED:
 #if defined(WIN32)
-		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && mouse_start_x >= 0 && &mouse_start_y >= 0) {
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
 			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
 				PasteClipboard(true);
 			else {
-				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+				if (fx >= 0 && fy >= 0)
+					Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
 				} else
@@ -5884,19 +5894,22 @@ bool PasteClipboardNext() {
 #endif
 #endif
 
-
 #if defined (WIN32)
+extern Bit16u cpMap[256];
 void CopyClipboard(void) {
-	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
-	if (OpenClipboard(NULL)) {
-		HGLOBAL clipbuffer;
-		char * buffer;
-		EmptyClipboard();
-		clipbuffer = GlobalAlloc(GMEM_DDESHARE, strlen(text)+1);
-		buffer = (char*)GlobalLock(clipbuffer);
-		strcpy(buffer, text);
-		GlobalUnlock(clipbuffer);
-		SetClipboardData(CF_OEMTEXT,clipbuffer);
+	Bit16u len=0;
+	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+	if (OpenClipboard(NULL)&&EmptyClipboard()) {
+		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
+		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
+		if (buffer!=NULL) {
+			int reqsize = MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, NULL, 0);
+			if (reqsize<1) return;
+			if (MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, buffer, reqsize)==reqsize) {
+				GlobalUnlock(clipbuffer);
+				SetClipboardData(CF_UNICODETEXT,clipbuffer);
+			}
+		}
 		CloseClipboard();
 	}
 }
