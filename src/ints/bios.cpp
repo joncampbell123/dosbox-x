@@ -6211,7 +6211,6 @@ static Bitu INT15_Handler(void) {
                     switch(reg_cx) {
                         case 0x3: // power off
                             throw(0);
-                            break;
                         default:
                             reg_ah = 0x0A; // invalid parameter value in CX
                             CALLBACK_SCF(true);
@@ -8357,7 +8356,6 @@ private:
                     break;
                 default:
                     abort(); // should not happen
-                    break;
             }
 
             sprintf(tmp,"Video card is %s\n",card);

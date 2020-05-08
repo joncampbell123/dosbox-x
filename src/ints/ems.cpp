@@ -655,7 +655,6 @@ static Bit8u EMM_PartialPageMapping(void) {
 			data+=sizeof(EMM_Mapping);
 		}
 		return EMM_RestoreMappingTable();
-		break;
 	case 0x02:	/* Get Partial Page Map Array Size */
 		reg_al=(Bit8u)(2u+reg_bx*(2u+sizeof(EMM_Mapping)));
 		break;
