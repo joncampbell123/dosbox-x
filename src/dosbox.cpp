@@ -2250,7 +2250,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
 
-	Pstring = secprop->Add_string("fluid.reverb,roomsize",Property::Changeable::WhenIdle,".61");
+	Pstring = secprop->Add_string("fluid.reverb.roomsize",Property::Changeable::WhenIdle,".61");
 	Pstring->Set_help("Fluidsynth reverb room size.");
 
 	Pstring = secprop->Add_string("fluid.reverb.damping",Property::Changeable::WhenIdle,".23");
@@ -2807,23 +2807,21 @@ void DOSBOX_SetupConfigSections(void) {
 #ifdef C_LIBPNG
         "  png     : Creates PNG images (default)\n"
 #endif
-        "  ps      : Creates Postscript\n"
-        "  bmp     : Creates BMP images (very huge files, not recommend)\n"
+        "  ps      : Creates PostScript\n"
+        "  bmp     : Creates BMP images (very huge files, not recommended)\n"
 #if defined (WIN32)
         "  printer : Send to an actual printer (Print dialog will appear)"
 #endif
     );
 
     Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Adds all pages to one Postscript file or printer job until CTRL-F2 is pressed.");
+    Pbool->Set_help("Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.");
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
     Pstring->Set_help("The path where the output files are stored.");
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
-    Pint->Set_help("(in milliseconds) if nonzero: the time the page will\n"
-        "be ejected automatically after when no more data\n"
-        "arrives at the printer.");
+    Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");
 #endif
 
     // parallel ports
