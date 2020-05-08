@@ -3226,10 +3226,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
     Pbool->Set_help(
-        "If set, and int13fakeio is set, certain INT 13h commands will\n"
-        "cause floppy emulation to issue fake CPU I/O traps (GPF) in\n"
-        "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-        "if you want 32-bit floppy access in Windows 95 to work with DOSBox-X.");
+        "If set, certain INT 13h commands will cause floppy emulation to issue fake CPU I/O\n"
+        "traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must enable this\n"
+        "option if you want 32-bit floppy access in Windows 95 to work with DOSBox-X.");
 
     Pbool = secprop->Add_bool("instant mode",Property::Changeable::WhenIdle,false);
     Pbool->Set_help(
@@ -3319,10 +3318,9 @@ void DOSBOX_SetupConfigSections(void) {
 
         Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
-                "If set, and int13fakeio is set, certain INT 13h commands will\n"
-                "cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
-                "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-                "if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
+                "If set, and int13fakeio is set, certain INT 13h commands will cause IDE emulation to\n"
+                "issue fake CPU I/O traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must\n"
+                "enable this option if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
 
         Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
