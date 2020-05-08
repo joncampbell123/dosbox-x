@@ -5904,8 +5904,7 @@ void CopyClipboard(void) {
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
 		if (buffer!=NULL) {
 			int reqsize = MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, NULL, 0);
-			if (reqsize<1) return;
-			if (MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, buffer, reqsize)==reqsize) {
+			if (reqsize>0 && MultiByteToWideChar(dos.loaded_codepage, 0, text, len+1, buffer, reqsize)==reqsize) {
 				GlobalUnlock(clipbuffer);
 				SetClipboardData(CF_UNICODETEXT,clipbuffer);
 			}
