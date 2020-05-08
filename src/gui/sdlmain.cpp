@@ -5720,6 +5720,12 @@ static bool PasteClipboardNext()
 
     if (!bScanCodeMapInited)
         PasteInitMapSCToSDLKey();
+	
+	if (IS_PC98_ARCH) {
+		BIOS_AddKeyToBuffer(strPasteBuffer[0]);
+		strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+		return true;
+	}
 
     const char cKey = strPasteBuffer[0];
     SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
