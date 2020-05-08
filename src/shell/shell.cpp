@@ -1129,7 +1129,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LABEL_HELP","Creates or changes the volume label of a disk.\n");
 	MSG_Add("SHELL_CMD_LABEL_HELP_LONG","LABEL [volume]\n\n\tvolume\t\tSpecifies the drive letter.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Define or display aliases.\n");
-    MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nWithout arguments, `ALIAS' prints the list of aliases in the reusable\nform `ALIAS NAME = VALUE' on standard output.\n");
+    MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
@@ -1371,4 +1371,3 @@ void SHELL_Run() {
 		throw;
 	}
 }
-
