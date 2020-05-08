@@ -4237,6 +4237,9 @@ void MenuFreeScreen(void) {
 #endif
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
+#if !defined(WIN32)
+    (void)motion;
+#endif
     bool inputToScreen = false;
     bool inMenu = false;
 

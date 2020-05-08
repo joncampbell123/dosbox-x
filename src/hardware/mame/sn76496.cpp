@@ -297,6 +297,9 @@ void sn76496_base_device::device_clock_changed()
 
 WRITE8_MEMBER( sn76496_base_device::stereo_w )
 {
+    (void)offset;
+    (void)space;
+    (void)data;
 //	m_sound->update();
 //	if (m_stereo) m_stereo_mask = data;
 //	else fatalerror("sn76496_base_device: Call to stereo write with mono chip!\n");
@@ -364,6 +367,8 @@ void sn76496_base_device::write(uint8_t data)
 
 WRITE8_MEMBER( sn76496_base_device::write )
 {
+    (void)offset;
+    (void)space;
 	write(data);
 }
 
@@ -389,6 +394,8 @@ void sn76496_base_device::countdown_cycles()
 
 void sn76496_base_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
 {
+    (void)stream;
+    (void)inputs;
 	int i;
 	stream_sample_t *lbuffer = outputs[0];
 	stream_sample_t *rbuffer = (m_stereo)? outputs[1] : 0;//nullptr;

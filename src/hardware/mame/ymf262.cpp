@@ -1637,6 +1637,7 @@ static inline void set_sl_rr(OPL3 *chip,int slot,int v)
 
 static void update_channels(OPL3 *chip, OPL3_CH *CH)
 {
+    (void)chip;
 	/* update channel passed as a parameter and a channel at CH+=3; */
 	if (CH->extended)
 	{   /* we've just switched to combined 4 operator mode */
@@ -2283,6 +2284,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 /* lock/unlock for common table */
 static int OPL3_LockTable(device_t *device)
 {
+    (void)device;
 	num_lock++;
 	if(num_lock>1) return 0;
 
@@ -2524,6 +2526,9 @@ static void OPL3_save_state(OPL3 *chip, device_t *device) {
 	device->save_item(NAME(chip->address));
 	device->save_item(NAME(chip->status));
 	device->save_item(NAME(chip->statusmask));
+#else
+    (void)chip;
+    (void)device;
 #endif
 }
 
