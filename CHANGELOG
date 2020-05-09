@@ -1,4 +1,9 @@
 0.83.2
+  - Fixed clip_key_modifier setting not working when it is
+    set to alt, ctrl or shift in the SDL2 build. (Wengier)
+  - Sending "Ctrl+Alt+Del" key from the menu will now reset
+    the system within DOSBox-X when the intergrated DOS or a
+    real DOS booted from a disk image is active. (Wengier)
   - Added ALIAS command to define or display aliases.
   - Added -set command-line option to change config options.
     It can be specified multiple times for multiple options,
