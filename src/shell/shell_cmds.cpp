@@ -91,7 +91,7 @@ static SHELL_Cmd cmd_list[]={
 {	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // The following are additional commands for debugging purposes in DOSBox-X
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
-{	"DX-CAPTURE",1,			&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
+{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
 #if C_DEBUG
 {	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
 #endif
@@ -346,11 +346,9 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 		}
 	}
 	else {
-		WriteOut("INT2FDBG [switches]\n");
-		WriteOut("INT2FDBG.COM Int 2Fh debugging hook.\n");
-		WriteOut("  /I      Install hook\n");
-		WriteOut("\n");
-		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n");
+		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n\n");
+		WriteOut("INT2FDBG [option]\n");
+		WriteOut("  /I      Installs hook\n");
 	}
 }
 
@@ -2920,6 +2918,11 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
     while (*args == ' ') args++;
+
+    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
+		WriteOut("Runs program with video or audio capture.\n\nDX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+		return;
+	}
 
     if (ScanCMDBool(args,"V"))
         cap_video = true;
