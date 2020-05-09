@@ -971,9 +971,9 @@ void SHELL_Init() {
 	        "  ..   Specifies that you want to change to the parent directory.\n\n"
 	        "Type CD drive: to display the current directory in the specified drive.\n"
 	        "Type CD without parameters to display the current drive and directory.\n");
-	MSG_Add("SHELL_CMD_CLS_HELP","Clear screen.\n");
+	MSG_Add("SHELL_CMD_CLS_HELP","Clears screen.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
-	MSG_Add("SHELL_CMD_DIR_HELP","Directory View.\n");
+	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D]]\n\n"
 		   "   [drive:][path][filename]\n"
 		   "       Specifies drive, directory, and/or files to list.\n\n"
@@ -995,19 +995,19 @@ void SHELL_Init() {
 		   "   meaning \"not\". For example, /A-D displays all files (not directories),\n"
 		   "   and /O-S lists files reversely sorted by size (biggest first).\n"
 		   );
-	MSG_Add("SHELL_CMD_ECHO_HELP","Display messages and enable/disable command echoing.\n");
+	MSG_Add("SHELL_CMD_ECHO_HELP","Displays messages, or turns command-echoing on or off.\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
-	MSG_Add("SHELL_CMD_EXIT_HELP","Exit from the shell.\n");
+	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
-	MSG_Add("SHELL_CMD_HELP_HELP","Show help.\n");
+	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP\n");
-	MSG_Add("SHELL_CMD_MKDIR_HELP","Make Directory.\n");
+	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
-	MSG_Add("SHELL_CMD_RMDIR_HELP","Remove Directory.\n");
+	MSG_Add("SHELL_CMD_RMDIR_HELP","Removes a directory.\n");
 	MSG_Add("SHELL_CMD_RMDIR_HELP_LONG","RMDIR [drive:][path]\n"
 	        "RD [drive:][path]\n");
-	MSG_Add("SHELL_CMD_SET_HELP","Change environment variables.\n");
+	MSG_Add("SHELL_CMD_SET_HELP","Displays or changes environment variables.\n");
 	MSG_Add("SHELL_CMD_SET_HELP_LONG","SET [variable=[string]]\n\n"
 		   "   variable\tSpecifies the environment-variable name.\n"
 		   "   string\tSpecifies a series of characters to assign to the variable.\n\n"
@@ -1030,19 +1030,19 @@ void SHELL_Init() {
 		   "                    met.  Command can be followed by ELSE command which\n"
 		   "                    will execute the command after the ELSE keyword if the\n"
 		   "                    specified condition is FALSE\n");
-	MSG_Add("SHELL_CMD_GOTO_HELP","Jump to a labeled line in a batch script.\n");
+	MSG_Add("SHELL_CMD_GOTO_HELP","Jumps to a labeled line in a batch script.\n");
 	MSG_Add("SHELL_CMD_GOTO_HELP_LONG","GOTO label\n\n"
 		   "   label   Specifies a text string used in the batch program as a label.\n\n"
 		   "You type a label on a line by itself, beginning with a colon.\n");
-	MSG_Add("SHELL_CMD_SHIFT_HELP","Leftshift commandline parameters in a batch script.\n");
+	MSG_Add("SHELL_CMD_SHIFT_HELP","Changes the position of replaceable parameters in a batch file.\n");
 	MSG_Add("SHELL_CMD_SHIFT_HELP_LONG","SHIFT\n");
 	MSG_Add("SHELL_CMD_FOR_HELP","Runs a specified command for each file in a set of files.\n");
 	MSG_Add("SHELL_CMD_FOR_HELP_LONG","FOR %%variable IN (set) DO command [command-parameters]\n\n  %%variable  Specifies a replaceable parameter.\n  (set)      Specifies a set of one or more files. Wildcards may be used.\n  command    Specifies the command to carry out for each file.\n  command-parameters\n             Specifies parameters or switches for the specified command.\n\nTo use the command in a batch program, specify %%%%variable instead of %%variable.\n");
 	MSG_Add("SHELL_CMD_LFNFOR_HELP","Enables or disables long filenames when processing FOR wildcards.\n");
 	MSG_Add("SHELL_CMD_LFNFOR_HELP_LONG","LFNFOR [ON | OFF]\n\nType LFNFOR without a parameter to display the current LFNFOR setting.\n\nThis command is only useful if LFN support is currently enabled.\n");
-	MSG_Add("SHELL_CMD_TYPE_HELP","Display the contents of a text-file.\n");
+	MSG_Add("SHELL_CMD_TYPE_HELP","Displays the contents of a text-file.\n");
 	MSG_Add("SHELL_CMD_TYPE_HELP_LONG","TYPE [drive:][path][filename]\n");
-	MSG_Add("SHELL_CMD_REM_HELP","Add comments in a batch file.\n");
+	MSG_Add("SHELL_CMD_REM_HELP","Adds comments in a batch file.\n");
 	MSG_Add("SHELL_CMD_REM_HELP_LONG","REM [comment]\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP","Renames one or more files.\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path]filename1 filename2.\n"
@@ -1057,17 +1057,17 @@ void SHELL_Init() {
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
 		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
-	MSG_Add("SHELL_CMD_COPY_HELP","Copy one or more files.\n");
+	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source\tSpecifies the file or files to be copied.\n"
 		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
 		   "  /Y\t\tSuppresses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n"
 		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n");
-	MSG_Add("SHELL_CMD_CALL_HELP","Start a batch file from within another batch file.\n");
+	MSG_Add("SHELL_CMD_CALL_HELP","Starts a batch file from within another batch file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP_LONG","CALL [drive:][path]filename [batch-parameters]\n\n"
 		   "batch-parameters   Specifies any command-line information required by\n"
 		   "                   the batch program.\n");
-	MSG_Add("SHELL_CMD_SUBST_HELP","Assign an internal directory to a drive.\n");
+	MSG_Add("SHELL_CMD_SUBST_HELP","Assigns an internal directory to a drive.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires xms=true,umb=true).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
@@ -1105,7 +1105,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");
 	MSG_Add("SHELL_CMD_VOL_HELP_LONG","VOL [drive]\n");
-	MSG_Add("SHELL_CMD_PROMPT_HELP","Change the command prompt.\n");
+	MSG_Add("SHELL_CMD_PROMPT_HELP","Changes the command prompt.\n");
 	MSG_Add("SHELL_CMD_PROMPT_HELP_LONG","PROMPT [text]\n"
 		   "  text    Specifies a new command prompt.\n\n"
 		   "Prompt can be made up of normal characters and the following special codes:\n"
@@ -1128,7 +1128,7 @@ void SHELL_Init() {
 		   "  $$   $ (dollar sign)\n");
 	MSG_Add("SHELL_CMD_LABEL_HELP","Creates or changes the volume label of a disk.\n");
 	MSG_Add("SHELL_CMD_LABEL_HELP_LONG","LABEL [volume]\n\n\tvolume\t\tSpecifies the drive letter.\n");
-    MSG_Add("SHELL_CMD_ALIAS_HELP", "Define or display aliases.\n");
+    MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");

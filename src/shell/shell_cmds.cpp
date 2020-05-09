@@ -81,19 +81,19 @@ static SHELL_Cmd cmd_list[]={
 {	"VER",		0,			&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
 {	"VERIFY",	1,			&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"ADDKEY",	1,			&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
-{   "ALIAS",1,         &DOS_Shell::CMD_ALIAS,  "SHELL_CMD_ALIAS_HELP"},
-{	"VOL",	0,			&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+{	"ALIAS",	1,			&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
+{	"VOL",		0,			&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"PROMPT",	0,			&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
 {	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
-{	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
-{	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
+{	"MORE",		1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
+{	"FOR",		1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"LFNFOR",	1,			&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
-{	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,		"SHELL_CMD_TRUENAME_HELP"},
+{	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // The following are additional commands for debugging purposes in DOSBox-X
-{	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes.\n"},
-{   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture.\n"},
+{	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
+{   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Runs program with video/audio capture.\n"},
 #if C_DEBUG
-{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point.\n"},
+{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Runs program, break into debugger at entry point.\n"},
 #endif
 {0,0,0,0}
 }; 
