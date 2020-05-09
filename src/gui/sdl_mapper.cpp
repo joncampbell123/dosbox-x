@@ -892,10 +892,18 @@ public:
 
 #if defined(C_SDL2)
         s = SDL_GetScancodeName(key);
+        if (s != NULL) r = s;
 #else
         s = SDL_GetKeyName(MapSDLCode((Bitu)key));
+		if (s != NULL) {
+			r = s;
+			r[0]=toupper(r[0]);
+			char *c=(char *)strstr(r.c_str(), " ctrl");
+			if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
+			if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
+			if (c!=NULL) *(c+1)=toupper(*(c+1));
+		}
 #endif
-        if (s != NULL) r = s;
 
         m = GetModifierText();
         if (!m.empty()) r = m + "+" + r;
