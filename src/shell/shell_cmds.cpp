@@ -81,19 +81,19 @@ static SHELL_Cmd cmd_list[]={
 {	"VER",		0,			&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
 {	"VERIFY",	1,			&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"ADDKEY",	1,			&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
-{	"VOL",	0,			&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+{	"ALIAS",	1,			&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
+{	"VOL",		0,			&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"PROMPT",	0,			&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
 {	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
-{	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
-{	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
+{	"MORE",		1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
+{	"FOR",		1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"LFNFOR",	1,			&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
-{	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,		"SHELL_CMD_TRUENAME_HELP"},
+{	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // The following are additional commands for debugging purposes in DOSBox-X
-{	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes.\n"},
-{   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture.\n"},
-{   "ALIAS",1,         &DOS_Shell::CMD_ALIAS,  "Define or display aliases.\n"},
+{	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
+{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
 #if C_DEBUG
-{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point.\n"},
+{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
 #endif
 {0,0,0,0}
 }; 
@@ -346,11 +346,9 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 		}
 	}
 	else {
-		WriteOut("INT2FDBG [switches]\n");
-		WriteOut("INT2FDBG.COM Int 2Fh debugging hook.\n");
-		WriteOut("  /I      Install hook\n");
-		WriteOut("\n");
-		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n");
+		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n\n");
+		WriteOut("INT2FDBG [option]\n");
+		WriteOut("  /I      Installs hook\n");
 	}
 }
 
@@ -2866,15 +2864,16 @@ void DOS_Shell::CMD_LFNFOR(char * args) {
 
 void DOS_Shell::CMD_ALIAS(char* args) {
     HELP("ALIAS");
-    if (!*args) {
+	args = trim(args);
+    if (!*args || strchr(args, '=') == NULL) {
         for (cmd_alias_map_t::iterator iter = cmd_alias.begin(), end = cmd_alias.end();
             iter != end; ++iter) {
-            WriteOut("ALIAS %s='%s'\n", iter->first.c_str(), iter->second.c_str());
+			if (!*args || !strcasecmp(args, iter->first.c_str()))
+				WriteOut("ALIAS %s='%s'\n", iter->first.c_str(), iter->second.c_str());
         }
     } else {
         char alias_name[256] = { 0 };
         char* cmd = 0;
-        args = trim(args);
         for (int offset = 0; *args && offset < sizeof(alias_name)-1; ++offset, ++args) {
             if (*args == '=') {
                 cmd = trim(alias_name);
@@ -2919,6 +2918,11 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
     while (*args == ' ') args++;
+
+    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
+		WriteOut("Runs program with video or audio capture.\n\nDX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+		return;
+	}
 
     if (ScanCMDBool(args,"V"))
         cap_video = true;
@@ -3015,4 +3019,3 @@ void DOS_Shell::CMD_CTTY(char * args) {
 	}
 	DOS_CloseFile(handle);
 }
-

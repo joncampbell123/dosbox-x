@@ -2250,7 +2250,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(fluidchorus);
 	Pstring->Set_help("Fluidsynth use chorus.");
 
-	Pstring = secprop->Add_string("fluid.reverb,roomsize",Property::Changeable::WhenIdle,".61");
+	Pstring = secprop->Add_string("fluid.reverb.roomsize",Property::Changeable::WhenIdle,".61");
 	Pstring->Set_help("Fluidsynth reverb room size.");
 
 	Pstring = secprop->Add_string("fluid.reverb.damping",Property::Changeable::WhenIdle,".23");
@@ -2807,23 +2807,21 @@ void DOSBOX_SetupConfigSections(void) {
 #ifdef C_LIBPNG
         "  png     : Creates PNG images (default)\n"
 #endif
-        "  ps      : Creates Postscript\n"
-        "  bmp     : Creates BMP images (very huge files, not recommend)\n"
+        "  ps      : Creates PostScript\n"
+        "  bmp     : Creates BMP images (very huge files, not recommended)\n"
 #if defined (WIN32)
         "  printer : Send to an actual printer (Print dialog will appear)"
 #endif
     );
 
     Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Adds all pages to one Postscript file or printer job until CTRL-F2 is pressed.");
+    Pbool->Set_help("Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.");
 
     Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
     Pstring->Set_help("The path where the output files are stored.");
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
-    Pint->Set_help("(in milliseconds) if nonzero: the time the page will\n"
-        "be ejected automatically after when no more data\n"
-        "arrives at the printer.");
+    Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");
 #endif
 
     // parallel ports
@@ -3228,10 +3226,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
     Pbool->Set_help(
-        "If set, and int13fakeio is set, certain INT 13h commands will\n"
-        "cause floppy emulation to issue fake CPU I/O traps (GPF) in\n"
-        "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-        "if you want 32-bit floppy access in Windows 95 to work with DOSBox-X.");
+        "If set, certain INT 13h commands will cause floppy emulation to issue fake CPU I/O\n"
+        "traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must enable this\n"
+        "option if you want 32-bit floppy access in Windows 95 to work with DOSBox-X.");
 
     Pbool = secprop->Add_bool("instant mode",Property::Changeable::WhenIdle,false);
     Pbool->Set_help(
@@ -3321,10 +3318,9 @@ void DOSBOX_SetupConfigSections(void) {
 
         Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(
-                "If set, and int13fakeio is set, certain INT 13h commands will\n"
-                "cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
-                "virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-                "if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
+                "If set, and int13fakeio is set, certain INT 13h commands will cause IDE emulation to\n"
+                "issue fake CPU I/O traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must\n"
+                "enable this option if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
 
         Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
         if (i == 0) Pbool->Set_help(

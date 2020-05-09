@@ -5271,7 +5271,7 @@ void DOS_SetupPrograms(void) {
         "    Custom harddisk images:\n"
         "     hd (requires -size or -chs)\n"
         "  -size: size of a custom harddisk image in MB.\n"
-        "  -geometry: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
+        "  -chs: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: add this parameter if a blank image should be created.\n"
         "  -bat: creates a .bat file with the IMGMOUNT command required for this image.\n"
 #ifdef WIN32
