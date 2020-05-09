@@ -741,10 +741,10 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit1
 				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+2) && ++j<c) {
 					result&=0x7F7F;
 					Bit8u j1=(result%0x100)+0x20, j2=result/0x100;
-					if (j1>32&&j1<127) {
+					if (j1>32&&j1<127&&j2>32&&j2<127) {
 						text[len++]=(j1+1)/2+(j1<95?112:176);
 						text[len++]=j2+(j1%2?31+(j2/96):126);
-					}					
+					}			
 				} else
 					text[len++]=result;
 			} else {
