@@ -91,9 +91,9 @@ static SHELL_Cmd cmd_list[]={
 {	"TRUENAME",	1,			&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // The following are additional commands for debugging purposes in DOSBox-X
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
-{   "DX-CAPTURE",1,         &DOS_Shell::CMD_DXCAPTURE,  "Runs program with video/audio capture.\n"},
+{	"DX-CAPTURE",1,			&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
 #if C_DEBUG
-{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Runs program, break into debugger at entry point.\n"},
+{	"DEBUGBOX",	1,			&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
 #endif
 {0,0,0,0}
 }; 
