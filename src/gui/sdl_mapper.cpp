@@ -897,11 +897,13 @@ public:
         s = SDL_GetKeyName(MapSDLCode((Bitu)key));
 		if (s != NULL) {
 			r = s;
-			r[0]=toupper(r[0]);
-			char *c=(char *)strstr(r.c_str(), " ctrl");
-			if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
-			if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
-			if (c!=NULL) *(c+1)=toupper(*(c+1));
+			if (r.length()>0) {
+				r[0]=toupper(r[0]);
+				char *c=(char *)strstr(r.c_str(), " ctrl");
+				if (c==NULL) c=(char *)strstr(r.c_str(), " alt");
+				if (c==NULL) c=(char *)strstr(r.c_str(), " shift");
+				if (c!=NULL) *(c+1)=toupper(*(c+1));
+			}
 		}
 #endif
 
