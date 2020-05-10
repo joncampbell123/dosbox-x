@@ -593,9 +593,8 @@ static void PCSPEAKER_CallBack(Bitu len) {
 				/* A change in PC speaker output means to keep rendering.
 				 * Do not allow timeout to occur unless speaker is idle too long. */
 				if (spkr.pit_mode == 3 && spkr.pit_max < (1000.0/spkr.rate)) {
-					/* Unless speaker cycling at ultrasonic frequencies, meaning games
-					 * that "silence" the output by setting the counter way above
-					 * audible frequencies. */
+					/* Unless the speaker is cycling at ultrasonic frequencies, meaning games
+					 * that "silence" the output by setting the counter way above audible frequencies. */
 					ultrasonic = true;
 				}
 				else {
