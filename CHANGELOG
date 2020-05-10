@@ -1,6 +1,6 @@
 0.83.2
-  - Added dosbox.conf to report drive Z: as a remote drive.
-    This can be used with Windows 95 installs to prevent
+  - Added dosbox.conf option to report drive Z: as a remote
+    drive. This can be used with Windows 95 installs to prevent
     SCANDISK.EXE from attempting to scan and "repair" drive
     Z: which not backed by a disk filesystem.
   - Fixed clip_key_modifier setting not working when it is
