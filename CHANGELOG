@@ -1,8 +1,9 @@
 0.83.2
-  - Added dosbox.conf option to report drive Z: as a remote
-    drive. This can be used with Windows 95 installs to prevent
-    SCANDISK.EXE from attempting to scan and "repair" drive
-    Z: which not backed by a disk filesystem.
+  - Added config option "drive z is remote" in dosbox-x.conf
+    to report drive Z: as a remote (network) drive. It is
+    "auto" by default, which will try to prevent SCANDISK.EXE
+    from Windows 9x installs to scan and "repair" drive Z:
+    which is not backed by a disk filesystem.
   - Fixed clip_key_modifier setting not working when it is
     set to alt, ctrl or shift in the SDL2 build. (Wengier)
   - Sending "Ctrl+Alt+Del" key from the menu will now reset
