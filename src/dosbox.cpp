@@ -2886,6 +2886,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
                    "Set to 0 to disable the limit, or -1 to use a reasonable default.");
 
+    Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, DOS will report drive Z as remote. If not set, DOS will report drive Z as local.\n"
+                      "If auto (default), DOS will report drive Z as remote or local depending on the program.\n"
+                      "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
+                      "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
+
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 

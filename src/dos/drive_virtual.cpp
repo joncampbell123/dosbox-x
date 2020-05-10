@@ -24,6 +24,7 @@
 #include "dos_inc.h"
 #include "drives.h"
 #include "support.h"
+#include "control.h"
 #include "cross.h"
 
 struct VFILE_Block {
@@ -308,6 +309,18 @@ Bit8u Virtual_Drive::GetMediaByte(void) {
 }
 
 bool Virtual_Drive::isRemote(void) {
+    const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+    const char * opt = section->Get_string("drive z is remote");
+
+    if (!strcmp(opt,"1") || !strcmp(opt,"true")) {
+        return true;
+    }
+    else if (!strcmp(opt,"0") || !strcmp(opt,"false")) {
+        return false;
+    }
+
+    /* TODO: Automatically detect if called by SCANDISK.EXE and return true */
+
 	return false;
 }
 
