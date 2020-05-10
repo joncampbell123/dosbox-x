@@ -288,7 +288,9 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	} else if(type==DRIVE_CDROM)
 		drive_warn += " your real CD-ROM drive ";
 	else if(type==DRIVE_REMOVABLE)
-		drive_warn += " your real floppy drive ";
+		drive_warn += drive=='A'||drive=='B'?" your real floppy drive ":" your real removable drive ";
+	else if(type==DRIVE_REMOTE)
+		drive_warn += " your real network drive ";
 	else
 		drive_warn += " everything on your real drive ";
 
@@ -297,7 +299,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	if(type==DRIVE_CDROM) {
 		mediaid=0xF8;		/* Hard Disk */
         str_size="2048,1,65535,0";
-	} else if(type==DRIVE_REMOVABLE) {
+	} else if(type==DRIVE_REMOVABLE && (drive=='A'||drive=='B')) {
 		mediaid=0xF0;			/* Floppy 1.44 media */
 		str_size="512,1,2880,2880";	/* All space free */
 	} else {
@@ -362,10 +364,10 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
         if(type == DRIVE_CDROM) return;
         std::string label;
         label = drive;
-        if(type == DRIVE_FIXED)
-            label += "_DRIVE";
-        else
+        if(type==DRIVE_REMOVABLE && (drive=='A'||drive=='B'))
             label += "_FLOPPY";
+        else
+            label += "_DRIVE";
         newdrive->SetLabel(label.c_str(),false,true);
     }
 }
