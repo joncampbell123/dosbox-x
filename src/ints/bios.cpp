@@ -7902,7 +7902,7 @@ private:
             phys_writed(base+0xD,call_pnp_rp);  /* Real-mode entry point */
             phys_writew(base+0x11,call_pnp_pp&0xFFFF); /* Protected mode offset */
             phys_writed(base+0x13,(call_pnp_pp >> 12) & 0xFFFF0); /* Protected mode code segment base */
-            phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,7,4,0));      /* OEM device identifier (DOSBox 0.740, get it?) */
+            phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,8,3,0));      /* OEM device identifier (DOSBox-X 0.83.x) */
             phys_writew(base+0x1B,0xF000);      /* real-mode data segment */
             phys_writed(base+0x1D,0xF0000);     /* protected mode data segment address */
             /* run checksum */
