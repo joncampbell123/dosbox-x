@@ -571,6 +571,7 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
  *      code at any time can trigger a mixer render "up to" the current time with
  *      the tick. */
 static void PCSPEAKER_CallBack(Bitu len) {
+	bool ultrasonic = false;
 	Bit16s * stream=(Bit16s*)MixTemp;
 	ForwardPIT(1.0 + PIC_TickIndex());
     CheckPITSynchronization();
@@ -588,6 +589,18 @@ static void PCSPEAKER_CallBack(Bitu len) {
 			/* Check if there is an upcoming event */
 			if (spkr.used && spkr.entries[pos].index<=index) {
 				spkr.volwant=SPKR_VOLUME*(pic_tickindex_t)spkr.entries[pos].output_level;
+
+				/* A change in PC speaker output means to keep rendering.
+				 * Do not allow timeout to occur unless speaker is idle too long. */
+				if (spkr.pit_mode == 3 && spkr.pit_max < (1000.0/spkr.rate)) {
+					/* Unless the speaker is cycling at ultrasonic frequencies, meaning games
+					 * that "silence" the output by setting the counter way above audible frequencies. */
+					ultrasonic = true;
+				}
+				else {
+					spkr.last_ticks=PIC_Ticks;
+				}
+
 #ifdef SPKR_DEBUGGING
 				fprintf(
 						PCSpeakerOutputLevelLog,
@@ -648,7 +661,16 @@ static void PCSPEAKER_CallBack(Bitu len) {
 	if(turnoff){
 		if(spkr.volwant == 0) { 
 			spkr.last_ticks = 0;
-			if(spkr.chan) spkr.chan->Enable(false);
+			if(spkr.chan) {
+				if (!spkr.pit_output_enabled)
+					LOG(LOG_MISC,LOG_DEBUG)("Silencing PC speaker output (output disabled)");
+				else if (ultrasonic)
+					LOG(LOG_MISC,LOG_DEBUG)("Silencing PC speaker output (timeout and ultrasonic frequency)");
+				else
+					LOG(LOG_MISC,LOG_DEBUG)("Silencing PC speaker output (timeout and non-changing output)");
+
+				spkr.chan->Enable(false);
+			}
 		} else {
 			if(spkr.volwant > 0) spkr.volwant--; else spkr.volwant++;
 		
