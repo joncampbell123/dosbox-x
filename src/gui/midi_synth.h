@@ -281,13 +281,20 @@ public:
 		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
 		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
 		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
-		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
+		if (strcmp(section->Get_string("fluid.cores"), "default") != 0) {
 			fluid_settings_setnum(settings, "synth.cpu-cores", atof(section->Get_string("fluid.cores")));
 		}
+#if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2
+		fluid_settings_setint(settings, "audio.periods", atoi(section->Get_string("fluid.periods")));
+		fluid_settings_setint(settings, "audio.period-size", atoi(section->Get_string("fluid.periodsize")));
+		fluid_settings_setint(settings, "synth.reverb.active", !strcmp(section->Get_string("fluid.reverb"), "yes")?1:0);
+		fluid_settings_setint(settings, "synth.chorus.active", !strcmp(section->Get_string("fluid.chorus"), "yes")?1:0);
+#else
 		fluid_settings_setnum(settings, "audio.periods", atof(section->Get_string("fluid.periods")));
 		fluid_settings_setnum(settings, "audio.period-size", atof(section->Get_string("fluid.periodsize")));
 		fluid_settings_setstr(settings, "synth.reverb.active", section->Get_string("fluid.reverb"));
 		fluid_settings_setstr(settings, "synth.chorus.active", section->Get_string("fluid.chorus"));
+#endif
 
 		synth = new_fluid_synth(settings);
 		if (!synth) {
