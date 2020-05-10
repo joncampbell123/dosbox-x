@@ -125,8 +125,8 @@ unsigned int APM_BIOS_connected_minor_version = 0;// what version the OS connect
 unsigned int APM_BIOS_minor_version = 2;    // what version to emulate e.g to emulate 1.2 set this to 2
 
 /* default bios type/version/date strings */
-const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
-const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
+const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS for DOSBox-X";
+const char* const bios_version_string = "DOSBox-X BIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
 bool                        APM_inactivity_timer = true;
