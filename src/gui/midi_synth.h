@@ -31,7 +31,7 @@ static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
 
 static void synth_log(int level,
-#if FLUIDSYNTH_VERSION_MAJOR >= 2
+#if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2 // Let version 2.x be the default
                       const
 #endif
                       char *message,
@@ -252,7 +252,7 @@ public:
 		}
 				   break;
 		default:
-			LOG(LOG_MISC, LOG_WARN)("MIDI:fluidsynth: Unknown Command: %08lx", (long)msg);
+			LOG(LOG_MISC, LOG_WARN)("MIDI:fluidsynth: Unknown Command: %08lx", (long)msg[0]);
 			break;
 		}
 	}

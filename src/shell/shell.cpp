@@ -852,16 +852,16 @@ void SHELL_Init() {
     std::string host_key_help; // SHELL_STARTUP_BEGIN2
 
     if (machine == MCH_PC98) {
-// "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n"
+// "\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \x86\x46\n"
         host_key_help =
-            std::string("\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
+            std::string("\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is ") +
             (mapper_keybind + "                                     ").substr(0,20) +
             std::string(" \x86\x46\n");
     }
     else {
-// "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
+// "\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \xBA\n"
         host_key_help =
-            std::string("\033[44;1m\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is ") +
+            std::string("\033[44;1m\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is ") +
             (mapper_keybind + "                                     ").substr(0,20) +
             std::string(" \xBA\033[0m\n");
     }
@@ -890,9 +890,9 @@ void SHELL_Init() {
                 "\x86\x46 \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \x86\x46\n");
         MSG_Add("SHELL_STARTUP_DEBUG",
 #if defined(MACOSX)
-                "\x86\x46 Debugger is available, use \033[31malt-F12\033[37m to enter.                       \x86\x46\n"
+                "\x86\x46 Debugger is available, use \033[31mAlt-F12\033[37m to enter.                       \x86\x46\n"
 #else
-                "\x86\x46 Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \x86\x46\n"
+                "\x86\x46 Debugger is available, use \033[31mAlt-Pause\033[37m to enter.                     \x86\x46\n"
 #endif
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -945,9 +945,9 @@ void SHELL_Init() {
                );
         MSG_Add("SHELL_STARTUP_DEBUG",
 #if defined(MACOSX)
-                "\033[44;1m\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\033[0m\n"
+                "\033[44;1m\xBA Debugger is available, use \033[31mAlt-F12\033[37m to enter.                       \xBA\033[0m\n"
 #else
-                "\033[44;1m\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\033[0m\n"
+                "\033[44;1m\xBA Debugger is available, use \033[31mAlt-Pause\033[37m to enter.                     \xBA\033[0m\n"
 #endif
                 "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
                );
@@ -1030,7 +1030,7 @@ void SHELL_Init() {
 		   "                    met.  Command can be followed by ELSE command which\n"
 		   "                    will execute the command after the ELSE keyword if the\n"
 		   "                    specified condition is FALSE\n");
-	MSG_Add("SHELL_CMD_GOTO_HELP","Jumps to a labeled line in a batch script.\n");
+	MSG_Add("SHELL_CMD_GOTO_HELP","Jumps to a labeled line in a batch program.\n");
 	MSG_Add("SHELL_CMD_GOTO_HELP_LONG","GOTO label\n\n"
 		   "   label   Specifies a text string used in the batch program as a label.\n\n"
 		   "You type a label on a line by itself, beginning with a colon.\n");

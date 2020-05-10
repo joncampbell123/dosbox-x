@@ -5265,6 +5265,16 @@ void GFX_Events() {
         case SDL_QUIT:
             throw(0);
             break;
+#if defined (WIN32)
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+            if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_LCTRL) sdl.lctrlstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
+            if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
+#endif
 #if defined (MACOSX)
         case SDL_KEYDOWN:
         case SDL_KEYUP:

@@ -481,6 +481,10 @@ static Bitu IRQ1_Handler(void) {
     case 0x51:
     case 0x52:
     case 0x53: /* del . Not entirely correct, but works fine */
+        if(!(flags3&0x01) && !(flags1&0x03) && (flags1&0x0c)==0x0c && (!(flags3&0x10) && (flags3&0x0c)==0x0c || (flags3&0x10) && (flags2&0x03)==0x03)) { /* Ctrl-Alt-Del? */
+			throw int(3);
+            break;
+		}
         if(flags3 &0x02) {  /*extend key. e.g key above arrows or arrows*/
             if(scancode == 0x52) flags2 |=0x80; /* press insert */         
             if(flags1 &0x08) {
