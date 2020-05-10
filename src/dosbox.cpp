@@ -2786,7 +2786,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
 
-#if C_PRINTER
     // printer redirection parameters
     secprop = control->AddSection_prop("printer", &Null_Init);
     Pbool = secprop->Add_bool("printer", Property::Changeable::WhenIdle, true);
@@ -2822,7 +2821,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
     Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");
-#endif
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
