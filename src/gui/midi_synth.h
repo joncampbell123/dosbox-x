@@ -252,7 +252,7 @@ public:
 		}
 				   break;
 		default:
-			LOG(LOG_MISC, LOG_WARN)("MIDI:fluidsynth: Unknown Command: %08lx", (long)msg);
+			LOG(LOG_MISC, LOG_WARN)("MIDI:fluidsynth: Unknown Command: %08lx", (long)msg[0]);
 			break;
 		}
 	}
