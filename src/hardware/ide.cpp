@@ -1227,13 +1227,13 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
     type = IDE_TYPE_CDROM;
     id_serial = "123456789";
-    id_firmware_rev = "0.74-X";
-    id_model = "DOSBox Virtual CD-ROM";
+    id_firmware_rev = "0.83-X";
+    id_model = "DOSBox-X Virtual CD-ROM";
 
     /* INQUIRY strings */
-    id_mmc_vendor_id = "DOSBox";
+    id_mmc_vendor_id = "DOSBox-X";
     id_mmc_product_id = "Virtual CD-ROM";
-    id_mmc_product_rev = "0.74-X";
+    id_mmc_product_rev = "0.83-X";
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
