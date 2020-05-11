@@ -1446,6 +1446,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 
 	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used */
 	absolute = IS_PC98_ARCH || ((bootbuffer.headcount == headscyl) && (bootbuffer.sectorspertrack == cylsector));
+	LOG(LOG_DOSMISC,LOG_DEBUG)("FAT driver: Using %s sector access",absolute ? "absolute" : "C/H/S");
 
 	/* Determine FAT format, 12, 16 or 32 */
 
