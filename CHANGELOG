@@ -1,4 +1,9 @@
 0.83.2
+  - FAT driver bugs fixed where a newly created zero length
+    file combined with a lseek() can corrupt filesytem
+    structures (root directory and/or the second FAT table).
+    This fixes filesystem corruption when running Windows
+    95 install.
   - Enabled printer emulation for non-Windows OSes (Linux,
     Mac OS X, etc.). FreeType2 is required to enable
     printer emulation at compile time.
