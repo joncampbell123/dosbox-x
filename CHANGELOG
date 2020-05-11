@@ -1,4 +1,7 @@
 0.83.2
+  - Enabled printer emulation for non-Windows OSes (Linux,
+    Mac OS X, etc.). FreeType2 is required to enable
+    printer emulation at compile time.
   - Added config option "drive z is remote" in dosbox-x.conf
     to report drive Z: as a remote (network) drive. It is
     "auto" by default, which will try to prevent SCANDISK.EXE
