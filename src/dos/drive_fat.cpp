@@ -403,6 +403,11 @@ Bit32u fatDrive::getClusterValue(Bit32u clustNum) {
 	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.bytespersector) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.bytespersector;
 
+	if (fatsectnum >= (bootbuffer.reservedsectors + bootbuffer.sectorsperfat + partSectOff)) {
+		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+		return 0;
+	}
+
     assert((bootbuffer.bytespersector * (Bitu)2) <= sizeof(fatSectBuffer));
 
 	if(curFatSect != fatsectnum) {
@@ -451,6 +456,11 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	}
 	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.bytespersector) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.bytespersector;
+
+	if (fatsectnum >= (bootbuffer.reservedsectors + bootbuffer.sectorsperfat + partSectOff)) {
+		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+		return;
+	}
 
     assert((bootbuffer.bytespersector * (Bitu)2) <= sizeof(fatSectBuffer));
 
