@@ -248,6 +248,12 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 				if(firstCluster == 0) goto finalizeWrite; // out of space
 				myDrive->allocateCluster(firstCluster, 0);
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
+				if (currentSector == 0) {
+					/* I guess allocateCluster() didn't work after all. This check is necessary to prevent
+					 * this conditon from treating the BOOT SECTOR as a file. */
+					LOG(LOG_DOSMISC,LOG_WARN)("FAT file write: unable to allocate first cluster, erroring out");
+					goto finalizeWrite;
+				}
 				myDrive->readSector(currentSector, sectorBuffer);
 				loadedSector = true;
 			}
@@ -745,11 +751,23 @@ Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSe
 	Bit32s skipClust = (Bit32s)(logicalSector / bootbuffer.sectorspercluster);
 	Bit32u sectClust = (Bit32u)(logicalSector % bootbuffer.sectorspercluster);
 
+	/* startClustNum == 0 means the file is (likely) zero length and has no allocation chain yet.
+	 * Nothing to map. Without this check, this code would permit the FAT file reader/writer to
+	 * treat the ROOT DIRECTORY as a file (with disasterous results)
+	 *
+	 * [https://github.com/joncampbell123/dosbox-x/issues/1517] */
+	if (startClustNum == 0) return 0;
+
 	Bit32u currentClust = startClustNum;
 
 	while(skipClust!=0) {
 		bool isEOF = false;
 		Bit32u testvalue = getClusterValue(currentClust);
+		if(testvalue == 0) {
+			/* What the crap?  Cluster is already empty - BAIL! */
+			LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain and cluster value at the end is zero.");
+			return 0;
+		}
 		switch(fattype) {
 			case FAT12:
 				if(testvalue >= 0xff8) isEOF = true;
@@ -772,6 +790,9 @@ Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSe
 		currentClust = testvalue;
 		--skipClust;
 	}
+
+	/* this should not happen! */
+	assert(currentClust != 0);
 
 	return (getClustFirstSect(currentClust) + sectClust);
 }
@@ -829,6 +850,11 @@ Bit32u fatDrive::appendCluster(Bit32u startCluster) {
 	
 	while(!isEOF) {
 		Bit32u testvalue = getClusterValue(currentClust);
+		if(testvalue == 0) {
+			LOG(LOG_DOSMISC,LOG_WARN)("FAT appendCluster: allocation chain ends suddenly with zero cluster value at cluster %u",(unsigned int)currentClust);
+			/* What the crap?  Cluster is already empty - BAIL! */
+			break;
+		}
 		switch(fattype) {
 			case FAT12:
 				if(testvalue >= 0xff8) isEOF = true;
