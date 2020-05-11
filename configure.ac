@@ -605,6 +605,7 @@ if test x$enable_freetype = xyes; then
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else
+    enable_freetype=no
     AC_MSG_RESULT(no)
   fi
 fi
@@ -630,6 +631,16 @@ if test x$host = xi386-pc-os2-emx ; then
 	SDLNet_Init ();
   ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
   LIBS=$LIBS_BACKUP
+fi
+
+dnl FEATURE: PRINTER (requires FreeType2)
+AH_TEMPLATE(C_PRINTER,[Define to 1 to enable printer emulation])
+AC_ARG_ENABLE(printer,AC_HELP_STRING([--disable-printer],[disable printer emulation]),enable_printer=$enableval,enable_printer=yes)
+AM_CONDITIONAL(C_PRINTER, test "x$enable_printer" == "xyes")
+if test x$enable_freetype = xyes; then
+  if test x$enable_printer = xyes; then
+    AC_DEFINE(C_PRINTER,1)
+  fi
 fi
 
 dnl FEATURE: xBRZ

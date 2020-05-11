@@ -8,4 +8,4 @@ libparallel_a_SOURCES = parport.cpp \
 			printer_redir.h printer_if.h \
 			printer.cpp printer.h \
 			printer_charmaps.cpp printer_charmaps.h \
-			filelpt.cpp filelpt.h
+			filelpt.cpp filelpt.h printer_redir.cpp
