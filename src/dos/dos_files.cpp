@@ -921,17 +921,16 @@ bool DOS_SetFileAttr(char const * const name,Bit16u attr)
 		return false;
 	}
 
-	if ((old_attr ^ attr) & DOS_ATTR_VOLUME) /* change in volume label attribute */
+	if ((old_attr ^ attr) & DOS_ATTR_VOLUME) { /* change in volume label attribute */
 		LOG(LOG_DOSMISC,LOG_WARN)("Attempted to change volume label attribute of '%s' with SetFileAttr",name);
+		return false;
+	}
+
 	if ((old_attr ^ attr) & DOS_ATTR_DIRECTORY) /* change in directory attribute (ex: Windows 95 SETUP.EXE vs WINBOOT.INI) */
 		LOG(LOG_DOSMISC,LOG_WARN)("Attempted to change directory attribute of '%s' with SetFileAttr",name);
 
 	/* define what cannot be changed */
-	Bit16u attr_mask = (DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY);
-
-	/* you're not supposed to be able to change R/S/H on a directory (RBIL) */
-	if (old_attr & DOS_ATTR_DIRECTORY)
-		attr_mask |= DOS_ATTR_ARCHIVE|DOS_ATTR_READ_ONLY|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM;
+	const Bit16u attr_mask = (DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY);
 
 	attr = (attr & ~attr_mask) | (old_attr & attr_mask);
 
