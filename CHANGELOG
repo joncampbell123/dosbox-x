@@ -1,4 +1,9 @@
 0.83.2
+  - DOS kernel INT 21h function Set File Attribute no longer
+    allows changing directory and volume label attributes in
+    order to prevent filesystem corruption. This prevents
+    Windows 95 setup from creating WINBOOT.INI and then
+    changing it into a directory with the call.
   - FAT driver bugs fixed where a newly created zero length
     file combined with a lseek() can corrupt filesytem
     structures (root directory and/or the second FAT table).

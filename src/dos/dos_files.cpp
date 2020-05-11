@@ -904,8 +904,6 @@ HANDLE DOS_CreateOpenFile(char const* const name)
 #endif
 
 bool DOS_SetFileAttr(char const * const name,Bit16u attr) 
-// this function does not change the file attributs
-// it just does some tests if file is available 
 // returns false when using on cdrom (stonekeep)
 {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
@@ -914,6 +912,29 @@ bool DOS_SetFileAttr(char const * const name,Bit16u attr)
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
+
+	/* This function must prevent changing a file into a directory, volume label into a file, etc.
+	 * Also Windows 95 setup likes to create WINBOOT.INI as a file and then chattr it into a directory for some stupid reason. */
+	Bit16u old_attr;
+	if (!Drives[drive]->GetFileAttr(fullname,&old_attr)) {
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+		return false;
+	}
+
+	if ((old_attr ^ attr) & DOS_ATTR_VOLUME) /* change in volume label attribute */
+		LOG(LOG_DOSMISC,LOG_WARN)("Attempted to change volume label attribute of '%s' with SetFileAttr",name);
+	if ((old_attr ^ attr) & DOS_ATTR_DIRECTORY) /* change in directory attribute (ex: Windows 95 SETUP.EXE vs WINBOOT.INI) */
+		LOG(LOG_DOSMISC,LOG_WARN)("Attempted to change directory attribute of '%s' with SetFileAttr",name);
+
+	/* define what cannot be changed */
+	Bit16u attr_mask = (DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY);
+
+	/* you're not supposed to be able to change R/S/H on a directory (RBIL) */
+	if (old_attr & DOS_ATTR_DIRECTORY)
+		attr_mask |= DOS_ATTR_ARCHIVE|DOS_ATTR_READ_ONLY|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM;
+
+	attr = (attr & ~attr_mask) | (old_attr & attr_mask);
+
 	return Drives[drive]->SetFileAttr(fullname,attr);
 }
 
