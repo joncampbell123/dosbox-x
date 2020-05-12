@@ -22,6 +22,7 @@
 #include "callback.h"
 #include "mem.h"
 #include "regs.h"
+#include "bios_disk.h"
 #include "dos_inc.h"
 #include "drives.h"
 
@@ -222,9 +223,19 @@ bool DOS_IOCTL(void) {
 				break;
 			}
 			case 0x42:  /* Format and verify logical device track (FORMAT.COM) */
-				// STUB!
-				LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track",reg_cl);
-				break;
+				{
+					/* 01h    WORD    number of disk head
+					 * 03h    WORD    number of disk cylinder
+					 * ---BYTE 00h bit 1 set---
+					 * 05h    WORD    number of tracks to format */
+					Bit8u flags = mem_readb(ptr+0);
+					Bit16u head = mem_readw(ptr+1);
+					Bit16u cyl = mem_readw(ptr+3);
+					Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
+					// STUB!
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/x ntracks=%u",reg_cl,cyl,head,ntracks);
+				}
+			break;
 			case 0x40:	/* Set Device parameters */
 			case 0x46:	/* Set volume serial number */
 				break;
@@ -251,6 +262,105 @@ bool DOS_IOCTL(void) {
 					mem_writed(ptr+2,0x1234);		//Serial number
 					MEM_BlockWrite(ptr+6,buffer,11);//volumename
 					MEM_BlockWrite(ptr+0x11,buf2,8);//filesystem
+				}
+				break;
+			case 0x41:  /* Write logical device track */
+				{
+					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					if (fdp == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					Bit8u sectbuf[SECTOR_SIZE_MAX];
+
+					if (fdp->loadedDisk == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					/* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]
+					 * Offset  Size    Description     (Table 01562)
+					 * 00h    BYTE    special functions (reserved, must be zero)
+					 * 01h    WORD    number of disk head
+					 * 03h    WORD    number of disk cylinder
+					 * 05h    WORD    number of first sector to read/write
+					 * 07h    WORD    number of sectors
+					 * 09h    DWORD   transfer address */
+					Bit16u head = mem_readw(ptr+1);
+					Bit16u cyl = mem_readw(ptr+3);
+					Bit16u sect = mem_readw(ptr+5)+1; // MS-DOS 6.22: Sector numbers start at zero here?
+					Bit16u nsect = mem_readw(ptr+7);
+					Bit32u xfer_addr = mem_readd(ptr+9);
+					PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
+					Bit16u sectsize = fdp->loadedDisk->getSectSize();
+
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:41 Write Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u from %04x:%04x sz=%u",
+							reg_cl,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
+
+					while (nsect > 0) {
+						MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
+
+						Bit8u status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
+						if (status != 0) {
+							LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 write error at C/H/S %u/%u/%u",cyl,head,sect);
+							DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
+							return false;
+						}
+
+						xfer_ptr += sectsize;
+						nsect--;
+						sect++;
+					}
+				}
+				break;
+			case 0x61:  /* Read logical device track */
+				{
+					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					if (fdp == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					Bit8u sectbuf[SECTOR_SIZE_MAX];
+
+					if (fdp->loadedDisk == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					/* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]
+					 * Offset  Size    Description     (Table 01562)
+					 * 00h    BYTE    special functions (reserved, must be zero)
+					 * 01h    WORD    number of disk head
+					 * 03h    WORD    number of disk cylinder
+					 * 05h    WORD    number of first sector to read/write
+					 * 07h    WORD    number of sectors
+					 * 09h    DWORD   transfer address */
+					Bit16u head = mem_readw(ptr+1);
+					Bit16u cyl = mem_readw(ptr+3);
+					Bit16u sect = mem_readw(ptr+5)+1; // MS-DOS 6.22: Sector numbers start at zero here?
+					Bit16u nsect = mem_readw(ptr+7);
+					Bit32u xfer_addr = mem_readd(ptr+9);
+					PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
+					Bit16u sectsize = fdp->loadedDisk->getSectSize();
+
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:61 Read Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u to %04x:%04x sz=%u",
+							reg_cl,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
+
+					while (nsect > 0) {
+						Bit8u status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
+						if (status != 0) {
+							LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 read error at C/H/S %u/%u/%u",cyl,head,sect);
+							DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
+							return false;
+						}
+
+						MEM_BlockWrite(xfer_ptr,sectbuf,sectsize);
+						xfer_ptr += sectsize;
+						nsect--;
+						sect++;
+					}
 				}
 				break;
 			default	:	
