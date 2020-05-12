@@ -221,6 +221,10 @@ bool DOS_IOCTL(void) {
 					mem_writeb(ptr+i,0);
 				break;
 			}
+			case 0x42:  /* Format and verify logical device track (FORMAT.COM) */
+				// STUB!
+				LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track",reg_cl);
+				break;
 			case 0x40:	/* Set Device parameters */
 			case 0x46:	/* Set volume serial number */
 				break;

@@ -1,4 +1,7 @@
 0.83.2
+  - Added stub to DOS IOCTL "format device track" so that
+    FORMAT.COM is at least able to do the initial formatting
+    phase.
   - Fixed SYS command not working properly (Wengier) 
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
