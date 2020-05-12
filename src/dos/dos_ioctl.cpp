@@ -233,7 +233,7 @@ bool DOS_IOCTL(void) {
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
 					// STUB!
-					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/x ntracks=%u",reg_cl,cyl,head,ntracks);
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/x ntracks=%u",drive,cyl,head,ntracks);
 				}
 				break;
 			case 0x62:	/* Verify logical device track (FORMAT.COM) */
@@ -245,7 +245,7 @@ bool DOS_IOCTL(void) {
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = mem_readw(ptr+5);
 					// STUB!
-					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/x ntracks=%u",reg_cl,cyl,head,ntracks);
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/x ntracks=%u",drive,cyl,head,ntracks);
 				}
 				break;
 			case 0x40:	/* Set Device parameters */
@@ -308,7 +308,7 @@ bool DOS_IOCTL(void) {
 					Bit16u sectsize = fdp->loadedDisk->getSectSize();
 
 					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:41 Write Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u from %04x:%04x sz=%u",
-							reg_cl,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
+							drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
 
 					while (nsect > 0) {
 						MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
@@ -358,7 +358,7 @@ bool DOS_IOCTL(void) {
 					Bit16u sectsize = fdp->loadedDisk->getSectSize();
 
 					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:61 Read Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u to %04x:%04x sz=%u",
-							reg_cl,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
+							drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
 
 					while (nsect > 0) {
 						Bit8u status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
