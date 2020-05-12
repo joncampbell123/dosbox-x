@@ -235,7 +235,19 @@ bool DOS_IOCTL(void) {
 					// STUB!
 					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/x ntracks=%u",reg_cl,cyl,head,ntracks);
 				}
-			break;
+				break;
+			case 0x62:	/* Verify logical device track (FORMAT.COM) */
+				{
+					/* 01h    WORD    number of disk head
+					 * 03h    WORD    number of disk cylinder
+					 * 05h    WORD    number of tracks to verify */
+					Bit16u head = mem_readw(ptr+1);
+					Bit16u cyl = mem_readw(ptr+3);
+					Bit16u ntracks = mem_readw(ptr+5);
+					// STUB!
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/x ntracks=%u",reg_cl,cyl,head,ntracks);
+				}
+				break;
 			case 0x40:	/* Set Device parameters */
 			case 0x46:	/* Set volume serial number */
 				break;
