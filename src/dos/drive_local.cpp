@@ -1244,7 +1244,7 @@ Bit8u localDrive::GetMediaByte(void) {
 }
 
 bool localDrive::isRemote(void) {
-	return false;
+	return remote;
 }
 
 bool localDrive::isRemovable(void) {
@@ -1349,6 +1349,24 @@ localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors
 	allocation.total_clusters=_total_clusters;
 	allocation.free_clusters=_free_clusters;
 	allocation.mediaid=_mediaid;
+
+	for (const auto &opt : options) {
+		size_t equ = opt.find_first_of('=');
+		std::string name,value;
+
+		if (equ != std::string::npos) {
+			name = opt.substr(0,equ);
+			value = opt.substr(equ+1);
+		}
+		else {
+			name = opt;
+			value.clear();
+		}
+
+		if (name == "remote") {
+			remote = true;
+		}
+	}
 
 	dirCache.SetBaseDir(basedir,this);
 }
