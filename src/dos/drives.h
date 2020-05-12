@@ -55,7 +55,7 @@ private:
 
 class localDrive : public DOS_Drive {
 public:
-	localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid);
+	localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, std::vector<std::string> &options);
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual FILE *GetSystemFilePtr(char const * const name, char const * const type); 
 	virtual bool GetSystemFilename(char* sysName, char const * const dosName); 
@@ -320,7 +320,7 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive);
 class cdromDrive : public localDrive
 {
 public:
-	cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, int& error);
+	cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, int& error, std::vector<std::string> &options);
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes);
 	virtual bool FileUnlink(const char * name);

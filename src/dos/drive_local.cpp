@@ -1341,7 +1341,7 @@ next:
     return false;
 }
 
-localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid) {
+localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, std::vector<std::string> &options) {
 	strcpy(basedir,startdir);
 	sprintf(info,"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
@@ -1581,8 +1581,8 @@ bool MSCDEX_HasMediaChanged(Bit8u subUnit);
 bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
 
 
-cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, int& error)
-		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid),
+cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, int& error, std::vector<std::string> &options)
+		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),
 		    subUnit(0),
 		    driveLetter('\0')
 {
