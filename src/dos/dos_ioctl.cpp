@@ -375,6 +375,12 @@ bool DOS_IOCTL(void) {
 					}
 				}
 				break;
+			case 0x4A:
+			case 0x4B:
+			case 0x6A:
+			case 0x6B:
+				LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
+				break;
 			default	:	
 				LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled",reg_cl,drive);
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
