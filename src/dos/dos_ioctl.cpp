@@ -232,8 +232,40 @@ bool DOS_IOCTL(void) {
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
+					Bit16u sect = 1;
+
+					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					if (fdp == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					/* BUT: These are C/H/S values relative to the partition!
+					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
+					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
+					{
+						Bit32u adj = fdp->GetPartitionOffset();;
+						sect += adj % fdp->loadedDisk->sectors;
+						adj /= fdp->loadedDisk->sectors;
+						head += adj % fdp->loadedDisk->heads;
+						adj /= fdp->loadedDisk->heads;
+						cyl += adj;
+
+						while (sect >= fdp->loadedDisk->sectors) {
+							sect -= fdp->loadedDisk->sectors;
+							head++;
+						}
+						while (head >= fdp->loadedDisk->heads) {
+							head -= fdp->loadedDisk->heads;
+							cyl++;
+						}
+
+						/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */
+						sect++;
+					}
+
 					// STUB!
-					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/x ntracks=%u",drive,cyl,head,ntracks);
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/%u ntracks=%u",drive,cyl,head,sect,ntracks);
 				}
 				break;
 			case 0x62:	/* Verify logical device track (FORMAT.COM) */
@@ -244,8 +276,40 @@ bool DOS_IOCTL(void) {
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = mem_readw(ptr+5);
+					Bit16u sect = 1;
+
+					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					if (fdp == NULL) {
+						DOS_SetError(DOSERR_ACCESS_DENIED);
+						return false;
+					}
+
+					/* BUT: These are C/H/S values relative to the partition!
+					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
+					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
+					{
+						Bit32u adj = fdp->GetPartitionOffset();;
+						sect += adj % fdp->loadedDisk->sectors;
+						adj /= fdp->loadedDisk->sectors;
+						head += adj % fdp->loadedDisk->heads;
+						adj /= fdp->loadedDisk->heads;
+						cyl += adj;
+
+						while (sect >= fdp->loadedDisk->sectors) {
+							sect -= fdp->loadedDisk->sectors;
+							head++;
+						}
+						while (head >= fdp->loadedDisk->heads) {
+							head -= fdp->loadedDisk->heads;
+							cyl++;
+						}
+
+						/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */
+						sect++;
+					}
+
 					// STUB!
-					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/x ntracks=%u",drive,cyl,head,ntracks);
+					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/%u ntracks=%u",drive,cyl,head,sect,ntracks);
 				}
 				break;
 			case 0x40:	/* Set Device parameters */
@@ -301,11 +365,35 @@ bool DOS_IOCTL(void) {
 					 * 09h    DWORD   transfer address */
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
-					Bit16u sect = mem_readw(ptr+5)+1; // MS-DOS 6.22: Sector numbers start at zero here?
+					Bit16u sect = mem_readw(ptr+5);
 					Bit16u nsect = mem_readw(ptr+7);
 					Bit32u xfer_addr = mem_readd(ptr+9);
 					PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
 					Bit16u sectsize = fdp->loadedDisk->getSectSize();
+
+					/* BUT: These are C/H/S values relative to the partition!
+					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
+					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
+					{
+						Bit32u adj = fdp->GetPartitionOffset();
+						sect += adj % fdp->loadedDisk->sectors;
+						adj /= fdp->loadedDisk->sectors;
+						head += adj % fdp->loadedDisk->heads;
+						adj /= fdp->loadedDisk->heads;
+						cyl += adj;
+
+						while (sect >= fdp->loadedDisk->sectors) {
+							sect -= fdp->loadedDisk->sectors;
+							head++;
+						}
+						while (head >= fdp->loadedDisk->heads) {
+							head -= fdp->loadedDisk->heads;
+							cyl++;
+						}
+
+						/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */
+						sect++;
+					}
 
 					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:41 Write Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u from %04x:%04x sz=%u",
 							drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
@@ -351,11 +439,35 @@ bool DOS_IOCTL(void) {
 					 * 09h    DWORD   transfer address */
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
-					Bit16u sect = mem_readw(ptr+5)+1; // MS-DOS 6.22: Sector numbers start at zero here?
+					Bit16u sect = mem_readw(ptr+5);
 					Bit16u nsect = mem_readw(ptr+7);
 					Bit32u xfer_addr = mem_readd(ptr+9);
 					PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
 					Bit16u sectsize = fdp->loadedDisk->getSectSize();
+
+					/* BUT: These are C/H/S values relative to the partition!
+					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
+					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
+					{
+						Bit32u adj = fdp->GetPartitionOffset();;
+						sect += adj % fdp->loadedDisk->sectors;
+						adj /= fdp->loadedDisk->sectors;
+						head += adj % fdp->loadedDisk->heads;
+						adj /= fdp->loadedDisk->heads;
+						cyl += adj;
+
+						while (sect >= fdp->loadedDisk->sectors) {
+							sect -= fdp->loadedDisk->sectors;
+							head++;
+						}
+						while (head >= fdp->loadedDisk->heads) {
+							head -= fdp->loadedDisk->heads;
+							cyl++;
+						}
+
+						/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */
+						sect++;
+					}
 
 					LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:61 Read Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u to %04x:%04x sz=%u",
 							drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
