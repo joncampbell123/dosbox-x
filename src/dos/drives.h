@@ -91,7 +91,7 @@ public:
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
 
-	bool remote = false;
+	int remote = -1;
 
 protected:
 	DOS_Drive_Cache dirCache;
