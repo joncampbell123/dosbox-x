@@ -244,7 +244,7 @@ bool DOS_IOCTL(void) {
 					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
 					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
 					{
-						Bit32u adj = fdp->GetPartitionOffset();;
+						Bit32u adj = fdp->GetPartitionOffset();
 						sect += adj % fdp->loadedDisk->sectors;
 						adj /= fdp->loadedDisk->sectors;
 						head += adj % fdp->loadedDisk->heads;
@@ -288,7 +288,7 @@ bool DOS_IOCTL(void) {
 					 * FIXME: MS-DOS may not adjust sector value, or maybe it does...
 					 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
 					{
-						Bit32u adj = fdp->GetPartitionOffset();;
+						Bit32u adj = fdp->GetPartitionOffset();
 						sect += adj % fdp->loadedDisk->sectors;
 						adj /= fdp->loadedDisk->sectors;
 						head += adj % fdp->loadedDisk->heads;
