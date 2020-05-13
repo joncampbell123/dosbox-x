@@ -1988,44 +1988,49 @@ static Bitu DOS_21Handler(void) {
 		case 0x73:
 			if (reg_al==3)
 			{
-			MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
-			if (name1[1]==':'&&name1[2]=='\\')
-				reg_dl=name1[0]-'A'+1;
+				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
+				if (name1[1]==':'&&name1[2]=='\\')
+					reg_dl=name1[0]-'A'+1;
+				else {
+					reg_ax=0xffff;
+					CALLBACK_SCF(true);
+					break;
+				}
+				Bit16u bytes_per_sector,total_clusters,free_clusters;
+				Bit8u sectors_per_cluster;
+				rsize=true;
+				totalc=freec=0;
+				if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+				{
+					ext_space_info_t *info = new ext_space_info_t;
+					info->size_of_structure = sizeof(ext_space_info_t);
+					info->structure_version = 0;
+					info->sectors_per_cluster = sectors_per_cluster;
+					info->bytes_per_sector = bytes_per_sector;
+					info->available_clusters_on_drive = freec?freec:free_clusters;
+					info->total_clusters_on_drive = totalc?totalc:total_clusters;
+					info->available_sectors_on_drive = sectors_per_cluster * (freec?freec:free_clusters);
+					info->total_sectors_on_drive = sectors_per_cluster * (totalc?totalc:total_clusters);
+					info->available_allocation_units = freec?freec:free_clusters;
+					info->total_allocation_units = totalc?totalc:total_clusters;
+					MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
+					delete(info);
+					reg_ax=0;
+					CALLBACK_SCF(false);
+				}
+				else
+				{
+					reg_ax=dos.errorcode;
+					CALLBACK_SCF(true);
+				}
+				rsize=false;
+			}
 			else {
-				reg_ax=0xffff;
+				LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X (MS-DOS 7.x function)",reg_ah,reg_al);
 				CALLBACK_SCF(true);
-				break;
+				reg_ax=0xffff;//FIXME
 			}
-			Bit16u bytes_per_sector,total_clusters,free_clusters;
-			Bit8u sectors_per_cluster;
-			rsize=true;
-			totalc=freec=0;
-			if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
-				{
-				ext_space_info_t *info = new ext_space_info_t;
-				info->size_of_structure = sizeof(ext_space_info_t);
-				info->structure_version = 0;
-				info->sectors_per_cluster = sectors_per_cluster;
-				info->bytes_per_sector = bytes_per_sector;
-				info->available_clusters_on_drive = freec?freec:free_clusters;
-				info->total_clusters_on_drive = totalc?totalc:total_clusters;
-				info->available_sectors_on_drive = sectors_per_cluster * (freec?freec:free_clusters);
-				info->total_sectors_on_drive = sectors_per_cluster * (totalc?totalc:total_clusters);
-				info->available_allocation_units = freec?freec:free_clusters;
-				info->total_allocation_units = totalc?totalc:total_clusters;
-				MEM_BlockWrite(SegPhys(es)+reg_di,info,sizeof(ext_space_info_t));
-				delete(info);
-				reg_ax=0;
-				CALLBACK_SCF(false);
-				}
-			else
-				{
-				reg_ax=dos.errorcode;
-				CALLBACK_SCF(true);
-				}
-			rsize=false;
 			break;
-			}
 		case 0xE0:
         case 0xEF:                  /* Used in Ancient Art Of War CGA */
         default:
