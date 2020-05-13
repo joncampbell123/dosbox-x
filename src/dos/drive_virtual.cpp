@@ -320,7 +320,7 @@ bool Virtual_Drive::isRemote(void) {
         return false;
     }
 
-    /* Automatically detect if called by SCANDISK.EXE and return true (tested with the program with MS-DOS 6.20 to Windows ME) */
+    /* Automatically detect if called by SCANDISK.EXE and return true (tested with the program from MS-DOS 6.20 to Windows ME) */
     if (dos.version.major >= 5 && reg_sp >=0x4000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1 && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 >= 0xB && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 <= 0x12)
 		return true;
 
