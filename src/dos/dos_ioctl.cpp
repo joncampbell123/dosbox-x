@@ -232,7 +232,7 @@ bool DOS_IOCTL(void) {
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
-					Bit16u sect = 1;
+					Bit16u sect = 0;
 
 					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 					if (fdp == NULL) {
@@ -276,7 +276,7 @@ bool DOS_IOCTL(void) {
 					Bit16u head = mem_readw(ptr+1);
 					Bit16u cyl = mem_readw(ptr+3);
 					Bit16u ntracks = mem_readw(ptr+5);
-					Bit16u sect = 1;
+					Bit16u sect = 0;
 
 					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 					if (fdp == NULL) {
