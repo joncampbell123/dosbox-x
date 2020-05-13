@@ -178,13 +178,14 @@ bool DOS_IOCTL(void) {
 				//mem_writeb(ptr+0,0);					// special functions (call value)
 				mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
 				mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
-				mem_writew(ptr+4,0x0000);				// num of cylinders
+				mem_writew(ptr+4,(drive>=2)?0x3FF:0x50);// num of cylinders
 				mem_writeb(ptr+6,0x00);					// media type (00=other type)
 				// bios parameter block following
-				bool usereal=false;
+				fatDrive *fdp;
 				bootstrap bootbuffer;
+				bool usereal=false;
 				if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
-					fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 					if (fdp != NULL) {
 						bootbuffer=fdp->GetBootBuffer();
 						if (bootbuffer.bytespersector&&bootbuffer.mediadescriptor)
@@ -192,6 +193,8 @@ bool DOS_IOCTL(void) {
 					}
 				}
 				if (usereal) {
+					if (fdp->loadedDisk != NULL)
+						mem_writew(ptr+4,fdp->loadedDisk->cylinders);			// num of cylinders
 					mem_writew(ptr+7,bootbuffer.bytespersector);				// bytes per sector (Win3 File Mgr. uses it)
 					mem_writew(ptr+9,bootbuffer.sectorspercluster);				// sectors per cluster
 					mem_writew(ptr+0xa,bootbuffer.reservedsectors);				// number of reserved sectors
