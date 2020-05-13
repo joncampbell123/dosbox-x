@@ -2383,6 +2383,16 @@ static inline uint8_t expand16to32(const uint8_t t) {
 
 static unsigned char pc98_mixctl_reg = 0x14;
 
+/* Sound Blaster Pro 2 (CT1600) notes:
+ *
+ * - Registers 0x40-0xFF do nothing written and read back 0xFF.
+ * - Registers 0x00-0x3F are almost exact mirrors of registers 0x00-0x0F, but not quite
+ * - Registers 0x00-0x1F are exact mirrors of 0x00-0x1F
+ * - Registers 0x20-0x3F are exact mirrors of 0x20-0x2F which are.... non functional shadow copies of 0x00-0x0F (???)
+ * - Register 0x0E is mirrored at 0x0F, 0x1E, 0x1F. Reading 0x00, 0x01, 0x10, 0x11 also reads register 0x0E.
+ * - Writing 0x00, 0x01, 0x10, 0x11 resets the mixer as expected.
+ * - Register 0x0E is 0x11 on reset, which defaults to mono and lowpass filter enabled.
+ * - See screenshot for mixer registers on hardware or mixer reset, file 'CT1600 Sound Blaster Pro 2 mixer register dump hardware and mixer reset state.png' */
 static void CTMIXER_Write(Bit8u val) {
     switch (sb.mixer.index) {
     case 0x00:      /* Reset */
@@ -2417,6 +2427,11 @@ static void CTMIXER_Write(Bit8u val) {
         }
         break;
     case 0x0e:      /* Output/Stereo Select */
+        /* Real CT1600 notes:
+         *
+         * This register only allows changing bits 1 and 5. Each nibble can be 1 or 3, therefore on readback it will always be 0x11, 0x13, 0x31, or 0x11.
+         * This register is also mirrored at 0x0F, 0x1E, 0x1F. On read this register also appears over 0x00, 0x01, 0x10, 0x11, though writing that register
+         * resets the mixer as expected. */
         /* only allow writing stereo bit if Sound Blaster Pro OR if a SB16 and user says to allow it */
         if ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) || (sb.type == SBT_16 && !sb.sbpro_stereo_bit_strict_mode))
             sb.mixer.stereo=(val & 0x2) > 0;
