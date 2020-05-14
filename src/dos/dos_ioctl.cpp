@@ -188,15 +188,15 @@ bool DOS_IOCTL(void) {
 					fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 					if (fdp != NULL) {
 						bootbuffer=fdp->GetBootBuffer();
-						if (bootbuffer.bytespersector&&bootbuffer.mediadescriptor)
+						if (bootbuffer.BPB_BytsPerSec&&bootbuffer.mediadescriptor)
 							usereal=true;
 					}
 				}
 				if (usereal) {
 					if (fdp->loadedDisk != NULL)
 						mem_writew(ptr+4,fdp->loadedDisk->cylinders);			// num of cylinders
-					mem_writew(ptr+7,bootbuffer.bytespersector);				// bytes per sector (Win3 File Mgr. uses it)
-					mem_writew(ptr+9,bootbuffer.sectorspercluster);				// sectors per cluster
+					mem_writew(ptr+7,bootbuffer.BPB_BytsPerSec);				// bytes per sector (Win3 File Mgr. uses it)
+					mem_writew(ptr+9,bootbuffer.BPB_SecPerClus);				// sectors per cluster
 					mem_writew(ptr+0xa,bootbuffer.reservedsectors);				// number of reserved sectors
 					mem_writew(ptr+0xc,bootbuffer.fatcopies);					// number of FATs
 					mem_writew(ptr+0xd,bootbuffer.rootdirentries);				// number of root entries

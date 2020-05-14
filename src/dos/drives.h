@@ -144,26 +144,27 @@ public:
 #pragma pack (1)
 #endif
 struct FAT_BootSector {
-	/* --------- Common fields: Amalgam of Wikipedia documentation with names from Microsoft's FAT32 whitepaper */
-	Bit8u		BS_jmpBoot[3];						/* offset 0x000 size 0x003		Jump instruction to boot code. Formerly nearjmp[3] */
-	Bit8u		BS_OEMName[8];						/* offset 0x003 size 0x008		OEM string. Formerly oemname[8] */
-	/* --------- NOT YET CONVERTED ---------- */
-	Bit16u bytespersector;
-	Bit8u  sectorspercluster;
-	Bit16u reservedsectors;
-	Bit8u  fatcopies;
-	Bit16u rootdirentries;
-	Bit16u totalsectorcount;
-	Bit8u  mediadescriptor;
-	Bit16u sectorsperfat;
-	Bit16u sectorspertrack;
-	Bit16u headcount;
-	/* 32-bit FAT extensions */
-	Bit32u hiddensectorcount;
-	Bit32u totalsecdword;
-	Bit8u  bootcode[474];
-	Bit8u  magic1; /* 0x55 */
-	Bit8u  magic2; /* 0xaa */
+    /* --------- Common fields: Amalgam of Wikipedia documentation with names from Microsoft's FAT32 whitepaper */
+    Bit8u       BS_jmpBoot[3];                      /* offset 0x000 size 0x003 Jump instruction to boot code. Formerly nearjmp[3] */
+    Bit8u       BS_OEMName[8];                      /* offset 0x003 size 0x008 OEM string. Formerly oemname[8] */
+    /* --------- BIOS Parameter Block (converted in place from existing DOSBox-X code) */
+    Bit16u      BPB_BytsPerSec;                     /* offset 0x00B size 0x002 Bytes per sector. Formerly bytespersector */
+    Bit8u       BPB_SecPerClus;                     /* offset 0x00D size 0x001 Sectors per cluster, must be a power of 2. Formerly sectorspercluster */
+    /* --------- NOT YET CONVERTED ---------- */
+    Bit16u reservedsectors;
+    Bit8u  fatcopies;
+    Bit16u rootdirentries;
+    Bit16u totalsectorcount;
+    Bit8u  mediadescriptor;
+    Bit16u sectorsperfat;
+    Bit16u sectorspertrack;
+    Bit16u headcount;
+    /* 32-bit FAT extensions */
+    Bit32u hiddensectorcount;
+    Bit32u totalsecdword;
+    Bit8u  bootcode[474];
+    Bit8u  magic1; /* 0x55 */
+    Bit8u  magic2; /* 0xaa */
 #ifndef SECTOR_SIZE_MAX
 # pragma warning SECTOR_SIZE_MAX not defined
 #endif
