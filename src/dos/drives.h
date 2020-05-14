@@ -369,7 +369,7 @@ public:
 	Bit32u getFirstFreeClust(void);
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
 	bool directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum);
-	FAT_BootSector GetBootBuffer(void);
+	const FAT_BootSector &GetBootBuffer(void);
 	imageDisk *loadedDisk = NULL;
 	bool created_successfully = true;
 private:
