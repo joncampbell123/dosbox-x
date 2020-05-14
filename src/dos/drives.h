@@ -144,8 +144,10 @@ public:
 #pragma pack (1)
 #endif
 struct FAT_BootSector {
-	Bit8u  nearjmp[3];
-	Bit8u  oemname[8];
+	/* --------- Common fields: Amalgam of Wikipedia documentation with names from Microsoft's FAT32 whitepaper */
+	Bit8u		BS_jmpBoot[3];						/* offset 0x000 size 0x003		Jump instruction to boot code. Formerly nearjmp[3] */
+	Bit8u		BS_OEMName[8];						/* offset 0x003 size 0x008		OEM string. Formerly oemname[8] */
+	/* --------- NOT YET CONVERTED ---------- */
 	Bit16u bytespersector;
 	Bit8u  sectorspercluster;
 	Bit16u reservedsectors;
