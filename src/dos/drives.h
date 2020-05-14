@@ -200,8 +200,8 @@ struct FAT_BootSector {
 
         FAT_BPB_MSDOS                       v;      /* offset 0x00B ... */
     } bpb;
-    /* --------- NOT YET CONVERTED ---------- */
-    Bit8u  bootcode[474];
+    /* --------- The rest of the sector ---------- */
+    Bit8u  bootcode[512 - 2/*magic*/ - sizeof(bpb) - 8/*OEM*/ - 3/*JMP*/];
     Bit8u  magic1; /* 0x55 */
     Bit8u  magic2; /* 0xaa */
 #ifndef SECTOR_SIZE_MAX
