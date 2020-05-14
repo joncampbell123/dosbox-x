@@ -759,17 +759,22 @@ public:
 
         if (IS_PC98_ARCH)
             mpu.irq=6;  /* This is said to be the MIDI card's factory default on PC-98 */
+        else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086)
+            mpu.irq=2;  /* Default IRQ for the original Roland interface units */
         else
     		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
 
+        int x = section->Get_int("mpuirq");
+
+        if (!IS_PC98_ARCH && CPU_ArchitectureType == CPU_ARCHTYPE_8086)
         {
-            int x = section->Get_int("mpuirq");
-
-            if (x >= 2)
+            if (x >= 2 && x <= 7) /* Only one PIC on a XT */
                 mpu.irq = (unsigned int)x;
-
-            if (!IS_PC98_ARCH && mpu.irq == 2) mpu.irq = 9;
         }
+        else if (x >= 2) /* if mpuirq > 15, mpuirq = 15 */
+            mpu.irq = (unsigned int)x;
+
+        if (!IS_PC98_ARCH && mpu.irq == 2 && CPU_ArchitectureType != CPU_ARCHTYPE_8086) mpu.irq = 9;
 
         LOG(LOG_MISC,LOG_NORMAL)("MPU IRQ %d",(int)mpu.irq);
 
