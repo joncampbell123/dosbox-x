@@ -370,7 +370,6 @@ public:
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
 	bool directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum);
 	const FAT_BootSector::bpb_union_t &GetBPB(void);
-	const FAT_BootSector &GetBootBuffer(void);
 	imageDisk *loadedDisk = NULL;
 	bool created_successfully = true;
 private:
