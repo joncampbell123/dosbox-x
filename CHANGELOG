@@ -1,4 +1,8 @@
 0.83.2
+  - Added DOS functions for "FAT32 extended" absolute disk
+    read and write used by FAT32-aware versions of FORMAT.COM
+    and SCANDISK.EXE (shipped with Windows 95 OSR2 or later).
+    The FAT driver in DOSBox-X does not yet fully support FAT32.
   - Added stub to DOS IOCTL "format device track" for FORMAT.COM.
   - Added DOS IOCTL read/write logical device track functions
     so that FORMAT.COM is able to verify and modify the partition
@@ -17,6 +21,10 @@
   - Enabled printer emulation for non-Windows OSes (Linux,
     Mac OS X, etc.). FreeType2 is required to enable
     printer emulation at compile time.
+  - Added command-line option "-o" for MOUNT command so that
+    it can be specified whether to report mounted local drives
+    as remote (network) drives. It is "auto" by default just
+    like the virtual drive Z:.
   - Added config option "drive z is remote" in dosbox-x.conf
     to report drive Z: as a remote (network) drive. It is
     "auto" by default, which will try to prevent SCANDISK.EXE
@@ -45,12 +53,14 @@
     their EGA/VGA detection. This fixes blink attribute
     and EGA/VGA detection failure with SuperCalc 3 and
     SuperCalc 4. This option, enabled by default, can be
-    disabled or enabled from dosbox.conf.
+    disabled or enabled from dosbox-x.conf.
   - Improved long filename (LFN) and SetFileAttr/GetFileAttr
     support for PC-98 mode. (Wengier)
   - The copy & paste Windows clipboard text via the right
     mouse button feature now has support for PC-98 mode too
     in addition to other modes. (Wengier)
+  - Fluidsynth defaults fixed for better more reliable audio
+    streaming on Linux and Mac OS X (rderooy)
   - Improved support for FluidSynth MIDI device by porting
     code from DOSBox ECE. Set "mididevice=fluidsynth" along
     with other required options such as "fluid.soundfont"

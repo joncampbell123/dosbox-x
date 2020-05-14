@@ -1989,8 +1989,16 @@ static Bitu DOS_21Handler(void) {
             }
             break;
 		case 0x73:
-			if (reg_al==3)
-			{
+			if (dos.version.major < 7) { // MS-DOS 7+ only for AX=73xxh
+				CALLBACK_SCF(true);
+				reg_ax=0x7300;
+			} else if (reg_al==0 && reg_cl<2) {
+				/* Drive locking and flushing */
+				reg_al = reg_cl;
+				reg_ah = 0;
+				CALLBACK_SCF(false);
+			} else if (reg_al==3) {
+				/* Get extended free disk space */
 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
 				if (name1[1]==':'&&name1[2]=='\\')
 					reg_dl=name1[0]-'A'+1;
@@ -2027,9 +2035,8 @@ static Bitu DOS_21Handler(void) {
 					CALLBACK_SCF(true);
 				}
 				rsize=false;
-			}
-			else if (reg_al == 5 && reg_cx == 0xFFFF && (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10))) {
-				/* Windows 9x FAT32 extended disk read/write */
+			} else if (reg_al == 5 && reg_cx == 0xFFFF && (dos.version.major > 7 || dos.version.minor >= 10)) {
+				/* MS-DOS 7.1+ (Windows 95 OSR2+) FAT32 extended disk read/write */
 				reg_al = reg_dl - 1; /* INT 25h AL 0=A: 1=B:   This interface DL 1=A: 2=B: */
 				if (reg_si & 1)
 					DOS_26Handler_Actual(true/*fat32*/); /* writing */
@@ -2038,8 +2045,7 @@ static Bitu DOS_21Handler(void) {
 
 				/* CF needs to be returned on stack or else it's lost */
 				CALLBACK_SCF(!!(reg_flags & FLAG_CF));
-			}
-			else {
+			} else {
 				LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Unhandled call %02X al=%02X (MS-DOS 7.x function)",reg_ah,reg_al);
 				CALLBACK_SCF(true);
 				reg_ax=0xffff;//FIXME
@@ -2986,7 +2992,7 @@ void DOS_RescanAll(bool pressed) {
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
-    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct bootstrap) = %u",(unsigned int)sizeof(struct bootstrap));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct FAT_BootSector) = %u",(unsigned int)sizeof(struct FAT_BootSector));
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
 
     /* this code makes assumptions! */

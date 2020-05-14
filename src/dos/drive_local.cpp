@@ -30,6 +30,7 @@
 #include "support.h"
 #include "cross.h"
 #include "inout.h"
+#include "regs.h"
 #ifndef WIN32
 #include <utime.h>
 #else
@@ -1244,7 +1245,12 @@ Bit8u localDrive::GetMediaByte(void) {
 }
 
 bool localDrive::isRemote(void) {
-	return remote;
+	if (remote==1) return true;
+	if (remote==0) return false;
+	/* Automatically detect if called by SCANDISK.EXE and return true (tested with the program from MS-DOS 6.20 to Windows ME) */
+	if (dos.version.major >= 5 && reg_sp >=0x4000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1 && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 >= 0xB && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 <= 0x12)
+		return true;
+	return false;
 }
 
 bool localDrive::isRemovable(void) {
@@ -1363,9 +1369,11 @@ localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors
 			value.clear();
 		}
 
-		if (name == "remote") {
-			remote = true;
-		}
+		for (char & c: name) c=tolower(c);
+		if (name == "remote")
+			remote = 1;
+		else if (name == "local")
+			remote = 0;
 	}
 
 	dirCache.SetBaseDir(basedir,this);
