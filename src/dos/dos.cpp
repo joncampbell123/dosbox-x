@@ -2992,7 +2992,7 @@ void DOS_RescanAll(bool pressed) {
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
-    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct bootstrap) = %u",(unsigned int)sizeof(struct bootstrap));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct FAT_BootSector) = %u",(unsigned int)sizeof(struct FAT_BootSector));
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
 
     /* this code makes assumptions! */

@@ -182,7 +182,7 @@ bool DOS_IOCTL(void) {
 				mem_writeb(ptr+6,0x00);					// media type (00=other type)
 				// bios parameter block following
 				fatDrive *fdp;
-				bootstrap bootbuffer;
+				FAT_BootSector bootbuffer;
 				bool usereal=false;
 				if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 					fdp = dynamic_cast<fatDrive*>(Drives[drive]);

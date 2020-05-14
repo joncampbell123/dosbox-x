@@ -1562,7 +1562,7 @@ Bits fatDrive::UnMount(void) {
 }
 
 Bit8u fatDrive::GetMediaByte(void) { return loadedDisk->GetBiosType(); }
-bootstrap fatDrive::GetBootBuffer(void) { return bootbuffer; }
+FAT_BootSector fatDrive::GetBootBuffer(void) { return bootbuffer; }
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
     if (readonly) {

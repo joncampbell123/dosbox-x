@@ -143,7 +143,7 @@ public:
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
-struct bootstrap {
+struct FAT_BootSector {
 	Bit8u  nearjmp[3];
 	Bit8u  oemname[8];
 	Bit16u bytespersector;
@@ -254,7 +254,7 @@ public:
 	Bit32u getFirstFreeClust(void);
 	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
 	bool directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum);
-	bootstrap GetBootBuffer(void);
+	FAT_BootSector GetBootBuffer(void);
 	imageDisk *loadedDisk = NULL;
 	bool created_successfully = true;
 private:
@@ -280,7 +280,7 @@ private:
 		Bit8u mediaid;
     } allocation = {};
 	
-    bootstrap bootbuffer = {};
+	FAT_BootSector bootbuffer = {};
 	bool absolute = false;
 	Bit8u fattype = 0;
 	Bit32u CountOfClusters = 0;
