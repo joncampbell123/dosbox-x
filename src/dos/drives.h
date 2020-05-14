@@ -252,6 +252,10 @@ struct FAT_BootSector {
 
         FAT_BPB_MSDOS                       v;      /* offset 0x00B ... */
         FAT32_BPB_MSDOS                     v32;    /* offset 0x00B ... */
+
+        inline bool is_fat32(void) const {
+            return (v.BPB_RootEntCnt == 0 && v.BPB_TotSec16 == 0 && v.BPB_FATSz16 == 0); /* all fields are "must be set to 0" for FAT32 */
+        }
     } bpb;
     /* --------- The rest of the sector ---------- */
     Bit8u  bootcode[512 - 2/*magic*/ - sizeof(bpb) - 8/*OEM*/ - 3/*JMP*/];

@@ -1415,7 +1415,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         }
     }
 
-	if (bootbuffer.bpb.v.BPB_FATSz16 == 0) {
+	if (bootbuffer.bpb.is_fat32()) {
 		/* FAT32 not implemented yet */
 		LOG_MSG("FAT32 not implemented yet, mounting image only");
 		fattype = FAT32;	// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well
