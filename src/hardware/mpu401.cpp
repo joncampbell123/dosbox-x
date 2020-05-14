@@ -27,6 +27,8 @@
 #include "control.h"
 #include "setup.h"
 
+extern bool enable_slave_pic;
+
 void MIDI_RawOutByte(Bit8u data);
 bool MIDI_Available(void);
 
@@ -759,6 +761,8 @@ public:
 
         if (IS_PC98_ARCH)
             mpu.irq=6;  /* This is said to be the MIDI card's factory default on PC-98 */
+        else if (!enable_slave_pic)
+            mpu.irq=2;
         else
     		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
 
@@ -768,7 +772,10 @@ public:
             if (x >= 2)
                 mpu.irq = (unsigned int)x;
 
-            if (!IS_PC98_ARCH && mpu.irq == 2) mpu.irq = 9;
+            if (!IS_PC98_ARCH && enable_slave_pic && mpu.irq == 2)
+                mpu.irq = 9;
+            else if (!enable_slave_pic && mpu.irq == 9)
+                mpu.irq = 2;
         }
 
         LOG(LOG_MISC,LOG_NORMAL)("MPU IRQ %d",(int)mpu.irq);
