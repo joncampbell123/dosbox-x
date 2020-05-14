@@ -395,7 +395,7 @@ private:
 		Bit8u mediaid;
     } allocation = {};
 	
-	FAT_BootSector bootbuffer = {};
+	FAT_BootSector::bpb_union_t BPB = {}; // BPB in effect (translated from on-disk BPB as needed)
 	bool absolute = false;
 	Bit8u fattype = 0;
 	Bit32u CountOfClusters = 0;
