@@ -1,4 +1,6 @@
 0.83.2
+  - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
+    PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - Added DOS functions for "FAT32 extended" absolute disk
     read and write used by FAT32-aware versions of FORMAT.COM
     and SCANDISK.EXE (shipped with Windows 95 OSR2 or later).
