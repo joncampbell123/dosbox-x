@@ -406,10 +406,10 @@ Bit32u fatDrive::getClusterValue(Bit32u clustNum) {
 			fatoffset = clustNum * 4;
 			break;
 	}
-	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.BPB_BytsPerSec) + partSectOff;
+	fatsectnum = bootbuffer.BPB_RsvdSecCnt + (fatoffset / bootbuffer.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.BPB_BytsPerSec;
 
-	if (fatsectnum >= (bootbuffer.reservedsectors + bootbuffer.sectorsperfat + partSectOff)) {
+	if (fatsectnum >= (bootbuffer.BPB_RsvdSecCnt + bootbuffer.BPB_FATSz16 + partSectOff)) {
 		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
 		return 0;
 	}
@@ -460,10 +460,10 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 			fatoffset = clustNum * 4;
 			break;
 	}
-	fatsectnum = bootbuffer.reservedsectors + (fatoffset / bootbuffer.BPB_BytsPerSec) + partSectOff;
+	fatsectnum = bootbuffer.BPB_RsvdSecCnt + (fatoffset / bootbuffer.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % bootbuffer.BPB_BytsPerSec;
 
-	if (fatsectnum >= (bootbuffer.reservedsectors + bootbuffer.sectorsperfat + partSectOff)) {
+	if (fatsectnum >= (bootbuffer.BPB_RsvdSecCnt + bootbuffer.BPB_FATSz16 + partSectOff)) {
 		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
 		return;
 	}
@@ -502,11 +502,11 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 			*((Bit32u *)&fatSectBuffer[fatentoff]) = clustValue;
 			break;
 	}
-	for(unsigned int fc=0;fc<bootbuffer.fatcopies;fc++) {
-		writeSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &fatSectBuffer[0]);
+	for(unsigned int fc=0;fc<bootbuffer.BPB_NumFATs;fc++) {
+		writeSector(fatsectnum + (fc * bootbuffer.BPB_FATSz16), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
 			if (fatentoff >= (bootbuffer.BPB_BytsPerSec-1U))
-				writeSector(fatsectnum+1u+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.BPB_BytsPerSec]);
+				writeSector(fatsectnum+1u+(fc * bootbuffer.BPB_FATSz16), &fatSectBuffer[bootbuffer.BPB_BytsPerSec]);
 		}
 	}
 }
@@ -568,7 +568,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
          * existing volume label. MS-DOS 7.0 and higher appear to automatically
          * rewrite the volume label and manage them tighter obviously due
          * to the way LFNs are stored in the filesystem. */
-        for (unsigned int i=0;i < bootbuffer.rootdirentries;i++) {
+        for (unsigned int i=0;i < bootbuffer.BPB_RootEntCnt;i++) {
             unsigned int di = i % dirent_per_sector;
 
             if (di == 0) {
@@ -595,7 +595,7 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
     }
     else {
         /* erase ONE volume label from the root directory */
-        for (unsigned int i=0;i < bootbuffer.rootdirentries;i++) {
+        for (unsigned int i=0;i < bootbuffer.BPB_RootEntCnt;i++) {
             unsigned int di = i % dirent_per_sector;
 
             if (di == 0) {
@@ -716,22 +716,22 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 Bit8u fatDrive::readSector(Bit32u sectnum, void * data) {
 	if (absolute) return Read_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
-	Bit32u cylindersize = (unsigned int)bootbuffer.headcount * (unsigned int)bootbuffer.sectorspertrack;
+	Bit32u cylindersize = (unsigned int)bootbuffer.BPB_NumHeads * (unsigned int)bootbuffer.BPB_SecPerTrk;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
-	Bit32u head = sectnum / bootbuffer.sectorspertrack;
-	Bit32u sector = sectnum % bootbuffer.sectorspertrack + 1L;
+	Bit32u head = sectnum / bootbuffer.BPB_SecPerTrk;
+	Bit32u sector = sectnum % bootbuffer.BPB_SecPerTrk + 1L;
 	return loadedDisk->Read_Sector(head, cylinder, sector, data);
 }	
 
 Bit8u fatDrive::writeSector(Bit32u sectnum, void * data) {
 	if (absolute) return Write_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
-	Bit32u cylindersize = (unsigned int)bootbuffer.headcount * (unsigned int)bootbuffer.sectorspertrack;
+	Bit32u cylindersize = (unsigned int)bootbuffer.BPB_NumHeads * (unsigned int)bootbuffer.BPB_SecPerTrk;
 	Bit32u cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
-	Bit32u head = sectnum / bootbuffer.sectorspertrack;
-	Bit32u sector = sectnum % bootbuffer.sectorspertrack + 1L;
+	Bit32u head = sectnum / bootbuffer.BPB_SecPerTrk;
+	Bit32u sector = sectnum % bootbuffer.BPB_SecPerTrk + 1L;
 	return loadedDisk->Write_Sector(head, cylinder, sector, data);
 }
 
@@ -1084,12 +1084,12 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
         mem_writew(ptr+0x02,bootbuffer.BPB_BytsPerSec);             // +2 = bytes per sector
         mem_writeb(ptr+0x04,bootbuffer.BPB_SecPerClus - 1);      // +4 = highest sector within a cluster
         mem_writeb(ptr+0x05,bitop::log2(bootbuffer.BPB_SecPerClus));// +5 = shift count to convert clusters to sectors
-        mem_writew(ptr+0x06,bootbuffer.reservedsectors);            // +6 = number of reserved sectors at start of partition
-        mem_writeb(ptr+0x08,bootbuffer.fatcopies);                  // +8 = number of FATs (file allocation tables)
-        mem_writew(ptr+0x09,bootbuffer.rootdirentries);             // +9 = number of root directory entries
+        mem_writew(ptr+0x06,bootbuffer.BPB_RsvdSecCnt);            // +6 = number of reserved sectors at start of partition
+        mem_writeb(ptr+0x08,bootbuffer.BPB_NumFATs);                  // +8 = number of FATs (file allocation tables)
+        mem_writew(ptr+0x09,bootbuffer.BPB_RootEntCnt);             // +9 = number of root directory entries
         mem_writew(ptr+0x0B,(uint16_t)(firstDataSector-partSectOff));// +11 = number of first sector containing user data
         mem_writew(ptr+0x0D,(uint16_t)CountOfClusters + 1);         // +13 = highest cluster number
-        mem_writew(ptr+0x0F,(uint16_t)bootbuffer.sectorsperfat);    // +15 = sectors per FAT
+        mem_writew(ptr+0x0F,(uint16_t)bootbuffer.BPB_FATSz16);    // +15 = sectors per FAT
         mem_writew(ptr+0x11,(uint16_t)(firstRootDirSect-partSectOff));// +17 = sector number of first directory sector
         mem_writed(ptr+0x13,0);                                     // +19 = address of device driver header (NOT IMPLEMENTED)
         mem_writeb(ptr+0x17,GetMediaByte());                        // +23 = media ID byte
@@ -1305,10 +1305,10 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		/* Identify floppy format */
 		if ((bootbuffer.BS_jmpBoot[0] == 0x69 || bootbuffer.BS_jmpBoot[0] == 0xe9 ||
 			(bootbuffer.BS_jmpBoot[0] == 0xeb && bootbuffer.BS_jmpBoot[2] == 0x90)) &&
-			(bootbuffer.mediadescriptor & 0xf0) == 0xf0) {
+			(bootbuffer.BPB_Media & 0xf0) == 0xf0) {
 			/* DOS 2.x or later format, BPB assumed valid */
 
-			if ((bootbuffer.mediadescriptor != 0xf0 && !(bootbuffer.mediadescriptor & 0x1)) &&
+			if ((bootbuffer.BPB_Media != 0xf0 && !(bootbuffer.BPB_Media & 0x1)) &&
 				(bootbuffer.BS_OEMName[5] != '3' || bootbuffer.BS_OEMName[6] != '.' || bootbuffer.BS_OEMName[7] < '2')) {
 				/* Fix pre-DOS 3.2 single-sided floppy */
 				bootbuffer.BPB_SecPerClus = 1;
@@ -1323,28 +1323,28 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 				/* DOS 1.x format, create BPB for 160kB floppy */
 				bootbuffer.BPB_BytsPerSec = 512;
 				bootbuffer.BPB_SecPerClus = 1;
-				bootbuffer.reservedsectors = 1;
-				bootbuffer.fatcopies = 2;
-				bootbuffer.rootdirentries = 64;
-				bootbuffer.totalsectorcount = 320;
-				bootbuffer.mediadescriptor = mdesc;
-				bootbuffer.sectorsperfat = 1;
-				bootbuffer.sectorspertrack = 8;
-				bootbuffer.headcount = 1;
+				bootbuffer.BPB_RsvdSecCnt = 1;
+				bootbuffer.BPB_NumFATs = 2;
+				bootbuffer.BPB_RootEntCnt = 64;
+				bootbuffer.BPB_TotSec16 = 320;
+				bootbuffer.BPB_Media = mdesc;
+				bootbuffer.BPB_FATSz16 = 1;
+				bootbuffer.BPB_SecPerTrk = 8;
+				bootbuffer.BPB_NumHeads = 1;
 				bootbuffer.magic1 = 0x55;	// to silence warning
 				bootbuffer.magic2 = 0xaa;
 				if (!(mdesc & 0x2)) {
 					/* Adjust for 9 sectors per track */
-					bootbuffer.totalsectorcount = 360;
-					bootbuffer.sectorsperfat = 2;
-					bootbuffer.sectorspertrack = 9;
+					bootbuffer.BPB_TotSec16 = 360;
+					bootbuffer.BPB_FATSz16 = 2;
+					bootbuffer.BPB_SecPerTrk = 9;
 				}
 				if (mdesc & 0x1) {
 					/* Adjust for 2 sides */
 					bootbuffer.BPB_SecPerClus = 2;
-					bootbuffer.rootdirentries = 112;
-					bootbuffer.totalsectorcount *= 2;
-					bootbuffer.headcount = 2;
+					bootbuffer.BPB_RootEntCnt = 112;
+					bootbuffer.BPB_TotSec16 *= 2;
+					bootbuffer.BPB_NumHeads = 2;
 				}
 			} else {
 				/* Unknown format */
@@ -1355,15 +1355,15 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	}
 
     LOG_MSG("FAT: BPB says %u sectors/track %u heads %u bytes/sector",
-        bootbuffer.sectorspertrack,
-        bootbuffer.headcount,
+        bootbuffer.BPB_SecPerTrk,
+        bootbuffer.BPB_NumHeads,
         bootbuffer.BPB_BytsPerSec);
 
-    /* NTS: Some HDI images of PC-98 games do in fact have headcount == 0. Some like "Amaranth 5" have sectorspertrack == 0 too! */
+    /* NTS: Some HDI images of PC-98 games do in fact have BPB_NumHeads == 0. Some like "Amaranth 5" have BPB_SecPerTrk == 0 too! */
     if (!IS_PC98_ARCH) {
         /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
-        if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
-            (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
+        if (bootbuffer.BPB_SecPerTrk == 0 || (bootbuffer.BPB_SecPerTrk > ((filesize <= 3000) ? 40 : 255)) ||
+            (bootbuffer.BPB_NumHeads > ((filesize <= 3000) ? 64 : 255))) {
             LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
             created_successfully = false;
             return;
@@ -1415,7 +1415,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         }
     }
 
-	if (bootbuffer.sectorsperfat == 0) {
+	if (bootbuffer.BPB_FATSz16 == 0) {
 		/* FAT32 not implemented yet */
 		LOG_MSG("FAT32 not implemented yet, mounting image only");
 		fattype = FAT32;	// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well
@@ -1437,12 +1437,12 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
      *      Second, there are some HDI images that are valid yet the FAT filesystem reports a head count of 0
      *      for some reason (Touhou Project) */
 	if ((bootbuffer.BPB_SecPerClus == 0) ||
-		(bootbuffer.rootdirentries == 0) ||
-		(bootbuffer.fatcopies == 0) ||
-		(bootbuffer.headcount == 0 && !IS_PC98_ARCH) ||
-		(bootbuffer.headcount > headscyl && !IS_PC98_ARCH) ||
-		(bootbuffer.sectorspertrack == 0 && !IS_PC98_ARCH) ||
-		(bootbuffer.sectorspertrack > cylsector && !IS_PC98_ARCH)) {
+		(bootbuffer.BPB_RootEntCnt == 0) ||
+		(bootbuffer.BPB_NumFATs == 0) ||
+		(bootbuffer.BPB_NumHeads == 0 && !IS_PC98_ARCH) ||
+		(bootbuffer.BPB_NumHeads > headscyl && !IS_PC98_ARCH) ||
+		(bootbuffer.BPB_SecPerTrk == 0 && !IS_PC98_ARCH) ||
+		(bootbuffer.BPB_SecPerTrk > cylsector && !IS_PC98_ARCH)) {
 		LOG_MSG("Sanity checks failed");
 		created_successfully = false;
 		return;
@@ -1481,24 +1481,24 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     }
 
 	/* Filesystem must be contiguous to use absolute sectors, otherwise CHS will be used */
-	absolute = IS_PC98_ARCH || ((bootbuffer.headcount == headscyl) && (bootbuffer.sectorspertrack == cylsector));
+	absolute = IS_PC98_ARCH || ((bootbuffer.BPB_NumHeads == headscyl) && (bootbuffer.BPB_SecPerTrk == cylsector));
 	LOG(LOG_DOSMISC,LOG_DEBUG)("FAT driver: Using %s sector access",absolute ? "absolute" : "C/H/S");
 
 	/* Determine FAT format, 12, 16 or 32 */
 
 	/* Get size of root dir in sectors */
-	Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32u) + (bootbuffer.BPB_BytsPerSec - 1u)) / bootbuffer.BPB_BytsPerSec;
+	Bit32u RootDirSectors = ((bootbuffer.BPB_RootEntCnt * 32u) + (bootbuffer.BPB_BytsPerSec - 1u)) / bootbuffer.BPB_BytsPerSec;
 	Bit32u DataSectors;
-	if(bootbuffer.totalsectorcount != 0) {
-		DataSectors = (Bitu)bootbuffer.totalsectorcount - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
+	if(bootbuffer.BPB_TotSec16 != 0) {
+		DataSectors = (Bitu)bootbuffer.BPB_TotSec16 - ((Bitu)bootbuffer.BPB_RsvdSecCnt + ((Bitu)bootbuffer.BPB_NumFATs * (Bitu)bootbuffer.BPB_FATSz16) + (Bitu)RootDirSectors);
 	} else {
-		DataSectors = (Bitu)bootbuffer.totalsecdword - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
+		DataSectors = (Bitu)bootbuffer.BPB_TotSec32 - ((Bitu)bootbuffer.BPB_RsvdSecCnt + ((Bitu)bootbuffer.BPB_NumFATs * (Bitu)bootbuffer.BPB_FATSz16) + (Bitu)RootDirSectors);
 
 	}
 	CountOfClusters = DataSectors / bootbuffer.BPB_SecPerClus;
 
-	firstDataSector = ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
-	firstRootDirSect = (Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)partSectOff;
+	firstDataSector = ((Bitu)bootbuffer.BPB_RsvdSecCnt + ((Bitu)bootbuffer.BPB_NumFATs * (Bitu)bootbuffer.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+	firstRootDirSect = (Bitu)bootbuffer.BPB_RsvdSecCnt + ((Bitu)bootbuffer.BPB_NumFATs * (Bitu)bootbuffer.BPB_FATSz16) + (Bitu)partSectOff;
 
 	if(CountOfClusters < 4085) {
 		/* Volume is FAT12 */
@@ -1799,7 +1799,7 @@ nextfile:
 	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
-		if(dirPos >= bootbuffer.rootdirentries) {
+		if(dirPos >= bootbuffer.BPB_RootEntCnt) {
 			if (faux<255) {
 				dpos[faux]=0;
 				dnum[faux]=0;
@@ -1997,7 +1997,7 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
-			if(dirPos >= bootbuffer.rootdirentries) return false;
+			if(dirPos >= bootbuffer.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {
@@ -2033,7 +2033,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, const direntry *useEntry, 
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
-			if(dirPos >= bootbuffer.rootdirentries) return false;
+			if(dirPos >= bootbuffer.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {
@@ -2072,7 +2072,7 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry
 		Bit32u entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector)); /* Index offset within sector */
 
 		if(dirClustNumber==0) {
-			if(dirPos >= bootbuffer.rootdirentries) return false;
+			if(dirPos >= bootbuffer.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {

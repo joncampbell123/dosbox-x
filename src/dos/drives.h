@@ -148,20 +148,25 @@ struct FAT_BootSector {
     Bit8u       BS_jmpBoot[3];                      /* offset 0x000 size 0x003 Jump instruction to boot code. Formerly nearjmp[3] */
     Bit8u       BS_OEMName[8];                      /* offset 0x003 size 0x008 OEM string. Formerly oemname[8] */
     /* --------- BIOS Parameter Block (converted in place from existing DOSBox-X code) */
+    /* ---- MS-DOS 2.0 BPB */
     Bit16u      BPB_BytsPerSec;                     /* offset 0x00B size 0x002 Bytes per sector. Formerly bytespersector */
     Bit8u       BPB_SecPerClus;                     /* offset 0x00D size 0x001 Sectors per cluster, must be a power of 2. Formerly sectorspercluster */
+    Bit16u      BPB_RsvdSecCnt;                     /* offset 0x00E size 0x002 Number of reserved sectors starting from partition, to FAT table. reservedsectors */
+    Bit8u       BPB_NumFATs;                        /* offset 0x010 size 0x001 Number of FAT tables. fatcopies */
+    Bit16u      BPB_RootEntCnt;                     /* offset 0x011 size 0x002 Number of 32-byte root directories (FAT12/FAT16), or 0 (FAT32). rootdirentries */
+    Bit16u      BPB_TotSec16;                       /* offset 0x013 size 0x002 Total sectors of volume if count < 0x10000, or 0 if not. 0 if FAT32. totalsectorcount */
+    Bit8u       BPB_Media;                          /* offset 0x015 size 0x001 Media type byte. mediadescriptor */
+    Bit16u      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
+    /* ---- MS-DOS 3.0 BPB */
+    Bit16u      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
+    Bit16u      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
+    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+                                                    /* offset 0x01C size 0x002 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.0) */
+                                                    /* offset 0x01E size 0x002 Total sectors including hidden (?) if BPB_TotSec16 != 0 (MS-DOS 3.20) */
+    /* ---- MS-DOS 3.31 BPB */
+    Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
     /* --------- NOT YET CONVERTED ---------- */
-    Bit16u reservedsectors;
-    Bit8u  fatcopies;
-    Bit16u rootdirentries;
-    Bit16u totalsectorcount;
-    Bit8u  mediadescriptor;
-    Bit16u sectorsperfat;
-    Bit16u sectorspertrack;
-    Bit16u headcount;
     /* 32-bit FAT extensions */
-    Bit32u hiddensectorcount;
-    Bit32u totalsecdword;
     Bit8u  bootcode[474];
     Bit8u  magic1; /* 0x55 */
     Bit8u  magic2; /* 0xaa */

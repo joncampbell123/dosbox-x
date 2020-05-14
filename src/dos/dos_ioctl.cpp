@@ -188,7 +188,7 @@ bool DOS_IOCTL(void) {
 					fdp = dynamic_cast<fatDrive*>(Drives[drive]);
 					if (fdp != NULL) {
 						bootbuffer=fdp->GetBootBuffer();
-						if (bootbuffer.BPB_BytsPerSec&&bootbuffer.mediadescriptor)
+						if (bootbuffer.BPB_BytsPerSec&&bootbuffer.BPB_Media)
 							usereal=true;
 					}
 				}
@@ -197,16 +197,16 @@ bool DOS_IOCTL(void) {
 						mem_writew(ptr+4,fdp->loadedDisk->cylinders);			// num of cylinders
 					mem_writew(ptr+7,bootbuffer.BPB_BytsPerSec);				// bytes per sector (Win3 File Mgr. uses it)
 					mem_writew(ptr+9,bootbuffer.BPB_SecPerClus);				// sectors per cluster
-					mem_writew(ptr+0xa,bootbuffer.reservedsectors);				// number of reserved sectors
-					mem_writew(ptr+0xc,bootbuffer.fatcopies);					// number of FATs
-					mem_writew(ptr+0xd,bootbuffer.rootdirentries);				// number of root entries
-					mem_writew(ptr+0xf,bootbuffer.totalsectorcount);			// number of small sectors
-					mem_writew(ptr+0x11,bootbuffer.mediadescriptor);			// media type
-					mem_writew(ptr+0x12,(uint16_t)bootbuffer.sectorsperfat);	// sectors per FAT
-					mem_writew(ptr+0x14,(uint16_t)bootbuffer.sectorspertrack);	// sectors per track
-					mem_writew(ptr+0x16,(uint16_t)bootbuffer.headcount);		// number of heads
-					mem_writed(ptr+0x18,(uint32_t)bootbuffer.hiddensectorcount);// number of hidden sectors
-					mem_writed(ptr+0x1c,(uint32_t)bootbuffer.totalsecdword); 	// number of big sectors
+					mem_writew(ptr+0xa,bootbuffer.BPB_RsvdSecCnt);				// number of reserved sectors
+					mem_writew(ptr+0xc,bootbuffer.BPB_NumFATs);					// number of FATs
+					mem_writew(ptr+0xd,bootbuffer.BPB_RootEntCnt);				// number of root entries
+					mem_writew(ptr+0xf,bootbuffer.BPB_TotSec16);				// number of small sectors
+					mem_writew(ptr+0x11,bootbuffer.BPB_Media);					// media type
+					mem_writew(ptr+0x12,(uint16_t)bootbuffer.BPB_FATSz16);		// sectors per FAT
+					mem_writew(ptr+0x14,(uint16_t)bootbuffer.BPB_SecPerTrk);	// sectors per track
+					mem_writew(ptr+0x16,(uint16_t)bootbuffer.BPB_NumHeads);		// number of heads
+					mem_writed(ptr+0x18,(uint32_t)bootbuffer.BPB_HiddSec);		// number of hidden sectors
+					mem_writed(ptr+0x1c,(uint32_t)bootbuffer.BPB_TotSec32); 	// number of big sectors
 				} else {
 					mem_writew(ptr+7,0x0200);									// bytes per sector (Win3 File Mgr. uses it)
 					mem_writew(ptr+9,(drive>=2)?0x20:0x01);						// sectors per cluster
