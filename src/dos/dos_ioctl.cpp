@@ -195,18 +195,36 @@ bool DOS_IOCTL(void) {
 				if (usereal) {
 					if (fdp->loadedDisk != NULL)
 						mem_writew(ptr+4,fdp->loadedDisk->cylinders);           // num of cylinders
-					mem_writew(ptr+7,bpb.v.BPB_BytsPerSec);                     // bytes per sector (Win3 File Mgr. uses it)
-					mem_writew(ptr+9,bpb.v.BPB_SecPerClus);                     // sectors per cluster
-					mem_writew(ptr+0xa,bpb.v.BPB_RsvdSecCnt);			        // number of reserved sectors
-					mem_writew(ptr+0xc,bpb.v.BPB_NumFATs);				        // number of FATs
-					mem_writew(ptr+0xd,bpb.v.BPB_RootEntCnt);			        // number of root entries
-					mem_writew(ptr+0xf,bpb.v.BPB_TotSec16);                     // number of small sectors
-					mem_writew(ptr+0x11,bpb.v.BPB_Media);                       // media type
-					mem_writew(ptr+0x12,(uint16_t)bpb.v.BPB_FATSz16);           // sectors per FAT
-					mem_writew(ptr+0x14,(uint16_t)bpb.v.BPB_SecPerTrk);         // sectors per track
-					mem_writew(ptr+0x16,(uint16_t)bpb.v.BPB_NumHeads);	        // number of heads
-					mem_writed(ptr+0x18,(uint32_t)bpb.v.BPB_HiddSec);           // number of hidden sectors
-					mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          // number of big sectors
+
+					if (bpb.is_fat32()) {
+						/* Windows 98 behavior: Some of the FAT32 BPB fields are translated into FAT16 BPB fields even though those fields are zero in the actual BPB */
+						mem_writew(ptr+7,bpb.v32.BPB_BytsPerSec);                   // bytes per sector (Win3 File Mgr. uses it)
+						mem_writew(ptr+9,bpb.v32.BPB_SecPerClus);                   // sectors per cluster
+						mem_writew(ptr+0xa,bpb.v32.BPB_RsvdSecCnt);                 // number of reserved sectors
+						mem_writew(ptr+0xc,bpb.v32.BPB_NumFATs);                    // number of FATs
+						mem_writew(ptr+0xd,0x200);                                  // number of root entries (Fake, the real BPB value is zero)
+						mem_writew(ptr+0xf,0);                                      // number of small sectors (always zero on BPB and returned by Win98)
+						mem_writew(ptr+0x11,bpb.v32.BPB_Media);                     // media type
+						mem_writew(ptr+0x12,(uint16_t)bpb.v32.BPB_FATSz32);         // sectors per FAT (FIXME: What does Win98 do if this value > 0xFFFF?)
+						mem_writew(ptr+0x14,(uint16_t)bpb.v32.BPB_SecPerTrk);       // sectors per track
+						mem_writew(ptr+0x16,(uint16_t)bpb.v32.BPB_NumHeads);	    // number of heads
+						mem_writed(ptr+0x18,(uint32_t)bpb.v32.BPB_HiddSec);         // number of hidden sectors
+						mem_writed(ptr+0x1c,(uint32_t)bpb.v32.BPB_TotSec32);        // number of big sectors
+					}
+					else {
+						mem_writew(ptr+7,bpb.v.BPB_BytsPerSec);                     // bytes per sector (Win3 File Mgr. uses it)
+						mem_writew(ptr+9,bpb.v.BPB_SecPerClus);                     // sectors per cluster
+						mem_writew(ptr+0xa,bpb.v.BPB_RsvdSecCnt);                   // number of reserved sectors
+						mem_writew(ptr+0xc,bpb.v.BPB_NumFATs);                      // number of FATs
+						mem_writew(ptr+0xd,bpb.v.BPB_RootEntCnt);			        // number of root entries
+						mem_writew(ptr+0xf,bpb.v.BPB_TotSec16);                     // number of small sectors
+						mem_writew(ptr+0x11,bpb.v.BPB_Media);                       // media type
+						mem_writew(ptr+0x12,(uint16_t)bpb.v.BPB_FATSz16);           // sectors per FAT
+						mem_writew(ptr+0x14,(uint16_t)bpb.v.BPB_SecPerTrk);         // sectors per track
+						mem_writew(ptr+0x16,(uint16_t)bpb.v.BPB_NumHeads);          // number of heads
+						mem_writed(ptr+0x18,(uint32_t)bpb.v.BPB_HiddSec);           // number of hidden sectors
+						mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          // number of big sectors
+					}
 				} else {
 					mem_writew(ptr+7,0x0200);									// bytes per sector (Win3 File Mgr. uses it)
 					mem_writew(ptr+9,(drive>=2)?0x20:0x01);						// sectors per cluster
