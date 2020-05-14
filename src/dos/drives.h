@@ -186,7 +186,28 @@ struct FAT_BPB_MSDOS331 {
     Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
 } GCC_ATTRIBUTE(packed);                            /*    ==> 0x024 size 0x019 total */
 
-typedef struct FAT_BPB_MSDOS331 FAT_BPB_MSDOS;      /* what we use internally */
+struct FAT_BPB_MSDOS40 { /* FAT12/FAT16 only */
+    Bit16u      BPB_BytsPerSec;                     /* offset 0x00B size 0x002 Bytes per sector. Formerly bytespersector */
+    Bit8u       BPB_SecPerClus;                     /* offset 0x00D size 0x001 Sectors per cluster, must be a power of 2. Formerly sectorspercluster */
+    Bit16u      BPB_RsvdSecCnt;                     /* offset 0x00E size 0x002 Number of reserved sectors starting from partition, to FAT table. reservedsectors */
+    Bit8u       BPB_NumFATs;                        /* offset 0x010 size 0x001 Number of FAT tables. fatcopies */
+    Bit16u      BPB_RootEntCnt;                     /* offset 0x011 size 0x002 Number of 32-byte root directories (FAT12/FAT16), or 0 (FAT32). rootdirentries */
+    Bit16u      BPB_TotSec16;                       /* offset 0x013 size 0x002 Total sectors of volume if count < 0x10000, or 0 if not. 0 if FAT32. totalsectorcount */
+    Bit8u       BPB_Media;                          /* offset 0x015 size 0x001 Media type byte. mediadescriptor */
+    Bit16u      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
+    Bit16u      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
+    Bit16u      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
+    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+    Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
+    Bit8u       BPB_DrvNum;                         /* offset 0x024 size 0x001 Physical (INT 13h) drive number */
+    Bit8u       BPB_Reserved1;                      /* offset 0x025 size 0x001 Reserved? */
+    Bit8u       BPB_BootSig;                        /* offset 0x026 size 0x001 Extended boot signature. 0x29 or 0x28 to indicate following members exist. */
+    Bit32u      BPB_VolID;                          /* offset 0x027 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
+    Bit8u       BPB_VolLab[11];                     /* offset 0x02B size 0x00B Volume label, if BPB_BootSig is 0x28 or 0x29. */
+    Bit8u       BPB_FilSysType[8];                  /* offset 0x036 size 0x008 File system type, for display purposes if BPB_BootSig is 0x29. */
+} GCC_ATTRIBUTE(packed);                            /*    ==> 0x044 size 0x039 total */
+
+typedef struct FAT_BPB_MSDOS40 FAT_BPB_MSDOS;       /* what we use internally */
 
 struct FAT_BootSector {
     /* --------- Common fields: Amalgam of Wikipedia documentation with names from Microsoft's FAT32 whitepaper */
@@ -197,6 +218,7 @@ struct FAT_BootSector {
         struct FAT_BPB_MSDOS20              v20;    /* offset 0x00B size 0x00D MS-DOS 2.0 BPB */
         struct FAT_BPB_MSDOS30              v30;    /* offset 0x00B size 0x015 MS-DOS 3.0 BPB */
         struct FAT_BPB_MSDOS331             v331;   /* offset 0x00B size 0x019 MS-DOS 3.31 BPB */
+        struct FAT_BPB_MSDOS40              v40;    /* offset 0x00B size 0x039 MS-DOS 4.0 BPB */
 
         FAT_BPB_MSDOS                       v;      /* offset 0x00B ... */
     } bpb;
@@ -214,13 +236,17 @@ struct FAT_BootSector {
 static_assert(offsetof(FAT_BootSector,bpb.v20) == 0x00B,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v30) == 0x00B,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v331) == 0x00B,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v40) == 0x00B,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v) == 0x00B,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v20.BPB_TotSec16) == 0x013,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v30.BPB_TotSec16) == 0x013,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v331.BPB_TotSec16) == 0x013,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_TotSec16) == 0x013,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v.BPB_TotSec16) == 0x013,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v331.BPB_TotSec32) == 0x020,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v30.BPB_HiddSec) == 0x01C,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_TotSec32) == 0x020,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_VolLab) == 0x02B,"Oops");
 static_assert(sizeof(FAT_BootSector) == SECTOR_SIZE_MAX,"Oops");
 
 struct direntry {
