@@ -994,7 +994,8 @@ bool DOS_GetFreeDiskSpace(Bit8u drive,Bit16u * bytes,Bit8u * sectors,Bit16u * cl
 
 	{
 		Bit32u bytes32,sectors32,clusters32,free32;
-		if (dos.version.major >= 7 && Drives[drive]->AllocationInfo32(&bytes32,&sectors32,&clusters32,&free32) &&
+		if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
+			Drives[drive]->AllocationInfo32(&bytes32,&sectors32,&clusters32,&free32) &&
 			DOS_CommonFAT32FAT16DiskSpaceConv(bytes,sectors,clusters,free,bytes32,sectors32,clusters32,free32))
 			return true;
 	}

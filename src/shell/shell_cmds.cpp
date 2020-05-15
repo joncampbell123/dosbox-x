@@ -1245,12 +1245,22 @@ void DOS_Shell::CMD_DIR(char * args) {
 		//TODO Free Space
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
-			Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
-			rsize=true;
-			freec=0;
-			Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-			free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
-			rsize=false;
+			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* FAT32 aware extended API */
+				Bit32u bytes_sector;Bit32u sectors_cluster;Bit32u total_clusters;Bit32u free_clusters;
+				rsize=true;
+				freec=0;
+				Drives[drive]->AllocationInfo32(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
+				free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
+				rsize=false;
+			}
+			else {
+				Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+				rsize=true;
+				freec=0;
+				Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
+				free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
+				rsize=false;
+			}
 		}
 		FormatNumber(free_space,numformat);
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
