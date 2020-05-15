@@ -440,6 +440,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive) {
         case 0x4A:
         case 0x4B:
         case 0x61:
+        case 0x62:
         case 0x6A:
         case 0x6B:
             return DOS_IOCTL_AX440D_CH08(drive);
