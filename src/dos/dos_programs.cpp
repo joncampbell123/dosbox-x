@@ -4317,6 +4317,7 @@ private:
         Bitu startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
         Bitu endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
 
+        Bitu ptype = buf[0x1c2];
         Bitu heads = buf[0x1c3] + 1u;
         Bitu sectors = buf[0x1c4] & 0x3fu;
 
@@ -4357,6 +4358,14 @@ private:
 		}
 
 		bool assume_lba = false;
+
+		/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
+		 * then assume LBA and make up a geometry */
+		if (!yet_detected && (ptype == 0x0C/*FAT32+LBA*/ || ptype == 0x0E/*FAT16+LBA*/)) {
+			yet_detected = 1;
+			assume_lba = true;
+			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
+		}
 
 		/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
 		 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
