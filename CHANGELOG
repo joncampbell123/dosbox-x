@@ -1,4 +1,7 @@
 0.83.2
+  - Added FAT32 INT21h and IOCTLs needed by Windows 98 versions
+    of SCANDISK.EXE and FORMAT.COM.
+  - Added basic FAT32 support to the FAT driver.
   - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
     PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - Added DOS functions for "FAT32 extended" absolute disk
