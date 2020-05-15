@@ -1,4 +1,13 @@
 0.83.2
+  - Shell DIR command updated to use FAT32 free space API
+    to show free space even on FAT32 partitions larger
+    than 2GB, but only if the DOS version is set to 7.10
+    or higher.
+  - FAT driver now provides FAT32 extended disk free/total
+    through FAT32 API and 2GB limited free/total through
+    INT 21h AH=36h for older DOS programs.
+  - Added FAT32 free/total disk space API for FAT driver, and
+    updated INT 21h AX=7303h to call it.
   - Added FAT32 INT21h and IOCTLs needed by Windows 98 versions
     of SCANDISK.EXE and FORMAT.COM.
   - Added basic FAT32 support to the FAT driver.
