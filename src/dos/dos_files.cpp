@@ -1014,7 +1014,7 @@ bool DOS_GetFreeDiskSpace32(Bit8u drive,Bit32u * bytes,Bit32u * sectors,Bit32u *
 		return false;
 	}
 
-	if (dos.version.major >= 7 && Drives[drive]->AllocationInfo32(bytes,sectors,clusters,free))
+	if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) && Drives[drive]->AllocationInfo32(bytes,sectors,clusters,free))
 		return true;
 
 	{
