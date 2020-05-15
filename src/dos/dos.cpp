@@ -1997,6 +1997,63 @@ static Bitu DOS_21Handler(void) {
 				reg_al = reg_cl;
 				reg_ah = 0;
 				CALLBACK_SCF(false);
+			} else if (reg_al==2) {
+				Bit32u ptr = SegPhys(es)+reg_di;
+				Bit8u drive;
+
+				/* AX=7302h
+				 * DL=drive
+				 * ES:DI=buffer to return data into
+				 * CX=length of buffer (Windows 9x uses 0x3F)
+				 * SI=??? */
+
+				if (reg_dl != 0) /* 1=A: 2=B: ... */
+					drive = reg_dl - 1;
+				else /* 0=default */
+					drive = DOS_GetDefaultDrive();
+
+				if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable() && reg_cx >= 0x3F) {
+					fatDrive *fdp;
+					FAT_BootSector::bpb_union_t bpb;
+					if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+						fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+						if (fdp != NULL) {
+							bpb=fdp->GetBPB();
+							if (bpb.is_fat32()) {
+								unsigned char tmp[24];
+
+								mem_writew(ptr+0x00,0x3D);                                  // length of data (Windows 98)
+								/* first 24 bytes after len is DPB */
+								{
+									const Bit32u srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
+									MEM_BlockRead(srcptr,tmp,24);
+									MEM_BlockWrite(ptr+0x02,tmp,24);
+								}
+								mem_writeb(ptr+0x1A,0x00);      // dpb flags
+								mem_writed(ptr+0x1B,0xFFFFFFFF);// ptr to next DPB if Windows 95 magic SI signature (TODO)
+								mem_writew(ptr+0x1F,2);         // cluster to start searching when writing (FIXME)
+								mem_writed(ptr+0x21,0xFFFFFFFF);// number of free clusters (FIXME: We just say unknown)
+								mem_writew(ptr+0x25,bpb.v32.BPB_ExtFlags);
+								mem_writew(ptr+0x27,bpb.v32.BPB_FSInfo);
+								mem_writew(ptr+0x29,bpb.v32.BPB_BkBootSec);
+								mem_writed(ptr+0x2B,fdp->GetFirstClusterOffset()); /* apparently cluster offset relative to the disk not volume */
+								mem_writed(ptr+0x2F,fdp->GetHighestClusterNumber());
+								mem_writed(ptr+0x33,bpb.v32.BPB_FATSz32);
+								mem_writed(ptr+0x37,bpb.v32.BPB_RootClus);
+								mem_writed(ptr+0x3B,2);         // cluster to start searching when writing (FIXME)
+
+								CALLBACK_SCF(false);
+								break;
+							}
+						}
+					}
+
+					reg_ax=0x18;//FIXME
+					CALLBACK_SCF(true);
+				} else {
+					reg_ax=0x18;//FIXME
+					CALLBACK_SCF(true);
+				}
 			} else if (reg_al==3) {
 				/* Get extended free disk space */
 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);

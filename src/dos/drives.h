@@ -439,6 +439,8 @@ public:
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable);
 	virtual void UpdateBootVolumeLabel(const char *label);
 	virtual Bit32u GetPartitionOffset(void);
+	virtual Bit32u GetFirstClusterOffset(void);
+	virtual Bit32u GetHighestClusterNumber(void);
 };
 
 PhysPt DOS_Get_DPB(unsigned int dos_drive);

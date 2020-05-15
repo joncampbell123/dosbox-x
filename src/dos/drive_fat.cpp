@@ -1133,10 +1133,20 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
         mem_writeb(ptr+0x08,BPB.v.BPB_NumFATs);                     // +8 = number of FATs (file allocation tables)
         mem_writew(ptr+0x09,BPB.v.BPB_RootEntCnt);                  // +9 = number of root directory entries
         mem_writew(ptr+0x0B,(uint16_t)(firstDataSector-partSectOff));// +11 = number of first sector containing user data
-        mem_writew(ptr+0x0D,(uint16_t)CountOfClusters + 1);         // +13 = highest cluster number
+
+        if (BPB.is_fat32())
+            mem_writew(ptr+0x0D,0);                                 // Windows 98 behavior
+        else
+            mem_writew(ptr+0x0D,(uint16_t)CountOfClusters + 1);     // +13 = highest cluster number
+
         mem_writew(ptr+0x0F,(uint16_t)BPB.v.BPB_FATSz16);           // +15 = sectors per FAT
-        mem_writew(ptr+0x11,(uint16_t)(firstRootDirSect-partSectOff));// +17 = sector number of first directory sector
-        mem_writed(ptr+0x13,0);                                     // +19 = address of device driver header (NOT IMPLEMENTED)
+
+        if (BPB.is_fat32())
+            mem_writew(ptr+0x11,0xFFFF);                            // Windows 98 behavior
+        else
+            mem_writew(ptr+0x11,(uint16_t)(firstRootDirSect-partSectOff));// +17 = sector number of first directory sector
+
+        mem_writed(ptr+0x13,0xFFFFFFFF);                            // +19 = address of device driver header (NOT IMPLEMENTED) Windows 98 behavior
         mem_writeb(ptr+0x17,GetMediaByte());                        // +23 = media ID byte
         mem_writeb(ptr+0x18,0x00);                                  // +24 = disk accessed
         mem_writew(ptr+0x1F,0xFFFF);                                // +31 = number of free clusters or 0xFFFF if unknown
@@ -2398,5 +2408,13 @@ bool fatDrive::TestDir(const char *dir) {
 
 Bit32u fatDrive::GetPartitionOffset(void) {
 	return partSectOff;
+}
+
+Bit32u fatDrive::GetFirstClusterOffset(void) {
+    return firstDataSector - partSectOff;
+}
+
+Bit32u fatDrive::GetHighestClusterNumber(void) {
+    return CountOfClusters + 1ul;
 }
 
