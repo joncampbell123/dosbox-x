@@ -2339,7 +2339,8 @@ bool fatDrive::RemoveDir(const char *dir) {
 
 	/* Find directory entry in parent directory */
 	if (dirClust==0) fileidx = 0;	// root directory
-	else fileidx = 2;
+	else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
+	else fileidx = 2; /* assume . and .. exist as first two entries */
 	bool found = false;
 	while(directoryBrowse(dirClust, &tmpentry, fileidx)) {
 		if(memcmp(&tmpentry.entryname, &pathName[0], 11) == 0) {
