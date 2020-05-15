@@ -1631,24 +1631,47 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	strcat(info, wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':'?sysFilename+1:sysFilename);
 }
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
 bool fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
 	Bit32u countFree = 0;
 	Bit32u i;
-	
+
 	*_bytes_sector = (Bit16u)getSectSize();
-	*_sectors_cluster = BPB.v.BPB_SecPerClus;
-	if (CountOfClusters<65536) *_total_clusters = (Bit16u)CountOfClusters;
-	else {
-		// maybe some special handling needed for fat32
-		*_total_clusters = 65535;
+
+	for(i=0;i<CountOfClusters;i++) {
+		if(!getClusterValue(i+2))
+			countFree++;
 	}
-	for(i=0;i<CountOfClusters;i++) if(!getClusterValue(i+2)) countFree++;
-	if (countFree<65536) *_free_clusters = (Bit16u)countFree;
-	else {
-		// maybe some special handling needed for fat32
-		*_free_clusters = 65535;
+
+	if (BPB.is_fat32()) {
+		Bit32u cdiv = 1;
+
+		/* This function is for the old API. It is necessary to adjust the values so that they never overflow
+		 * 16-bit unsigned integers and never multiply out to a number greater than just under 2GB. Because
+		 * old DOS programs use 32-bit signed integers for disk total/free and FAT12/FAT16 filesystem limitations. */
+		while ((CountOfClusters > 0xFFFFu || countFree > 0xFFFFu) && (BPB.v.BPB_SecPerClus * cdiv) <= 64u)
+			cdiv *= 2u;
+
+		const Bit32u clust2gb = (Bit32u)0x7FFF8000ul / (Bit32u)getSectSize() / (BPB.v.BPB_SecPerClus * cdiv);
+
+		*_sectors_cluster = BPB.v.BPB_SecPerClus * cdiv;
+		*_total_clusters = (Bit16u)MIN(MIN(CountOfClusters / cdiv,clust2gb),0xFFFFu);
+		*_free_clusters = (Bit16u)MIN(MIN(countFree / cdiv,clust2gb),0xFFFFu);
 	}
-	
+	else {
+		/* FAT12/FAT16 should never allow more than 0xFFF6 clusters and partitions larger than 2GB */
+		*_sectors_cluster = BPB.v.BPB_SecPerClus;
+		*_total_clusters = (Bit16u)MIN(CountOfClusters,0xFFFFu);
+		*_free_clusters = (Bit16u)MIN(countFree,0xFFFFu);
+	}
+
 	return true;
 }
 
