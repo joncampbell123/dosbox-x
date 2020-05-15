@@ -9,18 +9,18 @@
     updated INT 21h AX=7303h to call it.
   - Added FAT32 INT21h and IOCTLs needed by Windows 98 versions
     of SCANDISK.EXE and FORMAT.COM.
-  - Improved FAT32 support to the FAT driver, including direct
-    support for FAT32 drives in the DOSBox-X shell.
-  - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
-    PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - Added DOS functions for "FAT32 extended" absolute disk
     read and write used by FAT32-aware versions of FORMAT.COM
     and SCANDISK.EXE (shipped with Windows 95 OSR2 or later).
+  - Improved FAT32 support to the FAT driver, including direct
+    support for FAT32 drives in the DOSBox-X shell.
   - Added stub to DOS IOCTL "format device track" for FORMAT.COM.
   - Added DOS IOCTL read/write logical device track functions
     so that FORMAT.COM is able to verify and modify the partition
     table to successfully format a hard drive image.
   - Fixed SYS command not working properly (Wengier) 
+  - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
+    PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
     attributes in order to prevent filesystem corruption.
