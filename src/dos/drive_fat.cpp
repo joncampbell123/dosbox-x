@@ -409,10 +409,18 @@ Bit32u fatDrive::getClusterValue(Bit32u clustNum) {
 	fatsectnum = BPB.v.BPB_RsvdSecCnt + (fatoffset / BPB.v.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % BPB.v.BPB_BytsPerSec;
 
-	if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
-		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-		return 0;
-	}
+    if (BPB.is_fat32()) {
+        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
+            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+            return 0;
+        }
+    }
+    else {
+        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
+            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to read cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+            return 0;
+        }
+    }
 
     assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
 
@@ -437,7 +445,7 @@ Bit32u fatDrive::getClusterValue(Bit32u clustNum) {
 			clustValue = *((Bit16u *)&fatSectBuffer[fatentoff]);
 			break;
 		case FAT32:
-			clustValue = *((Bit32u *)&fatSectBuffer[fatentoff]);
+			clustValue = *((Bit32u *)&fatSectBuffer[fatentoff]) & 0x0FFFFFFFul; /* Well, actually it's FAT28. Upper 4 bits are "reserved". */
 			break;
 	}
 
@@ -463,10 +471,18 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	fatsectnum = BPB.v.BPB_RsvdSecCnt + (fatoffset / BPB.v.BPB_BytsPerSec) + partSectOff;
 	fatentoff = fatoffset % BPB.v.BPB_BytsPerSec;
 
-	if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
-		LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
-		return;
-	}
+    if (BPB.is_fat32()) {
+        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v32.BPB_FATSz32 + partSectOff)) {
+            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+            return;
+        }
+    }
+    else {
+        if (fatsectnum >= (BPB.v.BPB_RsvdSecCnt + BPB.v.BPB_FATSz16 + partSectOff)) {
+            LOG(LOG_DOSMISC,LOG_ERROR)("Attempt to write cluster entry from FAT that out of range (outside the FAT table) cluster %u",(unsigned int)clustNum);
+            return;
+        }
+    }
 
     assert((BPB.v.BPB_BytsPerSec * (Bitu)2) <= sizeof(fatSectBuffer));
 
@@ -628,13 +644,18 @@ void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/)
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry) {
 	size_t len = strlen(filename);
 	char dirtoken[DOS_PATHLENGTH];
-	Bit32u currentClust = 0;
+	Bit32u currentClust = 0; /* FAT12/FAT16 root directory */
 
 	direntry foundEntry;
 	char * findDir;
 	char * findFile;
 	strcpy(dirtoken,filename);
 	findFile=dirtoken;
+
+	if (BPB.is_fat32()) {
+		/* Set to FAT32 root directory */
+		currentClust = BPB.v32.BPB_RootClus;
+	}
 
 	int fbak=faux;
 	faux=256;
@@ -686,6 +707,12 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 	/* Skip if testing for root directory */
 	if ((len>0) && (dir[len-1]!='\\')) {
 		Bit32u currentClust = 0;
+
+        if (BPB.is_fat32()) {
+            /* Set to FAT32 root directory */
+            currentClust = BPB.v32.BPB_RootClus;
+        }
+
 		//LOG_MSG("Testing for dir %s", dir);
 		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
@@ -709,6 +736,9 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 
 		}
 		*clustNum = currentClust;
+	} else if (BPB.is_fat32()) {
+		/* Set to FAT32 root directory */
+		*clustNum = BPB.v32.BPB_RootClus;
 	} else {
 		/* Set to root directory */
 		*clustNum = 0;
@@ -1428,14 +1458,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         }
     }
 
-	if (BPB.is_fat32()) {
-		/* FAT32 not implemented yet */
-		LOG_MSG("FAT32 not implemented yet, mounting image only");
-		fattype = FAT32;	// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well
-		created_successfully = false;
-		return;
-	}
-
 	/* Sanity checks */
     /* NTS: DOSBox-X *does* support non-standard sector sizes, though not in IBM PC mode and not through INT 13h.
      *      In DOSBox-X INT 13h emulation will enforce the standard (512 byte) sector size.
@@ -1450,7 +1472,6 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
      *      Second, there are some HDI images that are valid yet the FAT filesystem reports a head count of 0
      *      for some reason (Touhou Project) */
 	if ((BPB.v.BPB_SecPerClus == 0) ||
-		(BPB.v.BPB_RootEntCnt == 0) ||
 		(BPB.v.BPB_NumFATs == 0) ||
 		(BPB.v.BPB_NumHeads == 0 && !IS_PC98_ARCH) ||
 		(BPB.v.BPB_NumHeads > headscyl && !IS_PC98_ARCH) ||
@@ -1460,6 +1481,22 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		created_successfully = false;
 		return;
 	}
+
+    /* Sanity check: Root directory count is nonzero if FAT16/FAT12, or is zero if FAT32 */
+    if (BPB.is_fat32()) {
+        if (BPB.v.BPB_RootEntCnt != 0) {
+            LOG_MSG("Sanity check fail: Root directory count != 0 and not FAT32");
+            created_successfully = false;
+            return;
+        }
+    }
+    else {
+        if (BPB.v.BPB_RootEntCnt == 0) {
+            LOG_MSG("Sanity check fail: Root directory count == 0 and not FAT32");
+            created_successfully = false;
+            return;
+        }
+    }
 
     /* too much of this code assumes 512 bytes per sector or more.
      * MS-DOS itself as I understand it relies on bytes per sector being a power of 2.
@@ -1500,18 +1537,56 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	/* Determine FAT format, 12, 16 or 32 */
 
 	/* Get size of root dir in sectors */
-	Bit32u RootDirSectors = ((BPB.v.BPB_RootEntCnt * 32u) + (BPB.v.BPB_BytsPerSec - 1u)) / BPB.v.BPB_BytsPerSec;
+	Bit32u RootDirSectors;
 	Bit32u DataSectors;
-	if(BPB.v.BPB_TotSec16 != 0) {
-		DataSectors = (Bitu)BPB.v.BPB_TotSec16 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
-	} else {
-		DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
 
-	}
-	CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
+    if (BPB.is_fat32()) {
+        /* FAT32 requires use of TotSec32, TotSec16 must be zero. */
+        if (BPB.v.BPB_TotSec32 == 0) {
+            LOG_MSG("BPB_TotSec32 == 0 and FAT32 BPB, not valid");
+            created_successfully = false;
+            return;
+        }
+        if (BPB.v32.BPB_RootClus < 2) {
+            LOG_MSG("BPB_RootClus == 0 and FAT32 BPB, not valid");
+            created_successfully = false;
+            return;
+        }
+        if (BPB.v.BPB_FATSz16 != 0) {
+            LOG_MSG("BPB_FATSz16 != 0 and FAT32 BPB, not valid");
+            created_successfully = false;
+            return;
+        }
+        if (BPB.v32.BPB_FATSz32 == 0) {
+            LOG_MSG("BPB_FATSz32 == 0 and FAT32 BPB, not valid");
+            created_successfully = false;
+            return;
+        }
 
-	firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
-	firstRootDirSect = (Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)partSectOff;
+        RootDirSectors = 0; /* FAT32 root directory has it's own allocation chain, instead of a fixed location */
+        DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors);
+        CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
+        firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v32.BPB_FATSz32) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+        firstRootDirSect = 0;
+    }
+    else {
+        if (BPB.v.BPB_FATSz16 == 0) {
+            LOG_MSG("BPB_FATSz16 == 0 and not FAT32 BPB, not valid");
+            created_successfully = false;
+            return;
+        }
+
+        RootDirSectors = ((BPB.v.BPB_RootEntCnt * 32u) + (BPB.v.BPB_BytsPerSec - 1u)) / BPB.v.BPB_BytsPerSec;
+
+        if (BPB.v.BPB_TotSec16 != 0)
+            DataSectors = (Bitu)BPB.v.BPB_TotSec16 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
+        else
+            DataSectors = (Bitu)BPB.v.BPB_TotSec32 - ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors);
+
+        CountOfClusters = DataSectors / BPB.v.BPB_SecPerClus;
+        firstDataSector = ((Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+    	firstRootDirSect = (Bitu)BPB.v.BPB_RsvdSecCnt + ((Bitu)BPB.v.BPB_NumFATs * (Bitu)BPB.v.BPB_FATSz16) + (Bitu)partSectOff;
+    }
 
 	if(CountOfClusters < 4085) {
 		/* Volume is FAT12 */
@@ -1723,7 +1798,6 @@ bool fatDrive::FileUnlink(const char * name) {
 
 bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) {
     direntry dummyClust = {};
-	if(fattype==FAT32) return false;
 
     // volume label searches always affect root directory, no matter the current directory, at least with FCBs
     if (dta.GetAttr() & DOS_ATTR_VOLUME) {
@@ -1739,6 +1813,7 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
         }
     }
 
+	// FIXME: FAT32!!
 	if (faux>=255) {
 		dta.SetDirID(0);
 		dta.SetDirIDCluster((Bit16u)(cwdDirCluster&0xffff));
@@ -1746,6 +1821,7 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
 		dpos[faux]=0;
 		dnum[faux]=cwdDirCluster&0xffff;
 	}
+
 	return FindNextInternal(cwdDirCluster, dta, &dummyClust);
 }
 
@@ -1812,6 +1888,8 @@ nextfile:
 	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
+        assert(!BPB.is_fat32());
+
 		if(dirPos >= BPB.v.BPB_RootEntCnt) {
 			if (faux<255) {
 				dpos[faux]=0;
@@ -2010,7 +2088,8 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
-			if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+            assert(!BPB.is_fat32());
+            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {
@@ -2046,7 +2125,8 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, const direntry *useEntry, 
 		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
-			if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+            assert(!BPB.is_fat32());
+            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {
@@ -2085,7 +2165,8 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry
 		Bit32u entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector)); /* Index offset within sector */
 
 		if(dirClustNumber==0) {
-			if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+            assert(!BPB.is_fat32());
+            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
 			readSector(tmpsector,sectbuf);
 		} else {
