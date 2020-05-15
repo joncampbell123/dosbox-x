@@ -298,6 +298,14 @@ struct direntry {
 	Bit16u modDate;
 	Bit16u loFirstClust;
 	Bit32u entrysize;
+
+	inline Bit32u Cluster32(void) const {
+		return ((Bit32u)hiFirstClust << (Bit32u)16) + loFirstClust;
+	}
+	inline void SetCluster32(const Bit32u v) {
+		loFirstClust = (Bit16u)v;
+		hiFirstClust = (Bit16u)(v >> (Bit32u)16);
+	}
 } GCC_ATTRIBUTE(packed);
 
 #define MAX_DIRENTS_PER_SECTOR (SECTOR_SIZE_MAX / sizeof(direntry))
