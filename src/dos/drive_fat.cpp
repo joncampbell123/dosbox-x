@@ -2066,6 +2066,7 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
 		/* Find directory entry in parent directory */
 		Bit32s fileidx = 2;
 		if (dirClust==0) fileidx = 0;	// root directory
+		else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
 		Bit32s last_idx=0;
 		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
 			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
@@ -2100,6 +2101,7 @@ bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
 		/* Find directory entry in parent directory */
 		Bit32s fileidx = 2;
 		if (dirClust==0) fileidx = 0;	// root directory
+		else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
 		Bit32s last_idx=0; 
 		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
 			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
