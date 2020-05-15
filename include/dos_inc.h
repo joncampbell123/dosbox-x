@@ -199,6 +199,7 @@ bool DOS_MakeDir(char const * const dir);
 bool DOS_RemoveDir(char const * const dir);
 bool DOS_Rename(char const * const oldname,char const * const newname);
 bool DOS_GetFreeDiskSpace(Bit8u drive,Bit16u * bytes,Bit8u * sectors,Bit16u * clusters,Bit16u * free);
+bool DOS_GetFreeDiskSpace32(Bit8u drive,Bit32u * bytes,Bit32u * sectors,Bit32u * clusters,Bit32u * free);
 bool DOS_GetFileAttr(char const * const name,Bit16u * attr);
 bool DOS_SetFileAttr(char const * const name,Bit16u attr);
 bool DOS_GetFileAttrEx(char const* const name, struct stat *status, Bit8u hdrive=-1);

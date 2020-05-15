@@ -1639,34 +1639,43 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 # define MAX(a,b) std::max(a,b)
 #endif
 
-bool fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
+bool fatDrive::AllocationInfo32(Bit32u * _bytes_sector,Bit32u * _sectors_cluster,Bit32u * _total_clusters,Bit32u * _free_clusters) {
 	Bit32u countFree = 0;
 	Bit32u i;
-
-	*_bytes_sector = (Bit16u)getSectSize();
 
 	for(i=0;i<CountOfClusters;i++) {
 		if(!getClusterValue(i+2))
 			countFree++;
 	}
 
+	*_bytes_sector = getSectSize();
+	*_sectors_cluster = BPB.v.BPB_SecPerClus;
+	*_total_clusters = CountOfClusters;
+	*_free_clusters = countFree;
+
+	return true;
+}
+
+bool fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
 	if (BPB.is_fat32()) {
-		Bit32u cdiv = 1;
+		Bit32u bytes32,sectors32,clusters32,free32;
+		if (AllocationInfo32(&bytes32,&sectors32,&clusters32,&free32) &&
+			DOS_CommonFAT32FAT16DiskSpaceConv(_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,bytes32,sectors32,clusters32,free32))
+			return true;
 
-		/* This function is for the old API. It is necessary to adjust the values so that they never overflow
-		 * 16-bit unsigned integers and never multiply out to a number greater than just under 2GB. Because
-		 * old DOS programs use 32-bit signed integers for disk total/free and FAT12/FAT16 filesystem limitations. */
-		while ((CountOfClusters > 0xFFFFu || countFree > 0xFFFFu) && (BPB.v.BPB_SecPerClus * cdiv) <= 64u)
-			cdiv *= 2u;
-
-		const Bit32u clust2gb = (Bit32u)0x7FFF8000ul / (Bit32u)getSectSize() / (BPB.v.BPB_SecPerClus * cdiv);
-
-		*_sectors_cluster = BPB.v.BPB_SecPerClus * cdiv;
-		*_total_clusters = (Bit16u)MIN(MIN(CountOfClusters / cdiv,clust2gb),0xFFFFu);
-		*_free_clusters = (Bit16u)MIN(MIN(countFree / cdiv,clust2gb),0xFFFFu);
+		return false;
 	}
 	else {
+		Bit32u countFree = 0;
+		Bit32u i;
+
+		for(i=0;i<CountOfClusters;i++) {
+			if(!getClusterValue(i+2))
+				countFree++;
+		}
+
 		/* FAT12/FAT16 should never allow more than 0xFFF6 clusters and partitions larger than 2GB */
+		*_bytes_sector = (Bit16u)getSectSize();
 		*_sectors_cluster = BPB.v.BPB_SecPerClus;
 		*_total_clusters = (Bit16u)MIN(CountOfClusters,0xFFFFu);
 		*_free_clusters = (Bit16u)MIN(countFree,0xFFFFu);

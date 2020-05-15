@@ -2064,11 +2064,10 @@ static Bitu DOS_21Handler(void) {
 					CALLBACK_SCF(true);
 					break;
 				}
-				Bit16u bytes_per_sector,total_clusters,free_clusters;
-				Bit8u sectors_per_cluster;
+				Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
 				rsize=true;
 				totalc=freec=0;
-				if (DOS_GetFreeDiskSpace(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+				if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
 				{
 					ext_space_info_t *info = new ext_space_info_t;
 					info->size_of_structure = sizeof(ext_space_info_t);

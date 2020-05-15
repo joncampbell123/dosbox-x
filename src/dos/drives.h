@@ -25,6 +25,10 @@
 #include "dos_system.h"
 #include "shell.h" /* for DOS_Shell */
 
+bool DOS_CommonFAT32FAT16DiskSpaceConv(
+		Bit16u * bytes,Bit8u * sectors,Bit16u * clusters,Bit16u * free,
+		const Bit32u bytes32,const Bit32u sectors32,const Bit32u clusters32,const Bit32u free32);
+
 bool WildFileCmp(const char * file, const char * wild);
 bool LWildFileCmp(const char * file, const char * wild);
 void Set_Label(char const * const input, char * const output, bool cdrom);
@@ -358,6 +362,7 @@ public:
 #endif
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters);
+	virtual bool AllocationInfo32(Bit32u * _bytes_sector,Bit32u * _sectors_cluster,Bit32u * _total_clusters,Bit32u * _free_clusters);
 	virtual bool FileExists(const char* name);
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block);
 	virtual Bit8u GetMediaByte(void);

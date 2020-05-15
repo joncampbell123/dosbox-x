@@ -949,6 +949,41 @@ bool DOS_Canonicalize(char const * const name,char * const big) {
 	return true;
 }
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
+/* Common routine to take larger allocation information (such as FAT32) and convert it to values
+ * that are suitable for use with older DOS programs that pre-date FAT32 and partitions 2GB or larger. 
+ * This is what Windows 95 OSR2 and higher do with FAT32 partitions anyway, as documented by Microsoft. */
+bool DOS_CommonFAT32FAT16DiskSpaceConv(
+		Bit16u * bytes,Bit8u * sectors,Bit16u * clusters,Bit16u * free,
+		const Bit32u bytes32,const Bit32u sectors32,const Bit32u clusters32,const Bit32u free32) {
+	Bit32u cdiv = 1;
+
+	if (sectors32 > 128 || bytes32 > 0x8000)
+		return false;
+
+	/* This function is for the old API. It is necessary to adjust the values so that they never overflow
+	 * 16-bit unsigned integers and never multiply out to a number greater than just under 2GB. Because
+	 * old DOS programs use 32-bit signed integers for disk total/free and FAT12/FAT16 filesystem limitations. */
+	while ((clusters32 > 0xFFFFu || free32 > 0xFFFFu) && (sectors32 * cdiv) <= 64u)
+		cdiv *= 2u;
+
+	/* The old API must never report more than just under 2GB for total and free */
+	const Bit32u clust2gb = (Bit32u)0x7FFF8000ul / (Bit32u)bytes32 / (sectors32 * cdiv);
+
+	*bytes = bytes32;
+	*sectors = sectors32 * cdiv;
+	*clusters = (Bit16u)MIN(MIN(clusters32 / cdiv,clust2gb),0xFFFFu);
+	*free = (Bit16u)MIN(MIN(free32 / cdiv,clust2gb),0xFFFFu);
+	return true;
+}
+
 bool DOS_GetFreeDiskSpace(Bit8u drive,Bit16u * bytes,Bit8u * sectors,Bit16u * clusters,Bit16u * free) {
 	if (drive==0) drive=DOS_GetDefaultDrive();
 	else drive--;
@@ -956,7 +991,44 @@ bool DOS_GetFreeDiskSpace(Bit8u drive,Bit16u * bytes,Bit8u * sectors,Bit16u * cl
 		DOS_SetError(DOSERR_INVALID_DRIVE);
 		return false;
 	}
-	return Drives[drive]->AllocationInfo(bytes,sectors,clusters,free);
+
+	{
+		Bit32u bytes32,sectors32,clusters32,free32;
+		if (dos.version.major >= 7 && Drives[drive]->AllocationInfo32(&bytes32,&sectors32,&clusters32,&free32) &&
+			DOS_CommonFAT32FAT16DiskSpaceConv(bytes,sectors,clusters,free,bytes32,sectors32,clusters32,free32))
+			return true;
+	}
+
+	if (Drives[drive]->AllocationInfo(bytes,sectors,clusters,free))
+		return true;
+
+	return false;
+}
+
+bool DOS_GetFreeDiskSpace32(Bit8u drive,Bit32u * bytes,Bit32u * sectors,Bit32u * clusters,Bit32u * free) {
+	if (drive==0) drive=DOS_GetDefaultDrive();
+	else drive--;
+	if ((drive>=DOS_DRIVES) || (!Drives[drive])) {
+		DOS_SetError(DOSERR_INVALID_DRIVE);
+		return false;
+	}
+
+	if (dos.version.major >= 7 && Drives[drive]->AllocationInfo32(bytes,sectors,clusters,free))
+		return true;
+
+	{
+		Bit8u sectors8;
+		Bit16u bytes16,clusters16,free16;
+		if (Drives[drive]->AllocationInfo(&bytes16,&sectors8,&clusters16,&free16)) {
+			*free = free16;
+			*bytes = bytes16;
+			*sectors = sectors8;
+			*clusters = clusters16;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry) {
