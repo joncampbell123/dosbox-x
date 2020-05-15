@@ -306,7 +306,12 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 finalizeWrite:
 	myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
 	tmpentry.entrysize = filelength;
-	tmpentry.loFirstClust = (Bit16u)firstCluster;
+
+	if (myDrive->GetBPB().is_fat32())
+		tmpentry.SetCluster32(firstCluster);
+	else
+		tmpentry.loFirstClust = (Bit16u)firstCluster;
+
 	myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
 
 	*size =sizecount;
@@ -678,7 +683,11 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
 			}
 
-			currentClust = foundEntry.loFirstClust;
+			if (BPB.is_fat32())
+				currentClust = foundEntry.Cluster32();
+			else
+				currentClust = foundEntry.loFirstClust;
+
 			findDir = strtok(NULL,"\\");
 		}
 	} else {
@@ -732,8 +741,10 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
 				if(!(find_attr &DOS_ATTR_DIRECTORY)) return false;
 			}
-			currentClust = foundEntry.loFirstClust;
-
+			if (BPB.is_fat32())
+				currentClust = foundEntry.Cluster32();
+			else
+				currentClust = foundEntry.loFirstClust;
 		}
 		*clustNum = currentClust;
 	} else if (BPB.is_fat32()) {
@@ -809,7 +820,7 @@ Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSe
 				if(testvalue >= 0xfff8) isEOF = true;
 				break;
 			case FAT32:
-				if(testvalue >= 0xfffffff8) isEOF = true;
+				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
 				break;
 		}
 		if((isEOF) && (skipClust>=1)) {
@@ -851,7 +862,7 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 				if(testvalue >= 0xfff8) isEOF = true;
 				break;
 			case FAT32:
-				if(testvalue >= 0xfffffff8) isEOF = true;
+				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
 				break;
 		}
 		if(countClust == endClust && !isEOF) {
@@ -864,7 +875,7 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 					setClusterValue(currentClust, 0xffff);
 					break;
 				case FAT32:
-					setClusterValue(currentClust, 0xffffffff);
+					setClusterValue(currentClust, 0x0fffffff);
 					break;
 			}
 		} else if(countClust > endClust) {
@@ -896,7 +907,7 @@ Bit32u fatDrive::appendCluster(Bit32u startCluster) {
 				if(testvalue >= 0xfff8) isEOF = true;
 				break;
 			case FAT32:
-				if(testvalue >= 0xfffffff8) isEOF = true;
+				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved upper bits */
 				break;
 		}
 		if(isEOF) break;
@@ -936,7 +947,7 @@ bool fatDrive::allocateCluster(Bit32u useCluster, Bit32u prevCluster) {
 			setClusterValue(useCluster, 0xffff);
 			break;
 		case FAT32:
-			setClusterValue(useCluster, 0xffffffff);
+			setClusterValue(useCluster, 0x0fffffff);
 			break;
 	}
 	return true;
@@ -1674,7 +1685,11 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 		/* Truncate file */
 		fileEntry.entrysize=0;
 		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
-		if(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust, 0);
+
+		{
+			const Bit32u chk = BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust;
+			if(chk != 0) deleteClustChain(chk, 0);
+		}
 	} else {
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(name, &dirName[0])) return false;
@@ -1699,7 +1714,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 
 	/* Empty file created, now lets open it */
 	/* TODO: check for read-only flag and requested write access */
-	*file = new fatFile(name, fileEntry.loFirstClust, fileEntry.entrysize, this);
+	*file = new fatFile(name, BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust, fileEntry.entrysize, this);
 	(*file)->flags=OPEN_READWRITE;
 	((fatFile *)(*file))->dirCluster = dirClust;
 	((fatFile *)(*file))->dirIndex = subEntry;
@@ -1723,7 +1738,7 @@ bool fatDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
 	Bit32u dirClust, subEntry;
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	/* TODO: check for read-only flag and requested write access */
-	*file = new fatFile(name, fileEntry.loFirstClust, fileEntry.entrysize, this);
+	*file = new fatFile(name, BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust, fileEntry.entrysize, this);
 	(*file)->flags = flags;
 	((fatFile *)(*file))->dirCluster = dirClust;
 	((fatFile *)(*file))->dirIndex = subEntry;
@@ -1790,7 +1805,11 @@ bool fatDrive::FileUnlink(const char * name) {
 	fileEntry.entryname[0] = 0xe5;
 	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 
-	if(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust, 0);
+	{
+		const Bit32u chk = BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust;
+		if(chk != 0) deleteClustChain(chk, 0);
+	}
+
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 
 	return true;
