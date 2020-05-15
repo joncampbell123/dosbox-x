@@ -371,7 +371,80 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
             LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
             break;
         default:
-            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled",reg_cl,drive);
+            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled (CH=08h)",reg_cl,drive);
+            DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+            return false;
+    }
+    reg_ax=0;
+    return true;
+}
+
+bool DOS_IOCTL_AX440D_CH48(Bit8u drive) {
+    PhysPt ptr	= SegPhys(ds)+reg_dx;
+    switch (reg_cl) {
+        case 0x60:		/* Get Device parameters */
+            {
+                //mem_writeb(ptr+0,0);					// special functions (call value)
+                mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
+                mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
+                mem_writew(ptr+4,(drive>=2)?0x3FF:0x50);// num of cylinders
+                mem_writeb(ptr+6,0x00);					// media type (00=other type)
+                // bios parameter block following
+                fatDrive *fdp;
+                FAT_BootSector::bpb_union_t bpb;
+                bool usereal=false;
+                if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+                    fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+                    if (fdp != NULL) {
+                        bpb=fdp->GetBPB();
+                        if (bpb.v.BPB_BytsPerSec && bpb.v.BPB_Media)
+                            usereal=true;
+                    }
+                }
+                if (usereal) {
+                    if (fdp->loadedDisk != NULL)
+                        mem_writew(ptr+4,fdp->loadedDisk->cylinders);           // num of cylinders
+
+                    if (bpb.is_fat32()) {
+                        mem_writew(ptr+7,bpb.v.BPB_BytsPerSec);                     // bytes per sector (Win3 File Mgr. uses it)
+                        mem_writew(ptr+9,bpb.v.BPB_SecPerClus);                     // sectors per cluster
+                        mem_writew(ptr+0xa,bpb.v.BPB_RsvdSecCnt);                   // number of reserved sectors
+                        mem_writew(ptr+0xc,bpb.v.BPB_NumFATs);                      // number of FATs
+                        mem_writew(ptr+0xd,bpb.v.BPB_RootEntCnt);			        // number of root entries
+                        mem_writew(ptr+0xf,bpb.v.BPB_TotSec16);                     // number of small sectors
+                        mem_writew(ptr+0x11,bpb.v.BPB_Media);                       // media type
+                        mem_writew(ptr+0x12,(uint16_t)bpb.v.BPB_FATSz16);           // sectors per FAT
+                        mem_writew(ptr+0x14,(uint16_t)bpb.v.BPB_SecPerTrk);         // sectors per track
+                        mem_writew(ptr+0x16,(uint16_t)bpb.v.BPB_NumHeads);          // number of heads
+                        mem_writed(ptr+0x18,(uint32_t)bpb.v.BPB_HiddSec);           // number of hidden sectors
+                        mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          // number of big sectors
+                        mem_writed(ptr+0x20,(uint32_t)bpb.v32.BPB_FATSz32);         // sectors per FAT
+                        mem_writew(ptr+0x24,(uint16_t)bpb.v32.BPB_ExtFlags);
+                        mem_writew(ptr+0x26,(uint32_t)bpb.v32.BPB_FSVer);
+                        mem_writed(ptr+0x28,(uint32_t)bpb.v32.BPB_RootClus);
+                        mem_writew(ptr+0x2C,(uint16_t)bpb.v32.BPB_FSInfo);
+                        mem_writew(ptr+0x2E,(uint16_t)bpb.v32.BPB_BkBootSec);
+                    }
+                    else {
+                        DOS_SetError(DOSERR_ACCESS_DENIED);
+                        return false;
+                    }
+                } else {
+                    DOS_SetError(DOSERR_ACCESS_DENIED);
+                    return false;
+                }
+                break;
+            }
+        case 0x40:
+        case 0x42:
+        case 0x4A:
+        case 0x4B:
+        case 0x61:
+        case 0x6A:
+        case 0x6B:
+            return DOS_IOCTL_AX440D_CH08(drive);
+        default:
+            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled (CH=48h)",reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
             return false;
     }
@@ -527,6 +600,9 @@ bool DOS_IOCTL(void) {
 			}
 			if (reg_ch == 0x08) {
 				return DOS_IOCTL_AX440D_CH08(drive);
+			}
+			else if (reg_ch == 0x48) {
+				return DOS_IOCTL_AX440D_CH48(drive); // Same functions as CH=08h but for FAT32 drives
 			}
 			else {
 				LOG(LOG_IOCTL,LOG_DEBUG)("Attempt IOCTL AX=%04x CX=%04x",reg_ax,reg_cx);
