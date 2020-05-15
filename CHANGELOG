@@ -1,4 +1,8 @@
 0.83.2
+  - IMGMOUNT auto geometry detection will assume LBA disk
+    and fake C/H/S geometry if the disk is 4GB or larger,
+    the MBR lacks executable code, or the first partition
+    is Windows 98-style LBA FAT16 or FAT32.
   - Shell DIR command updated to use FAT32 free space API to
     show free space even on FAT32 partitions larger than 2GB,
     but only if the DOS version is set to 7.10 or higher.
