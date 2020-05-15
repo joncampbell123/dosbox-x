@@ -1,8 +1,7 @@
 0.83.2
-  - Shell DIR command updated to use FAT32 free space API
-    to show free space even on FAT32 partitions larger
-    than 2GB, but only if the DOS version is set to 7.10
-    or higher.
+  - Shell DIR command updated to use FAT32 free space API to
+    show free space even on FAT32 partitions larger than 2GB,
+    but only if the DOS version is set to 7.10 or higher.
   - FAT driver now provides FAT32 extended disk free/total
     through FAT32 API and 2GB limited free/total through
     INT 21h AH=36h for older DOS programs.
@@ -10,13 +9,13 @@
     updated INT 21h AX=7303h to call it.
   - Added FAT32 INT21h and IOCTLs needed by Windows 98 versions
     of SCANDISK.EXE and FORMAT.COM.
-  - Added basic FAT32 support to the FAT driver.
+  - Improved FAT32 support to the FAT driver, including direct
+    support for FAT32 drives in the DOSBox-X shell.
   - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
     PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - Added DOS functions for "FAT32 extended" absolute disk
     read and write used by FAT32-aware versions of FORMAT.COM
     and SCANDISK.EXE (shipped with Windows 95 OSR2 or later).
-    The FAT driver in DOSBox-X does not yet fully support FAT32.
   - Added stub to DOS IOCTL "format device track" for FORMAT.COM.
   - Added DOS IOCTL read/write logical device track functions
     so that FORMAT.COM is able to verify and modify the partition
