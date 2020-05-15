@@ -2290,8 +2290,17 @@ bool fatDrive::MakeDir(const char *dir) {
 	/* [..] entry */
 	memset(&tmpentry,0, sizeof(direntry));
 	memcpy(&tmpentry.entryname, "..         ", 11);
-	tmpentry.loFirstClust = (Bit16u)(dirClust & 0xffff);
-	tmpentry.hiFirstClust = (Bit16u)(dirClust >> 16);
+	if (BPB.is_fat32() && dirClust == BPB.v32.BPB_RootClus) {
+		/* Windows 98 SCANDISK.EXE considers it an error for the '..' entry of a top level
+		 * directory to point at the actual cluster number of the root directory. The
+		 * correct value is 0 apparently. */
+		tmpentry.loFirstClust = (Bit16u)0;
+		tmpentry.hiFirstClust = (Bit16u)0;
+	}
+	else {
+		tmpentry.loFirstClust = (Bit16u)(dirClust & 0xffff);
+		tmpentry.hiFirstClust = (Bit16u)(dirClust >> 16);
+	}
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
