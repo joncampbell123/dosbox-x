@@ -4367,6 +4367,27 @@ private:
 			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
 		}
 
+		/* If the MBR has only a partition table, but the part that normally contains executable
+		 * code is all zeros. To avoid false negatives, check only the first 0x20 bytes since
+		 * at boot time executable code must reside there to do something, and many of these
+		 * disk images while they ARE mostly zeros, do have some extra nonzero bytes immediately
+		 * before the partition table at 0x1BE.
+		 *
+		 * Modern FAT32 generator tools and older digital cameras will format FAT32 like this.
+		 * These tools are unlikely to support non-LBA disks.
+		 *
+		 * To avoid false positives, the partition type has to be something related to FAT */
+		if (!yet_detected && (ptype == 0x01 || ptype == 0x04 || ptype == 0x06 || ptype == 0x0B || ptype == 0x0C || ptype == 0x0E)) {
+			/* buf[] still contains MBR */
+			unsigned int i=0;
+			while (i < 0x20 && buf[i] == 0) i++;
+			if (i == 0x20) {
+				yet_detected = 1;
+				assume_lba = true;
+				LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT-related) and lack of executable code in the MBR");
+			}
+		}
+
 		/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
 		 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
 		 * backward compatibility anyway. fcsize is in 512-byte sectors. */
