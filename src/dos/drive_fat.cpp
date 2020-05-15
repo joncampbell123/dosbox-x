@@ -524,10 +524,10 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 			break;
 	}
 	for(unsigned int fc=0;fc<BPB.v.BPB_NumFATs;fc++) {
-		writeSector(fatsectnum + (fc * BPB.v.BPB_FATSz16), &fatSectBuffer[0]);
+		writeSector(fatsectnum + (fc * (BPB.is_fat32() ? BPB.v32.BPB_FATSz32 : BPB.v.BPB_FATSz16)), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
 			if (fatentoff >= (BPB.v.BPB_BytsPerSec-1U))
-				writeSector(fatsectnum+1u+(fc * BPB.v.BPB_FATSz16), &fatSectBuffer[BPB.v.BPB_BytsPerSec]);
+				writeSector(fatsectnum+1u+(fc * (BPB.is_fat32() ? BPB.v32.BPB_FATSz32 : BPB.v.BPB_FATSz16)), &fatSectBuffer[BPB.v.BPB_BytsPerSec]);
 		}
 	}
 }
