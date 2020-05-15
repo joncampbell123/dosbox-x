@@ -4354,11 +4354,32 @@ private:
                 yet_detected = true;
                 sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
             }
-        }
+		}
 
-        if (yet_detected)
-        {
-            //"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
+		bool assume_lba = false;
+
+		/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
+		 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
+		 * backward compatibility anyway. fcsize is in 512-byte sectors. */
+		if (!yet_detected && fcsize >= ((4ull*1024ull*1024ull*1024ull)/512ull)) {
+			yet_detected = 1;
+			assume_lba = true;
+			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on size");
+		}
+
+		if (yet_detected && assume_lba) {
+			sizes[0] = 512;
+			sizes[1] = 63;
+			sizes[2] = 255;
+			{
+				const Bitu d = sizes[1]*sizes[2];
+				sizes[3] = (fcsize + d - 1) / d; /* round up */
+			}
+		}
+
+		if (yet_detected)
+		{
+			//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
             //sizes[0],sizes[1],sizes[2],sizes[3]);
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
             return true;
