@@ -1848,7 +1848,7 @@ public:
              *       (default) or just below the boot sector, or... */
 
             if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
-                WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
+                WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
                 return;
             }
 
