@@ -1245,12 +1245,12 @@ void DOS_Shell::CMD_DIR(char * args) {
 		//TODO Free Space
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
-			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* FAT32 aware extended API */
-				Bit32u bytes_sector;Bit32u sectors_cluster;Bit32u total_clusters;Bit32u free_clusters;
+			Bit32u bytes_sector32;Bit32u sectors_cluster32;Bit32u total_clusters32;Bit32u free_clusters32;
+			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10) &&
+				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
 				rsize=true;
 				freec=0;
-				Drives[drive]->AllocationInfo32(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-				free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
+				free_space=(Bitu)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)(freec?freec:free_clusters32);
 				rsize=false;
 			}
 			else {
