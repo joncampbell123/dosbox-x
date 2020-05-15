@@ -1998,6 +1998,7 @@ static Bitu DOS_21Handler(void) {
 				reg_ah = 0;
 				CALLBACK_SCF(false);
 			} else if (reg_al==2) {
+				/* Get extended DPB */
 				Bit32u ptr = SegPhys(es)+reg_di;
 				Bit8u drive;
 
@@ -2029,10 +2030,18 @@ static Bitu DOS_21Handler(void) {
 									MEM_BlockRead(srcptr,tmp,24);
 									MEM_BlockWrite(ptr+0x02,tmp,24);
 								}
+								Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
+								rsize=true;
+								totalc=freec=0;
+								if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+									tfree = freec?freec:free_clusters;
+								else
+									tfree=0xFFFFFFFF;
+								rsize=false;
 								mem_writeb(ptr+0x1A,0x00);      // dpb flags
 								mem_writed(ptr+0x1B,0xFFFFFFFF);// ptr to next DPB if Windows 95 magic SI signature (TODO)
 								mem_writew(ptr+0x1F,2);         // cluster to start searching when writing (FIXME)
-								mem_writed(ptr+0x21,0xFFFFFFFF);// number of free clusters (FIXME: We just say unknown)
+								mem_writed(ptr+0x21,tfree);// number of free clusters
 								mem_writew(ptr+0x25,bpb.v32.BPB_ExtFlags);
 								mem_writew(ptr+0x27,bpb.v32.BPB_FSInfo);
 								mem_writew(ptr+0x29,bpb.v32.BPB_BkBootSec);
