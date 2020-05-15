@@ -168,6 +168,7 @@ bool DOS_IOCTL(void) {
 				return false;
 			}
 			if (reg_ch != 0x08 || Drives[drive]->isRemovable()) {
+				LOG(LOG_IOCTL,LOG_DEBUG)("Attempt IOCTL AX=%04x CX=%04x",reg_ax,reg_cx);
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
