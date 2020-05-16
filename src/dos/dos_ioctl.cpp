@@ -26,11 +26,12 @@
 #include "dos_inc.h"
 #include "drives.h"
 
-bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
+bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x60:		/* Get Device parameters */
-            {
+			if (query) break;
+			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
                 mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
                 mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
@@ -117,6 +118,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                     return false;
                 }
 
+                if (query) break;
+
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
@@ -161,6 +164,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                     return false;
                 }
 
+                if (query) break;
+
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
@@ -193,7 +198,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
         case 0x46:	/* Set volume serial number */
             break;
         case 0x66:	/* Get volume serial number */
-            {
+			if (query) break;
+			{
                 char const* bufin=Drives[drive]->GetLabel();
                 char buffer[11];memset(buffer,' ',11);
 
@@ -229,7 +235,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
             }
             break;
         case 0x41:  /* Write logical device track */
-            {
+			{
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
                 if (fdp == NULL) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -242,6 +248,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
                     return false;
                 }
+
+                if (query) break;
 
                 /* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]
                  * Offset  Size    Description     (Table 01562)
@@ -317,6 +325,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                     return false;
                 }
 
+                if (query) break;
+
                 /* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]
                  * Offset  Size    Description     (Table 01562)
                  * 00h    BYTE    special functions (reserved, must be zero)
@@ -379,10 +389,11 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
         case 0x4B:
         case 0x6A:
         case 0x6B:
-            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
+			if (query) break;
+			LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
             break;
         default:
-            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled (CH=08h)",reg_cl,drive);
+            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call %2X:%2X Drive %2X unhandled (CH=08h)",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
             return false;
     }
@@ -390,11 +401,12 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
     return true;
 }
 
-bool DOS_IOCTL_AX440D_CH48(Bit8u drive) {
+bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x60:		/* Get Device parameters */
-            {
+			if (query) break;
+			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
                 mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
                 mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
@@ -448,15 +460,16 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive) {
             }
         case 0x40:
         case 0x42:
+        case 0x46:
         case 0x4A:
         case 0x4B:
         case 0x61:
         case 0x62:
         case 0x6A:
         case 0x6B:
-            return DOS_IOCTL_AX440D_CH08(drive);
+            return DOS_IOCTL_AX440D_CH08(drive,query);
         default:
-            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X unhandled (CH=48h)",reg_cl,drive);
+            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call %02X:%2X Drive %2X unhandled (CH=48h)",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
             return false;
     }
@@ -600,6 +613,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x0D:		/* Generic block device request */
+	case 0x11:		/* query generic ioctl capability */
 		{
 			if (drive < 2 && !Drives[drive]) {
 				DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -611,10 +625,10 @@ bool DOS_IOCTL(void) {
 				return false;
 			}
 			if (reg_ch == 0x08) {
-				return DOS_IOCTL_AX440D_CH08(drive);
+				return DOS_IOCTL_AX440D_CH08(drive,reg_al==0x11);
 			}
 			else if (reg_ch == 0x48) {
-				return DOS_IOCTL_AX440D_CH48(drive); // Same functions as CH=08h but for FAT32 drives
+				return DOS_IOCTL_AX440D_CH48(drive,reg_al==0x11); // Same functions as CH=08h but for FAT32 drives
 			}
 			else {
 				LOG(LOG_IOCTL,LOG_DEBUG)("Attempt IOCTL AX=%04x CX=%04x",reg_ax,reg_cx);
