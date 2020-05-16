@@ -1,4 +1,6 @@
 0.83.2
+  - Added support for FAT32 volume labels and the LABEL
+    command.
   - IMGMOUNT auto geometry detection will assume LBA disk
     and fake C/H/S geometry if the disk is 4GB or larger,
     the MBR lacks executable code, or the first partition
