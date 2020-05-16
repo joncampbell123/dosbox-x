@@ -213,23 +213,26 @@ static bool DOS_MultiplexFunctions(void) {
         reg_ax=0;
         return true;
     case 0x1611:    /* Get shell parameters */
-	{
-		if (dos.version.major < 7) return false;
-		char psp_name[9];
-		DOS_MCB psp_mcb(dos.psp()-1);
-		psp_mcb.GetFileName(psp_name);
-		if (strcmp(psp_name, "DOSSETUP")) {
-			strcpy(name,"COMMAND.COM");
-			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
-			strcpy(name+1,"/P /D");
-			name[0]=(char)strlen(name);
-			MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name+1)+2));
-			reg_ax=0;
-			reg_bx=0;
-			return true;
-		} else
-			return false;
-	}
+		{
+			if (dos.version.major < 7) return false;
+			char psp_name[9];
+			DOS_MCB psp_mcb(dos.psp()-1);
+			psp_mcb.GetFileName(psp_name);
+			if (strcmp(psp_name, "DOSSETUP") == 0) {
+				/* Hack for Windows 98 SETUP.EXE (Wengier) */
+				return false;
+			}
+			else {
+				strcpy(name,"COMMAND.COM");
+				MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
+				strcpy(name+1,"/P /D");
+				name[0]=(char)strlen(name);
+				MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name+1)+2));
+				reg_ax=0;
+				reg_bx=0;
+				return true;
+			}
+		} /* all cases "return", no break needed */
     case 0x1612:
 		if (dos.version.major < 7) return false;
         reg_ax=0;
