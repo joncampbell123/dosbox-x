@@ -1969,7 +1969,7 @@ nextfile:
 	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
-        assert(!BPB.is_fat32());
+        if (BPB.is_fat32()) return false;
 
 		if(dirPos >= BPB.v.BPB_RootEntCnt) {
 			if (faux<255) {
@@ -2485,4 +2485,3 @@ Bit32u fatDrive::GetFirstClusterOffset(void) {
 Bit32u fatDrive::GetHighestClusterNumber(void) {
     return CountOfClusters + 1ul;
 }
-
