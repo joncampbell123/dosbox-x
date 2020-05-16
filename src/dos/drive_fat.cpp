@@ -579,71 +579,91 @@ void fatDrive::UpdateBootVolumeLabel(const char *label) {
 }
 
 void fatDrive::SetLabel(const char *label, bool /*iscdrom*/, bool /*updatable*/) {
-    direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
+	Bit32u dirClustNumber;
+	Bit32u logentsector; /* Logical entry sector */
+	Bit32u entryoffset;  /* Index offset within sector */
+	Bit32u tmpsector;
+	Bit16u dirPos = 0;
 
-    if (readonly || fattype == FAT32) return;
+	size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-    if (*label != 0) {
-        /* Add a volume label entry, by appending to the root directory.
-         * The DOS program calling this entry is supposed to delete the
-         * existing volume label. MS-DOS 7.0 and higher appear to automatically
-         * rewrite the volume label and manage them tighter obviously due
-         * to the way LFNs are stored in the filesystem. */
-        for (unsigned int i=0;i < BPB.v.BPB_RootEntCnt;i++) {
-            unsigned int di = i % dirent_per_sector;
+	if(!getDirClustNum("\\", &dirClustNumber, false))
+		return;
 
-            if (di == 0) {
-                memset(sectbuf,0,sizeof(sectbuf));
-		        readSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
-            }
+nextfile:
+	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
+	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
-            if (sectbuf[di].entryname[0] == 0x00 ||
-                sectbuf[di].entryname[0] == 0xe5) {
-                memset(&sectbuf[di],0,sizeof(sectbuf[di]));
-                sectbuf[di].attrib = DOS_ATTR_VOLUME;
-                {
-                    unsigned int j = 0;
-                    const char *s = label;
-                    while (j < 11 && *s != 0) sectbuf[di].entryname[j++] = toupper(*s++);
-                    while (j < 11)            sectbuf[di].entryname[j++] = ' ';
-                }
-                writeSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
-		        labelCache.SetLabel(label, false, true);
-                UpdateBootVolumeLabel(label);
-                break;
-            }
-        }
-    }
-    else {
-        /* erase ONE volume label from the root directory */
-        for (unsigned int i=0;i < BPB.v.BPB_RootEntCnt;i++) {
-            unsigned int di = i % dirent_per_sector;
+	if(dirClustNumber==0) {
+		assert(!BPB.is_fat32());
+		if(dirPos >= BPB.v.BPB_RootEntCnt) return;
+		tmpsector = firstRootDirSect+logentsector;
+	} else {
+		/* A zero sector number can't happen */
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		/* A zero sector number can't happen - we need to allocate more room for this directory*/
+		if(tmpsector == 0) {
+			if (*label == 0) return; // removing volume label, so stop now
+			Bit32u newClust;
+			newClust = appendCluster(dirClustNumber);
+			if(newClust == 0) return;
+			/* Try again to get tmpsector */
+			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+			if(tmpsector == 0) return; /* Give up if still can't get more room for directory */
+			memset(sectbuf,0,sizeof(sectbuf)); /* make sure the new sector starts with zeros so directory search stops before junk */
+			writeSector(tmpsector,sectbuf);
+		}
+		readSector(tmpsector,sectbuf);
+	}
+	readSector(tmpsector,sectbuf);
+	dirPos++;
 
-            if (di == 0) {
-                memset(sectbuf,0,sizeof(sectbuf));
-		        readSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
-            }
+	if (dos.version.major >= 7) {
+		/* skip LFN entries */
+		if ((sectbuf[entryoffset].attrib & 0x0F) == 0x0F)
+			goto nextfile;
+	}
 
-            if (sectbuf[di].entryname[0] == 0x00 ||
-                sectbuf[di].entryname[0] == 0xe5)
-                continue;
+	if (*label != 0) {
+		/* adding a volume label */
+		if (sectbuf[entryoffset].entryname[0] == 0x00 ||
+			sectbuf[entryoffset].entryname[0] == 0xE5) {
+			memset(&sectbuf[entryoffset],0,sizeof(sectbuf[entryoffset]));
+			sectbuf[entryoffset].attrib = DOS_ATTR_VOLUME;
+			{
+				unsigned int j = 0;
+				const char *s = label;
+				while (j < 11 && *s != 0) sectbuf[entryoffset].entryname[j++] = toupper(*s++);
+				while (j < 11)            sectbuf[entryoffset].entryname[j++] = ' ';
+			}
+			writeSector(tmpsector,sectbuf);
+			labelCache.SetLabel(label, false, true);
+			UpdateBootVolumeLabel(label);
+			return;
+		}
+	}
+	else {
+		if (sectbuf[entryoffset].entryname[0] == 0x00)
+			return;
+		if (sectbuf[entryoffset].entryname[0] == 0xe5)
+			goto nextfile;
 
-            // TODO: If MS-DOS 7.0 or higher skip anything with attrib == 0x0F to avoid erasing LFNs
-            if (sectbuf[di].attrib & DOS_ATTR_VOLUME) {
-                /* TODO: There needs to be a way for FCB delete to erase the volume label by name instead
-                 *       of just picking the first one */
-                /* found one */
-                sectbuf[di].entryname[0] = 0xe5;
-                writeSector((Bit32u)(firstRootDirSect+(i/dirent_per_sector)),sectbuf);
-		        labelCache.SetLabel("", false, true);
-                UpdateBootVolumeLabel("NO NAME");
-                break;
-            }
-        }
-    }
+		if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) {
+			/* TODO: There needs to be a way for FCB delete to erase the volume label by name instead
+			 *       of just picking the first one */
+			/* found one */
+			sectbuf[entryoffset].entryname[0] = 0xe5;
+			writeSector(tmpsector,sectbuf);
+			labelCache.SetLabel("", false, true);
+			UpdateBootVolumeLabel("NO NAME");
+			return;
+		}
+	}
+
+	goto nextfile;
 }
 
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry) {
