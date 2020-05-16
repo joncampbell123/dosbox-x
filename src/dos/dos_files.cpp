@@ -971,7 +971,9 @@ bool DOS_CommonFAT32FAT16DiskSpaceConv(
 	/* This function is for the old API. It is necessary to adjust the values so that they never overflow
 	 * 16-bit unsigned integers and never multiply out to a number greater than just under 2GB. Because
 	 * old DOS programs use 32-bit signed integers for disk total/free and FAT12/FAT16 filesystem limitations. */
-	while ((clusters32 > 0xFFFFu || free32 > 0xFFFFu) && (sectors32 * cdiv) <= 64u)
+	/* NTS: Make sure (bytes per sector * sectors per cluster) is less than 0x10000, or else FORMAT.COM will
+	 * crash with divide by zero or produce incorrect results when run with "FORMAT /S" */
+	while ((clusters32 > 0xFFFFu || free32 > 0xFFFFu) && (sectors32 * cdiv) <= 64u && (bytes32 * sectors32 * cdiv) < 0x8000/*Needed for FORMAT.COM*/)
 		cdiv *= 2u;
 
 	/* The old API must never report more than just under 2GB for total and free */
