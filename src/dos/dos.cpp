@@ -3510,12 +3510,12 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		if (Drives[drive]) {
 			if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 				fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
-				serial_number=fdp->GetSerial();
+				if (fdp != NULL) serial_number=fdp->GetSerial();
 			}
 #if defined (WIN32)
 			if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
 				localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
-				serial_number=ldp->GetSerial();
+				if (ldp != NULL) serial_number=ldp->GetSerial();
 			}
 #endif
 		}
