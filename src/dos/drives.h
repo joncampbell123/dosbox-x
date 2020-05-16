@@ -253,7 +253,7 @@ struct FAT_BootSector {
         struct FAT_BPB_MSDOS30              v30;    /* offset 0x00B size 0x015 MS-DOS 3.0 BPB */
         struct FAT_BPB_MSDOS331             v331;   /* offset 0x00B size 0x019 MS-DOS 3.31 BPB */
         struct FAT_BPB_MSDOS40              v40;    /* offset 0x00B size 0x039 MS-DOS 4.0 BPB (FAT12/FAT16) */
-        struct FAT_BPB_MSDOS710_FAT32       v710_32;/* offset 0x00B size 0x0xx MS-DOS 7.10 BPB (FAT32) */
+        struct FAT_BPB_MSDOS710_FAT32       v710_32;/* offset 0x00B size 0x04F MS-DOS 7.10 BPB (FAT32) */
 
         FAT_BPB_MSDOS                       v;      /* offset 0x00B ... */
         FAT32_BPB_MSDOS                     v32;    /* offset 0x00B ... */
