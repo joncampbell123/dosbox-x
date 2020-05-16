@@ -2134,6 +2134,10 @@ HANDLE fatDrive::CreateOpenFile(const char* name) {
 }
 #endif
 
+unsigned long fatDrive::GetSerial() {
+	return BPB.v.BPB_VolID?BPB.v.BPB_VolID:0x1234;
+}
+
 bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start/*=0*/) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */

@@ -212,7 +212,18 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                 if(drive<2) buf2[4] = '2'; //FAT12 for floppies
 
                 //mem_writew(ptr+0,0);			//Info level (call value)
-                mem_writed(ptr+2,0x1234);		//Serial number
+				unsigned long serial_number=0x1234;
+				if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+					fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					serial_number=fdp->GetSerial();
+				}
+#if defined (WIN32)
+				if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
+					localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
+					serial_number=ldp->GetSerial();
+				}
+#endif
+                mem_writed(ptr+2,serial_number);		//Serial number
                 MEM_BlockWrite(ptr+6,buffer,11);//volumename
                 MEM_BlockWrite(ptr+0x11,buf2,8);//filesystem
             }
