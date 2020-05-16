@@ -22,6 +22,8 @@
   - Added DOS IOCTL read/write logical device track functions
     so that FORMAT.COM is able to verify and modify the partition
     table to successfully format a hard drive image.
+  - DIR and VOL command now display real serial numbers for mounted
+    local and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier) 
   - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
     PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
