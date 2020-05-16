@@ -3494,7 +3494,7 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 	char buf[64];
-	unsigned long serial_number=0,st=0,cdate=0,ctime=0,adate=0,atime=0,mdate=0,mtime=0;
+	unsigned long serial_number=0x1234,st=0,cdate=0,ctime=0,adate=0,atime=0,mdate=0,mtime=0;
 	Bit8u entry=(Bit8u)reg_bx, handle;
 	if (entry>=DOS_FILES) {
 		reg_ax=DOSERR_INVALID_HANDLE;
@@ -3506,11 +3506,19 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		if (Files[i] && psp.FindEntryByHandle(i)==entry)
 			handle=i;
 	if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
-		char volume[] = "A:\\";
-		volume[0]+=Files[handle]->GetDrive();
+		Bit8u drive=Files[handle]->GetDrive();
+		if (Drives[drive]) {
+			if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+				fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+				if (fdp != NULL) serial_number=fdp->GetSerial();
+			}
 #if defined (WIN32)
-		GetVolumeInformation(volume, NULL, 0, &serial_number, NULL, NULL, NULL, 0);
+			if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
+				localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
+				if (ldp != NULL) serial_number=ldp->GetSerial();
+			}
 #endif
+		}
 		struct stat status;
 		if (DOS_GetFileAttrEx(Files[handle]->name, &status, Files[handle]->GetDrive())) {
 #if !defined(HX_DOS)

@@ -34,7 +34,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                 //mem_writeb(ptr+0,0);					// special functions (call value)
                 mem_writeb(ptr+1,(drive>=2)?0x05:0x07);	// type: hard disk(5), 1.44 floppy(7)
                 mem_writew(ptr+2,(drive>=2)?0x01:0x00);	// attributes: bit 0 set for nonremovable
-                mem_writew(ptr+4,(drive>=2)?0x3FF:0x50);// num of cylinders
+                mem_writew(ptr+4,(drive>=2)?0x3FF:0x50);// number of cylinders
                 mem_writeb(ptr+6,0x00);					// media type (00=other type)
                 // bios parameter block following
                 fatDrive *fdp;
@@ -50,7 +50,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                 }
                 if (usereal) {
                     if (fdp->loadedDisk != NULL)
-                        mem_writew(ptr+4,fdp->loadedDisk->cylinders);           // num of cylinders
+                        mem_writew(ptr+4,fdp->loadedDisk->cylinders);				// number of cylinders
 
                     if (bpb.is_fat32()) {
                         /* Windows 98 behavior: Some of the FAT32 BPB fields are translated into FAT16 BPB fields even though those fields are zero in the actual BPB */
@@ -212,7 +212,18 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive) {
                 if(drive<2) buf2[4] = '2'; //FAT12 for floppies
 
                 //mem_writew(ptr+0,0);			//Info level (call value)
-                mem_writed(ptr+2,0x1234);		//Serial number
+				unsigned long serial_number=0x1234;
+				if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+					fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+					if (fdp != NULL) serial_number=fdp->GetSerial();
+				}
+#if defined (WIN32)
+				if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
+					localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
+					if (ldp != NULL) serial_number=ldp->GetSerial();
+				}
+#endif
+                mem_writed(ptr+2,serial_number);//Serial number
                 MEM_BlockWrite(ptr+6,buffer,11);//volumename
                 MEM_BlockWrite(ptr+0x11,buf2,8);//filesystem
             }

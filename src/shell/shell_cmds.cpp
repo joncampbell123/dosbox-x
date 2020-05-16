@@ -2513,7 +2513,18 @@ void DOS_Shell::CMD_VOL(char *args){
 		WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_LABEL"),bufin);
 
 	WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL"));
-	WriteOut("0000-1234\n"); // fake serial number
+	unsigned long serial_number=0x1234;
+	if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+		fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+		if (fdp != NULL) serial_number=fdp->GetSerial();
+	}
+#if defined (WIN32)
+	if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
+		localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
+		if (ldp != NULL) serial_number=ldp->GetSerial();
+	}
+#endif
+	WriteOut("%04X-%04X\n", serial_number/0x10000, serial_number%0x10000);
 	return;
 }
 

@@ -944,6 +944,21 @@ HANDLE localDrive::CreateOpenFile(const char* name) {
 		DOS_SetError((Bit16u)GetLastError());
 	return handle;
 }
+
+unsigned long localDrive::GetSerial() {
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+	if (strlen(newname)>2&&newname[1]==':') {
+		unsigned long serial_number=0x1234;
+		char volume[] = "A:\\";
+		volume[0]=newname[0];
+		GetVolumeInformation(volume, NULL, 0, &serial_number, NULL, NULL, NULL, 0);
+		return serial_number;
+		
+	}
+}
 #endif
 
 bool localDrive::MakeDir(const char * dir) {
