@@ -210,7 +210,7 @@ struct FAT_BPB_MSDOS40 { /* FAT12/FAT16 only */
     Bit32u      BPB_VolID;                          /* offset 0x027 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
     Bit8u       BPB_VolLab[11];                     /* offset 0x02B size 0x00B Volume label, if BPB_BootSig is 0x28 or 0x29. */
     Bit8u       BPB_FilSysType[8];                  /* offset 0x036 size 0x008 File system type, for display purposes if BPB_BootSig is 0x29. */
-} GCC_ATTRIBUTE(packed);                            /*    ==> 0x044 size 0x039 total */
+} GCC_ATTRIBUTE(packed);                            /*    ==> 0x03E size 0x033 total */
 
 struct FAT_BPB_MSDOS710_FAT32 { /* FAT32 only */
     Bit16u      BPB_BytsPerSec;                     /* offset 0x00B size 0x002 Bytes per sector. Formerly bytespersector */
@@ -289,6 +289,14 @@ static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_TotSec32) == 0x020,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_VolLab) == 0x02B,"Oops");
 static_assert(offsetof(FAT_BootSector,bpb.v710_32.BS_FilSysType) == 0x052,"Oops");
 static_assert(sizeof(FAT_BootSector) == SECTOR_SIZE_MAX,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v331.BPB_TotSec32) == 0x020,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v40.BPB_TotSec32) == 0x020,"Oops");
+static_assert(offsetof(FAT_BootSector,bpb.v710_32.BPB_TotSec32) == 0x020,"Oops");
+static_assert(sizeof(FAT_BootSector::bpb.v20) == 0x00D,"Oops");
+static_assert(sizeof(FAT_BootSector::bpb.v30) == 0x015,"Oops");
+static_assert(sizeof(FAT_BootSector::bpb.v331) == 0x019,"Oops");
+static_assert(sizeof(FAT_BootSector::bpb.v40) == 0x033,"Oops");
+static_assert(sizeof(FAT_BootSector::bpb.v710_32) == 0x04F,"Oops");
 
 struct direntry {
 	Bit8u entryname[11];
