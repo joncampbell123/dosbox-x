@@ -561,9 +561,9 @@ public:
     void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
 
 	void	SetDirID(Bit16u entry)			{ sSave(sDTA,dirID,entry); };
-	void	SetDirIDCluster(Bit16u entry)	{ sSave(sDTA,dirCluster,entry); };
+	void	SetDirIDCluster(Bit32u entry)	{ sSave(sDTA,dirCluster,entry); };
 	Bit16u	GetDirID(void)				{ return (Bit16u)sGet(sDTA,dirID); };
-	Bit16u	GetDirIDCluster(void)		{ return (Bit16u)sGet(sDTA,dirCluster); };
+	Bit32u	GetDirIDCluster(void)		{ return (Bit32u)sGet(sDTA,dirCluster); };
     Bit8u   GetAttr(void)               { return (Bit8u)sGet(sDTA,sattr); }
 private:
 	#ifdef _MSC_VER
@@ -575,14 +575,18 @@ private:
         Bit8u spext[3];                     /* The Search pattern for the extension */
 		Bit8u sattr;						/* The Attributes that need to be found */
 		Bit16u dirID;						/* custom: dir-search ID for multiple searches at the same time */
-		Bit16u dirCluster;					/* custom (drive_fat only): cluster number for multiple searches at the same time */
-		Bit8u fill[4];
+		Bit32u dirCluster;					/* custom (drive_fat only): cluster number for multiple searches at the same time. 32-bit wide on FAT32 aware MS-DOS 7.1 or higher. */
+		Bit8u fill[2];
 		Bit8u attr;
 		Bit16u time;
 		Bit16u date;
 		Bit32u size;
 		char name[DOS_NAMELENGTH_ASCII];
 	} GCC_ATTRIBUTE(packed);
+	static_assert(offsetof(sDTA,dirID) == 0x0D,"oops");
+	static_assert(offsetof(sDTA,dirCluster) == 0x0F,"oops");
+	static_assert(offsetof(sDTA,fill) == 0x13,"oops");
+	static_assert(offsetof(sDTA,attr) == 0x15,"oops");
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif

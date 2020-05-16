@@ -1894,13 +1894,12 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
         }
     }
 
-	// FIXME: FAT32!!
 	if (faux>=255) {
 		dta.SetDirID(0);
-		dta.SetDirIDCluster((Bit16u)(cwdDirCluster&0xffff));
+		dta.SetDirIDCluster(cwdDirCluster);
 	} else {
 		dpos[faux]=0;
-		dnum[faux]=cwdDirCluster&0xffff;
+		dnum[faux]=cwdDirCluster;
 	}
 
 	return FindNextInternal(cwdDirCluster, dta, &dummyClust);
@@ -1962,7 +1961,7 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	dta.GetSearchParams(attrs, srch_pattern,uselfn);
-	dirPos = faux>=255?dta.GetDirID():dpos[faux];
+	dirPos = faux>=255?dta.GetDirID():dpos[faux]; /* NTS: Windows 9x is said to have a 65536 dirent limit even for FAT32, so dirPos as 16-bit is acceptable */
 
 nextfile:
 	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
