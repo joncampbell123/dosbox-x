@@ -217,6 +217,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 		myDrive->deleteClustChain(firstCluster, seekpos);
 		filelength = seekpos;
 		if (filelength == 0) firstCluster = 0; /* A file of length zero has a starting cluster of zero as well */
+		modified = true;
 		goto finalizeWrite;
 	}
 
@@ -242,6 +243,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 		assert(filelength < (seekpos+clustSize));
 
 		/* limit file length to seekpos, then bail out if write count is zero */
+		modified = true;
 		if(filelength > seekpos) filelength = seekpos;
 		if(*size == 0) goto finalizeWrite;
 	}
@@ -281,13 +283,15 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 			}
 			filelength = seekpos+1;
 		}
+		--sizedec;
+		modified = true;
 		sectorBuffer[curSectOff++] = data[sizecount++];
 		seekpos++;
 		if(curSectOff >= myDrive->getSectorSize()) {
 			if(loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
-            loadedSector = false;
+			loadedSector = false;
 
-            if (sizedec <= 1) goto finalizeWrite; // --sizedec == 0
+			if (sizedec == 0) goto finalizeWrite;
 
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
 			if(currentSector == 0) {
@@ -304,8 +308,6 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 			myDrive->readSector(currentSector, sectorBuffer);
 			loadedSector = true;
 		}
-        modified = true;
-		--sizedec;
 	}
 	if(curSectOff>0 && loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
