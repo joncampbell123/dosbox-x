@@ -559,6 +559,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 		strncpy(entname, findFile, 12);
 	else
 		strcpy(entname, findFile);
+	if (!strlen(trim(entname))) return false;
 	upcase(entname);
 	return true;
 }
@@ -2430,20 +2431,45 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
-    direntry fileEntry1 = {};
-	Bit32u dirClust1, subEntry1;
-	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) return false;
-	/* File to be renamed really exists */
+    direntry fileEntry1 = {}, fileEntry2 = {};
+	Bit32u dirClust1, subEntry1, dirClust2, subEntry2;
+	char dirName[DOS_NAMELENGTH_ASCII], dirName2[DOS_NAMELENGTH_ASCII];
+	char pathName[11], pathName2[11];
+	
+	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) {
+		/* Can we even get the name of the directory itself? */
+		if(!getEntryName(oldname, &dirName[0])) return false;
+		convToDirFile(&dirName[0], &pathName[0]);
 
-    direntry fileEntry2 = {};
-	Bit32u dirClust2, subEntry2;
+		/* Get parent directory starting cluster */
+		if(!getDirClustNum(oldname, &dirClust1, true)) return false;
+
+		if(getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
+		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
+		convToDirFile(&dirName2[0], &pathName2[0]);
+
+		/* Find directory entry in parent directory */
+		Bit32s fileidx = 2;
+		if (dirClust1==0) fileidx = 0;	// root directory
+		else if (BPB.is_fat32() && dirClust1==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
+		Bit32s last_idx=0;
+		while(directoryBrowse(dirClust1, &fileEntry1, fileidx, last_idx)) {
+			if(memcmp(&fileEntry1.entryname, &pathName[0], 11) == 0) {
+				for (int i=0; i<11; i++)
+					fileEntry1.entryname[i]=toupper(pathName2[i]);
+				directoryChange(dirClust1, &fileEntry1, fileidx);
+				return true;
+			}
+			fileidx++;
+		}
+		return false;
+	}
+	/* File to be renamed really exists */
 
 	/* Check if file already exists */
 	if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) {
 		/* Target doesn't exist, can rename */
 
-		char dirName2[DOS_NAMELENGTH_ASCII];
-		char pathName2[11];
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(newname, &dirName2[0])) return false;
 		convToDirFile(&dirName2[0], &pathName2[0]);
