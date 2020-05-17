@@ -216,6 +216,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 		/* Truncate file to current position */
 		myDrive->deleteClustChain(firstCluster, seekpos);
 		filelength = seekpos;
+		if (filelength == 0) firstCluster = 0; /* A file of length zero has a starting cluster of zero as well */
 		goto finalizeWrite;
 	}
 
@@ -859,6 +860,8 @@ Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSe
 }
 
 void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
+	if (startCluster < 2) return; /* do not corrupt the FAT media ID. The file has no chain. Do nothing. */
+
 	Bit32u clustSize = getClusterSize();
 	Bit32u endClust = (bytePos + clustSize - 1) / clustSize;
 	Bit32u countClust = 1;
