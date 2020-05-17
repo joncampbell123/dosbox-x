@@ -887,8 +887,6 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 	/* chain preservation */
 	while (countClust < endClust) {
 		Bit32u testvalue = getClusterValue(currentClust);
-		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u skip",
-				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
 		if (testvalue == 0) {
 			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
 					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
@@ -906,8 +904,6 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 	 * because countClust == 1 and endClust == 0 */
 	if (countClust == endClust) {
 		Bit32u testvalue = getClusterValue(currentClust);
-		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u eof",
-				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
 		if (testvalue == 0) {
 			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
 					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
@@ -924,8 +920,6 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 	/* then run the rest of the chain and zero it out */
 	while (1) {
 		Bit32u testvalue = getClusterValue(currentClust);
-		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u zero",
-				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
 		if (testvalue == 0) {
 			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
 					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
