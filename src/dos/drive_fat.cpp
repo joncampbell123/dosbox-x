@@ -608,11 +608,10 @@ nextfile:
 			Bit32u newClust;
 			newClust = appendCluster(dirClustNumber);
 			if(newClust == 0) return;
+			zeroOutCluster(newClust);
 			/* Try again to get tmpsector */
 			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 			if(tmpsector == 0) return; /* Give up if still can't get more room for directory */
-			memset(sectbuf,0,sizeof(sectbuf)); /* make sure the new sector starts with zeros so directory search stops before junk */
-			writeSector(tmpsector,sectbuf);
 		}
 		readSector(tmpsector,sectbuf);
 	}
@@ -2303,6 +2302,7 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry
 				Bit32u newClust;
 				newClust = appendCluster(dirClustNumber);
 				if(newClust == 0) return false;
+				zeroOutCluster(newClust);
 				/* Try again to get tmpsector */
 				tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 				if(tmpsector == 0) return false; /* Give up if still can't get more room for directory */
