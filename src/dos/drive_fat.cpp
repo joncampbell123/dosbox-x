@@ -937,34 +937,42 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 }
 
 Bit32u fatDrive::appendCluster(Bit32u startCluster) {
+	if (startCluster < 2) return 0; /* do not corrupt the FAT media ID. The file has no chain. Do nothing. */
+
 	Bit32u currentClust = startCluster;
-	bool isEOF = false;
-	
-	while(!isEOF) {
-		Bit32u testvalue = getClusterValue(currentClust);
-		if(testvalue == 0) {
-			LOG(LOG_DOSMISC,LOG_WARN)("FAT appendCluster: allocation chain ends suddenly with zero cluster value at cluster %u",(unsigned int)currentClust);
-			/* What the crap?  Cluster is already empty - BAIL! */
+	Bit32u eofClust = 0;
+
+	switch(fattype) {
+		case FAT12:
+			eofClust = 0xff8;
 			break;
+		case FAT16:
+			eofClust = 0xfff8;
+			break;
+		case FAT32:
+			eofClust = 0x0ffffff8;
+			break;
+		default:
+			abort();
+			break;
+	}
+
+	while (1) {
+		Bit32u testvalue = getClusterValue(currentClust);
+		if (testvalue == 0) {
+			LOG(LOG_DOSMISC,LOG_WARN)("appendCluster currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
+					(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+			return 0;
 		}
-		switch(fattype) {
-			case FAT12:
-				if(testvalue >= 0xff8) isEOF = true;
-				break;
-			case FAT16:
-				if(testvalue >= 0xfff8) isEOF = true;
-				break;
-			case FAT32:
-				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved upper bits */
-				break;
+		else if (testvalue >= eofClust) {
+			break; /* found it! */
 		}
-		if(isEOF) break;
+
 		currentClust = testvalue;
 	}
 
 	Bit32u newClust = getFirstFreeClust();
-	/* Drive is full */
-	if(newClust == 0) return 0;
+	if(newClust == 0) return 0; /* Drive is full */
 
 	if(!allocateCluster(newClust, currentClust)) return 0;
 
