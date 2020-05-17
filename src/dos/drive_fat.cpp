@@ -2111,7 +2111,13 @@ nextfile:
     /* Compare attributes to search attributes */
 
     //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
-    if (attrs == DOS_ATTR_VOLUME) {
+	if (attrs == DOS_ATTR_VOLUME) {
+		if (dos.version.major >= 7) {
+			/* skip LFN entries */
+			if ((sectbuf[entryoffset].attrib & 0x0F) == 0x0F)
+				goto nextfile;
+		}
+
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
 	} else {
