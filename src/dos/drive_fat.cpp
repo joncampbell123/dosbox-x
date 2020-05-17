@@ -2361,18 +2361,18 @@ bool fatDrive::MakeDir(const char *dir) {
 	/* Fail to make directory if already exists */
 	if(getDirClustNum(dir, &dummyClust, false)) return false;
 
+	/* Can we find the base directory? */
+	if(!getDirClustNum(dir, &dirClust, true)) return false;
+
 	dummyClust = getFirstFreeClust();
 	/* No more space */
 	if(dummyClust == 0) return false;
-	
+
 	if(!allocateCluster(dummyClust, 0)) return false;
 
 	zeroOutCluster(dummyClust);
 
-	/* Can we find the base directory? */
-	if(!getDirClustNum(dir, &dirClust, true)) return false;
-
-    time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+	time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
 	/* Add the new directory to the base directory */
 	memset(&tmpentry,0, sizeof(direntry));
