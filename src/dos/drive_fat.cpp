@@ -1686,6 +1686,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		fattype = FAT32;
 	}
 
+	/* just so you know....! */
+	if (fattype == FAT32 && (dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10))) {
+		LOG_MSG("CAUTION: Mounting FAT32 partition when reported DOS version is less than 7.10. Disk formatting/repair utilities may mis-identify the partition.");
+	}
+
 	/* There is no cluster 0, this means we are in the root directory */
 	cwdDirCluster = 0;
 
