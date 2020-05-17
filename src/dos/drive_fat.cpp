@@ -2437,6 +2437,7 @@ bool fatDrive::RemoveDir(const char *dir) {
 
 	/* Can't remove root directory */
 	if(dummyClust == 0) return false;
+	if(BPB.is_fat32() && dummyClust==BPB.v32.BPB_RootClus) return false;
 
 	/* Get parent directory starting cluster */
 	if(!getDirClustNum(dir, &dirClust, true)) return false;
