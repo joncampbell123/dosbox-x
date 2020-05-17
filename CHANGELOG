@@ -18,13 +18,14 @@
     for "FAT32 extended" absolute disk read and write.
   - Improved FAT32 support to the FAT driver, including direct
     support for FAT32 drives in the DOSBox-X command shell. Files,
-    directories and volume labels on FAT32 drives can be accessed
-    just like FAT12/16 drives.
+    directories and volume labels on FAT32 drives can be listed,
+    read from or written to just like on FAT12/16 drives.
   - Added DOS IOCTL read/write logical device track functions so
     that FORMAT.COM is able to verify and modify the partition table
     to successfully format a hard drive image. Also added stub to
     DOS IOCTL "format device track" for FORMAT.COM.
-  - REN command can now rename directories on FAT drives (Wengier)
+  - REN command can now rename directories (in addition to files) on
+    FAT drives just like on local drives (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier) 
