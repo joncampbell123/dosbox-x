@@ -211,7 +211,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 	Bit16u sizedec, sizecount;
 	sizedec = *size;
 	sizecount = 0;
-	
+
 	if(seekpos < filelength && *size == 0) {
 		/* Truncate file to current position */
 		myDrive->deleteClustChain(firstCluster, seekpos);
@@ -229,11 +229,19 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 			myDrive->allocateCluster(firstCluster, 0);
 			filelength = clustSize;
 		}
-		filelength = ((filelength - 1) / clustSize + 1) * clustSize;
+
+		/* round up */
+		filelength += clustSize - 1;
+		filelength -= filelength % clustSize;
+
+		/* add clusters until the file length is correct */
 		while(filelength < seekpos) {
 			if(myDrive->appendCluster(firstCluster) == 0) goto finalizeWrite; // out of space
 			filelength += clustSize;
 		}
+		assert(filelength <= (seekpos+firstCluster-1));
+
+		/* limit file length fo seekpos, then bail out if write count is zero */
 		if(filelength > seekpos) filelength = seekpos;
 		if(*size == 0) goto finalizeWrite;
 	}
