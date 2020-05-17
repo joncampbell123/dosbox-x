@@ -1,33 +1,31 @@
 0.83.2
-  - INT AH=36h fixed to convert free space but maintain
-    a cluster size (bytes/sector * sectors/cluster)
-    that is less than 64KB to avoid divide by zero crashes
-    with FORMAT.COM /S
-  - Added support for FAT32 volume labels and the LABEL
-    command.
+  - INT AH=36h fixed to convert free space but maintain a
+    cluster size (bytes/sector * sectors/cluster) that is less
+    than 64KB to avoid divide by 0 crashes with FORMAT.COM /S
   - IMGMOUNT auto geometry detection will assume LBA disk
     and fake C/H/S geometry if the disk is 4GB or larger,
     the MBR lacks executable code, or the first partition
     is Windows 98-style LBA FAT16 or FAT32.
-  - Shell DIR command updated to use FAT32 free space API to
-    show free space even on FAT32 partitions larger than 2GB,
-    but only if the DOS version is set to 7.10 or higher.
-  - FAT driver now provides FAT32 extended disk free/total
-    through FAT32 API and 2GB limited free/total through
-    INT 21h AH=36h for older DOS programs.
   - Added FAT32 free/total disk space API for FAT driver, and
-    updated INT 21h AX=7303h to call it.
-  - Added FAT32 INT21h and IOCTLs needed by Windows 98 versions
-    of SCANDISK.EXE and FORMAT.COM.
-  - Added DOS functions for "FAT32 extended" absolute disk
-    read and write used by FAT32-aware versions of FORMAT.COM
-    and SCANDISK.EXE (shipped with Windows 95 OSR2 or later).
+    updated INT 21h AX=7303h to call it. FAT driver now provides
+    FAT32 extended disk free/total through FAT32 API and 2GB
+    limited free/total through INT 21h AH=36h for older DOS
+    programs. Shell DIR command updated to use FAT32 free space
+    API to show free space even on FAT32 partitions larger than
+    2GB, but only if the DOS version is set to 7.1 or higher.
+  - Added FAT32 INT21h and IOCTLs needed by MS-DOS 7.1/Windows 98
+    versions of SCANDISK.EXE and FORMAT.COM, such as DOS functions
+    for "FAT32 extended" absolute disk read and write.
   - Improved FAT32 support to the FAT driver, including direct
-    support for FAT32 drives in the DOSBox-X shell.
-  - Added stub to DOS IOCTL "format device track" for FORMAT.COM.
-  - Added DOS IOCTL read/write logical device track functions
-    so that FORMAT.COM is able to verify and modify the partition
-    table to successfully format a hard drive image.
+    support for FAT32 drives in the DOSBox-X command shell. Files,
+    directories and volume labels on FAT32 drives can be listed,
+    read from or written to just like on FAT12/16 drives.
+  - Added DOS IOCTL read/write logical device track functions so
+    that FORMAT.COM is able to verify and modify the partition table
+    to successfully format a hard drive image. Also added stub to
+    DOS IOCTL "format device track" for FORMAT.COM.
+  - REN command can now rename directories (in addition to files) on
+    FAT drives just like on local drives (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier) 
