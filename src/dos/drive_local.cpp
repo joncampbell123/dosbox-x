@@ -958,7 +958,7 @@ unsigned long localDrive::GetSerial() {
 		return serial_number;
 	}
 
-	return 0;
+	return 0x1234;
 }
 #endif
 
