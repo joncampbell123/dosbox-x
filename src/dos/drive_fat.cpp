@@ -1743,6 +1743,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		/* Truncate file */
 		fileEntry.entrysize=0;
+		fileEntry.SetCluster32(0);
 		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 
 		{
