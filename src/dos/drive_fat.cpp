@@ -867,44 +867,78 @@ void fatDrive::deleteClustChain(Bit32u startCluster, Bit32u bytePos) {
 	Bit32u countClust = 1;
 
 	Bit32u currentClust = startCluster;
-	bool isEOF = false;
-	while(!isEOF) {
-		Bit32u testvalue = getClusterValue(currentClust);
-		if(testvalue == 0) {
-			/* What the crap?  Cluster is already empty - BAIL! */
+	Bit32u eofClust = 0;
+
+	switch(fattype) {
+		case FAT12:
+			eofClust = 0xff8;
 			break;
+		case FAT16:
+			eofClust = 0xfff8;
+			break;
+		case FAT32:
+			eofClust = 0x0ffffff8;
+			break;
+		default:
+			abort();
+			break;
+	}
+
+	/* chain preservation */
+	while (countClust < endClust) {
+		Bit32u testvalue = getClusterValue(currentClust);
+		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u skip",
+				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+		if (testvalue == 0) {
+			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
+					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+			return;
 		}
-		switch(fattype) {
-			case FAT12:
-				if(testvalue >= 0xff8) isEOF = true;
-				break;
-			case FAT16:
-				if(testvalue >= 0xfff8) isEOF = true;
-				break;
-			case FAT32:
-				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
-				break;
-		}
-		if(countClust == endClust && !isEOF) {
-			/* Mark cluster as end */
-			switch(fattype) {
-				case FAT12:
-					setClusterValue(currentClust, 0xfff);
-					break;
-				case FAT16:
-					setClusterValue(currentClust, 0xffff);
-					break;
-				case FAT32:
-					setClusterValue(currentClust, 0x0fffffff);
-					break;
-			}
-		} else if(countClust > endClust) {
-			/* Mark cluster as empty */
-			setClusterValue(currentClust, 0);
-		}
-		if(isEOF) break;
+		else if (testvalue >= eofClust)
+			return; /* Allocation chain is already shorter than intended */
+
 		currentClust = testvalue;
 		countClust++;
+	}
+
+	/* cut the chain here, write EOF.
+	 * This condition will NOT occur if bytePos == 0 (i.e. complete file truncation)
+	 * because countClust == 1 and endClust == 0 */
+	if (countClust == endClust) {
+		Bit32u testvalue = getClusterValue(currentClust);
+		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u eof",
+				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+		if (testvalue == 0) {
+			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
+					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+			return;
+		}
+		else if (testvalue >= eofClust)
+			return; /* No need to write EOF because EOF is already there */
+
+		setClusterValue(currentClust,eofClust);
+		currentClust = testvalue;
+		countClust++;
+	}
+
+	/* then run the rest of the chain and zero it out */
+	while (1) {
+		Bit32u testvalue = getClusterValue(currentClust);
+		LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u zero",
+				(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+		if (testvalue == 0) {
+			LOG(LOG_DOSMISC,LOG_WARN)("deleteClusterChain startCluster=%u countClust=%u endClust=%u currentClust=%u testvalue=%u eof=%u unexpected zero cluster value in FAT table",
+					(unsigned int)startCluster,(unsigned int)countClust,(unsigned int)endClust,(unsigned int)currentClust,(unsigned int)testvalue,(unsigned int)eofClust);
+			return;
+		}
+
+		setClusterValue(currentClust,0);
+		currentClust = testvalue;
+		countClust++;
+
+		/* this follows setClusterValue() to make sure the end of the chain is zeroed too */
+		if (testvalue >= eofClust)
+			return;
 	}
 }
 
