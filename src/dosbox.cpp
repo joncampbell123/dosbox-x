@@ -3073,6 +3073,10 @@ void DOSBOX_SetupConfigSections(void) {
             "7.1                              MS-DOS 7.1 (Windows 98 pure DOS mode) emulation\n"
             "LFN (long filename) support will be enabled with an initial DOS version of 7.0 or higher.\n");
 
+    Pbool = secprop->Add_bool("lfn",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Enable long filename support. This option has no effect unless the reported DOS version is 7.0 or higher at any time.\n"
+                    "Disabling LFNs on MS-DOS 7.0 and higher simulates running in pure DOS mode without the Windows 9x/ME kernel VFAT driver providing LFNs.");
+
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic mount.");
 

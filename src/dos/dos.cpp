@@ -91,6 +91,7 @@ int dos_clipboard_device_access;
 char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
+bool enablelfn=true;
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
 
@@ -2896,6 +2897,8 @@ public:
 		dos.direct_output=false;
 		dos.internal_output=false;
 
+		enablelfn = section->Get_bool("lfn");
+
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {
 			const char *s = ver.c_str();
@@ -2921,7 +2924,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		uselfn = dos.version.major>6;
+		uselfn = enablelfn && (dos.version.major>6);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);

@@ -35,6 +35,8 @@
 
 Bitu call_program;
 
+extern bool enablelfn;
+
 extern int paste_speed;
 extern const char *modifier;
 extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
@@ -1001,7 +1003,7 @@ void CONFIG::Run(void) {
 										if (isdigit(*s))
 											dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
 									}
-									uselfn = dos.version.major>6;
+									uselfn = enablelfn && (dos.version.major>6);
 								}
 							}
 						}
