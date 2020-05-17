@@ -321,6 +321,19 @@ struct direntry {
 	}
 } GCC_ATTRIBUTE(packed);
 
+struct direntry_lfn {
+    Bit8u LDIR_Ord;                 /* 0x00 Long filename ordinal (1 to 63). bit 6 (0x40) is set if the last entry, which normally comes first in the directory */
+    Bit16u LDIR_Name1[5];           /* 0x01 first 5 chars */
+    Bit8u attrib;                   /* 0x0B */
+    Bit8u LDIR_Type;                /* 0x0C zero to indicate a LFN */
+    Bit8u LDIR_Chksum;              /* 0x0D checksum */
+    Bit16u LDIR_Name2[6];           /* 0x0E next 6 chars */
+    Bit16u LDIR_FstClusLO;          /* 0x1A zero (loFirstClust) */
+    Bit16u LDIR_Name3[2];           /* 0x1C next 2 chars */
+} GCC_ATTRIBUTE(packed);
+static_assert(sizeof(direntry_lfn) == 0x20,"Oops");
+static_assert(offsetof(direntry_lfn,LDIR_Name3) == 0x1C,"Oops");
+
 #define MAX_DIRENTS_PER_SECTOR (SECTOR_SIZE_MAX / sizeof(direntry))
 
 struct partTable {
