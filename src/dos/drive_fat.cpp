@@ -239,7 +239,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 			if(myDrive->appendCluster(firstCluster) == 0) goto finalizeWrite; // out of space
 			filelength += clustSize;
 		}
-		assert(filelength <= (seekpos+firstCluster-1));
+		assert(filelength < (seekpos+clustSize));
 
 		/* limit file length fo seekpos, then bail out if write count is zero */
 		if(filelength > seekpos) filelength = seekpos;
