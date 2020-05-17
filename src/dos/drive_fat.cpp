@@ -1734,10 +1734,14 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 
 	Bit16u save_errorcode=dos.errorcode;
 
-    if (attributes & DOS_ATTR_VOLUME) {
-        SetLabel(name,false,true);
-        return true;
-    }
+	if (attributes & DOS_ATTR_VOLUME) {
+		SetLabel(name,false,true);
+		return true;
+	}
+	if (attributes & DOS_ATTR_DIRECTORY) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
 
 	/* Check if file already exists */
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
