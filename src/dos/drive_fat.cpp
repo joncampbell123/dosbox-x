@@ -559,7 +559,6 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 		strncpy(entname, findFile, 12);
 	else
 		strcpy(entname, findFile);
-	if (!strlen(trim(entname))) return false;
 	upcase(entname);
 	return true;
 }
@@ -2305,7 +2304,7 @@ bool fatDrive::MakeDir(const char *dir) {
     Bit16u ct,cd;
 
 	/* Can we even get the name of the directory itself? */
-	if(!getEntryName(dir, &dirName[0])) return false;
+	if(!getEntryName(dir, &dirName[0])||!strlen(trim(dirName))) return false;
 	convToDirFile(&dirName[0], &pathName[0]);
 
 	/* Fail to make directory if already exists */
