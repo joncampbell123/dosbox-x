@@ -1741,15 +1741,15 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 
 	/* Check if file already exists */
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
-		/* Truncate file */
-		fileEntry.entrysize=0;
-		fileEntry.SetCluster32(0);
-		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
-
+		/* Truncate file allocation chain */
 		{
 			const Bit32u chk = BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust;
 			if(chk != 0) deleteClustChain(chk, 0);
 		}
+		/* Update directory entry */
+		fileEntry.entrysize=0;
+		fileEntry.SetCluster32(0);
+		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 	} else {
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(name, &dirName[0])) return false;
