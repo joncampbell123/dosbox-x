@@ -1791,6 +1791,12 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 		return false;
 	}
 
+	/* you cannot create root directory */
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
 	/* Check if file already exists */
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		/* Truncate file allocation chain */
@@ -1848,6 +1854,13 @@ bool fatDrive::FileExists(const char *name) {
 bool fatDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
+
+	/* you cannot open root directory */
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	/* TODO: check for read-only flag and requested write access */
 	*file = new fatFile(name, BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust, fileEntry.entrysize, this);
@@ -1872,6 +1885,12 @@ bool fatDrive::FileUnlink(const char * name) {
     }
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
+
+	/* you cannot delete root directory */
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
 
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 	if(uselfn&&(strchr(name, '*')||strchr(name, '?'))) {
@@ -2121,6 +2140,13 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
     }
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
+
+	/* you cannot set file attr root directory (right?) */
+	if (*name == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		char dirName[DOS_NAMELENGTH_ASCII];
 		char pathName[11];
@@ -2156,6 +2182,13 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
 bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
+
+	/* you CAN get file attr root directory */
+	if (*name == 0) {
+		*attr=DOS_ATTR_DIRECTORY;
+		return true;
+	}
+
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		char dirName[DOS_NAMELENGTH_ASCII];
 		char pathName[11];
@@ -2354,6 +2387,12 @@ bool fatDrive::MakeDir(const char *dir) {
     char pathName[11];
     Bit16u ct,cd;
 
+	/* you cannot mkdir root directory */
+	if (*dir == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
 	/* Can we even get the name of the directory itself? */
 	if(!getEntryName(dir, &dirName[0])||!strlen(trim(dirName))) return false;
 	convToDirFile(&dirName[0], &pathName[0]);
@@ -2428,6 +2467,12 @@ bool fatDrive::RemoveDir(const char *dir) {
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
 
+	/* you cannot rmdir root directory */
+	if (*dir == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
 	/* Can we even get the name of the directory itself? */
 	if(!getEntryName(dir, &dirName[0])) return false;
 	convToDirFile(&dirName[0], &pathName[0]);
@@ -2482,6 +2527,13 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
+
+	/* you cannot rename root directory */
+	if (*oldname == 0 || *newname == 0) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
+
     direntry fileEntry1 = {}, fileEntry2 = {};
 	Bit32u dirClust1, subEntry1, dirClust2, subEntry2;
 	char dirName[DOS_NAMELENGTH_ASCII], dirName2[DOS_NAMELENGTH_ASCII];
@@ -2547,6 +2599,10 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
 bool fatDrive::TestDir(const char *dir) {
 	Bit32u dummyClust;
+
+	/* root directory is directory */
+	if (*dir == 0) return true;
+
 	return getDirClustNum(dir, &dummyClust, false);
 }
 
