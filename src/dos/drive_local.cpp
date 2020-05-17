@@ -956,8 +956,9 @@ unsigned long localDrive::GetSerial() {
 		volume[0]=newname[0];
 		GetVolumeInformation(volume, NULL, 0, &serial_number, NULL, NULL, NULL, 0);
 		return serial_number;
-		
 	}
+
+	return 0;
 }
 #endif
 
