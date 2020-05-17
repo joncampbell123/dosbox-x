@@ -2087,22 +2087,22 @@ nextfile:
 	memset(lfind_name,0,LFN_NAMELENGTH);
 	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
     memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
-	memcpy(lfind_name,&sectbuf[entryoffset].entryname[0],8);
+//	memcpy(lfind_name,&sectbuf[entryoffset].entryname[0],8);
 
     if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
         trimString(&find_name[0]);
         trimString(&extension[0]);
-		trimString(&lfind_name[0]);
+//		trimString(&lfind_name[0]);
     }
 
     //if(!(sectbuf[entryoffset].attrib & DOS_ATTR_DIRECTORY))
     if (extension[0]!=0) {
         if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
             strcat(find_name, ".");
-            strcat(lfind_name, ".");
+//			strcat(lfind_name, ".");
 		}
         strcat(find_name, extension);
-        strcat(lfind_name, extension);
+//		strcat(lfind_name, extension);
     }
 
     if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
