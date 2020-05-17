@@ -241,7 +241,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 		}
 		assert(filelength < (seekpos+clustSize));
 
-		/* limit file length fo seekpos, then bail out if write count is zero */
+		/* limit file length to seekpos, then bail out if write count is zero */
 		if(filelength > seekpos) filelength = seekpos;
 		if(*size == 0) goto finalizeWrite;
 	}
