@@ -2178,7 +2178,7 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-	if (!(WildFileCmp(find_name,srch_pattern) || (lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
+	if (!(WildFileCmp(find_name,srch_pattern) || LWildFileCmp(lfind_name,srch_pattern))) {
 		lfn_max_ord = 0;
 		goto nextfile;
 	}
