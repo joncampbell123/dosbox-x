@@ -35,9 +35,7 @@
 
 Bitu call_program;
 
-extern bool enablelfn;
-
-extern int paste_speed;
+extern int enablelfn, paste_speed;
 extern const char *modifier;
 extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
 
@@ -993,8 +991,10 @@ void CONFIG::Run(void) {
 							paste_speed = section->Get_int("clip_paste_speed");
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
-								enablelfn = section->Get_bool("lfn");
-								uselfn = enablelfn && (dos.version.major>6);
+								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
+								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
+								else enablelfn=-1;
+								uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								std::string ver = section->Get_string("ver");
 								if (!ver.empty()) {
@@ -1007,7 +1007,7 @@ void CONFIG::Run(void) {
 											if (isdigit(*s))
 												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
 										}
-										uselfn = enablelfn && (dos.version.major>6);
+										uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 									}
 								}
 							}
