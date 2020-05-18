@@ -3080,7 +3080,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
 
-    Pbool = secprop->Add_bool("automountall",Property::Changeable::WhenIdle,false);
+    Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Automatically mount all available Windows drives at start.");
 
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
