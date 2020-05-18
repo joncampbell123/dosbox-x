@@ -628,7 +628,7 @@ nextfile:
 	readSector(tmpsector,sectbuf);
 	dirPos++;
 
-	if (dos.version.major >= 7) {
+	if (dos.version.major >= 7 || uselfn) {
 		/* skip LFN entries */
 		if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 			goto nextfile;
@@ -2114,7 +2114,7 @@ nextfile:
 
     //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
-		if (dos.version.major >= 7) {
+		if (dos.version.major >= 7 || uselfn) {
 			/* skip LFN entries */
 			if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 				goto nextfile;
@@ -2122,7 +2122,7 @@ nextfile:
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
-	} else if (dos.version.major >= 7 && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
+	} else if (uselfn && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
 
 		/* assume last entry comes first, because that's how Windows 9x does it and that is how you're supposed to do it according to Microsoft */
@@ -2178,14 +2178,12 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-	if (!(WildFileCmp(find_name,srch_pattern) || (lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
+	if (!(WildFileCmp(find_name,srch_pattern) || LWildFileCmp(lfind_name,srch_pattern))) {
 		lfn_max_ord = 0;
 		goto nextfile;
 	}
 
-	// HACK: Drive emulation seems to REQUIRE a LFN, or else 8.3 names have no name and funny things happen.
-	//       This is contrary to actual Windows 9x/ME behavior where files with 8.3 names usually have no LFN
-	//       and none is returned.
+	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
 	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
 
 	//dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].crtDate, sectbuf[entryoffset].crtTime, sectbuf[entryoffset].attrib);

@@ -1045,6 +1045,7 @@ void DOSBOX_SetupConfigSections(void) {
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
+    const char* lfn_settings[] = { "true", "false", "auto", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -3056,18 +3057,18 @@ void DOSBOX_SetupConfigSections(void) {
             "If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (LFN patch compat). Common settings are:\n"
+    Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (compatible with LFN support). Common settings are:\n"
             "auto (or unset)                  Pick a DOS kernel version automatically\n"
             "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
             "7.0                              MS-DOS 7.0 (Windows 95 pure DOS mode) emulation\n"
             "7.1                              MS-DOS 7.1 (Windows 98 pure DOS mode) emulation\n"
-            "LFN (long filename) support will be enabled with an initial DOS version of 7.0 or higher.\n");
+            "LFN (long filename) support will be enabled with a reported DOS version of 7.0 or higher with \"lfn=auto\" (default).\n");
 
-    Pbool = secprop->Add_bool("lfn",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable long filename support. This option has no effect unless the reported DOS version is 7.0 or higher at any time.\n"
-                    "Disabling LFNs on MS-DOS 7.0 and higher simulates running in pure DOS mode without the Windows 9x/ME kernel VFAT driver providing LFNs.");
+    Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(lfn_settings);
+    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");

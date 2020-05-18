@@ -91,7 +91,7 @@ int dos_clipboard_device_access;
 char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
-bool enablelfn=true;
+int enablelfn=-1;
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
 
@@ -510,7 +510,7 @@ static Bitu DOS_21Handler(void) {
                 LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 20h/INT 21h AH=00h recovered CS segment %04x",f_cs);
 
                 DOS_Terminate(f_cs,false,0);
-            } else if (dos.version.major >= 7 && mem_readw(SegPhys(ss)+reg_sp) >=0x2700 && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 == 0x90 && dos.psp()/0x100 >= 0xCC && dos.psp()/0x100 <= 0xCF)
+            } else if (dos.version.major >= 7 && uselfn && mem_readw(SegPhys(ss)+reg_sp) >=0x2700 && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 == 0x90 && dos.psp()/0x100 >= 0xCC)
                 /* Wengier: This case fixes the bug that DIR /S from MS-DOS 7+ could crash hard within DOSBox-X. With this change it should now work properly. */
                 DOS_Terminate(dos.psp(),false,0);
 			else
@@ -2897,7 +2897,9 @@ public:
 		dos.direct_output=false;
 		dos.internal_output=false;
 
-		enablelfn = section->Get_bool("lfn");
+		if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
+		else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
+		else enablelfn=-1;
 
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {
@@ -2924,7 +2926,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		uselfn = enablelfn && (dos.version.major>6);
+		uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);

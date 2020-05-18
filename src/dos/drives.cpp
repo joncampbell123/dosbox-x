@@ -126,7 +126,7 @@ checkext:
 
 bool LWildFileCmp(const char * file, const char * wild)
 {
-    if (!uselfn) return false;
+    if (!uselfn||*file == 0) return false;
     char file_name[256];
     char file_ext[256];
     char wild_name[256];

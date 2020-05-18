@@ -1,10 +1,9 @@
 0.83.2
-  - FAT driver fixed to always report root directory as a
-    directory through the GetFileAttribute INT 21h call,
-    needed by MOVE.EXE and XCOPY.EXE to work properly.
-  - FAT driver cleaned up and fix to avoid edge cases that
+  - FAT driver cleaned up and fixed to avoid edge cases that
     can corrupt directory entries and leave lost clusters
-    on the disk.
+    on the disk, also fixed to always report root directory
+    as a directory through the GetFileAttribute INT 21h call,
+    needed by MOVE.EXE and XCOPY.EXE to work properly.
   - IMGMOUNT auto geometry detection will assume LBA disk
     and fake C/H/S geometry if the disk is 4GB or larger,
     the MBR lacks executable code, or the first partition
@@ -84,7 +83,8 @@
   - Improved long filename (LFN) and SetFileAttr/GetFileAttr
     support for PC-98 mode. (Wengier)
   - Added config option "lfn" to enable/disable long filename
-    (LFN) support if the reported DOS version is at least 7
+    (LFN) support. With default setting of "auto", LFN support
+    is enabled if the reported DOS version is at least 7.0.
   - Added config option "automountall" (default: false) to
     automatically mount all available Windows drives (Wengier)
   - The copy & paste Windows clipboard text via the right
