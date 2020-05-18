@@ -924,13 +924,13 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 
 	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
 	int fbak=faux;
-	faux=uselfn?255:256;
+	faux=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true, first=true;
 	faux=fbak;
 	if (ret) {
 		std::vector<DtaResult> results;
 
-		faux=uselfn?255:256;
+		faux=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		do {    /* File name and extension */
 			DtaResult result;
 			dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
