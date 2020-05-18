@@ -1493,7 +1493,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x4e:                  /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-			faux=256;
+			faux=LFN_FILEFIND_NONE;
             if (DOS_FindFirst(name1,reg_cx)) {
                 CALLBACK_SCF(false);    
                 reg_ax=0;           /* Undocumented */
@@ -3311,14 +3311,14 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			strcat(name2, ".*");
 		faux=handle;
 		bool b=DOS_FindFirst(name2,reg_cx,false);
-		faux=256;
+		faux=LFN_FILEFIND_NONE;
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
 		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
 			faux=handle;
 			b=DOS_FindFirst(name2,reg_cx,false);
-			faux=256;
+			faux=LFN_FILEFIND_NONE;
 			error=dos.errorcode;
 		}
 		if (b) {
@@ -3372,7 +3372,7 @@ void DOS_Int21_714f(const char *name1, const char *name2) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 		}
-		faux=256;
+		faux=LFN_FILEFIND_NONE;
 }
 
 void DOS_Int21_7156(char *name1, char *name2) {
