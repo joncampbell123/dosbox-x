@@ -50,12 +50,12 @@ Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 bool force = false;
-int sdrive;
+int sdrive = 0;
 
-/* this is the LFN filefind handle that is currently being used, with normal value
- * between 0 and 254 for LFN calls. The value 255 is used internally by LFN
- * handling functions. For non-LFN calls the value is fixed to be 256. */
-int faux = LFN_FILEFIND_NONE;
+/* This is the LFN filefind handle that is currently being used, with normal values between
+ * 0 and 254 for LFN calls. The value LFN_FILEFIND_INTERNAL (255) is used internally by LFN
+ * handling functions. For non-LFN calls the value is fixed to be LFN_FILEFIND_NONE (256). */
+int lfn_filefind_handle = LFN_FILEFIND_NONE;
 
 bool shiftjis_lead_byte(int c);
 
@@ -233,7 +233,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
-	int fbak=faux;
+	int fbak=lfn_filefind_handle;
     for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
 		*s = 0;
 		if (SFNPath[strlen(SFNPath)-1]=='\\')
@@ -243,9 +243,9 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 		if (!strrchr(p,'*') && !strrchr(p,'?')) {
 			*s = '\\';
 			p = s + 1;
-			faux=LFN_FILEFIND_INTERNAL;
+			lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
-				faux=fbak;
+				lfn_filefind_handle=fbak;
 				dta.GetResult(name,lname,size,date,time,attr);
 				strcat(SFNPath,name);
 				strcat(LFNPath,lname);
@@ -253,7 +253,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 				strcat(LFNPath,"\\");
 			}
 			else {
-				faux=fbak;
+				lfn_filefind_handle=fbak;
 				dos.dta(save_dta);
 				return false;
 			}
@@ -269,7 +269,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     }
     if (p != 0) {
 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
-		faux=LFN_FILEFIND_INTERNAL;
+		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
 			dta.GetResult(name,lname,size,date,time,attr);
 			strcat(SFNPath,name);
@@ -278,7 +278,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			strcat(SFNPath,p);
 			strcat(LFNPath,p);
 		}
-		faux=fbak;
+		lfn_filefind_handle=fbak;
     }
 	dos.dta(save_dta);
     if (LFN) strcpy(SFNPath,LFNPath);

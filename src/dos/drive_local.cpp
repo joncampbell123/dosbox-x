@@ -79,7 +79,7 @@ static host_cnv_char_t cpcnv_ltemp[4096];
 static Bit16u ldid[256];
 static std::string ldir[256];
 extern bool rsize, freesizecap;
-extern int faux;
+extern int lfn_filefind_handle;
 extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -682,12 +682,12 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
-	if (faux>=255) {
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(id);
 		strcpy(srchInfo[id].srch_dir,tempDir);
 	} else {
-		ldid[faux]=id;
-		ldir[faux]=tempDir;
+		ldid[lfn_filefind_handle]=id;
+		ldir[lfn_filefind_handle]=tempDir;
 	}
 	
 	Bit8u sAttr;
@@ -735,20 +735,20 @@ bool localDrive::FindNext(DOS_DTA & dta) {
 	Bit8u find_attr;
 
     dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
-	Bit16u id = faux>=255?dta.GetDirID():ldid[faux];
+	Bit16u id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
 
 again:
     if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
-		if (faux<255) {
-			ldid[faux]=0;
-			ldir[faux]="";
+		if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+			ldid[lfn_filefind_handle]=0;
+			ldir[lfn_filefind_handle]="";
 		}
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
     if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
-	strcpy(full_name,faux>=255?srchInfo[id].srch_dir:(ldir[faux]!=""?ldir[faux].c_str():"\\"));
+	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
 	strcpy(lfull_name,full_name);
 	
 	strcat(full_name,dir_ent);

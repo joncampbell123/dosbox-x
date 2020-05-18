@@ -30,7 +30,7 @@
 
 char fullname[LFN_NAMELENGTH];
 static Bit16u sdid[256];
-extern int faux;
+extern int lfn_filefind_handle;
 
 using namespace std;
 
@@ -272,10 +272,10 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	int dirIterator = GetDirIterator(&de);
 	bool isRoot = (*dir == 0);
 	dirIterators[dirIterator].root = isRoot;
-	if (faux>=255)
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		dta.SetDirID((Bit16u)dirIterator);
 	else
-		sdid[faux]=dirIterator;
+		sdid[lfn_filefind_handle]=dirIterator;
 
 	Bit8u attr;
 	char pattern[CROSS_LEN];
@@ -300,7 +300,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, uselfn);
 	
-	int dirIterator = faux>=255?dta.GetDirID():(sdid?sdid[faux]:0);
+	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():(sdid?sdid[lfn_filefind_handle]:0);
 	bool isRoot = dirIterators[dirIterator].root;
 	
     isoDirEntry de = {};

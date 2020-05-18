@@ -23,10 +23,11 @@
 #include "mem.h"
 #include "dos_inc.h"
 #include "support.h"
+#include "drives.h"
 
 Bit8u sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
-extern int faux;
+extern int lfn_filefind_handle;
 
 struct finddata {
        Bit8u attr;
@@ -397,13 +398,13 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	sSave(sDTA,sattr,_sattr);
 
 	int i;
-	if (faux<256) {
-		sattr[faux]=_sattr;
+	if (lfn_filefind_handle<LFN_FILEFIND_NONE) {
+		sattr[lfn_filefind_handle]=_sattr;
 		for (i=0;i<LFN_NAMELENGTH;i++) {
 			if (pattern[i]==0) break;
-				sname[faux][i]=pattern[i];
+				sname[lfn_filefind_handle][i]=pattern[i];
 		}
-		while (i<=LFN_NAMELENGTH) sname[faux][i++]=0;
+		while (i<=LFN_NAMELENGTH) sname[lfn_filefind_handle][i++]=0;
 	}
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
@@ -466,9 +467,9 @@ Bit8u DOS_DTA::GetSearchDrive(void) {
 }
 
 void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
-    if (lfn&&faux<256) {
-		attr=sattr[faux];
-        memcpy(pattern,sname[faux],LFN_NAMELENGTH);
+    if (lfn&&lfn_filefind_handle<LFN_FILEFIND_NONE) {
+		attr=sattr[lfn_filefind_handle];
+        memcpy(pattern,sname[lfn_filefind_handle],LFN_NAMELENGTH);
         pattern[LFN_NAMELENGTH]=0;
     } else {
 		attr=(Bit8u)sGet(sDTA,sattr);

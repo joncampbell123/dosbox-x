@@ -44,7 +44,7 @@
 static Bit16u dpos[256];
 static Bit32u dnum[256];
 extern bool wpcolon;
-extern int faux;
+extern int lfn_filefind_handle;
 
 class fatFile : public DOS_File {
 public:
@@ -689,8 +689,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 		currentClust = BPB.v32.BPB_RootClus;
 	}
 
-	int fbak=faux;
-	faux=LFN_FILEFIND_NONE;
+	int fbak=lfn_filefind_handle;
+	lfn_filefind_handle=LFN_FILEFIND_NONE;
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
@@ -724,8 +724,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	/* Search found directory for our file */
 	imgDTA->SetupSearch(0,0x7,findFile);
 	imgDTA->SetDirID(0);
-	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {faux=fbak;return false;}
-	faux=fbak;
+	if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {lfn_filefind_handle=fbak;return false;}
+	lfn_filefind_handle=fbak;
 
 	memcpy(useEntry, &foundEntry, sizeof(direntry));
 	*dirClust = (Bit32u)currentClust;
@@ -739,7 +739,7 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 	direntry foundEntry;
 	strcpy(dirtoken,dir);
 
-	int fbak=faux;
+	int fbak=lfn_filefind_handle;
 	/* Skip if testing for root directory */
 	if ((len>0) && (dir[len-1]!='\\')) {
 		Bit32u currentClust = 0;
@@ -752,17 +752,17 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 		//LOG_MSG("Testing for dir %s", dir);
 		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
-			faux=LFN_FILEFIND_NONE;
+			lfn_filefind_handle=LFN_FILEFIND_NONE;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
 			findDir = strtok(NULL,"\\");
-			if(parDir && (findDir == NULL)) {faux=fbak;break;}
+			if(parDir && (findDir == NULL)) {lfn_filefind_handle=fbak;break;}
 
 			if(!FindNextInternal(currentClust, *imgDTA, &foundEntry)) {
-				faux=fbak;
+				lfn_filefind_handle=fbak;
 				return false;
 			} else {
-				faux=fbak;
+				lfn_filefind_handle=fbak;
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
@@ -1910,8 +1910,8 @@ bool fatDrive::FileUnlink(const char * name) {
 			strcpy(pattern,find_last+1);
 			strcpy(dir,fullname);
 		}
-		int fbak=faux;
-		faux=LFN_FILEFIND_NONE;
+		int fbak=lfn_filefind_handle;
+		lfn_filefind_handle=LFN_FILEFIND_NONE;
 		imgDTA->SetupSearch((Bit8u)0,0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY/*NTS: Parameter is Bit8u*/,pattern);
 		imgDTA->SetDirID(0);
 		direntry foundEntry;
@@ -1929,7 +1929,7 @@ bool fatDrive::FileUnlink(const char * name) {
 				cdirs.push_back(std::string(temp));
 			}
 		}
-		faux=fbak;
+		lfn_filefind_handle=fbak;
 		bool removed=false;
 		while (!cdirs.empty()) {
 			if (FileUnlink(cdirs.begin()->c_str())) removed=true;
@@ -1968,12 +1968,12 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
         }
     }
 
-	if (faux>=255) {
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
 		dta.SetDirID(0);
 		dta.SetDirIDCluster(cwdDirCluster);
 	} else {
-		dpos[faux]=0;
-		dnum[faux]=cwdDirCluster;
+		dpos[lfn_filefind_handle]=0;
+		dnum[lfn_filefind_handle]=cwdDirCluster;
 	}
 
 	return FindNextInternal(cwdDirCluster, dta, &dummyClust);
@@ -2038,7 +2038,7 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	dta.GetSearchParams(attrs, srch_pattern,uselfn);
-	dirPos = faux>=255?dta.GetDirID():dpos[faux]; /* NTS: Windows 9x is said to have a 65536 dirent limit even for FAT32, so dirPos as 16-bit is acceptable */
+	dirPos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():dpos[lfn_filefind_handle]; /* NTS: Windows 9x is said to have a 65536 dirent limit even for FAT32, so dirPos as 16-bit is acceptable */
 
 	memset(lfind_name,0,LFN_NAMELENGTH);
 
@@ -2050,9 +2050,9 @@ nextfile:
         if (BPB.is_fat32()) return false;
 
 		if(dirPos >= BPB.v.BPB_RootEntCnt) {
-			if (faux<255) {
-				dpos[faux]=0;
-				dnum[faux]=0;
+			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+				dpos[lfn_filefind_handle]=0;
+				dnum[lfn_filefind_handle]=0;
 			}
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
@@ -2062,9 +2062,9 @@ nextfile:
 		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 		/* A zero sector number can't happen */
 		if(tmpsector == 0) {
-			if (faux<255) {
-				dpos[faux]=0;
-				dnum[faux]=0;
+			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+				dpos[lfn_filefind_handle]=0;
+				dnum[lfn_filefind_handle]=0;
 			}
 			DOS_SetError(DOSERR_NO_MORE_FILES);
 			return false;
@@ -2072,8 +2072,8 @@ nextfile:
 		readSector(tmpsector,sectbuf);
 	}
 	dirPos++;
-	if (faux>=255) dta.SetDirID(dirPos);
-	else dpos[faux]=dirPos;
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) dta.SetDirID(dirPos);
+	else dpos[lfn_filefind_handle]=dirPos;
 
 	/* Deleted file entry */
 	if (sectbuf[entryoffset].entryname[0] == 0xe5) {
@@ -2083,9 +2083,9 @@ nextfile:
 
 	/* End of directory list */
 	if (sectbuf[entryoffset].entryname[0] == 0x00) {
-			if (faux<255) {
-				dpos[faux]=0;
-				dnum[faux]=0;
+			if (lfn_filefind_handle<LFN_FILEFIND_MAX) {
+				dpos[lfn_filefind_handle]=0;
+				dnum[lfn_filefind_handle]=0;
 			}
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
@@ -2122,7 +2122,7 @@ nextfile:
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
-	} else if (uselfn && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
+	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
 
 		/* assume last entry comes first, because that's how Windows 9x does it and that is how you're supposed to do it according to Microsoft */
@@ -2198,7 +2198,7 @@ nextfile:
 bool fatDrive::FindNext(DOS_DTA &dta) {
     direntry dummyClust = {};
 
-	return FindNextInternal(faux>=255?dta.GetDirIDCluster():(dnum[faux]?dnum[faux]:0), dta, &dummyClust);
+	return FindNextInternal(lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirIDCluster():(dnum[lfn_filefind_handle]?dnum[lfn_filefind_handle]:0), dta, &dummyClust);
 }
 
 
