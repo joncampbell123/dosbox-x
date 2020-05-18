@@ -98,7 +98,7 @@ static SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 }; 
 
-extern int faux;
+extern int enablelfn, faux;
 extern bool date_host_forced, usecon, rsize;
 extern unsigned long freec;
 
@@ -2478,6 +2478,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.major = (Bit8u)(atoi(word));
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
+		uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 }
 
