@@ -690,7 +690,7 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 	}
 
 	int fbak=faux;
-	faux=256;
+	faux=LFN_FILEFIND_NONE;
 	/* Skip if testing in root directory */
 	if ((len>0) && (filename[len-1]!='\\')) {
 		//LOG_MSG("Testing for filename %s", filename);
@@ -752,7 +752,7 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 		//LOG_MSG("Testing for dir %s", dir);
 		char * findDir = strtok(dirtoken,"\\");
 		while(findDir != NULL) {
-			faux=256;
+			faux=LFN_FILEFIND_NONE;
 			imgDTA->SetupSearch(0,DOS_ATTR_DIRECTORY,findDir);
 			imgDTA->SetDirID(0);
 			findDir = strtok(NULL,"\\");
@@ -1911,7 +1911,7 @@ bool fatDrive::FileUnlink(const char * name) {
 			strcpy(dir,fullname);
 		}
 		int fbak=faux;
-		faux=256;
+		faux=LFN_FILEFIND_NONE;
 		imgDTA->SetupSearch((Bit8u)0,0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY/*NTS: Parameter is Bit8u*/,pattern);
 		imgDTA->SetDirID(0);
 		direntry foundEntry;
