@@ -628,7 +628,7 @@ nextfile:
 	readSector(tmpsector,sectbuf);
 	dirPos++;
 
-	if (uselfn) {
+	if (dos.version.major >= 7 || uselfn) {
 		/* skip LFN entries */
 		if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 			goto nextfile;
@@ -2114,7 +2114,7 @@ nextfile:
 
     //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
-		if (uselfn) {
+		if (dos.version.major >= 7 || uselfn) {
 			/* skip LFN entries */
 			if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 				goto nextfile;
