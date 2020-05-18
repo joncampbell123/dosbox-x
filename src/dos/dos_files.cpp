@@ -52,6 +52,13 @@ DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 bool force = false;
 int sdrive;
 
+/* No LFN filefind in progress (SFN call). This index is out of range and meant to indicate no LFN call in progress. */
+#define LFN_FILEFIND_NONE           256
+/* Internal handle */
+#define LFN_FILEFIND_INTERNAL       255
+/* Highest valid handle */
+#define LFN_FILEFIND_MAX            255
+
 /* this is the LFN filefind handle that is currently being used, with normal value
  * between 0 and 254 for LFN calls. The value 255 is used internally by LFN
  * handling functions. For non-LFN calls the value is fixed to be 256. */
