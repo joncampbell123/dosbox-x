@@ -467,11 +467,11 @@ void DOS_Shell::Run(void) {
         if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
 #if defined(WIN32)
-		if (!control->SecureMode())
+		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(sec->Get_bool("automountall")) {
-				DWORD drives = GetLogicalDrives();
+				Bit32u drives = GetLogicalDrives();
 				char name[4]="A:\\";
 				for (int i=0; i<25; i++) {
 					if ((drives & (1<<i)) && !Drives[i])
