@@ -57,8 +57,8 @@ typedef wchar_t host_cnv_char_t;
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
 # else
-#  define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
-#  define ht_stat(x,y) _wstat64i32(x,y)
+#  define ht_stat_t struct _stat64 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
+#  define ht_stat(x,y) _wstat64(x,y)
 # endif
 # define ht_access(x,y) _waccess(x,y)
 # define ht_strdup(x) _wcsdup(x)
