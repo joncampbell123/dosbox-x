@@ -991,19 +991,24 @@ void CONFIG::Run(void) {
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
-						} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-							std::string ver = section->Get_string("ver");
-							if (!ver.empty()) {
-								const char *s = ver.c_str();
-								if (isdigit(*s)) {
-									dos.version.minor=0;
-									dos.version.major=(int)strtoul(s,(char**)(&s),10);
-									if (*s == '.' || *s == ' ') {
-										s++;
-										if (isdigit(*s))
-											dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
+						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
+							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
+								enablelfn = section->Get_bool("lfn");
+								uselfn = enablelfn && (dos.version.major>6);
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
+								std::string ver = section->Get_string("ver");
+								if (!ver.empty()) {
+									const char *s = ver.c_str();
+									if (isdigit(*s)) {
+										dos.version.minor=0;
+										dos.version.major=(int)strtoul(s,(char**)(&s),10);
+										if (*s == '.' || *s == ' ') {
+											s++;
+											if (isdigit(*s))
+												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
+										}
+										uselfn = enablelfn && (dos.version.major>6);
 									}
-									uselfn = enablelfn && (dos.version.major>6);
 								}
 							}
 						}
