@@ -2232,21 +2232,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_help("Fluidsynth polyphony.");
 
 	Pstring = secprop->Add_string("fluid.cores",Property::Changeable::WhenIdle,"default");
-	Pstring->Set_help("Fluidsynth CPU cores to use, default.");
+	Pstring->Set_help("Fluidsynth CPU cores to use, or default.");
 
-	#if defined (WIN32)
-		Pstring = secprop->Add_string("fluid.periods",Property::Changeable::WhenIdle,"8");
-    #else
-		Pstring = secprop->Add_string("fluid.periods",Property::Changeable::WhenIdle,"16");
-    #endif
-	Pstring->Set_help("Fluidsynth periods.");
+	Pstring = secprop->Add_string("fluid.periods",Property::Changeable::WhenIdle,"default");
+	Pstring->Set_help("Fluidsynth periods, or default.");
 
-	#if defined (WIN32)
-		Pstring = secprop->Add_string("fluid.periodsize",Property::Changeable::WhenIdle,"512");
-	#else
-		Pstring = secprop->Add_string("fluid.periodsize",Property::Changeable::WhenIdle,"64");
-	#endif
-	Pstring->Set_help("Fluidsynth period size.");
+	Pstring = secprop->Add_string("fluid.periodsize",Property::Changeable::WhenIdle,"default");
+	Pstring->Set_help("Fluidsynth period size, or default.");
 
 	const char *fluidreverb[] = {"no", "yes",0};
 	Pstring = secprop->Add_string("fluid.reverb",Property::Changeable::WhenIdle,"yes");	
