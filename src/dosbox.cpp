@@ -3057,7 +3057,7 @@ void DOSBOX_SetupConfigSections(void) {
             "If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (LFN patch compat). Common settings are:\n"
+    Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (compatible with LFN support). Common settings are:\n"
             "auto (or unset)                  Pick a DOS kernel version automatically\n"
             "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
