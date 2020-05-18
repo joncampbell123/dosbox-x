@@ -52,17 +52,10 @@ DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 bool force = false;
 int sdrive;
 
-/* No LFN filefind in progress (SFN call). This index is out of range and meant to indicate no LFN call in progress. */
-#define LFN_FILEFIND_NONE           256
-/* Internal handle */
-#define LFN_FILEFIND_INTERNAL       255
-/* Highest valid handle */
-#define LFN_FILEFIND_MAX            255
-
 /* this is the LFN filefind handle that is currently being used, with normal value
  * between 0 and 254 for LFN calls. The value 255 is used internally by LFN
  * handling functions. For non-LFN calls the value is fixed to be 256. */
-int faux = 256;
+int faux = LFN_FILEFIND_NONE;
 
 bool shiftjis_lead_byte(int c);
 
@@ -250,7 +243,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 		if (!strrchr(p,'*') && !strrchr(p,'?')) {
 			*s = '\\';
 			p = s + 1;
-			faux=255;
+			faux=LFN_FILEFIND_INTERNAL;
 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
 				faux=fbak;
 				dta.GetResult(name,lname,size,date,time,attr);
@@ -276,7 +269,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     }
     if (p != 0) {
 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
-		faux=255;
+		faux=LFN_FILEFIND_INTERNAL;
 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
 			dta.GetResult(name,lname,size,date,time,attr);
 			strcat(SFNPath,name);
