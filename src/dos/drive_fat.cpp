@@ -2127,7 +2127,7 @@ nextfile:
 
 		/* assume last entry comes first, because that's how Windows 9x does it and that is how you're supposed to do it according to Microsoft */
 		if (dlfn->LDIR_Ord & 0x40) {
-			lfn_max_ord = (dlfn->LDIR_Ord & 0x3F); /* NTS: Starts with 1, this is the HIGHEST ordinal in the LFN */
+			lfn_max_ord = (dlfn->LDIR_Ord & 0x3F); /* NTS: First entry has ordinal 1, this is the HIGHEST ordinal in the LFN. The other entries follow in descending ordinal. */
 			for (unsigned int i=0;i < 0x40;i++) lfn_ord_found[i] = false;
 			lfn_checksum = dlfn->LDIR_Chksum;
 			memset(lfind_name,0,LFN_NAMELENGTH);
