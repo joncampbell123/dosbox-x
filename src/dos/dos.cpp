@@ -37,7 +37,7 @@
 #include "dos_network.h"
 
 extern bool log_int21, log_fileio;
-extern int faux;
+extern int lfn_filefind_handle;
 unsigned long totalc, freec;
 Bitu INT29_HANDLER(void);
 Bit32u BIOS_get_PC98_INT_STUB(void);
@@ -1493,7 +1493,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x4e:                  /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-			faux=LFN_FILEFIND_NONE;
+			lfn_filefind_handle=LFN_FILEFIND_NONE;
             if (DOS_FindFirst(name1,reg_cx)) {
                 CALLBACK_SCF(false);    
                 reg_ax=0;           /* Undocumented */
@@ -2899,6 +2899,7 @@ public:
 
 		if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 		else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
+		else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
 		else enablelfn=-1;
 
 		std::string ver = section->Get_string("ver");
@@ -2926,7 +2927,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+		uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3309,16 +3310,16 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		}
 		if (strlen(name2)>2&&name2[strlen(name2)-2]=='\\'&&name2[strlen(name2)-1]=='*')
 			strcat(name2, ".*");
-		faux=handle;
+		lfn_filefind_handle=handle;
 		bool b=DOS_FindFirst(name2,reg_cx,false);
-		faux=LFN_FILEFIND_NONE;
+		lfn_filefind_handle=LFN_FILEFIND_NONE;
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
 		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
-			faux=handle;
+			lfn_filefind_handle=handle;
 			b=DOS_FindFirst(name2,reg_cx,false);
-			faux=LFN_FILEFIND_NONE;
+			lfn_filefind_handle=LFN_FILEFIND_NONE;
 			error=dos.errorcode;
 		}
 		if (b) {
@@ -3361,7 +3362,7 @@ void DOS_Int21_714f(const char *name1, const char *name2) {
 			CALLBACK_SCF(true);
 			return;
 		}
-		faux=handle;
+		lfn_filefind_handle=handle;
 		if (DOS_FindNext()) {
 				DOS_DTA dta(dos.dta());
 				char finddata[CROSS_LEN];
@@ -3372,7 +3373,7 @@ void DOS_Int21_714f(const char *name1, const char *name2) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 		}
-		faux=LFN_FILEFIND_NONE;
+		lfn_filefind_handle=LFN_FILEFIND_NONE;
 }
 
 void DOS_Int21_7156(char *name1, char *name2) {

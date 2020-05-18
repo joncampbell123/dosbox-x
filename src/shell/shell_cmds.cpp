@@ -98,7 +98,7 @@ static SHELL_Cmd cmd_list[]={
 {0,0,0,0}
 }; 
 
-extern int enablelfn, faux;
+extern int enablelfn, lfn_filefind_handle;
 extern bool date_host_forced, usecon, rsize;
 extern unsigned long freec;
 
@@ -923,14 +923,14 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
 
 	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
-	int fbak=faux;
-	faux=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
+	int fbak=lfn_filefind_handle;
+	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true, first=true;
-	faux=fbak;
+	lfn_filefind_handle=fbak;
 	if (ret) {
 		std::vector<DtaResult> results;
 
-		faux=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
+		lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		do {    /* File name and extension */
 			DtaResult result;
 			dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
@@ -951,7 +951,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			results.push_back(result);
 
 		} while ( (ret=DOS_FindNext()) );
-		faux=fbak;
+		lfn_filefind_handle=fbak;
 
 		if (optON) {
 			// Sort by name
@@ -2478,7 +2478,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.major = (Bit8u)(atoi(word));
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
-		uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 }
 

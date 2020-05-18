@@ -993,8 +993,9 @@ void CONFIG::Run(void) {
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
+								else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
 								else enablelfn=-1;
-								uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								std::string ver = section->Get_string("ver");
 								if (!ver.empty()) {
@@ -1007,7 +1008,7 @@ void CONFIG::Run(void) {
 											if (isdigit(*s))
 												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
 										}
-										uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+										uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 									}
 								}
 							}

@@ -1045,7 +1045,7 @@ void DOSBOX_SetupConfigSections(void) {
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* lfn_settings[] = { "true", "false", "auto", 0};
+    const char* lfn_settings[] = { "true", "false", "auto", "autostart", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -3068,7 +3068,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
-    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.");
+    Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
+                      "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
