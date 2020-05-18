@@ -3078,7 +3078,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "Disabling LFNs on MS-DOS 7.0 and higher simulates running in pure DOS mode without the Windows 9x/ME kernel VFAT driver providing LFNs.");
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable automatic mount.");
+    Pbool->Set_help("Enable automatic drive mounting in Windows.");
+
+    Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Automatically mount all available Windows drives at start.");
 
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");

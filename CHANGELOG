@@ -35,8 +35,6 @@
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier) 
-  - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
-    PC/XT/AT mode depending on the "enable slave pic" option (rderooy)
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
     attributes in order to prevent filesystem corruption.
@@ -85,9 +83,16 @@
     disabled or enabled from dosbox-x.conf.
   - Improved long filename (LFN) and SetFileAttr/GetFileAttr
     support for PC-98 mode. (Wengier)
+  - Added config option "lfn" to enable/disable long filename
+    (LFN) support if the reported DOS version is at least 7
+  - Added config option "automountall" (default: false) to
+    automatically mount all available Windows drives (Wengier)
   - The copy & paste Windows clipboard text via the right
     mouse button feature now has support for PC-98 mode too
     in addition to other modes. (Wengier)
+  - MPU401 IRQ fixed to properly default to 2 or 9 in IBM
+    PC/XT/AT mode depending on the "enable slave pic" config
+    option (rderooy)
   - Fluidsynth defaults fixed for better more reliable audio
     streaming on Linux and Mac OS X (rderooy)
   - Improved support for FluidSynth MIDI device by porting
