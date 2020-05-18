@@ -466,6 +466,36 @@ void DOS_Shell::Run(void) {
         if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
         if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
+#if defined(WIN32)
+		if (!control->SecureMode())
+		{
+			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
+			if(sec->Get_bool("automountall")) {
+				DWORD drives = GetLogicalDrives();
+				char name[4]="A:\\";
+				for (int i=0; i<25; i++) {
+					if ((drives & (1<<i)) && !Drives[i])
+					{
+						name[0]='A'+i;
+						int type=GetDriveType(name);
+						if (type!=DRIVE_NO_ROOT_DIR) {
+							WriteOut("Mounting %c: => %s..\n", name[0], name);
+							char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+							sprintf(mountstring,"MOUNT %c ",name[0]);						
+							if(type==DRIVE_CDROM) strcat(mountstring,"-t cdrom ");
+							else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:\\")==0||strcasecmp(name,"B:\\")==0)) strcat(mountstring,"-t floppy ");
+							strcat(mountstring,name);
+							strcat(mountstring," >nul");
+							ParseLine(mountstring);
+							if (!Drives[i]) WriteOut("Drive %c: failed to mount.\n",name[0]);
+							else if(type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+						}
+					}
+				}
+			}
+		}
+#endif
+
     }
     else {
         WriteOut(optK?"\n":"DOSBox-X command shell %s %s\n\n",VERSION,UPDATED_STR);
@@ -819,6 +849,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_NOT_FOUND","Drive %c does not exist!\nYou must \033[31mmount\033[0m it first. Type \033[1;33mintro\033[0m or \033[1;33mintro mount\033[0m for more information.\n");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_CDROM","Do you want to give DOSBox-X access to your real CD-ROM drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY","Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE","Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK","Do you want to give DOSBox-X access to your real network drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Illegal command: %s.\n");

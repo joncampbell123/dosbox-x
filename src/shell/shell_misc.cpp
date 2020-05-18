@@ -888,11 +888,14 @@ bool DOS_Shell::Execute(char* name, const char* args) {
             const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
-			if((GetDriveType(name)==3) && (strcasecmp(name,"c:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+			int type=GetDriveType(name);
+			if(type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
 first_1:
-			if(GetDriveType(name)==5) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
-			else if(GetDriveType(name)==2) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
-			else if((GetDriveType(name)==3)||(GetDriveType(name)==4)||(GetDriveType(name)==6)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
+			if(type==DRIVE_CDROM) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
+			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
+			else if(type==DRIVE_REMOVABLE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE"),toupper(name[0]));
+			else if(type==DRIVE_REMOTE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK"),toupper(name[0]));
+			else if((type==DRIVE_FIXED)||(type==DRIVE_RAMDISK)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
 			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 
 first_2:
@@ -940,8 +943,8 @@ continue_1:
 			char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
 			sprintf(mountstring,"MOUNT %s ",name);
 
-			if(GetDriveType(name)==5) strcat(mountstring,"-t cdrom ");
-			else if(GetDriveType(name)==2) strcat(mountstring,"-t floppy ");
+			if(type==DRIVE_CDROM) strcat(mountstring,"-t cdrom ");
+			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) strcat(mountstring,"-t floppy ");
 			strcat(mountstring,name);
 			strcat(mountstring,"\\");
 //			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
