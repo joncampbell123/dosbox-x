@@ -2183,6 +2183,11 @@ nextfile:
 		goto nextfile;
 	}
 
+	// HACK: Drive emulation seems to REQUIRE a LFN, or else 8.3 names have no name and funny things happen.
+	//       This is contrary to actual Windows 9x/ME behavior where files with 8.3 names usually have no LFN
+	//       and none is returned.
+	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
+
 	//dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].crtDate, sectbuf[entryoffset].crtTime, sectbuf[entryoffset].attrib);
 
 	dta.SetResult(find_name, lfind_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
