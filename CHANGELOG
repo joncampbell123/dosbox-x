@@ -5,13 +5,13 @@
   - FAT driver cleaned up and fix to avoid edge cases that
     can corrupt directory entries and leave lost clusters
     on the disk.
-  - INT AH=36h fixed to convert free space but maintain a
-    cluster size (bytes/sector * sectors/cluster) that is less
-    than 64KB to avoid divide by 0 crashes with FORMAT.COM /S
   - IMGMOUNT auto geometry detection will assume LBA disk
     and fake C/H/S geometry if the disk is 4GB or larger,
     the MBR lacks executable code, or the first partition
     is Windows 98-style LBA FAT16 or FAT32.
+  - INT AH=36h fixed to convert free space but maintain a
+    cluster size (bytes/sector * sectors/cluster) that is less
+    than 64KB to avoid divide by 0 crashes with FORMAT.COM /S
   - Added FAT32 free/total disk space API for FAT driver, and
     updated INT 21h AX=7303h to call it. FAT driver now provides
     FAT32 extended disk free/total through FAT32 API and 2GB
@@ -94,7 +94,7 @@
     PC/XT/AT mode depending on the "enable slave pic" config
     option (rderooy)
   - Fluidsynth defaults fixed for better more reliable audio
-    streaming on Linux and Mac OS X (rderooy)
+    streaming on Linux and Mac OS X (Wengier and rderooy)
   - Improved support for FluidSynth MIDI device by porting
     code from DOSBox ECE. Set "mididevice=fluidsynth" along
     with other required options such as "fluid.soundfont"

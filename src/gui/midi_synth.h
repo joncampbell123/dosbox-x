@@ -284,14 +284,30 @@ public:
 		if (strcmp(section->Get_string("fluid.cores"), "default") != 0) {
 			fluid_settings_setnum(settings, "synth.cpu-cores", atof(section->Get_string("fluid.cores")));
 		}
+		
+		std::string period=section->Get_string("fluid.periods"), periodsize=section->Get_string("fluid.periodsize");
+		if (period=="default") {
+#if defined (WIN32)
+			period="8";
+#else
+			period="16";
+#endif
+		}
+		if (periodsize=="default") {
+#if defined (WIN32)
+			periodsize="512";
+#else
+			periodsize="64";
+#endif
+		}
 #if !defined (FLUIDSYNTH_VERSION_MAJOR) || FLUIDSYNTH_VERSION_MAJOR >= 2
-		fluid_settings_setint(settings, "audio.periods", atoi(section->Get_string("fluid.periods")));
-		fluid_settings_setint(settings, "audio.period-size", atoi(section->Get_string("fluid.periodsize")));
+		fluid_settings_setint(settings, "audio.periods", atoi(period.c_str()));
+		fluid_settings_setint(settings, "audio.period-size", atoi(periodsize.c_str()));
 		fluid_settings_setint(settings, "synth.reverb.active", !strcmp(section->Get_string("fluid.reverb"), "yes")?1:0);
 		fluid_settings_setint(settings, "synth.chorus.active", !strcmp(section->Get_string("fluid.chorus"), "yes")?1:0);
 #else
-		fluid_settings_setnum(settings, "audio.periods", atof(section->Get_string("fluid.periods")));
-		fluid_settings_setnum(settings, "audio.period-size", atof(section->Get_string("fluid.periodsize")));
+		fluid_settings_setnum(settings, "audio.periods", atof(period.c_str()));
+		fluid_settings_setnum(settings, "audio.period-size", atof(periodsize.c_str()));
 		fluid_settings_setstr(settings, "synth.reverb.active", section->Get_string("fluid.reverb"));
 		fluid_settings_setstr(settings, "synth.chorus.active", section->Get_string("fluid.chorus"));
 #endif
