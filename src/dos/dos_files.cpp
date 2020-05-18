@@ -50,7 +50,12 @@ Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 bool force = false;
-int sdrive, faux = 256;
+int sdrive;
+
+/* this is the LFN filefind handle that is currently being used, with normal value
+ * between 0 and 254 for LFN calls. The value 255 is used internally by LFN
+ * handling functions. For non-LFN calls the value is fixed to be 256. */
+int faux = 256;
 
 bool shiftjis_lead_byte(int c);
 
