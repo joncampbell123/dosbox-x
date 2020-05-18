@@ -628,7 +628,7 @@ nextfile:
 	readSector(tmpsector,sectbuf);
 	dirPos++;
 
-	if (dos.version.major >= 7) {
+	if (uselfn) {
 		/* skip LFN entries */
 		if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 			goto nextfile;
@@ -2114,7 +2114,7 @@ nextfile:
 
     //TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?
 	if (attrs == DOS_ATTR_VOLUME) {
-		if (dos.version.major >= 7) {
+		if (uselfn) {
 			/* skip LFN entries */
 			if ((sectbuf[entryoffset].attrib & 0x3F) == 0x0F)
 				goto nextfile;
@@ -2122,7 +2122,7 @@ nextfile:
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
 		labelCache.SetLabel(find_name, false, true);
-	} else if (dos.version.major >= 7 && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
+	} else if (uselfn && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
 
 		/* assume last entry comes first, because that's how Windows 9x does it and that is how you're supposed to do it according to Microsoft */
