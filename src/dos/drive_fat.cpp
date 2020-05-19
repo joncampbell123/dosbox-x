@@ -2173,12 +2173,15 @@ nextfile:
 			}
 		}
 
-		if (!ok) memset(lfind_name,0,LFN_NAMELENGTH);
-		lfn_max_ord = 0;
+		if (!ok) {
+			lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+			lfn_max_ord = 0;
+		}
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-	if (!(WildFileCmp(find_name,srch_pattern) || LWildFileCmp(lfind_name,srch_pattern))) {
+	if (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
+		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 		lfn_max_ord = 0;
 		goto nextfile;
 	}
