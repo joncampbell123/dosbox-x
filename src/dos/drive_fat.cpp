@@ -2072,6 +2072,7 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
 	dirPos = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():dpos[lfn_filefind_handle]; /* NTS: Windows 9x is said to have a 65536 dirent limit even for FAT32, so dirPos as 16-bit is acceptable */
 
 	memset(lfind_name,0,LFN_NAMELENGTH);
+	lfnRange.clear();
 
 nextfile:
 	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
@@ -2106,11 +2107,13 @@ nextfile:
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) dta.SetDirID(dirPos);
 	else dpos[lfn_filefind_handle]=dirPos;
 
-	/* Deleted file entry */
-	if (sectbuf[entryoffset].entryname[0] == 0xe5) {
-		lfn_max_ord = 0;
-		goto nextfile;
-	}
+    /* Deleted file entry */
+    if (sectbuf[entryoffset].entryname[0] == 0xe5) {
+        lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+        lfn_max_ord = 0;
+        lfnRange.clear();
+        goto nextfile;
+    }
 
 	/* End of directory list */
 	if (sectbuf[entryoffset].entryname[0] == 0x00) {
@@ -2162,6 +2165,8 @@ nextfile:
 			for (unsigned int i=0;i < 0x40;i++) lfn_ord_found[i] = false;
 			lfn_checksum = dlfn->LDIR_Chksum;
 			memset(lfind_name,0,LFN_NAMELENGTH);
+			lfnRange.clear();
+			lfnRange.dirPos_start = dirPos - 1; /* NTS: The code above has already incremented dirPos */
 		}
 
 		if (lfn_max_ord != 0 && (dlfn->LDIR_Ord & 0x3F) > 0 && (dlfn->LDIR_Ord & 0x3F) <= lfn_max_ord && dlfn->LDIR_Chksum == lfn_checksum) {
@@ -2182,10 +2187,12 @@ nextfile:
 
 		goto nextfile;
 	} else {
-		if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) {
-			lfn_max_ord = 0;
-			goto nextfile;
-		}
+        if (~attrs & sectbuf[entryoffset].attrib & (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME) ) {
+            lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+            lfn_max_ord = 0;
+            lfnRange.clear();
+            goto nextfile;
+        }
 	}
 
 	if (lfn_max_ord != 0) {
@@ -2200,6 +2207,7 @@ nextfile:
 			}
 
 			if (lfn_checksum == chk) {
+				lfnRange.dirPos_end = dirPos - 1; /* NTS: The code above has already incremented dirPos */
 				ok = true;
 			}
 		}
@@ -2207,13 +2215,20 @@ nextfile:
 		if (!ok) {
 			lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 			lfn_max_ord = 0;
+			lfnRange.clear();
 		}
+	}
+	else {
+		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
+		lfn_max_ord = 0;
+		lfnRange.clear();
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
 	if (!(WildFileCmp(find_name,srch_pattern) || (lfn_max_ord != 0 && lfind_name[0] != 0 && LWildFileCmp(lfind_name,srch_pattern)))) {
 		lfind_name[0] = 0; /* LFN code will memset() it in full upon next dirent */
 		lfn_max_ord = 0;
+		lfnRange.clear();
 		goto nextfile;
 	}
 

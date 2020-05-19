@@ -423,6 +423,25 @@ private:
 		char srch_dir[CROSS_LEN];
     } srchInfo[MAX_OPENDIRS] = {};
 
+	/* directory entry range of LFN entries after FindNextInternal(), needed by
+	 * filesystem code such as RemoveDir() which needs to delete the dirent AND
+	 * the LFNs. Range is dirPos_start inclusive to dirPos_end exclusive.
+	 * If start == end then there are no LFNs.
+	 *
+	 * Removal of entries:
+	 * for (x=start;x < end;x++) ... */
+	struct lfnRange_t {
+		Bit16u      dirPos_start;
+		Bit16u      dirPos_end;
+
+		void clear(void) {
+			dirPos_start = dirPos_end = 0;
+		}
+		bool empty(void) const {
+			return dirPos_start == dirPos_end;
+		}
+	} lfnRange = {0,0};
+
 	struct {
 		Bit16u bytes_sector;
 		Bit8u sectors_cluster;
