@@ -34,7 +34,8 @@
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - IMGMOUNT command (without parameters) now lists mounted FAT/ISO
-    drives as well as mounted drive numbers (Wengier)
+    drives and mounted drive numbers, also SUBST command (without
+    parameters) now lists mounted local drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
