@@ -3225,6 +3225,49 @@ bool FDC_UnassignINT13Disk(unsigned char drv);
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
+    void ListImgMounts(void) {
+        char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+        Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+        /* Command uses dta so set it to our internal dta */
+        RealPt save_dta = dos.dta();
+        dos.dta(dos.tables.tempdta);
+        DOS_DTA dta(dos.dta());
+
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
+        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+        for(int p = 0;p < 8;p++) WriteOut("----------");
+
+        for (int d = 0;d < DOS_DRIVES;d++) {
+            if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"fatDrive ",9)&&strncmp(Drives[d]->GetInfo(),"isoDrive ",9)) continue;
+			
+            char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
+            bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+            if (ret) {
+                dta.GetResult(name,lname,size,date,time,attr);
+                DOS_FindNext(); //Mark entry as invalid
+            } else name[0] = 0;
+
+            /* Change 8.3 to 11.0 */
+            const char* dot = strchr(name, '.');
+            if(dot && (dot - name == 8) ) { 
+                name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
+            }
+
+            root[1] = 0; //This way, the format string can be reused.
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+        }
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
+		bool numbers=false;
+		for (int index = 0; index < MAX_DISK_IMAGES; index++)
+			if (imageDiskList[index]) {
+				if (numbers) WriteOut(",");
+				numbers=true;
+				WriteOut(" %d", index);
+			}
+		if (!numbers) WriteOut(" none");
+		WriteOut("\n");
+        dos.dta(save_dta);
+    }
     void Run(void) {
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -3237,8 +3280,12 @@ public:
         imageDisk * newImage;
         char drive;
         std::vector<std::string> paths;
-        //show help if no arguments or -?
-        if (cmd->GetCount() == 0 || cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
+        if (!cmd->GetCount()) {
+            ListImgMounts();
+            return;
+        }
+        //show help if /? or -?
+        if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
@@ -4979,6 +5026,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");

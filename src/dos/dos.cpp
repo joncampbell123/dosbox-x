@@ -3315,7 +3315,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		lfn_filefind_handle=LFN_FILEFIND_NONE;
 		int error=dos.errorcode;
 		Bit16u attribute = 0;
-		if (!b&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
+		if (!b&&!(strlen(name2)==3&&*(name2+1)==':'&&*(name2+2)=='\\')&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
 			lfn_filefind_handle=handle;
 			b=DOS_FindFirst(name2,reg_cx,false);
