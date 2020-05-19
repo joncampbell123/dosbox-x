@@ -46,6 +46,37 @@ static Bit32u dnum[256];
 extern bool wpcolon;
 extern int lfn_filefind_handle;
 
+/* Assuming an LFN call, if the name is not strict 8.3 uppercase, return true.
+ * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
+bool filename_not_strict_8x3(const char *n) {
+	unsigned int i;
+
+	i = 0;
+	while (*n != 0) {
+		if (*n == '.') break;
+		if (*n < 32 || *n == 127 || (*n >= 'a' && *n <= 'z')) return true;
+		i++;
+		n++;
+	}
+	if (i > 8) return true;
+	if (*n == 0) return false; /* made it past 8 or less normal chars and end of string: normal */
+
+	/* skip dot */
+	assert(*n == '.');
+	n++;
+
+	i = 0;
+	while (*n != 0) {
+		if (*n == '.') return true; /* another '.' means LFN */
+		if (*n < 32 || *n == 127 || (*n >= 'a' && *n <= 'z')) return true;
+		i++;
+		n++;
+	}
+	if (i > 3) return true;
+
+	return false; /* it is struct 8.3 upper case */
+}
+
 class fatFile : public DOS_File {
 public:
 	fatFile(const char* name, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive);
@@ -2574,7 +2605,7 @@ bool fatDrive::MakeDir(const char *dir) {
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
-    addDirectoryEntry(dirClust, tmpentry, (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/) ? dir : NULL);
+    addDirectoryEntry(dirClust, tmpentry, (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/ && filename_not_strict_8x3(dir)) ? dir : NULL);
 
 	/* Add the [.] and [..] entries to our new directory*/
 	/* [.] entry */
