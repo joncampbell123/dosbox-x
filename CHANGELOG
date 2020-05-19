@@ -1,6 +1,8 @@
 0.83.2
-  - Added LFN creation code to FAT driver, and added support
-    for creating directories (with MKDIR) with long filenames.
+  - Implemented LFN support for FAT driver, so that it is now
+    possible to show directory list, open/view files, create
+    directories etc with long filenames on FAT12/16/32 drives
+    just like on mounted local drives.
   - FAT driver cleaned up and fixed to avoid edge cases that
     can corrupt directory entries and leave lost clusters
     on the disk, also fixed to always report root directory

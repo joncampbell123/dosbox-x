@@ -43,7 +43,7 @@
 
 static Bit16u dpos[256];
 static Bit32u dnum[256];
-extern bool wpcolon;
+extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 
 /* Assuming an LFN call, if the name is not strict 8.3 uppercase, return true.
@@ -1929,7 +1929,7 @@ bool fatDrive::FileUnlink(const char * name) {
 	}
 
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
-	if(uselfn&&(strchr(name, '*')||strchr(name, '?'))) {
+	if(uselfn&&!force_sfn&&(strchr(name, '*')||strchr(name, '?'))) {
 		char dir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], fullname[DOS_PATHLENGTH], temp[DOS_PATHLENGTH];
 		strcpy(fullname, name);
 		char * find_last=strrchr(fullname,'\\');
@@ -2596,7 +2596,7 @@ bool fatDrive::MakeDir(const char *dir) {
 	if(!allocateCluster(dummyClust, 0)) return false;
 
 	/* NTS: "dir" is the full relative path. For LFN creation to work we need only the final element of the path */
-	if (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/) {
+	if (uselfn && !force_sfn) {
 		lfn = strrchr(dir,'\\');
 
 		if (lfn != NULL) lfn++; /* step past '\' */
