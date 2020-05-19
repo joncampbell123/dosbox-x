@@ -1229,6 +1229,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x3c:      /* CREATE Create or truncate file */
+			force_sfn = true;
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
@@ -1238,6 +1239,7 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             diskio_delay(2048);
+			force_sfn = false;
             break;
         case 0x3d:      /* OPEN Open existing file */
 		{
