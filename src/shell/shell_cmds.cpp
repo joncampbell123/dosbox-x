@@ -2137,7 +2137,37 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		std::string arg;
 		CommandLine command(0,args);
 		if (!command.GetCount()) {
-		    WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+			Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+			/* Command uses dta so set it to our internal dta */
+			RealPt save_dta = dos.dta();
+			dos.dta(dos.tables.tempdta);
+			DOS_DTA dta(dos.dta());
+
+			WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
+			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+			for(int p = 0;p < 8;p++) WriteOut("----------");
+
+			for (int d = 0;d < DOS_DRIVES;d++) {
+				if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"local ",6)) continue;
+
+				char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
+				bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+				if (ret) {
+					dta.GetResult(name,lname,size,date,time,attr);
+					DOS_FindNext(); //Mark entry as invalid
+				} else name[0] = 0;
+
+				/* Change 8.3 to 11.0 */
+				const char* dot = strchr(name, '.');
+				if(dot && (dot - name == 8) ) { 
+					name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
+				}
+
+				root[1] = 0; //This way, the format string can be reused.
+				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+			}
+			dos.dta(save_dta);
 			return;
 		}
 
