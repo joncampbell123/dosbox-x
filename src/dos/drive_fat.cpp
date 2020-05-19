@@ -2561,6 +2561,8 @@ void fatDrive::zeroOutCluster(Bit32u clustNumber) {
 }
 
 bool fatDrive::MakeDir(const char *dir) {
+	const char *lfn = NULL;
+
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -2593,6 +2595,16 @@ bool fatDrive::MakeDir(const char *dir) {
 
 	if(!allocateCluster(dummyClust, 0)) return false;
 
+	/* NTS: "dir" is the full relative path. For LFN creation to work we need only the final element of the path */
+	if (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/) {
+		lfn = strrchr(dir,'\\');
+
+		if (lfn != NULL) lfn++; /* step past '\' */
+		else lfn = dir; /* no path elements */
+
+		if (!filename_not_strict_8x3(lfn)) lfn = NULL;
+	}
+
 	zeroOutCluster(dummyClust);
 
 	time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
@@ -2605,7 +2617,7 @@ bool fatDrive::MakeDir(const char *dir) {
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
-    addDirectoryEntry(dirClust, tmpentry, (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/ && filename_not_strict_8x3(dir)) ? dir : NULL);
+    addDirectoryEntry(dirClust, tmpentry, lfn);
 
 	/* Add the [.] and [..] entries to our new directory*/
 	/* [.] entry */
