@@ -2689,11 +2689,15 @@ bool fatDrive::RemoveDir(const char *dir) {
 	convToDirFile(&dirName[0], &pathName[0]);
 
 	/* Get directory starting cluster */
+	lfnRange.clear();
 	if(!getDirClustNum(dir, &dummyClust, false)) return false;
 
 	/* Can't remove root directory */
 	if(dummyClust == 0) return false;
 	if(BPB.is_fat32() && dummyClust==BPB.v32.BPB_RootClus) return false;
+
+	/* getDirClustNum calls FindNextInternal() which updates the LFN range struct... in most cases. */
+	lfnRange_t dir_lfn_range = lfnRange; /* copy it down, result will be obliterated by the parent dir search. */
 
 	/* Get parent directory starting cluster */
 	if(!getDirClustNum(dir, &dirClust, true)) return false;
@@ -2722,6 +2726,20 @@ bool fatDrive::RemoveDir(const char *dir) {
 			tmpentry.entryname[0] = 0xe5;
 			directoryChange(dirClust, &tmpentry, fileidx);
 			deleteClustChain(dummyClust, 0);
+
+			/* remove LFNs only if emulating LFNs or DOS version 7.0.
+			 * Earlier DOS versions ignore LFNs. */
+			if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
+				/* last LFN entry should be fileidx */
+				assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
+				if (dir_lfn_range.dirPos_end != fileidx) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,fileidx);
+				for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
+					if (directoryBrowse(dirClust,&tmpentry,didx)) {
+						tmpentry.entryname[0] = 0xe5;
+						directoryChange(dirClust,&tmpentry,didx);
+					}
+				}
+			}
 
 			break;
 		}
