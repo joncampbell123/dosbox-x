@@ -1807,6 +1807,8 @@ Bit8u fatDrive::GetMediaByte(void) { return loadedDisk->GetBiosType(); }
 const FAT_BootSector::bpb_union_t &fatDrive::GetBPB(void) { return BPB; }
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
+	const char *lfn = NULL;
+
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -1851,6 +1853,17 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 
 		/* Can we find the base directory? */
 		if(!getDirClustNum(name, &dirClust, true)) return false;
+
+		/* NTS: "name" is the full relative path. For LFN creation to work we need only the final element of the path */
+		if (uselfn && !force_sfn) {
+			lfn = strrchr(name,'\\');
+
+			if (lfn != NULL) lfn++; /* step past '\' */
+			else lfn = name; /* no path elements */
+
+			if (!filename_not_strict_8x3(lfn)) lfn = NULL;
+		}
+
 		memset(&fileEntry, 0, sizeof(direntry));
 		memcpy(&fileEntry.entryname, &pathName[0], 11);
         {
@@ -1860,7 +1873,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
             fileEntry.modDate = cd;
         }
         fileEntry.attrib = (Bit8u)(attributes & 0xff);
-		addDirectoryEntry(dirClust, fileEntry);
+		addDirectoryEntry(dirClust, fileEntry, lfn);
 
 		/* Check if file exists now */
 		if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
