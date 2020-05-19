@@ -53,8 +53,9 @@ bool force = false;
 int sdrive = 0;
 
 /* This is the LFN filefind handle that is currently being used, with normal values between
- * 0 and 254 for LFN calls. The value LFN_FILEFIND_INTERNAL (255) is used internally by LFN
- * handling functions. For non-LFN calls the value is fixed to be LFN_FILEFIND_NONE (256). */
+ * 0 and 254 for LFN calls. The value LFN_FILEFIND_INTERNAL and LFN_FILEFIND_IMG are used
+ * internally by LFN and image handling functions. For non-LFN calls the value is fixed to
+ * be LFN_FILEFIND_NONE as defined in drives.h. */
 int lfn_filefind_handle = LFN_FILEFIND_NONE;
 
 bool shiftjis_lead_byte(int c);

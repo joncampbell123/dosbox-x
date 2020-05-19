@@ -702,7 +702,9 @@ private:
 };
 
 /* No LFN filefind in progress (SFN call). This index is out of range and meant to indicate no LFN call in progress. */
-#define LFN_FILEFIND_NONE           256
+#define LFN_FILEFIND_NONE           258
+/* FAT image handle */
+#define LFN_FILEFIND_IMG            256
 /* Internal handle */
 #define LFN_FILEFIND_INTERNAL       255
 /* Highest valid handle */
