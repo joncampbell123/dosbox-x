@@ -172,7 +172,7 @@ extern unsigned int ENV_KEEPFREE;// = 83;
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 
-extern bool force, dos_kernel_disabled;
+extern bool force_sfn, dos_kernel_disabled;
 
 Bit16u DOS_Block::psp() {
 	if (dos_kernel_disabled) {
@@ -1195,6 +1195,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x39:      /* MKDIR Create directory */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+			force_sfn = true;
             if (DOS_MakeDir(name1)) {
                 reg_ax=0x05;    /* ax destroyed */
                 CALLBACK_SCF(false);
@@ -1202,9 +1203,11 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
+			force_sfn = false;
             break;
         case 0x3a:      /* RMDIR Remove directory */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+			force_sfn = true;
             if  (DOS_RemoveDir(name1)) {
                 reg_ax=0x05;    /* ax destroyed */
                 CALLBACK_SCF(false);
@@ -1213,6 +1216,7 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
                 LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
             }
+			force_sfn = false;
             break;
         case 0x3b:      /* CHDIR Set current directory */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
@@ -1239,13 +1243,13 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-			force = true;
 			Bit8u oldal=reg_al;
+			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
-				force = false;
+				force_sfn = false;
                 CALLBACK_SCF(false);
             } else {
-				force = false;
+				force_sfn = false;
 				if (uselfn&&DOS_OpenFile(name1,oldal,&reg_ax)) {
 					CALLBACK_SCF(false);
 					break;
@@ -1254,7 +1258,7 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(true);
             }
             diskio_delay(1024);
-			force = false;
+			force_sfn = false;
             break;
 		}
         case 0x3e:      /* CLOSE Close file */
@@ -1345,12 +1349,14 @@ static Bitu DOS_21Handler(void) {
         case 0x41:                  /* UNLINK Delete file */
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+			force_sfn = true;
             if (DOS_UnlinkFile(name1)) {
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
+			force_sfn = false;
             diskio_delay(1024);
             break;
         case 0x42:                  /* LSEEK Set current file position */

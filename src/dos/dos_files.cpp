@@ -49,7 +49,7 @@ extern char *dos_clipboard_device_name;
 Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
-bool force = false;
+bool force_sfn = false;
 int sdrive = 0;
 
 /* This is the LFN filefind handle that is currently being used, with normal values between
@@ -115,7 +115,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 		Bit8u c=(Bit8u)name_int[r++];
 		if (c=='/') c='\\';
 		else if (c=='"') {q++;continue;}
-		else if (uselfn&&!force) {
+		else if (uselfn&&!force_sfn) {
 			if (c==' ' && q/2*2 == q) continue;
 		} else {
 			if ((c>='a') && (c<='z')) c-=32;
@@ -186,7 +186,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 			lastdir=(Bit32u)strlen(fullname);
 
 			if (lastdir!=0) strcat(fullname,"\\");
-			if (!uselfn||force) {
+			if (!uselfn||force_sfn) {
 				char * ext=strchr(tempdir,'.');
 				if (ext) {
 					if(strchr(ext+1,'.')) { 
@@ -201,9 +201,9 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 					}
 					
 					ext[4] = 0;
-					// if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
+					if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
                 } else {
-                    // tempdir[8] = 0;
+                    tempdir[8] = 0;
                 }
 			}
 

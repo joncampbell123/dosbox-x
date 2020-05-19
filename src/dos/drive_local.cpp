@@ -78,7 +78,7 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static Bit16u ldid[256];
 static std::string ldir[256];
-extern bool rsize, freesizecap;
+extern bool rsize, freesizecap, force_sfn;
 extern int lfn_filefind_handle;
 extern unsigned long totalc, freec;
 
@@ -582,7 +582,7 @@ bool localDrive::FileUnlink(const char * name) {
 
 	if (ht_unlink(host_name)) {
 		//Unlink failed for some reason try finding it.
-		if (uselfn&&strchr(name, '*')&&strchr(fullname, '*')) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*"
+		if (uselfn&&!force_sfn&&strchr(name, '*')&&strchr(fullname, '*')) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*"
 #if defined (WIN32)
 			SHFILEOPSTRUCT op={0};
 			op.wFunc = FO_DELETE;
