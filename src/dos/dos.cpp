@@ -1549,6 +1549,7 @@ static Bitu DOS_21Handler(void) {
             reg_al=0xf0;    /* al destroyed */
             break;
         case 0x56:                  /* RENAME Rename file */
+			force_sfn = true;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             MEM_StrCopy(SegPhys(es)+reg_di,name2,DOSNAMEBUF);
             if (DOS_Rename(name1,name2)) {
@@ -1557,6 +1558,7 @@ static Bitu DOS_21Handler(void) {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
+			force_sfn = false;
             break;      
         case 0x57:                  /* Get/Set File's Date and Time */
             if (reg_al==0x00) {
