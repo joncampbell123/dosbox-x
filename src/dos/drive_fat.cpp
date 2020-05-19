@@ -2392,24 +2392,33 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, const direntry *useEntry, 
 	}
 }
 
-bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry) {
+bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry,const char *lfn) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
-	
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+	unsigned int need = 1;
+	unsigned int found = 0;
+	Bit16u dirPosFound = 0;
+
+	if (lfn != NULL && *lfn != 0) {
+		/* 13 characters per LFN entry.
+		 * FIXME: When we convert the LFN to wchar using code page, strlen() prior to conversion will not work,
+		 *        convert first then count wchar_t characters. */
+		need = 1 + ((strlen(lfn) + 12) / 13)/*round up*/;
+	}
+
+	size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	for(;;) {		
 		Bit32u logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
 		Bit32u entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector)); /* Index offset within sector */
 
 		if(dirClustNumber==0) {
-            assert(!BPB.is_fat32());
-            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+			assert(!BPB.is_fat32());
+			if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
 			tmpsector = firstRootDirSect+logentsector;
-			readSector(tmpsector,sectbuf);
 		} else {
 			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 			/* A zero sector number can't happen - we need to allocate more room for this directory*/
@@ -2422,16 +2431,88 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry
 				tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
 				if(tmpsector == 0) return false; /* Give up if still can't get more room for directory */
 			}
-			readSector(tmpsector,sectbuf);
 		}
-		dirPos++;
+		readSector(tmpsector,sectbuf);
 
 		/* Deleted file entry or end of directory list */
 		if ((sectbuf[entryoffset].entryname[0] == 0xe5) || (sectbuf[entryoffset].entryname[0] == 0x00)) {
-			sectbuf[entryoffset] = useEntry;
-			writeSector(tmpsector,sectbuf);
-			break;
+			if (found == 0) dirPosFound = dirPos;
+
+			if ((++found) >= need) {
+				sectbuf[entryoffset] = useEntry;
+				writeSector(tmpsector,sectbuf);
+
+				/* Add LFN entries */
+				if (need != 1/*LFN*/) {
+					Bit16u lfnbuf[LFN_NAMELENGTH+13]; /* on disk, LFNs are WCHAR unicode (UCS-16) */
+
+					assert(lfn != NULL);
+					assert(*lfn != 0);
+
+					/* TODO: ANSI LFN convert to wchar here according to code page */
+
+					unsigned int o = 0;
+					const char *scan = lfn;
+
+					while (*scan) {
+						if (o >= LFN_NAMELENGTH) return false; /* Nope! */
+						lfnbuf[o++] = (Bit16u)((unsigned char)(*scan++));
+					}
+
+					/* on disk, LFNs are padded with 0x0000 followed by a run of 0xFFFF to fill the dirent */
+					lfnbuf[o++] = 0x0000;
+					for (unsigned int i=0;i < 13;i++) lfnbuf[o++] = 0xFFFF;
+					assert(o <= (LFN_NAMELENGTH+13));
+
+					unsigned char chk = 0;
+					for (unsigned int i=0;i < 11;i++) {
+						chk = ((chk & 1u) ? 0x80u : 0x00u) + (chk >> 1u) + useEntry.entryname[i];
+					}
+
+					dirPos = dirPosFound;
+					for (unsigned int s=0;s < (need-1u);s++) {
+						unsigned int lfnsrci = (need-2u-s);
+						unsigned int lfnsrc = lfnsrci * 13;
+
+						logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+						entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector)); /* Index offset within sector */
+
+						if(dirClustNumber==0) {
+							assert(!BPB.is_fat32());
+							if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+							tmpsector = firstRootDirSect+logentsector;
+						} else {
+							tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+							/* A zero sector number can't happen - we need to allocate more room for this directory*/
+							if(tmpsector == 0) return false;
+						}
+						readSector(tmpsector,sectbuf);
+
+						direntry_lfn *dlfn = (direntry_lfn*)(&sectbuf[entryoffset]);
+
+						memset(dlfn,0,sizeof(*dlfn));
+
+						dlfn->LDIR_Ord = (s == 0 ? 0x40 : 0x00) + lfnsrci + 1;
+						dlfn->LDIR_Chksum = chk;
+						dlfn->attrib = 0x0F;
+
+						for (unsigned int i=0;i < 5;i++) dlfn->LDIR_Name1[i] = lfnbuf[lfnsrc++];
+						for (unsigned int i=0;i < 6;i++) dlfn->LDIR_Name2[i] = lfnbuf[lfnsrc++];
+						for (unsigned int i=0;i < 2;i++) dlfn->LDIR_Name3[i] = lfnbuf[lfnsrc++];
+
+						writeSector(tmpsector,sectbuf);
+						dirPos++;
+					}
+				}
+
+				break;
+			}
 		}
+		else {
+			found = 0;
+		}
+
+		dirPos++;
 	}
 
 	return true;
@@ -2493,7 +2574,7 @@ bool fatDrive::MakeDir(const char *dir) {
 	tmpentry.attrib = DOS_ATTR_DIRECTORY;
     tmpentry.modTime = ct;
     tmpentry.modDate = cd;
-    addDirectoryEntry(dirClust, tmpentry);
+    addDirectoryEntry(dirClust, tmpentry, (uselfn && true/*TODO Wengier: If mkdir call from LFN API*/) ? dir : NULL);
 
 	/* Add the [.] and [..] entries to our new directory*/
 	/* [.] entry */
