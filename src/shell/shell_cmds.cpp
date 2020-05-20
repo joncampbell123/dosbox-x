@@ -617,13 +617,17 @@ void DOS_Shell::CMD_RENAME(char * args){
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
-	if (!DOS_FindFirst(arg1, strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME))
+	int fbak=lfn_filefind_handle;
+	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
+	if (!DOS_FindFirst(arg1, strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME)) {
+		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
-	else {		
+	} else {
 		bool found=false;
 	
 		do {    /* File name and extension */
 			dta.GetResult(name,lname,size,date,time,attr);
+			lfn_filefind_handle=fbak;
 
 			if(!(attr&DOS_ATTR_DIRECTORY && (!strcmp(name, ".") || !strcmp(name, "..")))) {
 				found=true;
@@ -711,7 +715,9 @@ void DOS_Shell::CMD_RENAME(char * args){
 				if (!DOS_Rename(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs,uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs))
 					WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),strlen(sargs)>2&&sargs[0]=='.'&&sargs[1]=='\\'?sargs+2:sargs);
 			}
+			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		} while ( DOS_FindNext() );
+		lfn_filefind_handle=fbak;
 		if (!found) WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
 	}
 	dos.dta(save_dta);
@@ -1776,7 +1782,10 @@ void DOS_Shell::CMD_IF(char * args) {
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
+			int fbak=lfn_filefind_handle;
+			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			bool ret=DOS_FindFirst(word,0xffff & ~DOS_ATTR_VOLUME);
+			lfn_filefind_handle=fbak;
 			dos.dta(save_dta);
 			if (ret==(!has_not)) DoCommand(args);
 		}
@@ -2901,6 +2910,8 @@ void DOS_Shell::CMD_FOR(char *args) {
 			DOS_DTA dta(dos.dta());
 			std::vector<std::string> sources;
 			std::string tmp;
+			int fbak=lfn_filefind_handle;
+			lfn_filefind_handle=lfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			if (DOS_FindFirst(fp, ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
 				{
 				dta.GetResult(name, lname, size, date, time, attr);
@@ -2913,6 +2924,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 					sources.push_back(tmp);
 					}
 				}
+			lfn_filefind_handle=fbak;
 			for (std::vector<std::string>::iterator source = sources.begin(); source != sources.end(); ++source)
 				DoCommand(str_replace(args, s, (char *)source->c_str()));
 		} else
