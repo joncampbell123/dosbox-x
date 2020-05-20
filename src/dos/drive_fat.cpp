@@ -2418,30 +2418,7 @@ bool fatDrive::SetFileAttr(const char *name, Bit16u attr) {
 		return false;
 	}
 
-	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
-		char dirName[DOS_NAMELENGTH_ASCII];
-		char pathName[11];
-
-		/* Can we even get the name of the directory itself? */
-		if(!getEntryName(name, &dirName[0])) return false;
-		convToDirFile(&dirName[0], &pathName[0]);
-
-		/* Get parent directory starting cluster */
-		if(!getDirClustNum(name, &dirClust, true)) return false;
-
-		/* Find directory entry in parent directory */
-		Bit32s fileidx = 2;
-		if (dirClust==0) fileidx = 0;	// root directory
-		else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
-		Bit32s last_idx=0;
-		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
-			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
-				fileEntry.attrib=(Bit8u)attr;
-				directoryChange(dirClust, &fileEntry, fileidx);
-				return true;
-			}
-			fileidx++;
-		}
+	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry, /*dirOk*/true)) {
 		return false;
 	} else {
 		fileEntry.attrib=(Bit8u)attr;
@@ -2460,29 +2437,7 @@ bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
 		return true;
 	}
 
-	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
-		char dirName[DOS_NAMELENGTH_ASCII];
-		char pathName[11];
-
-		/* Can we even get the name of the directory itself? */
-		if(!getEntryName(name, &dirName[0])) return false;
-		convToDirFile(&dirName[0], &pathName[0]);
-
-		/* Get parent directory starting cluster */
-		if(!getDirClustNum(name, &dirClust, true)) return false;
-
-		/* Find directory entry in parent directory */
-		Bit32s fileidx = 2;
-		if (dirClust==0) fileidx = 0;	// root directory
-		else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
-		Bit32s last_idx=0; 
-		while(directoryBrowse(dirClust, &fileEntry, fileidx, last_idx)) {
-			if(memcmp(&fileEntry.entryname, &pathName[0], 11) == 0) {
-				*attr=fileEntry.attrib;
-				return true;
-			}
-			fileidx++;
-		}
+	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry, /*dirOk*/true)) {
 		return false;
 	} else *attr=fileEntry.attrib;
 	return true;
@@ -2930,6 +2885,13 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
 	convToDirFile(&dirName2[0], &pathName2[0]);
 
+	/* Can we find the base directory of the new name? (we know the parent dir of oldname in dirClust1) */
+	if(!getDirClustNum(newname, &dirClust2, true)) return false;
+
+	/* Remove old 8.3 SFN entry */
+	fileEntry1.entryname[0] = 0xe5;
+	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
+
 	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
 		lfn = strrchr(newname,'\\');
@@ -2950,17 +2912,10 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 			lfn = NULL;
 	}
 
-	/* Can we find the base directory of the new name? (we know the parent dir of oldname in dirClust1) */
-	if(!getDirClustNum(newname, &dirClust2, true)) return false;
-
 	/* add new dirent */
 	memcpy(&fileEntry2, &fileEntry1, sizeof(direntry));
 	memcpy(&fileEntry2.entryname, &pathName2[0], 11);
 	addDirectoryEntry(dirClust2, fileEntry2, lfn);
-
-	/* Remove old 8.3 SFN entry */
-	fileEntry1.entryname[0] = 0xe5;
-	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
 
 	/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
 	 * Earlier DOS versions ignore LFNs. */
