@@ -1939,7 +1939,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 	} else {
 		/* Can we even get the name of the file itself? */
-		if(!getEntryName(name, &dirName[0])) return false;
+		if(!getEntryName(name, &dirName[0])||!strlen(trim(dirName))) return false;
 		convToDirFile(&dirName[0], &pathName[0]);
 
 		/* Can we find the base directory? */
@@ -2952,7 +2952,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		/* Target doesn't exist, can rename */
 
 		/* Can we even get the name of the file itself? */
-		if(!getEntryName(newname, &dirName2[0])) return false;
+		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
 		convToDirFile(&dirName2[0], &pathName2[0]);
 
 		/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
