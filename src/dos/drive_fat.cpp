@@ -2060,7 +2060,7 @@ bool fatDrive::FileUnlink(const char * name) {
 	}
 
 	lfnRange.clear();
-	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
+	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false; /* Do not use dirOk, DOS should never call this unless a file */
 	lfnRange_t dir_lfn_range = lfnRange; /* copy down LFN results before they are obliterated by the next call to FindNextInternal. */
 
 	if(uselfn&&!force_sfn&&(strchr(name, '*')||strchr(name, '?'))) {

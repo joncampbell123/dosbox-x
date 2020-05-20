@@ -481,8 +481,9 @@ continue_1:
 	strcpy(sfull,full);
 	char * end=strrchr(full,'\\')+1;*end=0;
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
-    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;Bit16u time,date;Bit8u attr;
+	char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+	Bit32u size;Bit16u time,date;Bit8u attr;
+	unsigned int del_file=0,attempt_dir=0;
 	DOS_DTA dta(dos.dta());
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
@@ -490,7 +491,14 @@ continue_1:
 			strcpy(end,name);
 			strcpy(lend,lname);
 			WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
-		} else if (!(attr & DOS_ATTR_DIRECTORY)) {
+		} else if (attr & DOS_ATTR_DIRECTORY) {
+			attempt_dir++;
+#if 0 /* change this to '1' if you want to test the FAT driver to make sure you cannot use file delete on a directory */
+			strcpy(end,name);
+			strcpy(lend,lname);
+			if (!DOS_UnlinkFile(full)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full); /* TESTING: Make sure the FAT driver rejects it */
+#endif
+		} else {
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (optP) {
@@ -504,9 +512,14 @@ continue_1:
 				if (c=='N') {res = DOS_FindNext();continue;}
 			}
 			if (!DOS_UnlinkFile(full)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
+			del_file++;
 		}
 		res=DOS_FindNext();
 	}
+
+	if (attempt_dir != 0 && del_file == 0)
+		WriteOut("Cannot delete directory with DEL command. Use RMDIR to remove directories.");
+
 	dos.dta(save_dta);
 }
 
