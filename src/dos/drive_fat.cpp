@@ -2698,7 +2698,7 @@ bool fatDrive::MakeDir(const char *dir) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
-	Bit32u dummyClust, dirClust;
+	Bit32u dummyClust, dirClust, subEntry;
 	direntry tmpentry;
 	char dirName[DOS_NAMELENGTH_ASCII];
     char pathName[11], path[DOS_PATHLENGTH];
@@ -2714,8 +2714,8 @@ bool fatDrive::MakeDir(const char *dir) {
 	if(!getEntryName(dir, &dirName[0])||!strlen(trim(dirName))) return false;
 	convToDirFile(&dirName[0], &pathName[0]);
 
-	/* Fail to make directory if already exists */
-	if(getDirClustNum(dir, &dummyClust, false)) return false;
+	/* Fail to make directory if something of that name already exists */
+	if(getFileDirEntry(dir,&tmpentry,&dummyClust,&subEntry,/*dirOk*/true)) return false;
 
 	/* Can we find the base directory? */
 	if(!getDirClustNum(dir, &dirClust, true)) return false;
