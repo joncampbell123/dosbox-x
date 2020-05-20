@@ -798,7 +798,11 @@ nextfile:
  *
  *      useEntry is filled with the SFN direntry of the first search result. dirClust is filled in with the starting cluster of
  *      the parent directory. Note that even if dirOk is set and the result is a directory, dirClust is the parent directory of
- *      that directory. subEntry is the dirent index into the directory. */
+ *      that directory. subEntry is the dirent index into the directory.
+ *
+ *      As a side effect of using FindNextInternal, variable lfnRange will be either cleared or filled in with the subEntry range
+ *      of dirents that contain the LFN entries (needed for deletion, renaming, rmdir, etc). Not all paths set or clear it, so
+ *      first call the clear() method before calling. */
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry,bool dirOk) {
 	size_t len = strlen(filename);
 	char dirtoken[DOS_PATHLENGTH];
