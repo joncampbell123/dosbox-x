@@ -1081,7 +1081,7 @@ void SHELL_Init() {
 	        "REN [drive:][path]filename1 filename2.\n\n"
 	        "Note that you can not specify a new drive or path for your destination file.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
-	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/Q] names\n"
+	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
 		   "  names\t\tSpecifies a list of one or more files or directories.\n"
 		   "\t\tWildcards may be used to delete multiple files. If a\n"
