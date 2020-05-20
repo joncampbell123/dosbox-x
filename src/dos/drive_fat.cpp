@@ -823,14 +823,17 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
                 imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
+
+				char * findNext;
+				findNext = strtok(NULL,"\\");
+				if (findNext == NULL && dirOk) break; /* dirOk means that if the last element is a directory, then refer to the directory itself */
+				findDir = findNext;
 			}
 
 			if (BPB.is_fat32())
 				currentClust = foundEntry.Cluster32();
 			else
 				currentClust = foundEntry.loFirstClust;
-
-			findDir = strtok(NULL,"\\");
 		}
 	} else {
 		/* Set to root directory */
