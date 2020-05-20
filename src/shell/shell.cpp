@@ -831,7 +831,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
-	MSG_Add("SHELL_CMD_DEL_SURE","Are you sure[Y,N]?");
+	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
 	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
 	MSG_Add("SHELL_CMD_SET_OUT_OF_SPACE","Not enough environment space left.\n");
@@ -1082,12 +1082,13 @@ void SHELL_Init() {
 	        "Note that you can not specify a new drive or path for your destination file.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/Q] names\n"
-		   "ERASE [/P] [/Q] names\n\n"
+		   "ERASE [/P] [/F] [/Q] names\n\n"
 		   "  names\t\tSpecifies a list of one or more files or directories.\n"
 		   "\t\tWildcards may be used to delete multiple files. If a\n"
 		   "\t\tdirectory is specified, all files within the directory\n"
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
+		   "  /F\t\tForce deleting of read-only files.\n"
 		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
