@@ -415,7 +415,7 @@ private:
 	Bit32u getClustFirstSect(Bit32u clustNum);
 	bool FindNextInternal(Bit32u dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
 	bool getDirClustNum(const char * dir, Bit32u * clustNum, bool parDir);
-	bool getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry);
+	bool getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry,bool dirOk=false);
 	bool addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry,const char *lfn=NULL);
 	void zeroOutCluster(Bit32u clustNumber);
 	bool getEntryName(const char *fullname, char *entname);
