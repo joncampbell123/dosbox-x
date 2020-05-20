@@ -2852,11 +2852,6 @@ bool fatDrive::RemoveDir(const char *dir) {
 	/* Return if directory is not empty */
 	if(filecount > 0) return false;
 
-	/* remove primary 8.3 entry */
-	if (!directoryBrowse(dirClust, &tmpentry, subEntry)) return false;
-	tmpentry.entryname[0] = 0xe5;
-	if (!directoryChange(dirClust, &tmpentry, subEntry)) return false;
-
 	/* delete LFNs */
 	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
 		/* last LFN entry should be fileidx */
@@ -2869,6 +2864,11 @@ bool fatDrive::RemoveDir(const char *dir) {
 			}
 		}
 	}
+
+	/* remove primary 8.3 entry */
+	if (!directoryBrowse(dirClust, &tmpentry, subEntry)) return false;
+	tmpentry.entryname[0] = 0xe5;
+	if (!directoryChange(dirClust, &tmpentry, subEntry)) return false;
 
 	/* delete allocation chain */
 	deleteClustChain(dummyClust, 0);
