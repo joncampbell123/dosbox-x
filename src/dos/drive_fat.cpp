@@ -2799,7 +2799,7 @@ bool fatDrive::RemoveDir(const char *dir) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
-	Bit32u dummyClust, dirClust;
+	Bit32u dummyClust, dirClust, subEntry;
     direntry tmpentry = {};
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
@@ -2811,22 +2811,19 @@ bool fatDrive::RemoveDir(const char *dir) {
 	}
 
 	/* Can we even get the name of the directory itself? */
-	if(!getEntryName(dir, &dirName[0])) return false;
+	if(!getEntryName(dir, &dirName[0])||!strlen(trim(dirName))) return false;
 	convToDirFile(&dirName[0], &pathName[0]);
 
-	/* Get directory starting cluster */
+	/* directory must exist */
 	lfnRange.clear();
-	if(!getDirClustNum(dir, &dummyClust, false)) return false;
+	if(!getFileDirEntry(dir,&tmpentry,&dirClust,&subEntry,/*dirOk*/true)) return false; /* dirClust is parent dir of directory */
+	if (!(tmpentry.attrib & DOS_ATTR_DIRECTORY)) return false;
+	dummyClust = (BPB.is_fat32() ? tmpentry.Cluster32() : tmpentry.loFirstClust);
+	lfnRange_t dir_lfn_range = lfnRange; /* copy down LFN results before they are obliterated by the next call to FindNextInternal. */
 
 	/* Can't remove root directory */
 	if(dummyClust == 0) return false;
 	if(BPB.is_fat32() && dummyClust==BPB.v32.BPB_RootClus) return false;
-
-	/* getDirClustNum calls FindNextInternal() which updates the LFN range struct... in most cases. */
-	lfnRange_t dir_lfn_range = lfnRange; /* copy it down, result will be obliterated by the parent dir search. */
-
-	/* Get parent directory starting cluster */
-	if(!getDirClustNum(dir, &dirClust, true)) return false;
 
 	/* Check to make sure directory is empty */
 	Bit32u filecount = 0;
@@ -2841,39 +2838,26 @@ bool fatDrive::RemoveDir(const char *dir) {
 	/* Return if directory is not empty */
 	if(filecount > 0) return false;
 
-	/* Find directory entry in parent directory */
-	if (dirClust==0) fileidx = 0;	// root directory
-	else if (BPB.is_fat32() && dirClust==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
-	else fileidx = 2; /* assume . and .. exist as first two entries */
-	bool found = false;
-	while(directoryBrowse(dirClust, &tmpentry, fileidx)) {
-		if(memcmp(&tmpentry.entryname, &pathName[0], 11) == 0) {
-			found = true;
-			tmpentry.entryname[0] = 0xe5;
-			directoryChange(dirClust, &tmpentry, fileidx);
-			deleteClustChain(dummyClust, 0);
+	/* remove primary 8.3 entry */
+	if (!directoryBrowse(dirClust, &tmpentry, subEntry)) return false;
+	tmpentry.entryname[0] = 0xe5;
+	if (!directoryChange(dirClust, &tmpentry, subEntry)) return false;
 
-			/* remove LFNs only if emulating LFNs or DOS version 7.0.
-			 * Earlier DOS versions ignore LFNs. */
-			if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
-				/* last LFN entry should be fileidx */
-				assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
-				if (dir_lfn_range.dirPos_end != fileidx) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,fileidx);
-				for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
-					if (directoryBrowse(dirClust,&tmpentry,didx)) {
-						tmpentry.entryname[0] = 0xe5;
-						directoryChange(dirClust,&tmpentry,didx);
-					}
-				}
+	/* delete LFNs */
+	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
+		/* last LFN entry should be fileidx */
+		assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
+		if (dir_lfn_range.dirPos_end != subEntry) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,subEntry);
+		for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
+			if (directoryBrowse(dirClust,&tmpentry,didx)) {
+				tmpentry.entryname[0] = 0xe5;
+				directoryChange(dirClust,&tmpentry,didx);
 			}
-
-			break;
 		}
-		fileidx++;
 	}
 
-	if(!found) return false;
-
+	/* delete allocation chain */
+	deleteClustChain(dummyClust, 0);
 	return true;
 }
 
