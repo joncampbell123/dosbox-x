@@ -672,12 +672,10 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 		findFile = findDir;
 		findDir = strtok(NULL,"\\");
 	}
-	if (uselfn) {
-		int j=0;
-		for (int i=0; i<(int)strlen(findFile); i++)
-			if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='['&&findFile[i]!=']'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
-		findFile[j]=0;
-	}
+	int j=0;
+	for (int i=0; i<(int)strlen(findFile); i++)
+		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='['&&findFile[i]!=']'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
+	findFile[j]=0;
 	if (strlen(findFile)>12)
 		strncpy(entname, findFile, 12);
 	else
@@ -1957,7 +1955,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 	} else {
 		/* Can we even get the name of the file itself? */
-		if(!getEntryName(name, &dirName[0])) return false;
+		if(!getEntryName(name, &dirName[0])||!strlen(trim(dirName))) return false;
 		convToDirFile(&dirName[0], &pathName[0]);
 
 		/* Can we find the base directory? */
@@ -2891,20 +2889,10 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		return false;
 	}
 
-	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
-	if (uselfn && !force_sfn) {
-		lfn = strrchr(newname,'\\');
-
-		if (lfn != NULL) lfn++; /* step past '\' */
-		else lfn = newname; /* no path elements */
-
-		if (!filename_not_strict_8x3(lfn)) lfn = NULL;
-	}
-
     direntry fileEntry1 = {}, fileEntry2 = {};
 	Bit32u dirClust1, subEntry1, dirClust2, subEntry2;
 	char dirName[DOS_NAMELENGTH_ASCII], dirName2[DOS_NAMELENGTH_ASCII];
-	char pathName[11], pathName2[11];
+	char pathName[11], pathName2[11], path[DOS_PATHLENGTH];
 	lfnRange_t dir_lfn_range;
 	
 	lfnRange.clear();
@@ -2919,6 +2907,26 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		if(getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
 		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
 		convToDirFile(&dirName2[0], &pathName2[0]);
+
+		/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
+		if (uselfn && !force_sfn) {
+			lfn = strrchr(newname,'\\');
+
+			if (lfn != NULL) {
+				lfn++; /* step past '\' */
+				strcpy(path, newname);
+				*(strrchr(path,'\\')+1)=0;
+			} else {
+				lfn = newname; /* no path elements */
+				*path=0;
+			}
+
+			if (filename_not_strict_8x3(lfn)) {
+				char *sfn=Generate_SFN(path, lfn);
+				if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
+			} else
+				lfn = NULL;
+		}
 
 		/* Find directory entry in parent directory */
 		Bit32s fileidx = 2;
@@ -2944,8 +2952,28 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		/* Target doesn't exist, can rename */
 
 		/* Can we even get the name of the file itself? */
-		if(!getEntryName(newname, &dirName2[0])) return false;
+		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
 		convToDirFile(&dirName2[0], &pathName2[0]);
+
+		/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
+		if (uselfn && !force_sfn) {
+			lfn = strrchr(newname,'\\');
+
+			if (lfn != NULL) {
+				lfn++; /* step past '\' */
+				strcpy(path, newname);
+				*(strrchr(path,'\\')+1)=0;
+			} else {
+				lfn = newname; /* no path elements */
+				*path=0;
+			}
+
+			if (filename_not_strict_8x3(lfn)) {
+				char *sfn=Generate_SFN(path, lfn);
+				if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
+			} else
+				lfn = NULL;
+		}
 
 		/* Can we find the base directory? */
 		if(!getDirClustNum(newname, &dirClust2, true)) return false;
