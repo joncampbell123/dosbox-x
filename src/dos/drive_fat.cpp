@@ -113,8 +113,10 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 		while (*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ') *(n+strlen(n)-1)=0;
 		int i=0;
 		while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:4))) {
-			if (*n == ' ')
+			if (*n == ' ') {
+				n++;
 				continue;
+			}
 			if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
 				sfn[i++]='_';
 				n++;
@@ -139,8 +141,10 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 			while (*n == '.') n++;
 			int j=0;
 			while (*n != 0 && j++<3) {
-				if (*n == ' ')
+				if (*n == ' ') {
+					n++;
 					continue;
+				}
 				if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
 					sfn[i++]='_';
 					n++;
