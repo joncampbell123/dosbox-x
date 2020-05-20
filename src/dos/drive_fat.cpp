@@ -2910,122 +2910,72 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
     direntry fileEntry1 = {}, fileEntry2 = {};
 	Bit32u dirClust1, subEntry1, dirClust2, subEntry2;
-	char dirName[DOS_NAMELENGTH_ASCII], dirName2[DOS_NAMELENGTH_ASCII];
-	char pathName[11], pathName2[11], path[DOS_PATHLENGTH];
+	char dirName2[DOS_NAMELENGTH_ASCII];
+	char pathName2[11], path[DOS_PATHLENGTH];
 	lfnRange_t dir_lfn_range;
-	
+
+	/* Check that old name exists (file or directory) */
 	lfnRange.clear();
-	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) {
-		/* Can we even get the name of the directory itself? */
-		if(!getEntryName(oldname, &dirName[0])) return false;
-		convToDirFile(&dirName[0], &pathName[0]);
-
-		/* Get parent directory starting cluster */
-		if(!getDirClustNum(oldname, &dirClust1, true)) return false;
-
-		if(getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
-		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
-		convToDirFile(&dirName2[0], &pathName2[0]);
-
-		/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
-		if (uselfn && !force_sfn) {
-			lfn = strrchr(newname,'\\');
-
-			if (lfn != NULL) {
-				lfn++; /* step past '\' */
-				strcpy(path, newname);
-				*(strrchr(path,'\\')+1)=0;
-			} else {
-				lfn = newname; /* no path elements */
-				*path=0;
-			}
-
-			if (filename_not_strict_8x3(lfn)) {
-				char *sfn=Generate_SFN(path, lfn);
-				if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
-			} else
-				lfn = NULL;
-		}
-
-		/* Find directory entry in parent directory */
-		Bit32s fileidx = 2;
-		if (dirClust1==0) fileidx = 0;	// root directory
-		else if (BPB.is_fat32() && dirClust1==BPB.v32.BPB_RootClus) fileidx = 0; // root directory FAT32
-		Bit32s last_idx=0;
-		while(directoryBrowse(dirClust1, &fileEntry1, fileidx, last_idx)) {
-			if(memcmp(&fileEntry1.entryname, &pathName[0], 11) == 0) {
-				for (int i=0; i<11; i++)
-					fileEntry1.entryname[i]=toupper(pathName2[i]);
-				directoryChange(dirClust1, &fileEntry1, fileidx);
-				return true;
-			}
-			fileidx++;
-		}
-		return false;
-	}
-	/* File to be renamed really exists */
+	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1, /*dirOk*/true)) return false;
 	dir_lfn_range = lfnRange;
 
-	/* Check if file already exists */
-	if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) {
-		/* Target doesn't exist, can rename */
+	/* Check if new name (file or directory) already exists */
+	if(getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2, /*dirOk*/true)) return false;
 
-		/* Can we even get the name of the file itself? */
-		if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
-		convToDirFile(&dirName2[0], &pathName2[0]);
+	/* Can we even get the name of the file itself? */
+	if(!getEntryName(newname, &dirName2[0])||!strlen(trim(dirName2))) return false;
+	convToDirFile(&dirName2[0], &pathName2[0]);
 
-		/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
-		if (uselfn && !force_sfn) {
-			lfn = strrchr(newname,'\\');
+	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
+	if (uselfn && !force_sfn) {
+		lfn = strrchr(newname,'\\');
 
-			if (lfn != NULL) {
-				lfn++; /* step past '\' */
-				strcpy(path, newname);
-				*(strrchr(path,'\\')+1)=0;
-			} else {
-				lfn = newname; /* no path elements */
-				*path=0;
-			}
-
-			if (filename_not_strict_8x3(lfn)) {
-				char *sfn=Generate_SFN(path, lfn);
-				if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
-			} else
-				lfn = NULL;
+		if (lfn != NULL) {
+			lfn++; /* step past '\' */
+			strcpy(path, newname);
+			*(strrchr(path,'\\')+1)=0;
+		} else {
+			lfn = newname; /* no path elements */
+			*path=0;
 		}
 
-		/* Can we find the base directory? */
-		if(!getDirClustNum(newname, &dirClust2, true)) return false;
-		memcpy(&fileEntry2, &fileEntry1, sizeof(direntry));
-		memcpy(&fileEntry2.entryname, &pathName2[0], 11);
-		addDirectoryEntry(dirClust2, fileEntry2, lfn);
-
-		/* Check if file exists now */
-		if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
-
-		/* Remove old entry */
-		fileEntry1.entryname[0] = 0xe5;
-		directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
-
-		/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
-		 * Earlier DOS versions ignore LFNs. */
-		if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
-			/* last LFN entry should be fileidx */
-			assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
-			if (dir_lfn_range.dirPos_end != subEntry1) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,subEntry1);
-			for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
-				if (directoryBrowse(dirClust1,&fileEntry1,didx)) {
-					fileEntry1.entryname[0] = 0xe5;
-					directoryChange(dirClust1,&fileEntry1,didx);
-				}
-			}
-		}
-
-		return true;
+		if (filename_not_strict_8x3(lfn)) {
+			char *sfn=Generate_SFN(path, lfn);
+			if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
+		} else
+			lfn = NULL;
 	}
 
-	/* Target already exists, fail */
-	return false;
+	/* Can we find the base directory of the new name? (we know the parent dir of oldname in dirClust1) */
+	if(!getDirClustNum(newname, &dirClust2, true)) return false;
+
+	/* add new dirent */
+	memcpy(&fileEntry2, &fileEntry1, sizeof(direntry));
+	memcpy(&fileEntry2.entryname, &pathName2[0], 11);
+	addDirectoryEntry(dirClust2, fileEntry2, lfn);
+
+	/* Check if file exists now (it should!) */
+	if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
+
+	/* Remove old 8.3 SFN entry */
+	fileEntry1.entryname[0] = 0xe5;
+	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
+
+	/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
+	 * Earlier DOS versions ignore LFNs. */
+	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
+		/* last LFN entry should be fileidx */
+		assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
+		if (dir_lfn_range.dirPos_end != subEntry1) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,subEntry1);
+		for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
+			if (directoryBrowse(dirClust1,&fileEntry1,didx)) {
+				fileEntry1.entryname[0] = 0xe5;
+				directoryChange(dirClust1,&fileEntry1,didx);
+			}
+		}
+	}
+
+	return true;
 }
 
 bool fatDrive::TestDir(const char *dir) {
