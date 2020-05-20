@@ -2954,9 +2954,6 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	memcpy(&fileEntry2.entryname, &pathName2[0], 11);
 	addDirectoryEntry(dirClust2, fileEntry2, lfn);
 
-	/* Check if file exists now (it should!) */
-	if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) return false;
-
 	/* Remove old 8.3 SFN entry */
 	fileEntry1.entryname[0] = 0xe5;
 	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
