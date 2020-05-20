@@ -393,7 +393,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	Bit8u drivenew;char fullnew[DOS_PATHLENGTH];
 	if (!DOS_MakeName(oldname,fullold,&driveold)) return false;
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
-	while (strlen(fullnew)&&(*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ') *(fullnew+strlen(fullnew)-1))=0;
+	while (strlen(fullnew)&&(*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ')) *(fullnew+strlen(fullnew)-1)=0;
 
 	/* No tricks with devices */
 	bool clip=false;
