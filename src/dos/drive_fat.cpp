@@ -2919,7 +2919,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1, /*dirOk*/true)) return false;
 	dir_lfn_range = lfnRange;
 
-	/* Check if new name (file or directory) already exists */
+	/* Check if new name (file or directory) already exists, fail if so */
 	if(getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2, /*dirOk*/true)) return false;
 
 	/* Can we even get the name of the file itself? */
