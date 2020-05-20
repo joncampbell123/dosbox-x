@@ -46,15 +46,13 @@ static Bit32u dnum[256];
 extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle;
 
-/* Assuming an LFN call, if the name is not strict 8.3 uppercase, return true.
- * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
-bool filename_not_strict_8x3(const char *n) {
+bool filename_not_8x3(const char *n) {
 	unsigned int i;
 
 	i = 0;
 	while (*n != 0) {
 		if (*n == '.') break;
-		if (*n < 32 || *n == 127 || (*n >= 'a' && *n <= 'z')) return true;
+		if (*n<32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
 		i++;
 		n++;
 	}
@@ -68,13 +66,95 @@ bool filename_not_strict_8x3(const char *n) {
 	i = 0;
 	while (*n != 0) {
 		if (*n == '.') return true; /* another '.' means LFN */
-		if (*n < 32 || *n == 127 || (*n >= 'a' && *n <= 'z')) return true;
+		if (*n<32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') return true;
 		i++;
 		n++;
 	}
 	if (i > 3) return true;
 
-	return false; /* it is struct 8.3 upper case */
+	return false; /* it is 8.3 case */
+}
+
+/* Assuming an LFN call, if the name is not strict 8.3 uppercase, return true.
+ * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
+bool filename_not_strict_8x3(const char *n) {
+	if (filename_not_8x3(n)) return true;
+	for (int i=0; i<strlen(n); i++)
+		if (n[i]>='a' && n[i]<='z')
+			return true;
+	return false; /* it is strict 8.3 upper case */
+}
+
+char sfn[DOS_NAMELENGTH_ASCII];
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~999). */
+char* fatDrive::Generate_SFN(const char *path, const char *name) {
+	if (!filename_not_8x3(name)) {
+		strcpy(sfn, name);
+		upcase(sfn);
+		return sfn;
+	}
+	*sfn=0;
+	char lfn[LFN_NAMELENGTH+1], fullname[DOS_PATHLENGTH+DOS_NAMELENGTH_ASCII], *n;
+	if (name==NULL) return NULL;
+	if (!*name) return sfn;
+	if (strlen(name)>LFN_NAMELENGTH) {
+		strncpy(lfn, name, LFN_NAMELENGTH);
+		lfn[LFN_NAMELENGTH]=0;
+	} else
+		strcpy(lfn, name);
+	if (!strlen(lfn)) return sfn;
+	direntry fileEntry = {};
+	Bit32u dirClust, subEntry;
+	int k=1;
+	while (k<1000) {
+		*sfn=0;
+		n=lfn;
+		while (*n == '.'||*n == ' ') n++;
+		while (*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ') *(n+strlen(n)-1)=0;
+		int i=0;
+		while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:4))) {
+			if (*n == ' ')
+				continue;
+			if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+				sfn[i++]='_';
+				n++;
+			} else
+				sfn[i++]=toupper(*(n++));
+		}
+		sfn[i++]='~';
+		if (k<10)
+			sfn[i++]='0'+k;
+		else if (k<100) {
+			sfn[i++]='0'+(k/10);
+			sfn[i++]='0'+(k%10);
+		} else {
+			sfn[i++]='0'+(k/10);
+			sfn[i++]='0'+((k%100)/10);
+			sfn[i++]='0'+(k%10);
+		}
+		char *p=strrchr(n, '.');
+		if (p!=NULL) {
+			sfn[i++]='.';
+			n=p+1;
+			while (*n == '.') n++;
+			int j=0;
+			while (*n != 0 && j++<3) {
+				if (*n == ' ')
+					continue;
+				if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+					sfn[i++]='_';
+					n++;
+				} else
+					sfn[i++]=toupper(*(n++));
+			}
+		}
+		sfn[i++]=0;
+		strcpy(fullname, path);
+		strcat(fullname, sfn);
+		if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry)&&!getDirClustNum(fullname, &dirClust, false)) return sfn;
+		k++;
+	}
+	return NULL;
 }
 
 class fatFile : public DOS_File {
@@ -591,7 +671,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	if (uselfn) {
 		int j=0;
 		for (int i=0; i<(int)strlen(findFile); i++)
-			if (findFile[i]!=' '&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
+			if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&findFile[i]!='['&&findFile[i]!=']'&&findFile[i]!='|'&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
 		findFile[j]=0;
 	}
 	if (strlen(findFile)>12)
@@ -1816,7 +1896,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 	char dirName[DOS_NAMELENGTH_ASCII];
-	char pathName[11];
+	char pathName[11], path[DOS_PATHLENGTH];
 
 	Bit16u save_errorcode=dos.errorcode;
 
@@ -1858,10 +1938,20 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 		if (uselfn && !force_sfn) {
 			lfn = strrchr(name,'\\');
 
-			if (lfn != NULL) lfn++; /* step past '\' */
-			else lfn = name; /* no path elements */
+			if (lfn != NULL) {
+				lfn++; /* step past '\' */
+				strcpy(path, name);
+				*(strrchr(path,'\\')+1)=0;
+			} else {
+				lfn = name; /* no path elements */
+				*path=0;
+			}
 
-			if (!filename_not_strict_8x3(lfn)) lfn = NULL;
+			if (filename_not_strict_8x3(lfn)) {
+				char *sfn=Generate_SFN(path, lfn);
+				if (sfn!=NULL) convToDirFile(sfn, &pathName[0]);
+			} else
+				lfn = NULL;
 		}
 
 		memset(&fileEntry, 0, sizeof(direntry));
@@ -2598,7 +2688,7 @@ bool fatDrive::MakeDir(const char *dir) {
 	Bit32u dummyClust, dirClust;
 	direntry tmpentry;
 	char dirName[DOS_NAMELENGTH_ASCII];
-    char pathName[11];
+    char pathName[11], path[DOS_PATHLENGTH];
     Bit16u ct,cd;
 
 	/* you cannot mkdir root directory */
@@ -2627,10 +2717,20 @@ bool fatDrive::MakeDir(const char *dir) {
 	if (uselfn && !force_sfn) {
 		lfn = strrchr(dir,'\\');
 
-		if (lfn != NULL) lfn++; /* step past '\' */
-		else lfn = dir; /* no path elements */
+		if (lfn != NULL) {
+			lfn++; /* step past '\' */
+			strcpy(path, dir);
+			*(strrchr(path,'\\')+1)=0;
+		} else {
+			lfn = dir; /* no path elements */
+			*path=0;
+		}
 
-		if (!filename_not_strict_8x3(lfn)) lfn = NULL;
+		if (filename_not_strict_8x3(lfn)) {
+			char *sfn=Generate_SFN(path, lfn);
+			if (sfn!=NULL) convToDirFile(sfn, &pathName[0]);
+		} else
+			lfn = NULL;
 	}
 
 	zeroOutCluster(dummyClust);
