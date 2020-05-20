@@ -2791,8 +2791,8 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
     direntry fileEntry1 = {}, fileEntry2 = {};
 	Bit32u dirClust1, subEntry1, dirClust2, subEntry2;
 	char dirName[DOS_NAMELENGTH_ASCII], dirName2[DOS_NAMELENGTH_ASCII];
-	lfnRange_t dir_lfn_range,dir_lfn_range2;
 	char pathName[11], pathName2[11];
+	lfnRange_t dir_lfn_range;
 	
 	lfnRange.clear();
 	if(!getFileDirEntry(oldname, &fileEntry1, &dirClust1, &subEntry1)) {
@@ -2829,7 +2829,6 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	/* Check if file already exists */
 	if(!getFileDirEntry(newname, &fileEntry2, &dirClust2, &subEntry2)) {
 		/* Target doesn't exist, can rename */
-		dir_lfn_range2 = lfnRange;
 
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(newname, &dirName2[0])) return false;
