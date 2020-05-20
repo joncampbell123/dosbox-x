@@ -409,6 +409,7 @@ public:
 	imageDisk *loadedDisk = NULL;
 	bool created_successfully = true;
 private:
+	char* Generate_SFN(const char *path, const char *name);
 	Bit32u getClusterValue(Bit32u clustNum);
 	void setClusterValue(Bit32u clustNum, Bit32u clustValue);
 	Bit32u getClustFirstSect(Bit32u clustNum);
