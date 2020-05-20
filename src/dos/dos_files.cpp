@@ -348,6 +348,7 @@ bool DOS_MakeDir(char const * const dir) {
 		return false;
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
+	while (*(fulldir+strlen(fulldir)-1)=='.'||*(fulldir+strlen(fulldir)-1)==' ') *(fulldir+strlen(fulldir)-1)=0;
 	if(Drives[drive]->MakeDir(fulldir)) return true;
 
 	/* Determine reason for failing */
@@ -392,6 +393,8 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 	Bit8u drivenew;char fullnew[DOS_PATHLENGTH];
 	if (!DOS_MakeName(oldname,fullold,&driveold)) return false;
 	if (!DOS_MakeName(newname,fullnew,&drivenew)) return false;
+	while (*(fullnew+strlen(fullnew)-1)=='.'||*(fullnew+strlen(fullnew)-1)==' ') *(fullnew+strlen(fullnew)-1)=0;
+
 	/* No tricks with devices */
 	bool clip=false;
 	if ( (DOS_FindDevice(oldname) != DOS_DEVICES) ||
@@ -679,6 +682,8 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry,bool fcb)
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
 	DOS_PSP psp(dos.psp());
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
+	while (*(fullname+strlen(fullname)-1)=='.'||*(fullname+strlen(fullname)-1)==' ') *(fullname+strlen(fullname)-1)=0;
+
 	/* Check for a free file handle */
 	Bit8u handle=(Bit8u)DOS_FILES;Bit8u i;
 	for (i=0;i<DOS_FILES;i++) {
