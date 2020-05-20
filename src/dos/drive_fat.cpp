@@ -93,54 +93,25 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 		upcase(sfn);
 		return sfn;
 	}
-	*sfn=0;
 	char lfn[LFN_NAMELENGTH+1], fullname[DOS_PATHLENGTH+DOS_NAMELENGTH_ASCII], *n;
-	if (name==NULL) return NULL;
-	if (!*name) return sfn;
+	if (name==NULL||!*name) return NULL;
 	if (strlen(name)>LFN_NAMELENGTH) {
 		strncpy(lfn, name, LFN_NAMELENGTH);
 		lfn[LFN_NAMELENGTH]=0;
 	} else
 		strcpy(lfn, name);
-	if (!strlen(lfn)) return sfn;
+	if (!strlen(lfn)) return NULL;
 	direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
-	int k=1;
+	int k=1, i, t=1000;
 	while (k<1000) {
-		*sfn=0;
 		n=lfn;
-		while (*n == '.'||*n == ' ') n++;
-		while (*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ') *(n+strlen(n)-1)=0;
-		int i=0;
-		while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:4))) {
-			if (*n == ' ') {
-				n++;
-				continue;
-			}
-			if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
-				sfn[i++]='_';
-				n++;
-			} else
-				sfn[i++]=toupper(*(n++));
-		}
-		sfn[i++]='~';
-		if (k<10)
-			sfn[i++]='0'+k;
-		else if (k<100) {
-			sfn[i++]='0'+(k/10);
-			sfn[i++]='0'+(k%10);
-		} else {
-			sfn[i++]='0'+(k/10);
-			sfn[i++]='0'+((k%100)/10);
-			sfn[i++]='0'+(k%10);
-		}
-		char *p=strrchr(n, '.');
-		if (p!=NULL) {
-			sfn[i++]='.';
-			n=p+1;
-			while (*n == '.') n++;
-			int j=0;
-			while (*n != 0 && j++<3) {
+		if (t>strlen(n)||k==1||k==10||k==100) {
+			i=0;
+			*sfn=0;
+			while (*n == '.'||*n == ' ') n++;
+			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
+			while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:4))) {
 				if (*n == ' ') {
 					n++;
 					continue;
@@ -151,11 +122,44 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 				} else
 					sfn[i++]=toupper(*(n++));
 			}
+			sfn[i++]='~';
+			t=i;
+		} else
+			i=t;
+		if (k<10)
+			sfn[i++]='0'+k;
+		else if (k<100) {
+			sfn[i++]='0'+(k/10);
+			sfn[i++]='0'+(k%10);
+		} else {
+			sfn[i++]='0'+(k/100);
+			sfn[i++]='0'+((k%100)/10);
+			sfn[i++]='0'+(k%10);
 		}
-		sfn[i++]=0;
+		if (t>strlen(n)||k==1||k==10||k==100) {
+			char *p=strrchr(n, '.');
+			if (p!=NULL) {
+				sfn[i++]='.';
+				n=p+1;
+				while (*n == '.') n++;
+				int j=0;
+				while (*n != 0 && j++<3) {
+					if (*n == ' ') {
+						n++;
+						continue;
+					}
+					if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+						sfn[i++]='_';
+						n++;
+					} else
+						sfn[i++]=toupper(*(n++));
+				}
+			}
+			sfn[i++]=0;
+		}
 		strcpy(fullname, path);
 		strcat(fullname, sfn);
-		if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry)&&!getDirClustNum(fullname, &dirClust, false)) return sfn;
+		if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry,/*dirOk*/true)) return sfn;
 		k++;
 	}
 	return NULL;
