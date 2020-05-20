@@ -30,9 +30,10 @@
 #include "support.h"
 #include "inout.h"
 #include "../ints/int10.h"
+#include "../dos/drives.h"
 #ifdef WIN32
 #include "../dos/cdrom.h"
-#endif 
+#endif
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -41,6 +42,8 @@
 # define MIN(a,b) std::min(a,b)
 # define MAX(a,b) std::max(a,b)
 #endif
+
+extern int lfn_filefind_handle;
 
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
@@ -561,7 +564,10 @@ void DOS_Shell::InputCommand(char * line) {
 						bool res = false;
 						if (DOS_GetSFNPath(mask,smask,false)) {
 							sprintf(mask,"\"%s\"",smask);
+							int fbak=lfn_filefind_handle;
+							lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 							res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
+							lfn_filefind_handle=fbak;
 						}
                         if (!res) {
                             dos.dta(save_dta);
@@ -616,7 +622,10 @@ void DOS_Shell::InputCommand(char * line) {
 										l_completion.push_back(qlname);
                                 }
                             }
+							int fbak=lfn_filefind_handle;
+							lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
                             res=DOS_FindNext();
+							lfn_filefind_handle=fbak;
                         }
                         /* Add executable list to front of completion list. */
                         std::copy(executable.begin(),executable.end(),std::front_inserter(l_completion));

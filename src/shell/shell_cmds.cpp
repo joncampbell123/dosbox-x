@@ -412,28 +412,10 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	args = ExpandDot(args,buffer, CROSS_LEN);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	bool res;
-	int fbak=lfn_filefind_handle;
 	if (strlen(args)&&args[strlen(args)-1]!='\\') {
 		Bit16u fattr;
 		if (DOS_GetFileAttr(args, &fattr) && (fattr&DOS_ATTR_DIRECTORY))
 			strcat(args, "\\");
-		else {
-			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
-			if (!res) {
-				lfn_filefind_handle=fbak;
-				WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
-				dos.dta(save_dta);
-				return;
-			}
-			lfn_filefind_handle=fbak;
-			if (strlen(args)&&args[strlen(args)-1]!='\\') {
-				dta=dos.dta();
-				dta.GetResult(name,lname,size,date,time,attr);
-				if (attr & DOS_ATTR_DIRECTORY) strcat(args, "\\");
-			}
-		}
 	}
 	if (strlen(args)&&args[strlen(args)-1]=='\\') strcat(args, "*.*");
 	else if (!strcasecmp(args,".")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='.')) {
@@ -497,8 +479,9 @@ first_2:
 continue_1:
 	/* Command uses dta so set it to our internal dta */
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
+	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-    res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+    bool res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) {
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
@@ -1485,8 +1468,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 		//Find first sourcefile
 		char sPath[DOS_PATHLENGTH];
-		bool r=DOS_GetSFNPath(source.filename.c_str(),sPath,false), ret = r && DOS_FindFirst(const_cast<char*>(sPath),0xffff & ~DOS_ATTR_VOLUME);
-		if (r&&!ret&&strchr(sPath, ' ')) ret = DOS_FindFirst((char *)((source.filename[0]!='"'?"\"":"")+source.filename+(source.filename.c_str()[source.filename.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
+		bool ret=DOS_GetSFNPath(source.filename.c_str(),sPath,false) && DOS_FindFirst((char *)((strchr(sPath, ' ')&&sPath[0]!='"'&&sPath[0]!='"'?"\"":"")+std::string(sPath)+(strchr(sPath, ' ')&&sPath[strlen(sPath)-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 		if (!ret) {
 			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),const_cast<char*>(source.filename.c_str()));
 			dos.dta(save_dta);
