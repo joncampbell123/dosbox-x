@@ -1923,7 +1923,13 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 	}
 
 	/* Check if file already exists */
-	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
+	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry, true/*dirOk*/)) {
+		/* You can't create/truncate a directory! */
+		if (fileEntry.attrib & DOS_ATTR_DIRECTORY) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+
 		/* Truncate file allocation chain */
 		{
 			const Bit32u chk = BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust;
