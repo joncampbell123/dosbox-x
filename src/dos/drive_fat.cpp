@@ -794,7 +794,11 @@ nextfile:
  *      If dirOk is set, and all path elements are directories, it will stop at the last one and look it up as if a file.
  *      The purpose is to clean up this FAT driver by eliminating all the ridiculous "look up getFileDirEntry but if it fails
  *      do a whole different code path that looks it up as if directory" copy-pasta in this code that complicates some functions
- *      like the Rename() method. */
+ *      like the Rename() method.
+ *
+ *      useEntry is filled with the SFN direntry of the first search result. dirClust is filled in with the starting cluster of
+ *      the parent directory. Note that even if dirOk is set and the result is a directory, dirClust is the parent directory of
+ *      that directory. subEntry is the dirent index into the directory. */
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry,bool dirOk) {
 	size_t len = strlen(filename);
 	char dirtoken[DOS_PATHLENGTH];
