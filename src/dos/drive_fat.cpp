@@ -2049,6 +2049,7 @@ bool fatDrive::FileUnlink(const char * name) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
     }
+    direntry tmpentry = {};
     direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
 
@@ -2058,7 +2059,10 @@ bool fatDrive::FileUnlink(const char * name) {
 		return false;
 	}
 
+	lfnRange.clear();
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
+	lfnRange_t dir_lfn_range = lfnRange; /* copy down LFN results before they are obliterated by the next call to FindNextInternal. */
+
 	if(uselfn&&!force_sfn&&(strchr(name, '*')||strchr(name, '?'))) {
 		char dir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], fullname[DOS_PATHLENGTH], temp[DOS_PATHLENGTH];
 		strcpy(fullname, name);
@@ -2099,9 +2103,24 @@ bool fatDrive::FileUnlink(const char * name) {
 		return removed;
 	}
 
+	/* delete LFNs */
+	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
+		/* last LFN entry should be fileidx */
+		assert(dir_lfn_range.dirPos_start < dir_lfn_range.dirPos_end);
+		if (dir_lfn_range.dirPos_end != subEntry) LOG_MSG("FAT warning: LFN dirPos_end=%u fileidx=%u (mismatch)",dir_lfn_range.dirPos_end,subEntry);
+		for (unsigned int didx=dir_lfn_range.dirPos_start;didx < dir_lfn_range.dirPos_end;didx++) {
+			if (directoryBrowse(dirClust,&tmpentry,didx)) {
+				tmpentry.entryname[0] = 0xe5;
+				directoryChange(dirClust,&tmpentry,didx);
+			}
+		}
+	}
+
+	/* remove primary 8.3 SFN */
 	fileEntry.entryname[0] = 0xe5;
 	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 
+	/* delete allocation chain */
 	{
 		const Bit32u chk = BPB.is_fat32() ? fileEntry.Cluster32() : fileEntry.loFirstClust;
 		if(chk != 0) deleteClustChain(chk, 0);
