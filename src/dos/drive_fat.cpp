@@ -802,7 +802,8 @@ nextfile:
  *
  *      As a side effect of using FindNextInternal, variable lfnRange will be either cleared or filled in with the subEntry range
  *      of dirents that contain the LFN entries (needed for deletion, renaming, rmdir, etc). Not all paths set or clear it, so
- *      first call the clear() method before calling. */
+ *      first call the clear() method before calling. After the call, copy off the value because the next call to FindNextInternal
+ *      by any part of this code will obliterate the result with a new result. */
 bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry,bool dirOk) {
 	size_t len = strlen(filename);
 	char dirtoken[DOS_PATHLENGTH];
