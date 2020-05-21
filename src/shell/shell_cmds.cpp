@@ -406,7 +406,6 @@ void DOS_Shell::CMD_DELETE(char * args) {
 
 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	char buffer[CROSS_LEN];
-    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4];
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     Bit32u size;Bit16u time,date;Bit8u attr;
 	args = ExpandDot(args,buffer, CROSS_LEN);
@@ -414,11 +413,11 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
 	if (strlen(args)&&args[strlen(args)-1]!='\\') {
 		Bit16u fattr;
-		if (DOS_GetFileAttr(args, &fattr) && (fattr&DOS_ATTR_DIRECTORY))
+		if (strcmp(args,"*.*")&&DOS_GetFileAttr(args, &fattr) && (fattr&DOS_ATTR_DIRECTORY))
 			strcat(args, "\\");
 	}
 	if (strlen(args)&&args[strlen(args)-1]=='\\') strcat(args, "*.*");
-	else if (!strcasecmp(args,".")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='.')) {
+	else if (!strcmp(args,".")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='.')) {
 		args[strlen(args)-1]='*';
 		strcat(args, ".*");
 	} else if (uselfn&&strchr(args, '*')) {
