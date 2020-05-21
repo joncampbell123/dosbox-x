@@ -833,11 +833,11 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #ifdef WIN32
 # define STDOUT_FILE                TEXT("stdout.txt")
 # define STDERR_FILE                TEXT("stderr.txt")
-# define DEFAULT_CONFIG_FILE            "/dosbox.conf"
+# define DEFAULT_CONFIG_FILE            "/dosbox-x.conf"
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
 #elif defined(HAIKU)
-#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox/dosbox.conf"
+#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox-x/dosbox-x.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif
@@ -8170,9 +8170,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(MACOSX)
 				/* Try not to look extra tiny on Retina displays */
 				dpi_aware_enable = false;
-#elif defined(WIN32) && defined(_MSC_VER) && (defined(_M_ARM) || defined(_M_ARM64))
+#elif defined(WIN32) && defined(_MSC_VER)
+				dpi_aware_enable = true;
 				/* Microsoft Surface tablets are really high resolution. Try not to look like a tiny window on them */
-				dpi_aware_enable = false;
+				DPI_AWARENESS_CONTEXT previousDpiContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+				if (GetAwarenessFromDpiAwarenessContext(GetThreadDpiAwarenessContext())==DPI_AWARENESS_SYSTEM_AWARE) {
+					UINT dpi=GetDpiForSystem();
+					if (dpi&&dpi/96>1) dpi_aware_enable = false;
+				}
+				if (previousDpiContext!=NULL) SetThreadDpiAwarenessContext(previousDpiContext);
 #else
 				dpi_aware_enable = true;
 #endif
@@ -9315,4 +9321,3 @@ void SDL_GL_SwapBuffers(void) {
     SDL_GL_SwapWindow(sdl.window);
 }
 #endif
-
