@@ -1122,7 +1122,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("dpi aware",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Set this option (on by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
+    Pstring->Set_help("Set this option (auto by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
 
@@ -2319,11 +2319,11 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
+    Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox-X with the DMA unassigned");
 
     Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
+    Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox-X with the High DMA unassigned");
 
     Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Start the DOS virtual machine with the sound blaster IRQ already unmasked at the PIC.\n"
@@ -3551,4 +3551,3 @@ int utf16le_decode(const char **ptr,const char *fence) {
     *ptr = p;
     return (int)ret;
 }
-

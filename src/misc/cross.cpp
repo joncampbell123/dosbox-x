@@ -79,17 +79,17 @@ void Cross::GetPlatformResDir(std::string& in) {
 void Cross::GetPlatformConfigDir(std::string& in) {
 #if defined(WIN32) && !defined(HX_DOS)
 	W32_ConfDir(in,false);
-	in += "\\DOSBox";
+	in += "\\DOSBox-X";
 #elif defined(MACOSX)
 	in = "~/Library/Preferences";
 	ResolveHomedir(in);
 #elif defined(HAIKU)
-	in = "~/config/settings/dosbox";
+	in = "~/config/settings/dosbox-x";
 	ResolveHomedir(in);
 #elif defined(RISCOS)
 	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
-	in = "~/.dosbox";
+	in = "~/.dosbox-x";
 	ResolveHomedir(in);
 #endif
 	in += CROSS_FILESPLIT;
@@ -97,11 +97,11 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 
 void Cross::GetPlatformConfigName(std::string& in) {
 #ifdef WIN32
-#define DEFAULT_CONFIG_FILE "dosbox-" VERSION ".conf"
+#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #elif defined(MACOSX)
-#define DEFAULT_CONFIG_FILE "DOSBox " VERSION " Preferences"
+#define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " Preferences"
 #else /*linux freebsd*/
-#define DEFAULT_CONFIG_FILE "dosbox-" VERSION ".conf"
+#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
 #endif
 	in = DEFAULT_CONFIG_FILE;
 }
@@ -109,21 +109,21 @@ void Cross::GetPlatformConfigName(std::string& in) {
 void Cross::CreatePlatformConfigDir(std::string& in) {
 #if defined(WIN32) && !defined(HX_DOS)
 	W32_ConfDir(in,true);
-	in += "\\DOSBox";
+	in += "\\DOSBox-X";
 	_mkdir(in.c_str());
 #elif defined(MACOSX)
 	in = "~/Library/Preferences";
 	ResolveHomedir(in);
 	//Don't create it. Assume it exists
 #elif defined(HAIKU)
-	in = "~/config/settings/dosbox";
+	in = "~/config/settings/dosbox-x";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);
 #elif defined(RISCOS)
 	in = "/<Choices$Write>/DosBox-X";
 	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
-	in = "~/.dosbox";
+	in = "~/.dosbox-x";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);
 #endif

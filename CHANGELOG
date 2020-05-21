@@ -1,4 +1,6 @@
 0.83.2
+  - Config option "dpi aware" now supports the "auto" setting
+    to auto-decide on the best setting for the platform.
   - Implemented LFN support for FAT driver, so that it is now
     possible to view directory list, create or open files and
     directories etc with long filenames on FAT12/16/32 drives
@@ -36,7 +38,8 @@
   - REN command can now rename directories (in addition to files) on
     FAT drives just like on local drives (Wengier)
   - Several improvements to DEL command, such as a new /F option to
-    force delete of read-only files. (Wengier)
+    force delete of read-only files, and improved handling when the
+    argument is a directory. (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - IMGMOUNT command (without parameters) now lists mounted FAT/ISO

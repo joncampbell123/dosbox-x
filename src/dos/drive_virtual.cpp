@@ -38,8 +38,8 @@ struct VFILE_Block {
 	VFILE_Block * next;
 };
 
-
-static VFILE_Block * first_file;	
+extern int lfn_filefind_handle;
+static VFILE_Block * first_file, * lfn_search[256];
 
 void VFILE_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down VFILE system");
@@ -153,6 +153,7 @@ Bit16u Virtual_File::GetInformation(void) {
 
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
+	for (int i=0; i<256; i++) lfn_search[i] = 0;
 }
 
 
@@ -179,7 +180,14 @@ bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attrib
 }
 
 bool Virtual_Drive::FileUnlink(const char * name) {
-    (void)name;//UNUSED
+    const VFILE_Block* cur_file = first_file;
+	while (cur_file) {
+		if (strcasecmp(name,cur_file->name)==0) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+		cur_file=cur_file->next;
+	}
 	return false;
 }
 
@@ -224,7 +232,10 @@ bool Virtual_Drive::FileExists(const char* name){
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
     (void)_dir;//UNUSED
-	search_file=first_file;
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
+		search_file=first_file;
+	else
+		lfn_search[lfn_filefind_handle]=first_file;
 	Bit8u attr;char pattern[CROSS_LEN];
     dta.GetSearchParams(attr,pattern,uselfn);
 	if (attr == DOS_ATTR_VOLUME) {
@@ -239,17 +250,26 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 	return FindNext(dta);
 }
 
-bool Virtual_Drive::FindNext(DOS_DTA & dta) {
-	Bit8u attr;char pattern[CROSS_LEN];
+bool Virtual_Drive::FindNext(DOS_DTA & dta) {	Bit8u attr;char pattern[CROSS_LEN];
     dta.GetSearchParams(attr,pattern,uselfn);
-	while (search_file) {
-		if (WildFileCmp(search_file->name,pattern)) {
-			dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
+		while (search_file) {
+			if (WildFileCmp(search_file->name,pattern)) {
+				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+				search_file=search_file->next;
+				return true;
+			}
 			search_file=search_file->next;
-			return true;
 		}
-		search_file=search_file->next;
-	}
+	else
+		while (lfn_search[lfn_filefind_handle]) {
+			if (WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)) {
+				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,DOS_ATTR_ARCHIVE);
+				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
+				return true;
+			}
+			lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
+		}
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
 }
@@ -292,8 +312,15 @@ HANDLE Virtual_Drive::CreateOpenFile(const char* name) {
 #endif
 
 bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
-    (void)oldname;//UNUSED
     (void)newname;//UNUSED
+    const VFILE_Block* cur_file = first_file;
+	while (cur_file) {
+		if (strcasecmp(oldname,cur_file->name)==0) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			return false;
+		}
+		cur_file=cur_file->next;
+	}
 	return false;
 }
 
@@ -336,5 +363,5 @@ Bits Virtual_Drive::UnMount(void) {
 }
 
 char const* Virtual_Drive::GetLabel(void) {
-	return "DOSBOX";
+	return "DOSBOX-X";
 }
