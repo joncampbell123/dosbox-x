@@ -626,14 +626,14 @@ void DOS_Shell::CMD_RENAME(char * args){
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
 	} else {
-		bool found=false;
+		std::vector<std::string> sources;
+		sources.clear();
 	
 		do {    /* File name and extension */
 			dta.GetResult(name,lname,size,date,time,attr);
 			lfn_filefind_handle=fbak;
 
 			if(!(attr&DOS_ATTR_DIRECTORY && (!strcmp(name, ".") || !strcmp(name, "..")))) {
-				found=true;
 				strcpy(dir_target, target);
 				removeChar(dir_target, '\"');
 				arg2=dir_target;
@@ -715,13 +715,27 @@ void DOS_Shell::CMD_RENAME(char * args){
 				}
 				strcpy(targs, dir_source);
 				strcat(targs, arg2);
-				if (!DOS_Rename(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs,uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs))
-					WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),strlen(sargs)>2&&sargs[0]=='.'&&sargs[1]=='\\'?sargs+2:sargs);
+				sources.push_back(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs);
+				sources.push_back(uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs);
+				sources.push_back(strlen(sargs)>2&&sargs[0]=='.'&&sargs[1]=='\\'?sargs+2:sargs);
 			}
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		} while ( DOS_FindNext() );
 		lfn_filefind_handle=fbak;
-		if (!found) WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+		if (sources.empty()) WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+		else {
+			for (std::vector<std::string>::iterator source = sources.begin(); source != sources.end(); ++source) {
+				char *oname=(char *)source->c_str();
+				source++;
+				if (source==sources.end()) break;
+				char *nname=(char *)source->c_str();
+				source++;
+				if (source==sources.end()||oname==NULL||nname==NULL) break;
+				char *fname=(char *)source->c_str();
+				if (!DOS_Rename(oname,nname)&&fname!=NULL)
+					WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),fname);
+			}
+		}
 	}
 	dos.dta(save_dta);
 }
