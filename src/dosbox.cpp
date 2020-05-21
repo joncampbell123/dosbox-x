@@ -1120,14 +1120,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
 
-#if defined(MACOSX)
-    /* Let's make DPI aware OFF by default so Mac OS X users with Retina displays don't yell at us about eyestrain.
-       They can turn it on in combination with a nice scaler when they want it. */
-    Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,false);
-#else
-    Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,true);
-#endif
-    Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
+    Pstring = secprop->Add_string("dpi aware",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Set this option (on by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
 

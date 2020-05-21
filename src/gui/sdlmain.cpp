@@ -8157,8 +8157,28 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         // boot-time option whether or not to report ourself as "DPI aware" to Windows so the
         // DWM doesn't upscale our window for backwards compat.
-        dpi_aware_enable = section->Get_bool("dpi aware");
-    }
+		{
+			std::string dpiw = section->Get_string("dpi aware");
+
+			if (dpiw == "1" || dpiw == "true") {
+				dpi_aware_enable = true;
+			}
+			else if (dpiw == "0" || dpiw == "false") {
+				dpi_aware_enable = false;
+			}
+			else { /* auto */
+#if defined(MACOSX)
+				/* Try not to look extra tiny on Retina displays */
+				dpi_aware_enable = false;
+#elif defined(WIN32) && defined(_MSC_VER) && (defined(_M_ARM) || defined(_M_ARM64))
+				/* Microsoft Surface tablets are really high resolution. Try not to look like a tiny window on them */
+				dpi_aware_enable = false;
+#else
+				dpi_aware_enable = true;
+#endif
+			}
+		}
+	}
 
 #ifdef WIN32
         /* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
