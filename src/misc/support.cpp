@@ -210,7 +210,7 @@ void E_Exit(const char * format,...) {
 	va_end(msg);
 	strcat(buf,"\n");
 	LOG_MSG("E_Exit: %s\n",buf);
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32)
 	/* Most Windows users DON'T run DOSBox-X from the command line! */
 	MessageBox(GetHWND(), buf, "E_Exit", MB_OK | MB_ICONEXCLAMATION);
 #endif
