@@ -2067,46 +2067,6 @@ bool fatDrive::FileUnlink(const char * name) {
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false; /* Do not use dirOk, DOS should never call this unless a file */
 	lfnRange_t dir_lfn_range = lfnRange; /* copy down LFN results before they are obliterated by the next call to FindNextInternal. */
 
-	if(uselfn&&!force_sfn&&(strchr(name, '*')||strchr(name, '?'))) {
-		char dir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], fullname[DOS_PATHLENGTH], temp[DOS_PATHLENGTH];
-		strcpy(fullname, name);
-		char * find_last=strrchr(fullname,'\\');
-		if (!find_last) {
-			strcpy(pattern,fullname);
-			dir[0]=0;
-		} else {
-			*find_last=0;
-			strcpy(pattern,find_last+1);
-			strcpy(dir,fullname);
-		}
-		int fbak=lfn_filefind_handle;
-		lfn_filefind_handle=uselfn?LFN_FILEFIND_IMG:LFN_FILEFIND_NONE;
-		imgDTA->SetupSearch((Bit8u)0,0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY/*NTS: Parameter is Bit8u*/,pattern);
-		imgDTA->SetDirID(0);
-		direntry foundEntry;
-		std::vector<std::string> cdirs;
-		cdirs.clear();
-		while (true) {
-			if(!FindNextInternal(dirClust, *imgDTA, &foundEntry)) break;
-			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
-			Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
-			imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
-			if (!(find_attr & DOS_ATTR_DIRECTORY)&&strlen(find_name)&&!strchr(find_name, '*')&&!strchr(find_name, '?')) {
-				strcpy(temp, dir);
-				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
-				strcat(temp, find_name);
-				cdirs.push_back(std::string(temp));
-			}
-		}
-		lfn_filefind_handle=fbak;
-		bool removed=false;
-		while (!cdirs.empty()) {
-			if (FileUnlink(cdirs.begin()->c_str())) removed=true;
-			cdirs.erase(cdirs.begin());
-		}
-		return removed;
-	}
-
 	/* delete LFNs */
 	if (!dir_lfn_range.empty() && (dos.version.major >= 7 || uselfn)) {
 		/* last LFN entry should be fileidx */
@@ -2888,10 +2848,6 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	/* Can we find the base directory of the new name? (we know the parent dir of oldname in dirClust1) */
 	if(!getDirClustNum(newname, &dirClust2, true)) return false;
 
-	/* Remove old 8.3 SFN entry */
-	fileEntry1.entryname[0] = 0xe5;
-	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
-
 	/* NTS: "newname" is the full relative path. For LFN creation to work we need only the final element of the path */
 	if (uselfn && !force_sfn) {
 		lfn = strrchr(newname,'\\');
@@ -2906,8 +2862,13 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		}
 
 		if (filename_not_strict_8x3(lfn)) {
+			char oldchar=fileEntry1.entryname[0];
+			fileEntry1.entryname[0] = 0xe5;
+			directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
 			char *sfn=Generate_SFN(path, lfn);
 			if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
+			fileEntry1.entryname[0] = oldchar;
+			directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
 		} else
 			lfn = NULL;
 	}
@@ -2916,6 +2877,10 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 	memcpy(&fileEntry2, &fileEntry1, sizeof(direntry));
 	memcpy(&fileEntry2.entryname, &pathName2[0], 11);
 	addDirectoryEntry(dirClust2, fileEntry2, lfn);
+
+	/* Remove old 8.3 SFN entry */
+	fileEntry1.entryname[0] = 0xe5;
+	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
 
 	/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
 	 * Earlier DOS versions ignore LFNs. */

@@ -855,6 +855,54 @@ bool DOS_UnlinkFile(char const * const name) {
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
+	} else if(uselfn&&!force_sfn&&(strchr(fullname, '*')||strchr(fullname, '?'))) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*" in LFN mode
+		char dir[DOS_PATHLENGTH], temp[DOS_PATHLENGTH], fname[DOS_PATHLENGTH];
+		if (!DOS_Canonicalize(name,fullname)||!strlen(fullname)) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
+		strcpy(fname, fullname);
+		char * find_last=strrchr(fname,'\\');
+		if (!find_last) {
+			dir[0]=0;
+		} else {
+			*find_last=0;
+			strcpy(dir,fname);
+		}
+		RealPt save_dta=dos.dta();
+		dos.dta(dos.tables.tempdta);
+		DOS_DTA dta(dos.dta());
+		std::vector<std::string> cdirs;
+		cdirs.clear();
+		int fbak=lfn_filefind_handle;
+		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
+		bool ret=DOS_FindFirst((char *)((fullname[0]=='"'?"":"\"")+std::string(fullname)+(fullname[strlen(fullname)-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
+		if (ret) do {
+			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+			Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+			dta.GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+			if (!(find_attr & DOS_ATTR_DIRECTORY)&&strlen(find_name)&&!strchr(find_name, '*')&&!strchr(find_name, '?')) {
+				strcpy(temp, dir);
+				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
+				strcat(temp, find_name);
+				cdirs.push_back(std::string(temp));
+			}
+			lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
+		} while (ret=DOS_FindNext());
+		lfn_filefind_handle=fbak;
+		bool removed=false;
+		while (!cdirs.empty()) {
+			if (DOS_UnlinkFile(cdirs.begin()->c_str()))
+				removed=true;
+			cdirs.erase(cdirs.begin());
+		}
+		dos.dta(save_dta);
+		if (removed)
+			return true;
+		else {
+			if (dos.errorcode!=DOSERR_ACCESS_DENIED&&dos.errorcode!=DOSERR_WRITE_PROTECTED) DOS_SetError(DOSERR_FILE_NOT_FOUND);
+			return false;
+		}
 	} else {
 		if (dos.errorcode!=DOSERR_ACCESS_DENIED&&dos.errorcode!=DOSERR_WRITE_PROTECTED) DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
