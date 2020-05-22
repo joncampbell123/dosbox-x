@@ -604,6 +604,8 @@ Bit32u MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+	
     bool lfb_default = false;
     string str;
     int i;
@@ -613,7 +615,7 @@ void VGA_Reset(Section*) {
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
-    GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
+    GDC_display_plane_wait_for_vsync = pc98_section->Get_bool("pc-98 buffer page flip");
 
     enable_pci_vga = section->Get_bool("pci vga");
 
@@ -705,14 +707,14 @@ void VGA_Reset(Section*) {
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits < 31 && S3_LFB_BASE < 0x1000000ul) /* below 16MB and memalias == 31 bits */
         LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: A linear framebuffer below the 16MB mark in physical memory when memalias < 31 is known to have problems with the Windows 3.1 S3 driver");
 
-    pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
+    pc98_allow_scanline_effect = pc98_section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
 
     // whether the GDC is running at 2.5MHz or 5.0MHz.
     // Some games require the GDC to run at 5.0MHz.
     // To enable these games we default to 5.0MHz.
     // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
-    gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+    gdc_5mhz_mode = pc98_section->Get_bool("pc-98 start gdc at 5mhz");
     mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
 
     // record the initial setting.
@@ -721,12 +723,12 @@ void VGA_Reset(Section*) {
     // initial setting.
     gdc_5mhz_mode_initial = gdc_5mhz_mode;
 
-    enable_pc98_egc = section->Get_bool("pc-98 enable egc");
-    enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
-    enable_pc98_16color = section->Get_bool("pc-98 enable 16-color");
-    enable_pc98_256color = section->Get_bool("pc-98 enable 256-color");
-    enable_pc98_188usermod = section->Get_bool("pc-98 enable 188 user cg");
-    enable_pc98_256color_planar = section->Get_bool("pc-98 enable 256-color planar");
+    enable_pc98_egc = pc98_section->Get_bool("pc-98 enable egc");
+    enable_pc98_grcg = pc98_section->Get_bool("pc-98 enable grcg");
+    enable_pc98_16color = pc98_section->Get_bool("pc-98 enable 16-color");
+    enable_pc98_256color = pc98_section->Get_bool("pc-98 enable 256-color");
+    enable_pc98_188usermod = pc98_section->Get_bool("pc-98 enable 188 user cg");
+    enable_pc98_256color_planar = pc98_section->Get_bool("pc-98 enable 256-color planar");
 
 #if 0//TODO: Do not enforce until 256-color mode is fully implemented.
      //      Some users out there may expect the EGC, GRCG, 16-color options to disable the emulation.
@@ -758,7 +760,7 @@ void VGA_Reset(Section*) {
         }
     }
 
-    str = section->Get_string("pc-98 video mode");
+    str = pc98_section->Get_string("pc-98 video mode");
     if (str == "31khz")
         pc98_31khz_mode = true;
     else if (str == "15khz")/*TODO*/
@@ -767,7 +769,7 @@ void VGA_Reset(Section*) {
         pc98_31khz_mode = false;
     //TODO: Announce 31-KHz mode in BIOS config area. --yksoft1
     
-    i = section->Get_int("pc-98 allow 4 display partition graphics");
+    i = pc98_section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
     mainMenu.get_item("pc98_allow_4partitions").check(pc98_allow_4_display_partitions).refresh_item(mainMenu);
     // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or

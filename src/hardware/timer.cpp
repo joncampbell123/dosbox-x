@@ -882,8 +882,8 @@ void TIMER_BIOS_INIT_Configure() {
 }
 
 void TIMER_OnPowerOn(Section*) {
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-	assert(section != NULL);
+	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+	assert(pc98_section != NULL);
 
 	// log
 	LOG(LOG_MISC,LOG_DEBUG)("TIMER_OnPowerOn(): Reinitializing PIT timer emulation");
@@ -966,7 +966,7 @@ void TIMER_OnPowerOn(Section*) {
         int pc98rate;
 
         {
-            const char *s = section->Get_string("pc-98 timer always cycles");
+            const char *s = pc98_section->Get_string("pc-98 timer always cycles");
 
             if (!strcmp(s,"true") || !strcmp(s,"1"))
                 speaker_clock_lock_on = true; // PC-9801 behavior
@@ -977,7 +977,7 @@ void TIMER_OnPowerOn(Section*) {
         }
 
         /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
-        pc98rate = section->Get_int("pc-98 timer master frequency");
+        pc98rate = pc98_section->Get_int("pc-98 timer master frequency");
         if (pc98rate > 6) pc98rate /= 2;
         if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
         else if (pc98rate < 5) pc98rate = 4;
