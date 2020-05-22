@@ -748,9 +748,9 @@ public:
 
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
-			if (!strcasecmp(temp_line.c_str(), "-u")) {
+			if (cmd->FindExist("-u",true)) {
 				WriteOut(UnmountHelper(i_drive), toupper(i_drive));
-				return;
+				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
 			}
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
 		        std::string lastconfigdir(control->configfiles[control->configfiles.size()-1]);
