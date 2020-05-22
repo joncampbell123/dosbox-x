@@ -1013,6 +1013,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
 #endif
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
+    const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
     const char *mt32log[] = {"off", "on",0};
     const char *mt32thread[] = {"off", "on",0};
     const char *mt32ReverseStereo[] = {"off", "on",0};
@@ -3359,6 +3360,15 @@ void DOSBOX_SetupConfigSections(void) {
                 "auto-insert notification triggers properly.\n"
                 "Set to 0 to use controller or CD-ROM drive-specific default.");
     }
+
+    /* CONFIG.SYS options (stub) */
+    secprop=control->AddSection_prop("config",&Null_Init,false);
+
+    Pstring = secprop->Add_string("REM",Property::Changeable::OnlyAtStart,"");
+    Pstring = secprop->Add_string("BREAK",Property::Changeable::OnlyAtStart,"off");
+    Pstring->Set_values(ps1opt);
+    Pstring = secprop->Add_string("LASTDRIVE",Property::Changeable::OnlyAtStart,"a");
+    Pstring->Set_values(driveletters);
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
