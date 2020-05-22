@@ -3364,10 +3364,10 @@ void DOSBOX_SetupConfigSections(void) {
     /* CONFIG.SYS options (stub) */
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
-    Pstring = secprop->Add_string("REM",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although it currently only supports a limited number of CONFIG.SYS options.");
-    Pstring = secprop->Add_string("BREAK",Property::Changeable::OnlyAtStart,"off");
+    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although it currently only supports a limited number of CONFIG.SYS options.");
+    Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(ps1opt);
-    Pstring = secprop->Add_string("LASTDRIVE",Property::Changeable::OnlyAtStart,"a");
+    Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
     Pstring->Set_values(driveletters);
 
     //TODO ?
