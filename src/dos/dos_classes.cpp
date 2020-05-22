@@ -67,7 +67,8 @@ void DOS_ParamBlock::SaveData(void) {
 	sSave(sExec,initcsip,exec.initcsip);
 }
 
-
+extern bool startup_state_numlock;
+extern void SetNumLock(void);
 void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	seg = segment;
 	pt=PhysMake(seg,0);
@@ -84,6 +85,11 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 		char *dosbreak = (char *)section->Get_string("break");
 		if (!strcasecmp(dosbreak, "on"))
 			dos.breakcheck=true;
+#ifdef WIN32
+		char *numlock = (char *)section->Get_string("numlock");
+		if (!strcasecmp(numlock, "off")&&startup_state_numlock || !strcasecmp(numlock, "on")&&!startup_state_numlock)
+			SetNumLock();
+#endif
 	}
 
 	sSave(sDIB,regCXfrom5e,(Bit16u)0);
