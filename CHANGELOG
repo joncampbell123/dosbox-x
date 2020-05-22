@@ -1,6 +1,7 @@
 0.83.2
   - Config option "dpi aware" now supports the "auto" setting
-    to auto-decide on the best setting for the platform.
+    to auto-decide on the best setting for the platform. This
+    fixes very small window issue on e.g. Surface tablets.
   - Implemented LFN support for FAT driver, so that it is now
     possible to view directory list, create or open files and
     directories etc with long filenames on FAT12/16/32 drives
