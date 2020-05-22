@@ -1055,6 +1055,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
+    const char* numopt[] = { "on", "off", "", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -3367,6 +3368,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although it currently only supports a limited number of CONFIG.SYS options.");
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(ps1opt);
+    Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_values(numopt);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
     Pstring->Set_values(driveletters);
 
