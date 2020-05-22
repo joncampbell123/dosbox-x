@@ -508,6 +508,7 @@ public:
 	virtual unsigned long GetCompressedSize(char* name);
 #if defined (WIN32)
 	virtual HANDLE CreateOpenFile(char const* const name);
+	virtual unsigned long GetSerial();
 #endif
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false);
 	virtual void SetDir(const char* path);
