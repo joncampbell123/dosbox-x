@@ -1654,6 +1654,9 @@ unsigned long cdromDrive::GetCompressedSize(char* name) {
 HANDLE cdromDrive::CreateOpenFile(const char* name) {
 		return localDrive::CreateOpenFile(name);
 }
+unsigned long cdromDrive::GetSerial() {
+		return localDrive::GetSerial();
+}
 #endif
 
 bool cdromDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool /*fcb_findfirst*/) {

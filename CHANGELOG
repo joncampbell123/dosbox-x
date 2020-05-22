@@ -36,11 +36,13 @@
     that FORMAT.COM is able to verify and modify the partition table
     to successfully format a hard drive image. Also added stub to
     DOS IOCTL "format device track" for FORMAT.COM.
+  - You can now force unmount a drive and then mount it to a new
+    directory in one command, e.g. "MOUNT C C:\DOS -U" (Wengier)
   - REN command can now rename directories (in addition to files) on
     FAT drives just like on local drives (Wengier)
   - Several improvements to DEL command, such as a new /F option to
     force delete of read-only files, and improved handling when the
-    argument is a directory. (Wengier)
+    argument is a directory (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - IMGMOUNT command (without parameters) now lists mounted FAT/ISO

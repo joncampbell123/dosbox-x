@@ -86,7 +86,7 @@ bool filename_not_strict_8x3(const char *n) {
 }
 
 char sfn[DOS_NAMELENGTH_ASCII];
-/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~999). */
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
 char* fatDrive::Generate_SFN(const char *path, const char *name) {
 	if (!filename_not_8x3(name)) {
 		strcpy(sfn, name);
@@ -103,15 +103,15 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 	if (!strlen(lfn)) return NULL;
 	direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
-	int k=1, i, t=1000;
-	while (k<1000) {
+	int k=1, i, t=10000;
+	while (k<10000) {
 		n=lfn;
-		if (t>strlen(n)||k==1||k==10||k==100) {
+		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
 			i=0;
 			*sfn=0;
 			while (*n == '.'||*n == ' ') n++;
 			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
-			while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:4))) {
+			while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:(k<1000?4:3)))) {
 				if (*n == ' ') {
 					n++;
 					continue;
@@ -131,12 +131,17 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 		else if (k<100) {
 			sfn[i++]='0'+(k/10);
 			sfn[i++]='0'+(k%10);
-		} else {
+		} else if (k<1000) {
 			sfn[i++]='0'+(k/100);
 			sfn[i++]='0'+((k%100)/10);
 			sfn[i++]='0'+(k%10);
+		} else {
+			sfn[i++]='0'+(k/1000);
+			sfn[i++]='0'+((k%1000)/100);
+			sfn[i++]='0'+((k%100)/10);
+			sfn[i++]='0'+(k%10);
 		}
-		if (t>strlen(n)||k==1||k==10||k==100) {
+		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
 			char *p=strrchr(n, '.');
 			if (p!=NULL) {
 				sfn[i++]='.';

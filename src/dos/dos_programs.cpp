@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include "programs.h"
@@ -678,6 +679,7 @@ public:
 
         std::string type="dir";
         cmd->FindString("-t",type,true);
+		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
         if (type=="floppy" || type=="dir" || type=="cdrom") {
             Bit16u sizes[4];
@@ -748,9 +750,9 @@ public:
 
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
-			if (!strcasecmp(temp_line.c_str(), "-u")) {
+			if (cmd->FindExist("-u",true)) {
 				WriteOut(UnmountHelper(i_drive), toupper(i_drive));
-				return;
+				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
 			}
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
 		        std::string lastconfigdir(control->configfiles[control->configfiles.size()-1]);
@@ -3318,6 +3320,8 @@ public:
         }
         //get the type
         cmd->FindString("-t", type, true);
+		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
         if (type == "cdrom") type = "iso"; //Tiny hack for people who like to type -t cdrom
         if (!(type == "floppy" || type == "hdd" || type == "iso" || type == "ram")) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED"), type.c_str());
@@ -3350,6 +3354,7 @@ public:
         //default fstype is fat
         std::string fstype="fat";
         cmd->FindString("-fs",fstype,true);
+		std::transform(fstype.begin(), fstype.end(), fstype.begin(), ::tolower);
         
         Bitu sizes[4] = { 0,0,0,0 };
         int reserved_cylinders=0;
@@ -3364,6 +3369,7 @@ public:
 
         /* DOSBox-X: we allow "-ide" to allow controlling which IDE controller and slot to attach the hard disk/CD-ROM to */
         cmd->FindString("-ide",ideattach,true);
+		std::transform(ideattach.begin(), ideattach.end(), ideattach.begin(), ::tolower);
 
         if (ideattach == "auto") {
             if (type != "floppy") {

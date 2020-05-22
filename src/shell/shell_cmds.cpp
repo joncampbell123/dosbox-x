@@ -2588,8 +2588,8 @@ void DOS_Shell::CMD_VOL(char *args){
 		if (fdp != NULL) serial_number=fdp->GetSerial();
 	}
 #if defined (WIN32)
-	if (!strncmp(Drives[drive]->GetInfo(),"local ",6)) {
-		localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive]);
+	if (!strncmp(Drives[drive]->GetInfo(),"local ",6) || !strncmp(Drives[drive]->GetInfo(),"CDRom ",6)) {
+		localDrive* ldp = !strncmp(Drives[drive]->GetInfo(),"local ",6)?dynamic_cast<localDrive*>(Drives[drive]):dynamic_cast<cdromDrive*>(Drives[drive]);
 		if (ldp != NULL) serial_number=ldp->GetSerial();
 	}
 #endif
