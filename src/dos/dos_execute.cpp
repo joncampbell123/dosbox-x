@@ -27,7 +27,7 @@
 #include "debug.h"
 #include "cpu.h"
 
-const char * RunningProgram="DOSBOX";
+const char * RunningProgram="DOSBOX-X";
 
 #ifdef _MSC_VER
 #pragma pack(1)
@@ -99,7 +99,7 @@ void DOS_UpdatePSPName(void) {
 	static char name[9];
 	mcb.GetFileName(name);
 	name[8] = 0;
-	if (!strlen(name)) strcpy(name,"DOSBOX");
+	if (!strlen(name)) strcpy(name,"DOSBOX-X");
 	for(Bitu i = 0;i < 8;i++) { //Don't put garbage in the title bar. Mac OS X doesn't like it
 		if (name[i] == 0) break;
 		if ( !isprint(*reinterpret_cast<unsigned char*>(&name[i])) ) name[i] = '?';
