@@ -78,10 +78,10 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	Bit8u drives=1;
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
 	if (section !=NULL) {
-		char *lastdrive = (char *)section->Get_string("LASTDRIVE");
+		char *lastdrive = (char *)section->Get_string("lastdrive");
 		if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 			drives=lastdrive[0]-'a'+1;
-		char *dosbreak = (char *)section->Get_string("BREAK");
+		char *dosbreak = (char *)section->Get_string("break");
 		if (!strcasecmp(dosbreak, "on"))
 			dos.breakcheck=true;
 	}
