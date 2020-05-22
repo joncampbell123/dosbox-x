@@ -180,6 +180,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     /* Is the first part 8 chars or less? */
     i=0;
     while (*fname != 0 && *fname != L'.') {
+		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
 		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++; 
 	}
@@ -190,6 +191,7 @@ static bool is_filename_8by3w(const wchar_t* fname) {
     /* Is the second part 3 chars or less? A second '.' also makes it a LFN */
     i=0;
     while (*fname != 0 && *fname != L'.') {
+		if (*fname<=32||*fname==127||*fname==L'"'||*fname==L'+'||*fname==L'='||*fname==L','||*fname==L';'||*fname==L':'||*fname==L'<'||*fname==L'>'||*fname==L'|'||*fname==L'?'||*fname==L'*') return false;
 		if (IS_PC98_ARCH && (*fname & 0xFF00u) != 0u && (*fname & 0xFCu) != 0x08u) i++;
 		fname++; i++;
 	}
