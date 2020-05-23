@@ -8,6 +8,9 @@ License: GPL
 URL: http://www.dosbox-x.com
 Group: Applications/Emulators
 Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
+Source1: dosbox-x.desktop
+Source2: dosbox-x.png
+Source3: dosbox-x.appdata.xml
 
 %description
 DOSBox-X is a cross-platform DOS emulator based on DOSBox.
