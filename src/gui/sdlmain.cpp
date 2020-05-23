@@ -6467,6 +6467,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
+            fprintf(stderr,"  -noconfig                               Don't execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
@@ -6509,6 +6510,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "exit") {
             control->opt_exit = true;
+        }
+        else if (optname == "noconfig") {
+            control->opt_noconfig = true;
         }
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
@@ -8054,7 +8058,50 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (!change_success) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
 		}
-
+		
+		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
+		Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
+		assert(pc98_section != NULL);
+		const char * extra = const_cast<char*>(pc98_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&pc98_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dosbox] to [pc98] section\n", trim(linestr));
+					}
+				}
+			}
+			section = static_cast<Section_prop *>(control->GetSection("dos"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&pc98_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dos] to [pc98] section\n", trim(linestr));
+					}
+				}
+			}
+		}
 
 #if (ENVIRON_LINKED)
         /* -- parse environment block (why?) */
