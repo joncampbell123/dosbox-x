@@ -1013,6 +1013,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
 #endif
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
+    const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
     const char *mt32log[] = {"off", "on",0};
     const char *mt32thread[] = {"off", "on",0};
     const char *mt32ReverseStereo[] = {"off", "on",0};
@@ -1054,6 +1055,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
+    const char* numopt[] = { "on", "off", "", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -1420,113 +1422,6 @@ void DOSBOX_SetupConfigSections(void) {
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
-    Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");
-
-    Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
-                    "This is needed for Ys II to run without crashing.");
-
-    Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
-                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
-                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
-                    "This option is enabled by default for best compatibility with PC-98 games.");
-
-    Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
-    Pstring->Set_values(pc98fmboards);
-    Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
-
-    Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
-
-    Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
-    Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
-
-    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
-                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
-
-    Pbool = secprop->Add_bool("pc-98 load sound bios rom file",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, load SOUND.ROM if available and prsent that to the guest instead of trying to emulate directly.\n"
-                    "This is strongly recommended, and is default enabled.\n"
-                    "SOUND.ROM is a snapshot of the FM board BIOS taken from real PC-98 hardware.");
-
-    Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
-                    "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
-
-    Pbool = secprop->Add_bool("pc-98 enable 256-color planar",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
-                    "This is a form of memory access in 256-color mode that existed for a short\n"
-                    "time before later PC-9821 models removed it. This option must be enabled\n"
-                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
-
-    Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
-
-    Pbool = secprop->Add_bool("pc-98 enable 16-color",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 16-color graphics mode if set, disable if not set");
-
-    Pbool = secprop->Add_bool("pc-98 enable grcg",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow GRCG graphics functions if set, disable if not set");
-
-    Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
-
-    Pbool = secprop->Add_bool("pc-98 enable 188 user cg",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow 188+ user-defined CG cells if set");
-
-    Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
-
-    Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
-                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
-                    "numbered scanlines are blanked instead of doubled");
-
-    Pbool = secprop->Add_bool("pc-98 bus mouse",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.");
-
-    Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
-    Pstring->Set_values(pc98videomodeopt);
-    Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
-                      "Valid values are 15, 24, or 31 for each specific horizontal refresh rate on the platform.\n"
-                      "24khz is default and best supported at this time.\n"
-                      "15khz is not implemented at this time.\n"
-                      "31khz is experimental at this time.");
-
-    Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("This controls PIT 1 PC speaker behavior related to turning the output on and off.\n"
-                      "Default setting is 'auto' to let the emulator choose for you.\n"
-                      "true:  PIT 1 will always cycle whether or not the speaker is on (PC-9801 behavior).\n"
-                      "false: PIT 1 will only cycle when the speaker is on (PC-9821 behavior).\n"
-                      "Some older games will require the PC-9801 behavior to function properly.");
-
-    Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,2457600);
-    Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
-                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
-                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
-                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
-                   "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
-                   "    0: Use default (auto)\n"
-                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
-                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
-
-    Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,1);
-    Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
-                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
-                   "   -1: Default (choose automatically)\n"
-                   "    0: Disable\n"
-                   "    1: Enable");
-
-    Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
-                    "Will only work with apps and games using BIOS for keyboard.");
-
     Pbool = secprop->Add_bool("nocachedir",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir by default.");
 
@@ -1813,6 +1708,125 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
                     "Setting this option can correct for that and render the demo properly.\n"
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
+					
+    secprop=control->AddSection_prop("pc98",&Null_Init);
+	Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");
+
+    Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
+                    "This is needed for Ys II to run without crashing.");
+
+    Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
+                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
+                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
+                    "This option is enabled by default for best compatibility with PC-98 games.");
+
+    Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
+    Pstring->Set_values(pc98fmboards);
+    Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
+
+    Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
+    Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
+
+    Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
+    Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
+
+    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
+                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
+
+    Pbool = secprop->Add_bool("pc-98 load sound bios rom file",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, load SOUND.ROM if available and prsent that to the guest instead of trying to emulate directly.\n"
+                    "This is strongly recommended, and is default enabled.\n"
+                    "SOUND.ROM is a snapshot of the FM board BIOS taken from real PC-98 hardware.");
+
+    Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
+                    "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
+
+    Pbool = secprop->Add_bool("pc-98 enable 256-color planar",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 256-color planar graphics mode if set, disable if not set.\n"
+                    "This is a form of memory access in 256-color mode that existed for a short\n"
+                    "time before later PC-9821 models removed it. This option must be enabled\n"
+                    "to use DOSBox-X with Windows 3.1 and it's built-in 256-color driver.");
+
+    Pbool = secprop->Add_bool("pc-98 enable 256-color",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 256-color graphics mode if set, disable if not set");
+
+    Pbool = secprop->Add_bool("pc-98 enable 16-color",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 16-color graphics mode if set, disable if not set");
+
+    Pbool = secprop->Add_bool("pc-98 enable grcg",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow GRCG graphics functions if set, disable if not set");
+
+    Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
+
+    Pbool = secprop->Add_bool("pc-98 enable 188 user cg",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 188+ user-defined CG cells if set");
+
+    Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
+
+    Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
+                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
+                    "numbered scanlines are blanked instead of doubled");
+
+    Pbool = secprop->Add_bool("pc-98 bus mouse",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.");
+
+    Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
+    Pstring->Set_values(pc98videomodeopt);
+    Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
+                      "Valid values are 15, 24, or 31 for each specific horizontal refresh rate on the platform.\n"
+                      "24khz is default and best supported at this time.\n"
+                      "15khz is not implemented at this time.\n"
+                      "31khz is experimental at this time.");
+
+    Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("This controls PIT 1 PC speaker behavior related to turning the output on and off.\n"
+                      "Default setting is 'auto' to let the emulator choose for you.\n"
+                      "true:  PIT 1 will always cycle whether or not the speaker is on (PC-9801 behavior).\n"
+                      "false: PIT 1 will only cycle when the speaker is on (PC-9821 behavior).\n"
+                      "Some older games will require the PC-9801 behavior to function properly.");
+
+    Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,2457600);
+    Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
+                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
+                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
+                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+                   "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
+                   "    0: Use default (auto)\n"
+                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
+                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
+
+    Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,1);
+    Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
+                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
+                   "   -1: Default (choose automatically)\n"
+                   "    0: Disable\n"
+                   "    1: Enable");
+
+    Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
+                    "Will only work with apps and games using BIOS for keyboard.");
+
+    /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
+     *              Some games by "Orange House" assume this behavior and do not make any effort on their
+     *              own to show and enable graphics. Without this option, those games will not show any
+     *              graphics. PC-98 systems have been confirmed to boot up with the graphics layer disabled
+     *              and set to 640x200 8-color planar mode. This has been confirmed on real hardware.
+     *              See also [https://github.com/joncampbell123/dosbox-x/issues/1305] */
+    Pbool = secprop->Add_bool("pc-98 show graphics layer on initialize",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If PC-98 mode and INT 33h emulation is enabled, the graphics layer will be automatically enabled\n"
+                    "at driver startup AND when INT 33h AX=0 is called. This is NEC MOUSE.COM behavior and default\n"
+                    "enabled. To emulate other drivers like QMOUSE that do not follow this behavior, set to false.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
@@ -3086,17 +3100,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "and button status. This can be useful for DOS programs that draw the cursor on their\n"
                     "own instead of using the mouse driver, including most games and DeluxePaint II.");
 
-    /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
-     *              Some games by "Orange House" assume this behavior and do not make any effort on their
-     *              own to show and enable graphics. Without this option, those games will not show any
-     *              graphics. PC-98 systems have been confirmed to boot up with the graphics layer disabled
-     *              and set to 640x200 8-color planar mode. This has been confirmed on real hardware.
-     *              See also [https://github.com/joncampbell123/dosbox-x/issues/1305] */
-    Pbool = secprop->Add_bool("pc-98 show graphics layer on initialize",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If PC-98 mode and INT 33h emulation is enabled, the graphics layer will be automatically enabled\n"
-                    "at driver startup AND when INT 33h AX=0 is called. This is NEC MOUSE.COM behavior and default\n"
-                    "enabled. To emulate other drivers like QMOUSE that do not follow this behavior, set to false.");
-
     Pbool = secprop->Add_bool("int33 disable cell granularity",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the mouse pointer position is reported at full precision (as if 640x200 coordinates) in all modes.\n"
                     "If not set, the mouse pointer position is rounded to the top-left corner of a character cell in text modes.\n"
@@ -3358,6 +3361,17 @@ void DOSBOX_SetupConfigSections(void) {
                 "auto-insert notification triggers properly.\n"
                 "Set to 0 to use controller or CD-ROM drive-specific default.");
     }
+
+    /* CONFIG.SYS options (stub) */
+    secprop=control->AddSection_prop("config",&Null_Init,false);
+
+    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although it currently only supports a limited number of CONFIG.SYS options.");
+    Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
+    Pstring->Set_values(ps1opt);
+    Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_values(numopt);
+    Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
+    Pstring->Set_values(driveletters);
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);

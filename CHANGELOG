@@ -1,4 +1,12 @@
 0.83.2
+  - Added [config] section in dosbox-x.conf to resemble DOS's
+    CONFIG.SYS file, although it currently only supports BREAK,
+    LASTDRIVE and REM commands (Wengier)
+  - Moved PC-98 related config options (starting with "pc-98 ")
+    from [dosbox] and [dos] sections to its own [pc98] section.
+    Existing dosbox-x.conf/dosbox.conf files will need to move
+    those settings ("pc-98 ...") to the new [pc98] section in
+    order to keep these setting continue to work (Wengier)
   - Config option "dpi aware" now supports the "auto" setting
     to auto-decide on the best setting for the platform. This
     fixes very small window issue on e.g. Surface tablets.

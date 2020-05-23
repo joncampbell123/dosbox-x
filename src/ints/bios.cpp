@@ -8595,8 +8595,9 @@ public:
 
         { // TODO: Eventually, move this to BIOS POST or init phase
             Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+			Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
 
-            enable_pc98_copyright_string = section->Get_bool("pc-98 BIOS copyright string");
+            enable_pc98_copyright_string = pc98_section->Get_bool("pc-98 BIOS copyright string");
 
             // NTS: This setting is also valid in PC-98 mode. According to Undocumented PC-98 by Webtech,
             //      there's nothing at I/O port E9h. I will move the I/O port in PC-98 mode if there is in
@@ -8612,7 +8613,7 @@ public:
 
             // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
             //     the timer count is not too high on exit (Ys II)
-            enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
+            enable_fdc_timer_hack = pc98_section->Get_bool("pc-98 int 1b fdc timer wait");
 
             {
                 std::string s = section->Get_string("unhandled irq handler");

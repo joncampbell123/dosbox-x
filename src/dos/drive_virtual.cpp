@@ -346,8 +346,14 @@ bool Virtual_Drive::isRemote(void) {
     else if (!strcmp(opt,"0") || !strcmp(opt,"false")) {
         return false;
     }
-
-    /* Automatically detect if called by SCANDISK.EXE and return true (tested with the program from MS-DOS 6.20 to Windows ME) */
+	char psp_name[9];
+	DOS_MCB psp_mcb(dos.psp()-1);
+	psp_mcb.GetFileName(psp_name);
+	if (strcmp(psp_name, "SCANDISK") == 0) {
+		/* Check for SCANDISK.EXE and return true (Wengier) */
+		return true;
+	}
+	/* Automatically detect if called by SCANDISK.EXE even if it is renamed (tested with the program from MS-DOS 6.20 to Windows ME) */
     if (dos.version.major >= 5 && reg_sp >=0x4000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1 && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 >= 0xB && mem_readw(SegPhys(ss)+reg_sp+2)/0x100 <= 0x12)
 		return true;
 

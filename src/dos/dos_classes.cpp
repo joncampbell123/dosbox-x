@@ -24,6 +24,7 @@
 #include "dos_inc.h"
 #include "support.h"
 #include "drives.h"
+#include "control.h"
 
 Bit8u sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
@@ -66,13 +67,30 @@ void DOS_ParamBlock::SaveData(void) {
 	sSave(sExec,initcsip,exec.initcsip);
 }
 
-
+extern bool startup_state_numlock;
+extern void SetNumLock(void);
 void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	seg = segment;
 	pt=PhysMake(seg,0);
 	/* Clear the initial Block */
 	for(Bit8u i=0;i<sizeof(sDIB);i++) mem_writeb(pt+i,0xff);
 	for(Bit8u i=0;i<14;i++) mem_writeb(pt+i,0);
+	
+	Bit8u drives=1;
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+	if (section !=NULL) {
+		char *lastdrive = (char *)section->Get_string("lastdrive");
+		if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
+			drives=lastdrive[0]-'a'+1;
+		char *dosbreak = (char *)section->Get_string("break");
+		if (!strcasecmp(dosbreak, "on"))
+			dos.breakcheck=true;
+#ifdef WIN32
+		char *numlock = (char *)section->Get_string("numlock");
+		if (!strcasecmp(numlock, "off")&&startup_state_numlock || !strcasecmp(numlock, "on")&&!startup_state_numlock)
+			SetNumLock();
+#endif
+	}
 
 	sSave(sDIB,regCXfrom5e,(Bit16u)0);
 	sSave(sDIB,countLRUcache,(Bit16u)0);
@@ -81,7 +99,7 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	sSave(sDIB,protFCBs,(Bit16u)0);
 	sSave(sDIB,specialCodeSeg,(Bit16u)0);
 	sSave(sDIB,joindedDrives,(Bit8u)0);
-	sSave(sDIB,lastdrive,(Bit8u)0x01);//increase this if you add drives to cds-chain
+	sSave(sDIB,lastdrive,(Bit8u)drives);//increase this if you add drives to cds-chain
 
 	sSave(sDIB,diskInfoBuffer,RealMake(segment,offsetof(sDIB,diskBufferHeadPt)));
 	sSave(sDIB,setverPtr,(Bit32u)0);

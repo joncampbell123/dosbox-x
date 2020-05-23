@@ -1758,6 +1758,7 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
 void MOUSE_Startup(Section *sec) {
     (void)sec;//UNUSED
     Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
+	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
     RealPt i33loc=0;
 
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
@@ -1766,7 +1767,7 @@ void MOUSE_Startup(Section *sec) {
 
     en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
 
-    en_int33_pc98_show_graphics=section->Get_bool("pc-98 show graphics layer on initialize");
+    en_int33_pc98_show_graphics=pc98_section->Get_bool("pc-98 show graphics layer on initialize");
 
     en_int33=section->Get_bool("int33");
     if (!en_int33) {

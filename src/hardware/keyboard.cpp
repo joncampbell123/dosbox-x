@@ -2411,10 +2411,9 @@ static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
 void KEYBOARD_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
 
-    {
-        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        enable_pc98_bus_mouse = section->Get_bool("pc-98 bus mouse");
-    }
+	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+	assert(pc98_section != NULL);
+	enable_pc98_bus_mouse = pc98_section->Get_bool("pc-98 bus mouse");
 
     /* TODO: Keyboard interface change, layout change. */
 
@@ -2431,8 +2430,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
             WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
-        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-        pc98_force_ibm_layout = section->Get_bool("pc-98 force ibm keyboard layout");
+        pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
     }
