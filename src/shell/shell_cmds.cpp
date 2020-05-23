@@ -169,11 +169,11 @@ __do_command_begin:
 	line=trim(line);
 	char cmd_buffer[CMD_MAXLINE];
 	char * cmd_write=cmd_buffer;
+	int q=0;
 	while (*line) {
-		if (*line == 32) break;
-		if (*line == '/') break;
-		if (*line == '\t') break;
-		if (*line == '=') break;
+		if (strchr("/\t", *line) || q/2*2==q && strchr(" =", *line))
+			break;
+		if (*line == '"') q++;
 //		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
 		if ((*line == '.') ||(*line == '\\')) {  //allow stuff like cd.. and dir.exe cd\kees
 			*cmd_write=0;
@@ -209,7 +209,8 @@ __do_command_begin:
 		cmd_index++;
 	}
 /* This isn't an internal command execute it */
-	if(Execute(cmd_buffer,line)) return;
+	char ldir[DOS_PATHLENGTH];
+	if(Execute(strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)?ldir:cmd_buffer,line)) return;
 	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
@@ -1796,11 +1797,34 @@ void DOS_Shell::CMD_IF(char * args) {
 		}
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
+			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
+			if (r!=NULL) {
+				*r=0;
+				strcpy(path, word);
+				strcat(path, "\\");
+				strcpy(pattern, r+1);
+				*r='\\';
+			} else {
+				strcpy(path, "");
+				strcpy(pattern, word);
+			}
+			int k=0;
+			for (int i=0;i<(int)strlen(pattern);i++)
+				if (pattern[i]!='\"')
+					pattern[k++]=pattern[i];
+			pattern[k]=0;
+			strcpy(spath, path);
+			if (strchr(path,'\"')) {
+				DOS_GetSFNPath(path, spath, false);
+				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
+			}
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
+			char sword[DOS_PATHLENGTH];
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			bool ret=DOS_FindFirst(word,0xffff & ~DOS_ATTR_VOLUME);
+			std::string full=std::string(spath)+std::string(pattern);
+			bool ret=DOS_FindFirst((char *)((uselfn&&full.length()&&full[0]!='"'?"\"":"")+full+(uselfn&&full.length()&&full[full.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
 			lfn_filefind_handle=fbak;
 			dos.dta(save_dta);
 			if (ret==(!has_not)) DoCommand(args);
@@ -2575,7 +2599,7 @@ void DOS_Shell::CMD_VOL(char *args){
 	char const* bufin = Drives[drive]->GetLabel();
 	WriteOut(MSG_Get("SHELL_CMD_VOL_DRIVE"),drive+'A');
 
-	//if((drive+'A')=='Z') bufin="DOSBOX";
+	//if((drive+'A')=='Z') bufin="DOSBOX-X";
 	if(strcasecmp(bufin,"")==0)
 		WriteOut(MSG_Get("SHELL_CMD_VOL_SERIAL_NOLABEL"));
 	else
@@ -2905,15 +2929,21 @@ void DOS_Shell::CMD_FOR(char *args) {
 		bool last=!!strlen(p);
 		if (last) *p=0;
 		if (strchr(fp, '?') || strchr(fp, '*')) {
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], path[DOS_PATHLENGTH], *r=strrchr(fp, '\\');
-			strcpy(path, "");
+			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(fp, '\\');
 			if (r!=NULL) {
 				*r=0;
 				strcpy(path, fp);
 				strcat(path, "\\");
+				strcpy(pattern, r+1);
 				*r='\\';
+			} else {
+				strcpy(path, "");
+				strcpy(pattern, fp);
 			}
+			strcpy(spath, path);
 			if (strchr(path,'\"')) {
+				DOS_GetSFNPath(path, spath, false);
+				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 				int k=0;
 				for (int i=0;i<(int)strlen(path);i++)
 					if (path[i]!='\"')
@@ -2928,7 +2958,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 			std::string tmp;
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=lfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			if (DOS_FindFirst(fp, ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
+			if (DOS_FindFirst((char *)(std::string(spath)+std::string(pattern)).c_str(), ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
 				{
 				dta.GetResult(name, lname, size, date, time, attr);
 				tmp=std::string(path)+std::string(lfn?lname:name);
