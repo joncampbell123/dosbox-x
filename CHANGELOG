@@ -1,15 +1,19 @@
 0.83.2
   - Added [config] section in dosbox-x.conf to resemble DOS's
-    CONFIG.SYS file, although it currently only supports BREAK,
-    LASTDRIVE and REM commands (Wengier)
+    CONFIG.SYS file. It currently only supports REM, BREAK, 
+    SET, DEVICE/DEVICEHIGH, INSTALL/INSTALLHIGH and LASTDRIVE
+    commands. The file CONFIG.SYS will appear on the Z: drive.
+    It is possible to bypass the [config] section with the
+    -noconfig command-line option (Wengier)
   - Moved PC-98 related config options (starting with "pc-98 ")
     from [dosbox] and [dos] sections to its own [pc98] section.
-    Existing dosbox-x.conf/dosbox.conf files will need to move
-    those settings ("pc-98 ...") to the new [pc98] section in
-    order to keep these setting continue to work (Wengier)
+    These options in existing dosbox-x.conf/dosbox.conf files
+    will be automatically redirected to the [pc98] section from
+    the other sections when DOSBox-X starts (Wengier)
   - Config option "dpi aware" now supports the "auto" setting
     to auto-decide on the best setting for the platform. This
-    fixes very small window issue on e.g. Surface tablets.
+    fixes very small window issue on high DPI devices such as
+    Surface tablets. (Wengier)
   - Implemented LFN support for FAT driver, so that it is now
     possible to view directory list, create or open files and
     directories etc with long filenames on FAT12/16/32 drives
@@ -88,6 +92,7 @@
     unless the PC speaker output is not emitting anything
     audible anyway (Fix for Sopwith 1 and 2).
   - Added ALIAS command to define or display aliases.
+  - Improved handling of quotes in some commands. (Wengier)
   - Added -set command-line option to change config options.
     It can be specified multiple times for multiple options,
     overriding any options in the config file. For example,
