@@ -422,7 +422,7 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 	}
     /* You cannot read a DMA channel configured for writing (to memory) */
     if (transfer_mode != DMAT_READ) {
-        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)");
+        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)");
         return 0;
     }
 
@@ -508,7 +508,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	}
     /* You cannot write a DMA channel configured for reading (from memory) */
     if (transfer_mode != DMAT_WRITE) {
-        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)");
+        LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)");
         return 0;
     }
 
