@@ -8103,6 +8103,32 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 		}
 
+		// Redirect existing files= setting from [dos] section to the [config] section if the latter is empty
+		Section_prop * config_section = static_cast<Section_prop *>(control->GetSection("config"));
+		assert(config_section != NULL);
+		extra = const_cast<char*>(config_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "files", 5)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&config_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dos] to [config] section\n", trim(linestr));
+					}
+				}
+			}
+		}
+
 #if (ENVIRON_LINKED)
         /* -- parse environment block (why?) */
         control->ParseEnv(environ);
