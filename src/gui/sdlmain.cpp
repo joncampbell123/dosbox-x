@@ -129,11 +129,12 @@ typedef enum PROCESS_DPI_AWARENESS {
 # include "shell.h"
 # include <cstring>
 # include <fstream>
-# include <sstream>
 # if defined(__MINGW32__) && !defined(HX_DOS)
 #  include <imm.h> // input method editor
 # endif
 #endif // WIN32
+
+#include <sstream>
 
 #include "mapper.h"
 #include "vga.h"
