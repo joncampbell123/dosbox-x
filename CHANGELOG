@@ -1,10 +1,11 @@
 0.83.2
   - Added [config] section in dosbox-x.conf to resemble DOS's
-    CONFIG.SYS file. It currently  supports REM, BREAK, FILES,
+    CONFIG.SYS file. It currently supports REM, BREAK, FILES,
     SET, DEVICE/DEVICEHIGH, INSTALL/INSTALLHIGH and LASTDRIVE
-    commands. The file CONFIG.SYS will appear on the Z: drive.
-    It is possible to bypass the [config] section with the
-    -noconfig command-line option (Wengier)
+    commands. The file CONFIG.SYS will appear on the Z: drive,
+    similar to the AUTOEXEC.BAT file. It is possible to bypass
+    the [config] section with the -noconfig command-line option
+    or with the secure mode enabled (Wengier)
   - Moved PC-98 related config options (starting with "pc-98 ")
     from [dosbox] and [dos] sections to its own [pc98] section.
     These options in existing dosbox-x.conf/dosbox.conf files
