@@ -481,7 +481,29 @@ continue_1:
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-    bool res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(args, '\\');
+	if (r!=NULL) {
+		*r=0;
+		strcpy(path, args);
+		strcat(path, "\\");
+		strcpy(pattern, r+1);
+		*r='\\';
+	} else {
+		strcpy(path, "");
+		strcpy(pattern, args);
+	}
+	int k=0;
+	for (int i=0;i<(int)strlen(pattern);i++)
+		if (pattern[i]!='\"')
+			pattern[k++]=pattern[i];
+	pattern[k]=0;
+	strcpy(spath, path);
+	if (strchr(path,'\"')) {
+		DOS_GetSFNPath(path, spath, false);
+		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
+	}
+	std::string pfull=std::string(spath)+std::string(pattern);
+    bool res=DOS_FindFirst((char *)((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) {
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
