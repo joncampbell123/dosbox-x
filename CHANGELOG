@@ -11,7 +11,8 @@
     will be automatically redirected to the [pc98] section from
     the other sections when DOSBox-X starts (Wengier)
   - The user directory DOSBox-X uses has been changed from e.g.
-    ~/.dosbox to ~/.config/dosbox-x (Wengier)
+    ~/.dosbox to ~/.config/dosbox-x. It will be read *after*
+    the dosbox-x.conf file in the current directory (Wengier)
   - Config option "dpi aware" now supports the "auto" setting
     to auto-decide on the best setting for the platform. This
     fixes very small window issue on high DPI devices such as
