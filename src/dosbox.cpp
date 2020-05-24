@@ -3368,6 +3368,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_values(numopt);
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
+    Pint->Set_help("Number of file handles available to DOS programs.");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
     Pstring->Set_values(driveletters);
 
