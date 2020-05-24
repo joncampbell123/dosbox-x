@@ -1,4 +1,4 @@
-Welcome to DOSBox-X, a fork of the DOSBox project !
+Welcome to DOSBox-X, a cross-platform DOS emulater based on the DOSBox project.
 
 Note:
 
