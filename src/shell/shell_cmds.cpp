@@ -479,8 +479,6 @@ first_2:
 continue_1:
 	/* Command uses dta so set it to our internal dta */
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	int fbak=lfn_filefind_handle;
-	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(args, '\\');
 	if (r!=NULL) {
 		*r=0;
@@ -503,6 +501,8 @@ continue_1:
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	std::string pfull=std::string(spath)+std::string(pattern);
+	int fbak=lfn_filefind_handle;
+	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
     bool res=DOS_FindFirst((char *)((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) {
 		lfn_filefind_handle=fbak;
@@ -639,12 +639,34 @@ void DOS_Shell::CMD_RENAME(char * args){
 	
 	strcpy(target,arg2);
 
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(arg1, '\\');
+	if (r!=NULL) {
+		*r=0;
+		strcpy(path, arg1);
+		strcat(path, "\\");
+		strcpy(pattern, r+1);
+		*r='\\';
+	} else {
+		strcpy(path, "");
+		strcpy(pattern, arg1);
+	}
+	int k=0;
+	for (int i=0;i<(int)strlen(pattern);i++)
+		if (pattern[i]!='\"')
+			pattern[k++]=pattern[i];
+	pattern[k]=0;
+	strcpy(spath, path);
+	if (strchr(path,'\"')) {
+		DOS_GetSFNPath(path, spath, false);
+		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
+	}
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
+	std::string pfull=std::string(spath)+std::string(pattern);
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-	if (!DOS_FindFirst(arg1, strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME)) {
+	if (!DOS_FindFirst((char *)((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(), strchr(arg1,'*')!=NULL || strchr(arg1,'?')!=NULL ? 0xffff & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY : 0xffff & ~DOS_ATTR_VOLUME)) {
 		lfn_filefind_handle=fbak;
 		WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
 	} else {
