@@ -1,6 +1,6 @@
 0.83.2
   - Added [config] section in dosbox-x.conf to resemble DOS's
-    CONFIG.SYS file. It currently only supports REM, BREAK, 
+    CONFIG.SYS file. It currently  supports REM, BREAK, FILES,
     SET, DEVICE/DEVICEHIGH, INSTALL/INSTALLHIGH and LASTDRIVE
     commands. The file CONFIG.SYS will appear on the Z: drive.
     It is possible to bypass the [config] section with the
