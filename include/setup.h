@@ -381,6 +381,7 @@ public:
 	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	virtual ~Section_prop();
+	std::string data;
 };
 
 class Prop_multival:public Property{

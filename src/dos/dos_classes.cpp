@@ -77,12 +77,14 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 	for(Bit8u i=0;i<14;i++) mem_writeb(pt+i,0);
 	
 	Bit8u drives=1;
+	DOS_FILES=127;
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-	if (section !=NULL) {
+	if (section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 		char *lastdrive = (char *)section->Get_string("lastdrive");
 		if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 			drives=lastdrive[0]-'a'+1;
 		char *dosbreak = (char *)section->Get_string("break");
+		DOS_FILES = (unsigned int)section->Get_int("files");
 		if (!strcasecmp(dosbreak, "on"))
 			dos.breakcheck=true;
 #ifdef WIN32

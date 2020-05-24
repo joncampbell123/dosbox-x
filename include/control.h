@@ -79,6 +79,7 @@ public:
         opt_console = false;
         opt_logint21 = false;
         opt_userconf = false;
+        opt_noconfig = false;
         opt_noconsole = false;
         opt_logfileio = false;
         opt_eraseconf = false;
@@ -144,6 +145,7 @@ public:
     bool opt_printconf;
     bool opt_logint21;
     bool opt_userconf;
+    bool opt_noconfig;
     bool opt_console;
     bool opt_startui;
     bool opt_showrt;

@@ -2792,7 +2792,6 @@ public:
             }
         }
 
-		DOS_FILES = (unsigned int)section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();

@@ -89,7 +89,7 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 #elif defined(RISCOS)
 	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
-	in = "~/.dosbox-x";
+	in = "~/.config/dosbox-x";
 	ResolveHomedir(in);
 #endif
 	in += CROSS_FILESPLIT;
@@ -123,7 +123,7 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in = "/<Choices$Write>/DosBox-X";
 	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
-	in = "~/.dosbox-x";
+	in = "~/.config/dosbox-x";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);
 #endif
