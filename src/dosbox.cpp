@@ -3137,9 +3137,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable collating and uppercase table");
 
-    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
-    Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
-
     // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
@@ -3370,6 +3367,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(ps1opt);
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_values(numopt);
+    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
     Pstring->Set_values(driveletters);
 
