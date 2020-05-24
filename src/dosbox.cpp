@@ -3364,10 +3364,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although not all CONFIG.SYS options are currently supported.");
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
-    Pstring->Set_values(ps1opt);
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
+    Pstring->Set_values(ps1opt);
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("Initial state of NUMLOCK.");
+	Pstring->Set_help("Initial state of the NumLock key.");
     Pstring->Set_values(numopt);
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs.");
