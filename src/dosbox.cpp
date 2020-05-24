@@ -3367,12 +3367,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
     Pstring->Set_values(ps1opt);
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("Initial state of the NumLock key.");
+	Pstring->Set_help("Sets the initial state of the NumLock key.");
     Pstring->Set_values(numopt);
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs.");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
-	Pstring->Set_help("Maximum number of drives that can be accessed.");
+	Pstring->Set_help("The maximum drive letter that can be accessed.");
     Pstring->Set_values(driveletters);
 
     //TODO ?
