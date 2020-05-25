@@ -1192,10 +1192,11 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
-		   "VER SET [major minor] or VER SET [major.minor]\n\n" 
-		   "  [major minor] or [major.minor]  Set the reported DOS version.\n"
-		   "  e.g. \"VER SET 5 0\" or \"VER SET 7.1\" for DOS 5.0 or 7.1 resp.\n\n" 
-		   "Type VER without parameters to display the current DOS version.\n");
+		   "VER SET [major.minor] or VER SET [major minor]\n\n" 
+		   "  [major.minor] or [major minor]  Set the reported DOS version.\n\n"
+		   "  Example: \"VER SET 6.0\" or \"VER SET 7.1\" for DOS 6.0 or 7.1 respectively.\n"
+		   "  The command \"VER SET 7 1\" however sets the reported DOS version as 7.01.\n\n" 
+		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP","Generates artificial keypresses.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
