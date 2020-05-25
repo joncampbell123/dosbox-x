@@ -3369,9 +3369,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
 	Pstring->Set_help("Reports whether DOS occupies HMA and allocates UMB memory (if available).");
     Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,100);
-    Pint->Set_help("Number of FCB handles available to DOS programs.");
+    Pint->Set_help("Number of FCB handles available to DOS programs (1-255).");
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
-    Pint->Set_help("Number of file handles available to DOS programs.");
+    Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed.");
     Pstring->Set_values(driveletters);
