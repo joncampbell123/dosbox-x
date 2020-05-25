@@ -518,15 +518,13 @@ private:
 	void restart(const char* useconfig);
 	
 	void writeconf(std::string name, bool configdir,bool everything) {
-        (void)configdir;//UNUSED
-#if 0 /* I'd rather have an option stating the user wants to write to user homedir */
+		// "config -wcd" should write to the config directory
 		if (configdir) {
 			// write file to the default config directory
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			name = config_path + name;
 		}
-#endif
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
 		if (!control->PrintConfig(name.c_str(),everything)) {
 			WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),name.c_str());
@@ -563,6 +561,7 @@ void CONFIG::Run(void) {
 	bool all = false;
 	bool first = true;
 	std::vector<std::string> pvars;
+	if (cmd->FindExist("-all", true)) all = true;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
