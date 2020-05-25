@@ -473,7 +473,7 @@ void DOS_Shell::Run(void) {
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
 		strcpy(config_data, "");
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-		if (!control->opt_securemode&&!control->SecureMode()&&!control->opt_noconfig) {
+		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
 			const char * extra = const_cast<char*>(section->data.c_str());
 			if (extra) {
 				std::istringstream in(extra);
@@ -522,7 +522,8 @@ void DOS_Shell::Run(void) {
 					}
 				}
 			}
-		} else {
+		}
+		if (!strlen(config_data)) {
 			strcat(config_data, "rem=");
 			strcat(config_data, (char *)section->Get_string("rem"));
 			strcat(config_data, "\r\n");
