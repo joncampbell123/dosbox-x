@@ -2447,6 +2447,7 @@ restart_int:
             printHelp();
             return;
         }
+		std::transform(disktype.begin(), disktype.end(), disktype.begin(), ::tolower);
 
         Bit8u mediadesc = 0xF8; // media descriptor byte; also used to differ fd and hd
         Bit16u root_ent = 512; // FAT root directory entries: 512 is for harddisks
@@ -3346,9 +3347,9 @@ public:
             if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
         }
 
-		if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",false)) {
+		if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",true)) {
 			Unmount(temp_line[0]);
-			return;
+			if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
 		}
 
         //default fstype is fat

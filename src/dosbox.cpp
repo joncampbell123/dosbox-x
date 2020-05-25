@@ -3359,7 +3359,7 @@ void DOSBOX_SetupConfigSections(void) {
     /* CONFIG.SYS options (stub) */
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
-    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is the DOS CONFIG.SYS file, although not all CONFIG.SYS options are supported.");
+    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is DOS's CONFIG.SYS file, not all CONFIG.SYS options supported");
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
     Pstring->Set_values(ps1opt);
