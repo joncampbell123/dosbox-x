@@ -490,8 +490,8 @@ void DOS_Shell::Run(void) {
 						*p=0;
 						strcpy(cmd, linestr);
 						strcpy(val, p+1);
-						trim(cmd);
-						trim(val);
+						cmd=trim(cmd);
+						val=trim(val);
 						if (strlen(config_data)+strlen(cmd)+strlen(val)+3<CONFIG_SIZE) {
 							strcat(config_data, cmd);
 							strcat(config_data, "=");
