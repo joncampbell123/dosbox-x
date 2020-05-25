@@ -2911,9 +2911,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("log console",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, log DOS CON output to the log file.");
 
-    Pbool = secprop->Add_bool("dos in hma",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Report that DOS occupies HMA (equiv. DOS=HIGH)");
-
     Pint = secprop->Add_int("dos sda size",Property::Changeable::WhenIdle,0);
     Pint->Set_help("SDA (swappable data area) size, in bytes. Set to 0 to use a reasonable default.");
 
@@ -3362,13 +3359,15 @@ void DOSBOX_SetupConfigSections(void) {
     /* CONFIG.SYS options (stub) */
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
-    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although not all CONFIG.SYS options are currently supported.");
+    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is designed to resemble the DOS CONFIG.SYS file, although it does not support all CONFIG.SYS options.");
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
     Pstring->Set_values(ps1opt);
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("Sets the initial state of the NumLock key.");
     Pstring->Set_values(numopt);
+    Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
+	Pstring->Set_help("Specifies where to load DOS.");
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs.");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
