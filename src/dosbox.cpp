@@ -3367,7 +3367,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_help("Sets the initial state of the NumLock key.");
     Pstring->Set_values(numopt);
     Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
-	Pstring->Set_help("Specifies where to load DOS.");
+	Pstring->Set_help("Reports whether DOS occupies HMA and allocates UMB memory (if available).");
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs.");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
