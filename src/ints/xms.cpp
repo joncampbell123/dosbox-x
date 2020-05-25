@@ -87,6 +87,7 @@ unsigned int XMS_HANDLES =                  XMS_HANDLES_DEFAULT;
 bool DOS_IS_IN_HMA();
 
 extern Bitu rombios_minimum_location;
+extern bool dos_umb;
 
 Bitu xms_hma_minimum_alloc = 0;
 bool xms_hma_exists = true;
@@ -818,7 +819,7 @@ public:
 			}
 		}
 
-		DOS_BuildUMBChain(umb_available,ems_available);
+		DOS_BuildUMBChain(umb_available&&dos_umb,ems_available);
 		umb_init = true;
 
         /* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
@@ -829,7 +830,7 @@ public:
 		/* Remove upper memory information */
 		dos_infoblock.SetStartOfUMBChain(0xffff);
 		if (umb_available) {
-			dos_infoblock.SetUMBChainState(0);
+			if (dos_umb) dos_infoblock.SetUMBChainState(0);
 			umb_available=false;
 		}
 
