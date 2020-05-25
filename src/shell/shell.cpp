@@ -519,6 +519,9 @@ void DOS_Shell::Run(void) {
 								} else if (!strcasecmp(cmd, "devicehigh"))
 									DoCommand((char *)("lh device "+std::string(val)).c_str());
 							}
+						} else if (!strncasecmp(line.c_str(), "rem ", 4)) {
+							strcat(config_data, line.c_str());
+							strcat(config_data, "\r\n");
 						}
 					}
 				}
