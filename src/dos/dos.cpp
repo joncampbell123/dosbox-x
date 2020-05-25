@@ -92,6 +92,7 @@ int dos_clipboard_device_access;
 char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
+int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
@@ -2540,11 +2541,13 @@ public:
             else
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
-		Bit8u drives=1;
+		maxfcb=100;
 		DOS_FILES=127;
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
+			if (DOS_FILES<8) DOS_FILES=8;
+			else if (DOS_FILES>255) DOS_FILES=255;
 			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
 			if (r==NULL) {
 				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
@@ -2559,6 +2562,9 @@ public:
 				if (!strcasecmp(trim(r+1), "umb")) dos_umb=true;
 				else if (!strcasecmp(trim(r+1), "noumb")) dos_umb=false;
 			}
+			maxfcb = (int)config_section->Get_int("fcbs");
+			if (maxfcb<1) maxfcb=1;
+			else if (maxfcb>255) maxfcb=255;
 			char *lastdrive = (char *)config_section->Get_string("lastdrive");
 			if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 				maxdrive=lastdrive[0]-'a'+1;
