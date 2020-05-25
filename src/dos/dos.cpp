@@ -80,6 +80,7 @@ static Bitu DOS_26Handler_Actual(bool fat32);
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
+bool dos_umb = true;
 bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
@@ -91,9 +92,11 @@ int dos_clipboard_device_access;
 char *dos_clipboard_device_name;
 const char dos_clipboard_device_default[]="CLIP$";
 
+int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
+extern bool startup_state_numlock;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
@@ -101,6 +104,7 @@ Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
 bool XMS_IS_ACTIVE();
 bool XMS_HMA_EXISTS();
+void SetNumLock(void);
 
 bool DOS_IS_IN_HMA() {
 	if (dos_in_hma && XMS_IS_ACTIVE() && XMS_HMA_EXISTS())
@@ -2536,7 +2540,40 @@ public:
             else
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
-        dos_in_hma = section->Get_bool("dos in hma");
+		Bit8u drives=1;
+		DOS_FILES=127;
+		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
+		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
+			DOS_FILES = (unsigned int)config_section->Get_int("files");
+			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
+			if (r==NULL) {
+				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
+				else if (!strcasecmp(trim(dosopt), "low")) dos_in_hma=false;
+				if (!strcasecmp(trim(dosopt), "umb")) dos_umb=true;
+				else if (!strcasecmp(trim(dosopt), "noumb")) dos_umb=false;
+			} else {
+				*r=0;
+				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
+				else if (!strcasecmp(trim(dosopt), "low")) dos_in_hma=false;
+				*r=',';
+				if (!strcasecmp(trim(r+1), "umb")) dos_umb=true;
+				else if (!strcasecmp(trim(r+1), "noumb")) dos_umb=false;
+			}
+			char *lastdrive = (char *)config_section->Get_string("lastdrive");
+			if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
+				maxdrive=lastdrive[0]-'a'+1;
+			char *dosbreak = (char *)config_section->Get_string("break");
+			if (!strcasecmp(dosbreak, "on"))
+				dos.breakcheck=true;
+			else if (!strcasecmp(dosbreak, "off"))
+				dos.breakcheck=false;
+#ifdef WIN32
+			char *numlock = (char *)config_section->Get_string("numlock");
+			if (!strcasecmp(numlock, "off")&&startup_state_numlock || !strcasecmp(numlock, "on")&&!startup_state_numlock)
+				SetNumLock();
+#endif
+		}
+
         dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
 		enable_dbcs_tables = section->Get_bool("dbcs");
