@@ -421,15 +421,15 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		DOS_SetError(DOSERR_NOT_SAME_DEVICE);
 		return false;
 	}
-	/*Test if target exists => no access */
 	Bit16u attr;
-	if(Drives[drivenew]->GetFileAttr(fullnew,&attr)) {
-		DOS_SetError(DOSERR_ACCESS_DENIED);
-		return false;
-	}
 	/* Source must exist, check for path ? */
 	if (!Drives[driveold]->GetFileAttr( fullold, &attr ) ) {
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+		return false;
+	}
+	/*Test if target exists => no access */
+	if(Drives[drivenew]->GetFileAttr(fullnew,&attr)&&!(uselfn&&!force_sfn&&strcmp(fullold, fullnew)&&!strcasecmp(fullold, fullnew))) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
 
