@@ -24,6 +24,7 @@
 #include "control.h"
 #include <assert.h>
 
+extern int maxfcb;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
 void CALLBACK_DeAllocate(Bitu in);
@@ -306,7 +307,7 @@ void DOS_SetupTables(void) {
 	/* Create a fake FCB SFT */
 	seg=DOS_GetMemory(4,"Fake FCB SFT");
 	real_writed(seg,0,0xffffffff);		//Last File Table
-	real_writew(seg,4,100);				//File Table supports 100 files
+	real_writew(seg,4,maxfcb);			//File Table supports 100 files
 	dos_infoblock.SetFCBTable(RealMake(seg,0));
 
 	/* Create a fake DPB */
