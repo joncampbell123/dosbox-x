@@ -700,12 +700,7 @@ Hex Section_prop::Get_hex(string const& _propname) const {
     return 0;
 }
 
-static bool configfile=false;
 bool Section_prop::HandleInputline(string const& gegevens) {
-	if (configfile) {
-		if (!data.empty()) data += "\n"; //Add return to previous line in buffer
-		data += gegevens;
-	}
     string str1 = gegevens;
     string::size_type loc = str1.find('=');
     if (loc == string::npos) return false;
@@ -1005,7 +1000,6 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     string gegevens;
     Section* currentsection = NULL;
     Section* testsec = NULL;
-	configfile=true;
     while (getline(in,gegevens)) {
 
         /* strip leading/trailing whitespace */
@@ -1032,7 +1026,17 @@ bool Config::ParseConfigFile(char const * const configfilename) {
             break;
         default:
             try {
-                if (currentsection) currentsection->HandleInputline(gegevens);
+                if (currentsection) {
+					bool savedata=!strcasecmp(currentsection->GetName(), "pc98")||!strcasecmp(currentsection->GetName(), "config");
+					if (!currentsection->HandleInputline(gegevens)&&strcasecmp(currentsection->GetName(), "autoexec")) savedata=true;
+					if (savedata) {
+						Section_prop *section = static_cast<Section_prop *>(currentsection);
+						if (section!=NULL) {
+							if (!section->data.empty()) section->data += "\n";
+							section->data += gegevens;
+						}
+					}
+				}
             } catch(const char* message) {
                 message=0;
                 //EXIT with message
@@ -1040,7 +1044,6 @@ bool Config::ParseConfigFile(char const * const configfilename) {
             break;
         }
     }
-	configfile=false;
     current_config_dir.clear();//So internal changes don't use the path information
     return true;
 }
