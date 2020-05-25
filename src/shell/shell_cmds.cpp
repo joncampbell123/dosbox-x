@@ -682,6 +682,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 				removeChar(dir_target, '\"');
 				arg2=dir_target;
 				strcpy(sargs, dir_source);
+				if (uselfn) removeChar(sargs, '\"');
 				strcat(sargs, uselfn?lname:name);
 				if (uselfn&&strchr(arg2,'*')&&!strchr(arg2,'.')) strcat(arg2, ".*");
 				char *dot1=strrchr(uselfn?lname:name,'.'), *dot2=strrchr(arg2,'.'), *star;
@@ -758,6 +759,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 					arg2=tfull;
 				}
 				strcpy(targs, dir_source);
+				if (uselfn) removeChar(targs, '\"');
 				strcat(targs, arg2);
 				sources.push_back(uselfn?((sargs[0]!='"'?"\"":"")+std::string(sargs)+(sargs[strlen(sargs)-1]!='"'?"\"":"")).c_str():sargs);
 				sources.push_back(uselfn?((targs[0]!='"'?"\"":"")+std::string(targs)+(targs[strlen(targs)-1]!='"'?"\"":"")).c_str():targs);
