@@ -471,59 +471,67 @@ void DOS_Shell::Run(void) {
         if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
         if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
+		strcpy(config_data, "");
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+			const char * extra = const_cast<char*>(section->data.c_str());
+			if (extra) {
+				std::istringstream in(extra);
+				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
+				char *cmd=cmdstr, *val=valstr, *tmp=tmpstr, *p;
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL) {
+						*p=0;
+						strcpy(cmd, linestr);
+						strcpy(val, p+1);
+						trim(cmd);
+						trim(val);
+						if (strlen(config_data)+strlen(cmd)+strlen(val)+3<CONFIG_SIZE) {
+							strcat(config_data, cmd);
+							strcat(config_data, "=");
+							strcat(config_data, val);
+							strcat(config_data, "\r\n");
+						}
+						if (!strncasecmp(cmd, "set ", 4))
+							DoCommand((char *)(std::string(cmd)+"="+std::string(val)).c_str());
+						else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
+							strcpy(tmp, val);
+							char *name=StripArg(tmp);
+							if (!*name||!DOS_FileExists(name)) {
+								WriteOut("The following file is missing or corrupted: %s\n", name);
+								continue;
+							}
+							if (!strcasecmp(cmd, "install")) {
+								DoCommand(val);
+							} else if (!strcasecmp(cmd, "installhigh"))
+								DoCommand((char *)("lh "+std::string(val)).c_str());
+							else if (!strcasecmp(cmd, "device")) {
+								DoCommand((char *)("device "+std::string(val)).c_str());
+							} else if (!strcasecmp(cmd, "devicehigh"))
+								DoCommand((char *)("lh device "+std::string(val)).c_str());
+						}
+					} else if (!strncasecmp(line.c_str(), "rem ", 4)) {
+						strcat(config_data, line.c_str());
+						strcat(config_data, "\r\n");
+					}
+				}
+			}
+		}
+		if (!strlen(config_data)) {
+			strcat(config_data, "rem=");
+			strcat(config_data, (char *)section->Get_string("rem"));
+			strcat(config_data, "\r\n");
+		}
+		VFILE_Register("CONFIG.SYS",(Bit8u *)config_data,(Bit32u)strlen(config_data));
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
-			if (!control->opt_noconfig) {
-				Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-				const char * extra = const_cast<char*>(section->data.c_str());
-				strcpy(config_data, "");
-				if (extra) {
-					std::istringstream in(extra);
-					char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN], tmpstr[CROSS_LEN];
-					char *cmd=cmdstr, *val=valstr, *tmp=tmpstr, *p;
-					if (in)	for (std::string line; std::getline(in, line); ) {
-						if (line.length()>CROSS_LEN) {
-							strncpy(linestr, line.c_str(), CROSS_LEN);
-							linestr[CROSS_LEN]=0;
-						} else
-							strcpy(linestr, line.c_str());
-						p=strchr(linestr, '=');
-						if (p!=NULL) {
-							*p=0;
-							strcpy(cmd, linestr);
-							strcpy(val, p+1);
-							trim(cmd);
-							trim(val);
-							if (strlen(config_data)+strlen(cmd)+strlen(val)+3<CONFIG_SIZE) {
-								strcat(config_data, cmd);
-								strcat(config_data, "=");
-								strcat(config_data, val);
-								strcat(config_data, "\r\n");
-							}
-							if (!strncasecmp(cmd, "set ", 4))
-								DoCommand((char *)(std::string(cmd)+"="+std::string(val)).c_str());
-							else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
-								strcpy(tmp, val);
-								char *name=StripArg(tmp);
-								if (!*name||!DOS_FileExists(name)) {
-									WriteOut("The following file is missing or corrupted: %s\n", name);
-									continue;
-								}
-								if (!strcasecmp(cmd, "install")) {
-									DoCommand(val);
-								} else if (!strcasecmp(cmd, "installhigh"))
-									DoCommand((char *)("lh "+std::string(val)).c_str());
-								else if (!strcasecmp(cmd, "device")) {
-									DoCommand((char *)("device "+std::string(val)).c_str());
-								} else if (!strcasecmp(cmd, "devicehigh"))
-									DoCommand((char *)("lh device "+std::string(val)).c_str());
-							}
-						}
-					}
-				}
-				VFILE_Register("CONFIG.SYS",(Bit8u *)config_data,(Bit32u)strlen(config_data));
-			}
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(sec->Get_bool("automountall")) {
 				Bit32u drives = GetLogicalDrives();
