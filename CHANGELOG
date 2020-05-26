@@ -1,4 +1,6 @@
 0.83.2
+  - Added DTASEG, DTAOFF, and PSPSEG as hex value constants to
+    the debugger interface to aid in debugging DOS programs.
   - Added [config] section in dosbox-x.conf to resemble DOS's
     CONFIG.SYS file. It currently supports REM, BREAK, FILES,
     FCBS, SET, DOS, DEVICE/DEVICEHIGH, INSTALL/INSTALLHIGH and
