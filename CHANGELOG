@@ -1,4 +1,5 @@
 0.83.2
+  - Fixed issues with the "config -wcd -all" command (Wengier)
   - Added DTASEG, DTAOFF, and PSPSEG as hex value constants to
     the debugger interface to aid in debugging DOS programs.
   - Added [config] section in dosbox-x.conf to resemble DOS's
