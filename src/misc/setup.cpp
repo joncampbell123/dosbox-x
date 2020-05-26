@@ -858,6 +858,32 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
         }
 
         (*tel)->PrintData(outfile,everything);
+		if (!strcmp(temp, "config")) {
+			const char * extra = const_cast<char*>(sec->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+				char *cmd=cmdstr, *val=valstr, *p;
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL) {
+						*p=0;
+						strcpy(cmd, linestr);
+						cmd=trim(cmd);
+						strcpy(val, p+1);
+						val=trim(val);
+						lowcase(cmd);
+						if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+							fprintf(outfile, "%-9s = %s\n", cmd, val);
+					}
+				}
+			}
+		}
         fprintf(outfile,"\n");      /* Always an empty line between sections */
     }
     fclose(outfile);

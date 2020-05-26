@@ -1075,14 +1075,14 @@ void PROGRAMS_Init() {
 	
 	// writeconf
 	MSG_Add("PROGRAM_CONFIG_FILE_ERROR","\nCan't open file %s\n");
-	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s");
+	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
 	MSG_Add("PROGRAM_CONFIG_USAGE","Config tool:\n"\
 		"-writeconf or -wc without parameter: write to primary loaded config file.\n"\
 		"-writeconf or -wc with filename: write file to config directory.\n"\
 		"Use -writelang or -wl filename to write the current language strings.\n"\
-		"-all  Use -all with -wc and -writeconf to write ALL options to the file.\n"\
+		"-all Use this option with -wc and -writeconf to write ALL options to the file.\n"\
 		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
 		"-wcd\n Write to the default config file in the config directory.\n"\
 		"-l lists configuration parameters.\n"\
