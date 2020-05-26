@@ -33,6 +33,10 @@ define citation "msdncd92" {
     name "Microsoft Developer Network CD Fall 1992";
 }
 
+define citation "programmerpcsourcebook2nd" {
+    name "The Programmer's PC Sourcebook, 2nd Edition, Microsoft Press";
+}
+
 interrupt "MS-DOS INT 20" {
     name "INT 20h DOS Terminte process";
     input "CS" {
