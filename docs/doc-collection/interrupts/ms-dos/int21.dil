@@ -39,13 +39,13 @@ define citation "programmerpcsourcebook2nd" {
 
 interrupt "MS-DOS INT 20" {
     name "INT 20h DOS Terminte process";
-    interrupt number 0x20;
+    interrupt number value 0x20;
     input segment register CS {
-        content "PSP segment";
+        content "PSP segment" type segment;
         description "PSP segment of process to terminate";
     }
     output var dos_errorlevel {
-        content 0x00;
+        content value 0x00;
         description "Return code set to 00h";
     }
     exists_if dos_version >= version(1.0);
@@ -55,7 +55,7 @@ interrupt "MS-DOS INT 20" {
 
 interrupt "MS-DOS INT 21" {
     name "INT 21h DOS system interrupt";
-    interrupt number 0x21;
+    interrupt number value 0x21;
     select by register AH {
 
         value 0x00 {
@@ -65,7 +65,7 @@ interrupt "MS-DOS INT 21" {
                 description "PSP segment of process to terminate";
             }
             output var dos_errorlevel {
-                content 0x00;
+                content value 0x00;
                 description "Return code set to 00h";
             }
             exists_if dos_version >= version(1.0);
@@ -79,7 +79,7 @@ interrupt "MS-DOS INT 21" {
         value 0x01 {
             name "Read character from standard input, with echo";
             output register AL {
-                content "uint8_t";
+                content "character" type uint8_t;
                 description "Character value read";
             }
             exists_if dos_version >= version(1.0);
