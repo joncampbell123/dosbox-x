@@ -72,6 +72,7 @@ const char *egc_fgc_modes[4] = {
 bool pc98_pegc_linear_framebuffer_enabled(void);
 void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+extern bool                 dos_kernel_disabled;
 extern bool                 is_paused;
 extern bool                 pc98_crt_mode;
 extern uint8_t              GDC_display_plane;
@@ -1362,6 +1363,10 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
     else if (strncmp(hex, "TF", 2) == 0) { hex += 2; regval = GETFLAG(TF); }
     else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
     else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
+
+    else if (!dos_kernel_disabled && strncmp(hex,"DTASEG", 6) == 0) { hex += 6; regval = dos.dta() >> 16u; }
+    else if (!dos_kernel_disabled && strncmp(hex,"DTAOFF", 6) == 0) { hex += 6; regval = dos.dta() & 0xFFFFu; }
+    else if (!dos_kernel_disabled && strncmp(hex,"PSPSEG", 6) == 0) { hex += 6; regval = dos.psp(); }
 
     while (*hex && *hex != '\"') {
         if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((Bit32u)(*hex)) - '0';
