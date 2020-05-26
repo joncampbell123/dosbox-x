@@ -87,7 +87,7 @@
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
-#elif defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
 bool sse2_available = false;
 
 # ifdef __GNUC__
