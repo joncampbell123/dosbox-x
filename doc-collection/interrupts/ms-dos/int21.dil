@@ -27,14 +27,22 @@ define var "dos_errorlevel" {
 
 define citation "rbil" {
     name "Ralph Brown Interrupt List";
+    publication_date "2000/07/16";
+    copyright "1989-2000";
+    author "Ralph Brown";
 }
 
 define citation "msdncd92" {
     name "Microsoft Developer Network CD Fall 1992";
+    copyright "1992";
+    author "Microsoft Corporation";
 }
 
 define citation "programmerpcsourcebook2nd" {
     name "The Programmer's PC Sourcebook, 2nd Edition, Microsoft Press";
+    copyright "1991";
+    author "Thom Hogan";
+    isbn "1-55615-321-X";
 }
 
 interrupt "MS-DOS INT 20" {
