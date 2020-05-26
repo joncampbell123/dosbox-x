@@ -97,7 +97,10 @@ interrupt "MS-DOS INT 21" {
             }
             dos_version (dos_version >= 1.0);
             description "Write to STDOUT, with CTRL+C/CTRL+BREAK checking";
+
             notes "^C/^Break are checked, and INT 23 executed if pressed. Standard output is always the screen under DOS 1.x, but may be redirected under DOS 2+. The last character output will be the character in DL unless DL=09h on entry, in which case AL=20h as tabs are expanded to blanks. If standard output is redirected to a file, no error checks (write- protected, full media, etc.) are performed" citation "rbil";
+
+            notes "[1] Outputs a character to the currently active video display.\n[2.0+] Outputs a character to the standard output device. Output can be redirected. (If output is redirected, there is no way to detect disk full.)\n\nIf a Ctrl-C is detected at the keyboard after the requested character is output, an Int 23H is executed.\n    If the standard output has not been redirected, a backspace code (08H) causes the cursor to move left one position. If output has been redirected, the backspace code does not receive any special treatment.\n    [2.0+] You can also send strings to the display by performing a write (Int 21H Function 40H) using the predefined handle for the standard output (0001H), if output has not been redirected, or a handle obtained by opening the logical device CON." citation "msdncd92";
         }
     } /* end select by "AH" */
 } /* end "MS-DOS INT 21" */
