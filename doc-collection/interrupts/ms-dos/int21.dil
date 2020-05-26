@@ -33,6 +33,21 @@ define citation msdncd92 {
     name "Microsoft Developer Network CD Fall 1992";
 }
 
+interrupt "MS-DOS INT 20" {
+    name "INT 20h DOS Terminte process";
+    input "CS" {
+        content "PSP segment";
+        description "PSP segment of process to terminate";
+    }
+    output "dos_errorlevel" {
+        content 0x00;
+        description "Return code set to 00h";
+    }
+    dos_version (dos_version >= 1.0);
+    description "Terminate the process. Return code aka error level is set to 00h.";
+    see_also interrupt "MS-DOS INT 21" select by "AH" value 0x00;
+}
+
 interrupt "MS-DOS INT 21" {
     name "INT 21h DOS system interrupt";
     select by "AH" {
