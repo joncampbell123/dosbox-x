@@ -1364,9 +1364,9 @@ Bit32u GetHexValue(char* const str, char* &hex,bool *parsed)
     else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
     else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
 
-    else if (!dos_kernel_disabled && strncmp(hex,"DTASEG", 6) == 0) { hex += 6; regval = dos.dta() >> 16u; }
-    else if (!dos_kernel_disabled && strncmp(hex,"DTAOFF", 6) == 0) { hex += 6; regval = dos.dta() & 0xFFFFu; }
-    else if (!dos_kernel_disabled && strncmp(hex,"PSPSEG", 6) == 0) { hex += 6; regval = dos.psp(); }
+    else if (strncmp(hex,"DTASEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
+    else if (strncmp(hex,"DTAOFF", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
+    else if (strncmp(hex,"PSPSEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
 
     while (*hex && *hex != '\"') {
         if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((Bit32u)(*hex)) - '0';
