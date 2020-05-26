@@ -863,7 +863,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 			if (extra&&strlen(extra)) {
 				std::istringstream in(extra);
 				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-				char *cmd=cmdstr, *val=valstr, *p;
+				char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
 				if (in)	for (std::string line; std::getline(in, line); ) {
 					if (line.length()>CROSS_LEN) {
 						strncpy(linestr, line.c_str(), CROSS_LEN);
@@ -881,6 +881,16 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 						if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
 							fprintf(outfile, "%-9s = %s\n", cmd, val);
 					}
+				}
+				std::istringstream rem(extra);
+				if (everything&&rem) for (std::string line; std::getline(rem, line); ) {
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					if (!strncasecmp(trim(lin), "rem ", 4)&&*trim(trim(lin)+4)!='=')
+						fprintf(outfile, "%s\n", trim(lin));
 				}
 			}
 		}
