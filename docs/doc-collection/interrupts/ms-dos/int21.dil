@@ -29,6 +29,10 @@ define citation rbil {
     name "Ralph Brown Interrupt List";
 }
 
+define citation msdncd92 {
+    name "Microsoft Developer Network CD Fall 1992";
+}
+
 interrupt "MS-DOS INT 21" {
     name "INT 21h DOS system interrupt";
     select by "AH" {
@@ -45,7 +49,10 @@ interrupt "MS-DOS INT 21" {
             }
             dos_version (dos_version >= 1.0);
             description "Terminate the process. Return code aka error level is set to 00h.";
+
             notes "Microsoft recommends using INT 21/AH=4Ch for DOS 2+. This function sets the program's return code (ERRORLEVEL) to 00h. Execution continues at the address stored in INT 22 after DOS performs whatever cleanup it needs to do (restoring the INT 22,INT 23,INT 24 vectors from the PSP assumed to be located at offset 0000h in the segment indicated by the stack copy of CS, etc.). If the PSP is its own parent, the process's memory is not freed; if INT 22 additionally points into the terminating program, the process is effectively NOT terminated. Not supported by MS Windows 3.0 DOSX.EXE DOS extender" citation "rbil";
+
+            notes "Terminates the current process. This is one of several methods that a program can use to perform a final exit. MS-DOS then takes the following actions:\n\n    All memory belonging to the process is released.\n    File buffers are flushed and any open handles for files or devices owned by the process are closed.\n    The termination handler vector (Int 22H) is restored from PSP:000AH.\n    The Ctrl-C handler vector (Int 23H) is restored from PSP:000EH.\n    [2.0+] The critical-error handler vector (Int 24H) is restored from PSP:0012H.\n    Control is transferred to the termination handler.\n\nIf the program is returning to COMMAND.COM, control transfers to the resident portion, and the transient portion is reloaded if necessary. If a batch file is in progress, the next line of the file is fetched and interpreted; otherwise, a prompt is issued for the next user command.\n\n    Any files that have been written to using FCBs should be closed before performing this exit call; otherwise, data may be lost.\n    [3.0+] If the program is running on a network, it should remove all locks it has placed on file regions before terminating." citation msdncd92;
         }
 
         value 0x01 {
