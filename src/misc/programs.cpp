@@ -523,6 +523,14 @@ private:
 			// write file to the default config directory
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
+			struct stat info;
+			if (!stat(config_path.c_str(), &info) || !(info.st_mode & S_IFDIR)) {
+#ifdef WIN32
+				CreateDirectory(config_path.c_str(), NULL);
+#else
+				mkdir(config_path.c_str(), 0755);
+#endif
+			}
 			name = config_path + name;
 		}
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
@@ -615,7 +623,7 @@ void CONFIG::Run(void) {
 			}
 			break;
 		case P_WRITECONF_DEFAULT: {
-			// write to /userdir/dosbox0.xx.conf
+			// write to /userdir/dosbox-x-0.xx.conf
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
@@ -631,8 +639,7 @@ void CONFIG::Run(void) {
 				writeconf(pvars[0], false, all);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
-				if (control->configfiles.size()) writeconf(std::string("dosbox-x.conf"), false, all);
-				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+				writeconf(std::string("dosbox-x.conf"), false, all);
 			}
 			break;
 
@@ -831,6 +838,32 @@ void CONFIG::Run(void) {
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
+					if (!strcasecmp(pvars[0].c_str(), "config")) {
+						const char * extra = const_cast<char*>(psec->data.c_str());
+						if (extra&&strlen(extra)) {
+							std::istringstream in(extra);
+							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							if (in)	for (std::string line; std::getline(in, line); ) {
+								if (line.length()>CROSS_LEN) {
+									strncpy(linestr, line.c_str(), CROSS_LEN);
+									linestr[CROSS_LEN]=0;
+								} else
+									strcpy(linestr, line.c_str());
+								p=strchr(linestr, '=');
+								if (p!=NULL) {
+									*p=0;
+									strcpy(cmd, linestr);
+									cmd=trim(cmd);
+									strcpy(val, p+1);
+									val=trim(val);
+									lowcase(cmd);
+									if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+										WriteOut("%s=%s\n", cmd, val);
+								}
+							}
+						}
+					}
 				} else {
 					// no: maybe it's a property?
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
@@ -854,8 +887,36 @@ void CONFIG::Run(void) {
 				}
 				std::string val = sec->GetPropValue(pvars[1].c_str());
 				if (val == NO_SUCH_PROPERTY) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"),
-						pvars[1].c_str(),pvars[0].c_str());   
+					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
+						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
+						const char * extra = const_cast<char*>(psec->data.c_str());
+						if (extra&&strlen(extra)) {
+							std::istringstream in(extra);
+							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							if (in)	for (std::string line; std::getline(in, line); ) {
+								if (line.length()>CROSS_LEN) {
+									strncpy(linestr, line.c_str(), CROSS_LEN);
+									linestr[CROSS_LEN]=0;
+								} else
+									strcpy(linestr, line.c_str());
+								p=strchr(linestr, '=');
+								if (p!=NULL) {
+									*p=0;
+									strcpy(cmd, linestr);
+									cmd=trim(cmd);
+									strcpy(val, p+1);
+									val=trim(val);
+									lowcase(cmd);
+									if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
+										WriteOut("%s=%s\n", trim(cmd+4), val);
+									else if(!strcasecmp(cmd, pvars[1].c_str()))
+										WriteOut("%s\n", val);
+								}
+							}
+						}
+					} else
+						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
 					return;
 				}
 				WriteOut("%s",val.c_str());
@@ -959,8 +1020,10 @@ void CONFIG::Run(void) {
 			// check if the property actually exists in the section
 			Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
 			if (!sec2) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"),
-					pvars[1].c_str(),pvars[0].c_str());
+				if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh")))
+					WriteOut("Cannot set property %s in section %s.\n", pvars[1].c_str(),pvars[0].c_str());
+				else
+					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
 				return;
 			}
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
@@ -1079,12 +1142,12 @@ void PROGRAMS_Init() {
 	
 	// help
 	MSG_Add("PROGRAM_CONFIG_USAGE","Config tool:\n"\
-		"-writeconf or -wc without parameter: write to primary loaded config file.\n"\
-		"-writeconf or -wc with filename: write file to config directory.\n"\
+		"-wc (or -writeconf) without parameter: write to primary loaded config file.\n"\
+		"-wc (or -writeconf) with filename: write file to config directory.\n"\
 		"Use -writelang or -wl filename to write the current language strings.\n"\
 		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
 		"-wcd\n Write to the default config file in the config directory.\n"\
-		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the file.\n"\
+		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-l lists configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
