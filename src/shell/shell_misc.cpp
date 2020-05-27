@@ -1196,19 +1196,19 @@ char * DOS_Shell::Which(char * name) {
 
 			//If name too long =>next
 			if((name_len + len + 1) >= DOS_PATHLENGTH) continue;
-			strcat(path,name);
+			strcat(path,strchr(name, ' ')?("\""+std::string(name)+"\"").c_str():name);
 
 			strcpy(which_ret,path);
-			if (DOS_FileExists(which_ret)) return which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,com_ext);
-			if (DOS_FileExists(which_ret)) return which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,exe_ext);
-			if (DOS_FileExists(which_ret)) return which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,bat_ext);
-			if (DOS_FileExists(which_ret)) return which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
 		}
 	}
 	return 0;
