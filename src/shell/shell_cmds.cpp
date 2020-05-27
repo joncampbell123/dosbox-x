@@ -211,8 +211,8 @@ __do_command_begin:
 /* This isn't an internal command execute it */
 	char ldir[DOS_PATHLENGTH], *p=ldir;
 	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
-		if (!strchr(cmd_buffer, '\\') && strchr(ldir, '\\'))
-			p=strchr(ldir, '\\')+1;
+		if (!strchr(cmd_buffer, '\\') && strrchr(ldir, '\\'))
+			p=strrchr(ldir, '\\')+1;
 		if(Execute(p,line)) return;
 	} else
 		if(Execute(cmd_buffer,line)) return;
