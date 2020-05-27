@@ -1148,7 +1148,7 @@ char * DOS_Shell::Which(char * name) {
 
 
 	/* No Path in filename look through path environment string */
-	char path[DOS_PATHLENGTH];std::string temp;
+	char path[DOS_PATHLENGTH],spath[DOS_PATHLENGTH];std::string temp;
 	if (!GetEnvStr("PATH",temp)) return 0;
 	const char * pathenv=temp.c_str();
 	if (!pathenv) return 0;
@@ -1172,10 +1172,22 @@ char * DOS_Shell::Which(char * name) {
 			path[DOS_PATHLENGTH - 1] = 0;
 		} else path[i_path] = 0;
 
+		int k=0;
+		for (int i=0;i<(int)strlen(path);i++)
+			if (path[i]!='\"')
+				path[k++]=path[i];
+		path[k]=0;
 
 		/* check entry */
 		if(size_t len = strlen(path)){
 			if(len >= (DOS_PATHLENGTH - 2)) continue;
+
+			if (uselfn&&len>3) {
+				if (path[len - 1]=='\\') path[len - 1]=0;
+				if (DOS_GetSFNPath(("\""+std::string(path)+"\"").c_str(), spath, false))
+					strcpy(path, spath);
+				len = strlen(path);
+			}
 
 			if(path[len - 1] != '\\') {
 				strcat(path,"\\"); 
