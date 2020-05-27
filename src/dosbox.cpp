@@ -3360,6 +3360,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is DOS's CONFIG.SYS file, not all CONFIG.SYS options supported");
+ 	Pstring->Set_help("Records comments (remarks).");
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
     Pstring->Set_values(ps1opt);
@@ -3373,7 +3374,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
-	Pstring->Set_help("The maximum drive letter that can be accessed.");
+	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
     Pstring->Set_values(driveletters);
 
     //TODO ?
