@@ -14,9 +14,10 @@
     These options in existing dosbox-x.conf/dosbox.conf files
     will be automatically redirected to the [pc98] section from
     the other sections when DOSBox-X starts (Wengier)
-  - The user directory DOSBox-X uses has been changed from e.g.
-    ~/.dosbox to ~/.config/dosbox-x. It will be read *after*
-    the dosbox-x.conf file in the current directory (Wengier)
+  - The user directory DOSBox-X uses has been changed to use the
+    DOSBox-X directory (e.g. from ~/.dosbox to ~/.config/dosbox-x
+    on Linux platform). It will be read *after* the dosbox-x.conf
+    file in the current directory (Wengier)
   - Config option "dpi aware" now supports the "auto" setting
     to auto-decide on the best setting for the platform. This
     fixes very small window issue on high DPI devices such as
@@ -73,11 +74,10 @@
     attributes in order to prevent filesystem corruption.
     This prevents Windows 95 Setup from creating WINBOOT.INI
     and then changing it into a directory with the call.
-  - FAT driver bugs fixed where a newly created zero length
-    file combined with a lseek() can corrupt filesytem
-    structures (root directory and/or the second FAT table).
-    This fixes filesystem corruption when running Windows
-    95 install.
+  - FAT driver bugs fixed where a newly created zero length file
+    combined with a lseek() can corrupt filesytem structures
+    (root directory and/or the second FAT table). This fixes
+    filesystem corruption when running Windows 95 install.
   - Enabled printer emulation for non-Windows OSes (Linux,
     Mac OS X, etc.). FreeType2 is required to enable
     printer emulation at compile time.
@@ -108,7 +108,7 @@
   - Re-added full drive menu items for the Windows platform.
     The "Boot from drive" item (A:, C: and D: drives only)
     should work in other platforms too. The BOOT command is
-    also slightly improved. (Wengier)
+    also improved to allow e.g. "BOOT A:" to work. (Wengier)
   - INT 10h vector now points into VGA BIOS as a workaround
     for DOS programs that use vector location as part of
     their EGA/VGA detection. This fixes blink attribute
