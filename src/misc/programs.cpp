@@ -722,6 +722,8 @@ void CONFIG::Run(void) {
 					if (p==NULL) break;
 					WriteOut("%s\n", p->propname.c_str());
 				}
+				if (!strcasecmp(pvars[0].c_str(), "config"))
+					WriteOut("set\ninstall\ninstallhigh\ndevice\ndevicehigh\n");
 			} else {
 				// find the property by it's name
 				size_t i = 0;
@@ -1141,7 +1143,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X config tool:\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X config tool. Supported options:\n\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
@@ -1152,14 +1154,14 @@ void PROGRAMS_Init() {
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
 		" For info about a specific section or property add its name behind.\n"\
-		"-axclear Clears the autoexec section.\n"\
-		"-axadd [line] Adds a line to the autoexec section.\n"\
-		"-axtype Prints the content of the autoexec section.\n"\
+		"-axclear Clears the [autoexec] section.\n"\
+		"-axadd [line] Adds a line to the [autoexec] section.\n"\
+		"-axtype Prints the content of the [autoexec] section.\n"\
 		"-securemode\n"\
         " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
         " as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value.\n" );
+		"-set \"section property=value\" sets the value of the property.\n" );
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
