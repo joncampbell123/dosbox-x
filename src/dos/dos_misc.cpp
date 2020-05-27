@@ -222,17 +222,15 @@ static bool DOS_MultiplexFunctions(void) {
 				/* Hack for Windows 98 SETUP.EXE (Wengier) */
 				return false;
 			}
-			else {
-				strcpy(name,"COMMAND.COM");
-				MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
-				strcpy(name+1,"/P /D");
-				name[0]=(char)strlen(name);
-				MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name+1)+2));
-				reg_ax=0;
-				reg_bx=0;
-				return true;
-			}
-		} /* all cases "return", no break needed */
+			strcpy(name,"COMMAND.COM");
+			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
+			strcpy(name+1,"/P /D /K AUTOEXEC");
+			name[0]=(char)strlen(name+1);
+			MEM_BlockWrite(SegPhys(ds)+reg_si,name,(Bitu)(strlen(name+1)+2));
+			reg_ax=0;
+			reg_bx=0;
+			return true;
+		}
     case 0x1612:
 		if (dos.version.major < 7) return false;
         reg_ax=0;
