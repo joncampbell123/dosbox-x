@@ -503,7 +503,8 @@ void DOS_Shell::Run(void) {
 						else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							strcpy(tmp, val);
 							char *name=StripArg(tmp);
-							if (!*name||!DOS_FileExists(name)) {
+							if (!*name) continue;
+							if (!DOS_FileExists(name)) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
