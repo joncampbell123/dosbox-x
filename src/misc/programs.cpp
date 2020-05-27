@@ -1082,9 +1082,9 @@ void PROGRAMS_Init() {
 		"-writeconf or -wc without parameter: write to primary loaded config file.\n"\
 		"-writeconf or -wc with filename: write file to config directory.\n"\
 		"Use -writelang or -wl filename to write the current language strings.\n"\
-		"-all Use this option with -wc and -writeconf to write ALL options to the file.\n"\
 		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
 		"-wcd\n Write to the default config file in the config directory.\n"\
+		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the file.\n"\
 		"-l lists configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
