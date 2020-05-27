@@ -5296,6 +5296,8 @@ void DOS_SetupPrograms(void) {
         "\033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is:\n\n"
         "\033[34;1mBOOT [diskimg1.img diskimg2.img] [-l driveletter]\033[0m\n\n"
+		"Or:\n\n"
+        "\033[34;1mBOOT [driveletter:]\033[0m\n\n"
         "An image file with a leading colon (:) will be booted in write-protected mode\n"
 		"if the \"leading colon write protect image\" option is enabled.\n"
         );
@@ -5358,7 +5360,7 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT drive filename -t iso [-fs iso]\n"
         "IMGMOUNT drive -t floppy -el-torito cdDrive\n"
         "IMGMOUNT drive -t ram -size driveSize\n"
-        "IMGMOUNT -u drive|driveLocation\n"
+        "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
         " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
         " filename            Filename of the image to mount (leading ':' for read-only)\n"
