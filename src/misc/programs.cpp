@@ -1141,20 +1141,20 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","Config tool:\n"\
-		"-wc (or -writeconf) without parameter: write to primary loaded config file.\n"\
-		"-wc (or -writeconf) with filename: write file to config directory.\n"\
-		"Use -writelang or -wl filename to write the current language strings.\n"\
-		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
-		"-wcd\n Write to the default config file in the config directory.\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X config tool:\n"\
+		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
+		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
+		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
+		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
+		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
-		"-l lists configuration parameters.\n"\
+		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
 		" For info about a specific section or property add its name behind.\n"\
-		"-axclear clears the autoexec section.\n"\
-		"-axadd [line] adds a line to the autoexec section.\n"\
-		"-axtype prints the content of the autoexec section.\n"\
+		"-axclear Clears the autoexec section.\n"\
+		"-axadd [line] Adds a line to the autoexec section.\n"\
+		"-axtype Prints the content of the autoexec section.\n"\
 		"-securemode\n"\
         " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
         " as well as the ability to create config and language files.\n"\
