@@ -684,8 +684,9 @@ void CONFIG::Run(void) {
 				// sanity check
 				Section* sec = control->GetSection(pvars[0].c_str());
 				Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
+				
 				if (sec != sec2) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_DUPLICATE"));
 				}
 				break;
 			}
@@ -1143,7 +1144,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X config tool. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X configuration tool. Supported options:\n\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
@@ -1157,9 +1158,8 @@ void PROGRAMS_Init() {
 		"-axclear Clears the [autoexec] section.\n"\
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
-		"-securemode\n"\
-        " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
-        " as well as the ability to create config and language files.\n"\
+		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
+        " disabled as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
 		"-set \"section property=value\" sets the value of the property.\n" );
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
@@ -1174,6 +1174,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_SECTION_ERROR","Section %s doesn't exist.\n");
 	MSG_Add("PROGRAM_CONFIG_VALUE_ERROR","\"%s\" is not a valid value for property %s.\n");
 	MSG_Add("PROGRAM_CONFIG_PROPERTY_ERROR","No such section or property.\n");
+	MSG_Add("PROGRAM_CONFIG_PROPERTY_DUPLICATE","There may be other sections with the same property name.\n");
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");
