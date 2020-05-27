@@ -209,10 +209,17 @@ __do_command_begin:
 		cmd_index++;
 	}
 /* This isn't an internal command execute it */
-	char ldir[DOS_PATHLENGTH], *p=ldir;
+	char ldir[CROSS_LEN], *p=ldir;
 	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
 		if (!strchr(cmd_buffer, '\\') && strrchr(ldir, '\\'))
 			p=strrchr(ldir, '\\')+1;
+		if (uselfn&&strchr(p, ' ')&&!DOS_FileExists(("\""+std::string(p)+"\"").c_str())) {
+			bool append=false;
+			if (DOS_FileExists(("\""+std::string(p)+".COM\"").c_str())) {append=true;strcat(p, ".COM");}
+			else if (DOS_FileExists(("\""+std::string(p)+".EXE\"").c_str())) {append=true;strcat(p, ".EXE");}
+			else if (DOS_FileExists(("\""+std::string(p)+".BAT\"").c_str())) {append=true;strcat(p, ".BAT");}
+			if (append&&DOS_GetSFNPath(("\""+std::string(p)+"\"").c_str(), cmd_buffer,false)) if(Execute(cmd_buffer,line)) return;
+		}
 		if(Execute(p,line)) return;
 	} else
 		if(Execute(cmd_buffer,line)) return;
