@@ -36,8 +36,11 @@
     the MBR lacks executable code, or the first partition
     is Windows 98-style LBA FAT16 or FAT32.
   - IMGMOUNT now assumes ISO type by default if the image file
-    extension is ".iso". No need for "-t iso" in this case, but
-    it can be overridden by e.g. "-t hdd". (Wengier)
+    extension is .iso/.cue/.bin/.mdf. No need for "-t iso" in
+    this case; it can be overridden by e.g. "-t hdd". (Wengier)
+  - IMGMOUNT command (no parameters) now lists mounted FAT/ISO
+    drives and mounted drive numbers, also SUBST command (no
+    parameters) now lists mounted local drives (Wengier)
   - INT AH=36h fixed to convert free space but maintain a
     cluster size (bytes/sector * sectors/cluster) that is less
     than 64KB to avoid divide by 0 crashes with FORMAT.COM /S
@@ -68,9 +71,6 @@
     argument is a directory (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
-  - IMGMOUNT command (without parameters) now lists mounted FAT/ISO
-    drives and mounted drive numbers, also SUBST command (without
-    parameters) now lists mounted local drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
