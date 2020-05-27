@@ -3319,8 +3319,9 @@ public:
             Bit8u tdr = toupper(temp_line[0]);
             if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
         }
+
         //get the type
-        cmd->FindString("-t", type, true);
+        bool rtype=cmd->FindString("-t", type, true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
         if (type == "cdrom") type = "iso"; //Tiny hack for people who like to type -t cdrom
@@ -3354,7 +3355,7 @@ public:
 
         //default fstype is fat
         std::string fstype="fat";
-        cmd->FindString("-fs",fstype,true);
+        bool rfstype=cmd->FindString("-fs",fstype,true);
 		std::transform(fstype.begin(), fstype.end(), fstype.begin(), ::tolower);
         
         Bitu sizes[4] = { 0,0,0,0 };
@@ -3444,7 +3445,7 @@ public:
         }
         else if (type == "ram") {
             if (paths.size() != 0) {
-                WriteOut("Do not specify files when mounting ramdrives\n");
+                WriteOut("Do not specify files when mounting RAM drives\n");
                 return;
             }
         }
@@ -3453,6 +3454,10 @@ public:
                 if (strcasecmp(temp_line.c_str(), "-u")) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return; 
             }
+			if (!rtype&&!rfstype&&paths[0].length()>4&&!strcasecmp(paths[0].substr(paths[0].length()-4).c_str(), ".iso")) {
+				type="iso";
+				fstype="iso";
+			}
         }
 
         //====== call the proper subroutine ======
@@ -4147,7 +4152,7 @@ private:
         //formatting might fail; just log the failure and continue
         Bit8u ret = dsk->Format();
         if (ret != 0x00) {
-            LOG_MSG("Warning: could not format ramdrive - error code %u\n", (unsigned int)ret);
+            LOG_MSG("Warning: could not format RAM drive - error code %u\n", (unsigned int)ret);
         }
         return dsk;
     }
@@ -5367,7 +5372,7 @@ void DOS_SetupPrograms(void) {
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
-        " -t ram              Image type is ramdrive\n"
+        " -t ram              Image type is RAM drive\n"
         " -fs iso             File system is ISO 9660\n"
         " -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
         " -fs none            Do not detect file system\n"
