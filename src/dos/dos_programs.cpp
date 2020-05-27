@@ -3454,9 +3454,14 @@ public:
                 if (strcasecmp(temp_line.c_str(), "-u")) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return; 
             }
-			if (!rtype&&!rfstype&&paths[0].length()>4&&!strcasecmp(paths[0].substr(paths[0].length()-4).c_str(), ".iso")) {
-				type="iso";
-				fstype="iso";
+			if (!rtype&&!rfstype&&paths[0].length()>4) {
+				char ext[5];
+				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
+				ext[4]=0;
+				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")) {
+					type="iso";
+					fstype="iso";
+				}
 			}
         }
 
@@ -5362,7 +5367,7 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
         "IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
         "IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive filename -t iso [-fs iso]\n"
+        "IMGMOUNT drive filename [-t iso] [-fs iso]\n"
         "IMGMOUNT drive -t floppy -el-torito cdDrive\n"
         "IMGMOUNT drive -t ram -size driveSize\n"
         "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
