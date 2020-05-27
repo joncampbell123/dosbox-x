@@ -209,8 +209,13 @@ __do_command_begin:
 		cmd_index++;
 	}
 /* This isn't an internal command execute it */
-	char ldir[DOS_PATHLENGTH];
-	if(Execute(strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)?ldir:cmd_buffer,line)) return;
+	char ldir[DOS_PATHLENGTH], *p=ldir;
+	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
+		if (!strchr(cmd_buffer, '\\') && strchr(ldir, '\\'))
+			p=strchr(ldir, '\\')+1;
+		if(Execute(p,line)) return;
+	} else
+		if(Execute(cmd_buffer,line)) return;
 	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
