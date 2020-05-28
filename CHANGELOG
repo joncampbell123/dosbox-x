@@ -1,7 +1,5 @@
 0.83.2
   - Fixed issues with the "config -wcd -all" command (Wengier)
-  - Added DTASEG, DTAOFF, and PSPSEG as hex value constants to
-    the debugger interface to aid in debugging DOS programs.
   - Added [config] section in dosbox-x.conf to resemble DOS's
     CONFIG.SYS file. It currently supports REM, BREAK, NUMLOCK,
     FCBS, FILES, DOS, DEVICE/DEVICEHIGH, INSTALL/INSTALLHIGH,
@@ -22,6 +20,11 @@
     to auto-decide on the best setting for the platform. This
     fixes very small window issue on high DPI devices such as
     Microsoft Surface tablets. (Wengier)
+  - Added DTASEG, DTAOFF, and PSPSEG as hex value constants to
+    the debugger interface to aid in debugging DOS programs.
+  - New command-line option -helpdebug added to list debug-
+    related command-line options. The standard -? / -h / -help
+    command-line option will no longer list them (Wengier)
   - Implemented LFN support for FAT driver, so that it is now
     possible to view directory list, create or open files and
     directories etc with long filenames on FAT12/16/32 drives
@@ -70,7 +73,9 @@
   - Several improvements to DEL command, such as a new /F option to
     force delete of read-only files, and improved handling when the
     argument is a directory (Wengier)
-  - DIR /O & /OG supported in addition to /ON|/OE|/OS|/OD (Wengier)
+  - DIR /O & /OG supported in addition to /ON|/OE|/OS|/OD options.
+    Options such as /-O & /-A can be used to override /O, /A etc if
+    they are specified in the DIRCMD environment varaible (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
