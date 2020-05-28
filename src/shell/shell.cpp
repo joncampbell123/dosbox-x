@@ -503,7 +503,8 @@ void DOS_Shell::Run(void) {
 						else if (!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh")) {
 							strcpy(tmp, val);
 							char *name=StripArg(tmp);
-							if (!*name||!DOS_FileExists(name)) {
+							if (!*name) continue;
+							if (!DOS_FileExists(name)) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
@@ -1069,9 +1070,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CLS_HELP","Clears screen.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D]]\n\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D|G]]\n\n"
 		   "   [drive:][path][filename]\n"
-		   "       Specifies drive, directory, and/or files to list.\n\n"
+		   "       Specifies drive, directory, and/or files to list.\n"
 		   "   /W\tUses wide list format.\n"
 		   "   /B\tUses bare format (no heading information or summary).\n"
 		   "   /S\tDisplays files in specified directory and all subdirectories.\n"
@@ -1082,11 +1083,13 @@ void SHELL_Init() {
 		   "   /AH\tDisplays files with hidden attributes.\n"
 		   "   /AR\tDisplays files with read-only attributes.\n"
 		   "   /AA\tDisplays files with archive attributes.\n"
+		   "   /O\tList by files in sorted order.\n"
 		   "   /ON\tList files sorted by name (alphabetic).\n"
 		   "   /OE\tList files sorted by extension (alphabetic).\n"
 		   "   /OS\tList files sorted by size (smallest first).\n"
-		   "   /OD\tList files sorted by date (oldest first).\n\n"
-		   "   The \"-\" sign can be used in /A[D|S|H|R|A] and /O[N|E|S|D] commands,\n"
+		   "   /OD\tList files sorted by date (oldest first).\n"
+		   "   /OG\tList directories first, then files.\n"
+		   "   The \"-\" sign can be used in /A[D|S|H|R|A] and /O[N|E|S|D|G] commands,\n"
 		   "   meaning \"not\". For example, /A-D displays all files (not directories),\n"
 		   "   and /O-S lists files reversely sorted by size (biggest first).\n"
 		   );

@@ -737,6 +737,7 @@ void Section_prop::PrintData(FILE* outfile,bool everything) {
         if ((*tel)->propname.length() > len)
             len = (*tel)->propname.length();
     }
+	if (!strcasecmp(GetName(), "config")&&len<11) len=11;
 
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
         if (!everything && !(*tel)->modified()) continue;
@@ -860,10 +861,11 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
         (*tel)->PrintData(outfile,everything);
 		if (!strcmp(temp, "config")) {
 			const char * extra = const_cast<char*>(sec->data.c_str());
+			bool used1=false, used2=false;
+			char linestr[CROSS_LEN+1], *lin=linestr;
 			if (extra&&strlen(extra)) {
 				std::istringstream in(extra);
-				char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-				char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+				char cmdstr[CROSS_LEN], valstr[CROSS_LEN], *cmd=cmdstr, *val=valstr, *p;
 				if (in)	for (std::string line; std::getline(in, line); ) {
 					if (line.length()>CROSS_LEN) {
 						strncpy(linestr, line.c_str(), CROSS_LEN);
@@ -878,10 +880,24 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 						strcpy(val, p+1);
 						val=trim(val);
 						lowcase(cmd);
-						if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
-							fprintf(outfile, "%-9s = %s\n", cmd, val);
+						if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh")) {
+							(!strncmp(cmd, "set ", 4)?used1:used2)=true;
+							fprintf(outfile, "%-11s = %s\n", cmd, val);
+						}
 					}
 				}
+			}
+			if (everything&&!used1) {
+				fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
+				fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
+			}
+			if (everything&&!used2) {
+				fprintf(outfile, "%-11s = %s\n", "install", "");
+				fprintf(outfile, "%-11s = %s\n", "installhigh", "");
+				fprintf(outfile, "%-11s = %s\n", "device", "");
+				fprintf(outfile, "%-11s = %s\n", "devicehigh", "");
+			}
+			if (extra&&strlen(extra)) {
 				std::istringstream rem(extra);
 				if (everything&&rem) for (std::string line; std::getline(rem, line); ) {
 					if (line.length()>CROSS_LEN) {

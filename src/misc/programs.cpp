@@ -523,6 +523,14 @@ private:
 			// write file to the default config directory
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
+			struct stat info;
+			if (!stat(config_path.c_str(), &info) || !(info.st_mode & S_IFDIR)) {
+#ifdef WIN32
+				CreateDirectory(config_path.c_str(), NULL);
+#else
+				mkdir(config_path.c_str(), 0755);
+#endif
+			}
 			name = config_path + name;
 		}
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
@@ -615,7 +623,7 @@ void CONFIG::Run(void) {
 			}
 			break;
 		case P_WRITECONF_DEFAULT: {
-			// write to /userdir/dosbox0.xx.conf
+			// write to /userdir/dosbox-x-0.xx.conf
 			if (securemode_check()) return;
 			if (pvars.size() > 0) return;
 			std::string confname;
@@ -631,8 +639,7 @@ void CONFIG::Run(void) {
 				writeconf(pvars[0], false, all);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
-				if (control->configfiles.size()) writeconf(std::string("dosbox-x.conf"), false, all);
-				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
+				writeconf(std::string("dosbox-x.conf"), false, all);
 			}
 			break;
 
@@ -677,8 +684,9 @@ void CONFIG::Run(void) {
 				// sanity check
 				Section* sec = control->GetSection(pvars[0].c_str());
 				Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
+				
 				if (sec != sec2) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_DUPLICATE"));
 				}
 				break;
 			}
@@ -715,6 +723,8 @@ void CONFIG::Run(void) {
 					if (p==NULL) break;
 					WriteOut("%s\n", p->propname.c_str());
 				}
+				if (!strcasecmp(pvars[0].c_str(), "config"))
+					WriteOut("set\ninstall\ninstallhigh\ndevice\ndevicehigh\n");
 			} else {
 				// find the property by it's name
 				size_t i = 0;
@@ -831,6 +841,32 @@ void CONFIG::Run(void) {
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
+					if (!strcasecmp(pvars[0].c_str(), "config")) {
+						const char * extra = const_cast<char*>(psec->data.c_str());
+						if (extra&&strlen(extra)) {
+							std::istringstream in(extra);
+							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							if (in)	for (std::string line; std::getline(in, line); ) {
+								if (line.length()>CROSS_LEN) {
+									strncpy(linestr, line.c_str(), CROSS_LEN);
+									linestr[CROSS_LEN]=0;
+								} else
+									strcpy(linestr, line.c_str());
+								p=strchr(linestr, '=');
+								if (p!=NULL) {
+									*p=0;
+									strcpy(cmd, linestr);
+									cmd=trim(cmd);
+									strcpy(val, p+1);
+									val=trim(val);
+									lowcase(cmd);
+									if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+										WriteOut("%s=%s\n", cmd, val);
+								}
+							}
+						}
+					}
 				} else {
 					// no: maybe it's a property?
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
@@ -854,8 +890,36 @@ void CONFIG::Run(void) {
 				}
 				std::string val = sec->GetPropValue(pvars[1].c_str());
 				if (val == NO_SUCH_PROPERTY) {
-					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"),
-						pvars[1].c_str(),pvars[0].c_str());   
+					if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh"))) {
+						Section_prop* psec = dynamic_cast <Section_prop*>(sec);
+						const char * extra = const_cast<char*>(psec->data.c_str());
+						if (extra&&strlen(extra)) {
+							std::istringstream in(extra);
+							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							if (in)	for (std::string line; std::getline(in, line); ) {
+								if (line.length()>CROSS_LEN) {
+									strncpy(linestr, line.c_str(), CROSS_LEN);
+									linestr[CROSS_LEN]=0;
+								} else
+									strcpy(linestr, line.c_str());
+								p=strchr(linestr, '=');
+								if (p!=NULL) {
+									*p=0;
+									strcpy(cmd, linestr);
+									cmd=trim(cmd);
+									strcpy(val, p+1);
+									val=trim(val);
+									lowcase(cmd);
+									if (!strncasecmp(cmd, "set ", 4)&&!strcasecmp(pvars[1].c_str(), "set"))
+										WriteOut("%s=%s\n", trim(cmd+4), val);
+									else if(!strcasecmp(cmd, pvars[1].c_str()))
+										WriteOut("%s\n", val);
+								}
+							}
+						}
+					} else
+						WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());   
 					return;
 				}
 				WriteOut("%s",val.c_str());
@@ -959,8 +1023,10 @@ void CONFIG::Run(void) {
 			// check if the property actually exists in the section
 			Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
 			if (!sec2) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"),
-					pvars[1].c_str(),pvars[0].c_str());
+				if (!strcasecmp(pvars[0].c_str(), "config") && (!strcasecmp(pvars[1].c_str(), "set") || !strcasecmp(pvars[1].c_str(), "device") || !strcasecmp(pvars[1].c_str(), "devicehigh") || !strcasecmp(pvars[1].c_str(), "install") || !strcasecmp(pvars[1].c_str(), "installhigh")))
+					WriteOut("Cannot set property %s in section %s.\n", pvars[1].c_str(),pvars[0].c_str());
+				else
+					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
 				return;
 			}
 			// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)
@@ -1078,25 +1144,24 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","Config tool:\n"\
-		"-writeconf or -wc without parameter: write to primary loaded config file.\n"\
-		"-writeconf or -wc with filename: write file to config directory.\n"\
-		"Use -writelang or -wl filename to write the current language strings.\n"\
-		"-wcp [filename]\n Write config file to the program directory, dosbox-x.conf or the specified \n filename.\n"\
-		"-wcd\n Write to the default config file in the config directory.\n"\
-		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the file.\n"\
-		"-l lists configuration parameters.\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X configuration tool. Supported options:\n\n"\
+		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
+		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
+		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
+		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
+		"-wcd Writes to the default config file in the config directory.\n"\
+		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
+		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
 		" For info about a specific section or property add its name behind.\n"\
-		"-axclear clears the autoexec section.\n"\
-		"-axadd [line] adds a line to the autoexec section.\n"\
-		"-axtype prints the content of the autoexec section.\n"\
-		"-securemode\n"\
-        " Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be disabled\n"\
-        " as well as the ability to create config and language files.\n"\
+		"-axclear Clears the [autoexec] section.\n"\
+		"-axadd [line] Adds a line to the [autoexec] section.\n"\
+		"-axtype Prints the content of the [autoexec] section.\n"\
+		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
+        " disabled as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value.\n" );
+		"-set \"section property=value\" sets the value of the property.\n" );
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");
@@ -1109,6 +1174,7 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_SECTION_ERROR","Section %s doesn't exist.\n");
 	MSG_Add("PROGRAM_CONFIG_VALUE_ERROR","\"%s\" is not a valid value for property %s.\n");
 	MSG_Add("PROGRAM_CONFIG_PROPERTY_ERROR","No such section or property.\n");
+	MSG_Add("PROGRAM_CONFIG_PROPERTY_DUPLICATE","There may be other sections with the same property name.\n");
 	MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 	MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","Correct syntax: config -set \"section property=value\".\n");
 	MSG_Add("PROGRAM_CONFIG_GET_SYNTAX","Correct syntax: config -get \"section property\".\n");

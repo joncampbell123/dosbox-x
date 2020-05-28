@@ -3319,8 +3319,9 @@ public:
             Bit8u tdr = toupper(temp_line[0]);
             if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
         }
+
         //get the type
-        cmd->FindString("-t", type, true);
+        bool rtype=cmd->FindString("-t", type, true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
         if (type == "cdrom") type = "iso"; //Tiny hack for people who like to type -t cdrom
@@ -3354,7 +3355,7 @@ public:
 
         //default fstype is fat
         std::string fstype="fat";
-        cmd->FindString("-fs",fstype,true);
+        bool rfstype=cmd->FindString("-fs",fstype,true);
 		std::transform(fstype.begin(), fstype.end(), fstype.begin(), ::tolower);
         
         Bitu sizes[4] = { 0,0,0,0 };
@@ -3444,7 +3445,7 @@ public:
         }
         else if (type == "ram") {
             if (paths.size() != 0) {
-                WriteOut("Do not specify files when mounting ramdrives\n");
+                WriteOut("Do not specify files when mounting RAM drives\n");
                 return;
             }
         }
@@ -3453,6 +3454,15 @@ public:
                 if (strcasecmp(temp_line.c_str(), "-u")) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return; 
             }
+			if (!rtype&&!rfstype&&paths[0].length()>4) {
+				char ext[5];
+				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
+				ext[4]=0;
+				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")) {
+					type="iso";
+					fstype="iso";
+				}
+			}
         }
 
         //====== call the proper subroutine ======
@@ -4147,7 +4157,7 @@ private:
         //formatting might fail; just log the failure and continue
         Bit8u ret = dsk->Format();
         if (ret != 0x00) {
-            LOG_MSG("Warning: could not format ramdrive - error code %u\n", (unsigned int)ret);
+            LOG_MSG("Warning: could not format RAM drive - error code %u\n", (unsigned int)ret);
         }
         return dsk;
     }
@@ -5253,7 +5263,7 @@ void DOS_SetupPrograms(void) {
             );
         MSG_Add("PROGRAM_INTRO_MOUNT_END",
             "When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
-            "mounted C-drive. Typing \033[34;1mdir\033[0m there will show its contents."
+            "mounted C: drive. Typing \033[34;1mdir\033[0m there will show its contents."
             " \033[34;1mcd\033[0m will allow you to\n"
             "enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
             "You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
@@ -5295,9 +5305,11 @@ void DOS_SetupPrograms(void) {
         "drive (C or D), the image should have already been mounted using the\n"
         "\033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is:\n\n"
-        "\033[34;1mBOOT [diskimg1.img diskimg2.img] [-l driveletter]\033[0m\n\n"
-        "An image file with a leading colon (:) will be booted in write-protected mode\n"
-		"if the \"leading colon write protect image\" option is enabled.\n"
+        "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
+		"Or:\n\n"
+        "\033[34;1mBOOT driveletter:\033[0m\n\n"
+        "Note: An image file with a leading colon (:) will be booted in write-protected\n"
+		"mode if the \"leading colon write protect image\" option is enabled.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
@@ -5355,17 +5367,17 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
         "IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
         "IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive filename -t iso [-fs iso]\n"
+        "IMGMOUNT drive filename [-t iso] [-fs iso]\n"
         "IMGMOUNT drive -t floppy -el-torito cdDrive\n"
         "IMGMOUNT drive -t ram -size driveSize\n"
-        "IMGMOUNT -u drive|driveLocation\n"
+        "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
         " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
         " filename            Filename of the image to mount (leading ':' for read-only)\n"
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
-        " -t ram              Image type is ramdrive\n"
+        " -t ram              Image type is RAM drive\n"
         " -fs iso             File system is ISO 9660\n"
         " -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
         " -fs none            Do not detect file system\n"

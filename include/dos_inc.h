@@ -551,7 +551,7 @@ class DOS_DTA:public MemStruct{
 public:
 	DOS_DTA(RealPt addr) { SetPt(addr); }
 
-    int GetFindData(int fmt,char * finddata);
+    int GetFindData(int fmt,char * finddata,int *c);
 	
 	void SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern);
 	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);

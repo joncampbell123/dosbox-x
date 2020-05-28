@@ -14,9 +14,10 @@
     These options in existing dosbox-x.conf/dosbox.conf files
     will be automatically redirected to the [pc98] section from
     the other sections when DOSBox-X starts (Wengier)
-  - The user directory DOSBox-X uses has been changed from e.g.
-    ~/.dosbox to ~/.config/dosbox-x. It will be read *after*
-    the dosbox-x.conf file in the current directory (Wengier)
+  - The user directory DOSBox-X uses has been changed to use the
+    DOSBox-X directory (e.g. from ~/.dosbox to ~/.config/dosbox-x
+    on Linux platform). It will be read *after* the dosbox-x.conf
+    file in the current directory (Wengier)
   - Config option "dpi aware" now supports the "auto" setting
     to auto-decide on the best setting for the platform. This
     fixes very small window issue on high DPI devices such as
@@ -34,6 +35,13 @@
     and fake C/H/S geometry if the disk is 4GB or larger,
     the MBR lacks executable code, or the first partition
     is Windows 98-style LBA FAT16 or FAT32.
+  - IMGMOUNT now assumes ISO type by default if the image file
+    extension is .iso/.cue/.bin/.mdf. No need for "-t iso" in
+    this case; but (if appliable) it can be overridden by for
+    example "-t hdd". (Wengier)
+  - IMGMOUNT command (no parameters) now lists mounted FAT/ISO
+    drives and mounted drive numbers, also SUBST command (no
+    parameters) now lists mounted local drives (Wengier)
   - INT AH=36h fixed to convert free space but maintain a
     cluster size (bytes/sector * sectors/cluster) that is less
     than 64KB to avoid divide by 0 crashes with FORMAT.COM /S
@@ -62,22 +70,19 @@
   - Several improvements to DEL command, such as a new /F option to
     force delete of read-only files, and improved handling when the
     argument is a directory (Wengier)
+  - DIR /O & /OG supported in addition to /ON|/OE|/OS|/OD (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
-  - IMGMOUNT command (without parameters) now lists mounted FAT/ISO
-    drives and mounted drive numbers, also SUBST command (without
-    parameters) now lists mounted local drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
   - DOS kernel INT 21h function Set File Attribute no longer
     allows changing volume label attributes and fixes directory
     attributes in order to prevent filesystem corruption.
     This prevents Windows 95 Setup from creating WINBOOT.INI
     and then changing it into a directory with the call.
-  - FAT driver bugs fixed where a newly created zero length
-    file combined with a lseek() can corrupt filesytem
-    structures (root directory and/or the second FAT table).
-    This fixes filesystem corruption when running Windows
-    95 install.
+  - FAT driver bugs fixed where a newly created zero length file
+    combined with a lseek() can corrupt filesytem structures
+    (root directory and/or the second FAT table). This fixes
+    filesystem corruption when running Windows 95 install.
   - Enabled printer emulation for non-Windows OSes (Linux,
     Mac OS X, etc.). FreeType2 is required to enable
     printer emulation at compile time.
@@ -108,7 +113,7 @@
   - Re-added full drive menu items for the Windows platform.
     The "Boot from drive" item (A:, C: and D: drives only)
     should work in other platforms too. The BOOT command is
-    also slightly improved. (Wengier)
+    also improved to allow e.g. "BOOT A:" to work. (Wengier)
   - INT 10h vector now points into VGA BIOS as a workaround
     for DOS programs that use vector location as part of
     their EGA/VGA detection. This fixes blink attribute

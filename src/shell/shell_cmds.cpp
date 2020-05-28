@@ -209,8 +209,20 @@ __do_command_begin:
 		cmd_index++;
 	}
 /* This isn't an internal command execute it */
-	char ldir[DOS_PATHLENGTH];
-	if(Execute(strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)?ldir:cmd_buffer,line)) return;
+	char ldir[CROSS_LEN], *p=ldir;
+	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
+		if (!strchr(cmd_buffer, '\\') && strrchr(ldir, '\\'))
+			p=strrchr(ldir, '\\')+1;
+		if (uselfn&&strchr(p, ' ')&&!DOS_FileExists(("\""+std::string(p)+"\"").c_str())) {
+			bool append=false;
+			if (DOS_FileExists(("\""+std::string(p)+".COM\"").c_str())) {append=true;strcat(p, ".COM");}
+			else if (DOS_FileExists(("\""+std::string(p)+".EXE\"").c_str())) {append=true;strcat(p, ".EXE");}
+			else if (DOS_FileExists(("\""+std::string(p)+".BAT\"").c_str())) {append=true;strcat(p, ".BAT");}
+			if (append&&DOS_GetSFNPath(("\""+std::string(p)+"\"").c_str(), cmd_buffer,false)) if(Execute(cmd_buffer,line)) return;
+		}
+		if(Execute(p,line)) return;
+	} else
+		if(Execute(cmd_buffer,line)) return;
 	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
@@ -943,6 +955,8 @@ struct DtaResult {
 	Bit16u time;
 	Bit8u attr;
 
+	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:(((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY) || !(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)) && strcmp(lhs.name, rhs.name) < 0); }
+	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
 	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
 	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
 	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size < rhs.size; }
@@ -975,7 +989,7 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	return true;
 }
 
-static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
+static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optO, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
 	char path[DOS_PATHLENGTH];
 	char sargs[CROSS_LEN], largs[CROSS_LEN];
 
@@ -1047,6 +1061,12 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		} else if (optOS) {
 			// Sort by size
 			std::sort(results.begin(), results.end(), DtaResult::compareSize);
+		} else if (optOG) {
+			// Directories first, then files
+			std::sort(results.begin(), results.end(), DtaResult::groupDirs);
+		} else if (optO) {
+			// Directories first, then files, both sort by name
+			std::sort(results.begin(), results.end(), DtaResult::groupDef);
 		}
 		if (reverseSort) {
 			std::reverse(results.begin(), results.end());
@@ -1231,6 +1251,21 @@ void DOS_Shell::CMD_DIR(char * args) {
 		optOS = true;
 		reverseSort = true;
 	}
+	bool optOG=ScanCMDBool(args,"OG");
+	if (ScanCMDBool(args,"O-G")) {
+		optOG = true;
+		reverseSort = true;
+	}
+	bool optO=ScanCMDBool(args,"O");
+	if (ScanCMDBool(args,"-O")) {
+		optO = false;
+		optOG = false;
+		optON = false;
+		optOD = false;
+		optOE = false;
+		optOS = false;
+		reverseSort = false;
+	}
 	char * rem=ScanCMDRemain(args);
 	if (rem) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
@@ -1310,7 +1345,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 	dirs.clear();
 	dirs.push_back(std::string(args));
 	while (!dirs.empty()) {
-		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);return;}
+		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optO, optOG, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);return;}
 		dirs.erase(dirs.begin());
 	}
 	if (!optB) {
@@ -1843,7 +1878,7 @@ void DOS_Shell::CMD_IF(char * args) {
 		}
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
+			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
 			if (r!=NULL) {
 				*r=0;
 				strcpy(path, word);
@@ -1866,7 +1901,6 @@ void DOS_Shell::CMD_IF(char * args) {
 			}
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
-			char sword[DOS_PATHLENGTH];
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			std::string full=std::string(spath)+std::string(pattern);

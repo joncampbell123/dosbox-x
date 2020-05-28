@@ -3396,7 +3396,9 @@ void DOS_Int21_714e(char *name1, char *name2) {
 				reg_ax=handle;
 				DOS_DTA dta(dos.dta());
 				char finddata[CROSS_LEN];
-				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+				int c=0;
+				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata,&c));
+				reg_cx=c;
 				CALLBACK_SCF(false);
 		} else {
 				dos.errorcode=error;
@@ -3418,7 +3420,9 @@ void DOS_Int21_714f(const char *name1, const char *name2) {
 		if (DOS_FindNext()) {
 				DOS_DTA dta(dos.dta());
 				char finddata[CROSS_LEN];
-				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata));
+				int c=0;
+				MEM_BlockWrite(SegPhys(es)+reg_di,finddata,dta.GetFindData((int)reg_si,finddata,&c));
+				reg_cx=c;
 				CALLBACK_SCF(false);
 				reg_ax=0x4f00+handle;
 		} else {
