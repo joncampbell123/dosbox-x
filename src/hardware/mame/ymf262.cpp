@@ -2379,7 +2379,7 @@ static OPL3 *OPL3Create(device_t *device, int clock, int rate, int type)
 static void OPL3Destroy(OPL3 *chip)
 {
 	OPL3_UnLockTable();
-	auto_free(chip->device->machine(), chip);
+    free(chip);
 }
 
 

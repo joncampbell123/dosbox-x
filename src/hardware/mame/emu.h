@@ -141,11 +141,6 @@ public:
 
 
 
-static void auto_free(const device_t::machine_t& machine, void * buffer) {
-    (void)machine;
-	free(buffer);
-}
-
 #define auto_alloc_array_clear(m, t, c) calloc(c, sizeof(t) )
 #define auto_alloc_clear(m, t) static_cast<t*>( calloc(1, sizeof(t) ) )
 
