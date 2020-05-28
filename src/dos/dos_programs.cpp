@@ -5263,7 +5263,7 @@ void DOS_SetupPrograms(void) {
             );
         MSG_Add("PROGRAM_INTRO_MOUNT_END",
             "When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
-            "mounted C-drive. Typing \033[34;1mdir\033[0m there will show its contents."
+            "mounted C: drive. Typing \033[34;1mdir\033[0m there will show its contents."
             " \033[34;1mcd\033[0m will allow you to\n"
             "enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
             "You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
@@ -5305,11 +5305,11 @@ void DOS_SetupPrograms(void) {
         "drive (C or D), the image should have already been mounted using the\n"
         "\033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is:\n\n"
-        "\033[34;1mBOOT [diskimg1.img diskimg2.img] [-l driveletter]\033[0m\n\n"
+        "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
 		"Or:\n\n"
-        "\033[34;1mBOOT [driveletter:]\033[0m\n\n"
-        "An image file with a leading colon (:) will be booted in write-protected mode\n"
-		"if the \"leading colon write protect image\" option is enabled.\n"
+        "\033[34;1mBOOT driveletter:\033[0m\n\n"
+        "Note: An image file with a leading colon (:) will be booted in write-protected\n"
+		"mode if the \"leading colon write protect image\" option is enabled.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
