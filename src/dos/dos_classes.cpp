@@ -447,7 +447,7 @@ void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,Bit16u & _dat
 	_attr=(Bit8u)sGet(sDTA,attr);
 }
 
-int DOS_DTA::GetFindData(int fmt, char * fdstr) {
+int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 	if (fmt==1)
 		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.mtime,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
 	else
@@ -459,6 +459,10 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr) {
     fdstr[35]=(char)(fd.size/16777216);
     fdstr[44+strlen(fd.lname)]=0;
     fdstr[304+strlen(fd.sname)]=0;
+	if (!strcmp(fd.sname,"?")&&strlen(fd.lname))
+		*c=2;
+	else
+		*c=!strchr(fd.sname,'?')&&strchr(fd.lname,'?')?1:0;
     return (sizeof(fd));
 }
 
