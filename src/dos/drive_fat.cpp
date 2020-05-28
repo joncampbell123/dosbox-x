@@ -111,7 +111,7 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 			*sfn=0;
 			while (*n == '.'||*n == ' ') n++;
 			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
-			while (*n != 0 && *n != '.' && i<(k<10?6:(k<100?5:(k<1000?4:3)))) {
+			while (*n != 0 && *n != '.' && i<(k<10?6u:(k<100?5u:(k<1000?4:3u)))) {
 				if (*n == ' ') {
 					n++;
 					continue;
@@ -2287,7 +2287,7 @@ nextfile:
 			lfnRange.dirPos_start = dirPos - 1; /* NTS: The code above has already incremented dirPos */
 		}
 
-		if (lfn_max_ord != 0 && (dlfn->LDIR_Ord & 0x3F) > 0 && (dlfn->LDIR_Ord & 0x3F) <= lfn_max_ord && dlfn->LDIR_Chksum == lfn_checksum) {
+		if (lfn_max_ord != 0 && (dlfn->LDIR_Ord & 0x3F) > 0 && (dlfn->LDIR_Ord & 0x3Fu) <= lfn_max_ord && dlfn->LDIR_Chksum == lfn_checksum) {
 			unsigned int oidx = (dlfn->LDIR_Ord & 0x3Fu) - 1u;
 			unsigned int stridx = oidx * 13u;
 
@@ -2523,7 +2523,7 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry
 		/* 13 characters per LFN entry.
 		 * FIXME: When we convert the LFN to wchar using code page, strlen() prior to conversion will not work,
 		 *        convert first then count wchar_t characters. */
-		need = 1 + ((strlen(lfn) + 12) / 13)/*round up*/;
+		need = (unsigned int)(1 + ((strlen(lfn) + 12) / 13))/*round up*/;
 	}
 
 	size_t dirent_per_sector = getSectSize() / sizeof(direntry);

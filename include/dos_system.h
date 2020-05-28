@@ -35,13 +35,13 @@
 #endif
 #include <ctype.h>
 
-#define DOS_NAMELENGTH 12
+#define DOS_NAMELENGTH 12u
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)
-#define LFN_NAMELENGTH 255
-#define DOS_FCBNAME 15
-#define DOS_DIRDEPTH 8
-#define DOS_PATHLENGTH 255
-#define DOS_TEMPSIZE 1024
+#define LFN_NAMELENGTH 255u
+#define DOS_FCBNAME 15u
+#define DOS_DIRDEPTH 8u
+#define DOS_PATHLENGTH 255u
+#define DOS_TEMPSIZE 1024u
 
 enum {
     CPM_COMPAT_OFF=0,
