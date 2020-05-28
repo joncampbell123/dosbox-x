@@ -860,7 +860,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
 	MSG_Add("SHELL_ILLEGAL_PATH","Illegal Path.\n");
-	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported commands type \033[33;1mhelp /all\033[0m .\nA short list of the most often used commands:\n");
+	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported commands type \033[33;1mHELP /ALL\033[0m.\nA short list of the most often used commands:\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Illegal switch: %s.\n");
@@ -1098,7 +1098,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
-	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP\n");
+	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/ALL]\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
