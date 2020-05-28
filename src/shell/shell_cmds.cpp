@@ -1878,7 +1878,7 @@ void DOS_Shell::CMD_IF(char * args) {
 		}
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
+			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
 			if (r!=NULL) {
 				*r=0;
 				strcpy(path, word);
@@ -1901,7 +1901,6 @@ void DOS_Shell::CMD_IF(char * args) {
 			}
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
-			char sword[DOS_PATHLENGTH];
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			std::string full=std::string(spath)+std::string(pattern);
