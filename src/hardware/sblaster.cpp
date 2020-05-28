@@ -1790,6 +1790,46 @@ static void DSP_DoCommand(void) {
     case 0xb8:  case 0xb9:  case 0xba:  case 0xbb:  case 0xbc:  case 0xbd:  case 0xbe:  case 0xbf:
     case 0xc0:  case 0xc1:  case 0xc2:  case 0xc3:  case 0xc4:  case 0xc5:  case 0xc6:  case 0xc7:
     case 0xc8:  case 0xc9:  case 0xca:  case 0xcb:  case 0xcc:  case 0xcd:  case 0xce:  case 0xcf:
+/* The low 5 bits DO have specific meanings:
+
+ Bx - Program 16-bit DMA mode digitized sound I/O
+      Command sequence:  Command, Mode, Lo(Length-1), Hi(Length-1)
+       Command:
+        ╔════╤════╤════╤════╤═══════╤══════╤═══════╤════╗
+        ║ D7 │ D6 │ D5 │ D4 │  D3   │  D2  │  D1   │ D0 ║
+        ╠════╪════╪════╪════╪═══════╪══════╪═══════╪════╣
+        ║  1 │  0 │  1 │  1 │  A/D  │  A/I │ FIFO  │  0 ║
+        ╚════╧════╧════╧════┼───────┼──────┼───────┼════╝
+                            │ 0=D/A │ 0=SC │ 0=off │
+                            │ 1=A/D │ 1=AI │ 1=on  │
+                            └───────┴──────┴───────┘
+       Common commands:
+         B8 - 16-bit single-cycle input
+         B0 - 16-bit single-cycle output
+         BE - 16-bit auto-initialized input
+         B6 - 16-bit auto-initialized output
+
+       Mode:
+        ╔════╤════╤══════════╤════════════╤════╤════╤════╤════╗
+        ║ D7 │ D6 │    D5    │     D4     │ D3 │ D2 │ D1 │ D0 ║
+        ╠════╪════╪══════════╪════════════╪════╪════╪════╪════╣
+        ║  0 │  0 │  Stereo  │   Signed   │  0 │  0 │  0 │  0 ║
+        ╚════╧════┼──────────┼────────────┼════╧════╧════╧════╝
+                  │ 0=Mono   │ 0=unsigned │
+                  │ 1=Stereo │ 1=signed   │
+                  └──────────┴────────────┘
+
+ Cx - Program 8-bit DMA mode digitized sound I/O
+      Same procedure as 16-bit sound I/O using command Bx
+       Common commands:
+         C8 - 8-bit single-cycle input
+         C0 - 8-bit single-cycle output
+         CE - 8-bit auto-initialized input
+         C6 - 8-bit auto-initialized output
+
+  Note that this code makes NO attempt to distinguish recording vs playback commands, which
+  is responsible for some failures such as [https://github.com/joncampbell123/dosbox-x/issues/1589]
+*/
         if (sb.reveal_sc_type == RSC_SC400) {
             /* Despite reporting itself as Sound Blaster Pro, the Reveal SC400 cards do support *some* SB16 DSP commands! */
             /* BUT, it only recognizes a subset of this range. */
