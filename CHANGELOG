@@ -37,7 +37,8 @@
     is Windows 98-style LBA FAT16 or FAT32.
   - IMGMOUNT now assumes ISO type by default if the image file
     extension is .iso/.cue/.bin/.mdf. No need for "-t iso" in
-    this case; it can be overridden by e.g. "-t hdd". (Wengier)
+    this case; but (if appliable) it can be overridden by for
+    example "-t hdd". (Wengier)
   - IMGMOUNT command (no parameters) now lists mounted FAT/ISO
     drives and mounted drive numbers, also SUBST command (no
     parameters) now lists mounted local drives (Wengier)
@@ -69,6 +70,7 @@
   - Several improvements to DEL command, such as a new /F option to
     force delete of read-only files, and improved handling when the
     argument is a directory (Wengier)
+  - DIR /O & /OG supported in addition to /ON|/OE|/OS|/OD (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
