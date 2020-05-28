@@ -1975,7 +1975,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 			}
 		}
 		/* update */
-		if(CH->block_fnum != block_fnum)
+		if(CH->block_fnum != (unsigned int)block_fnum)
 		{
 			uint8_t block  = block_fnum >> 10;
 

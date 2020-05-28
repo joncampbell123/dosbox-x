@@ -79,7 +79,7 @@ bool filename_not_8x3(const char *n) {
  * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
 bool filename_not_strict_8x3(const char *n) {
 	if (filename_not_8x3(n)) return true;
-	for (int i=0; i<strlen(n); i++)
+	for (unsigned int i=0; i<strlen(n); i++)
 		if (n[i]>='a' && n[i]<='z')
 			return true;
 	return false; /* it is strict 8.3 upper case */
@@ -103,7 +103,7 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
 	if (!strlen(lfn)) return NULL;
 	direntry fileEntry = {};
 	Bit32u dirClust, subEntry;
-	int k=1, i, t=10000;
+	unsigned int k=1, i, t=10000;
 	while (k<10000) {
 		n=lfn;
 		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
