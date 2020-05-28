@@ -955,6 +955,8 @@ struct DtaResult {
 	Bit16u time;
 	Bit8u attr;
 
+	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:(((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY) || !(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)) && strcmp(lhs.name, rhs.name) < 0); }
+	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
 	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
 	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
 	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size < rhs.size; }
@@ -987,7 +989,7 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	return true;
 }
 
-static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
+static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optO, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
 	char path[DOS_PATHLENGTH];
 	char sargs[CROSS_LEN], largs[CROSS_LEN];
 
@@ -1059,6 +1061,12 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		} else if (optOS) {
 			// Sort by size
 			std::sort(results.begin(), results.end(), DtaResult::compareSize);
+		} else if (optOG) {
+			// Directories first, then files
+			std::sort(results.begin(), results.end(), DtaResult::groupDirs);
+		} else if (optO) {
+			// Directories first, then files, both sort by name
+			std::sort(results.begin(), results.end(), DtaResult::groupDef);
 		}
 		if (reverseSort) {
 			std::reverse(results.begin(), results.end());
@@ -1243,6 +1251,21 @@ void DOS_Shell::CMD_DIR(char * args) {
 		optOS = true;
 		reverseSort = true;
 	}
+	bool optOG=ScanCMDBool(args,"OG");
+	if (ScanCMDBool(args,"O-G")) {
+		optOG = true;
+		reverseSort = true;
+	}
+	bool optO=ScanCMDBool(args,"O");
+	if (ScanCMDBool(args,"-O")) {
+		optO = false;
+		optOG = false;
+		optON = false;
+		optOD = false;
+		optOE = false;
+		optOS = false;
+		reverseSort = false;
+	}
 	char * rem=ScanCMDRemain(args);
 	if (rem) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
@@ -1322,7 +1345,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 	dirs.clear();
 	dirs.push_back(std::string(args));
 	while (!dirs.empty()) {
-		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);return;}
+		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optO, optOG, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);return;}
 		dirs.erase(dirs.begin());
 	}
 	if (!optB) {
