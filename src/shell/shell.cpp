@@ -508,13 +508,13 @@ void DOS_Shell::Run(void) {
 								WriteOut("The following file is missing or corrupted: %s\n", name);
 								continue;
 							}
-							if (!strcasecmp(cmd, "install")) {
+							if (!strcasecmp(cmd, "install"))
 								DoCommand(val);
-							} else if (!strcasecmp(cmd, "installhigh"))
+							else if (!strcasecmp(cmd, "installhigh"))
 								DoCommand((char *)("lh "+std::string(val)).c_str());
-							else if (!strcasecmp(cmd, "device")) {
+							else if (!strcasecmp(cmd, "device"))
 								DoCommand((char *)("device "+std::string(val)).c_str());
-							} else if (!strcasecmp(cmd, "devicehigh"))
+							else if (!strcasecmp(cmd, "devicehigh"))
 								DoCommand((char *)("lh device "+std::string(val)).c_str());
 						}
 					} else if (!strncasecmp(line.c_str(), "rem ", 4)) {
@@ -1072,7 +1072,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D|G]]\n\n"
 		   "   [drive:][path][filename]\n"
-		   "       Specifies drive, directory, and/or files to list.\n"
+		   "   \tSpecifies drive, directory, and/or files to list.\n"
 		   "   /W\tUses wide list format.\n"
 		   "   /B\tUses bare format (no heading information or summary).\n"
 		   "   /S\tDisplays files in specified directory and all subdirectories.\n"

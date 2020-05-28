@@ -107,7 +107,7 @@ static void outc(Bit8u c) {
 
 static void backone() {
 	BIOS_NCOLS;
-	const Bit8u page(0);
+	Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	if (CURSOR_POS_COL(page)>0)
 		outc(8);
 	else if (CURSOR_POS_ROW(page)>0)
@@ -602,6 +602,8 @@ void DOS_Shell::InputCommand(char * line) {
 									r++;
 							}
 						}
+						int fbak=lfn_filefind_handle;
+						lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
                         while (res) {
 							dta.GetResult(name,lname,sz,date,time,att);
 							if ((strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q)||r)
@@ -622,11 +624,9 @@ void DOS_Shell::InputCommand(char * line) {
 										l_completion.push_back(qlname);
                                 }
                             }
-							int fbak=lfn_filefind_handle;
-							lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
                             res=DOS_FindNext();
-							lfn_filefind_handle=fbak;
                         }
+						lfn_filefind_handle=fbak;
                         /* Add executable list to front of completion list. */
                         std::copy(executable.begin(),executable.end(),std::front_inserter(l_completion));
                         it_completion = l_completion.begin();
