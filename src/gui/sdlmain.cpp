@@ -6402,7 +6402,7 @@ void DOSBox_ShowConsole() {
 void DOSBox_ConsolePauseWait() {
     char c;
 
-    printf("Hit ENTER to continue\n");
+    printf("Press ENTER key to continue\n");
     do {
         if (fread(&c, 1, 1, stdin) != 1) break;
     } while (!(c == 13 || c == 10)); /* wait for Enter key */
@@ -6448,9 +6448,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -printconf                              Print config file location\n");
             fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
             fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-            fprintf(stderr,"  -console                                Show console (win32)\n");
-            fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
-            fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+            fprintf(stderr,"  -nogui                                  Don't show GUI (Windows version only)\n");
+            fprintf(stderr,"  -nomenu                                 Don't show menu (Windows version only)\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
             fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
@@ -6458,8 +6457,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
-            fprintf(stderr,"  -savedir <path>                         Save path\n");
-            fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+            fprintf(stderr,"  -savedir <path>                         Set save path\n");
+            fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
@@ -6488,10 +6487,11 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
             fprintf(stderr,"Debugging options:\n\n");
             fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
-            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
+            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox-X (implies -console)\n");
             fprintf(stderr,"  -keydbg                                 Log all SDL key events\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
-            fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
+            fprintf(stderr,"  -console                                Show console (Windows builds only)\n");
+            fprintf(stderr,"  -noconsole                              Don't show console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");
