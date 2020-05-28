@@ -25,7 +25,7 @@
 #include "support.h"
 #include "drives.h"
 
-Bit8u sattr[260], fattr;
+Bit8u sdriv[260], sattr[260], fattr;
 char sname[260][LFN_NAMELENGTH+1],storect[CTBUF];
 extern int lfn_filefind_handle;
 
@@ -394,11 +394,9 @@ bool DOS_PSP::SetNumFiles(Bit16u fileNum) {
 
 
 void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
-	sSave(sDTA,sdrive,_sdrive);
-	sSave(sDTA,sattr,_sattr);
-
 	int i;
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE) {
+		sdriv[lfn_filefind_handle]=_sdrive;
 		sattr[lfn_filefind_handle]=_sattr;
 		for (i=0;i<LFN_NAMELENGTH;i++) {
 			if (pattern[i]==0) break;
@@ -408,6 +406,8 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	}
     for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
 	
+	sSave(sDTA,sdrive,_sdrive);
+	sSave(sDTA,sattr,_sattr);
     const char* find_ext;
     find_ext=strchr(pattern,'.');
     if (find_ext) {
@@ -422,29 +422,39 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 }
 
 void DOS_DTA::SetResult(const char * _name, const char * _lname, Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
-	MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,strlen(_name)+1);
-	sSave(sDTA,size,_size);
-	sSave(sDTA,date,_date);
-	sSave(sDTA,time,_time);
-	sSave(sDTA,attr,_attr);
-    fd.hsize=0;
-    fd.size=_size;
-    fd.mdate=_date;
-    fd.mtime=_time;
-    fd.attr=_attr;
-    strcpy(fd.lname,_lname);
-    strcpy(fd.sname,_name);
-    if (!strcmp(fd.lname,fd.sname)) fd.sname[0]=0;
+	fd.hsize=0;
+	fd.size=_size;
+	fd.mdate=_date;
+	fd.mtime=_time;
+	fd.attr=_attr;
+	strcpy(fd.lname,_lname);
+	strcpy(fd.sname,_name);
+	if (!strcmp(fd.lname,fd.sname)) fd.sname[0]=0;
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
+		MEM_BlockWrite(pt+offsetof(sDTA,name),(void *)_name,strlen(_name)+1);
+		sSave(sDTA,size,_size);
+		sSave(sDTA,date,_date);
+		sSave(sDTA,time,_time);
+		sSave(sDTA,attr,_attr);
+	}
 }
 
 
 void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr) {
-	MEM_BlockRead(pt+offsetof(sDTA,name),_name,DOS_NAMELENGTH_ASCII);
-    strcpy(_lname,fd.lname);
-	_size=sGet(sDTA,size);
-	_date=(Bit16u)sGet(sDTA,date);
-	_time=(Bit16u)sGet(sDTA,time);
-	_attr=(Bit8u)sGet(sDTA,attr);
+	strcpy(_lname,fd.lname);
+	if (fd.sname[0]!=0) strcpy(_name,fd.sname);
+	else if (strlen(fd.lname)<DOS_NAMELENGTH_ASCII) strcpy(_name,fd.lname);
+	_size = fd.size;
+	_date = fd.mdate;
+	_time = fd.mtime;
+	_attr = fd.attr;
+	if (lfn_filefind_handle>=LFN_FILEFIND_MAX) {
+		MEM_BlockRead(pt+offsetof(sDTA,name),_name,DOS_NAMELENGTH_ASCII);
+		_size=sGet(sDTA,size);
+		_date=(Bit16u)sGet(sDTA,date);
+		_time=(Bit16u)sGet(sDTA,time);
+		_attr=(Bit8u)sGet(sDTA,attr);
+	}
 }
 
 int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
@@ -467,7 +477,7 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 }
 
 Bit8u DOS_DTA::GetSearchDrive(void) {
-	return (Bit8u)sGet(sDTA,sdrive);
+	return lfn_filefind_handle>=LFN_FILEFIND_MAX?(Bit8u)sGet(sDTA,sdrive):sdriv[lfn_filefind_handle];
 }
 
 void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
