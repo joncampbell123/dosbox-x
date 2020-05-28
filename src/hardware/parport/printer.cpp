@@ -154,7 +154,7 @@ CPrinter::CPrinter(Bit16u dpi, Bit16u width, Bit16u height, char* output, bool m
 		}
 		LOG(LOG_MISC,LOG_NORMAL)("PRINTER: Enabled");
 	}
-};
+}
 
 void CPrinter::resetPrinterHard()
 {
@@ -221,7 +221,7 @@ CPrinter::~CPrinter(void)
 #if defined (WIN32)
 	DeleteDC(printerDC);
 #endif
-};
+}
 
 void CPrinter::selectCodepage(Bit16u cp)
 {
@@ -1569,7 +1569,7 @@ void CPrinter::formFeed()
 	finishMultipage();
 }
 
-static void findNextName(char* front, char* ext, char* fname)
+static void findNextName(const char* front, const char* ext, char* fname)
 {
 	int i = 1;
 	Bitu slen = (Bitu)strlen(document_path);
