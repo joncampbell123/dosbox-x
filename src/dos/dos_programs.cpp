@@ -3242,8 +3242,7 @@ public:
         for(int p = 0;p < 8;p++) WriteOut("----------");
 
         for (int d = 0;d < DOS_DRIVES;d++) {
-            if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"fatDrive ",9)&&strncmp(Drives[d]->GetInfo(),"isoDrive ",9)) continue;
-			
+            if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {

@@ -888,7 +888,7 @@ bool DOS_UnlinkFile(char const * const name) {
 				cdirs.push_back(std::string(temp));
 			}
 			lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
-		} while (ret=DOS_FindNext());
+		} while ((ret=DOS_FindNext())==true);
 		lfn_filefind_handle=fbak;
 		bool removed=false;
 		while (!cdirs.empty()) {
