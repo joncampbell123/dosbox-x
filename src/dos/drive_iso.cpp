@@ -300,7 +300,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, uselfn);
 	
-	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():(sdid?sdid[lfn_filefind_handle]:0);
+	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():sdid[lfn_filefind_handle];
 	bool isRoot = dirIterators[dirIterator].root;
 	
     isoDirEntry de = {};
