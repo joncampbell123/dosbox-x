@@ -313,7 +313,7 @@ void CSerialModem::Reset(){
 	flowcontrol = 0;
 	plusinc = 0;
         oldDTRstate = getDTR();
-        dtrmode = 2
+        dtrmode = 2;
 	if(clientsocket) {
 		delete clientsocket;
 		clientsocket=0;
@@ -384,6 +384,7 @@ void CSerialModem::EnterConnectedState(void) {
 	memset(&telClient, 0, sizeof(telClient));
 	connected = true;
 	ringing = false;
+        dtrofftimer = -1;
 	CSerial::setCD(true);
 	CSerial::setRI(false);
 }
@@ -395,7 +396,7 @@ void CSerialModem::DoCommand() {
 	LOG_MSG("Command sent to modem: ->%s<-\n", cmdbuf);
 	/* Check for empty line, stops dialing and autoanswer */
 	if (!cmdbuf[0]) {
-		reg[0] = 0;	// autoanswer off
+		reg[MREG_AUTOANSWER_COUNT] = 0;	// autoanswer off
 		return;
 	}
 	//else {
@@ -848,14 +849,15 @@ void CSerialModem::Timer2(void) {
 				CSerial::setRI(!CSerial::getRI());
 				//MIXER_Enable(mhd.chan,true);
 				ringtimer = 3000;
-				reg[1] = 0;		//Reset ring counter reg
+				reg[MREG_RING_COUNT] = 0; //Reset ring counter reg
 			}
 		}
 	}
 	if (ringing) {
 		if (ringtimer <= 0) {
-			reg[1]++;
-			if ((reg[0]>0) && (reg[0]>=reg[1])) {
+			reg[MREG_RING_COUNT]++;
+			if ((reg[MREG_AUTOANSWER_COUNT] > 0) &&
+                                (reg[MREG_RING_COUNT] >= reg[MREG_AUTOANSWER_COUNT])) {
 				AcceptIncomingCall();
 				return;
 			}
