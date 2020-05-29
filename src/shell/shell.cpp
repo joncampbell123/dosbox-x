@@ -1196,7 +1196,7 @@ void SHELL_Init() {
 		   "PATH ;\n\n"
 		   "Type PATH ; to clear all search path settings.\n"
 		   "Type PATH without parameters to display the current path.\n");
-	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify that your files are written correctly to a disk.\n");
+	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
