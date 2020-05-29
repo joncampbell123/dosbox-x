@@ -267,6 +267,8 @@ public:
 	}
 
 	bool Open(const char * conf) {
+		(void)conf;
+
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
 		const char * sf = section->Get_string("fluid.soundfont");
 		if (!*sf) {
