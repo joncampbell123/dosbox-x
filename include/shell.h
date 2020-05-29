@@ -296,7 +296,11 @@ public:
 
     /*! \brief      ALIAS
     */
-    void CMD_ALIAS(char* args);
+	void CMD_ALIAS(char* args);
+
+    /*! \brief      LS
+    */
+	void CMD_LS(char *args);
 
 #if C_DEBUG
     /*! \brief      Execute command within debugger (break at entry point)
