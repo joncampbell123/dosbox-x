@@ -1857,6 +1857,7 @@ public:
 			char msg[30];
 			const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);;
 			BIOS_NCOLS;
+            (void)ncols;
 			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
 			strcat(msg, "Booting from drive ");
 			strcat(msg, std::string(1, drive).c_str());
@@ -3241,8 +3242,7 @@ public:
         for(int p = 0;p < 8;p++) WriteOut("----------");
 
         for (int d = 0;d < DOS_DRIVES;d++) {
-            if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"fatDrive ",9)&&strncmp(Drives[d]->GetInfo(),"isoDrive ",9)) continue;
-			
+            if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {

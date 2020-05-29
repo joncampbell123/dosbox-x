@@ -287,12 +287,11 @@ void DOS_Shell::ParseLine(char * line) {
 
 	Bit16u dummy,dummy2;
 	Bit32u bigdummy = 0;
-	Bitu num = 0;		/* Number of commands in this line */
 	bool append;
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
-	num = GetRedirection(line,&in, &out, &toc, &append);
+    GetRedirection(line, &in, &out, &toc, &append);
 	if (in || out || toc) {
 		normalstdin  = (psp->GetFileHandle(0) != 0xff); 
 		normalstdout = (psp->GetFileHandle(1) != 0xff); 

@@ -928,6 +928,7 @@ struct FM_OPL
 	/* lock/unlock for common table */
 	static int LockTable(device_t *device)
 	{
+        (void)device;
 		num_lock++;
 		if(num_lock>1) return 0;
 
@@ -1697,7 +1698,7 @@ void FM_OPL::WriteReg(int r, int v)
 			}
 		}
 		/* update */
-		if(CH->block_fnum != block_fnum)
+		if(CH->block_fnum != (unsigned int)block_fnum)
 		{
 			uint8_t block  = block_fnum >> 10;
 
@@ -1767,11 +1768,11 @@ void FM_OPL::ResetChip()
 
 	/* reset operator parameters */
 //	for(OPL_CH &CH : P_CH)
-	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
 	{
 		OPL_CH &CH = P_CH[ch];
 //		for(OPL_SLOT &SLOT : CH.SLOT)
-		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
 		{
 		    
 			OPL_SLOT &SLOT = CH.SLOT[slot];
@@ -1798,7 +1799,7 @@ void FM_OPL::ResetChip()
 
 void FM_OPL::postload()
 {
-	for(int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
+	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
 	{
 		OPL_CH &CH = P_CH[ch];
 		/* Look up key scale level */
@@ -1806,7 +1807,7 @@ void FM_OPL::postload()
 		CH.ksl_base = static_cast<uint32_t>(ksl_tab[block_fnum >> 6]);
 		CH.fc       = fn_tab[block_fnum & 0x03ff] >> (7 - (block_fnum >> 10));
 
-		for(int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
+		for(unsigned int slot = 0; slot < sizeof( CH.SLOT ) / sizeof( CH.SLOT[0]); slot++)
 		{
 			OPL_SLOT &SLOT = CH.SLOT[slot];
 			/* Calculate key scale rate */
@@ -1997,7 +1998,7 @@ static FM_OPL *OPLCreate(device_t *device, uint32_t clock, uint32_t rate, int ty
 static void OPLDestroy(FM_OPL *OPL)
 {
 	FM_OPL::UnLockTable();
-	auto_free(OPL->device->machine(), OPL);
+    free(OPL);
 }
 
 /* Optional handlers */

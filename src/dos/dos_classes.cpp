@@ -394,7 +394,8 @@ bool DOS_PSP::SetNumFiles(Bit16u fileNum) {
 
 
 void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
-	int i;
+	unsigned int i;
+
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE) {
 		sdriv[lfn_filefind_handle]=_sdrive;
 		sattr[lfn_filefind_handle]=_sattr;
