@@ -1245,6 +1245,10 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
+	MSG_Add("SHELL_CMD_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n");
+	MSG_Add("SHELL_CMD_INT2FDBG_HELP_LONG","INT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n");
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /INIT\tInitializes the command shell.\n");
 
 	/* Regular startup */

@@ -93,8 +93,8 @@ static SHELL_Cmd cmd_list[]={
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
-{	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
-{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
+{	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
+{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"},
 #endif
 {0,0,0,0}
 }; 
@@ -325,6 +325,7 @@ static Bitu INT2FDBG_Handler(void) {
  *      of the call chain so that we can see the results just before returning INT 2Fh back
  *      to WIN.COM */
 void DOS_Shell::CMD_INT2FDBG(char * args) {
+	HELP("INT2FDBG");
 	/* TODO: Allow /U to remove INT 2Fh hook */
 
 	if (ScanCMDBool(args,"I")) {
@@ -363,11 +364,8 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 			WriteOut("INT 2Fh hook already setup\n");
 		}
 	}
-	else {
-		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n\n");
-		WriteOut("INT2FDBG [option]\n");
-		WriteOut("  /I      Installs hook\n");
-	}
+	else
+		WriteOut("%s\n%s", MSG_Get("SHELL_CMD_INT2FDBG_HELP"), MSG_Get("SHELL_CMD_INT2FDBG_HELP_LONG"));
 }
 #endif
 
@@ -576,19 +574,32 @@ void DOS_Shell::CMD_HELP(char * args){
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
 	/* Print the help */
 	args = trim(args);
+	upcase(args);
 	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
 	Bit32u cmd_index=0,write_count=0;
 	bool show=false;
 	while (cmd_list[cmd_index].name) {
-		if (optall || *args && !strcasecmp(args, cmd_list[cmd_index].name) || !*args && !cmd_list[cmd_index].flags) {
+		if (optall || *args && !strcmp(args, cmd_list[cmd_index].name) || !*args && !cmd_list[cmd_index].flags) {
 			show=true;
-			WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
-			if(!(++write_count%GetPauseCount())) {
-				WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-				Bit8u c;Bit16u n=1;
-				DOS_ReadFile(STDIN,&c,&n);
-				if (c==3) {WriteOut("^C\r\n");break;}
-				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+			if (*args && !strcmp(args, cmd_list[cmd_index].name) && !optall) {
+				std::string cmd=std::string(args);
+				if (cmd=="CD") cmd="CHDIR";
+				else if (cmd=="DEL"||cmd=="ERASE") cmd="DELETE";
+				else if (cmd=="LH") cmd="LOADHIGH";
+				else if (cmd=="MD") cmd="MKDIR";
+				else if (cmd=="RD") cmd="RMDIR";
+				else if (cmd=="REN") cmd="RENAME";
+				else if (cmd=="DX-CAPTURE") cmd="DXCAPTURE";
+				WriteOut("%s\n%s",MSG_Get(cmd_list[cmd_index].help), MSG_Get(("SHELL_CMD_" +cmd+ "_HELP_LONG").c_str()));
+			} else {
+				WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
+				if(!(++write_count%GetPauseCount())) {
+					WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+					Bit8u c;Bit16u n=1;
+					DOS_ReadFile(STDIN,&c,&n);
+					if (c==3) {WriteOut("^C\r\n");break;}
+					if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+				}
 			}
 		}
 		cmd_index++;
@@ -3067,11 +3078,13 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 bool debugger_break_on_exec = false;
 
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
+	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
     debugger_break_on_exec = true;
     while (*args == ' ') args++;
-    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
-		WriteOut("Runs program and breaks into debugger at entry point.\n\nDEBUGBOX [command] [options]\n");
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("DEBUGBOX");
 		return;
 	}
     DoCommand(args);
