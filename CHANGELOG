@@ -76,6 +76,7 @@
   - DIR /O & /OG supported in addition to /ON|/OE|/OS|/OD options.
     Options such as /-O & /-A can be used to override /O, /A etc if
     they are specified in the DIRCMD environment varaible (Wengier)
+  - LS command added to list directory contents (Wengier)
   - DIR and VOL commands now display real serial numbers for mounted
     local drives (Windows only) and FAT drives (Wengier)
   - Fixed SYS command not working properly (Wengier)
