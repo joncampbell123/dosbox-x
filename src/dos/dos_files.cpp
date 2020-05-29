@@ -856,27 +856,39 @@ bool DOS_UnlinkFile(char const * const name) {
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
 	} else if(uselfn&&!force_sfn&&(strchr(fullname, '*')||strchr(fullname, '?'))) { // Wildcard delete as used by MS-DOS 7+ "DEL *.*" in LFN mode
-		char dir[DOS_PATHLENGTH], temp[DOS_PATHLENGTH], fname[DOS_PATHLENGTH];
+		char dir[DOS_PATHLENGTH], temp[DOS_PATHLENGTH], fname[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH];
 		if (!DOS_Canonicalize(name,fullname)||!strlen(fullname)) {
 			DOS_SetError(DOSERR_PATH_NOT_FOUND);
 			return false;
 		}
-		strcpy(fname, fullname);
+		if (!strchr(name,'\"')||!DOS_GetSFNPath(("\""+std::string(fullname)+"\"").c_str(), fname, false))
+			strcpy(fname, fullname);
 		char * find_last=strrchr(fname,'\\');
 		if (!find_last) {
 			dir[0]=0;
+			strcpy(pattern, fname);
 		} else {
 			*find_last=0;
 			strcpy(dir,fname);
+			strcpy(pattern, find_last+1);
 		}
+		int k=0;
+		for (int i=0;i<(int)strlen(pattern);i++)
+			if (pattern[i]!='\"')
+				pattern[k++]=pattern[i];
+		pattern[k]=0;
 		RealPt save_dta=dos.dta();
 		dos.dta(dos.tables.tempdta);
 		DOS_DTA dta(dos.dta());
 		std::vector<std::string> cdirs;
 		cdirs.clear();
+		strcpy(spath, dir);
+		if (strchr(dir,'\"')) DOS_GetSFNPath(dir, spath, false);
+		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
+		std::string pfull=std::string(spath)+std::string(pattern);
 		int fbak=lfn_filefind_handle;
 		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
-		bool ret=DOS_FindFirst((char *)((fullname[0]=='"'?"":"\"")+std::string(fullname)+(fullname[strlen(fullname)-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
+		bool ret=DOS_FindFirst((char *)((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
 		if (ret) do {
 			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
 			Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
@@ -887,7 +899,6 @@ bool DOS_UnlinkFile(char const * const name) {
 				strcat(temp, find_name);
 				cdirs.push_back(std::string(temp));
 			}
-			lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 		} while ((ret=DOS_FindNext())==true);
 		lfn_filefind_handle=fbak;
 		bool removed=false;
