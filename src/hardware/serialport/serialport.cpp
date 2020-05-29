@@ -1337,6 +1337,11 @@ public:
         //       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs
         if (IS_PC98_ARCH) return;
 
+#if C_MODEM
+                const Prop_path *pbFilename = section->Get_path("phonebookfile");
+		MODEM_ReadPhonebook(pbFilename->realpath);
+#endif
+                
 		char s_property[] = "serialx"; 
 		for(Bit8u i = 0; i < 4; i++) {
 			// get the configuration property

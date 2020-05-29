@@ -2796,6 +2796,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
 
+    Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-" VERSION ".txt");
+    Pstring->Set_help("File used to map fake phone numbers to addresses.");
+
     // printer redirection parameters
     secprop = control->AddSection_prop("printer", &Null_Init);
     Pbool = secprop->Add_bool("printer", Property::Changeable::WhenIdle, true);

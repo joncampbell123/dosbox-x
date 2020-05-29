@@ -50,6 +50,8 @@ enum ResTypes {
 #define TEL_CLIENT 0
 #define TEL_SERVER 1
 
+bool MODEM_ReadPhonebook(const std::string &filename);
+
 class CFifo {
 public:
 	CFifo(Bitu _size) {
@@ -166,9 +168,9 @@ public:
 
 	void EnterIdleState();
 	void EnterConnectedState();
-
+        
 	void openConnection(void);
-	bool Dial(char * host);
+	bool Dial(const char *host);
 	void AcceptIncomingCall(void);
 	Bitu ScanNumber(char * & scan);
 	char GetChar(char * & scan);
