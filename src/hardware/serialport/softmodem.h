@@ -149,7 +149,7 @@ private:
 #define MREG_CR_CHAR 3
 #define MREG_LF_CHAR 4
 #define MREG_BACKSPACE_CHAR 5
-
+#define MREG_DTR_DELAY 25
 
 class CSerialModem : public CSerial {
 public:
@@ -168,7 +168,7 @@ public:
 
 	void EnterIdleState();
 	void EnterConnectedState();
-        
+
 	void openConnection(void);
 	bool Dial(const char *host);
 	void AcceptIncomingCall(void);
@@ -220,7 +220,8 @@ protected:
 	Bitu plusinc;
 	Bitu cmdpos;
 	Bitu flowcontrol;
-
+        Bitu dtrmode;
+        Bitu dtrofftimer;
 	Bit8u tmpbuf[MODEM_BUFFER_QUEUE_SIZE];
 
 	Bitu listenport;
