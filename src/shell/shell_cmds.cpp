@@ -189,7 +189,10 @@ __do_command_begin:
 		*cmd_write++=*line++;
 	}
 	*cmd_write=0;
-	if (strlen(cmd_buffer)==0) return;
+	if (strlen(cmd_buffer)==0) {
+		if (strlen(line)&&line[0]=='/') WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),line);
+		return;
+	}
     cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
     if (iter != cmd_alias.end() && last_alias_cmd != cmd_buffer) {
         alias_counter++;
