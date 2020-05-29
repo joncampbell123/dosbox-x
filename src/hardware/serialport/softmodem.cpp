@@ -763,11 +763,16 @@ void CSerialModem::Timer2(void) {
 				rqueue->addb(txval);
 				//LOG_MSG("Echo back to queue: %x",txval);
 			}
-			if (txval==0xa) continue;		//Real modem doesn't seem to skip this?
-			else if (txval==0x8 && (cmdpos > 0)) --cmdpos;	// backspace
-			else if (txval==0xd) DoCommand();				// return
-			else if (txval != '+') {
-				if(cmdpos<99) {
+			if (txval == '\n')
+                            continue; // Real modem doesn't seem to skip this?
+                        
+                        if (txval == '\b') {
+                            if (cmdpos > 0)
+                                cmdpos--;
+                        } else if (txval == '\r') {
+                            DoCommand();
+                        } else if (txval != '+') {
+                            if (cmdpos < 99) {
 					cmdbuf[cmdpos] = (char)txval;
 					cmdpos++;
 				}
