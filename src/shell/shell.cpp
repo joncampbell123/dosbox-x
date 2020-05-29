@@ -1097,7 +1097,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
-	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A|/ALL]\n\n"
+	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
 		    "   /A or /ALL\tLists all supported internal commands.\n\n"
 			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
@@ -1243,6 +1243,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
+	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
+	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /INIT\tInitializes the command shell.\n");
 
 	/* Regular startup */

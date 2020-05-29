@@ -84,13 +84,13 @@ static SHELL_Cmd cmd_list[]={
 {	"SHIFT",		1,		&DOS_Shell::CMD_SHIFT,		"SHELL_CMD_SHIFT_HELP"},
 {	"SUBST",		1,		&DOS_Shell::CMD_SUBST,		"SHELL_CMD_SUBST_HELP"},
 {	"TIME",			0,		&DOS_Shell::CMD_TIME,		"SHELL_CMD_TIME_HELP"},
-{	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 {	"TYPE",			0,		&DOS_Shell::CMD_TYPE,		"SHELL_CMD_TYPE_HELP"},
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
+{	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // Advanced command specific to DOSBox-X
-{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
+{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
@@ -575,10 +575,13 @@ void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
 	/* Print the help */
-	if(!optall) WriteOut(MSG_Get("SHELL_CMD_HELP"));
+	args = trim(args);
+	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
 	Bit32u cmd_index=0,write_count=0;
+	bool show=false;
 	while (cmd_list[cmd_index].name) {
-		if (optall || !cmd_list[cmd_index].flags) {
+		if (optall || *args && !strcasecmp(args, cmd_list[cmd_index].name) || !*args && !cmd_list[cmd_index].flags) {
+			show=true;
 			WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
 			if(!(++write_count%GetPauseCount())) {
 				WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
@@ -590,6 +593,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		}
 		cmd_index++;
 	}
+	if (*args&&!show) WriteOut("'%s' is not a supported internal command.\n", args);
 }
 
 static void removeChar(char *str, char c) {
@@ -3260,6 +3264,7 @@ void CAPTURE_StopMTWave(void);
 //              The command name is chosen not to conform to the 8.3 pattern
 //              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
+	HELP("DXCAPTURE");
     bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
@@ -3267,8 +3272,9 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 
     while (*args == ' ') args++;
 
-    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
-		WriteOut("Runs program with video or audio capture.\n\nDX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("DXCAPTURE");
 		return;
 	}
 
