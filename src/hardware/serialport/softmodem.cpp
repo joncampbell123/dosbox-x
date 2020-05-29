@@ -60,7 +60,8 @@ static const char phoneValidChars[] = "01234567890*=,;#+>";
 static bool MODEM_IsPhoneValid(const std::string &input) {
 	size_t found = input.find_first_not_of(phoneValidChars);
 	if (found != std::string::npos) {
-		LOG_MSG("SERIAL: Phone %s contains invalid character %c", input.c_str(), input[found]);
+		LOG_MSG("SERIAL: Phonebook %s contains invalid character %c.",
+		        input.c_str(), input[found]);
 		return false;
 	}
 
@@ -264,7 +265,7 @@ bool CSerialModem::Dial(const char *host) {
 	else port=MODEM_DEFAULT_PORT;
 	
         // Resolve host we're gonna dial
-	LOG_MSG("Connecting to host %s port %d", destination, port);
+	LOG_MSG("Connecting to host %s port %u", destination, port);
 	clientsocket = new TCPClientSocket(destination, port);
 	if(!clientsocket->isopen) {
 		delete clientsocket;
@@ -341,8 +342,8 @@ void CSerialModem::Reset(){
 void CSerialModem::EnterIdleState(void){
 	connected = false;
 	ringing = false;
-        dtrofftimer = -1;
-	
+	dtrofftimer = -1;
+
 	if(clientsocket) {
 		delete clientsocket;
 		clientsocket=0;
@@ -357,16 +358,21 @@ void CSerialModem::EnterIdleState(void){
 		while ((waitingclientsocket=serversocket->Accept()))
 			delete waitingclientsocket;
 	} else if (listenport) {
-		
-		serversocket=new TCPServerSocket((Bit16u)listenport);	
+
+		serversocket=new TCPServerSocket((Bit16u)listenport);
 		if(!serversocket->isopen) {
-			LOG_MSG("Serial%d: Modem could not open TCP port %d.",(int)COMNUMBER,(int)listenport);
+			LOG_MSG("Serial%d: Modem could not open TCP port %u.",
+                                static_cast<uint32_t>(COMNUMBER),
+                                static_cast<uint32_t>(listenport));
 			delete serversocket;
 			serversocket = 0;
-		} else LOG_MSG("Serial%d: Modem listening on port %d...",(int)COMNUMBER,(int)listenport);
+		} else
+                    LOG_MSG("Serial%u: Modem listening on port %u...",
+		            static_cast<uint32_t>(COMNUMBER),
+			        static_cast<uint32_t>(listenport));
 	}
 	waitingclientsocket = 0;
-	
+
 	commandmode = true;
 	CSerial::setCD(false);
 	CSerial::setRI(false);
@@ -625,7 +631,9 @@ void CSerialModem::DoCommand() {
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: &%c%d",cmdchar,(int)ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: &%c%u",
+                                                cmdchar,
+                                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 					break;
 			}
 			break;
@@ -645,7 +653,9 @@ void CSerialModem::DoCommand() {
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: \\%c%d",cmdchar, (int)ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: \\%c%u",
+                                                cmdchar,
+                                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 					break;
 			}
 			break;
@@ -654,7 +664,9 @@ void CSerialModem::DoCommand() {
 			SendRes(ResOK);
 			return;
 		default:
-			LOG_MSG("Modem: Unhandled command: %c%d",chr,(int)ScanNumber(scanbuf));
+			LOG_MSG("Modem: Unhandled command: %c%u",
+                                chr,
+                                static_cast<uint32_t>(ScanNumber(scanbuf)));
 			break;
 		}
 	}
@@ -668,7 +680,7 @@ void CSerialModem::TelnetEmulation(Bit8u * data, Bitu size) {
 		if(telClient.inIAC) {
 			if(telClient.recCommand) {
 				if((c != 0) && (c != 1) && (c != 3)) {
-					LOG_MSG("MODEM: Unrecognized option %d", c);
+					LOG_MSG("MODEM: Unrecognized option %u", c);
 					if(telClient.command>250) {
 						/* Reject anything we don't recognize */
 						tqueue->addb(0xff);
@@ -928,8 +940,8 @@ void CSerialModem::transmitByte(Bit8u val, bool first) {
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(Bit16u, Bit8u) { 
-// nothing to do here right?
+void CSerialModem::updatePortConfig(Bit16u, Bit8u lcr) {
+    (void) lcr; // deliberately unused by needed to meet the API
 }
 
 void CSerialModem::updateMSR() {
@@ -941,11 +953,11 @@ void CSerialModem::setBreak(bool) {
 }
 
 void CSerialModem::setRTSDTR(bool rts, bool dtr) {
-    (void)rts;
-	setDTR(dtr);
+    (void) rts; // deliberately unused but needed to meet the API
+    setDTR(dtr);
 }
 void CSerialModem::setRTS(bool val) {
-	(void)val;
+    (void) val; // deliberately unused but needed to meet the API
 }
 void CSerialModem::setDTR(bool val) {
 	if (val != oldDTRstate) {

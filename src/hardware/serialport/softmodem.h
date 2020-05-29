@@ -98,7 +98,8 @@ public:
 			static Bits lcount=0;
 			if (lcount < 1000) {
 				lcount++;
-				LOG_MSG("MODEM: FIFO Overflow! (adds len %u)", (int)_len);
+				LOG_MSG("MODEM: FIFO Overflow! (adds len %u)",
+					static_cast<uint32_t>(_len));
 			}
 			return;
 		}
@@ -132,7 +133,8 @@ public:
 			static Bits lcount=0;
 			if (lcount < 1000) {
 				lcount++;
-				LOG_MSG("MODEM: FIFO UNDERFLOW! (gets len %d)",(int)_len);
+				LOG_MSG("MODEM: FIFO UNDERFLOW! (gets len %u)",
+					static_cast<uint32_t>(_len));
 			}
 			return;
 		}
