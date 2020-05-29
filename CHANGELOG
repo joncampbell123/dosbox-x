@@ -110,6 +110,8 @@
     unless the PC speaker output is not emitting anything
     audible anyway (Fix for Sopwith 1 and 2).
   - Added ALIAS command to define or display aliases.
+  - "HELP command" now works the same as "command /?" for
+    supported internal commands. (Wengier)
   - Improved handling of quotes in some commands. (Wengier)
   - Added -set command-line option to change config options.
     It can be specified multiple times for multiple options,
