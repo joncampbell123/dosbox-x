@@ -326,8 +326,14 @@ static Bitu INT2FDBG_Handler(void) {
  *      to WIN.COM */
 void DOS_Shell::CMD_INT2FDBG(char * args) {
 	HELP("INT2FDBG");
-	/* TODO: Allow /U to remove INT 2Fh hook */
+    while (*args == ' ') args++;
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("INT2FDBG");
+		return;
+	}
 
+	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
 		if (int2fdbg_hook_callback == 0) {
 			Bit32u old_int2Fh;
@@ -364,6 +370,8 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 			WriteOut("INT 2Fh hook already setup\n");
 		}
 	}
+	else if (*args)
+		WriteOut("Invalid parameter - %s\n", args);
 	else
 		WriteOut("%s\n%s", MSG_Get("SHELL_CMD_INT2FDBG_HELP"), MSG_Get("SHELL_CMD_INT2FDBG_HELP_LONG"));
 }
