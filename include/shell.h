@@ -140,10 +140,6 @@ public:
      */
 	char * Which(char * name);
 
-    /*! \brief      INT 2Fh debugging tool
-     */
-	void CMD_INT2FDBG(char * args);
-
     /*! \brief      Online HELP for the shell
      */
 	void CMD_HELP(char * args);
@@ -296,13 +292,22 @@ public:
 
     /*! \brief      ALIAS
     */
-    void CMD_ALIAS(char* args);
+	void CMD_ALIAS(char* args);
+
+    /*! \brief      LS
+    */
+	void CMD_LS(char *args);
 
 #if C_DEBUG
     /*! \brief      Execute command within debugger (break at entry point)
      */
 	void CMD_DEBUGBOX(char * args);
+
+    /*! \brief      INT 2Fh debugging tool
+     */
+	void CMD_INT2FDBG(char * args);
 #endif
+
 	/* The shell's variables */
 	Bit16u input_handle;
 	BatchFile * bf;                     //! Batch file to execute

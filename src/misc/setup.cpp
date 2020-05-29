@@ -1055,7 +1055,6 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     while (getline(in,gegevens)) {
 
         /* strip leading/trailing whitespace */
-        /* FIXME: trim() fails on pure whitespace i.e. "\n" */
         trim(gegevens);
         if (!gegevens.size()) continue;
 

@@ -1123,7 +1123,7 @@ continue_1:
 static const char * bat_ext=".BAT";
 static const char * com_ext=".COM";
 static const char * exe_ext=".EXE";
-static char which_ret[DOS_PATHLENGTH+4];
+static char which_ret[DOS_PATHLENGTH+4], s_ret[DOS_PATHLENGTH+4];
 
 char * DOS_Shell::Which(char * name) {
 	size_t name_len = strlen(name);
@@ -1148,7 +1148,7 @@ char * DOS_Shell::Which(char * name) {
 
 
 	/* No Path in filename look through path environment string */
-	char path[DOS_PATHLENGTH],spath[DOS_PATHLENGTH];std::string temp;
+	char path[DOS_PATHLENGTH];std::string temp;
 	if (!GetEnvStr("PATH",temp)) return 0;
 	const char * pathenv=temp.c_str();
 	if (!pathenv) return 0;
@@ -1184,8 +1184,8 @@ char * DOS_Shell::Which(char * name) {
 
 			if (uselfn&&len>3) {
 				if (path[len - 1]=='\\') path[len - 1]=0;
-				if (DOS_GetSFNPath(("\""+std::string(path)+"\"").c_str(), spath, false))
-					strcpy(path, spath);
+				if (DOS_GetSFNPath(("\""+std::string(path)+"\"").c_str(), s_ret, false))
+					strcpy(path, s_ret);
 				len = strlen(path);
 			}
 
@@ -1199,16 +1199,16 @@ char * DOS_Shell::Which(char * name) {
 			strcat(path,strchr(name, ' ')?("\""+std::string(name)+"\"").c_str():name);
 
 			strcpy(which_ret,path);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,com_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,exe_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
 			strcpy(which_ret,path);
 			strcat(which_ret,bat_ext);
-			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, spath, false)?spath:which_ret;
+			if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
 		}
 	}
 	return 0;

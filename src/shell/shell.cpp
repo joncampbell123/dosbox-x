@@ -1097,7 +1097,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
-	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/ALL]\n");
+	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
+		    "   /A or /ALL\tLists all supported internal commands.\n\n"
+			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
@@ -1167,8 +1169,14 @@ void SHELL_Init() {
 		   "                   the batch program.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP","Assigns an internal directory to a drive.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n");
-	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires xms=true,umb=true).\n");
+	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
+	MSG_Add("SHELL_CMD_LS_HELP", "Lists directory contents.\n");
+	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P]\n\n"
+	        "  /A\tLists hidden and system files also.\n"
+	        "  /L\tLists names one per line.\n"
+		    "  /P\tPauses after each screenful of information.\n");
+	MSG_Add("SHELL_CMD_LS_PATH_ERR", "Cannot access: %s (no such file or directory)\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
@@ -1190,7 +1198,7 @@ void SHELL_Init() {
 		   "PATH ;\n\n"
 		   "Type PATH ; to clear all search path settings.\n"
 		   "Type PATH without parameters to display the current path.\n");
-	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify that your files are written correctly to a disk.\n");
+	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
@@ -1235,6 +1243,14 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME file\n");
+	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
+	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+#if C_DEBUG
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
+	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
+	MSG_Add("SHELL_CMD_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n");
+	MSG_Add("SHELL_CMD_INT2FDBG_HELP_LONG","INT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n");
+#endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /INIT\tInitializes the command shell.\n");
 
 	/* Regular startup */

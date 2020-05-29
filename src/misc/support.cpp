@@ -46,10 +46,15 @@ void lowcase(std::string &str) {
 }
 
 void trim(std::string &str) {
-	std::string::size_type loc = str.find_first_not_of(" \r\t\f\n");
-	if (loc != std::string::npos) str.erase(0,loc);
-	loc = str.find_last_not_of(" \r\t\f\n");
-	if (loc != std::string::npos) str.erase(loc+1);
+    const char whitespace[] = " \r\t\f\n";
+	const auto empty_pfx = str.find_first_not_of(whitespace);
+	if (empty_pfx == std::string::npos) {
+		str.clear(); // whole string is filled with whitespace
+		return;
+	}
+	const auto empty_sfx = str.find_last_not_of(whitespace);
+	str.erase(empty_sfx + 1);
+	str.erase(0, empty_pfx);
 }
 
 /* 

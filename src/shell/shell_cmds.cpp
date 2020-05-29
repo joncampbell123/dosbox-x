@@ -31,13 +31,13 @@
 #include "../dos/drives.h"
 #include "support.h"
 #include "control.h"
+#include "paging.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
 #include <cstdlib>
 #include <vector>
 #include <string>
-#include <time.h>
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -45,34 +45,41 @@
 
 static SHELL_Cmd cmd_list[]={
 {	"DIR",			0,		&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
-{	"CHDIR",		1,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+{	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
+{	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
 {	"ATTRIB",		1,		&DOS_Shell::CMD_ATTRIB,		"SHELL_CMD_ATTRIB_HELP"},
 {	"BREAK",		1,		&DOS_Shell::CMD_BREAK,		"SHELL_CMD_BREAK_HELP"},
 {	"CALL",			1,		&DOS_Shell::CMD_CALL,		"SHELL_CMD_CALL_HELP"},
-{	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
+{	"CHDIR",		1,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
 {	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"},
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
+{	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-{	"DELETE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-{	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
+{	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},	
+{	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"GOTO",			1,		&DOS_Shell::CMD_GOTO,		"SHELL_CMD_GOTO_HELP"},
 {	"HELP",			1,		&DOS_Shell::CMD_HELP,		"SHELL_CMD_HELP_HELP"},
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
-{	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
+{	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
-{	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
+{	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
+{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"},
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
+{	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
+{	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
 {	"PATH",			1,		&DOS_Shell::CMD_PATH,		"SHELL_CMD_PATH_HELP"},
 {	"PAUSE",		1,		&DOS_Shell::CMD_PAUSE,		"SHELL_CMD_PAUSE_HELP"},
-{	"RMDIR",		1,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
+{	"PROMPT",		0,		&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
 {	"RD",			0,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
 {	"REM",			1,		&DOS_Shell::CMD_REM,		"SHELL_CMD_REM_HELP"},
-{	"RENAME",		1,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
 {	"REN",			0,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
+{	"RENAME",		1,		&DOS_Shell::CMD_RENAME,		"SHELL_CMD_RENAME_HELP"},
+{	"RMDIR",		1,		&DOS_Shell::CMD_RMDIR,		"SHELL_CMD_RMDIR_HELP"},
 {	"SET",			1,		&DOS_Shell::CMD_SET,		"SHELL_CMD_SET_HELP"},
 {	"SHIFT",		1,		&DOS_Shell::CMD_SHIFT,		"SHELL_CMD_SHIFT_HELP"},
 {	"SUBST",		1,		&DOS_Shell::CMD_SUBST,		"SHELL_CMD_SUBST_HELP"},
@@ -80,20 +87,14 @@ static SHELL_Cmd cmd_list[]={
 {	"TYPE",			0,		&DOS_Shell::CMD_TYPE,		"SHELL_CMD_TYPE_HELP"},
 {	"VER",			0,		&DOS_Shell::CMD_VER,		"SHELL_CMD_VER_HELP"},
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
-{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
-{	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
-{	"PROMPT",		0,		&DOS_Shell::CMD_PROMPT,		"SHELL_CMD_PROMPT_HELP"},
-{	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
-{	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
-{	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
-{	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
-// The following are additional commands for debugging purposes in DOSBox-X
-{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
+// Advanced command specific to DOSBox-X
+{	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
-{	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
-{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
+// Additional commands for debugging purposes in DOSBox-X
+{	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
+{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"},
 #endif
 {0,0,0,0}
 }; 
@@ -189,7 +190,10 @@ __do_command_begin:
 		*cmd_write++=*line++;
 	}
 	*cmd_write=0;
-	if (strlen(cmd_buffer)==0) return;
+	if (strlen(cmd_buffer)==0) {
+		if (strlen(line)&&line[0]=='/') WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),line);
+		return;
+	}
     cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
     if (iter != cmd_alias.end() && last_alias_cmd != cmd_buffer) {
         alias_counter++;
@@ -321,8 +325,15 @@ static Bitu INT2FDBG_Handler(void) {
  *      of the call chain so that we can see the results just before returning INT 2Fh back
  *      to WIN.COM */
 void DOS_Shell::CMD_INT2FDBG(char * args) {
-	/* TODO: Allow /U to remove INT 2Fh hook */
+	HELP("INT2FDBG");
+    while (*args == ' ') args++;
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("INT2FDBG");
+		return;
+	}
 
+	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
 		if (int2fdbg_hook_callback == 0) {
 			Bit32u old_int2Fh;
@@ -359,11 +370,10 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 			WriteOut("INT 2Fh hook already setup\n");
 		}
 	}
-	else {
-		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n\n");
-		WriteOut("INT2FDBG [option]\n");
-		WriteOut("  /I      Installs hook\n");
-	}
+	else if (*args)
+		WriteOut("Invalid parameter - %s\n", args);
+	else
+		WriteOut("%s\n%s", MSG_Get("SHELL_CMD_INT2FDBG_HELP"), MSG_Get("SHELL_CMD_INT2FDBG_HELP_LONG"));
 }
 #endif
 
@@ -562,25 +572,47 @@ continue_1:
 	dos.dta(save_dta);
 }
 
+static int GetPauseCount() {
+	Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	return CURSOR_POS_ROW(page)>2?CURSOR_POS_ROW(page)-2:22;
+}
+
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
-	bool optall=ScanCMDBool(args,"ALL");
+	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
 	/* Print the help */
-	if(!optall) WriteOut(MSG_Get("SHELL_CMD_HELP"));
+	args = trim(args);
+	upcase(args);
+	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
 	Bit32u cmd_index=0,write_count=0;
+	bool show=false;
 	while (cmd_list[cmd_index].name) {
-		if (optall || !cmd_list[cmd_index].flags) {
-			WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
-			if(!(++write_count%22)) {
-				WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-				Bit8u c;Bit16u n=1;
-				DOS_ReadFile(STDIN,&c,&n);
-				if (c==3) {WriteOut("^C\r\n");break;}
-				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+		if (optall || *args && !strcmp(args, cmd_list[cmd_index].name) || !*args && !cmd_list[cmd_index].flags) {
+			show=true;
+			if (*args && !strcmp(args, cmd_list[cmd_index].name) && !optall) {
+				std::string cmd=std::string(args);
+				if (cmd=="CD") cmd="CHDIR";
+				else if (cmd=="DEL"||cmd=="ERASE") cmd="DELETE";
+				else if (cmd=="LH") cmd="LOADHIGH";
+				else if (cmd=="MD") cmd="MKDIR";
+				else if (cmd=="RD") cmd="RMDIR";
+				else if (cmd=="REN") cmd="RENAME";
+				else if (cmd=="DX-CAPTURE") cmd="DXCAPTURE";
+				WriteOut("%s\n%s",MSG_Get(cmd_list[cmd_index].help), MSG_Get(("SHELL_CMD_" +cmd+ "_HELP_LONG").c_str()));
+			} else {
+				WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
+				if(!(++write_count%GetPauseCount())) {
+					WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+					Bit8u c;Bit16u n=1;
+					DOS_ReadFile(STDIN,&c,&n);
+					if (c==3) {WriteOut("^C\r\n");break;}
+					if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+				}
 			}
 		}
 		cmd_index++;
 	}
+	if (*args&&!show) WriteOut("'%s' is not a supported internal command.\n", args);
 }
 
 static void removeChar(char *str, char c) {
@@ -981,7 +1013,7 @@ std::vector<std::string> dirs, adirs;
 
 static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	p_count+=optW?5:1;
-	if (optP && p_count%(22*w_size)<1) {
+	if (optP && p_count%(GetPauseCount()*w_size)<1) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 		Bit8u c;Bit16u n=1;
 		DOS_ReadFile(STDIN,&c,&n);
@@ -1009,7 +1041,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		shell->WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),uselfn&&DOS_GetSFNPath(path,largs,true)?largs:sargs);
 		if (optP) {
 			p_count+=optW?10:2;
-			if (p_count%(22*w_size)<2) {
+			if (p_count%(GetPauseCount()*w_size)<2) {
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				Bit8u c;Bit16u n=1;
 				DOS_ReadFile(STDIN,&c,&n);
@@ -1096,7 +1128,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 					shell->WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),uselfn&&DOS_GetSFNPath(path,largs,true)?largs:sargs);
 					if (optP) {
 						p_count+=optW?15:3;
-						if (optS&&p_count%(22*w_size)<3) {
+						if (optS&&p_count%(GetPauseCount()*w_size)<3) {
 							shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 							Bit8u c;Bit16u n=1;
 							DOS_ReadFile(STDIN,&c,&n);
@@ -1144,7 +1176,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				}
 				if (optW) w_count++;
 			}
-			if (optP && !(++p_count%(22*w_size))) {
+			if (optP && !(++p_count%(GetPauseCount()*w_size))) {
 				if (optW&&w_count%5) {shell->WriteOut("\n");w_count=0;}
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				Bit8u c;Bit16u n=1;
@@ -1405,6 +1437,116 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
 	}
+	dos.dta(save_dta);
+}
+
+void DOS_Shell::CMD_LS(char *args) {
+	HELP("LS");
+	bool optA=ScanCMDBool(args,"A");
+	bool optL=ScanCMDBool(args,"L");
+	bool optP=ScanCMDBool(args,"P");
+
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+	DOS_DTA dta(dos.dta());
+
+	std::string pattern = args;
+	trim(pattern);
+
+	const char last_char = (pattern.length() > 0 ? pattern.back() : '\0');
+	switch (last_char) {
+		case '\0': // No arguments, search for all.
+			pattern = "*.*";
+			break;
+		case '\\': // Handle \, C:\, etc.
+		case ':':  // Handle C:, etc.
+			pattern += "*.*";
+			break;
+		default: break;
+	}
+
+	// Handle patterns starting with a dot.
+	char buffer[CROSS_LEN];
+	pattern = ExpandDot((char *)pattern.c_str(), buffer, sizeof(buffer));
+
+	// When there's no wildcard and target is a directory then search files
+	// inside the directory.
+	const char *p = pattern.c_str();
+	if (!strrchr(p, '*') && !strrchr(p, '?')) {
+		uint16_t attr = 0;
+		if (DOS_GetFileAttr(p, &attr) && (attr & DOS_ATTR_DIRECTORY))
+			pattern += "\\*.*";
+	}
+
+	// If no extension, list all files.
+	// This makes patterns like foo* work.
+	if (!strrchr(pattern.c_str(), '.'))
+		pattern += ".*";
+
+	bool ret = DOS_FindFirst((char *)pattern.c_str(), 0xffff & ~DOS_ATTR_VOLUME);
+	if (!ret) {
+		WriteOut(MSG_Get("SHELL_CMD_LS_PATH_ERR"), trim(args));
+		dos.dta(save_dta);
+		return;
+	}
+
+	std::vector<DtaResult> results;
+	// reserve space for as many as we can fit into a single memory page
+	// nothing more to it; make it larger if necessary
+	results.reserve(MEM_PAGE_SIZE / sizeof(DtaResult));
+
+	do {
+		DtaResult result;
+		dta.GetResult(result.name, result.lname, result.size, result.date, result.time, result.attr);
+		results.push_back(result);
+	} while ((ret = DOS_FindNext()) == true);
+
+	size_t w_count = 0, p_count = 0;
+
+	for (const auto &entry : results) {
+		std::string name = entry.name;
+		std::string lname = uselfn?entry.lname:entry.name;
+		const bool is_dir = entry.attr & DOS_ATTR_DIRECTORY;
+
+		if (name == "." || name == "..")
+			continue;
+		
+		if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
+
+		if (is_dir) {
+			if (optL) {
+				WriteOut("\033[34;1m%s\033[0m\n", lname.c_str());
+				p_count++;
+			} else {
+				upcase(name);
+				WriteOut("\033[34;1m%-15s\033[0m", name.c_str());
+			}
+		} else {
+			const bool is_executable = !strcasecmp(name.substr(name.length()-4).c_str(), ".exe") ||
+			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".com") ||
+			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".bat");
+			if (optL) {
+				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", lname.c_str());
+				p_count++;
+			} else {
+				lowcase(name);
+				WriteOut(is_executable?"\033[32;1m%-15s\033[0m":"%-15s", name.c_str());
+			}
+		}
+		if (!optL) {
+			++w_count;
+			if (w_count % 5 == 0) {p_count++;WriteOut_NoParsing("\n");}
+		}
+		if (optP&&p_count>=GetPauseCount()) {
+			WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+			Bit8u c;Bit16u n=1;
+			DOS_ReadFile(STDIN,&c,&n);
+			if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);return;}
+			if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+			p_count=0;
+		}
+	}
+	if (!optL&&w_count%5) WriteOut_NoParsing("\n");
 	dos.dta(save_dta);
 }
 
@@ -2944,11 +3086,13 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 bool debugger_break_on_exec = false;
 
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
+	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
     debugger_break_on_exec = true;
     while (*args == ' ') args++;
-    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
-		WriteOut("Runs program and breaks into debugger at entry point.\n\nDEBUGBOX [command] [options]\n");
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("DEBUGBOX");
 		return;
 	}
     DoCommand(args);
@@ -3141,6 +3285,7 @@ void CAPTURE_StopMTWave(void);
 //              The command name is chosen not to conform to the 8.3 pattern
 //              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
+	HELP("DXCAPTURE");
     bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
@@ -3148,8 +3293,9 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 
     while (*args == ' ') args++;
 
-    if (!strcmp(args,"/?") || !strcmp(args,"-?")) {
-		WriteOut("Runs program with video or audio capture.\n\nDX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+    if (!strcmp(args,"-?")) {
+		args[0]='/';
+		HELP("DXCAPTURE");
 		return;
 	}
 
