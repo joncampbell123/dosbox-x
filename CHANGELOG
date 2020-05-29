@@ -1,4 +1,9 @@
 0.83.2
+  - Added phone book support for the emulated modem. There is
+    a new phonebookfile= option in the [serial] section. The
+    phone book file entries need to be in the format of:
+    "<dummy number> <hostname/ip:port>" e.g.
+    5551234 cavebbs.homeip.net:23
   - Fixed issues with the "config -wcd -all" command (Wengier)
   - Added DTASEG, DTAOFF, and PSPSEG as hex value constants to
     the debugger interface to aid in debugging DOS programs.
