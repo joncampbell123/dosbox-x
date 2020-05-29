@@ -1097,7 +1097,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
-	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/ALL]\n");
+	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A|/ALL]\n\n"
+		    "   /A or /ALL\tLists all supported commands.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");

@@ -572,7 +572,7 @@ static int GetPauseCount() {
 
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
-	bool optall=ScanCMDBool(args,"ALL");
+	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
 	/* Print the help */
 	if(!optall) WriteOut(MSG_Get("SHELL_CMD_HELP"));
 	Bit32u cmd_index=0,write_count=0;
