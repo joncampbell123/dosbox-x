@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -225,7 +225,7 @@ void CSerialModem::SendRes(ResTypes response) {
 		case ResNOCARRIER:  code = 3; string = "NO CARRIER"; break;
 		case ResERROR:      code = 4; string = "ERROR"; break;
 		case ResNODIALTONE: code = 6; string = "NO DIALTONE"; break;
-                case ResBUSY:       code = 7; string = "BUSY"; break;
+		case ResBUSY:       code = 7; string = "BUSY"; break;
 		case ResNOANSWER:   code = 8; string = "NO ANSWER"; break;
 		case ResNONE:       return;
 		default:            return;
@@ -290,9 +290,9 @@ void CSerialModem::AcceptIncomingCall(void) {
 }
 
 Bitu CSerialModem::ScanNumber(char * & scan) {
-	Bitu ret=0;
-	while (char c=*scan) {
-		if (c>='0' && c<='9') {
+	Bitu ret = 0;
+	while (char c = *scan) {
+		if (c >= '0' && c <= '9') {
 			ret*=10;
 			ret+=(Bitu)(c-'0');
 			scan++;
@@ -317,7 +317,7 @@ void CSerialModem::Reset(){
 	dtrmode = 2;
 	if(clientsocket) {
 		delete clientsocket;
-		clientsocket=0;
+		clientsocket = 0;
 	}
 	memset(&reg,0,sizeof(reg));
 	reg[MREG_AUTOANSWER_COUNT] = 0;	// no autoanswer
@@ -350,7 +350,7 @@ void CSerialModem::EnterIdleState(void){
 
 	if(waitingclientsocket) {	// clear current incoming socket
 		delete waitingclientsocket;
-		waitingclientsocket=0;
+		waitingclientsocket = 0;
 	}
 	// get rid of everything
 	if(serversocket) {
@@ -362,10 +362,10 @@ void CSerialModem::EnterIdleState(void){
 		if(!serversocket->isopen) {
 			LOG_MSG("Serial%d: Modem could not open TCP port %d.",(int)COMNUMBER,(int)listenport);
 			delete serversocket;
-			serversocket=0;
+			serversocket = 0;
 		} else LOG_MSG("Serial%d: Modem listening on port %d...",(int)COMNUMBER,(int)listenport);
 	}
-	waitingclientsocket=0;
+	waitingclientsocket = 0;
 	
 	commandmode = true;
 	CSerial::setCD(false);
@@ -379,7 +379,7 @@ void CSerialModem::EnterConnectedState(void) {
 	if(serversocket) {
 		// we don't accept further calls
 		delete serversocket;
-		serversocket=0;
+		serversocket = 0;
 	}
 	SendRes(ResCONNECT);
 	commandmode = false;
@@ -499,8 +499,8 @@ void CSerialModem::DoCommand() {
 		}
 		case 'I': // Some strings about firmware
 			switch (ScanNumber(scanbuf)) {
-			case 3: SendLine("DOSBox Emulated Modem Firmware V1.00"); break;
-			case 4: SendLine("Modem compiled for DOSBox version " VERSION); break;
+			case 3: SendLine("DOSBox-X Emulated Modem Firmware V1.00"); break;
+			case 4: SendLine("Modem compiled for DOSBox-X version " VERSION); break;
 			}
 			break;
 		case 'E': // Echo on/off

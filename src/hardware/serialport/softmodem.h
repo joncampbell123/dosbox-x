@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -60,9 +60,9 @@ bool MODEM_ReadPhonebook(const std::string &filename);
 class CFifo {
 public:
 	CFifo(Bitu _size) {
-		size=_size;
-		pos=used=0;
-		data=new Bit8u[size];
+		size = _size;
+		pos = used = 0;
+		data = new Bit8u[size];
 	}
 	~CFifo() {
 		delete[] data;
@@ -74,31 +74,31 @@ public:
 		return used;
 	}
 	void clear(void) {
-		used=pos=0;
+		used = pos = 0;
 	}
 
 	void addb(Bit8u _val) {
 		if(used>=size) {
 			static Bits lcount=0;
-			if (lcount<1000) {
+			if (lcount < 1000) {
 				lcount++;
 				LOG_MSG("MODEM: FIFO Overflow! (addb)");
 			}
 			return;
 		}
-		//assert(used<size);
-		Bitu where=pos+used;
-		if (where>=size) where-=size;
-		data[where]=_val;
-		//LOG_MSG("+%x",_val);
+		//assert(used < size);
+		Bitu where = pos + used;
+		if (where >= size) where -= size;
+		data[where] = _val;
+		//LOG_MSG("+%x", _val);
 		used++;
 	}
-	void adds(Bit8u * _str,Bitu _len) {
-		if((used+_len)>size) {
+	void adds(Bit8u * _str, Bitu _len) {
+		if((used+_len) > size) {
 			static Bits lcount=0;
-			if (lcount<1000) {
+			if (lcount < 1000) {
 				lcount++;
-				LOG_MSG("MODEM: FIFO Overflow! (adds len %u)",(int)_len);
+				LOG_MSG("MODEM: FIFO Overflow! (adds len %u)", (int)_len);
 			}
 			return;
 		}
@@ -107,30 +107,30 @@ public:
 		Bitu where=pos+used;
 		used+=_len;
 		while (_len--) {
-			if (where>=size) where-=size;
-			//LOG_MSG("+'%x'",*_str);
-			data[where++]=*_str++;
+			if (where >= size) where -= size;
+			//LOG_MSG("+'%x'", *_str);
+			data[where++] = *_str++;
 		}
 	}
 	Bit8u getb(void) {
 		if (!used) {
 			static Bits lcount=0;
-			if (lcount<1000) {
+			if (lcount < 1000) {
 				lcount++;
 				LOG_MSG("MODEM: FIFO UNDERFLOW! (getb)");
 			}
 			return data[pos];
 		}
 			Bitu where=pos;
-		if (++pos>=size) pos-=size;
+		if (++pos >= size) pos -= size;
 		used--;
-		//LOG_MSG("-%x",data[where]);
+		//LOG_MSG("-%x", data[where]);
 		return data[where];
 	}
 	void gets(Bit8u * _str,Bitu _len) {
 		if (!used) {
 			static Bits lcount=0;
-			if (lcount<1000) {
+			if (lcount < 1000) {
 				lcount++;
 				LOG_MSG("MODEM: FIFO UNDERFLOW! (gets len %d)",(int)_len);
 			}
@@ -139,23 +139,23 @@ public:
 			//assert(used>=_len);
 		used-=_len;
 		while (_len--) {
-			//LOG_MSG("-%x",data[pos]);
-			*_str++=data[pos];
+			//LOG_MSG("-%x", data[pos]);
+			*_str++ = data[pos];
 			if (++pos>=size) pos-=size;
 		}
 	}
 private:
-	Bit8u * data;
-	Bitu size,pos,used;
+	Bit8u *data;
+	Bitu size, pos, used;
 };
 #define MREG_AUTOANSWER_COUNT 0
-#define MREG_RING_COUNT 1
-#define MREG_ESCAPE_CHAR 2
-#define MREG_CR_CHAR 3
-#define MREG_LF_CHAR 4
-#define MREG_BACKSPACE_CHAR 5
-#define MREG_GUARD_TIME 12
-#define MREG_DTR_DELAY 25
+#define MREG_RING_COUNT       1
+#define MREG_ESCAPE_CHAR      2
+#define MREG_CR_CHAR          3
+#define MREG_LF_CHAR          4
+#define MREG_BACKSPACE_CHAR   5
+#define MREG_GUARD_TIME       12
+#define MREG_DTR_DELAY        25
 
 class CSerialModem : public CSerial {
 public:
@@ -178,8 +178,8 @@ public:
 	void openConnection(void);
 	bool Dial(const char *host);
 	void AcceptIncomingCall(void);
-	Bitu ScanNumber(char * & scan);
-	char GetChar(char * & scan);
+	Bitu ScanNumber(char *&scan);
+	char GetChar(char *&scan);
 
 	void DoCommand();
 	
@@ -226,8 +226,8 @@ protected:
 	Bitu plusinc;
 	Bitu cmdpos;
 	Bitu flowcontrol;
-        Bitu dtrmode;
-        Bitu dtrofftimer;
+	Bitu dtrmode;
+	Bitu dtrofftimer;
 	Bit8u tmpbuf[MODEM_BUFFER_QUEUE_SIZE];
 
 	Bitu listenport;
