@@ -397,7 +397,7 @@ void DOS_DTA::SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * pattern) {
 	sSave(sDTA,sdrive,_sdrive);
 	sSave(sDTA,sattr,_sattr);
 
-	int i;
+	unsigned int i;
 	if (lfn_filefind_handle<LFN_FILEFIND_NONE) {
 		sattr[lfn_filefind_handle]=_sattr;
 		for (i=0;i<LFN_NAMELENGTH;i++) {

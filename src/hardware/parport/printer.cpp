@@ -154,7 +154,7 @@ CPrinter::CPrinter(Bit16u dpi, Bit16u width, Bit16u height, char* output, bool m
 		}
 		LOG(LOG_MISC,LOG_NORMAL)("PRINTER: Enabled");
 	}
-};
+}
 
 void CPrinter::resetPrinterHard()
 {
@@ -221,7 +221,7 @@ CPrinter::~CPrinter(void)
 #if defined (WIN32)
 	DeleteDC(printerDC);
 #endif
-};
+}
 
 void CPrinter::selectCodepage(Bit16u cp)
 {
@@ -1569,7 +1569,7 @@ void CPrinter::formFeed()
 	finishMultipage();
 }
 
-static void findNextName(char* front, char* ext, char* fname)
+static void findNextName(const char* front, const char* ext, char* fname)
 {
 	int i = 1;
 	Bitu slen = (Bitu)strlen(document_path);
@@ -1986,17 +1986,23 @@ static Bit8u dataregister; // contents of the parallel port data register
 
 Bitu PRINTER_readdata(Bitu port,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
 	return dataregister;
 }
 
 void PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
 	dataregister = (Bit8u)val;
 }
 Bit8u controlreg = 0x04;
 
 Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
 	//LOG_MSG("PRINTER_readstatus CS:IP %8x:%8x",SegValue(cs),reg_eip);
 	// Don't create a CPrinter unless the program really wants to print
 	// Return standard: No error, printer online, no ack and not busy
@@ -2033,6 +2039,7 @@ static void FormFeed(bool pressed)
 
 static void PRINTER_EventHandler(Bitu param)
 {
+    (void)param;
 	//LOG_MSG("printerevent");
 	if (timeout_dirty)
     {
@@ -2048,8 +2055,10 @@ static void PRINTER_EventHandler(Bitu param)
 	}
 }
 
-void PRINTER_writecontrol(Bitu port,Bitu val, Bitu iolen)
+void PRINTER_writecontrol(Bitu port,Bitu val,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
 	//LOG_MSG("PRINTER_writecontrol CS:IP %8x:%8x",SegValue(cs),reg_eip);
 	// init printer if bit 4 is switched on
 	if ((val & 0x04) && defaultPrinter && (!(controlreg & 0x04)))
@@ -2074,6 +2083,8 @@ void PRINTER_writecontrol(Bitu port,Bitu val, Bitu iolen)
 
 Bitu PRINTER_readcontrol(Bitu port,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
 	//LOG_MSG("PRINTER_readcontrol CS:IP %8x:%8x",SegValue(cs),reg_eip);
 	// Don't create a CPrinter unless the program really wants to print
 	if (!defaultPrinter)

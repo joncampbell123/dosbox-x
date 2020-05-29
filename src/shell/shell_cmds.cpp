@@ -171,7 +171,7 @@ __do_command_begin:
 	char * cmd_write=cmd_buffer;
 	int q=0;
 	while (*line) {
-		if (strchr("/\t", *line) || q/2*2==q && strchr(" =", *line))
+        if (strchr("/\t", *line) || (q / 2 * 2 == q && strchr(" =", *line)))
 			break;
 		if (*line == '"') q++;
 //		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
@@ -701,7 +701,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 				if (dot2==NULL) {
 					star=strchr(arg2,'*');
 					if (strchr(arg2,'?')) {
-						for (int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-arg2:strlen(arg2)); i++) {
+						for (unsigned int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-arg2:strlen(arg2)); i++) {
 							if (*(arg2+i)=='?'&&i<strlen(name))
 								*(arg2+i)=name[i];
 						}
@@ -725,7 +725,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 					*dot2='.';
 					star=strchr(tname2,'*');
 					if (strchr(tname2,'?')) {
-						for (int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-tname2:strlen(tname2)); i++) {
+						for (unsigned int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-tname2:strlen(tname2)); i++) {
 							if (*(tname2+i)=='?'&&i<strlen(tname1))
 								*(tname2+i)=tname1[i];
 						}
@@ -742,7 +742,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 						strcpy(text2, dot2+1);
 						star=strchr(text2,'*');
 						if (strchr(text2,'?')) {
-							for (int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-text2:strlen(text2)); i++) {
+							for (unsigned int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-text2:strlen(text2)); i++) {
 								if (*(text2+i)=='?'&&i<strlen(text1))
 									*(text2+i)=text1[i];
 							}
@@ -756,7 +756,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 					} else {
 						strcpy(text2, dot2+1);
 						if (strchr(text2,'?')||strchr(text2,'*')) {
-							for (int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-text2:strlen(text2)); i++) {
+							for (unsigned int i=0; i<(uselfn?LFN_NAMELENGTH:DOS_NAMELENGTH) && i<(star?star-text2:strlen(text2)); i++) {
 								if (*(text2+i)=='*') {
 									*(text2+i)=0;
 									break;
@@ -955,7 +955,7 @@ struct DtaResult {
 	Bit16u time;
 	Bit8u attr;
 
-	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:(((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY) || !(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)) && strcmp(lhs.name, rhs.name) < 0); }
+	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
 	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
 	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
 	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
@@ -1367,7 +1367,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			Bit32u bytes_sector32;Bit32u sectors_cluster32;Bit32u total_clusters32;Bit32u free_clusters32;
-			if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10) &&
+			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
 				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
 				rsize=true;
 				freec=0;
@@ -1691,7 +1691,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
 						if (!exist&&size) {
-							int drive=strlen(nameTarget)>1&&nameTarget[1]==':'||nameTarget[2]==':'?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
+							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
 							if (drive>=0&&Drives[drive]) {
 								Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
 								rsize=true;
@@ -2949,7 +2949,7 @@ static char *str_replace(char *orig, char *rep, char *with) {
     len_with = with?strlen(with):0;
 
     ins = orig;
-    for (count = 0; tmp = strstr(ins, rep); ++count)
+    for (count = 0; (tmp = strstr(ins, rep)) != NULL; ++count)
         ins = tmp + len_rep;
 
     tmp = result = (char *)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
@@ -3085,7 +3085,7 @@ void DOS_Shell::CMD_ALIAS(char* args) {
     } else {
         char alias_name[256] = { 0 };
         char* cmd = 0;
-        for (int offset = 0; *args && offset < sizeof(alias_name)-1; ++offset, ++args) {
+        for (unsigned int offset = 0; *args && offset < sizeof(alias_name)-1; ++offset, ++args) {
             if (*args == '=') {
                 cmd = trim(alias_name);
                 ++args;

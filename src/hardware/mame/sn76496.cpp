@@ -297,6 +297,9 @@ void sn76496_base_device::device_clock_changed()
 
 WRITE8_MEMBER( sn76496_base_device::stereo_w )
 {
+    (void)offset;
+    (void)space;
+    (void)data;
 //	m_sound->update();
 //	if (m_stereo) m_stereo_mask = data;
 //	else fatalerror("sn76496_base_device: Call to stereo write with mono chip!\n");
@@ -364,6 +367,8 @@ void sn76496_base_device::write(uint8_t data)
 
 WRITE8_MEMBER( sn76496_base_device::write )
 {
+    (void)offset;
+    (void)space;
 	write(data);
 }
 
@@ -389,6 +394,8 @@ void sn76496_base_device::countdown_cycles()
 
 void sn76496_base_device::sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples)
 {
+    (void)stream;
+    (void)inputs;
 	int i;
 	stream_sample_t *lbuffer = outputs[0];
 	stream_sample_t *rbuffer = (m_stereo)? outputs[1] : 0;//nullptr;
@@ -427,7 +434,7 @@ void sn76496_base_device::sound_stream_update(sound_stream &stream, stream_sampl
 				// if noisemode is 1, both taps are enabled
 				// if noisemode is 0, the lower tap, whitenoisetap2, is held at 0
 				// The != was a bit-XOR (^) before
-				if (((m_RNG & m_whitenoise_tap1)!=0) != (((m_RNG & m_whitenoise_tap2)!=(m_ncr_style_psg?m_whitenoise_tap2:0)) && in_noise_mode()))
+				if (((m_RNG & m_whitenoise_tap1)!=0) != (((m_RNG & m_whitenoise_tap2)!=(m_ncr_style_psg?(uint32_t)m_whitenoise_tap2:0)) && in_noise_mode()))
 				{
 					m_RNG >>= 1;
 					m_RNG |= m_feedback_mask;

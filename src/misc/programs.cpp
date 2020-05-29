@@ -846,7 +846,7 @@ void CONFIG::Run(void) {
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
 							if (in)	for (std::string line; std::getline(in, line); ) {
 								if (line.length()>CROSS_LEN) {
 									strncpy(linestr, line.c_str(), CROSS_LEN);
@@ -896,7 +896,7 @@ void CONFIG::Run(void) {
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
 							char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
-							char *cmd=cmdstr, *val=valstr, *lin=linestr, *p;
+							char *cmd=cmdstr, *val=valstr, /**lin=linestr,*/ *p;
 							if (in)	for (std::string line; std::getline(in, line); ) {
 								if (line.length()>CROSS_LEN) {
 									strncpy(linestr, line.c_str(), CROSS_LEN);

@@ -1637,6 +1637,7 @@ static inline void set_sl_rr(OPL3 *chip,int slot,int v)
 
 static void update_channels(OPL3 *chip, OPL3_CH *CH)
 {
+    (void)chip;
 	/* update channel passed as a parameter and a channel at CH+=3; */
 	if (CH->extended)
 	{   /* we've just switched to combined 4 operator mode */
@@ -1974,7 +1975,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 			}
 		}
 		/* update */
-		if(CH->block_fnum != block_fnum)
+		if(CH->block_fnum != (unsigned int)block_fnum)
 		{
 			uint8_t block  = block_fnum >> 10;
 
@@ -2283,6 +2284,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 /* lock/unlock for common table */
 static int OPL3_LockTable(device_t *device)
 {
+    (void)device;
 	num_lock++;
 	if(num_lock>1) return 0;
 
@@ -2377,7 +2379,7 @@ static OPL3 *OPL3Create(device_t *device, int clock, int rate, int type)
 static void OPL3Destroy(OPL3 *chip)
 {
 	OPL3_UnLockTable();
-	auto_free(chip->device->machine(), chip);
+    free(chip);
 }
 
 
@@ -2524,6 +2526,9 @@ static void OPL3_save_state(OPL3 *chip, device_t *device) {
 	device->save_item(NAME(chip->address));
 	device->save_item(NAME(chip->status));
 	device->save_item(NAME(chip->statusmask));
+#else
+    (void)chip;
+    (void)device;
 #endif
 }
 
