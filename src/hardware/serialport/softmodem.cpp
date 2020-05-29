@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <fstream>
+#include <sstream>
 
 #include "support.h"
 #include "serialport.h"
@@ -32,6 +34,76 @@
 
 //#include "mixer.h"
 
+class PhonebookEntry {
+public:
+	PhonebookEntry(const std::string &_phone, const std::string &_address) :
+		phone(_phone),
+		address(_address) {
+	}
+
+	bool IsMatchingPhone(const std::string &input) const {
+		return (input == phone);
+	}
+
+	const std::string &GetAddress() const {
+		return address;
+	}
+
+private:
+	std::string phone;
+	std::string address;
+};
+
+static std::vector<PhonebookEntry *> phones;
+static const char phoneValidChars[] = "01234567890*=,;#+>";
+
+static bool MODEM_IsPhoneValid(const std::string &input) {
+	size_t found = input.find_first_not_of(phoneValidChars);
+	if (found != std::string::npos) {
+		LOG_MSG("SERIAL: Phone %s contains invalid character %c", input.c_str(), input[found]);
+		return false;
+	}
+
+	return true;
+}
+
+bool MODEM_ReadPhonebook(const std::string &filename) {
+	std::ifstream loadfile(filename);
+	if (!loadfile)
+		return false;
+
+	LOG_MSG("SERIAL: Loading phonebook from %s", filename.c_str());
+
+	std::string linein;
+	while (std::getline(loadfile, linein)) {
+		std::istringstream iss(linein);
+		std::string phone, address;
+
+		if (!(iss >> phone >> address)) {
+			LOG_MSG("SERIAL: Skipped a bad line in %s", filename.c_str());
+			continue;
+		}
+
+		// Check phone number for characters ignored by Hayes modems.
+		if (!MODEM_IsPhoneValid(phone))
+			continue;
+
+		LOG_MSG("SERIAL: Mapped phone %s to address %s", phone.c_str(), address.c_str());
+		PhonebookEntry *pbEntry = new PhonebookEntry(phone, address);
+		phones.push_back(pbEntry);
+	}
+
+	return true;
+}
+
+static const char *MODEM_GetAddressFromPhone(const char *input) {
+	for (const auto entry : phones) {
+		if (entry->IsMatchingPhone(input))
+			return entry->GetAddress().c_str();
+	}
+
+	return nullptr;
+}
 
 CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
 	InstallationSuccessful=false;
@@ -174,19 +246,24 @@ void CSerialModem::SendRes(ResTypes response) {
 	}
 }
 
-bool CSerialModem::Dial(char * host) {
+bool CSerialModem::Dial(const char *host) {
+        char buf[128] = "";
+	safe_strcpy(buf, host);
+
+	const char *destination = buf;
 
 	// Scan host for port
 	Bit16u port;
-	char * hasport=strrchr(host,':');
+	char *hasport=strrchr(buf, ':');
 	if (hasport) {
-		*hasport++=0;
-		port=(Bit16u)atoi(hasport);
+		*hasport++ = 0;
+		port = (Bit16u)atoi(hasport);
 	}
 	else port=MODEM_DEFAULT_PORT;
-	// Resolve host we're gonna dial
-	LOG_MSG("Connecting to host %s port %d",host,port);
-	clientsocket = new TCPClientSocket(host, port);
+	
+        // Resolve host we're gonna dial
+	LOG_MSG("Connecting to host %s port %d", destination, port);
+	clientsocket = new TCPClientSocket(destination, port);
 	if(!clientsocket->isopen) {
 		delete clientsocket;
 		clientsocket=0;
@@ -314,7 +391,7 @@ void CSerialModem::DoCommand() {
 	LOG_MSG("Command sent to modem: ->%s<-\n", cmdbuf);
 	/* Check for empty line, stops dialing and autoanswer */
 	if (!cmdbuf[0]) {
-		reg[0]=0;	// autoanswer off
+		reg[0] = 0;	// autoanswer off
 		return;
 	}
 	//else {
@@ -346,25 +423,29 @@ void CSerialModem::DoCommand() {
 		char chr = GetChar(scanbuf);
 		switch (chr) {
 		case 'D': { // Dial
-			char * foundstr=&scanbuf[0];
+			char *foundstr = &scanbuf[0];
 			if (*foundstr=='T' || *foundstr=='P') foundstr++;
-			// Small protection against empty line and long string
-			if ((!foundstr[0]) || (strlen(foundstr)>100)) {
+			
+                        // Small protection against empty line and long string
+			if ((!foundstr[0]) || (strlen(foundstr) > 100)) {
 				SendRes(ResERROR);
 				return;
 			}
-			char* helper;
 			// scan for and remove spaces; weird bug: with leading spaces in the string,
 			// SDLNet_ResolveHost will return no error but not work anyway (win)
-			while(foundstr[0]==' ') foundstr++;
-			helper=foundstr;
+			while(foundstr[0] == ' ') foundstr++;
+			char* helper = foundstr;
 			helper+=strlen(foundstr);
-			while(helper[0]==' ') {
-				helper[0]=0;
+			while(helper[0] == ' ') {
+				helper[0] = 0;
 				helper--;
 			}
-
-			//Large enough scope, so the buffers are still valid when reaching Dail.
+                        const char *mappedaddr = MODEM_GetAddressFromPhone(foundstr);
+			if (mappedaddr) {
+				Dial(mappedaddr);
+				return;
+			}
+			//Large enough scope, so the buffers are still valid when reaching Dial.
 			char buffer[128];
 			char obuffer[128];
 			if (strlen(foundstr) >= 12) {
@@ -386,7 +467,7 @@ void CSerialModem::DoCommand() {
 							buffer[j++] = '.';
 						// If the string is longer than 12 digits,
 						// interpret the rest as port
-						if (i == 11 && strlen(foundstr)>12)
+						if (i == 11 && strlen(foundstr) > 12)
 							buffer[j++] = ':';
 					}
 					buffer[j] = 0;
@@ -682,11 +763,16 @@ void CSerialModem::Timer2(void) {
 				rqueue->addb(txval);
 				//LOG_MSG("Echo back to queue: %x",txval);
 			}
-			if (txval==0xa) continue;		//Real modem doesn't seem to skip this?
-			else if (txval==0x8 && (cmdpos > 0)) --cmdpos;	// backspace
-			else if (txval==0xd) DoCommand();				// return
-			else if (txval != '+') {
-				if(cmdpos<99) {
+			if (txval == '\n')
+                            continue; // Real modem doesn't seem to skip this?
+                        
+                        if (txval == '\b') {
+                            if (cmdpos > 0)
+                                cmdpos--;
+                        } else if (txval == '\r') {
+                            DoCommand();
+                        } else if (txval != '+') {
+                            if (cmdpos < 99) {
 					cmdbuf[cmdpos] = (char)txval;
 					cmdpos++;
 				}
