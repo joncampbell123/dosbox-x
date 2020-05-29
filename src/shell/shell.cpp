@@ -1169,6 +1169,12 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires xms=true,umb=true).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
+	MSG_Add("SHELL_CMD_LS_HELP", "Lists directory contents.\n");
+	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P]\n\n"
+	        "  /A\tLists hidden and system files also.\n"
+	        "  /L\tLists names one per line.\n"
+		    "  /P\tPauses after each screenful of information.\n");
+	MSG_Add("SHELL_CMD_LS_PATH_ERR", "Cannot access: %s (no such file or directory)\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"

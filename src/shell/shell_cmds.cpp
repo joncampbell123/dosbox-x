@@ -31,13 +31,13 @@
 #include "../dos/drives.h"
 #include "support.h"
 #include "control.h"
+#include "paging.h"
 #include <algorithm>
 #include <cstring>
 #include <cctype>
 #include <cstdlib>
 #include <vector>
 #include <string>
-#include <time.h>
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -55,7 +55,6 @@ static SHELL_Cmd cmd_list[]={
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-{	"DELETE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
 {	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},	
@@ -64,6 +63,7 @@ static SHELL_Cmd cmd_list[]={
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
+{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"PATH",			1,		&DOS_Shell::CMD_PATH,		"SHELL_CMD_PATH_HELP"},
@@ -89,8 +89,8 @@ static SHELL_Cmd cmd_list[]={
 {	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
-// The following are additional commands for debugging purposes in DOSBox-X
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
+// The following are additional commands for debugging purposes in DOSBox-X
 #if C_DEBUG
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
 {	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
@@ -562,6 +562,11 @@ continue_1:
 	dos.dta(save_dta);
 }
 
+static int GetPauseCount() {
+	Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	return CURSOR_POS_ROW(page)>2?CURSOR_POS_ROW(page)-2:22;
+}
+
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
 	bool optall=ScanCMDBool(args,"ALL");
@@ -571,7 +576,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	while (cmd_list[cmd_index].name) {
 		if (optall || !cmd_list[cmd_index].flags) {
 			WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
-			if(!(++write_count%22)) {
+			if(!(++write_count%GetPauseCount())) {
 				WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				Bit8u c;Bit16u n=1;
 				DOS_ReadFile(STDIN,&c,&n);
@@ -981,7 +986,7 @@ std::vector<std::string> dirs, adirs;
 
 static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	p_count+=optW?5:1;
-	if (optP && p_count%(22*w_size)<1) {
+	if (optP && p_count%(GetPauseCount()*w_size)<1) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 		Bit8u c;Bit16u n=1;
 		DOS_ReadFile(STDIN,&c,&n);
@@ -1009,7 +1014,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		shell->WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),uselfn&&DOS_GetSFNPath(path,largs,true)?largs:sargs);
 		if (optP) {
 			p_count+=optW?10:2;
-			if (p_count%(22*w_size)<2) {
+			if (p_count%(GetPauseCount()*w_size)<2) {
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				Bit8u c;Bit16u n=1;
 				DOS_ReadFile(STDIN,&c,&n);
@@ -1096,7 +1101,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 					shell->WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),uselfn&&DOS_GetSFNPath(path,largs,true)?largs:sargs);
 					if (optP) {
 						p_count+=optW?15:3;
-						if (optS&&p_count%(22*w_size)<3) {
+						if (optS&&p_count%(GetPauseCount()*w_size)<3) {
 							shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 							Bit8u c;Bit16u n=1;
 							DOS_ReadFile(STDIN,&c,&n);
@@ -1144,7 +1149,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				}
 				if (optW) w_count++;
 			}
-			if (optP && !(++p_count%(22*w_size))) {
+			if (optP && !(++p_count%(GetPauseCount()*w_size))) {
 				if (optW&&w_count%5) {shell->WriteOut("\n");w_count=0;}
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				Bit8u c;Bit16u n=1;
@@ -1405,6 +1410,116 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
 	}
+	dos.dta(save_dta);
+}
+
+void DOS_Shell::CMD_LS(char *args) {
+	HELP("LS");
+	bool optA=ScanCMDBool(args,"A");
+	bool optL=ScanCMDBool(args,"L");
+	bool optP=ScanCMDBool(args,"P");
+
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+	DOS_DTA dta(dos.dta());
+
+	std::string pattern = args;
+	trim(pattern);
+
+	const char last_char = (pattern.length() > 0 ? pattern.back() : '\0');
+	switch (last_char) {
+		case '\0': // No arguments, search for all.
+			pattern = "*.*";
+			break;
+		case '\\': // Handle \, C:\, etc.
+		case ':':  // Handle C:, etc.
+			pattern += "*.*";
+			break;
+		default: break;
+	}
+
+	// Handle patterns starting with a dot.
+	char buffer[CROSS_LEN];
+	pattern = ExpandDot((char *)pattern.c_str(), buffer, sizeof(buffer));
+
+	// When there's no wildcard and target is a directory then search files
+	// inside the directory.
+	const char *p = pattern.c_str();
+	if (!strrchr(p, '*') && !strrchr(p, '?')) {
+		uint16_t attr = 0;
+		if (DOS_GetFileAttr(p, &attr) && (attr & DOS_ATTR_DIRECTORY))
+			pattern += "\\*.*";
+	}
+
+	// If no extension, list all files.
+	// This makes patterns like foo* work.
+	if (!strrchr(pattern.c_str(), '.'))
+		pattern += ".*";
+
+	bool ret = DOS_FindFirst((char *)pattern.c_str(), 0xffff & ~DOS_ATTR_VOLUME);
+	if (!ret) {
+		WriteOut(MSG_Get("SHELL_CMD_LS_PATH_ERR"), trim(args));
+		dos.dta(save_dta);
+		return;
+	}
+
+	std::vector<DtaResult> results;
+	// reserve space for as many as we can fit into a single memory page
+	// nothing more to it; make it larger if necessary
+	results.reserve(MEM_PAGE_SIZE / sizeof(DtaResult));
+
+	do {
+		DtaResult result;
+		dta.GetResult(result.name, result.lname, result.size, result.date, result.time, result.attr);
+		results.push_back(result);
+	} while ((ret = DOS_FindNext()) == true);
+
+	size_t w_count = 0, p_count = 0;
+
+	for (const auto &entry : results) {
+		std::string name = entry.name;
+		std::string lname = uselfn?entry.lname:entry.name;
+		const bool is_dir = entry.attr & DOS_ATTR_DIRECTORY;
+
+		if (name == "." || name == "..")
+			continue;
+		
+		if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
+
+		if (is_dir) {
+			if (optL) {
+				WriteOut("\033[34;1m%s\033[0m\n", lname.c_str());
+				p_count++;
+			} else {
+				upcase(name);
+				WriteOut("\033[34;1m%-15s\033[0m", name.c_str());
+			}
+		} else {
+			const bool is_executable = !strcasecmp(name.substr(name.length()-4).c_str(), ".exe") ||
+			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".com") ||
+			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".bat");
+			if (optL) {
+				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", lname.c_str());
+				p_count++;
+			} else {
+				lowcase(name);
+				WriteOut(is_executable?"\033[32;1m%-15s\033[0m":"%-15s", name.c_str());
+			}
+		}
+		if (!optL) {
+			++w_count;
+			if (w_count % 5 == 0) {p_count++;WriteOut_NoParsing("\n");}
+		}
+		if (optP&&p_count>=GetPauseCount()) {
+			WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+			Bit8u c;Bit16u n=1;
+			DOS_ReadFile(STDIN,&c,&n);
+			if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);return;}
+			if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+			p_count=0;
+		}
+	}
+	if (!optL&&w_count%5) WriteOut_NoParsing("\n");
 	dos.dta(save_dta);
 }
 
