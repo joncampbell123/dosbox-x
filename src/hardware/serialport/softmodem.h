@@ -149,6 +149,7 @@ private:
 #define MREG_CR_CHAR 3
 #define MREG_LF_CHAR 4
 #define MREG_BACKSPACE_CHAR 5
+#define MREG_GUARD_TIME 12
 #define MREG_DTR_DELAY 25
 
 class CSerialModem : public CSerial {
