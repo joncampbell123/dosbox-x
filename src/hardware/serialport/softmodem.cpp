@@ -205,11 +205,11 @@ void CSerialModem::SendNumber(Bitu val) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 	
-	rqueue->addb((Bit8u)(val/100+'0'));
+	rqueue->addb((Bit8u)(val / 100+'0'));
 	val = val%100;
-	rqueue->addb((Bit8u)(val/10+'0'));
+	rqueue->addb((Bit8u)(val / 10+'0'));
 	val = val%10;
-	rqueue->addb((Bit8u)(val+'0'));
+	rqueue->addb((Bit8u)(val + '0'));
 
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
@@ -219,17 +219,19 @@ void CSerialModem::SendRes(ResTypes response) {
 	char const * string;Bitu code;
 	switch (response)
 	{
-		case ResNONE:		return;
-		case ResOK:			string="OK"; code=0; break;
-		case ResERROR:		string="ERROR"; code=4; break;
-		case ResRING:		string="RING"; code=2; break;
-		case ResNODIALTONE: string="NO DIALTONE"; code=6; break;
-		case ResNOCARRIER:	string="NO CARRIER" ;code=3; break;
-		case ResCONNECT:	string="CONNECT 57600"; code=1; break;
-		default:		return;
+		case ResOK:         code = 0; string = "OK"; break;
+		case ResCONNECT:    code = 1; string = "CONNECT 57600"; break;
+		case ResRING:       code = 2; string = "RING"; break;
+		case ResNOCARRIER:  code = 3; string = "NO CARRIER"; break;
+		case ResERROR:      code = 4; string = "ERROR"; break;
+		case ResNODIALTONE: code = 6; string = "NO DIALTONE"; break;
+                case ResBUSY:       code = 7; string = "BUSY"; break;
+		case ResNOANSWER:   code = 8; string = "NO ANSWER"; break;
+		case ResNONE:       return;
+		default:            return;
 	}
 	
-	if(doresponse!=1) {
+	if(doresponse != 1) {
 		if(doresponse==2 && (response==ResRING || 
 			response == ResCONNECT || response==ResNOCARRIER)) return;
 		if(numericresponse) SendNumber(code);
@@ -312,7 +314,7 @@ void CSerialModem::Reset(){
 	oldDTRstate = getDTR();
 	flowcontrol = 0;
 	plusinc = 0;
-        dtrmode = 2;
+	dtrmode = 2;
 	if(clientsocket) {
 		delete clientsocket;
 		clientsocket=0;
@@ -324,7 +326,7 @@ void CSerialModem::Reset(){
 	reg[MREG_CR_CHAR]          = '\r';
 	reg[MREG_LF_CHAR]          = '\n';
 	reg[MREG_BACKSPACE_CHAR]   = '\b';
-        reg[MREG_GUARD_TIME]       = 50;
+	reg[MREG_GUARD_TIME]       = 50;
 	reg[MREG_DTR_DELAY]        = 5;
 
 	cmdpause = 0;	

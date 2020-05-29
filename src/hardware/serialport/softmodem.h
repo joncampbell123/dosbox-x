@@ -42,9 +42,14 @@
 
 enum ResTypes {
 	ResNONE,
-	ResOK,ResERROR,
-	ResCONNECT,ResRING,
-	ResBUSY,ResNODIALTONE,ResNOCARRIER
+	ResOK,
+	ResERROR,
+	ResCONNECT,
+	ResRING,
+	ResBUSY,
+	ResNODIALTONE,
+	ResNOCARRIER,
+	ResNOANSWER
 };
 
 #define TEL_CLIENT 0
