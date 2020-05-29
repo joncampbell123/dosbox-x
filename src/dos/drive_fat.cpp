@@ -903,10 +903,10 @@ bool fatDrive::getDirClustNum(const char *dir, Bit32u *clustNum, bool parDir) {
 				lfn_filefind_handle=fbak;
 				return false;
 			} else {
-				lfn_filefind_handle=fbak;
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
                 Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+				lfn_filefind_handle=fbak;
 				if(!(find_attr &DOS_ATTR_DIRECTORY)) return false;
 			}
 			if (BPB.is_fat32())

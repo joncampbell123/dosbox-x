@@ -90,10 +90,10 @@ static SHELL_Cmd cmd_list[]={
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // The following are additional commands for debugging purposes in DOSBox-X
-{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "Runs program with video or audio capture.\n"},
 #if C_DEBUG
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"Runs program and breaks into debugger at entry point.\n"},
+{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"Hooks INT 2Fh for debugging purposes.\n"},
 #endif
 {0,0,0,0}
 }; 
@@ -237,6 +237,7 @@ __do_command_begin:
 		return; \
 	}
 
+#if C_DEBUG
 Bitu int2fdbg_hook_callback = 0;
 
 static Bitu INT2FDBG_Handler(void) {
@@ -364,6 +365,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 		WriteOut("  /I      Installs hook\n");
 	}
 }
+#endif
 
 void DOS_Shell::CMD_BREAK(char * args) {
 	HELP("BREAK");
@@ -529,6 +531,7 @@ continue_1:
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
 	dta=dos.dta();
 	bool exist=false;
+	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!optF && (attr & DOS_ATTR_READ_ONLY)) {
@@ -548,14 +551,13 @@ continue_1:
 				if (c==3) {WriteOut("^C\r\n");break;}
 				c = c=='y'||c=='Y' ? 'Y':'N';
 				WriteOut("%c\r\n", c);
-				if (c=='N') {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();lfn_filefind_handle=fbak;continue;}
+				if (c=='N') {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
 			}
 			if (!strlen(full)||!DOS_UnlinkFile(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str())) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
 		}
-		lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		res=DOS_FindNext();
-		lfn_filefind_handle=fbak;
 	}
+	lfn_filefind_handle=fbak;
 	if (!exist) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
 	dos.dta(save_dta);
 }
@@ -1212,12 +1214,14 @@ void DOS_Shell::CMD_DIR(char * args) {
 
 	ScanCMDBool(args,"4"); /* /4 ignored (default) */
 	bool optW=ScanCMDBool(args,"W");
-	bool optS=ScanCMDBool(args,"S");
 	bool optP=ScanCMDBool(args,"P");
-	if (ScanCMDBool(args,"WP") || ScanCMDBool(args,"PW")) {
-		optW=optP=true;
-	}
+	if (ScanCMDBool(args,"WP") || ScanCMDBool(args,"PW")) optW=optP=true;
+	if (ScanCMDBool(args,"-W")) optW=false;
+	if (ScanCMDBool(args,"-P")) optP=false;
+	bool optS=ScanCMDBool(args,"S");
+	if (ScanCMDBool(args,"-S")) optS=false;
 	bool optB=ScanCMDBool(args,"B");
+	if (ScanCMDBool(args,"-B")) optB=false;
 	bool optA=ScanCMDBool(args,"A");
 	bool optAD=ScanCMDBool(args,"AD");
 	bool optAminusD=ScanCMDBool(args,"A-D");
@@ -1229,6 +1233,19 @@ void DOS_Shell::CMD_DIR(char * args) {
 	bool optAminusR=ScanCMDBool(args,"A-R");
 	bool optAA=ScanCMDBool(args,"AA");
 	bool optAminusA=ScanCMDBool(args,"A-A");
+	if (ScanCMDBool(args,"-A")) {
+		optA = false;
+		optAD = false;
+		optAminusD = false;
+		optAS = false;
+		optAminusS = false;
+		optAH = false;
+		optAminusH = false;
+		optAR = false;
+		optAminusR = false;
+		optAA = false;
+		optAminusA = false;
+	}
 	// Sorting flags
 	bool reverseSort = false;
 	bool optON=ScanCMDBool(args,"ON");
@@ -1257,6 +1274,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		reverseSort = true;
 	}
 	bool optO=ScanCMDBool(args,"O");
+	if (ScanCMDBool(args,"OGN")) optO=true;
 	if (ScanCMDBool(args,"-O")) {
 		optO = false;
 		optOG = false;

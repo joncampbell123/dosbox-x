@@ -6405,7 +6405,7 @@ void DOSBox_ShowConsole() {
 void DOSBox_ConsolePauseWait() {
     char c;
 
-    printf("Hit ENTER to continue\n");
+    printf("Press ENTER key to continue\n");
     do {
         if (fread(&c, 1, 1, stdin) != 1) break;
     } while (!(c == 13 || c == 10)); /* wait for Enter key */
@@ -6451,10 +6451,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -printconf                              Print config file location\n");
             fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
             fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-            fprintf(stderr,"  -console                                Show console (win32)\n");
-            fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
-            fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
-            fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+            fprintf(stderr,"  -nogui                                  Don't show GUI (Windows version only)\n");
+            fprintf(stderr,"  -nomenu                                 Don't show menu (Windows version only)\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
             fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
@@ -6462,12 +6460,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
-            fprintf(stderr,"  -savedir <path>                         Save path\n");
-            fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+            fprintf(stderr,"  -savedir <path>                         Set save path\n");
+            fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
-            fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
-            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
-            fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
@@ -6476,14 +6471,33 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
-            fprintf(stderr,"  -set <section property=value>           Sets the config option (overriding the config file).\n");
+            fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
             fprintf(stderr,"                                          Make sure to surround the string in quotes to cover spaces.\n");
-            fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
             fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
+            fprintf(stderr,"  -helpdebug                              Show debug-related options\n\n");
+
+#if defined(WIN32)
+            DOSBox_ConsolePauseWait();
+#endif
+
+            return 0;
+        } else if (optname == "helpdebug") {
+            DOSBox_ShowConsole();
+
+            fprintf(stderr,"\ndosbox-x [options]\n");
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
+            fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"Debugging options:\n\n");
+            fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
+            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox-X (implies -console)\n");
+            fprintf(stderr,"  -keydbg                                 Log all SDL key events\n");
+            fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+            fprintf(stderr,"  -console                                Show console (Windows builds only)\n");
+            fprintf(stderr,"  -noconsole                              Don't show console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
-            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
+            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -8053,14 +8067,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			//Due to parsing there can be a = at the start of value.
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
-			if (value.empty() ) {
-				LOG_MSG(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
-				continue;
-			}
 			std::string inputline = pvars[1] + "=" + value;
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
-			if (!change_success) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
+			if (!change_success&&!value.empty()) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
 		}
 		
 		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty

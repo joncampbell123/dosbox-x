@@ -1855,7 +1855,7 @@ public:
             }
 
 			char msg[30];
-			const Bit8u page(0);
+			const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);;
 			BIOS_NCOLS;
             (void)ncols;
 			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
@@ -5393,7 +5393,7 @@ void DOS_SetupPrograms(void) {
         "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
         "  [-source source] [-r retries] [-bat]\n"
         "  file: The image file that is to be created - !path on the host!\n"
-        "  -type: Type of image.\n"
+        "  -t: Type of image.\n"
         "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
         "    Harddisk templates:\n"
