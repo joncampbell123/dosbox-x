@@ -261,7 +261,7 @@ extern bool vga_alt_new_mode;
  *      render code will generate the gibberish that would occur on real
  *      hardware when the two are not synchronized.
  */
-typedef struct {
+typedef struct VGA_Experimental_Model_1_t {
     template <typename T> struct pix_char_t {
         T                       pixels;
         T                       chars;
@@ -731,7 +731,7 @@ typedef union VGA_Latch {
     VGA_Latch(const Bit32u raw) : d(raw) { }
 } VGA_Latch;
 
-typedef struct {
+typedef struct VGA_Memory_t {
 	Bit8u*      linear = NULL;
 	Bit8u*      linear_orgptr = NULL;
 
@@ -749,7 +749,7 @@ typedef struct {
 
 static const size_t VGA_Draw_2_elem = 2;
 
-typedef struct {
+typedef struct VGA_Type_t {
     VGAModes mode = {};                              /* The mode the vga system is in */
     VGAModes lastmode = {};
     Bit8u misc_output = 0;

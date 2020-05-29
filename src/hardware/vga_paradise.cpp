@@ -23,7 +23,7 @@
 #include "inout.h"
 #include "mem.h"
 
-typedef struct {
+typedef struct SVGA_PVGA1A_DATA_t {
 	Bitu PR0A;
 	Bitu PR0B;
 	Bitu PR1;
