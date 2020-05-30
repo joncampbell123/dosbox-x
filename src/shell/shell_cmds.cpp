@@ -3327,7 +3327,6 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     bool cap_mtaudio = false;
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
-
     if (!strcmp(args,"-?")) {
 		args[0]='/';
 		HELP("DXCAPTURE");
@@ -3335,20 +3334,27 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 	}
 
     args=(char *)argv.c_str();
-    if (ScanCMDBool(args,"V"))
-        cap_video = true;
-    if (ScanCMDBool(args,"-V"))
-        cap_video = false;
-
-    if (ScanCMDBool(args,"A"))
-        cap_audio = true;
-    if (ScanCMDBool(args,"-A"))
-        cap_audio = false;
-
-    if (ScanCMDBool(args,"M"))
-        cap_mtaudio = true;
-    if (ScanCMDBool(args,"-M"))
-        cap_mtaudio = false;
+    char *arg1;
+    while (strlen(args)&&args[0]=='/') {
+		arg1=StripArg(args);
+		upcase(arg1);
+		if (!(strcmp(arg1,"/V")))
+			cap_video = true;
+		else if (!(strcmp(arg1,"/-V")))
+			cap_video = false;
+		else if (!(strcmp(arg1,"/A")))
+			cap_audio = true;
+		else if (!(strcmp(arg1,"/-A")))
+			cap_audio = false;
+		else if (!(strcmp(arg1,"/M")))
+			cap_mtaudio = true;
+		else if (!(strcmp(arg1,"/-M")))
+			cap_mtaudio = false;
+		else {
+			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),arg1);
+			return;
+		}
+    }
 
     if (!cap_video && !cap_audio && !cap_mtaudio)
         cap_video = true;
