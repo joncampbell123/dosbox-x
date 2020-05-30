@@ -2889,7 +2889,7 @@ public:
 void RESCAN::Run(void) 
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A]\nRESCAN [drive:]\n");
+		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A]\nRESCAN [drive:]\n\n  [/A]\t\tRescan all drives\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
 		return;
 	}
     bool all = false;
@@ -4949,7 +4949,7 @@ class LABEL : public Program
 {
 public:
     void Help() {
-        WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n");
+        WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n\n  [drive:]\tSpecifies the drive letter\n  [label]\tSpecifies the volume label\n");
     }
 	void Run() override
     {
