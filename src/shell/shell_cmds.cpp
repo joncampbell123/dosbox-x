@@ -613,8 +613,8 @@ void DOS_Shell::CMD_HELP(char * args){
 		cmd_index++;
 	}
 	if (*args&&!show) {
-		char * arg1=StripArg(args);
-		DoCommand((char *)(std::string(arg1)+" /?").c_str());
+		std::string argc=std::string(StripArg(args));
+		if (argc!="") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
 }
 
@@ -1557,9 +1557,7 @@ void DOS_Shell::CMD_LS(char *args) {
 				WriteOut("\033[34;1m%-*s\033[0m", max[w_count % col], name.c_str());
 		} else {
 			if (!uselfn||optZ) lowcase(name);
-			const bool is_executable = !strcasecmp(name.substr(name.length()-4).c_str(), ".exe") ||
-			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".com") ||
-			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".bat");
+			const bool is_executable = name.length()>4 && (!strcasecmp(name.substr(name.length()-4).c_str(), ".exe") || !strcasecmp(name.substr(name.length()-4).c_str(), ".com") || !strcasecmp(name.substr(name.length()-4).c_str(), ".bat"));
 			if (col==1) {
 				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
 				p_count++;
