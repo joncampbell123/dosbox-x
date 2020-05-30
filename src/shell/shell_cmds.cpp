@@ -2845,7 +2845,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
-		if (optR) WriteOut("DOSBox-X build date and time: %s\n",UPDATED_STR);
+		if (optR) WriteOut("DOSBox-X's build date and time: %s\n",UPDATED_STR);
 	}
 }
 

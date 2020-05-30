@@ -561,7 +561,7 @@ void DOS_Shell::Run(void) {
 
     }
     else {
-        WriteOut(optK?"\n":"DOSBox-X Version %s (%s) Command Shell\nBased on DOSBox by the DOSBox Team, 2011-2020\n\n",VERSION,SDL_STRING);
+        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nBased on DOSBox by the DOSBox Team, 2011-2020\n\n",VERSION,SDL_STRING);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
