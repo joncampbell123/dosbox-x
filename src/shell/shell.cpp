@@ -1069,28 +1069,23 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CLS_HELP","Clears screen.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D|G]]\n\n"
-		   "   [drive:][path][filename]\n"
-		   "   \tSpecifies drive, directory, and/or files to list.\n"
-		   "   /W\tUses wide list format.\n"
-		   "   /B\tUses bare format (no heading information or summary).\n"
-		   "   /S\tDisplays files in specified directory and all subdirectories.\n"
-		   "   /P\tPauses after each screenful of information.\n"
-		   "   /A\tDisplays all files and directories.\n"
-		   "   /AD\tDisplays all directories.\n"
-		   "   /AS\tDisplays files with system attributes.\n"
-		   "   /AH\tDisplays files with hidden attributes.\n"
-		   "   /AR\tDisplays files with read-only attributes.\n"
-		   "   /AA\tDisplays files with archive attributes.\n"
-		   "   /O\tList by files in sorted order.\n"
-		   "   /ON\tList files sorted by name (alphabetic).\n"
-		   "   /OE\tList files sorted by extension (alphabetic).\n"
-		   "   /OS\tList files sorted by size (smallest first).\n"
-		   "   /OD\tList files sorted by date (oldest first).\n"
-		   "   /OG\tList directories first, then files.\n"
-		   "   The \"-\" sign can be used in /A[D|S|H|R|A] and /O[N|E|S|D|G] commands,\n"
-		   "   meaning \"not\". For example, /A-D displays all files (not directories),\n"
-		   "   and /O-S lists files reversely sorted by size (biggest first).\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]\n\n"
+		   "  [drive:][path][filename]\n"
+		   "              Specifies drive, directory, and/or files to list.\n"
+		   "  /W          Uses wide list format.\n"
+		   "  /B          Uses bare format (no heading information or summary).\n"
+		   "  /S          Displays files in specified directory and all subdirectories.\n"
+		   "  /P          Pauses after each screenful of information.\n"
+		   "  /A          Displays files with specified attributes.\n"
+		   "  attributes   D  Directories                R  Read-only files\n"
+		   "               H  Hidden files               A  Files ready for archiving\n"
+		   "               S  System files               -  Prefix meaning not\n"
+		   "  /O          List by files in sorted order.\n"
+		   "  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
+		   "               E  By extension (alphabetic)  D  By date & time (earlist first)\n"
+		   "               G  Group directories first    -  Prefix to reverse order\n\n"
+		   "Switches may be preset in the DIRCMD environment variable.  Override\n"
+		   "preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"
 		   );
 	MSG_Add("SHELL_CMD_ECHO_HELP","Displays messages, or turns command-echoing on or off.\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
@@ -1175,8 +1170,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P]\n\n"
 	        "  /A\tLists hidden and system files also.\n"
 	        "  /L\tLists names one per line.\n"
-		    "  /P\tPauses after each screenful of information.\n");
-	MSG_Add("SHELL_CMD_LS_PATH_ERR", "Cannot access: %s (no such file or directory)\n");
+		    "  /P\tPauses after each screenful of information.\n"
+			"  /Z\tDisplays short names even if LFN support is available.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
