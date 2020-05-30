@@ -1,4 +1,5 @@
 0.83.2
+  - Added help messages for some supported commands. (Wengier)
   - Added phone book support for the emulated modem. There is
     a new phonebookfile= option in the [serial] section. The
     phone book file entries need to be in the format of:
