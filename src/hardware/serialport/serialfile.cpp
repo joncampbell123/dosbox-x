@@ -24,7 +24,7 @@
 #include "serialport.h"
 #include "serialfile.h"
 
-CSerialFile::CSerialFile(Bitu id,	CommandLine* cmd):CSerial(id, cmd) {
+CSerialFile::CSerialFile(Bitu id,CommandLine* cmd):CSerial(id, cmd) {
 	CSerial::Init_Registers();
 	// DSR+CTS on to make sure the DOS COM device will not get stuck waiting for them
 	setRI(false);
@@ -32,11 +32,10 @@ CSerialFile::CSerialFile(Bitu id,	CommandLine* cmd):CSerial(id, cmd) {
 	setDSR(true);
 	setCTS(true);
 
-    filename = "serial";
-	if (cmd->FindStringBegin("file:",filename,false)) {
-        /* good */
-	}
-
+    filename = "serial"; // Default output filename
+    cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
+    LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
+	
     InstallationSuccessful=true;
 }
 
