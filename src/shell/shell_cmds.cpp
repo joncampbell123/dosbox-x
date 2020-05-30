@@ -515,7 +515,6 @@ continue_1:
 		strcpy(path, "");
 		strcpy(pattern, full);
 	}
-	LOG_MSG("args %s full %s\n", args, full);
 	int k=0;
 	for (int i=0;i<(int)strlen(pattern);i++)
 		if (pattern[i]!='\"')
@@ -1264,15 +1263,15 @@ void DOS_Shell::CMD_DIR(char * args) {
 	bool optB=ScanCMDBool(args,"B");
 	if (ScanCMDBool(args,"-B")) optB=false;
 	bool optA=ScanCMDBool(args,"A");
-	bool optAD=ScanCMDBool(args,"AD");
+	bool optAD=ScanCMDBool(args,"AD")||ScanCMDBool(args,"A:D");
 	bool optAminusD=ScanCMDBool(args,"A-D");
-	bool optAS=ScanCMDBool(args,"AS");
+	bool optAS=ScanCMDBool(args,"AS")||ScanCMDBool(args,"A:S");
 	bool optAminusS=ScanCMDBool(args,"A-S");
-	bool optAH=ScanCMDBool(args,"AH");
+	bool optAH=ScanCMDBool(args,"AH")||ScanCMDBool(args,"A:H");
 	bool optAminusH=ScanCMDBool(args,"A-H");
-	bool optAR=ScanCMDBool(args,"AR");
+	bool optAR=ScanCMDBool(args,"AR")||ScanCMDBool(args,"A:R");
 	bool optAminusR=ScanCMDBool(args,"A-R");
-	bool optAA=ScanCMDBool(args,"AA");
+	bool optAA=ScanCMDBool(args,"AA")||ScanCMDBool(args,"A:A");
 	bool optAminusA=ScanCMDBool(args,"A-A");
 	if (ScanCMDBool(args,"-A")) {
 		optA = false;
@@ -1289,27 +1288,27 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
 	// Sorting flags
 	bool reverseSort = false;
-	bool optON=ScanCMDBool(args,"ON");
+	bool optON=ScanCMDBool(args,"ON")||ScanCMDBool(args,"O:N");
 	if (ScanCMDBool(args,"O-N")) {
 		optON = true;
 		reverseSort = true;
 	}
-	bool optOD=ScanCMDBool(args,"OD");
+	bool optOD=ScanCMDBool(args,"OD")||ScanCMDBool(args,"O:D");
 	if (ScanCMDBool(args,"O-D")) {
 		optOD = true;
 		reverseSort = true;
 	}
-	bool optOE=ScanCMDBool(args,"OE");
+	bool optOE=ScanCMDBool(args,"OE")||ScanCMDBool(args,"O:E");
 	if (ScanCMDBool(args,"O-E")) {
 		optOE = true;
 		reverseSort = true;
 	}
-	bool optOS=ScanCMDBool(args,"OS");
+	bool optOS=ScanCMDBool(args,"OS")||ScanCMDBool(args,"O:S");
 	if (ScanCMDBool(args,"O-S")) {
 		optOS = true;
 		reverseSort = true;
 	}
-	bool optOG=ScanCMDBool(args,"OG");
+	bool optOG=ScanCMDBool(args,"OG")||ScanCMDBool(args,"O:G");
 	if (ScanCMDBool(args,"O-G")) {
 		optOG = true;
 		reverseSort = true;
