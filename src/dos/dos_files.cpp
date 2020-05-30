@@ -883,7 +883,7 @@ bool DOS_UnlinkFile(char const * const name) {
 		std::vector<std::string> cdirs;
 		cdirs.clear();
 		strcpy(spath, dir);
-		if (strchr(dir,'\"')) DOS_GetSFNPath(dir, spath, false);
+		if (!DOS_GetSFNPath(dir, spath, false)) strcpy(spath, dir);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 		std::string pfull=std::string(spath)+std::string(pattern);
 		int fbak=lfn_filefind_handle;
