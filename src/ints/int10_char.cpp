@@ -774,6 +774,16 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
     Bit8u cur_row=CURSOR_POS_ROW(page);
     Bit8u cur_col=CURSOR_POS_COL(page);
     switch (chr) {
+    case 8:
+        if(cur_col>0) cur_col--;
+        break;
+    case '\r':
+        cur_col=0;
+        break;
+    case '\n':
+//      cur_col=0; //Seems to break an old chess game
+        cur_row++;
+        break;
     case 7: /* Beep */
         // Prepare PIT counter 2 for ~900 Hz square wave
         IO_Write(0x43, 0xb6);
@@ -787,18 +797,7 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
         while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
         // Speaker off
         IO_Write(0x61, IO_Read(0x61) & ~0x3);
-        // No change in position
-        return;
-    case 8:
-        if(cur_col>0) cur_col--;
-        break;
-    case '\r':
-        cur_col=0;
-        break;
-    case '\n':
-//      cur_col=0; //Seems to break an old chess game
-        cur_row++;
-        break;
+        chr=' ';
     default:
         /* Draw the actual Character */
         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
