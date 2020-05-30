@@ -3334,6 +3334,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 		return;
 	}
 
+    args=(char *)argv.c_str();
     if (ScanCMDBool(args,"V"))
         cap_video = true;
     if (ScanCMDBool(args,"-V"))
@@ -3359,7 +3360,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (cap_mtaudio)
         CAPTURE_StartMTWave();
 
-    DoCommand((char *)argv.c_str());
+    DoCommand(args);
 
     if (post_exit_delay_ms > 0) {
         LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
