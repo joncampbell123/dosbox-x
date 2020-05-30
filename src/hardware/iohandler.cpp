@@ -98,7 +98,8 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 }
 
 template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    int actual = iotype - IO_TYPE_MIN;
+    IO_callout_vector &vec = IO_callouts[actual];
     unsigned int match = 0;
     IO_ReadHandler *t_f;
     size_t scan = 0;
@@ -129,7 +130,8 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
 }
 
 template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    int actual = iotype - IO_TYPE_MIN;
+    IO_callout_vector &vec = IO_callouts[actual];
     unsigned int match = 0;
     IO_WriteHandler *t_f;
     size_t scan = 0;

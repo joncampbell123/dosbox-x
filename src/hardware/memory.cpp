@@ -219,7 +219,8 @@ PageHandler &Get_ROM_page_handler(void) {
 extern bool pcibus_enable;
 
 template <enum MEM_Type_t iotype> static unsigned int MEM_Gen_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
-    MEM_callout_vector &vec = MEM_callouts[iotype - MEM_TYPE_MIN];
+    int actual = iotype - MEM_TYPE_MIN;
+    MEM_callout_vector &vec = MEM_callouts[actual];
     unsigned int match = 0;
     PageHandler *t_f;
     size_t scan = 0;

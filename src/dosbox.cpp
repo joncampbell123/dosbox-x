@@ -87,7 +87,7 @@
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
-#if defined(__SSE__) && !defined(_M_AMD64)
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
 bool sse2_available = false;
 
 # ifdef __GNUC__
@@ -1107,7 +1107,7 @@ void DOSBOX_SetupConfigSections(void) {
         0
     };
 
-#if defined(__SSE__) && !defined(_M_AMD64) && !defined(EMSCRIPTEN)
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__)) && !defined(EMSCRIPTEN)
     CheckSSESupport();
 #endif
     SDLNetInited = false;
