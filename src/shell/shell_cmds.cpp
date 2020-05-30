@@ -3117,16 +3117,18 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 bool debugger_break_on_exec = false;
 
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
+    while (*args == ' ') args++;
+	std::string argv=std::string(args);
+	args=StripArg(args);
 	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
     debugger_break_on_exec = true;
-    while (*args == ' ') args++;
     if (!strcmp(args,"-?")) {
 		args[0]='/';
 		HELP("DEBUGBOX");
 		return;
 	}
-    DoCommand(args);
+    DoCommand((char *)argv.c_str());
     debugger_break_on_exec = false;
 }
 #endif
@@ -3316,13 +3318,15 @@ void CAPTURE_StopMTWave(void);
 //              The command name is chosen not to conform to the 8.3 pattern
 //              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
+    while (*args == ' ') args++;
+	std::string argv=std::string(args);
+	args=StripArg(args);
 	HELP("DXCAPTURE");
     bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
-    while (*args == ' ') args++;
 
     if (!strcmp(args,"-?")) {
 		args[0]='/';
@@ -3355,7 +3359,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (cap_mtaudio)
         CAPTURE_StartMTWave();
 
-    DoCommand(args);
+    DoCommand((char *)argv.c_str());
 
     if (post_exit_delay_ms > 0) {
         LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
