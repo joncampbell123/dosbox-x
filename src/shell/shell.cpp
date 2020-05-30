@@ -561,7 +561,7 @@ void DOS_Shell::Run(void) {
 
     }
     else {
-        WriteOut(optK?"\n":"DOSBox-X command shell %s %s\n\n",VERSION,UPDATED_STR);
+        WriteOut(optK?"\n":"DOSBox-X version %s command shell\nBuild date: %s\n\n",VERSION,UPDATED_STR);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
@@ -1091,7 +1091,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exits from the command shell.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
-	MSG_Add("SHELL_CMD_HELP_HELP","Shows command help.\n");
+	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
 		    "   /A or /ALL\tLists all supported internal commands.\n\n"
 			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n");
@@ -1236,8 +1236,6 @@ void SHELL_Init() {
 		   "  $V   DOS version number\n"
 		   "  $_   Carriage return and linefeed\n"
 		   "  $$   $ (dollar sign)\n");
-	MSG_Add("SHELL_CMD_LABEL_HELP","Creates or changes the volume label of a disk.\n");
-	MSG_Add("SHELL_CMD_LABEL_HELP_LONG","LABEL [volume]\n\n\tvolume\t\tSpecifies the drive letter.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
