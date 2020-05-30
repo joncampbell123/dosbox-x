@@ -504,25 +504,26 @@ first_2:
 continue_1:
 	/* Command uses dta so set it to our internal dta */
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(args, '\\');
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(full, '\\');
 	if (r!=NULL) {
 		*r=0;
-		strcpy(path, args);
+		strcpy(path, full);
 		strcat(path, "\\");
 		strcpy(pattern, r+1);
 		*r='\\';
 	} else {
 		strcpy(path, "");
-		strcpy(pattern, args);
+		strcpy(pattern, full);
 	}
+	LOG_MSG("args %s full %s\n", args, full);
 	int k=0;
 	for (int i=0;i<(int)strlen(pattern);i++)
 		if (pattern[i]!='\"')
 			pattern[k++]=pattern[i];
 	pattern[k]=0;
 	strcpy(spath, path);
-	if (strchr(path,'\"')) {
-		DOS_GetSFNPath(path, spath, false);
+	if (strchr(args,'\"')||uselfn) {
+		DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	std::string pfull=std::string(spath)+std::string(pattern);
@@ -689,16 +690,18 @@ void DOS_Shell::CMD_RENAME(char * args){
 	
 	strcpy(target,arg2);
 
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(arg1, '\\');
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+	if (!DOS_Canonicalize(arg1,full)) return;
+	r=strrchr(full, '\\');
 	if (r!=NULL) {
 		*r=0;
-		strcpy(path, arg1);
+		strcpy(path, full);
 		strcat(path, "\\");
 		strcpy(pattern, r+1);
 		*r='\\';
 	} else {
 		strcpy(path, "");
-		strcpy(pattern, arg1);
+		strcpy(pattern, full);
 	}
 	int k=0;
 	for (int i=0;i<(int)strlen(pattern);i++)
@@ -706,8 +709,8 @@ void DOS_Shell::CMD_RENAME(char * args){
 			pattern[k++]=pattern[i];
 	pattern[k]=0;
 	strcpy(spath, path);
-	if (strchr(path,'\"')) {
-		DOS_GetSFNPath(path, spath, false);
+	if (strchr(arg1,'\"')||uselfn) {
+		DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	RealPt save_dta=dos.dta();
@@ -2070,16 +2073,18 @@ void DOS_Shell::CMD_IF(char * args) {
 		}
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
-			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
+			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+			if (!DOS_Canonicalize(word,full)) return;
+			r=strrchr(full, '\\');
 			if (r!=NULL) {
 				*r=0;
-				strcpy(path, word);
+				strcpy(path, full);
 				strcat(path, "\\");
 				strcpy(pattern, r+1);
 				*r='\\';
 			} else {
 				strcpy(path, "");
-				strcpy(pattern, word);
+				strcpy(pattern, full);
 			}
 			int k=0;
 			for (int i=0;i<(int)strlen(pattern);i++)
@@ -2087,16 +2092,16 @@ void DOS_Shell::CMD_IF(char * args) {
 					pattern[k++]=pattern[i];
 			pattern[k]=0;
 			strcpy(spath, path);
-			if (strchr(path,'\"')) {
-				DOS_GetSFNPath(path, spath, false);
+			if (strchr(word,'\"')||uselfn) {
+				DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 			}
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			std::string full=std::string(spath)+std::string(pattern);
-			bool ret=DOS_FindFirst((char *)((uselfn&&full.length()&&full[0]!='"'?"\"":"")+full+(uselfn&&full.length()&&full[full.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
+			std::string sfull=std::string(spath)+std::string(pattern);
+			bool ret=DOS_FindFirst((char *)((uselfn&&sfull.length()&&sfull[0]!='"'?"\"":"")+sfull+(uselfn&&sfull.length()&&sfull[sfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
 			lfn_filefind_handle=fbak;
 			dos.dta(save_dta);
 			if (ret==(!has_not)) DoCommand(args);
@@ -3208,20 +3213,22 @@ void DOS_Shell::CMD_FOR(char *args) {
 		bool last=!!strlen(p);
 		if (last) *p=0;
 		if (strchr(fp, '?') || strchr(fp, '*')) {
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(fp, '\\');
+			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+			if (!DOS_Canonicalize(fp,full)) return;
+			r=strrchr(full, '\\');
 			if (r!=NULL) {
 				*r=0;
-				strcpy(path, fp);
+				strcpy(path, full);
 				strcat(path, "\\");
 				strcpy(pattern, r+1);
 				*r='\\';
 			} else {
 				strcpy(path, "");
-				strcpy(pattern, fp);
+				strcpy(pattern, full);
 			}
 			strcpy(spath, path);
-			if (strchr(path,'\"')) {
-				DOS_GetSFNPath(path, spath, false);
+			if (strchr(fp,'\"')||uselfn) {
+				DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 				int k=0;
 				for (int i=0;i<(int)strlen(path);i++)
