@@ -4932,7 +4932,7 @@ class LABEL : public Program
 {
 public:
     void Help() {
-        WriteOut("LABEL [drive:][label]\n");
+        WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n");
     }
 	void Run() override
     {
@@ -5060,7 +5060,8 @@ void DOS_SetupPrograms(void) {
 		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
 		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
 		"MOUNT -t cdrom c %s mounts the C: drive as a CD-ROM drive.\n"
-		"MOUNT -u c unmounts the C: drive.\n");
+		"MOUNT -u c unmounts the C: drive.\n\n"
+		"Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");

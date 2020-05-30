@@ -1069,28 +1069,23 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CLS_HELP","Clears screen.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP_LONG","CLS\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Displays a list of files and subdirectories in a directory.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|S|H|R|A]] [/O[N|E|S|D|G]]\n\n"
-		   "   [drive:][path][filename]\n"
-		   "   \tSpecifies drive, directory, and/or files to list.\n"
-		   "   /W\tUses wide list format.\n"
-		   "   /B\tUses bare format (no heading information or summary).\n"
-		   "   /S\tDisplays files in specified directory and all subdirectories.\n"
-		   "   /P\tPauses after each screenful of information.\n"
-		   "   /A\tDisplays all files and directories.\n"
-		   "   /AD\tDisplays all directories.\n"
-		   "   /AS\tDisplays files with system attributes.\n"
-		   "   /AH\tDisplays files with hidden attributes.\n"
-		   "   /AR\tDisplays files with read-only attributes.\n"
-		   "   /AA\tDisplays files with archive attributes.\n"
-		   "   /O\tList by files in sorted order.\n"
-		   "   /ON\tList files sorted by name (alphabetic).\n"
-		   "   /OE\tList files sorted by extension (alphabetic).\n"
-		   "   /OS\tList files sorted by size (smallest first).\n"
-		   "   /OD\tList files sorted by date (oldest first).\n"
-		   "   /OG\tList directories first, then files.\n"
-		   "   The \"-\" sign can be used in /A[D|S|H|R|A] and /O[N|E|S|D|G] commands,\n"
-		   "   meaning \"not\". For example, /A-D displays all files (not directories),\n"
-		   "   and /O-S lists files reversely sorted by size (biggest first).\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]\n\n"
+		   "  [drive:][path][filename]\n"
+		   "              Specifies drive, directory, and/or files to list.\n"
+		   "  /W          Uses wide list format.\n"
+		   "  /B          Uses bare format (no heading information or summary).\n"
+		   "  /S          Displays files in specified directory and all subdirectories.\n"
+		   "  /P          Pauses after each screenful of information.\n"
+		   "  /A          Displays files with specified attributes.\n"
+		   "  attributes   D  Directories                R  Read-only files\n"
+		   "               H  Hidden files               A  Files ready for archiving\n"
+		   "               S  System files               -  Prefix meaning not\n"
+		   "  /O          List by files in sorted order.\n"
+		   "  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
+		   "               E  By extension (alphabetic)  D  By date & time (earlist first)\n"
+		   "               G  Group directories first    -  Prefix to reverse order\n\n"
+		   "Switches may be preset in the DIRCMD environment variable.  Override\n"
+		   "preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"
 		   );
 	MSG_Add("SHELL_CMD_ECHO_HELP","Displays messages, or turns command-echoing on or off.\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP_LONG","  ECHO [ON | OFF]\n  ECHO [message]\n\nType ECHO without parameters to display the current echo setting.\n");
@@ -1143,10 +1138,10 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TYPE_HELP_LONG","TYPE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_REM_HELP","Adds comments in a batch file.\n");
 	MSG_Add("SHELL_CMD_REM_HELP_LONG","REM [comment]\n");
-	MSG_Add("SHELL_CMD_RENAME_HELP","Renames one or more files.\n");
-	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path]filename1 filename2.\n"
-	        "REN [drive:][path]filename1 filename2.\n\n"
-	        "Note that you can not specify a new drive or path for your destination file.\n");
+	MSG_Add("SHELL_CMD_RENAME_HELP","Renames a file/directory or files.\n");
+	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
+	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
+	        "Note that you can not specify a new drive or path for your destination.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
@@ -1162,21 +1157,29 @@ void SHELL_Init() {
 		   "  source\tSpecifies the file or files to be copied.\n"
 		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
 		   "  /Y\t\tSuppresses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n"
-		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n");
+		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n\n"
+		   "The switch /Y may be preset in the COPYCMD environment variable.\n"
+		   "This may be overridden with /-Y on the command line.\n\n"
+		   "To append files, specify a single file for destination, but multiple files\n"
+		   "for source (using wildcards or file1+file2+file3 format).\n");
 	MSG_Add("SHELL_CMD_CALL_HELP","Starts a batch file from within another batch file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP_LONG","CALL [drive:][path]filename [batch-parameters]\n\n"
 		   "batch-parameters   Specifies any command-line information required by\n"
 		   "                   the batch program.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP","Assigns an internal directory to a drive.\n");
-	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n");
+	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n\n"
+		   "  drive1:\tSpecifies a drive to which you want to assign a path.\n"
+		   "  [drive2:]path\tSpecifies a mounted local drive and path you want to assign to.\n"
+		   "  /D\t\tDeletes a mounted or substituted drive.\n\n"
+		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_LS_HELP", "Lists directory contents.\n");
-	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P]\n\n"
+	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
 	        "  /A\tLists hidden and system files also.\n"
 	        "  /L\tLists names one per line.\n"
-		    "  /P\tPauses after each screenful of information.\n");
-	MSG_Add("SHELL_CMD_LS_PATH_ERR", "Cannot access: %s (no such file or directory)\n");
+		    "  /P\tPauses after each screenful of information.\n"
+			"  /Z\tDisplays short names even if LFN support is available.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
