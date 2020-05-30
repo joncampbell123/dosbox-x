@@ -989,6 +989,10 @@ void GUI_Run(bool pressed);
 class SHOWGUI : public Program {
 public:
     void Run(void) {
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+			WriteOut("Starts DOSBox-X's configuration GUI.\n\nSHOWGUI\n");
+            return;
+		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
     }
 };
@@ -2884,6 +2888,10 @@ public:
 
 void RESCAN::Run(void) 
 {
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A]\nRESCAN [drive:]\n");
+		return;
+	}
     bool all = false;
     
     Bit8u drive = DOS_GetDefaultDrive();
@@ -2986,6 +2994,10 @@ public:
     }
 
     void Run(void) {
+		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [CDROM|MOUNT|USAGE]\n");
+			return;
+		}
         std::string menuname = "BASIC"; // default
         /* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
         if(DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
@@ -4745,7 +4757,7 @@ void KEYB::Run(void) {
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
                     break;
                 case KEYB_FILENOTFOUND:
-                    WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
+                    if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
                     WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
                     break;
                 case KEYB_INVALIDFILE:
@@ -4869,9 +4881,14 @@ void A20GATE_ProgramStart(Program * * make);
 void PC98UTIL_ProgramStart(Program * * make);
 void VESAMOED_ProgramStart(Program * * make);
 
+#if defined C_DEBUG
 class NMITEST : public Program {
 public:
     void Run(void) {
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+			WriteOut("Generates a non-maskable interrupt (NMI).\n\nNMITEST\n\nNote: This is a debugging tool to test if the interrupt handler works properly.\n");
+            return;
+		}
         CPU_Raise_NMI();
     }
 };
@@ -4879,6 +4896,7 @@ public:
 static void NMITEST_ProgramStart(Program * * make) {
     *make=new NMITEST;
 }
+#endif
 
 class CAPMOUSE : public Program
 {
@@ -4905,11 +4923,10 @@ public:
             break;
         case 0:
         default:
-            WriteOut("Mouse capture/release.\n\n");
-            WriteOut("CAPMOUSE /[?|C|R]\n");
-            WriteOut("  /? help\n");
-            WriteOut("  /C capture mouse\n");
-            WriteOut("  /R release mouse\n");
+            WriteOut("Captures or releases the mouse inside DOSBox-X.\n\n");
+            WriteOut("CAPMOUSE [/C|/R]\n");
+            WriteOut("  /C Capture the mouse\n");
+            WriteOut("  /R Release the mouse\n");
             return;
         }
 
@@ -5319,7 +5336,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
     MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
-    MSG_Add("PROGRAM_LOADROM_HELP","LOADROM ROM_file\n");
+    MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_SPECIFY_FILE","Must specify ROM file to load.\n");
     MSG_Add("PROGRAM_LOADROM_CANT_OPEN","ROM file not accessible.\n");
@@ -5380,7 +5397,7 @@ void DOS_SetupPrograms(void) {
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
         " -t ram              Image type is RAM drive\n"
         " -fs iso             File system is ISO 9660\n"
-        " -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
+        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported\n"
         " -fs none            Do not detect file system\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
         " -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
@@ -5433,7 +5450,7 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
-    MSG_Add("PROGRAM_KEYB_SHOWHELP",
+    MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
         "\033[32;1mKEYB\033[0m [keyboard layout ID[ codepage number[ codepage file]]]\n\n"
         "Some examples:\n"
         "  \033[32;1mKEYB\033[0m: Display currently loaded codepage.\n"
@@ -5445,7 +5462,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_KEYB_INVALIDFILE","Keyboard file %s invalid\n");
     MSG_Add("PROGRAM_KEYB_LAYOUTNOTFOUND","No layout in %s for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_INVCPFILE","None or invalid codepage file for layout %s\n\n");
-    MSG_Add("PROGRAM_MODE_USAGE",
+    MSG_Add("PROGRAM_MODE_USAGE","Configures system devices.\n\n"
             "\033[34;1mMODE\033[0m display-type       :display-type codes are "
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
@@ -5479,7 +5496,9 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+#if defined C_DEBUG
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
+#endif
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
 
     if (IS_VGA_ARCH && svgaCard != SVGA_None)
