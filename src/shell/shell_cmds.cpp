@@ -38,6 +38,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -2842,7 +2843,10 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
 		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
-	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
+	} else {
+		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
+		if (optR) WriteOut("DOSBox-X build date and time: %s\n",UPDATED_STR);
+	}
 }
 
 void DOS_Shell::CMD_VOL(char *args){

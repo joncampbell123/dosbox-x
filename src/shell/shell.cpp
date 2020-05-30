@@ -561,7 +561,7 @@ void DOS_Shell::Run(void) {
 
     }
     else {
-        WriteOut(optK?"\n":"DOSBox-X version %s command shell\nBuild date: %s\n\n",VERSION,UPDATED_STR);
+        WriteOut(optK?"\n":"DOSBox-X Version %s (%s) Command Shell\nBased on DOSBox by the DOSBox Team, 2011-2020\n\n",VERSION,SDL_STRING);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
@@ -1204,7 +1204,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
-	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER\n" 
+	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n" 
 		   "VER SET [major.minor] or VER SET [major minor]\n\n" 
 		   "  [major.minor] or [major minor]  Set the reported DOS version.\n\n"
 		   "  Example: \"VER SET 6.0\" or \"VER SET 7.1\" for DOS 6.0 or 7.1 respectively.\n"
