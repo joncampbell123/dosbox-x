@@ -545,7 +545,7 @@ continue_1:
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
-		if (!optF && (attr & DOS_ATTR_READ_ONLY)) {
+		if (!optF && (attr & DOS_ATTR_READ_ONLY) && !(attr & DOS_ATTR_DIRECTORY)) {
 			exist=true;
 			strcpy(end,name);
 			strcpy(lend,lname);
