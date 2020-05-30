@@ -522,7 +522,7 @@ continue_1:
 	pattern[k]=0;
 	strcpy(spath, path);
 	if (strchr(args,'\"')||uselfn) {
-		DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
+		if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	std::string pfull=std::string(spath)+std::string(pattern);
@@ -709,7 +709,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	pattern[k]=0;
 	strcpy(spath, path);
 	if (strchr(arg1,'\"')||uselfn) {
-		DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
+		if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	RealPt save_dta=dos.dta();
@@ -2092,7 +2092,7 @@ void DOS_Shell::CMD_IF(char * args) {
 			pattern[k]=0;
 			strcpy(spath, path);
 			if (strchr(word,'\"')||uselfn) {
-				DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
+				if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 			}
 			RealPt save_dta=dos.dta();
@@ -3227,7 +3227,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 			}
 			strcpy(spath, path);
 			if (strchr(fp,'\"')||uselfn) {
-				DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false);
+				if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 				int k=0;
 				for (int i=0;i<(int)strlen(path);i++)
