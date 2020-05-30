@@ -969,6 +969,10 @@ public:
     }
 
     void Run(void) {
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+			WriteOut("Displays or changes the current sound levels.\n\nMIXER [option]\n");
+            return;
+		}
         if(cmd->FindExist("/LISTMIDI")) {
             ListMidi();
             return;
