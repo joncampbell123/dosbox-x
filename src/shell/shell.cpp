@@ -1157,7 +1157,11 @@ void SHELL_Init() {
 		   "  source\tSpecifies the file or files to be copied.\n"
 		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
 		   "  /Y\t\tSuppresses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n"
-		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n");
+		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n\n"
+		   "The switch /Y may be preset in the COPYCMD environment variable.\n"
+		   "This may be overridden with /-Y on the command line.\n\n"
+		   "To append files, specify a single file for destination, but multiple files\n"
+		   "for source (using wildcards or file1+file2+file3 format.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP","Starts a batch file from within another batch file.\n");
 	MSG_Add("SHELL_CMD_CALL_HELP_LONG","CALL [drive:][path]filename [batch-parameters]\n\n"
 		   "batch-parameters   Specifies any command-line information required by\n"
@@ -1167,7 +1171,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_LS_HELP", "Lists directory contents.\n");
-	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P]\n\n"
+	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
 	        "  /A\tLists hidden and system files also.\n"
 	        "  /L\tLists names one per line.\n"
 		    "  /P\tPauses after each screenful of information.\n"
