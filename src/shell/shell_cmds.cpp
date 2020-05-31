@@ -38,6 +38,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -503,16 +504,16 @@ first_2:
 continue_1:
 	/* Command uses dta so set it to our internal dta */
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(args, '\\');
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(full, '\\');
 	if (r!=NULL) {
 		*r=0;
-		strcpy(path, args);
+		strcpy(path, full);
 		strcat(path, "\\");
 		strcpy(pattern, r+1);
 		*r='\\';
 	} else {
 		strcpy(path, "");
-		strcpy(pattern, args);
+		strcpy(pattern, full);
 	}
 	int k=0;
 	for (int i=0;i<(int)strlen(pattern);i++)
@@ -520,8 +521,8 @@ continue_1:
 			pattern[k++]=pattern[i];
 	pattern[k]=0;
 	strcpy(spath, path);
-	if (strchr(path,'\"')) {
-		DOS_GetSFNPath(path, spath, false);
+	if (strchr(args,'\"')||uselfn) {
+		if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	std::string pfull=std::string(spath)+std::string(pattern);
@@ -544,7 +545,7 @@ continue_1:
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
-		if (!optF && (attr & DOS_ATTR_READ_ONLY)) {
+		if (!optF && (attr & DOS_ATTR_READ_ONLY) && !(attr & DOS_ATTR_DIRECTORY)) {
 			exist=true;
 			strcpy(end,name);
 			strcpy(lend,lname);
@@ -563,7 +564,15 @@ continue_1:
 				WriteOut("%c\r\n", c);
 				if (c=='N') {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
 			}
-			if (!strlen(full)||!DOS_UnlinkFile(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str())) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
+			if (strlen(full)) {
+				std::string pfull=(uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"");
+				bool reset=false;
+				if (optF && (attr & DOS_ATTR_READ_ONLY)&&DOS_SetFileAttr(pfull.c_str(), attr & ~DOS_ATTR_READ_ONLY)) reset=true;
+				if (!DOS_UnlinkFile(pfull.c_str())) {
+					if (optF&&reset) DOS_SetFileAttr(pfull.c_str(), attr);
+					WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
+				}
+			} else WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
 		}
 		res=DOS_FindNext();
 	}
@@ -613,8 +622,8 @@ void DOS_Shell::CMD_HELP(char * args){
 		cmd_index++;
 	}
 	if (*args&&!show) {
-		char * arg1=StripArg(args);
-		DoCommand((char *)(std::string(arg1)+" /?").c_str());
+		std::string argc=std::string(StripArg(args));
+		if (argc!="") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
 }
 
@@ -688,16 +697,18 @@ void DOS_Shell::CMD_RENAME(char * args){
 	
 	strcpy(target,arg2);
 
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(arg1, '\\');
+	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+	if (!DOS_Canonicalize(arg1,full)) return;
+	r=strrchr(full, '\\');
 	if (r!=NULL) {
 		*r=0;
-		strcpy(path, arg1);
+		strcpy(path, full);
 		strcat(path, "\\");
 		strcpy(pattern, r+1);
 		*r='\\';
 	} else {
 		strcpy(path, "");
-		strcpy(pattern, arg1);
+		strcpy(pattern, full);
 	}
 	int k=0;
 	for (int i=0;i<(int)strlen(pattern);i++)
@@ -705,8 +716,8 @@ void DOS_Shell::CMD_RENAME(char * args){
 			pattern[k++]=pattern[i];
 	pattern[k]=0;
 	strcpy(spath, path);
-	if (strchr(path,'\"')) {
-		DOS_GetSFNPath(path, spath, false);
+	if (strchr(arg1,'\"')||uselfn) {
+		if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 	}
 	RealPt save_dta=dos.dta();
@@ -1260,15 +1271,15 @@ void DOS_Shell::CMD_DIR(char * args) {
 	bool optB=ScanCMDBool(args,"B");
 	if (ScanCMDBool(args,"-B")) optB=false;
 	bool optA=ScanCMDBool(args,"A");
-	bool optAD=ScanCMDBool(args,"AD");
+	bool optAD=ScanCMDBool(args,"AD")||ScanCMDBool(args,"A:D");
 	bool optAminusD=ScanCMDBool(args,"A-D");
-	bool optAS=ScanCMDBool(args,"AS");
+	bool optAS=ScanCMDBool(args,"AS")||ScanCMDBool(args,"A:S");
 	bool optAminusS=ScanCMDBool(args,"A-S");
-	bool optAH=ScanCMDBool(args,"AH");
+	bool optAH=ScanCMDBool(args,"AH")||ScanCMDBool(args,"A:H");
 	bool optAminusH=ScanCMDBool(args,"A-H");
-	bool optAR=ScanCMDBool(args,"AR");
+	bool optAR=ScanCMDBool(args,"AR")||ScanCMDBool(args,"A:R");
 	bool optAminusR=ScanCMDBool(args,"A-R");
-	bool optAA=ScanCMDBool(args,"AA");
+	bool optAA=ScanCMDBool(args,"AA")||ScanCMDBool(args,"A:A");
 	bool optAminusA=ScanCMDBool(args,"A-A");
 	if (ScanCMDBool(args,"-A")) {
 		optA = false;
@@ -1285,27 +1296,27 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
 	// Sorting flags
 	bool reverseSort = false;
-	bool optON=ScanCMDBool(args,"ON");
+	bool optON=ScanCMDBool(args,"ON")||ScanCMDBool(args,"O:N");
 	if (ScanCMDBool(args,"O-N")) {
 		optON = true;
 		reverseSort = true;
 	}
-	bool optOD=ScanCMDBool(args,"OD");
+	bool optOD=ScanCMDBool(args,"OD")||ScanCMDBool(args,"O:D");
 	if (ScanCMDBool(args,"O-D")) {
 		optOD = true;
 		reverseSort = true;
 	}
-	bool optOE=ScanCMDBool(args,"OE");
+	bool optOE=ScanCMDBool(args,"OE")||ScanCMDBool(args,"O:E");
 	if (ScanCMDBool(args,"O-E")) {
 		optOE = true;
 		reverseSort = true;
 	}
-	bool optOS=ScanCMDBool(args,"OS");
+	bool optOS=ScanCMDBool(args,"OS")||ScanCMDBool(args,"O:S");
 	if (ScanCMDBool(args,"O-S")) {
 		optOS = true;
 		reverseSort = true;
 	}
-	bool optOG=ScanCMDBool(args,"OG");
+	bool optOG=ScanCMDBool(args,"OG")||ScanCMDBool(args,"O:G");
 	if (ScanCMDBool(args,"O-G")) {
 		optOG = true;
 		reverseSort = true;
@@ -1557,9 +1568,7 @@ void DOS_Shell::CMD_LS(char *args) {
 				WriteOut("\033[34;1m%-*s\033[0m", max[w_count % col], name.c_str());
 		} else {
 			if (!uselfn||optZ) lowcase(name);
-			const bool is_executable = !strcasecmp(name.substr(name.length()-4).c_str(), ".exe") ||
-			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".com") ||
-			                           !strcasecmp(name.substr(name.length()-4).c_str(), ".bat");
+			const bool is_executable = name.length()>4 && (!strcasecmp(name.substr(name.length()-4).c_str(), ".exe") || !strcasecmp(name.substr(name.length()-4).c_str(), ".com") || !strcasecmp(name.substr(name.length()-4).c_str(), ".bat"));
 			if (col==1) {
 				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
 				p_count++;
@@ -2071,16 +2080,18 @@ void DOS_Shell::CMD_IF(char * args) {
 		}
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
-			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(word, '\\');
+			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+			if (!DOS_Canonicalize(word,full)) return;
+			r=strrchr(full, '\\');
 			if (r!=NULL) {
 				*r=0;
-				strcpy(path, word);
+				strcpy(path, full);
 				strcat(path, "\\");
 				strcpy(pattern, r+1);
 				*r='\\';
 			} else {
 				strcpy(path, "");
-				strcpy(pattern, word);
+				strcpy(pattern, full);
 			}
 			int k=0;
 			for (int i=0;i<(int)strlen(pattern);i++)
@@ -2088,16 +2099,16 @@ void DOS_Shell::CMD_IF(char * args) {
 					pattern[k++]=pattern[i];
 			pattern[k]=0;
 			strcpy(spath, path);
-			if (strchr(path,'\"')) {
-				DOS_GetSFNPath(path, spath, false);
+			if (strchr(word,'\"')||uselfn) {
+				if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 			}
 			RealPt save_dta=dos.dta();
 			dos.dta(dos.tables.tempdta);
 			int fbak=lfn_filefind_handle;
 			lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-			std::string full=std::string(spath)+std::string(pattern);
-			bool ret=DOS_FindFirst((char *)((uselfn&&full.length()&&full[0]!='"'?"\"":"")+full+(uselfn&&full.length()&&full[full.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
+			std::string sfull=std::string(spath)+std::string(pattern);
+			bool ret=DOS_FindFirst((char *)((uselfn&&sfull.length()&&sfull[0]!='"'?"\"":"")+sfull+(uselfn&&sfull.length()&&sfull[sfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY));
 			lfn_filefind_handle=fbak;
 			dos.dta(save_dta);
 			if (ret==(!has_not)) DoCommand(args);
@@ -2844,7 +2855,10 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
 		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
-	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
+	} else {
+		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
+		if (optR) WriteOut("DOSBox-X's build date and time: %s\n",UPDATED_STR);
+	}
 }
 
 void DOS_Shell::CMD_VOL(char *args){
@@ -3119,16 +3133,18 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 bool debugger_break_on_exec = false;
 
 void DOS_Shell::CMD_DEBUGBOX(char * args) {
+    while (*args == ' ') args++;
+	std::string argv=std::string(args);
+	args=StripArg(args);
 	HELP("DEBUGBOX");
     /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
     debugger_break_on_exec = true;
-    while (*args == ' ') args++;
     if (!strcmp(args,"-?")) {
 		args[0]='/';
 		HELP("DEBUGBOX");
 		return;
 	}
-    DoCommand(args);
+    DoCommand((char *)argv.c_str());
     debugger_break_on_exec = false;
 }
 #endif
@@ -3204,20 +3220,22 @@ void DOS_Shell::CMD_FOR(char *args) {
 		bool last=!!strlen(p);
 		if (last) *p=0;
 		if (strchr(fp, '?') || strchr(fp, '*')) {
-			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr(fp, '\\');
+			char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
+			if (!DOS_Canonicalize(fp,full)) return;
+			r=strrchr(full, '\\');
 			if (r!=NULL) {
 				*r=0;
-				strcpy(path, fp);
+				strcpy(path, full);
 				strcat(path, "\\");
 				strcpy(pattern, r+1);
 				*r='\\';
 			} else {
 				strcpy(path, "");
-				strcpy(pattern, fp);
+				strcpy(pattern, full);
 			}
 			strcpy(spath, path);
-			if (strchr(path,'\"')) {
-				DOS_GetSFNPath(path, spath, false);
+			if (strchr(fp,'\"')||uselfn) {
+				if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
 				if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
 				int k=0;
 				for (int i=0;i<(int)strlen(path);i++)
@@ -3318,13 +3336,14 @@ void CAPTURE_StopMTWave(void);
 //              The command name is chosen not to conform to the 8.3 pattern
 //              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
+    while (*args == ' ') args++;
+	std::string argv=std::string(args);
+	args=StripArg(args);
 	HELP("DXCAPTURE");
     bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
-
-    while (*args == ' ') args++;
 
     if (!strcmp(args,"-?")) {
 		args[0]='/';
@@ -3332,20 +3351,28 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 		return;
 	}
 
-    if (ScanCMDBool(args,"V"))
-        cap_video = true;
-    if (ScanCMDBool(args,"-V"))
-        cap_video = false;
-
-    if (ScanCMDBool(args,"A"))
-        cap_audio = true;
-    if (ScanCMDBool(args,"-A"))
-        cap_audio = false;
-
-    if (ScanCMDBool(args,"M"))
-        cap_mtaudio = true;
-    if (ScanCMDBool(args,"-M"))
-        cap_mtaudio = false;
+    args=(char *)argv.c_str();
+    char *arg1;
+    while (strlen(args)&&args[0]=='/') {
+		arg1=StripArg(args);
+		upcase(arg1);
+		if (!(strcmp(arg1,"/V")))
+			cap_video = true;
+		else if (!(strcmp(arg1,"/-V")))
+			cap_video = false;
+		else if (!(strcmp(arg1,"/A")))
+			cap_audio = true;
+		else if (!(strcmp(arg1,"/-A")))
+			cap_audio = false;
+		else if (!(strcmp(arg1,"/M")))
+			cap_mtaudio = true;
+		else if (!(strcmp(arg1,"/-M")))
+			cap_mtaudio = false;
+		else {
+			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),arg1);
+			return;
+		}
+    }
 
     if (!cap_video && !cap_audio && !cap_mtaudio)
         cap_video = true;

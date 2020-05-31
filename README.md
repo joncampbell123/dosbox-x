@@ -1,14 +1,19 @@
-DOSBox-X Manual (always use the latest version from [dosbox-x.com](http://dosbox-x.com))
+**README for DOSBox-X** (official website: [dosbox-x.com](http://dosbox-x.com))
+
+**Introdution**
+---------------
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com)
 
+Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
+
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+
+(Please always use the latest version from the [Releases page](https://github.com/joncampbell123/dosbox-x/releases))
 
 This project has a Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), please read it.
 
 I am rewriting this README, and new information will be added over time --J.C.
-
-
 
 How to compile DOSBox-X in Ubuntu (kapper1224)
 ----------------------------------------------

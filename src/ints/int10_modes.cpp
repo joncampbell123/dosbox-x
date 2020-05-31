@@ -2097,7 +2097,7 @@ public:
 			got_opt=true;
             if (arg == "?" || arg == "help") {
                 doHelp();
-                break;
+                return;
             }
             else if (arg == "mode") {
                 cmd->NextOptArgv(/*&*/tmp);

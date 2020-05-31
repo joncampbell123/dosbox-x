@@ -1669,6 +1669,7 @@ public:
             WriteOut("Disabling A20 gate\n");
         }
         else {
+			WriteOut("Turns on/off or changes the A20 gate mode.\n\n");
             WriteOut("A20GATE SET [off | off_fake | on | on_fake | mask | fast]\n");
             WriteOut("A20GATE [ON | OFF]\n");
         }

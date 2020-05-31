@@ -1,9 +1,12 @@
 0.83.2
+  - Added help messages for some supported commands. (Wengier)
   - Added phone book support for the emulated modem. There is
     a new phonebookfile= option in the [serial] section. The
     phone book file entries need to be in the format of:
     "<dummy number> <hostname/ip:port>" e.g.
     5551234 cavebbs.homeip.net:23
+  - Implemented the missing EMS subfunctions 52h and 59h by
+    porting the patch that adds them (Wengier)
   - Fixed issues with the "config -wcd -all" command and other
     updates to the CONFIG command (Wengier)
   - Added [config] section in dosbox-x.conf to resemble DOS's
