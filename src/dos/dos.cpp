@@ -3654,24 +3654,25 @@ void DOS_Int21_71a8(char* name1, const char* name2) {
     (void)name2;
 	if (reg_dh == 0 || reg_dh == 1) {
 			MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
-			int i,j=0;
+			int i,j=0,o=0;
             char c[13];
             const char* s = strrchr(name1, '.');
-			*c=0;
 			for (i=0;i<8;j++) {
 					if (name1[j] == 0 || s-name1 <= j) break;
 					if (name1[j] == '.') continue;
-					sprintf(c,"%s%c",c,toupper(name1[j]));
+					c[o++] = toupper(name1[j]);
 					i++;
 			}
 			if (s != NULL) {
 					s++;
-					if (s != 0 && reg_dh == 1) strcat(c,".");
+					if (s != 0 && reg_dh == 1) c[o++] = '.';
 					for (i=0;i<3;i++) {
 							if (*(s+i) == 0) break;
-							sprintf(c,"%s%c",c,toupper(*(s+i)));
+							c[o++] = toupper(*(s+i));
 					}
 			}
+			assert(o <= 12);
+			c[o] = 0;
 			MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
 			reg_ax=0;
 			CALLBACK_SCF(false);
