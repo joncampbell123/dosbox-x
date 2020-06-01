@@ -1027,9 +1027,9 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 	}
 	char sep = dos.tables.country[13];
 	if (sec==0&&msec==0)
-		sprintf(retBuf, "%2u%c%02u%c", hour, sep, min, *ampm);
+		sprintf(retBuf, "%2u%c%02u%c", (unsigned int)hour, sep, (unsigned int)min, *ampm);
 	else
-		sprintf(retBuf, "%u%c%02u%c%02u%c%02u%s", hour, sep, min, sep, sec, dos.tables.country[9], msec, ampm);
+		sprintf(retBuf, "%u%c%02u%c%02u%c%02u%s", (unsigned int)hour, sep, (unsigned int)min, sep, (unsigned int)sec, dos.tables.country[9], (unsigned int)msec, ampm);
 	return retBuf;
 	}
 
