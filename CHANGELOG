@@ -1,4 +1,8 @@
 0.83.3
+  - DOS 440Dh IOCTL function 67h (get access flag) added to
+    allow FDISK.EXE to determine FAT filesystem type.
+  - Unknown DOS 440Dh IOCTLs warnings now indicate whether
+    triggered by call or query.
   - S3 VESA BIOS mode number for 1024x768 32bpp changed to
     avoid conflict with Windows 95 S3 driver and 800x600
     16bpp mode.
