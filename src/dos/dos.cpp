@@ -39,6 +39,7 @@
 extern bool log_int21, log_fileio;
 extern int lfn_filefind_handle;
 unsigned long totalc, freec;
+Bit16u countryNo = 0;
 Bitu INT29_HANDLER(void);
 Bit32u BIOS_get_PC98_INT_STUB(void);
 
@@ -223,6 +224,77 @@ Bit16u	NetworkHandleList[127];Bit8u dos_copybuf_second[DOS_COPYBUFSIZE];
 
 void DOS_SetError(Bit16u code) {
 	dos.errorcode=code;
+}
+
+void DOS_SetCountry(Bit16u countryNo) {
+	if (dos.tables.country==NULL) return;
+	*(dos.tables.country+17)=countryNo==1||countryNo==3||countryNo==61?0:1;
+	switch (countryNo) {
+		case 1:
+			*dos.tables.country=0;
+			break;
+		case 2:
+		case 36:
+		case 38:
+		case 40:
+		case 42:
+		case 46:
+		case 48:
+		case 81:
+		case 82:
+		case 86:
+		case 88:
+		case 354:
+		case 886:
+			*dos.tables.country=2;
+			break;
+		default:
+			*dos.tables.country=1;
+			break;
+	}
+	switch (countryNo) {
+		case 3:
+		case 30:
+		case 32:
+		case 34:
+		case 39:
+		case 44:
+		case 55:
+		case 88:
+		case 90:
+		case 785:
+		case 886:
+		case 972:
+			*(dos.tables.country+11)=0x2f;
+			break;
+		case 7:
+		case 33:
+		case 41:
+		case 43:
+		case 47:
+		case 49:
+		case 86:
+		case 358:
+			*(dos.tables.country+11)=0x2e;
+			break;
+		default:
+			*(dos.tables.country+11)=0x2d;
+			break;
+	}
+	switch (countryNo) {
+		case 41:
+			*(dos.tables.country+13)=0x2c;
+			break;
+		case 39:
+		case 45:
+		case 46:
+		case 358:
+			*(dos.tables.country+13)=0x2e;
+			break;
+		default:
+			*(dos.tables.country+13)=0x3a;
+			break;
+	}
 }
 
 const Bit8u DOS_DATE_months[] = {
@@ -1190,11 +1262,16 @@ static Bitu DOS_21Handler(void) {
             if (reg_al==0) {        /* Get country specidic information */
                 PhysPt dest = SegPhys(ds)+reg_dx;
                 MEM_BlockWrite(dest,dos.tables.country,0x18);
-                reg_ax = reg_bx = 0x01;
+				reg_al = countryNo<0xff?countryNo:0xff;
+				reg_bx = countryNo;
                 CALLBACK_SCF(false);
                 break;
-            } else {                /* Set country code */
-                LOG(LOG_MISC,LOG_ERROR)("DOS:Setting country code not supported");
+			} else if (reg_dx == 0xffff) { /* Set country code */
+				countryNo = reg_al==0xff?reg_bx:reg_al;
+				DOS_SetCountry(countryNo);
+				reg_ax = 0;
+				CALLBACK_SCF(false);
+				break;
             }
             CALLBACK_SCF(true);
             break;
@@ -1777,7 +1854,19 @@ static Bitu DOS_21Handler(void) {
                     case 0x01:
                         mem_writeb(data + 0x00,reg_al);
                         mem_writew(data + 0x01,0x26);
-                        mem_writew(data + 0x03,1);
+						if (!countryNo) {
+#ifdef WIN32
+							char buffer[128];
+							if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128))
+								{
+								countryNo = Bit16u(atoi(buffer));
+								DOS_SetCountry(countryNo);
+								}
+							else
+#endif
+								countryNo = 1;													// Defaults to 1 (US) if failed
+						}
+						mem_writew(data + 0x03, countryNo);
                         if(reg_cx > 0x06 ) mem_writew(data+0x05,dos.loaded_codepage);
                         if(reg_cx > 0x08 ) {
                             Bitu amount = (reg_cx>=0x29u)?0x22u:(reg_cx-7u);
@@ -2548,6 +2637,9 @@ public:
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
 			if (DOS_FILES<8) DOS_FILES=8;
 			else if (DOS_FILES>255) DOS_FILES=255;
+			maxfcb = (int)config_section->Get_int("fcbs");
+			if (maxfcb<1) maxfcb=1;
+			else if (maxfcb>255) maxfcb=255;
 			char *dosopt = (char *)config_section->Get_string("dos"), *r=strchr(dosopt, ',');
 			if (r==NULL) {
 				if (!strcasecmp(trim(dosopt), "high")) dos_in_hma=true;
@@ -2562,9 +2654,6 @@ public:
 				if (!strcasecmp(trim(r+1), "umb")) dos_umb=true;
 				else if (!strcasecmp(trim(r+1), "noumb")) dos_umb=false;
 			}
-			maxfcb = (int)config_section->Get_int("fcbs");
-			if (maxfcb<1) maxfcb=1;
-			else if (maxfcb>255) maxfcb=255;
 			char *lastdrive = (char *)config_section->Get_string("lastdrive");
 			if (strlen(lastdrive)==1&&lastdrive[0]>='a'&&lastdrive[0]<='z')
 				maxdrive=lastdrive[0]-'a'+1;
