@@ -1573,6 +1573,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         BPB = {};
         loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
+        /* If the sector is full of 0xF6, the partition is brand new and was just created with Microsoft FDISK.EXE (Windows 98 behavior)
+         * and therefore there is NO FAT filesystem here. We'll go farther and check if all bytes are just the same. */
+        {
+            unsigned int i=1;
+
+            while (i < 128 && ((Bit8u*)(&bootbuffer))[0] == ((Bit8u*)(&bootbuffer))[i]) i++;
+
+            if (i == 128) {
+                LOG_MSG("Boot sector appears to have been created by FDISK.EXE but not formatted");
+                created_successfully = false;
+                return;
+            }
+        }
+
         if (!is_hdd) {
             /* Identify floppy format */
             if ((bootbuffer.BS_jmpBoot[0] == 0x69 || bootbuffer.BS_jmpBoot[0] == 0xe9 ||
