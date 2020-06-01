@@ -18,24 +18,24 @@ define var "DTA" {
 }
 
 define var "PSP" {
-    type "segment";
+    type segment;
     name "Program Segment Prefix";
     description "A 256-byte region of memory used to carry a program's initial state and command line. Always referred to by 16-bit FAR pointer PSP:0";
     stored in SDA;
 }
 
 define var "dos_version" {
-    type "version";
+    type version;
     name "DOS version, major.minor format";
 }
 
 define var "dos_reported_version" {
-    type "version";
+    type version;
     name "DOS version, major.minor format reported through the standard INT 21h call";
 }
 
 define var "dos_errorlevel" {
-    type "uint8_t";
+    type uint8_t;
     name "ERRORLEVEL aka process return code on exit";
 }
 
