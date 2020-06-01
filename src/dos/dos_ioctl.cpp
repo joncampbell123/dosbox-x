@@ -393,7 +393,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
 			LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
             break;
         default:
-            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call %2X:%2X Drive %2X unhandled (CH=08h)",reg_al,reg_cl,drive);
+            LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL %s %2X:%2X Drive %2X unhandled (CH=08h)",query?"Query":"Call",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
             return false;
     }
