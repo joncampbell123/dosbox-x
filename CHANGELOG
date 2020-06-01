@@ -1,4 +1,7 @@
 0.83.3
+  - S3 VESA BIOS mode number for 1024x768 32bpp changed to
+    avoid conflict with Windows 95 S3 driver and 800x600
+    16bpp mode.
   - FAT driver no longer mounts FAT32 volumes unless dosver
     is 7.10 or higher at startup to mimic MS-DOS behavior.
   - FAT driver no longer mounts FAT16B LBA volumes unless
