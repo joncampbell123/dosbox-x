@@ -1026,7 +1026,7 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 		strcpy(ampm, hour != 12 && hour == fhour ? "am" : "pm");
 	}
 	char sep = dos.tables.country[13];
-	if (sec==NULL&&msec==NULL)
+	if (sec==0&&msec==0)
 		sprintf(retBuf, "%2u%c%02u%c", hour, sep, min, *ampm);
 	else
 		sprintf(retBuf, "%u%c%02u%c%02u%c%02u%s", hour, sep, min, sep, sec, dos.tables.country[9], msec, ampm);
@@ -1210,7 +1210,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 							for (size_t i=14-namelen;i>0;i--) shell->WriteOut(" ");
 						}
 					} else {
-						shell->WriteOut("%-8s %-3s   %-16s %s %s %s\n",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,NULL,NULL),uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %-16s %s %s %s\n",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,0,0),uselfn&&!optZ?lname:"");
 					}
 					dir_count++;
 				} else {
@@ -1218,7 +1218,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						shell->WriteOut("%-16s",name);
 					} else {
 						FormatNumber(size,numformat);
-						shell->WriteOut("%-8s %-3s   %16s %s %s %s\n",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,NULL,NULL),uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %16s %s %s %s\n",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,0,0),uselfn&&!optZ?lname:"");
 					}
 					if (optS) {
 						cfile_count++;
