@@ -7,6 +7,8 @@
   - Added code to FAT driver to identify telltale pattern
     left by Microsoft FDISK when a partition is created (but
     not yet formatted) and reject.
+  - Fixed FAT driver to not assume partition start sector 63
+    if it cannot identify a partition to use.
 0.83.2
   - Added help messages for some supported commands. (Wengier)
   - Added phone book support for the emulated modem. There is
