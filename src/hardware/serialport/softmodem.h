@@ -229,7 +229,7 @@ protected:
 	Bitu cmdpos;
 	Bitu flowcontrol;
 	Bitu dtrmode;
-	Bitu dtrofftimer;
+	Bits dtrofftimer;
 	Bit8u tmpbuf[MODEM_BUFFER_QUEUE_SIZE];
 
 	Bitu listenport;

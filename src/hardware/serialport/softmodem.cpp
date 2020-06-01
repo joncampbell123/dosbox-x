@@ -780,6 +780,8 @@ void CSerialModem::Timer2(void) {
 	Bit8u txval;
 	Bitu txbuffersize =0;
 
+	(void)sendbyte;// UNUSED
+
 	// Check for eventual break command
 	if (!commandmode) {
 		cmdpause++;
