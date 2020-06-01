@@ -39,14 +39,14 @@
 
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
+extern Bit16u countryNo;
 bool usecon = true;
 
 Bit16u shell_psp = 0;
-
 Bitu call_int2e = 0;
 
 void MSG_Replace(const char * _name, const char* _val);
-
+void DOS_SetCountry(Bit16u countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 
 Bitu call_shellstop = 0;
@@ -470,9 +470,25 @@ void DOS_Shell::Run(void) {
         if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
         if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
+		if (!countryNo) {
+#if defined(WIN32)	
+			char buffer[128];
+			if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
+				countryNo = Bit16u(atoi(buffer));
+				DOS_SetCountry(countryNo);
+			}
+			else
+				countryNo = 1;												// Defaults to 1 (US) if failed
+#endif
+		}
 		strcpy(config_data, "");
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+			int country = section->Get_int("country");
+			if (country>0) {
+				countryNo = country;
+				DOS_SetCountry(countryNo);
+			}
 			const char * extra = const_cast<char*>(section->data.c_str());
 			if (extra) {
 				std::istringstream in(extra);
@@ -872,10 +888,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DATE_ERROR","The specified date is not correct.\n");
 	MSG_Add("SHELL_CMD_DATE_DAYS","3SunMonTueWedThuFriSat"); // "2SoMoDiMiDoFrSa"
 	MSG_Add("SHELL_CMD_DATE_NOW","Current date: ");
-	MSG_Add("SHELL_CMD_DATE_SETHLP","Type 'date MM-DD-YYYY' to change.\n");
-	MSG_Add("SHELL_CMD_DATE_FORMAT","M/D/Y");
-	MSG_Add("SHELL_CMD_DATE_HELP_LONG","DATE [[/T] [/H] [/S] | MM-DD-YYYY]\n"\
-									"  MM-DD-YYYY: new date to set\n"\
+	MSG_Add("SHELL_CMD_DATE_SETHLP","Type 'date %s' to change.\n");
+	MSG_Add("SHELL_CMD_DATE_HELP_LONG","DATE [[/T] [/H] [/S] | date]\n"\
+									"  date:       New date to set\n"\
 									"  /S:         Permanently use host time and date as DOS time\n"\
                                     "  /F:         Switch back to DOSBox-X internal time (opposite of /S)\n"\
 									"  /T:         Only display date\n"\
@@ -883,9 +898,9 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TIME_HELP","Displays or changes the internal time.\n");
 	MSG_Add("SHELL_CMD_TIME_ERROR","The specified time is not correct.\n");
 	MSG_Add("SHELL_CMD_TIME_NOW","Current time: ");
-	MSG_Add("SHELL_CMD_TIME_SETHLP","Type 'time hh:mm:ss' to change.\n");
-	MSG_Add("SHELL_CMD_TIME_HELP_LONG","TIME [[/T] [/H] | hh:mm:ss]\n"\
-									"  hh:mm:ss:   new time to set\n"\
+	MSG_Add("SHELL_CMD_TIME_SETHLP","Type 'time %s' to change.\n");
+	MSG_Add("SHELL_CMD_TIME_HELP_LONG","TIME [[/T] [/H] | time]\n"\
+									"  time:       New time to set\n"\
 									"  /T:         Display simple time\n"\
 									"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
@@ -1238,6 +1253,8 @@ void SHELL_Init() {
 		   "  $$   $ (dollar sign)\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn\tSpecifies a country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");

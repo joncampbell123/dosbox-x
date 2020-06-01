@@ -1,6 +1,6 @@
 **README for DOSBox-X** (official website: [dosbox-x.com](http://dosbox-x.com))
 
-**Introdution**
+**Introduction to DOSBox-X**
 ---------------
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com)
@@ -9,7 +9,7 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
-(Please always use the latest version from the [Releases page](https://github.com/joncampbell123/dosbox-x/releases))
+(Please always use the latest version of DOSBox-X from the [Releases page](https://github.com/joncampbell123/dosbox-x/releases))
 
 This project has a Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), please read it.
 

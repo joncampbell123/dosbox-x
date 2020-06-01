@@ -1,4 +1,6 @@
 0.83.3
+  - Added COUNTRY command to set country code for country-
+    specific date and time formats. (Wengier)
   - DOS 440Dh IOCTL function 67h (get access flag) added to
     allow FDISK.EXE to determine FAT filesystem type.
   - Unknown DOS 440Dh IOCTLs warnings now indicate whether
@@ -6,19 +8,18 @@
   - S3 VESA BIOS mode number for 1024x768 32bpp changed to
     avoid conflict with Windows 95 S3 driver and 800x600
     16bpp mode.
-  - FAT driver no longer mounts FAT32 volumes unless dosver
-    is 7.10 or higher at startup to mimic MS-DOS behavior.
-  - FAT driver no longer mounts FAT16B LBA volumes unless
-    dosver is 7.0 or higher at startup to mimic MS-DOS
-    behavior.
+  - FAT driver no longer mounts FAT32 volumes unless the
+    DOS version is 7.1 or higher, and it no longer mounts
+    FAT16B LBA volumes unless the DOS version is 7.0 or
+    higher. These are to mimic the MS-DOS behavior.
   - Fixed FAT driver not to attempt to mount partitions that
     have nothing to do with the FAT filesystem (such as
-    type 0Dh and extended LBA partition tables).
+    type 0Dh and extended LBA partition tables). Also fixed
+    the FAT driver to not assume partition start sector 63
+    if it cannot identify a partition to use.
   - Added code to FAT driver to identify telltale pattern
     left by Microsoft FDISK when a partition is created (but
     not yet formatted) and reject.
-  - Fixed FAT driver to not assume partition start sector 63
-    if it cannot identify a partition to use.
 0.83.2
   - Added help messages for some supported commands. (Wengier)
   - Added phone book support for the emulated modem. There is

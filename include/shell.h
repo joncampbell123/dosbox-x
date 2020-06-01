@@ -279,6 +279,10 @@ public:
     /*! \brief      Change TTY (console) device (CTTY)
      */
 	void CMD_CTTY(char * args);
+
+    /*! \brief      Change country code
+     */
+	void CMD_COUNTRY(char * args);
     void CMD_TRUENAME(char * args);
     void CMD_DXCAPTURE(char * args);
 
