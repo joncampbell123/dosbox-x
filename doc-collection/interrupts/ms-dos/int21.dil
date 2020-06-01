@@ -4,6 +4,12 @@ arch "x86" mode "16-bit";
 description "Machine-parsable list of MS-DOS interrupt calls";
 charset_encoding "UTF-8"; /* default */
 
+define var "SDA" {
+    type "farptr 16:16"; /* 16;16 FAR pointer */
+    name "Swappable Data Area";
+    description "A portion of the MS-DOS data segment that can be swapped in and out";
+}
+
 define var "DTA" {
     type "farptr 16:16"; /* 16:16 FAR pointer */
     name "Disk Transfer Address";
