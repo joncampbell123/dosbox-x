@@ -3071,9 +3071,10 @@ void DOSBOX_SetupConfigSections(void) {
             "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
-            "7.0                              MS-DOS 7.0 (Windows 95 pure DOS mode) emulation\n"
-            "7.1                              MS-DOS 7.1 (Windows 98 pure DOS mode) emulation\n"
-            "LFN (long filename) support will be enabled with a reported DOS version of 7.0 or higher with \"lfn=auto\" (default).\n");
+            "7.0                              MS-DOS 7.0 (or Windows 95 pure DOS mode) emulation\n"
+            "7.1                              MS-DOS 7.1 (or Windows 98 pure DOS mode) emulation\n"
+            "Long filename (LFN) support will be enabled with a reported DOS version of 7.0 or higher with \"lfn=auto\" (default).\n"
+			"Similarly, FAT32 disk images will be supported with a reported DOS version of 7.1 or higher.\n");
 
     Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(lfn_settings);
@@ -3376,6 +3377,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Number of FCB handles available to DOS programs (1-255).");
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
+    Pint = secprop->Add_int("country",Property::Changeable::OnlyAtStart,1);
+    Pint->Set_help("Sets the country code for country-specific date/time formats.");
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
     Pstring->Set_values(driveletters);
