@@ -601,7 +601,7 @@ if test x$enable_freetype = xyes; then
   if test x$RES = x0; then
 	CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
 	CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
-	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config freetype2 --libs`
+	LIBS="$LIBS "`pkg-config freetype2 --libs`
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else
