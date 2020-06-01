@@ -922,7 +922,7 @@ struct FM_OPL
 
 	void WriteReg(int r, int v);
 	void ResetChip();
-	void postload();
+	//void postload();
 
 
 	/* lock/unlock for common table */
@@ -1796,7 +1796,7 @@ void FM_OPL::ResetChip()
 #endif
 }
 
-
+#if 0/*not used*/
 void FM_OPL::postload()
 {
 	for(unsigned int ch = 0; ch < sizeof( P_CH )/ sizeof(P_CH[0]); ch++)
@@ -1848,6 +1848,7 @@ void FM_OPL::postload()
 	}
 #endif
 }
+#endif /* end not used */
 
 } // anonymous namespace
 
