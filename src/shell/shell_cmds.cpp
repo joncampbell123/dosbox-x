@@ -47,7 +47,6 @@
 static SHELL_Cmd cmd_list[]={
 {	"DIR",			0,		&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
 {	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
-{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
 {	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
 {	"ATTRIB",		1,		&DOS_Shell::CMD_ATTRIB,		"SHELL_CMD_ATTRIB_HELP"},
 {	"BREAK",		1,		&DOS_Shell::CMD_BREAK,		"SHELL_CMD_BREAK_HELP"},
@@ -56,6 +55,7 @@ static SHELL_Cmd cmd_list[]={
 {	"CHOICE",		1,		&DOS_Shell::CMD_CHOICE,		"SHELL_CMD_CHOICE_HELP"},
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
+{	"COUNTRY",		1,		&DOS_Shell::CMD_COUNTRY,	"SHELL_CMD_COUNTRY_HELP"},
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
@@ -90,7 +90,8 @@ static SHELL_Cmd cmd_list[]={
 {	"VERIFY",		1,		&DOS_Shell::CMD_VERIFY,		"SHELL_CMD_VERIFY_HELP"},
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
-// Advanced command specific to DOSBox-X
+// Advanced commands specific to DOSBox-X
+{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
@@ -103,6 +104,8 @@ static SHELL_Cmd cmd_list[]={
 extern int enablelfn, lfn_filefind_handle;
 extern bool date_host_forced, usecon, rsize;
 extern unsigned long freec;
+extern Bit16u countryNo;
+void DOS_SetCountry(Bit16u countryNo);
 
 /* support functions */
 static char empty_char = 0;
@@ -623,7 +626,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	}
 	if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
-		if (argc!="") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
+		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
 }
 
@@ -977,23 +980,59 @@ static void FormatNumber(Bit64u num,char * buf) {
 	num/=1000;
 	numt=num;
 	if (numt) {
-		sprintf(buf,"%u,%03u,%03u,%03u,%03u",numt,numg,numm,numk,numb);
+		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%03u",numt,dos.tables.country[7],numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
 		return;
 	}
 	if (numg) {
-		sprintf(buf,"%u,%03u,%03u,%03u",numg,numm,numk,numb);
+		sprintf(buf,"%u%c%03u%c%03u%c%03u",numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
 		return;
 	}
 	if (numm) {
-		sprintf(buf,"%u,%03u,%03u",numm,numk,numb);
+		sprintf(buf,"%u%c%03u%c%03u",numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
 		return;
 	}
 	if (numk) {
-		sprintf(buf,"%u,%03u",numk,numb);
+		sprintf(buf,"%u%c%03u",numk,dos.tables.country[7],numb);
 		return;
 	}
 	sprintf(buf,"%u",numb);
 }
+
+char buffer[15] = {0};
+char *FormatDate(Bit16u year, Bit8u month, Bit8u day) {
+	char formatstring[6], c=dos.tables.country[11];
+	sprintf(formatstring, dos.tables.country[0]==1?"D%cM%cY":(dos.tables.country[0]==2?"Y%cM%cD":"M%cD%cY"), c, c);
+	Bitu bufferptr=0;
+	for(Bitu i = 0; i < 5; i++) {
+		if(i==1 || i==3) {
+			buffer[bufferptr] = formatstring[i];
+			bufferptr++;
+		} else {
+			if(formatstring[i]=='M') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u", month);
+			if(formatstring[i]=='D') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u", day);
+			if(formatstring[i]=='Y') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%04u", year);
+		}
+	}
+	return buffer;
+}
+
+char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
+	Bitu fhour=hour;
+	static char retBuf[14];
+	char ampm[3]="";
+	if (!(dos.tables.country[17]&1)) {											// 12 hour notation?
+		if (hour!=12)
+			hour %= 12;
+		strcpy(ampm, hour != 12 && hour == fhour ? "am" : "pm");
+	}
+	char sep = dos.tables.country[13];
+	if (sec==NULL&&msec==NULL)
+		sprintf(retBuf, "%2u%c%02u%c", hour, sep, min, *ampm);
+	else
+		sprintf(retBuf, "%u%c%02u%c%02u%c%02u%s", hour, sep, min, sep, sec, dos.tables.country[9], msec, ampm);
+	return retBuf;
+	}
+
 
 struct DtaResult {
 	char name[DOS_NAMELENGTH_ASCII];
@@ -1171,7 +1210,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 							for (size_t i=14-namelen;i>0;i--) shell->WriteOut(" ");
 						}
 					} else {
-						shell->WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,"<DIR>",day,month,year,hour,minute,uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %-16s %s %s %s\n",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,NULL,NULL),uselfn&&!optZ?lname:"");
 					}
 					dir_count++;
 				} else {
@@ -1179,7 +1218,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						shell->WriteOut("%-16s",name);
 					} else {
 						FormatNumber(size,numformat);
-						shell->WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,numformat,day,month,year,hour,minute,uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %16s %s %s %s\n",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,NULL,NULL),uselfn&&!optZ?lname:"");
 					}
 					if (optS) {
 						cfile_count++;
@@ -2347,8 +2386,10 @@ void DOS_Shell::CMD_DATE(char * args) {
 		return;
 	}
 	// check if a date was passed in command line
+	char c=dos.tables.country[11], c1, c2;
 	Bit32u newday,newmonth,newyear;
-	if(sscanf(args,"%u-%u-%u",&newmonth,&newday,&newyear)==3) {
+	int n=dos.tables.country[0]==1?sscanf(args,"%u%c%u%c%u",&newday,&c1,&newmonth,&c2,&newyear):(dos.tables.country[0]==2?sscanf(args,"%u%c%u%c%u",&newyear,&c1,&newmonth,&c2,&newday):sscanf(args,"%u%c%u%c%u",&newmonth,&c1,&newday,&c2,&newyear));
+	if (n==5 && c1==c && c2==c) {
 		reg_cx = static_cast<Bit16u>(newyear);
 		reg_dh = static_cast<Bit8u>(newmonth);
 		reg_dl = static_cast<Bit8u>(newday);
@@ -2371,21 +2412,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	}
 	bool dateonly = ScanCMDBool(args,"T");
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_NOW"));
-
-	const char* formatstring = MSG_Get("SHELL_CMD_DATE_FORMAT");
-	if(strlen(formatstring)!=5) return;
-	char buffer[15] = {0};
-	Bitu bufferptr=0;
-	for(Bitu i = 0; i < 5; i++) {
-		if(i==1 || i==3) {
-			buffer[bufferptr] = formatstring[i];
-			bufferptr++;
-		} else {
-			if(formatstring[i]=='M') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dh);
-			if(formatstring[i]=='D') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dl);
-			if(formatstring[i]=='Y') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%04u",(Bit16u) reg_cx);
-		}
-	}
+	
 	if(date_host_forced) {
 		time_t curtime;
 
@@ -2404,10 +2431,14 @@ void DOS_Shell::CMD_DATE(char * args) {
 		if (week < 0) week = (week + 7) % 7;
 
 		const char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-		WriteOut("%s %s\n",my_week[week],buffer);
+		WriteOut("%s %s\n",my_week[week],FormatDate((Bit16u)reg_cx, (Bit8u)reg_dh, (Bit8u)reg_dl));
 	} else
-	WriteOut("%s %s\n",day, buffer);
-	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_SETHLP"));
+		WriteOut("%s %s\n",day, FormatDate((Bit16u)reg_cx, (Bit8u)reg_dh, (Bit8u)reg_dl));
+	if(!dateonly) {
+		char format[11];
+		sprintf(format, dos.tables.country[0]==1?"DD%cMM%cYYYY":(dos.tables.country[0]==2?"YYYY%cMM%cDD":"MM%cDD%cYYYY"), c, c);
+		WriteOut(MSG_Get("SHELL_CMD_DATE_SETHLP"), format);
+	}
 }
 
 void DOS_Shell::CMD_TIME(char * args) {
@@ -2433,7 +2464,8 @@ void DOS_Shell::CMD_TIME(char * args) {
 		return;
 	}
 	Bit32u newhour,newminute,newsecond;
-	if (sscanf(args,"%u:%u:%u",&newhour,&newminute,&newsecond)==3) {
+	char c=dos.tables.country[13], c1, c2;
+	if (sscanf(args,"%u%c%u%c%u",&newhour,&c1,&newminute,&c2,&newsecond)==5 && c1==c && c2==c) {
 		//reg_ch = static_cast<Bit16u>(newhour);
 		//reg_cl = static_cast<Bit8u>(newminute);
 		//reg_dx = static_cast<Bit8u>(newsecond)<<8;
@@ -2466,8 +2498,10 @@ void DOS_Shell::CMD_TIME(char * args) {
 		WriteOut("%2u:%02u\n",reg_ch,reg_cl);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_NOW"));
-		WriteOut("%2u:%02u:%02u,%02u\n",reg_ch,reg_cl,reg_dh,reg_dl);
-		WriteOut(MSG_Get("SHELL_CMD_TIME_SETHLP"));
+		WriteOut("%s\n", FormatTime(reg_ch,reg_cl,reg_dh,reg_dl));
+		char format[9];
+		sprintf(format, "hh%cmm%css", dos.tables.country[13], dos.tables.country[13]);
+		WriteOut(MSG_Get("SHELL_CMD_TIME_SETHLP"), format);
 	}
 }
 
@@ -3454,3 +3488,29 @@ void DOS_Shell::CMD_CTTY(char * args) {
 	}
 	DOS_CloseFile(handle);
 }
+
+void DOS_Shell::CMD_COUNTRY(char * args) {
+	HELP("COUNTRY");
+	if (char* rem = ScanCMDRemain(args))
+		{
+		WriteOut("Invalid switch - %s\r\n", rem);
+		return;
+		}
+	args = trim(args);
+	if (!*args)
+		{
+		WriteOut("Current country code: %d\r\n", countryNo);
+		return;
+		}
+	int newCC;
+	char buffer[256];
+	if (sscanf(args, "%d%s", &newCC, buffer) == 1 && newCC>0)
+		{
+		countryNo = newCC;
+		DOS_SetCountry(countryNo);
+		return;
+		}
+	WriteOut("Invalid country code\r\n");
+	return;
+}
+
