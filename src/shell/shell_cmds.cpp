@@ -581,9 +581,9 @@ continue_1:
 	dos.dta(save_dta);
 }
 
-static int GetPauseCount() {
+static size_t GetPauseCount() {
 	Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	return CURSOR_POS_ROW(page)>2?CURSOR_POS_ROW(page)-2:22;
+	return (CURSOR_POS_ROW(page) > 2u) ? (CURSOR_POS_ROW(page) - 2u) : 22u; /* <- FIXME: Please clarify this logic */
 }
 
 void DOS_Shell::CMD_HELP(char * args){
@@ -596,7 +596,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	Bit32u cmd_index=0,write_count=0;
 	bool show=false;
 	while (cmd_list[cmd_index].name) {
-		if (optall || *args && !strcmp(args, cmd_list[cmd_index].name) || !*args && !cmd_list[cmd_index].flags) {
+		if (optall || (*args && !strcmp(args, cmd_list[cmd_index].name)) || (!*args && !cmd_list[cmd_index].flags)) {
 			show=true;
 			if (*args && !strcmp(args, cmd_list[cmd_index].name) && !optall) {
 				std::string cmd=std::string(args);
@@ -1549,7 +1549,7 @@ void DOS_Shell::CMD_LS(char *args) {
 			++w_count;
 		}
 		total=0;
-		for (int i=0; i<col; i++) total+=max[i];
+		for (size_t i=0; i<col; i++) total+=max[i];
 		if (total<tcols) break;
 	}
 	
