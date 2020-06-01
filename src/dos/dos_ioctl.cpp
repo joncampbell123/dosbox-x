@@ -195,6 +195,8 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
             }
             break;
         case 0x40:	/* Set Device parameters */
+            LOG(LOG_IOCTL,LOG_WARN)("DOS:IOCTL Call 0D:40 Drive %2X Set Device Parameters ignored, which may mean a mismatch between FAT filesystem BPBs",drive);
+            break;
         case 0x46:	/* Set volume serial number */
             break;
         case 0x66:	/* Get volume serial number */
