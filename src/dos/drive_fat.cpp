@@ -1939,7 +1939,7 @@ Bits fatDrive::UnMount(void) {
 	return 0;
 }
 
-Bit8u fatDrive::GetMediaByte(void) { return loadedDisk->GetBiosType(); }
+Bit8u fatDrive::GetMediaByte(void) { return BPB.v.BPB_Media; }
 const FAT_BootSector::bpb_union_t &fatDrive::GetBPB(void) { return BPB; }
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
