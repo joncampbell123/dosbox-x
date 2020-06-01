@@ -1361,7 +1361,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
 }
 
 void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector<std::string> &options) {
-	Bit32u startSector;
+	Bit32u startSector = 0,countSector = 0;
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
@@ -1530,6 +1530,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                     }
 
                     startSector = mbrData.pentry[m=opt_partition_index].absSectStart;
+                    countSector = mbrData.pentry[m=opt_partition_index].partSize;
                 }
                 else {
                     for(m=0;m<4;m++) {
@@ -1537,17 +1538,20 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                         if (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 || mbrData.pentry[m].parttype == 0x06) {
                             LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
                             startSector = mbrData.pentry[m].absSectStart;
+                            countSector = mbrData.pentry[m].partSize;
                             break;
                         }
                         else if (dos.version.major >= 7 && mbrData.pentry[m].parttype == 0x0E/*FAT16B LBA*/) { /* MS-DOS 7.0 or higher */
                             LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
                             startSector = mbrData.pentry[m].absSectStart;
+                            countSector = mbrData.pentry[m].partSize;
                             break;
                         }
                         else if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) && /* MS-DOS 7.10 or higher */
                                 (mbrData.pentry[m].parttype == 0x0B || mbrData.pentry[m].parttype == 0x0C)) { /* FAT32 types */
                             LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
                             startSector = mbrData.pentry[m].absSectStart;
+                            countSector = mbrData.pentry[m].partSize;
                             break;
                         }
                     }
@@ -1557,6 +1561,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
             }
 
             partSectOff = startSector;
+            partSectSize = countSector;
         } else {
             /* Get floppy disk parameters based on image size */
             loadedDisk->Get_Geometry(&headscyl, &cylinders, &cylsector, &bytesector);

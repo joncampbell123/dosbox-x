@@ -456,6 +456,7 @@ private:
 	Bit8u fattype = 0;
 	Bit32u CountOfClusters = 0;
 	Bit32u partSectOff = 0;
+	Bit32u partSectSize = 0;
 	Bit32u firstDataSector = 0;
 	Bit32u firstRootDirSect = 0;
 
