@@ -392,6 +392,15 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
 			if (query) break;
 			LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it",reg_cl,drive);
             break;
+		case 0x67: /* Get access flag (whether allowed by driver) */
+			if (query) break;
+			/* In DOSBox-X, disk access is always allowed.
+			 * Real MS-DOS might be more restrictive, especially Windows 95 which requires volume locking before disk access is allowed */
+			/* FDISK.EXE needs this IOCTL to determine whether it can read the partition and therefore whether the "system type" is "FAT16", "FAT12", "unknown" etc. */
+			/* ptr+0 = special function (always zero)
+			 * ptr+1 = return whether access allowed */
+			mem_writeb(ptr+1,0x01);
+			break;
         default:
             LOG(LOG_IOCTL,LOG_ERROR)("DOS:IOCTL %s %2X:%2X Drive %2X unhandled (CH=08h)",query?"Query":"Call",reg_al,reg_cl,drive);
             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
