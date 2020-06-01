@@ -4,6 +4,9 @@
   - FAT driver no longer mounts FAT16B LBA volumes unless
     dosver is 7.0 or higher at startup to mimic MS-DOS
     behavior.
+  - Fixed FAT driver not to attempt to mount partitions that
+    have nothing to do with the FAT filesystem (such as
+    type 0Dh and extended LBA partition tables).
   - Added code to FAT driver to identify telltale pattern
     left by Microsoft FDISK when a partition is created (but
     not yet formatted) and reject.
