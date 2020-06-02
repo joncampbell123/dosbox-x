@@ -123,6 +123,46 @@ define register "EFLAGS" {
     subset "dw" of register "RFLAGS";
 }
 
+define register "AX" {
+    subset "w" of register "EAX";
+}
+
+define register "BX" {
+    subset "w" of register "EBX";
+}
+
+define register "CX" {
+    subset "w" of register "ECX";
+}
+
+define register "DX" {
+    subset "w" of register "EDX";
+}
+
+define register "SI" {
+    subset "w" of register "ESI";
+}
+
+define register "DI" {
+    subset "w" of register "EDI";
+}
+
+define register "BP" {
+    subset "w" of register "EBP";
+}
+
+define register "SP" {
+    subset "w" of register "ESP";
+}
+
+define register "IP" {
+    subset "w" of register "EIP";
+}
+
+define register "FLAGS" {
+    subset "w" of register "EFLAGS";
+}
+
 define register "CS" {
     type register type "segment";
 }
