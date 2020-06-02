@@ -1,0 +1,89 @@
+
+arch "x86";
+description "Machine-parsable list of opcodes";
+charset_encoding "UTF-8"; /* default */
+
+define register type "general" {
+    type uint64_t;
+    subset qw bit range(63:0);
+    subset dw bit range(31:0);
+    subset w  bit range(15:0);
+    subset bh bit range(15:8);
+    subset b  bit range( 7:0);
+}
+
+define register type "cpu flags" {
+    type register type "general";
+}
+
+define register type "segment" {
+    type uint16_t;
+    subset selector_index bit range(15:3);
+    subset ldt_select bit value 2;
+    subset priv_level bit range(1:0);
+}
+
+define register "RAX" {
+    type register type "general";
+}
+
+define register "RBX" {
+    type register type "general";
+}
+
+define register "RCX" {
+    type register type "general";
+}
+
+define register "RDX" {
+    type register type "general";
+}
+
+define register "RSI" {
+    type register type "general";
+}
+
+define register "RDI" {
+    type register type "general";
+}
+
+define register "RBP" {
+    type register type "general";
+}
+
+define register "RSP" {
+    type register type "general";
+}
+
+define register "RIP" {
+    type register type "general";
+}
+
+define register "RFLAGS" {
+    type register type "cpu flags";
+}
+
+define register "CS" {
+    type register type "segment";
+}
+
+define register "DS" {
+    type register type "segment";
+}
+
+define register "ES" {
+    type register type "segment";
+}
+
+define register "FS" {
+    type register type "segment";
+}
+
+define register "GS" {
+    type register type "segment";
+}
+
+define register "SS" {
+    type register type "segment";
+}
+
