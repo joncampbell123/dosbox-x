@@ -219,3 +219,36 @@ define register "SS" {
     type register type "segment";
 }
 
+define register map "genregw" {
+    index 0 register "RAX";
+    index 1 register "RCX";
+    index 2 register "RDX";
+    index 3 register "RBX";
+    index 4 register "RSP";
+    index 5 register "RBP";
+    index 6 register "RSI";
+    index 7 register "RDI";
+}
+
+define register map "genregb" {
+    index 0 register "AL";
+    index 1 register "CL";
+    index 2 register "DL";
+    index 3 register "BL";
+    index 4 register "AH";
+    index 5 register "CH";
+    index 6 register "DH";
+    index 7 register "BH";
+}
+
+define register map "sreg" {
+    index 0 register "ES";
+    index 1 register "CS";
+    index 2 register "SS";
+    index 3 register "DS";
+    index 4 register "FS";
+    index 5 register "GS";
+    /* no index 6 */
+    /* no index 7 */
+}
+
