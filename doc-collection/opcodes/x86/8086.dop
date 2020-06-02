@@ -78,6 +78,9 @@ define register "RFLAGS" {
     subset "vif"        bit value 19 description "virtual interrupt";
     subset "vip"        bit value 20 description "virtual interrupt pending";
     subset "id";        bit value 21 description "identification (CPUID)";
+
+    subset "common results" bitmask("cf","pf","af","zf",sf","of");
+    subset "popf" eval(subset("common results") | bitmask("tf","if","df"));
 }
 
 define register "CS" {
