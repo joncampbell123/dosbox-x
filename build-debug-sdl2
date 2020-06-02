@@ -28,6 +28,10 @@ if test -z "$x" ; then
     (cd vs2015/sdl2 && ./build-dosbox.sh) || exit 1
 fi
 
+# prefer to compile against our own copy of SDLnet 1.x
+echo Compiling our internal SDLnet 1.x
+(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
+
 chmod +x configure
 ./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 "$@" $opt || exit 1
 make -j3 || exit 1
