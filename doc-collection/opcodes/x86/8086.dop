@@ -61,6 +61,23 @@ define register "RIP" {
 
 define register "RFLAGS" {
     type register type "cpu flags";
+    subset "cf"         bit value 0 description "carry";
+    subset "pf"         bit value 2 description "parity";
+    subset "af"         bit value 4 description "aux";
+    subset "zf"         bit value 6 description "zero";
+    subset "sf"         bit value 7 description "sign";
+    subset "tf"         bit value 8 description "trap";
+    subset "if"         bit value 9 description "interrupt enable";
+    subset "df"         bit value 10 description "direction";
+    subset "of"         bit value 11 description "overflow";
+    subset "iopl"       bit range(13:12) description "I/O privilege level";
+    subset "nt"         bit value 14 description "nested task";
+    subset "rf"         bit value 16 description "resume";
+    subset "vm"         bit value 17 description "virtual 8086 mode";
+    subset "ac"         bit value 18 description "alignment check";
+    subset "vif"        bit value 19 description "virtual interrupt";
+    subset "vip"        bit value 20 description "virtual interrupt pending";
+    subset "id";        bit value 21 description "identification (CPUID)";
 }
 
 define register "CS" {
