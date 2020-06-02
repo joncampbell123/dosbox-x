@@ -5,11 +5,11 @@ charset_encoding "UTF-8"; /* default */
 
 define register type "general" {
     type uint64_t;
-    subset qw bit range(63:0);
-    subset dw bit range(31:0);
-    subset w  bit range(15:0);
-    subset bh bit range(15:8);
-    subset b  bit range( 7:0);
+    subset "qw" bit range(63:0);
+    subset "dw" bit range(31:0);
+    subset "w"  bit range(15:0);
+    subset "bh" bit range(15:8);
+    subset "b"  bit range( 7:0);
 }
 
 define register type "cpu flags" {
@@ -18,9 +18,9 @@ define register type "cpu flags" {
 
 define register type "segment" {
     type uint16_t;
-    subset selector_index bit range(15:3);
-    subset ldt_select bit value 2;
-    subset priv_level bit range(1:0);
+    subset "selector_index" bit range(15:3);
+    subset "ldt_select"     bit value 2;
+    subset "priv_level"     bit range(1:0);
 }
 
 define register "RAX" {
