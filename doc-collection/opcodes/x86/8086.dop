@@ -163,6 +163,38 @@ define register "FLAGS" {
     subset "w" of register "EFLAGS";
 }
 
+define register "AL" {
+    subset "b" of register "AX";
+}
+
+define register "BL" {
+    subset "b" of register "BX";
+}
+
+define register "CL" {
+    subset "b" of register "CX";
+}
+
+define register "DL" {
+    subset "b" of register "DX";
+}
+
+define register "AH" {
+    subset "bh" of register "AX";
+}
+
+define register "BH" {
+    subset "bh" of register "BX";
+}
+
+define register "CH" {
+    subset "bh" of register "CX";
+}
+
+define register "DH" {
+    subset "bh" of register "DX";
+}
+
 define register "CS" {
     type register type "segment";
 }
