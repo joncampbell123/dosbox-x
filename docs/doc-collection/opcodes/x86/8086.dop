@@ -3,6 +3,44 @@ arch "x86";
 description "Machine-parsable list of opcodes";
 charset_encoding "UTF-8"; /* default */
 
+define modeflag "mode64" {
+    description "64-bit long mode";
+    type boolean;
+}
+
+define modeflag "stack32" {
+    description "32-bit stack segment";
+    type boolean;
+}
+
+define modeflag "data32" {
+    description "32-bit data segment";
+    type boolean;
+}
+
+define modeflag "code32" {
+    description "32-bit code segment";
+    type boolean;
+}
+
+define tempflag "dec_code32" {
+    description "32-bit code segment decode";
+    on start of instruction set to modeflag "code32";
+    type boolean;
+}
+
+define tempflag "dec_data32" {
+    description "32-bit data segment decode";
+    on start of instruction set to modeflag "data32";
+    type boolean;
+}
+
+define tempflag "dec_stack32" {
+    description "32-bit stack segment decode";
+    on start of instruction set to modeflag "stack32";
+    type boolean;
+}
+
 define register type "general" {
     type uint64_t;
     subset "qw" bit range(63:0);
