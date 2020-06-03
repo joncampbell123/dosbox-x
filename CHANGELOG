@@ -1,8 +1,13 @@
 0.83.3
   - Added COUNTRY command to set country code for country-
-    specific date and time formats. (Wengier)
+    specific date and time formats. For example, the command
+    "COUNTRY 61" sets the country code to 61 (International
+    English) which use the DD-MM-YYYY date format instead of
+    the default (U.S.) MM-DD-YYYY date format. (Wengier)
   - DOS 440Dh IOCTL function 67h (get access flag) added to
-    allow FDISK.EXE to determine FAT filesystem type.
+    allow FDISK.EXE to determine FAT filesystem type. Also
+    implemented function 40h (set device parameters) and
+    function 46h (set volume serial number). (Wengier)
   - Unknown DOS 440Dh IOCTLs warnings now indicate whether
     triggered by call or query.
   - S3 VESA BIOS mode number for 1024x768 32bpp changed to

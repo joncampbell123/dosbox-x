@@ -29,7 +29,55 @@
 bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
-        case 0x60:		/* Get Device parameters */
+        case 0x40:		/* Set device parameters */
+			{
+				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}				
+				fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+				if (fdp == NULL || fdp->readonly) {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}
+
+				if (query) break;
+				
+				FAT_BootSector::bpb_union_t bpb=fdp->GetBPB();
+				if (fdp->loadedDisk != NULL)
+					fdp->loadedDisk->cylinders = mem_readw(ptr+4);				 // number of cylinders
+
+				if (mem_readw(ptr+0xd) == 0 && mem_readw(ptr+0xf) == 0 && mem_readw(ptr+0x12) == 0) { // FAT32 BPB?
+					bpb.v32.BPB_BytsPerSec = mem_readw(ptr+7);                   // bytes per sector (Win3 File Mgr. uses it)
+					bpb.v32.BPB_SecPerClus = mem_readw(ptr+9);                   // sectors per cluster
+					bpb.v32.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                 // number of reserved sectors
+					bpb.v32.BPB_NumFATs = mem_readw(ptr+0xc);                    // number of FATs
+					bpb.v32.BPB_RootEntCnt = mem_readw(ptr+0xd);                 // number of root entries (Fake, the real BPB value is zero)
+					bpb.v32.BPB_TotSec16 = mem_readw(ptr+0xf);                   // number of small sectors (always zero on BPB and returned by Win98)
+					bpb.v32.BPB_Media = mem_readw(ptr+0x11);                     // media type
+					bpb.v32.BPB_FATSz32 = (uint16_t)mem_readw(ptr+0x12);         // sectors per FAT (FIXME: What does Win98 do if this value > 0xFFFF?)
+					bpb.v32.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);       // sectors per track
+					bpb.v32.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);	     // number of heads
+					bpb.v32.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);         // number of hidden sectors
+					bpb.v32.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);        // number of big sectors
+				} else {
+					bpb.v.BPB_BytsPerSec = mem_readw(ptr+7);                     // bytes per sector (Win3 File Mgr. uses it)
+					bpb.v.BPB_SecPerClus = mem_readw(ptr+9);                     // sectors per cluster
+					bpb.v.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                   // number of reserved sectors
+					bpb.v.BPB_NumFATs = mem_readw(ptr+0xc);                      // number of FATs
+					bpb.v.BPB_RootEntCnt = mem_readw(ptr+0xd);			         // number of root entries
+					bpb.v.BPB_TotSec16 = mem_readw(ptr+0xf);                     // number of small sectors
+					bpb.v.BPB_Media = mem_readw(ptr+0x11);                       // media type
+					bpb.v.BPB_FATSz16 = (uint16_t)mem_readw(ptr+0x12);           // sectors per FAT
+					bpb.v.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);         // sectors per track
+					bpb.v.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);          // number of heads
+					bpb.v.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);           // number of hidden sectors
+					bpb.v.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);          // number of big sectors
+				}
+				fdp->SetBPB(bpb);
+				break;
+			}
+        case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
@@ -113,7 +161,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                 Bit16u sect = 0;
 
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
-                if (fdp == NULL) {
+                if (fdp == NULL || fdp->readonly) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
                     return false;
                 }
@@ -194,10 +242,23 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                 LOG(LOG_IOCTL,LOG_DEBUG)("DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/%u ntracks=%u",drive,cyl,head,sect,ntracks);
             }
             break;
-        case 0x40:	/* Set Device parameters */
-            LOG(LOG_IOCTL,LOG_WARN)("DOS:IOCTL Call 0D:40 Drive %2X Set Device Parameters ignored, which may mean a mismatch between FAT filesystem BPBs",drive);
-            break;
         case 0x46:	/* Set volume serial number */
+			if (query) break;
+			{
+				fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+				if (fdp == NULL || fdp->readonly) {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}
+
+				FAT_BootSector::bpb_union_t bpb=fdp->GetBPB();
+				unsigned long serial_number=mem_readd(ptr+2)?mem_readd(ptr+2):0x1234;
+				if (bpb.is_fat32())
+					bpb.v32.BS_VolID=serial_number;
+				else
+					bpb.v.BPB_VolID=serial_number;
+				fdp->SetBPB(bpb);
+			}
             break;
         case 0x66:	/* Get volume serial number */
 			if (query) break;
@@ -239,7 +300,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
         case 0x41:  /* Write logical device track */
 			{
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
-                if (fdp == NULL) {
+                if (fdp == NULL || fdp->readonly) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
                     return false;
                 }
@@ -415,7 +476,51 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
 bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
-        case 0x60:		/* Get Device parameters */
+        case 0x40:		/* Set device parameters */
+			{
+				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}
+				fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
+				if (fdp == NULL || fdp->readonly) {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}
+
+				if (query) break;
+				
+				FAT_BootSector::bpb_union_t bpb=fdp->GetBPB();				
+				if (fdp->loadedDisk != NULL)
+					fdp->loadedDisk->cylinders = mem_readw(ptr+4);	             // number of cylinders
+
+				if (mem_readw(ptr+0xd) == 0 && mem_readw(ptr+0xf) == 0 && mem_readw(ptr+0x12) == 0) { // FAT32 BPB?
+					bpb.v.BPB_BytsPerSec = mem_readw(ptr+7);                     // bytes per sector (Win3 File Mgr. uses it)
+					bpb.v.BPB_SecPerClus = mem_readw(ptr+9);                     // sectors per cluster
+					bpb.v.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                   // number of reserved sectors
+					bpb.v.BPB_NumFATs = mem_readw(ptr+0xc);                      // number of FATs
+					bpb.v.BPB_RootEntCnt = mem_readw(ptr+0xd);			         // number of root entries
+					bpb.v.BPB_TotSec16 = mem_readw(ptr+0xf);                     // number of small sectors
+					bpb.v.BPB_Media = mem_readw(ptr+0x11);                       // media type
+					bpb.v.BPB_FATSz16 = (uint16_t)mem_readw(ptr+0x12);           // sectors per FAT
+					bpb.v.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);         // sectors per track
+					bpb.v.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);          // number of heads
+					bpb.v.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);           // number of hidden sectors
+					bpb.v.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);          // number of big sectors
+					bpb.v32.BPB_FATSz32 = (uint32_t)mem_readd(ptr+0x20);         // sectors per FAT
+					bpb.v32.BPB_ExtFlags = (uint16_t)mem_readw(ptr+0x24);
+					bpb.v32.BPB_FSVer = (uint16_t)mem_readw(ptr+0x26);
+					bpb.v32.BPB_RootClus = (uint32_t)mem_readd(ptr+0x28);
+					bpb.v32.BPB_FSInfo = (uint16_t)mem_readw(ptr+0x2C);
+					bpb.v32.BPB_BkBootSec = (uint16_t)mem_readw(ptr+0x2E);
+					fdp->SetBPB(bpb);
+				} else {
+					DOS_SetError(DOSERR_ACCESS_DENIED);
+					return false;
+				}
+				break;
+			}
+        case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
@@ -454,7 +559,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
                         mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          // number of big sectors
                         mem_writed(ptr+0x20,(uint32_t)bpb.v32.BPB_FATSz32);         // sectors per FAT
                         mem_writew(ptr+0x24,(uint16_t)bpb.v32.BPB_ExtFlags);
-                        mem_writew(ptr+0x26,(uint32_t)bpb.v32.BPB_FSVer);
+                        mem_writew(ptr+0x26,(uint16_t)bpb.v32.BPB_FSVer);
                         mem_writed(ptr+0x28,(uint32_t)bpb.v32.BPB_RootClus);
                         mem_writew(ptr+0x2C,(uint16_t)bpb.v32.BPB_FSInfo);
                         mem_writew(ptr+0x2E,(uint16_t)bpb.v32.BPB_BkBootSec);
@@ -469,13 +574,13 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
                 }
                 break;
             }
-        case 0x40:
         case 0x42:
         case 0x46:
         case 0x4A:
         case 0x4B:
         case 0x61:
         case 0x62:
+        case 0x66:
         case 0x6A:
         case 0x6B:
             return DOS_IOCTL_AX440D_CH08(drive,query);
@@ -503,7 +608,9 @@ bool DOS_IOCTL(void) {
 		}
 	} else if (reg_al<0x12) { 				/* those use a diskdrive except 0x0b */
 		if (reg_al!=0x0b) {
-			drive=reg_bl;if (!drive) drive = DOS_GetDefaultDrive();else drive--;
+			drive=reg_bl;
+			if ((reg_al==0x0D||reg_al==0x11) && (reg_cl==0x4B||reg_cl==0x6B)) drive=reg_bh;
+			if (!drive) drive = DOS_GetDefaultDrive();else drive--;
 			if( (drive >= 2) && !(( drive < DOS_DRIVES ) && Drives[drive]) ) {
 				DOS_SetError(DOSERR_INVALID_DRIVE);
 				return false;
