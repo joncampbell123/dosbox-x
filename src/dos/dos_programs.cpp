@@ -5092,13 +5092,14 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
     MSG_Add("PROGRAM_LOADFIX_HELP",
         "Reduces the amount of available conventional or XMS memory.\n\n"
-        "LOADFIX [-xms] [-{ram}] [{program}]\n"
+        "LOADFIX [-xms] [-{ram}] [{program}] [{options}]\n"
         "LOADFIX -f [-xms]\n\n"
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
         "  -f          Frees previously allocated memory\n"
-        "  {program}   Runs the specified program\n\n"
+        "  {program}   Runs the specified program\n"
+        "  {options}   Program options (if any)\n\n"
         "Examples:\n"
         "  LOADFIX game.exe     Allocates 64KB of conventional memory and runs game.exe\n"
         "  LOADFIX -128         Allocates 128KB of conventional memory\n"
