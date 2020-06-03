@@ -8,10 +8,12 @@
 # Changelog:
 # * also look for SDL2.framework under Mac OS X
 
+# WARNING: Hacked for DOSBox-X, SDL_LIBS is SDL2_LIBS here.
+
 # serial 1
 
 dnl AM_PATH_SDL2([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for SDL, and define SDL_CFLAGS and SDL_LIBS
+dnl Test for SDL, and define SDL2_CFLAGS and SDL2_LIBS
 dnl
 AC_DEFUN([AM_PATH_SDL2],
 [dnl 
@@ -77,8 +79,8 @@ AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
       if test -d $sdl_framework; then
         AC_MSG_RESULT($sdl_framework)
         sdl_framework_dir=`dirname $sdl_framework`
-        SDL_CFLAGS="-F$sdl_framework_dir -Wl,-framework,SDL2 -I$sdl_framework/include"
-        SDL_LIBS="-F$sdl_framework_dir -Wl,-framework,SDL2"
+        SDL2_CFLAGS="-F$sdl_framework_dir -Wl,-framework,SDL2 -I$sdl_framework/include"
+        SDL2_LIBS="-F$sdl_framework_dir -Wl,-framework,SDL2"
       else
         no_sdl=yes
       fi
@@ -87,8 +89,8 @@ AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
     if test "$SDL2_CONFIG" != "no"; then
       if test "x$sdl_pc" = "xno"; then
         AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-        SDL_CFLAGS=`$SDL2_CONFIG $sdl_config_args --cflags`
-        SDL_LIBS=`$SDL2_CONFIG $sdl_config_args --libs`
+        SDL2_CFLAGS=`$SDL2_CONFIG $sdl_config_args --cflags`
+        SDL2_LIBS=`$SDL2_CONFIG $sdl_config_args --libs`
       fi
 
       sdl_major_version=`$SDL2_CONFIG $sdl_config_args --version | \
@@ -101,9 +103,9 @@ AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
         ac_save_CFLAGS="$CFLAGS"
         ac_save_CXXFLAGS="$CXXFLAGS"
         ac_save_LIBS="$LIBS"
-        CFLAGS="$CFLAGS $SDL_CFLAGS"
-        CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
-        LIBS="$LIBS $SDL_LIBS"
+        CFLAGS="$CFLAGS $SDL2_CFLAGS"
+        CXXFLAGS="$CXXFLAGS $SDL2_CFLAGS"
+        LIBS="$LIBS $SDL2_LIBS"
 dnl
 dnl Now check if the installed SDL is sufficiently new. (Also sanity
 dnl checks the results of sdl2-config to some extent
@@ -194,9 +196,9 @@ int main (int argc, char *argv[])
         :
        else
           echo "*** Could not run SDL test program, checking why..."
-          CFLAGS="$CFLAGS $SDL_CFLAGS"
-          CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
-          LIBS="$LIBS $SDL_LIBS"
+          CFLAGS="$CFLAGS $SDL2_CFLAGS"
+          CXXFLAGS="$CXXFLAGS $SDL2_CFLAGS"
+          LIBS="$LIBS $SDL2_LIBS"
           AC_TRY_LINK([
 #include <stdio.h>
 #include "SDL.h"
@@ -224,11 +226,11 @@ int main(int argc, char *argv[])
           LIBS="$ac_save_LIBS"
        fi
      fi
-     SDL_CFLAGS=""
-     SDL_LIBS=""
+     SDL2_CFLAGS=""
+     SDL2_LIBS=""
      ifelse([$3], , :, [$3])
   fi
-  AC_SUBST(SDL_CFLAGS)
-  AC_SUBST(SDL_LIBS)
+  AC_SUBST(SDL2_CFLAGS)
+  AC_SUBST(SDL2_LIBS)
   rm -f conf.sdltest
 ])
