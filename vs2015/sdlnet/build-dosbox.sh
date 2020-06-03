@@ -19,12 +19,12 @@ opts=
 sys=`uname -s`
 
 if [ -e "$srcdir/../sdl2/linux-host" ]; then
-    sdldir="$srcdir/../sdl2/linux-host"
-else
-    sdldir="$srcdir/../sdl/linux-host"
+    sdldirspec="--with-sdl-prefix=$srcdir/../sdl2/linux-host"
+elif [ -e "$srcdir/../sdl/linux-host" ]; then
+    sdldirspec="--with-sdl-prefix=$srcdir/../sdl/linux-host"
 fi
 
-../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared "--with-sdl-prefix=$sdldir" $opts || exit 1
+../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared "$sdldirspec" $opts || exit 1
 
 # SDL is having concurrency problems with Brew compiles, help it out
 # https://jenkins.brew.sh/job/Homebrew%20Core%20Pull%20Requests/35627/version=sierra/testReport/junit/brew-test-bot/sierra/install_dosbox_x/
