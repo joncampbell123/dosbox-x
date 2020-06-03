@@ -1539,8 +1539,8 @@ protected:
         }
         DOSBox_Vector2 v;
         ProcessInput(x, y, deadzone, v);
-        float x1 = (float)(sgn(v.X) * abs(pow(v.X, response)));
-        float y1 = (float)(sgn(v.Y) * abs(pow(v.Y, response)));
+        float x1 = (sgn(v.X) * fabs(pow(v.X, response)));
+        float y1 = (sgn(v.Y) * fabs(pow(v.Y, response)));
         DOSBox_Vector2 v1(x1, y1);
         return v1;
     }

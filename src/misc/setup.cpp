@@ -337,7 +337,7 @@ bool Prop_double::CheckValue(Value const& in, bool warn)
 	const auto ma = static_cast<double>(max);
 	const auto va = static_cast<double>(Value(in));
 	const auto same = [](const double a, const double b, const double epsilon) {
-		return fabs(a - b < epsilon);
+		return (a - b < epsilon);
 	};
 	const auto tolerance = 0.0000001;
 	
