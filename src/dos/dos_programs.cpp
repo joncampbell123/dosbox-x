@@ -2857,8 +2857,8 @@ void LOADFIX::Run(void)
                 char args[256];
                 args[0] = 0;
                 do {
-                    ok = cmd->FindCommand(commandNr++,temp_line);
-                    if(sizeof(args)-strlen(args)-1 < temp_line.length()+1)
+                    ok = cmd->FindCommand(commandNr,temp_line);
+                    if(commandNr++>cmd->GetCount() || sizeof(args)-strlen(args)-1 < temp_line.length()+1)
                         break;
                     strcat(args,temp_line.c_str());
                     strcat(args," ");

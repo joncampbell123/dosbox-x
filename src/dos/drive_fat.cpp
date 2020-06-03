@@ -1941,6 +1941,51 @@ Bits fatDrive::UnMount(void) {
 
 Bit8u fatDrive::GetMediaByte(void) { return BPB.v.BPB_Media; }
 const FAT_BootSector::bpb_union_t &fatDrive::GetBPB(void) { return BPB; }
+const void fatDrive::SetBPB(FAT_BootSector::bpb_union_t bpb) {
+	if (readonly) return;
+	BPB.v.BPB_BytsPerSec = bpb.v.BPB_BytsPerSec;
+	BPB.v.BPB_SecPerClus = bpb.v.BPB_SecPerClus;
+	BPB.v.BPB_RsvdSecCnt = bpb.v.BPB_RsvdSecCnt;
+	BPB.v.BPB_NumFATs = bpb.v.BPB_NumFATs;
+	BPB.v.BPB_RootEntCnt = bpb.v.BPB_RootEntCnt;
+	BPB.v.BPB_TotSec16 = bpb.v.BPB_TotSec16;
+	BPB.v.BPB_Media = bpb.v.BPB_Media;
+	BPB.v.BPB_FATSz16 = bpb.v.BPB_FATSz16;
+	BPB.v.BPB_SecPerTrk = bpb.v.BPB_SecPerTrk;
+	BPB.v.BPB_NumHeads = bpb.v.BPB_NumHeads;
+	BPB.v.BPB_HiddSec = bpb.v.BPB_HiddSec;
+	BPB.v.BPB_TotSec32 = bpb.v.BPB_TotSec32;
+	if (!BPB.is_fat32() && (BPB.v.BPB_BootSig == 0x28 || BPB.v.BPB_BootSig == 0x29))
+		BPB.v.BPB_VolID = bpb.v.BPB_VolID;
+	if (BPB.is_fat32() && (BPB.v32.BS_BootSig == 0x28 || BPB.v32.BS_BootSig == 0x29))
+		BPB.v32.BS_VolID = bpb.v32.BS_VolID;
+	if (BPB.is_fat32()) {
+		BPB.v32.BPB_BytsPerSec = bpb.v32.BPB_BytsPerSec;
+		BPB.v32.BPB_SecPerClus = bpb.v32.BPB_SecPerClus;
+		BPB.v32.BPB_RsvdSecCnt = bpb.v32.BPB_RsvdSecCnt;
+		BPB.v32.BPB_NumFATs = bpb.v32.BPB_NumFATs;
+		BPB.v32.BPB_RootEntCnt = bpb.v32.BPB_RootEntCnt;
+		BPB.v32.BPB_TotSec16 = bpb.v32.BPB_TotSec16;
+		BPB.v32.BPB_Media = bpb.v32.BPB_Media;
+		BPB.v32.BPB_FATSz32 = bpb.v32.BPB_FATSz32;
+		BPB.v32.BPB_SecPerTrk = bpb.v32.BPB_SecPerTrk;
+		BPB.v32.BPB_NumHeads = bpb.v32.BPB_NumHeads;
+		BPB.v32.BPB_HiddSec = bpb.v32.BPB_HiddSec;
+		BPB.v32.BPB_TotSec32 = bpb.v32.BPB_TotSec32;
+		BPB.v32.BPB_FATSz32 = bpb.v32.BPB_FATSz32;
+		BPB.v32.BPB_ExtFlags = bpb.v32.BPB_ExtFlags;
+		BPB.v32.BPB_FSVer = bpb.v32.BPB_FSVer;
+		BPB.v32.BPB_RootClus = bpb.v32.BPB_RootClus;
+		BPB.v32.BPB_FSInfo = bpb.v32.BPB_FSInfo;
+		BPB.v32.BPB_BkBootSec = bpb.v32.BPB_BkBootSec;
+	}
+
+    FAT_BootSector bootbuffer = {};
+    loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
+	if (BPB.is_fat32()) bootbuffer.bpb.v32=BPB.v32;
+	bootbuffer.bpb.v=BPB.v;
+    loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
+}
 
 bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) {
 	const char *lfn = NULL;
@@ -2454,7 +2499,10 @@ HANDLE fatDrive::CreateOpenFile(const char* name) {
 #endif
 
 unsigned long fatDrive::GetSerial() {
-	return BPB.v.BPB_VolID?BPB.v.BPB_VolID:0x1234;
+	if (BPB.is_fat32())
+		return BPB.v32.BS_VolID?BPB.v32.BS_VolID:0x1234;
+	else
+		return BPB.v.BPB_VolID?BPB.v.BPB_VolID:0x1234;
 }
 
 bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start/*=0*/) {
