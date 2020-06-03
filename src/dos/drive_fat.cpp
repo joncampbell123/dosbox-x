@@ -1941,7 +1941,8 @@ Bits fatDrive::UnMount(void) {
 
 Bit8u fatDrive::GetMediaByte(void) { return BPB.v.BPB_Media; }
 const FAT_BootSector::bpb_union_t &fatDrive::GetBPB(void) { return BPB; }
-const void fatDrive::SetBPB(FAT_BootSector::bpb_union_t bpb) {
+
+void fatDrive::SetBPB(const FAT_BootSector::bpb_union_t &bpb) {
 	if (readonly) return;
 	BPB.v.BPB_BytsPerSec = bpb.v.BPB_BytsPerSec;
 	BPB.v.BPB_SecPerClus = bpb.v.BPB_SecPerClus;
