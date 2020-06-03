@@ -288,16 +288,8 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
 }
 
 /* fopen64, ftello64, fseeko64 */
-#if defined(__APPLE__)
- #define fopen64 fopen
- #define ftello64 ftell
- #define fseeko64 fseek
- #define fseek_ofs_t off_t
-#elif defined (__HAIKU__)
- #define fopen64 fopen
- #define ftello64 ftello
- #define fseeko64 fseeko
- #define fseek_ofs_t off_t
+#if defined(__linux__)
+ #define fseek_ofs_t long
 #elif defined (_MSC_VER)
  #define fopen64 fopen
  #if (_MSC_VER >= 1400)
@@ -310,7 +302,10 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
   #define fseek_ofs_t long
  #endif
 #else
- #define fseek_ofs_t long
+ #define fopen64 fopen
+ #define ftello64 ftell
+ #define fseeko64 fseek
+ #define fseek_ofs_t off_t
 #endif
 
 /* Dos Error Codes */
