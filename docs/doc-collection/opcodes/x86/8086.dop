@@ -3,6 +3,12 @@ arch "x86";
 description "Machine-parsable list of opcodes";
 charset_encoding "UTF-8"; /* default */
 
+define segment reference "segref" {
+    description "data segment reference, or segment referenced by override";
+    type segment reference;
+    on start of instruction set to null;
+}
+
 define modeflag "mode64" {
     description "64-bit long mode";
     type boolean;
@@ -268,6 +274,16 @@ define register map "genregb" {
     index 7 register "BH";
 }
 
+define register map "genreg" {
+    input param "w" type boolean;
+    if w == true {
+        return register map "genregw";
+    }
+    else {
+        return register map "genregb";
+    }
+}
+
 define register map "sreg" {
     index 0 register "ES";
     index 1 register "CS";
@@ -293,5 +309,100 @@ define encoding "sib" {
     subset "scale" bit range(7:6);
     subset "index" bit range(5:3);
     subset "base"  bit range(2:0);
+}
+
+define function "mrm_dataseg" {
+    return type segment reference;
+
+    if segref != null {
+        return segref;
+    }
+
+    return segment reference "DS";
+}
+
+define function "mrm16_eaofs" {
+    return type uint16_t;
+    input "x" encoding "mrm";
+
+    if x.rm == 0 {
+        return (register "BX" + register "SI");
+    }
+    if x.rm == 1 {
+        return (register "BX" + register "DI");
+    }
+    if x.rm == 2 {
+        return (register "BP" + register "SI");
+    }
+    if x.rm == 3 {
+        return (register "BP" + register "DI");
+    }
+    if x.rm == 4 {
+        return register "SI";
+    }
+    if x.rm == 5 {
+        return register "DI";
+    }
+    if x.rm == 6 {
+        return register "BP";
+    }
+    if x.rm == 7 {
+        return register "BX";
+    }
+
+    return null;
+}
+
+define function "mrm16_eadisp" {
+    return type memory reference;
+    input "x" encoding "mrm";
+    input "disp" type int16_t;
+    require !(x.mod == 0 && x.rm == 6); /* make sure it's not [offset] */
+    require x.mod != 3; /* mod == 3 means r/m is register */
+
+    define var "ofs" description "offset" type uint16_t;
+    define var "seg" description "segment" type segment reference;
+
+    if segref != null {
+        seg = segref;
+    }
+    else if x.rm == 2 || x.rm == 3 || x.rm == 6 {
+        /* anything involving BP refers by default to the stack segment */
+        seg = segment reference "SS";
+    }
+    else {
+        seg = segment reference "DS";
+    }
+
+    ofs = mrm16_eaofs(x) + disp;
+
+    return memory reference segment seg offset ofs;
+}
+
+define effective address "mrm16" {
+    input "x" encoding "mrm";
+    if x.mod == 3 {
+        return register map "genreg" with param "w" = x.rm;
+    }
+    else if x.mod == 0 && x.rm == 6 {
+        define var "disp" description "offset" type uint16_t;
+        disp = cpu instruction fetch uint16_t;
+        return memory reference segment mrm_dataseg() offset disp;
+    }
+    else {
+        define var "disp" description "displacement" type int16_t; /* signed two's complement */
+
+        if x.mod == 1 {
+            disp = cpu instruction fetch int8_t;
+        }
+        else if x.mod == 2 {
+            disp = cpu instruction fetch int16_t;
+        }
+        else {
+            disp = 0;
+        }
+
+        return mrm16_eadisp(x,disp);
+    }
 }
 
