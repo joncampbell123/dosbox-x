@@ -29,7 +29,7 @@
 bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
-        case 0x40:		/* Set Device parameters */
+        case 0x40:		/* Set device parameters */
 			{
 				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 					DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -77,7 +77,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
 				fdp->SetBPB(bpb);
 				break;
 			}
-        case 0x60:		/* Get Device parameters */
+        case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
@@ -476,7 +476,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
 bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
-        case 0x40:
+        case 0x40:		/* Set device parameters */
 			{
 				if (strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 					DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -509,7 +509,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
 					bpb.v.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);          // number of big sectors
 					bpb.v32.BPB_FATSz32 = (uint32_t)mem_readd(ptr+0x20);         // sectors per FAT
 					bpb.v32.BPB_ExtFlags = (uint16_t)mem_readw(ptr+0x24);
-					bpb.v32.BPB_FSVer = (uint32_t)mem_readw(ptr+0x26);
+					bpb.v32.BPB_FSVer = (uint16_t)mem_readw(ptr+0x26);
 					bpb.v32.BPB_RootClus = (uint32_t)mem_readd(ptr+0x28);
 					bpb.v32.BPB_FSInfo = (uint16_t)mem_readw(ptr+0x2C);
 					bpb.v32.BPB_BkBootSec = (uint16_t)mem_readw(ptr+0x2E);
@@ -520,7 +520,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
 				}
 				break;
 			}
-        case 0x60:		/* Get Device parameters */
+        case 0x60:		/* Get device parameters */
 			if (query) break;
 			{
                 //mem_writeb(ptr+0,0);					// special functions (call value)
@@ -559,7 +559,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
                         mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          // number of big sectors
                         mem_writed(ptr+0x20,(uint32_t)bpb.v32.BPB_FATSz32);         // sectors per FAT
                         mem_writew(ptr+0x24,(uint16_t)bpb.v32.BPB_ExtFlags);
-                        mem_writew(ptr+0x26,(uint32_t)bpb.v32.BPB_FSVer);
+                        mem_writew(ptr+0x26,(uint16_t)bpb.v32.BPB_FSVer);
                         mem_writed(ptr+0x28,(uint32_t)bpb.v32.BPB_RootClus);
                         mem_writew(ptr+0x2C,(uint16_t)bpb.v32.BPB_FSInfo);
                         mem_writew(ptr+0x2E,(uint16_t)bpb.v32.BPB_BkBootSec);
