@@ -45,6 +45,9 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #define C_CORE_INLINE	1
 
+/* Indicate whether SDL_net is present */
+#define C_SDL_NET 1
+
 /* Define to 1 if you have the <d3d9.h> header file. */
 #if !defined(C_SDL2)
 #define HAVE_D3D9_H 1
