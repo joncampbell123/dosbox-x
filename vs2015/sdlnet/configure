@@ -775,10 +775,11 @@ LIBOBJS
 HAVE_GUI_LIB_FALSE
 HAVE_GUI_LIB_TRUE
 SDL_CONFIG
+SDL2_CONFIG
 SDL_LIBS
 SDL_CFLAGS
 PKG_CONFIG
-SDL_VERSION
+SDL2_FRAMEWORK
 INETLIB
 USE_VERSION_RC_FALSE
 USE_VERSION_RC_TRUE
@@ -925,6 +926,7 @@ enable_silent_rules
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
+enable_sdlframework
 enable_gui
 '
       ac_precious_vars='build_alias
@@ -940,6 +942,7 @@ CXX
 CXXFLAGS
 CCC
 CXXCPP
+SDL2_FRAMEWORK
 PKG_CONFIG
 SDL_CFLAGS
 SDL_LIBS'
@@ -1571,6 +1574,7 @@ Optional Features:
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
   --disable-sdltest       Do not try to compile and run a test SDL program
+  --disable-sdlframework Do not search for SDL2.framework
   --enable-gui            Try to build the GUI test programs default=yes
 
 Optional Packages:
@@ -1594,6 +1598,8 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
+  SDL2_FRAMEWORK
+              Path to SDL2.framework
   PKG_CONFIG  path to pkg-config utility
   SDL_CFLAGS  C compiler flags for SDL, overriding pkg-config
   SDL_LIBS    linker flags for SDL, overriding pkg-config
@@ -2561,6 +2567,9 @@ IFS=$ac_save_IFS
 case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3350,6 +3359,65 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC understands -c and -o together" >&5
+$as_echo_n "checking whether $CC understands -c and -o together... " >&6; }
+if ${am_cv_prog_cc_c_o+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+  # Make sure it works both with $CC and with simple cc.
+  # Following AC_PROG_CC_C_O, we do the test twice because some
+  # compilers refuse to overwrite an existing .o file with -o,
+  # though they will create one.
+  am_cv_prog_cc_c_o=yes
+  for am_i in 1 2; do
+    if { echo "$as_me:$LINENO: $CC -c conftest.$ac_ext -o conftest2.$ac_objext" >&5
+   ($CC -c conftest.$ac_ext -o conftest2.$ac_objext) >&5 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); } \
+         && test -f conftest2.$ac_objext; then
+      : OK
+    else
+      am_cv_prog_cc_c_o=no
+      break
+    fi
+  done
+  rm -f core conftest*
+  unset am_i
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_prog_cc_c_o" >&5
+$as_echo "$am_cv_prog_cc_c_o" >&6; }
+if test "$am_cv_prog_cc_c_o" != yes; then
+   # Losing compiler, so override with the script.
+   # FIXME: It is wrong to rewrite CC.
+   # But if we don't then we get into trouble of one sort or another.
+   # A longer-term fix would be to have automake use am__CC in this case,
+   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
+   CC="$am_aux_dir/compile $CC"
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
 $as_echo_n "checking for a sed that does not truncate output... " >&6; }
 if ${ac_cv_path_SED+:} false; then :
@@ -3934,13 +4002,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:3937: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4005: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:3940: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4008: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:3943: output\"" >&5)
+  (eval echo "\"\$as_me:4011: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -5151,7 +5219,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5154 "configure"' > conftest.$ac_ext
+  echo '#line 5222 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6978,11 +7046,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6981: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7049: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6985: \$? = $ac_status" >&5
+   echo "$as_me:7053: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7317,11 +7385,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7320: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7388: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7324: \$? = $ac_status" >&5
+   echo "$as_me:7392: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7422,11 +7490,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7425: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7493: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7429: \$? = $ac_status" >&5
+   echo "$as_me:7497: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -7477,11 +7545,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7480: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7548: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7484: \$? = $ac_status" >&5
+   echo "$as_me:7552: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9846,7 +9914,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 9849 "configure"
+#line 9917 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9942,7 +10010,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 9945 "configure"
+#line 10013 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10182,7 +10250,7 @@ LT_AGE=`expr $BINARY_AGE - $INTERFACE_AGE`
 
 
 
-am__api_version='1.13'
+am__api_version='1.14'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -10353,9 +10421,6 @@ test "$program_suffix" != NONE &&
 # By default was `s,x,x', remove it if useless.
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
-
-# expand $ac_aux_dir to an absolute path
-am_aux_dir=`cd $ac_aux_dir && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -10911,6 +10976,47 @@ fi
 
 
 
+# POSIX will say in a future version that running "rm -f" with no argument
+# is OK; and we want to be able to make that assumption in our Makefile
+# recipes.  So use an aggressive probe to check that the usage we want is
+# actually supported "in the wild" to an acceptable degree.
+# See automake bug#10828.
+# To make any issue more visible, cause the running configure to be aborted
+# by default if the 'rm' program in use doesn't match our expectations; the
+# user can still override this though.
+if rm -f && rm -fr && rm -rf; then : OK; else
+  cat >&2 <<'END'
+Oops!
+
+Your 'rm' program seems unable to run without file operands specified
+on the command line, even when the '-f' option is present.  This is contrary
+to the behaviour of most rm programs out there, and not conforming with
+the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
+
+Please tell bug-automake@gnu.org about your system, including the value
+of your $PATH and any error possibly output before this message.  This
+can help us improve future automake versions.
+
+END
+  if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
+    echo 'Configuration will proceed anyway, since you have set the' >&2
+    echo 'ACCEPT_INFERIOR_RM_PROGRAM variable to "yes"' >&2
+    echo >&2
+  else
+    cat >&2 <<'END'
+Aborting the configuration process, to ensure you take notice of the issue.
+
+You can download and install GNU coreutils to get an 'rm' implementation
+that behaves properly: <http://www.gnu.org/software/coreutils/>.
+
+If you want to complete the configuration process using your problematic
+'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
+to "yes", and re-run configure.
+
+END
+    as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
+  fi
+fi
 
 
 ac_ext=c
@@ -11451,6 +11557,65 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC understands -c and -o together" >&5
+$as_echo_n "checking whether $CC understands -c and -o together... " >&6; }
+if ${am_cv_prog_cc_c_o+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+  # Make sure it works both with $CC and with simple cc.
+  # Following AC_PROG_CC_C_O, we do the test twice because some
+  # compilers refuse to overwrite an existing .o file with -o,
+  # though they will create one.
+  am_cv_prog_cc_c_o=yes
+  for am_i in 1 2; do
+    if { echo "$as_me:$LINENO: $CC -c conftest.$ac_ext -o conftest2.$ac_objext" >&5
+   ($CC -c conftest.$ac_ext -o conftest2.$ac_objext) >&5 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); } \
+         && test -f conftest2.$ac_objext; then
+      : OK
+    else
+      am_cv_prog_cc_c_o=no
+      break
+    fi
+  done
+  rm -f core conftest*
+  unset am_i
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_prog_cc_c_o" >&5
+$as_echo "$am_cv_prog_cc_c_o" >&6; }
+if test "$am_cv_prog_cc_c_o" != yes; then
+   # Losing compiler, so override with the script.
+   # FIXME: It is wrong to rewrite CC.
+   # But if we don't then we get into trouble of one sort or another.
+   # A longer-term fix would be to have automake use am__CC in this case,
+   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
+   CC="$am_aux_dir/compile $CC"
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
 
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -13985,11 +14150,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13988: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14153: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13992: \$? = $ac_status" >&5
+   echo "$as_me:14157: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14084,11 +14249,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14087: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14252: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14091: \$? = $ac_status" >&5
+   echo "$as_me:14256: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14136,11 +14301,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14139: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14304: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14143: \$? = $ac_status" >&5
+   echo "$as_me:14308: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15335,8 +15500,7 @@ case "$host" in
 esac
 
 
-SDL_VERSION=1.2.14
-
+SDL2_VERSION=2.0.5
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -15453,6 +15617,384 @@ $as_echo "no" >&6; }
 	fi
 
 fi
+
+# Check whether --with-sdl-prefix was given.
+if test "${with_sdl_prefix+set}" = set; then :
+  withval=$with_sdl_prefix; sdl_prefix="$withval"
+else
+  sdl_prefix=""
+fi
+
+
+# Check whether --with-sdl-exec-prefix was given.
+if test "${with_sdl_exec_prefix+set}" = set; then :
+  withval=$with_sdl_exec_prefix; sdl_exec_prefix="$withval"
+else
+  sdl_exec_prefix=""
+fi
+
+# Check whether --enable-sdltest was given.
+if test "${enable_sdltest+set}" = set; then :
+  enableval=$enable_sdltest;
+else
+  enable_sdltest=yes
+fi
+
+# Check whether --enable-sdlframework was given.
+if test "${enable_sdlframework+set}" = set; then :
+  enableval=$enable_sdlframework;
+else
+  search_sdl_framework=yes
+fi
+
+
+
+
+  min_sdl_version=$SDL2_VERSION
+
+  if test "x$sdl_prefix$sdl_exec_prefix" = x ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL" >&5
+$as_echo_n "checking for SDL... " >&6; }
+
+if test -n "$PKG_CONFIG"; then
+    if test -n "$SDL_CFLAGS"; then
+        pkg_cv_SDL_CFLAGS="$SDL_CFLAGS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2 >= \$min_sdl_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sdl2 >= $min_sdl_version") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDL_CFLAGS=`$PKG_CONFIG --cflags "sdl2 >= $min_sdl_version" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+if test -n "$PKG_CONFIG"; then
+    if test -n "$SDL_LIBS"; then
+        pkg_cv_SDL_LIBS="$SDL_LIBS"
+    else
+        if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2 >= \$min_sdl_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sdl2 >= $min_sdl_version") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDL_LIBS=`$PKG_CONFIG --libs "sdl2 >= $min_sdl_version" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+    fi
+else
+	pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SDL_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "sdl2 >= $min_sdl_version"`
+        else
+	        SDL_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "sdl2 >= $min_sdl_version"`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SDL_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                sdl_pc=no
+elif test $pkg_failed = untried; then
+	sdl_pc=no
+else
+	SDL_CFLAGS=$pkg_cv_SDL_CFLAGS
+	SDL_LIBS=$pkg_cv_SDL_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	sdl_pc=yes
+fi
+  else
+    sdl_pc=no
+    if test x$sdl_exec_prefix != x ; then
+      sdl_config_args="$sdl_config_args --exec-prefix=$sdl_exec_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
+        SDL2_CONFIG=$sdl_exec_prefix/bin/sdl2-config
+      fi
+    fi
+    if test x$sdl_prefix != x ; then
+      sdl_config_args="$sdl_config_args --prefix=$sdl_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
+        SDL2_CONFIG=$sdl_prefix/bin/sdl2-config
+      fi
+    fi
+  fi
+
+  if test "x$sdl_pc" = xyes ; then
+    no_sdl=""
+    SDL2_CONFIG="pkg-config sdl2"
+  else
+    as_save_PATH="$PATH"
+    if test "x$prefix" != xNONE && test "$cross_compiling" != yes; then
+      PATH="$prefix/bin:$prefix/usr/bin:$PATH"
+    fi
+    # Extract the first word of "sdl2-config", so it can be a program name with args.
+set dummy sdl2-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_SDL2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $SDL2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SDL2_CONFIG="$SDL2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_SDL2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_SDL2_CONFIG" && ac_cv_path_SDL2_CONFIG="no"
+  ;;
+esac
+fi
+SDL2_CONFIG=$ac_cv_path_SDL2_CONFIG
+if test -n "$SDL2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SDL2_CONFIG" >&5
+$as_echo "$SDL2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    PATH="$as_save_PATH"
+    no_sdl=""
+
+    if test "$SDL2_CONFIG" = "no" -a "x$search_sdl_framework" = "xyes"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL2.framework" >&5
+$as_echo_n "checking for SDL2.framework... " >&6; }
+      if test "x$SDL2_FRAMEWORK" != x; then
+        sdl_framework=$SDL2_FRAMEWORK
+      else
+        for d in / ~/ /System/; do
+          if test -d "$dLibrary/Frameworks/SDL2.framework"; then
+            sdl_framework="$dLibrary/Frameworks/SDL2.framework"
+          fi
+        done
+      fi
+
+      if test -d $sdl_framework; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $sdl_framework" >&5
+$as_echo "$sdl_framework" >&6; }
+        sdl_framework_dir=`dirname $sdl_framework`
+        SDL_CFLAGS="-F$sdl_framework_dir -Wl,-framework,SDL2 -I$sdl_framework/include"
+        SDL_LIBS="-F$sdl_framework_dir -Wl,-framework,SDL2"
+      else
+        no_sdl=yes
+      fi
+    fi
+
+    if test "$SDL2_CONFIG" != "no"; then
+      if test "x$sdl_pc" = "xno"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
+$as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
+        SDL_CFLAGS=`$SDL2_CONFIG $sdl_config_args --cflags`
+        SDL_LIBS=`$SDL2_CONFIG $sdl_config_args --libs`
+      fi
+
+      sdl_major_version=`$SDL2_CONFIG $sdl_config_args --version | \
+             sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+      sdl_minor_version=`$SDL2_CONFIG $sdl_config_args --version | \
+             sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+      sdl_micro_version=`$SDL2_CONFIG $sdl_config_args --version | \
+             sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+      if test "x$enable_sdltest" = "xyes" ; then
+        ac_save_CFLAGS="$CFLAGS"
+        ac_save_CXXFLAGS="$CXXFLAGS"
+        ac_save_LIBS="$LIBS"
+        CFLAGS="$CFLAGS $SDL_CFLAGS"
+        CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
+        LIBS="$LIBS $SDL_LIBS"
+      rm -f conf.sdltest
+      if test "$cross_compiling" = yes; then :
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "SDL.h"
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+
+  if (str)
+    {
+      new_str = (char *)malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+
+  return new_str;
+}
+
+int main (int argc, char *argv[])
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  /* This hangs on some systems (?)
+  system ("touch conf.sdltest");
+  */
+  { FILE *fp = fopen("conf.sdltest", "a"); if ( fp ) fclose(fp); }
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_sdl_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_sdl_version");
+     exit(1);
+   }
+
+   if (($sdl_major_version > major) ||
+      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
+      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'sdl2-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
+      printf("*** of SDL required is %d.%d.%d. If sdl2-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If sdl2-config was wrong, set the environment variable SDL2_CONFIG\n");
+      printf("*** to point to the correct copy of sdl2-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_sdl=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+        CFLAGS="$ac_save_CFLAGS"
+        CXXFLAGS="$ac_save_CXXFLAGS"
+        LIBS="$ac_save_LIBS"
+
+      fi
+      if test "x$sdl_pc" = "xno"; then
+        if test "x$no_sdl" = "xyes"; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        else
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+        fi
+      fi
+    fi
+  fi
+  if test "x$no_sdl" = x ; then
+     :
+  else
+     if test "$SDL2_CONFIG" = "no" ; then
+       echo "*** The sdl2-config script installed by SDL could not be found"
+       echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the SDL2_CONFIG environment variable to the"
+       echo "*** full path to sdl2-config."
+     else
+       if test -f conf.sdltest ; then
+        :
+       else
+          echo "*** Could not run SDL test program, checking why..."
+          CFLAGS="$CFLAGS $SDL_CFLAGS"
+          CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
+          LIBS="$LIBS $SDL_LIBS"
+          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include "SDL.h"
+
+int main(int argc, char *argv[])
+{ return 0; }
+#undef  main
+#define main K_and_R_C_main
+
+int
+main ()
+{
+ return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+   echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding SDL or finding the wrong"
+          echo "*** version of SDL. If it is not finding SDL, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+   echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means SDL was incorrectly installed"
+          echo "*** or that you have moved SDL since it was installed. In the latter case, you"
+          echo "*** may want to edit the sdl2-config script: $SDL2_CONFIG"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+          CFLAGS="$ac_save_CFLAGS"
+          CXXFLAGS="$ac_save_CXXFLAGS"
+          LIBS="$ac_save_LIBS"
+       fi
+     fi
+     SDL_CFLAGS=""
+     SDL_LIBS=""
+     :
+  fi
+
+
+  rm -f conf.sdltest
+
+
+SDL_VERSION=1.2.0
 
 # Check whether --with-sdl-prefix was given.
 if test "${with_sdl_prefix+set}" = set; then :
@@ -15793,15 +16335,24 @@ rm -f core conftest.err conftest.$ac_objext \
      fi
      SDL_CFLAGS=""
      SDL_LIBS=""
-     as_fn_error $? "*** SDL version $SDL_VERSION not found!" "$LINENO" 5
-
+     :
   fi
 
 
   rm -f conf.sdltest
 
-CFLAGS="$CFLAGS $SDL_CFLAGS"
-LIBS="$LIBS $SDL_LIBS"
+
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    as_fn_error $? "SDL 1.x or SDL 2.x is required to compile this program" "$LINENO" 5
+  fi
+fi
 
 have_GUI=no
 # Check whether --enable-gui was given.

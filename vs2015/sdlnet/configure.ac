@@ -107,15 +107,26 @@ case "$host" in
 esac
 AC_SUBST(INETLIB)
 
-dnl Check for SDL
-SDL_VERSION=1.2.14
-AC_SUBST(SDL_VERSION)
-AM_PATH_SDL($SDL_VERSION,
-            :,
-	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
-CFLAGS="$CFLAGS $SDL_CFLAGS"
-LIBS="$LIBS $SDL_LIBS"
+dnl LIBRARY TEST: SDL 2.x
+SDL2_VERSION=2.0.5
+AM_PATH_SDL2($SDL2_VERSION)
+
+dnl LIBRARY TEST: SDL 1.x
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION)
+
+dnl LIBRARY USE: SDL selection
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+  fi
+fi
 
 dnl Check for GUI library for the chat client
 have_GUI=no
