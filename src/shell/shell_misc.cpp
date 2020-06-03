@@ -303,7 +303,7 @@ void DOS_Shell::InputCommand(char * line) {
 						pos++;
 					}
 					
-					const auto lgt = abs(MAX(pos, beg) - (line + str_index));
+					const auto lgt = std::abs(MAX(pos, beg) - (line + str_index));
 					
 					for (auto i = 0; i < lgt; i++) {
 						backone();

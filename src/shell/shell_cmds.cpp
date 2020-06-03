@@ -1584,7 +1584,7 @@ void DOS_Shell::CMD_LS(char *args) {
 			std::string name = uselfn&&!optZ?entry.lname:entry.name;
 			if (name == "." || name == "..") continue;
 			if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
-			if (name.size()+2>max[w_count%col]) max[w_count%col]=name.size()+2;
+			if (name.size()+2>max[w_count%col]) max[w_count%col]=(unsigned int)(name.size()+2);
 			++w_count;
 		}
 		total=0;
