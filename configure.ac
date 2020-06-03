@@ -948,13 +948,11 @@ dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
 AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
 if test x$enable_avcodec = xyes; then
-	CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
-	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
-	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
-fi
-if test x$enable_avcodec = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
+            CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
+            CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
+            LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
             AC_MSG_RESULT(yes)
             AC_DEFINE(C_AVCODEC,1)
         fi

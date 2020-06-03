@@ -45,6 +45,6 @@ export CXXFLAGS="$new$CXXFLAGS"
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --prefix=/usr "$@" || exit 1 # --enable-avcodec
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr "$@" || exit 1
 make -j3 || exit 1
 

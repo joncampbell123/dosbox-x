@@ -33,6 +33,6 @@ echo Compiling our internal SDLnet 1.x
 (cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
 
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 "$@" $opt || exit 1
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 "$@" $opt || exit 1
 make -j3 || exit 1
 

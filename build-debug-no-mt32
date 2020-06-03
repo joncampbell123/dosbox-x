@@ -26,6 +26,6 @@ echo Compiling our internal SDLnet 1.x
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --disable-mt32 "$@" || exit 1
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --disable-mt32 "$@" || exit 1
 make -j3 || exit 1
 
