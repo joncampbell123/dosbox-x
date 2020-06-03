@@ -171,7 +171,7 @@ CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 
 if test x$enable_optimize != xno; then
-    if test x$enable_emscripten == xyes; then
+    if test x$enable_emscripten = xyes; then
 	    CFLAGS="$CFLAGS -Os"
 	    CXXFLAGS="$CXXFLAGS -Os"
     else
@@ -180,21 +180,21 @@ if test x$enable_optimize != xno; then
     fi
 fi
 
-if test x$enable_emscripten == xyes; then
+if test x$enable_emscripten = xyes; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
 fi
 
 dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-    if test x$enable_hx == xyes; then
+    if test x$enable_hx = xyes; then
         CXXFLAGS="$CXXFLAGS -DHX_DOS"
         AC_DEFINE(C_HX_DOS,1,[Targeting HX DOS extender])
     fi
     ;;
 esac
 
-if test x$enable_force_menu_sdldraw == xyes; then
+if test x$enable_force_menu_sdldraw = xyes; then
     CXXFLAGS="$CXXFLAGS -DFORCE_SDLDRAW"
     AC_DEFINE(C_FORCE_MENU_SDLDRAW,1,[Force SDL drawn menus])
 fi
@@ -300,7 +300,7 @@ case "$host" in
        ;;
 esac
 
-if test x$enable_emscripten == xyes; then
+if test x$enable_emscripten = xyes; then
     CXXFLAGS="$CXXFLAGS"
 else
     dnl Some default CPU flags
@@ -425,8 +425,8 @@ case "$host" in
 esac
 fi
 
-AM_CONDITIONAL(MACOSX, test x"$macosx" == x"1")
-AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" == x"yes")
+AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
+AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" = x"yes")
 
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
@@ -594,7 +594,7 @@ AC_CHECK_LIB(fluidsynth, fluid_synth_sysex, have_fluidsynth_lib=yes,,)
 dnl LIBRARY TEST: FreeType2
 AH_TEMPLATE(C_FREETYPE,[Define to 1 to enable freetype support])
 AC_ARG_ENABLE(freetype,AC_HELP_STRING([--disable-freetype],[Disable freetype support]),enable_freetype=$enableval,enable_freetype=yes)
-AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" == "xyes")
+AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
   pkg-config --exists freetype2; RES=$?
@@ -636,7 +636,7 @@ fi
 dnl FEATURE: PRINTER (requires FreeType2)
 AH_TEMPLATE(C_PRINTER,[Define to 1 to enable printer emulation])
 AC_ARG_ENABLE(printer,AC_HELP_STRING([--disable-printer],[disable printer emulation]),enable_printer=$enableval,enable_printer=yes)
-AM_CONDITIONAL(C_PRINTER, test "x$enable_printer" == "xyes")
+AM_CONDITIONAL(C_PRINTER, test "x$enable_printer" = "xyes")
 if test x$enable_freetype = xyes; then
   if test x$enable_printer = xyes; then
     AC_DEFINE(C_PRINTER,1)
@@ -646,7 +646,7 @@ fi
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
 AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
-AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" == "xyes")
+AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" = "xyes")
 if test x$enable_emscripten != xyes; then
   if test x$enable_xbrz = xyes; then
     AC_DEFINE(C_XBRZ,1)
@@ -656,7 +656,7 @@ fi
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_SCALER_FULL_LINE,[Define to 1 to alter the simpler render scalers to operate only on the full scanline instead of detecting differences. This is a performance adjustment for slow or embedded systems])
 AC_ARG_ENABLE(scaler-full-line,AC_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
-AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" == "xyes")
+AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" = "xyes")
 if test x$enable_scaler_full_line = xyes; then
   AC_DEFINE(C_SCALER_FULL_LINE,1)
 fi
@@ -698,7 +698,7 @@ else
   enable_mt32=no
   AC_MSG_RESULT(no)
 fi 
-AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
+AM_CONDITIONAL(C_MT32, test "x$enable_mt32" = "xyes")
 
 dnl NASM (Netwide Assembler)
 AC_PATH_PROG([NASM], [nasm])
@@ -1027,7 +1027,7 @@ else
   AC_MSG_RESULT(no)
 fi
 
-AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" == x"1")
+AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 
 AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
 if test x$have_iconv_h = xyes; then
