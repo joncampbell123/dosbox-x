@@ -3203,7 +3203,7 @@ static void CreateLayout(void) {
     bind_but.dbg->Change("(event debug)");
 
     bind_but.dbg2 = new CCaptionButton(330, 444, 310, 20); // right next to the Save button
-    bind_but.dbg2->Change("");
+    bind_but.dbg2->Change("%s", "");
 
     bind_but.bind_title->Change("Bind Title");
 
