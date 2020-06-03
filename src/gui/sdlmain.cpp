@@ -8004,7 +8004,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
 				if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 				else {
-					LOG_MSG(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+					LOG_MSG("%s", MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 					continue;
 				}
 				// order in the vector should be ok now
@@ -8021,14 +8021,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					sec=control->GetSectionFromProperty(pvars[0].c_str());
 					if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 					else {
-						LOG_MSG(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+						LOG_MSG("%s", MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						continue;
 					}
 				} else {
 					// first of pvars is most likely a section, but could still be gus
 					// have a look at the second parameter
 					if (pvars.size() < 2) {
-						LOG_MSG(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
+						LOG_MSG("%s", MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
 						continue;
 					}
 					std::string::size_type equpos2 = pvars[1].find_first_of('=');
@@ -8050,7 +8050,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
 			}
 			if(pvars.size() < 3) {
-				LOG_MSG(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
+				LOG_MSG("%s", MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
 				continue;
 			}
 			// check if the property actually exists in the section
