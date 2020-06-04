@@ -1918,3 +1918,24 @@ void EMS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(EMS_ShutDown));
 }
 
+//save state support
+namespace
+{
+class SerializeEMS : public SerializeGlobalPOD
+{
+public:
+    SerializeEMS() : SerializeGlobalPOD("EMS")
+    {
+        registerPOD(emm_handles);
+        registerPOD(emm_mappings);
+        registerPOD(emm_segmentmappings);
+        registerPOD(GEMMIS_seg);
+		registerPOD(vcpi.enabled);
+        registerPOD(vcpi.ems_handle);
+        registerPOD(vcpi.pm_interface);
+        registerPOD(vcpi.private_area);
+        registerPOD(vcpi.pic1_remapping);
+        registerPOD(vcpi.pic2_remapping);
+    }
+} dummy;
+}

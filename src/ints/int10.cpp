@@ -1203,3 +1203,23 @@ void INT10_Startup(Section *sec) {
 void INT10_Init() {
 }
 
+//save state support
+namespace
+{
+class SerializeInt10 : public SerializeGlobalPOD
+{
+public:
+    SerializeInt10() : SerializeGlobalPOD("Int10")
+    {
+        registerPOD(int10);
+        //registerPOD(CurMode);
+        //registerPOD(call_10);
+        //registerPOD(warned_ff);
+    }
+
+	 //   virtual void setBytes(std::istream& stream)
+    //{
+      //  SerializeGlobalPOD::setBytes(stream);
+		//}
+} dummy;
+}
