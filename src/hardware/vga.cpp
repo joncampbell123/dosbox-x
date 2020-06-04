@@ -1638,7 +1638,7 @@ extern void POD_Load_VGA_Tseng( std::istream & );
 extern void POD_Load_VGA_XGA( std::istream & );
 
 //save state support
-void *VGA_SetupDrawing_PIC_Event = (void*)VGA_SetupDrawing;
+void *VGA_SetupDrawing_PIC_Event = (void*)((uintptr_t)VGA_SetupDrawing);
 
 
 namespace {

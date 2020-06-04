@@ -1037,7 +1037,7 @@ void TIMER_Init() {
 }
 
 //save state support
-void *PIT0_Event_PIC_Event = (void*)PIT0_Event;
+void *PIT0_Event_PIC_Event = (void*)((uintptr_t)PIT0_Event);
 
 namespace
 {

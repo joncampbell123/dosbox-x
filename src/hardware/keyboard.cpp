@@ -2658,8 +2658,8 @@ void KEYBOARD_Reset() {
 }
 
 //save state support
-void *KEYBOARD_TransferBuffer_PIC_Event = (void*)KEYBOARD_TransferBuffer;
-void *KEYBOARD_TickHandler_PIC_Timer = (void*)KEYBOARD_TickHandler;
+void *KEYBOARD_TransferBuffer_PIC_Event = (void*)((uintptr_t)KEYBOARD_TransferBuffer);
+void *KEYBOARD_TickHandler_PIC_Timer = (void*)((uintptr_t)KEYBOARD_TickHandler);
 
 namespace
 {

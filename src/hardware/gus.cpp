@@ -2476,8 +2476,8 @@ void GUS_Init() {
 }
 
 // save state support
-void *GUS_TimerEvent_PIC_Event = (void*)GUS_TimerEvent;
-void *GUS_DMA_Callback_Func = (void*)GUS_DMA_Callback;
+void *GUS_TimerEvent_PIC_Event = (void*)((uintptr_t)GUS_TimerEvent);
+void *GUS_DMA_Callback_Func = (void*)((uintptr_t)GUS_DMA_Callback);
 
 
 void POD_Save_GUS( std::ostream& stream )

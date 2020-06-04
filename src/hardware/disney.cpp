@@ -457,7 +457,7 @@ void DISNEY_Init() {
 }
 
 // save state support
-void *DISNEY_disable_PIC_Event = (void*)DISNEY_disable;
+void *DISNEY_disable_PIC_Event = (void*)((uintptr_t)DISNEY_disable);
 
 void POD_Save_Disney( std::ostream& stream )
 {

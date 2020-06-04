@@ -851,7 +851,7 @@ void MPU401_Init() {
 }
 
 // save state support
-void *MPU401_Event_PIC_Event = (void*)MPU401_Event;
+void *MPU401_Event_PIC_Event = (void*)((uintptr_t)MPU401_Event);
 
 void POD_Save_MPU401( std::ostream& stream )
 {

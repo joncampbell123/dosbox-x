@@ -617,7 +617,7 @@ void CMOS_Init() {
 }
 
 // save state support
-void *cmos_timerevent_PIC_Event = (void*)cmos_timerevent;
+void *cmos_timerevent_PIC_Event = (void*)((uintptr_t)cmos_timerevent);
 
 namespace
 {

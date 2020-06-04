@@ -1857,7 +1857,7 @@ bool MOUSE_HasInterruptSub()
 }
 
 //save state support
-void *MOUSE_Limit_Events_PIC_Event = (void*)MOUSE_Limit_Events;
+void *MOUSE_Limit_Events_PIC_Event = (void*)((uintptr_t)MOUSE_Limit_Events);
 
 
 namespace

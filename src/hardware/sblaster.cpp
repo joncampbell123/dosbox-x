@@ -3858,15 +3858,15 @@ void SBLASTER_Init() {
 }
 
 // save state support
-void *DMA_DAC_Event_PIC_Event = (void*)DMA_DAC_Event;
-void *DMA_Silent_Event_PIC_Event = (void*)DMA_Silent_Event;
-void *DSP_FinishReset_PIC_Event = (void*)DSP_FinishReset;
-void *DSP_RaiseIRQEvent_PIC_Event = (void*)DSP_RaiseIRQEvent;
-void *END_DMA_Event_PIC_Event = (void*)END_DMA_Event;
+void *DMA_DAC_Event_PIC_Event = (void*)((uintptr_t)DMA_DAC_Event);
+void *DMA_Silent_Event_PIC_Event = (void*)((uintptr_t)DMA_Silent_Event);
+void *DSP_FinishReset_PIC_Event = (void*)((uintptr_t)DSP_FinishReset);
+void *DSP_RaiseIRQEvent_PIC_Event = (void*)((uintptr_t)DSP_RaiseIRQEvent);
+void *END_DMA_Event_PIC_Event = (void*)((uintptr_t)END_DMA_Event);
 
-void *SB_DSP_DMA_CallBack_Func = (void*)DSP_DMA_CallBack;
-void *SB_DSP_ADC_CallBack_Func = (void*)DSP_ADC_CallBack;
-void *SB_DSP_E2_DMA_CallBack_Func = (void*)DSP_E2_DMA_CallBack;
+void *SB_DSP_DMA_CallBack_Func = (void*)((uintptr_t)DSP_DMA_CallBack);
+void *SB_DSP_ADC_CallBack_Func = (void*)((uintptr_t)DSP_ADC_CallBack);
+void *SB_DSP_E2_DMA_CallBack_Func = (void*)((uintptr_t)DSP_E2_DMA_CallBack);
 
 
 void POD_Save_Sblaster( std::ostream& stream )

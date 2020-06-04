@@ -4435,14 +4435,14 @@ uint32_t VGA_QuerySizeIG(void) {
 }
 
 // save state support
-void *VGA_DisplayStartLatch_PIC_Event = (void*)VGA_DisplayStartLatch;
-void *VGA_DrawEGASingleLine_PIC_Event = (void*)VGA_DrawEGASingleLine;
+void *VGA_DisplayStartLatch_PIC_Event = (void*)((uintptr_t)VGA_DisplayStartLatch);
+void *VGA_DrawEGASingleLine_PIC_Event = (void*)((uintptr_t)VGA_DrawEGASingleLine);
 //void *VGA_DrawPart_PIC_Event = (void*)VGA_DrawPart;
-void *VGA_DrawSingleLine_PIC_Event = (void*)VGA_DrawSingleLine;
-void *VGA_Other_VertInterrupt_PIC_Event = (void*)VGA_Other_VertInterrupt;
-void *VGA_PanningLatch_PIC_Event = (void*)VGA_PanningLatch;
-void *VGA_VertInterrupt_PIC_Event = (void*)VGA_VertInterrupt;
-void *VGA_VerticalTimer_PIC_Event = (void*)VGA_VerticalTimer;
+void *VGA_DrawSingleLine_PIC_Event = (void*)((uintptr_t)VGA_DrawSingleLine);
+void *VGA_Other_VertInterrupt_PIC_Event = (void*)((uintptr_t)VGA_Other_VertInterrupt);
+void *VGA_PanningLatch_PIC_Event = (void*)((uintptr_t)VGA_PanningLatch);
+void *VGA_VertInterrupt_PIC_Event = (void*)((uintptr_t)VGA_VertInterrupt);
+void *VGA_VerticalTimer_PIC_Event = (void*)((uintptr_t)VGA_VerticalTimer);
 
 
 void POD_Save_VGA_Draw( std::ostream& stream )

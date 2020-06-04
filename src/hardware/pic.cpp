@@ -1221,7 +1221,7 @@ Bitu PIC_State_IndexTimer( Bit16u index ) {
 }
 
 //save state support
-void *PIC_IRQCheckDelayed_PIC_Event = (void*)PIC_IRQCheckDelayed;
+void *PIC_IRQCheckDelayed_PIC_Event = (void*)((uintptr_t)PIC_IRQCheckDelayed);
 
 namespace
 {

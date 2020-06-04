@@ -401,7 +401,7 @@ void TANDYSOUND_Init() {
 }
 
 // save state support
-void *TandyDAC_DMA_CallBack_Func = (void*)TandyDAC_DMA_CallBack;
+void *TandyDAC_DMA_CallBack_Func = (void*)((uintptr_t)TandyDAC_DMA_CallBack);
 
 void POD_Save_Tandy_Sound( std::ostream& stream )
 {

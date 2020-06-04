@@ -1223,7 +1223,7 @@ void MIXER_Init() {
 
 // save state support
 //void *MIXER_Mix_NoSound_PIC_Timer = (void*)MIXER_Mix_NoSound;
-void *MIXER_Mix_PIC_Timer = (void*)MIXER_Mix;
+void *MIXER_Mix_PIC_Timer = (void*)((uintptr_t)MIXER_Mix);
 
 
 void MixerChannel::SaveState( std::ostream& stream )

@@ -176,8 +176,8 @@ static void fmport_b_pic_event(Bitu val) {
 }
 
 // save state support
-void *fmport_a_pic_event_PIC_Event = (void*)fmport_a_pic_event;
-void *fmport_b_pic_event_PIC_Event = (void*)fmport_b_pic_event;
+void *fmport_a_pic_event_PIC_Event = (void*)((uintptr_t)fmport_a_pic_event);
+void *fmport_b_pic_event_PIC_Event = (void*)((uintptr_t)fmport_b_pic_event);
 
 extern "C" void pc98_fm_dosbox_fmtimer_setevent(unsigned int n,double dt) {
     PIC_EventHandler func = n ? fmport_b_pic_event : fmport_a_pic_event;

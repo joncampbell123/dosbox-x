@@ -1473,4 +1473,4 @@ void SERIAL_Init () {
 }
 
 // save state support
-void *Serial_EventHandler_PIC_Event = (void*)Serial_EventHandler;
+void *Serial_EventHandler_PIC_Event = (void*)((uintptr_t)Serial_EventHandler);
