@@ -757,8 +757,8 @@ void SaveGameState(bool pressed) {
         LOG_MSG("[%s]: State %d saved!", getTime().c_str(), (int)currentSlot + 1);
 		char name[6]="slot0";
 		name[4]='0'+currentSlot;
-		std::string str="Slot 1"+std::string(SaveState::instance().isEmpty(currentSlot)?" [Empty]":"");
-		str[5]='1'+currentSlot;
+		std::string command=SaveState::instance().getName(currentSlot);
+		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -3921,9 +3921,6 @@ inline bool SaveState::RawBytes::dataAvailable() const {
 }
 
 #define CASESENSITIVITY (0)
-#ifndef WRITEBUFFERSIZE
-#define WRITEBUFFERSIZE (8192)
-#endif
 #define MAXFILENAME (256)
 
 int mymkdir(const char* dirname)
@@ -4045,7 +4042,7 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
         return err;
     }
 
-    size_buf = WRITEBUFFERSIZE;
+    size_buf = 8192;
     buf = (void*)malloc(size_buf);
     if (buf==NULL)
     {
@@ -4305,11 +4302,6 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
     return ret_value;
 }
 
-#ifndef WRITEBUFFERSIZE
-#define WRITEBUFFERSIZE (16384)
-#endif
-#define MAXFILENAME (256)
-
 #ifdef _WIN32
 uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
 {
@@ -4392,16 +4384,14 @@ uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
 
 int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
 {
-   unsigned long calculate_crc=0;
-   int err=ZIP_OK;
-   FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
+    unsigned long calculate_crc=0;
+    int err=ZIP_OK;
+    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
 
-   unsigned long size_read = 0;
-   unsigned long total_read = 0;
-   if (fin==NULL)
-   {
+    unsigned long size_read = 0;
+    unsigned long total_read = 0;
+    if (fin==NULL)
        err = ZIP_ERRNO;
-   }
 
     if (err == ZIP_OK)
         do
@@ -4468,7 +4458,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
 	opt_compress_level = 9;
 	opt_exclude_path = 1;
 
-    size_buf = WRITEBUFFERSIZE;
+    size_buf = 16384;
     buf = (void*)malloc(size_buf);
     if (buf==NULL)
     {
@@ -4794,15 +4784,27 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
+			if (strncmp(buffer,RunningProgram,length)) {
 #if defined(WIN32)
-			if(!force_load_state&&strncmp(buffer,RunningProgram,length)&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO)==IDNO) {
+				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO)==IDNO) {
 #else
-			if(!force_load_state&&strncmp(buffer,RunningProgram,length)) {
+				if(!force_load_state&&strncmp(buffer,RunningProgram,length)) {
 #endif
-				buffer[length]='\0';
-				LOG_MSG("Aborted. Check your program name: %s",buffer);
-				load_err=true;
-				goto delete_all;
+					buffer[length]='\0';
+					LOG_MSG("Aborted. Check your program name: %s",buffer);
+					load_err=true;
+					goto delete_all;
+				}
+				if (length<9) {
+					static char pname[9];
+					if (length) {
+						strncpy(pname,buffer,length);
+						pname[length]=0;
+					} else
+						strcpy(pname, "DOSBOX-X");
+					RunningProgram=pname;
+					GFX_SetTitle(-1,-1,-1,false);
+				}
 			}
 			read_title=true;
 		}
@@ -4906,4 +4908,49 @@ bool SaveState::isEmpty(size_t slot) const {
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	return check_slot.fail();
+}
+
+std::string SaveState::getName(size_t slot) const {
+	if (slot >= SLOT_COUNT) return "[Empty]";
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	if (check_slot.fail()) return "[Empty]";
+	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
+	std::ifstream check_title;
+	int length = 8;
+	std::string tempname = temp+"Program_Name";
+	check_title.open(tempname.c_str(), std::ifstream::in);
+	if (check_title.fail()) {
+		remove(tempname.c_str());
+		return "";
+	}
+	check_title.seekg (0, std::ios::end);
+	length = check_title.tellg();
+	check_title.seekg (0, std::ios::beg);
+	char * const buffer = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer, length);
+	check_title.close();
+	remove(tempname.c_str());
+	return std::string(buffer);
 }
