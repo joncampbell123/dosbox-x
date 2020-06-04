@@ -1116,6 +1116,8 @@ extern void *MIXER_Mix_PIC_Timer;
 //extern void *NE2000_Poller_PIC_Event;							// Ne2000.cpp
 #endif
 
+extern void *fmport_a_pic_event_PIC_Event;
+extern void *fmport_b_pic_event_PIC_Event;
 
 const void *pic_state_event_table[] = {
 	NULL,
@@ -1145,6 +1147,8 @@ const void *pic_state_event_table[] = {
 	VGA_SetupDrawing_PIC_Event,
 	VGA_VertInterrupt_PIC_Event,
 	VGA_VerticalTimer_PIC_Event,
+	fmport_a_pic_event_PIC_Event,
+	fmport_b_pic_event_PIC_Event,
 
 #if C_NE2000
 	//NE2000_TX_Event_PIC_Event,
