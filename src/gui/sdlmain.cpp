@@ -7598,12 +7598,23 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
 }
 
 bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     force_load_state = !force_load_state;
     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
-#endif
+    return true;
+}
+
+bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	for (int i=0; i<10; i++) {
+		char name[6]="slot0";
+		name[4]='0'+i;
+		std::string str="Slot 1"+std::string(SaveState::instance().isEmpty(i)?" [Empty]":"");
+		str[5]='1'+i;
+		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
+	}
     return true;
 }
 
@@ -8954,6 +8965,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 

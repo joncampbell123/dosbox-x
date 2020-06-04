@@ -477,6 +477,8 @@ static const char *def_save_slots[] =
     "slot7",
     "slot8",
     "slot9",
+	"--",
+    "refreshslot",
 	NULL
 };
 
