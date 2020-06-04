@@ -2453,32 +2453,6 @@ static void VGA_Memory_ShutDown(Section * /*sec*/) {
 	}
 }
 
-void VGAMEM_LoadState(Section *sec) {
-    (void)sec;//UNUSED
-
-    if (MemBase != NULL) {
-        ZIPFileEntry *ent = savestate_zip.get_entry("vga.memory.bin");
-        if (ent != NULL) {
-            ent->rewind();
-            if (vga.mem.memsize == (uint32_t)ent->file_length)
-                ent->read(vga.mem.linear, vga.mem.memsize);
-            else
-                LOG_MSG("VGA Memory load state failure: VGA Memory size mismatch");
-        }
-    }
-}
-
-void VGAMEM_SaveState(Section *sec) {
-    (void)sec;//UNUSED
-
-    if (vga.mem.linear != NULL) {
-        ZIPFileEntry *ent = savestate_zip.new_entry("vga.memory.bin");
-        if (ent != NULL) {
-            ent->write(vga.mem.linear, vga.mem.memsize);
-        }
-    }
-}
-
 void VGA_SetupMemory() {
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
@@ -2517,9 +2491,6 @@ void VGA_SetupMemory() {
 	vga.svga.bank_size = 0x10000; /* most common bank size is 64K */
 
 	if (!VGA_Memory_ShutDown_init) {
-        AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(VGAMEM_LoadState));
-        AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(VGAMEM_SaveState));
-
 		AddExitFunction(AddExitFunctionFuncPair(VGA_Memory_ShutDown));
 		VGA_Memory_ShutDown_init = true;
 	}

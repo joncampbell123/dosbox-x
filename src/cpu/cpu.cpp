@@ -3655,113 +3655,6 @@ void CPU_OnSectionPropChange(Section *x) {
 	if (test != NULL) test->Change_Config(x);
 }
 
-void CPU_LoadState(Section *sec) {
-    (void)sec;//UNUSED
-
-    /* STOP THE CPU */
-	CPU_Cycles = CPU_CycleLeft = 0;
-
-    {
-        ZIPFileEntry *ent = savestate_zip.get_entry("cpureg.txt");
-        if (ent != NULL) {
-            zip_nv_pair_map nv(*ent);
-            reg_eax =       nv.get_ulong("eax");
-            reg_ebx =       nv.get_ulong("ebx");
-            reg_ecx =       nv.get_ulong("ecx");
-            reg_edx =       nv.get_ulong("edx");
-            reg_esi =       nv.get_ulong("esi");
-            reg_edi =       nv.get_ulong("edi");
-            reg_ebp =       nv.get_ulong("ebp");
-            reg_esp =       nv.get_ulong("esp");
-            reg_eip =       nv.get_ulong("eip");
-            reg_flags =     nv.get_ulong("eflags");
-
-            Segs.val[es] =          (Bit16u)nv.get_ulong("es.val");
-            Segs.phys[es] =         nv.get_ulong("es.phys");
-            Segs.limit[es] =        nv.get_ulong("es.limit");
-            Segs.expanddown[es] =   nv.get_bool("es.expanddown");
-
-            Segs.val[cs] =          (Bit16u)nv.get_ulong("cs.val");
-            Segs.phys[cs] =         nv.get_ulong("cs.phys");
-            Segs.limit[cs] =        nv.get_ulong("cs.limit");
-            Segs.expanddown[cs] =   nv.get_bool("cs.expanddown");
-
-            Segs.val[ss] =          (Bit16u)nv.get_ulong("ss.val");
-            Segs.phys[ss] =         nv.get_ulong("ss.phys");
-            Segs.limit[ss] =        nv.get_ulong("ss.limit");
-            Segs.expanddown[ss] =   nv.get_bool("ss.expanddown");
-
-            Segs.val[ds] =          (Bit16u)nv.get_ulong("ds.val");
-            Segs.phys[ds] =         nv.get_ulong("ds.phys");
-            Segs.limit[ds] =        nv.get_ulong("ds.limit");
-            Segs.expanddown[ds] =   nv.get_bool("ds.expanddown");
-
-            Segs.val[fs] =          (Bit16u)nv.get_ulong("fs.val");
-            Segs.phys[fs] =         nv.get_ulong("fs.phys");
-            Segs.limit[fs] =        nv.get_ulong("fs.limit");
-            Segs.expanddown[fs] =   nv.get_bool("fs.expanddown");
-
-            Segs.val[gs] =          (Bit16u)nv.get_ulong("gs.val");
-            Segs.phys[gs] =         nv.get_ulong("gs.phys");
-            Segs.limit[gs] =        nv.get_ulong("gs.limit");
-            Segs.expanddown[gs] =   nv.get_bool("gs.expanddown");
-
-            /* CPU state includes other variables based on flags, update them */
-            CPU_SetFlags(reg_flags, FMASK_ALL);
-        }
-    }
-}
-
-void CPU_SaveState(Section *sec) {
-    (void)sec;//UNUSED
-
-    {
-        ZIPFileEntry *ent = savestate_zip.new_entry("cpureg.txt");
-        if (ent != NULL) {
-            zip_nv_write_hex(*ent,"eax",        reg_eax);
-            zip_nv_write_hex(*ent,"ebx",        reg_ebx);
-            zip_nv_write_hex(*ent,"ecx",        reg_ecx);
-            zip_nv_write_hex(*ent,"edx",        reg_edx);
-            zip_nv_write_hex(*ent,"esi",        reg_esi);
-            zip_nv_write_hex(*ent,"edi",        reg_edi);
-            zip_nv_write_hex(*ent,"ebp",        reg_ebp);
-            zip_nv_write_hex(*ent,"esp",        reg_esp);
-            zip_nv_write_hex(*ent,"eip",        reg_eip);
-            zip_nv_write_hex(*ent,"eflags",     (unsigned long)reg_flags);
-
-            zip_nv_write_hex(*ent,"es.val",         (unsigned long)Segs.val[es]);
-            zip_nv_write_hex(*ent,"es.phys",        Segs.phys[es]);
-            zip_nv_write_hex(*ent,"es.limit",       Segs.limit[es]);
-            zip_nv_write(*ent,"es.expanddown",      Segs.expanddown[es]);
-
-            zip_nv_write_hex(*ent,"cs.val",         (unsigned long)Segs.val[cs]);
-            zip_nv_write_hex(*ent,"cs.phys",        Segs.phys[cs]);
-            zip_nv_write_hex(*ent,"cs.limit",       Segs.limit[cs]);
-            zip_nv_write(*ent,"cs.expanddown",      Segs.expanddown[cs]);
-
-            zip_nv_write_hex(*ent,"ss.val",         (unsigned long)Segs.val[ss]);
-            zip_nv_write_hex(*ent,"ss.phys",        Segs.phys[ss]);
-            zip_nv_write_hex(*ent,"ss.limit",       Segs.limit[ss]);
-            zip_nv_write(*ent,"ss.expanddown",      Segs.expanddown[ss]);
-
-            zip_nv_write_hex(*ent,"ds.val",         (unsigned long)Segs.val[ds]);
-            zip_nv_write_hex(*ent,"ds.phys",        Segs.phys[ds]);
-            zip_nv_write_hex(*ent,"ds.limit",       Segs.limit[ds]);
-            zip_nv_write(*ent,"ds.expanddown",      Segs.expanddown[ds]);
-
-            zip_nv_write_hex(*ent,"fs.val",         (unsigned long)Segs.val[fs]);
-            zip_nv_write_hex(*ent,"fs.phys",        Segs.phys[fs]);
-            zip_nv_write_hex(*ent,"fs.limit",       Segs.limit[fs]);
-            zip_nv_write(*ent,"fs.expanddown",      Segs.expanddown[fs]);
-
-            zip_nv_write_hex(*ent,"gs.val",         (unsigned long)Segs.val[gs]);
-            zip_nv_write_hex(*ent,"gs.phys",        Segs.phys[gs]);
-            zip_nv_write_hex(*ent,"gs.limit",       Segs.limit[gs]);
-            zip_nv_write(*ent,"gs.expanddown",      Segs.expanddown[gs]);
-        }
-    }
-}
-
 void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
 
@@ -3770,9 +3663,6 @@ void CPU_Init() {
 	test = new CPU(control->GetSection("cpu"));
 	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CPU_OnReset));
-
-    AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(CPU_LoadState));
-    AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(CPU_SaveState));
 }
 //initialize static members
 bool CPU::inited=false;

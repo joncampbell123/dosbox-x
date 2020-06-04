@@ -3358,37 +3358,6 @@ void ResetSystem(bool pressed) {
 
 ZIPFile savestate_zip;
 
-void GUI_EXP_LoadState(bool pressed) {
-    if (!pressed) return;
-
-    LOG_MSG("Loading state... (experimental)");
-
-    if (savestate_zip.open("exsavest.zip",O_RDONLY) < 0) {
-        LOG_MSG("Unable to open save state");
-        return;
-    }
-
-    DispatchVMEvent(VM_EVENT_LOAD_STATE);
-
-    savestate_zip.close();
-}
-
-void GUI_EXP_SaveState(bool pressed) {
-    if (!pressed) return;
-
-    LOG_MSG("Saving state... (experimental)");
-
-    if (savestate_zip.open("exsavest.zip",O_RDWR|O_CREAT|O_TRUNC) < 0) {
-        LOG_MSG("Unable to open save state for writing");
-        return;
-    }
-
-    DispatchVMEvent(VM_EVENT_SAVE_STATE);
-
-    savestate_zip.writeZIPFooter();
-    savestate_zip.close();
-}
-
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -3743,14 +3712,6 @@ static void GUI_StartUp() {
 
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
-
-    /* EXPERIMENTAL!!!! */
-    MAPPER_AddHandler(&GUI_EXP_SaveState, MK_f1, MMODHOST, "exp_savestate", "EX:SvState", &item);
-    item->set_text("Save State (EXPERIMENTAL)");
-
-    /* EXPERIMENTAL!!!! */
-    MAPPER_AddHandler(&GUI_EXP_LoadState, MK_f2, MMODHOST, "exp_loadstate", "EX:LdState", &item);
-    item->set_text("Load State (EXPERIMENTAL)");
 
     UpdateWindowDimensions();
 }
@@ -7609,7 +7570,7 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
 bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-	for (int i=0; i<SaveState::SLOT_COUNT; i++) {
+	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
 		std::string command=SaveState::instance().getName(i);
@@ -8746,7 +8707,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
 				DOSBoxMenu::callback_t callbacks[SaveState::SLOT_COUNT] = {save_slot_0_callback, save_slot_1_callback, save_slot_2_callback, save_slot_3_callback, save_slot_4_callback, save_slot_5_callback, save_slot_6_callback, save_slot_7_callback, save_slot_8_callback, save_slot_9_callback};
 				char name[6]="slot0";
-				for (int i=0; i<SaveState::SLOT_COUNT; i++) {
+				for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 					name[4]='0'+i;
 					std::string command=SaveState::instance().getName(i);
 					std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));

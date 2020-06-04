@@ -1374,124 +1374,6 @@ extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 
 void pc98_update_palette(void);
 void UpdateCGAFromSaveState(void);
 
-void VGA_LoadState(Section *sec) {
-    (void)sec;//UNUSED
-
-    if (IS_PC98_ARCH) {
-        {
-            ZIPFileEntry *ent = savestate_zip.get_entry("vga.pc98.analog.palette.bin");
-            if (ent != NULL) {
-                ent->rewind();
-                ent->read(pc98_pal_analog, 256*3);
-            }
-        }
-
-        {
-            ZIPFileEntry *ent = savestate_zip.get_entry("vga.pc98.digital.palette.bin");
-            if (ent != NULL) {
-                ent->rewind();
-                ent->read(pc98_pal_digital, 8);
-            }
-        }
-
-        pc98_update_palette();
-    }
-    else {
-        {
-            ZIPFileEntry *ent = savestate_zip.get_entry("vga.ac.palette.bin");
-            if (ent != NULL) {
-                ent->rewind();
-                ent->read(vga.attr.palette, 0x10);
-            }
-        }
-
-        {
-            unsigned char tmp[256 * 3];
-
-            ZIPFileEntry *ent = savestate_zip.get_entry("vga.dac.palette.bin");
-            if (ent != NULL) {
-                ent->rewind();
-                ent->read(tmp, 256 * 3);
-                for (unsigned int c=0;c < 256;c++) {
-                    vga.dac.rgb[c].red =   tmp[c*3 + 0];
-                    vga.dac.rgb[c].green = tmp[c*3 + 1];
-                    vga.dac.rgb[c].blue =  tmp[c*3 + 2];
-                }
-            }
-        }
-
-        {
-            ZIPFileEntry *ent = savestate_zip.get_entry("cgareg.txt");
-            if (ent != NULL) {
-                zip_nv_pair_map nv(*ent);
-                vga.tandy.mode_control =        (unsigned char)nv.get_ulong("cga.mode_control");
-                vga.tandy.color_select =        (unsigned char)nv.get_ulong("cga.color_select");
-            }
-        }
-
-        UpdateCGAFromSaveState();
-
-        for (unsigned int i=0;i < 0x10;i++)
-            VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
-
-        VGA_DAC_UpdateColorPalette();
-    }
-}
-
-void VGA_SaveState(Section *sec) {
-    (void)sec;//UNUSED
-
-    if (IS_PC98_ARCH) {
-        {
-            ZIPFileEntry *ent = savestate_zip.new_entry("vga.pc98.analog.palette.bin");
-            if (ent != NULL) {
-                ent->write(pc98_pal_analog, 256*3);
-            }
-        }
-
-        {
-            ZIPFileEntry *ent = savestate_zip.new_entry("vga.pc98.digital.palette.bin");
-            if (ent != NULL) {
-                ent->write(pc98_pal_digital, 8);
-            }
-        }
-    }
-    else {
-        {
-            ZIPFileEntry *ent = savestate_zip.new_entry("vga.ac.palette.bin");
-            if (ent != NULL) {
-                ent->write(vga.attr.palette, 0x10);
-            }
-        }
-
-        {
-
-            ZIPFileEntry *ent = savestate_zip.new_entry("vga.dac.palette.bin");
-            if (ent != NULL) {
-                unsigned char tmp[256 * 3];
-                for (unsigned int c=0;c < 256;c++) {
-                    tmp[c*3 + 0] = vga.dac.rgb[c].red;
-                    tmp[c*3 + 1] = vga.dac.rgb[c].green;
-                    tmp[c*3 + 2] = vga.dac.rgb[c].blue;
-                }
-                ent->write(tmp, 256 * 3);
-            }
-        }
-
-        {
-            char tmp[512],*w=tmp;
-
-            ZIPFileEntry *ent = savestate_zip.new_entry("cgareg.txt");
-            if (ent != NULL) {
-                w += sprintf(w,"cga.mode_control=0x%x\n",(unsigned int)vga.tandy.mode_control);
-                w += sprintf(w,"cga.color_select=0x%x\n",(unsigned int)vga.tandy.color_select);
-                assert(w < (tmp + sizeof(tmp)));
-                ent->write(tmp, (size_t)(w - tmp));
-            }
-        }
-    }
-}
-
 bool debugpollvga_pf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
@@ -1582,9 +1464,6 @@ void VGA_Init() {
 
     AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
-
-    AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(VGA_LoadState));
-    AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(VGA_SaveState));
 }
 
 void SVGA_Setup_Driver(void) {

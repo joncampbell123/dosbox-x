@@ -315,8 +315,6 @@ enum vm_event {
 
 	VM_EVENT_DOS_EXIT_REBOOT_KERNEL=15,	// DOS kernel has just finished exiting (hard reset)
     VM_EVENT_DOS_SURPRISE_REBOOT,       // DOS kernel asked to boot, when apparently having never been shut down (jmp to FFFF:0000)
-    VM_EVENT_SAVE_STATE,            // Save state in progress. Callback handler should refer to global object to write it's state to.
-    VM_EVENT_LOAD_STATE,            // Loading a save state in progress. Callback handler should refer to global object to read state from.
 
 	VM_EVENT_MAX
 };
