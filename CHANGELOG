@@ -1,7 +1,7 @@
 0.83.3
-  - Re-ported the save state feature for saving and loading
-    states with support for up to 10 save slots. They can be
-    selected from the "Capture" menu. (Wengier)
+  - Re-ported and improved the save state feature for saving
+    and loading states with support for up to 10 save slots.
+    They can be selected from the "Capture" menu. (Wengier)
   - Added COUNTRY command to set country code for country-
     specific date and time formats. For example, the command
     "COUNTRY 61" sets the country code to 61 (International
