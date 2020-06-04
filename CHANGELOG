@@ -6,6 +6,9 @@
     It is also fixed not to crash when used within a guest
     operting system (when the DOS kernel has been shut down
     using the BOOT command);
+    It will save and verify the DOSBox-X version and build.
+    States saved by DOSBox-X in one platform (e.g. 64-bit
+    Windows) may not work in another (e.g. 32-bit Linux). 
     The GUI menu will show if the save slot is empty, and if
     not the program name of save state will be displayed.
   - Re-ported and improved the save state feature for saving
