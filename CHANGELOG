@@ -1,9 +1,12 @@
 0.83.3
+  - Re-ported the save state feature for saving and loading
+    states with support for up to 10 save slots. They can be
+    selected from the "Capture" menu. (Wengier)
   - Added COUNTRY command to set country code for country-
     specific date and time formats. For example, the command
     "COUNTRY 61" sets the country code to 61 (International
-    English) which use the DD-MM-YYYY date format instead of
-    the default (U.S.) MM-DD-YYYY date format. (Wengier)
+    English) which uses the DD-MM-YYYY date format instead
+    of the default (U.S.) MM-DD-YYYY date format. (Wengier)
   - DOS 440Dh IOCTL function 67h (get access flag) added to
     allow FDISK.EXE to determine FAT filesystem type. Also
     implemented function 40h (set device parameters) and
