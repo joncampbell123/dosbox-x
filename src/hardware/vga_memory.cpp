@@ -2559,7 +2559,7 @@ void POD_Save_VGA_Memory( std::ostream& stream )
 
 
 	// - pure data
-	WRITE_POD_SIZE( vga.mem.linear_orgptr, sizeof(Bit8u) * (std::max<Bit32u>(vga.mem.memsize, 512 * 1024U) + 2048 + 16) );
+	WRITE_POD_SIZE( vga.mem.linear, sizeof(Bit8u) * vga.mem.memsize);
 
 	//***************************************************
 	//***************************************************
@@ -2582,7 +2582,7 @@ void POD_Load_VGA_Memory( std::istream& stream )
 
 
 	// - pure data
-	READ_POD_SIZE( vga.mem.linear_orgptr, sizeof(Bit8u) * (std::max<Bit32u>(vga.mem.memsize, 512 * 1024U) + 2048 + 16) );
+	READ_POD_SIZE( vga.mem.linear, sizeof(Bit8u) * vga.mem.memsize);
 
 	//***************************************************
 	//***************************************************
