@@ -1390,3 +1390,73 @@ void MSCDEX_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
 }
 
+void CMscdex::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &defaultBufSeg, defaultBufSeg );
+	WRITE_POD( &rootDriverHeaderSeg, rootDriverHeaderSeg );
+}
+
+void CMscdex::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &defaultBufSeg, defaultBufSeg );
+	READ_POD( &rootDriverHeaderSeg, rootDriverHeaderSeg );
+}
+
+
+void POD_Save_DOS_Mscdex( std::ostream& stream )
+{
+	for (Bit8u drive_unit=0; drive_unit<mscdex->GetNumDrives(); drive_unit++) {
+		TMSF pos, start, end;
+		bool playing, pause;
+
+		mscdex->GetAudioStatus(drive_unit, playing, pause, start, end);
+		mscdex->GetCurrentPos(drive_unit,pos);
+
+
+		WRITE_POD( &playing, playing );
+		WRITE_POD( &pause, pause );
+		WRITE_POD( &pos, pos );
+		WRITE_POD( &start, start );
+		WRITE_POD( &end, end );
+	}
+
+
+	mscdex->SaveState(stream);
+}
+
+
+void POD_Load_DOS_Mscdex( std::istream& stream )
+{
+	for (Bit8u drive_unit=0; drive_unit<mscdex->GetNumDrives(); drive_unit++) {
+		TMSF pos, start, end;
+		Bit32u msf_time, play_len;
+		bool playing, pause;
+
+
+		READ_POD( &playing, playing );
+		READ_POD( &pause, pause );
+		READ_POD( &pos, pos );
+		READ_POD( &start, start );
+		READ_POD( &end, end );
+
+
+		// end = total play time (GetAudioStatus adds +150)
+		// pos = current play cursor
+		// start = start play cursor
+		play_len = end.min * 75 * 60 + ( end.sec * 75 ) + end.fr - 150;
+		play_len -= ( pos.min - start.min ) * 75 * 60 + ( pos.sec - start.sec ) * 75 + ( pos.fr - start.fr );
+		msf_time = ( pos.min << 16 ) + ( pos.sec << 8 ) + ( pos.fr );
+
+
+		// first play, then simulate pause
+		mscdex->StopAudio(drive_unit);
+
+		if( playing ) mscdex->PlayAudioMSF(drive_unit, msf_time, play_len);
+		if( pause ) mscdex->PlayAudioMSF(drive_unit, msf_time, 0);
+	}
+
+
+	mscdex->LoadState(stream);
+}
