@@ -751,6 +751,11 @@ void SaveGameState(bool pressed) {
     {
         SaveState::instance().save(currentSlot);
         LOG_MSG("[%s]: State %d saved!", getTime().c_str(), currentSlot + 1);
+		char name[6]="slot0";
+		name[4]='0'+currentSlot;
+		std::string str="Slot 1"+std::string(SaveState::instance().isEmpty(currentSlot)?" [Empty]":"");
+		str[5]='1'+currentSlot;
+		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
     {
@@ -4858,5 +4863,28 @@ delete_all:
 
 bool SaveState::isEmpty(size_t slot) const {
 	if (slot >= SLOT_COUNT) return true;
-	return (components.empty() || !components.begin()->second.rawBytes[slot].dataAvailable());
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	return check_slot.fail();
 }
