@@ -1983,7 +1983,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
 		Drives[lcv]->SaveState(stream);
 	}
 
-	for( int lcv=0; lcv<DOS_FILES; lcv++ ) {
+	for( unsigned int lcv=0; lcv<DOS_FILES; lcv++ ) {
 		Bit8u file_valid;
 		char *file_name;
 		Bit8u file_namelen, file_drive, file_flags;
@@ -2053,7 +2053,7 @@ void POD_Load_DOS_Files( std::istream& stream )
 	//2. Game still did not unlink file, We saved this information. Then was game restarted and temp files were removed. Then we try load save state, but we don't have temp file. This is not fixed
 	DOS_File *dummy = NULL;
 
-	for( int lcv=0; lcv<DOS_FILES; lcv++ ) {
+	for( unsigned int lcv=0; lcv<DOS_FILES; lcv++ ) {
 		Bit8u file_valid;
 		char *file_name;
 		Bit8u file_namelen, file_drive, file_flags;

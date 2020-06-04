@@ -1680,4 +1680,4 @@ void Handler::LoadState( std::istream& stream )
 		}
 	}
 }
- };		//Namespace DBOPL
+ }		//Namespace DBOPL
