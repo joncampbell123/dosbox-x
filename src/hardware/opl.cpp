@@ -1465,3 +1465,115 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 	}
 }
 
+// save state support
+void adlib_savestate( std::ostream& stream )
+{
+	Bit32u cur_wform_idx[MAXOPERATORS];
+
+
+	for( int lcv=0; lcv<MAXOPERATORS; lcv++ ) {
+		cur_wform_idx[lcv] = ((Bitu) (op[lcv].cur_wform)) - ((Bitu) &wavtable);
+	}
+
+	//****************************************************
+	//****************************************************
+	//****************************************************
+
+	// opl.cpp
+
+	// - pure data
+	WRITE_POD( &recipsamp, recipsamp );
+	WRITE_POD( &wavtable, wavtable );
+
+	WRITE_POD( &vibval_var1, vibval_var1 );
+	WRITE_POD( &vibval_var2, vibval_var2 );
+
+	//****************************************************
+	//****************************************************
+	//****************************************************
+
+	// opl.h
+
+	// - pure data
+	WRITE_POD( &chip_num, chip_num );
+
+	// - near-pure data
+	WRITE_POD( &op, op );
+
+	// - pure data
+	WRITE_POD( &int_samplerate, int_samplerate );
+	WRITE_POD( &status, status );
+	WRITE_POD( &opl_index, opl_index );
+	WRITE_POD( &adlibreg, adlibreg );
+	WRITE_POD( &wave_sel, wave_sel );
+
+	WRITE_POD( &vibtab_pos, vibtab_pos );
+	WRITE_POD( &vibtab_add, vibtab_add );
+	WRITE_POD( &tremtab_pos, tremtab_pos );
+	WRITE_POD( &tremtab_add, tremtab_add );
+	WRITE_POD( &generator_add, generator_add );
+
+
+
+
+	// - reloc ptr (!!!)
+	WRITE_POD( &cur_wform_idx, cur_wform_idx );
+}
+
+
+void adlib_loadstate( std::istream& stream )
+{
+	Bit32u cur_wform_idx[MAXOPERATORS];
+
+	//****************************************************
+	//****************************************************
+	//****************************************************
+
+	// opl.cpp
+
+	// - pure data
+	READ_POD( &recipsamp, recipsamp );
+	READ_POD( &wavtable, wavtable );
+
+	READ_POD( &vibval_var1, vibval_var1 );
+	READ_POD( &vibval_var2, vibval_var2 );
+
+	//****************************************************
+	//****************************************************
+	//****************************************************
+
+	// opl.h
+
+	// - pure data
+	READ_POD( &chip_num, chip_num );
+
+	// - near-pure data
+	READ_POD( &op, op );
+
+	// - pure data
+	READ_POD( &int_samplerate, int_samplerate );
+	READ_POD( &status, status );
+	READ_POD( &opl_index, opl_index );
+	READ_POD( &adlibreg, adlibreg );
+	READ_POD( &wave_sel, wave_sel );
+
+	READ_POD( &vibtab_pos, vibtab_pos );
+	READ_POD( &vibtab_add, vibtab_add );
+	READ_POD( &tremtab_pos, tremtab_pos );
+	READ_POD( &tremtab_add, tremtab_add );
+	READ_POD( &generator_add, generator_add );
+
+
+
+
+	// - reloc ptr (!!!)
+	READ_POD( &cur_wform_idx, cur_wform_idx );
+
+	//****************************************************
+	//****************************************************
+	//****************************************************
+
+	for( int lcv=0; lcv<MAXOPERATORS; lcv++ ) {
+		op[lcv].cur_wform = (Bit16s *) ((Bitu) &wavtable + cur_wform_idx[lcv]);
+	}
+}

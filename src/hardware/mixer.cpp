@@ -1221,3 +1221,107 @@ void MIXER_Init() {
     MIXER_Controls_Init();
 }
 
+// save state support
+//void *MIXER_Mix_NoSound_PIC_Timer = (void*)MIXER_Mix_NoSound;
+void *MIXER_Mix_PIC_Timer = (void*)MIXER_Mix;
+
+
+void MixerChannel::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &volmain, volmain );
+	WRITE_POD( &scale, scale );
+	WRITE_POD( &volmul, volmul );
+	//WRITE_POD( &freq_add, freq_add );
+	WRITE_POD( &enabled, enabled );
+}
+
+
+void MixerChannel::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &volmain, volmain );
+	READ_POD( &scale, scale );
+	READ_POD( &volmul, volmul );
+	//READ_POD( &freq_add, freq_add );
+	READ_POD( &enabled, enabled );
+
+	//********************************************
+	//********************************************
+	//********************************************
+
+	// reset mixer channel (system data)
+	mixer.pos = 0;
+	mixer.done = 0;
+}
+
+extern void POD_Save_Adlib(std::ostream& stream);
+extern void POD_Save_Disney(std::ostream& stream);
+extern void POD_Save_Gameblaster(std::ostream& stream);
+extern void POD_Save_GUS(std::ostream& stream);
+extern void POD_Save_MPU401(std::ostream& stream);
+extern void POD_Save_PCSpeaker(std::ostream& stream);
+extern void POD_Save_Sblaster(std::ostream& stream);
+extern void POD_Save_Tandy_Sound(std::ostream& stream);
+extern void POD_Load_Adlib(std::istream& stream);
+extern void POD_Load_Disney(std::istream& stream);
+extern void POD_Load_Gameblaster(std::istream& stream);
+extern void POD_Load_GUS(std::istream& stream);
+extern void POD_Load_MPU401(std::istream& stream);
+extern void POD_Load_PCSpeaker(std::istream& stream);
+extern void POD_Load_Sblaster(std::istream& stream);
+extern void POD_Load_Tandy_Sound(std::istream& stream);
+
+namespace
+{
+class SerializeMixer : public SerializeGlobalPOD
+{
+public:
+	SerializeMixer() : SerializeGlobalPOD("Mixer")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+
+		//*************************************************
+		//*************************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		POD_Save_Adlib(stream);
+		POD_Save_Disney(stream);
+		POD_Save_Gameblaster(stream);
+		POD_Save_GUS(stream);
+		POD_Save_MPU401(stream);
+		POD_Save_PCSpeaker(stream);
+		POD_Save_Sblaster(stream);
+		POD_Save_Tandy_Sound(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+
+		//*************************************************
+		//*************************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		POD_Load_Adlib(stream);
+		POD_Load_Disney(stream);
+		POD_Load_Gameblaster(stream);
+		POD_Load_GUS(stream);
+		POD_Load_MPU401(stream);
+		POD_Load_PCSpeaker(stream);
+		POD_Load_Sblaster(stream);
+		POD_Load_Tandy_Sound(stream);
+
+		// reset mixer channel (system data)
+		mixer.pos = 0;
+		mixer.done = 0;
+	}
+
+} dummy;
+}

@@ -4434,3 +4434,171 @@ uint32_t VGA_QuerySizeIG(void) {
              (uint32_t)vga.draw.width;
 }
 
+// save state support
+void *VGA_DisplayStartLatch_PIC_Event = (void*)VGA_DisplayStartLatch;
+void *VGA_DrawEGASingleLine_PIC_Event = (void*)VGA_DrawEGASingleLine;
+//void *VGA_DrawPart_PIC_Event = (void*)VGA_DrawPart;
+void *VGA_DrawSingleLine_PIC_Event = (void*)VGA_DrawSingleLine;
+void *VGA_Other_VertInterrupt_PIC_Event = (void*)VGA_Other_VertInterrupt;
+void *VGA_PanningLatch_PIC_Event = (void*)VGA_PanningLatch;
+void *VGA_VertInterrupt_PIC_Event = (void*)VGA_VertInterrupt;
+void *VGA_VerticalTimer_PIC_Event = (void*)VGA_VerticalTimer;
+
+
+void POD_Save_VGA_Draw( std::ostream& stream )
+{
+	Bit8u linear_base_idx;
+	Bit8u font_tables_idx[2];
+	Bit8u drawline_idx;
+
+
+	if(0) {}
+	else if( vga.draw.linear_base == vga.mem.linear ) linear_base_idx = 0;
+	//else if( vga.draw.linear_base == vga.fastmem ) linear_base_idx = 1;
+
+
+	for( int lcv=0; lcv<2; lcv++ ) {
+		if(0) {}
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[0*1024]) ) font_tables_idx[lcv] = 0;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[8*1024]) ) font_tables_idx[lcv] = 1;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[16*1024]) ) font_tables_idx[lcv] = 2;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[24*1024]) ) font_tables_idx[lcv] = 3;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[32*1024]) ) font_tables_idx[lcv] = 4;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[40*1024]) ) font_tables_idx[lcv] = 5;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[48*1024]) ) font_tables_idx[lcv] = 6;
+		else if( vga.draw.font_tables[lcv] == &(vga.draw.font[56*1024]) ) font_tables_idx[lcv] = 7;
+	}
+
+
+	if(0) {}
+	else if( VGA_DrawLine == VGA_Draw_1BPP_Line ) drawline_idx = 1;
+	else if( VGA_DrawLine == VGA_Draw_2BPP_Line ) drawline_idx = 3;
+	else if( VGA_DrawLine == VGA_Draw_2BPPHiRes_Line ) drawline_idx = 4;
+	else if( VGA_DrawLine == VGA_Draw_CGA16_Line ) drawline_idx = 5;
+	else if( VGA_DrawLine == VGA_Draw_4BPP_Line ) drawline_idx = 6;
+	else if( VGA_DrawLine == VGA_Draw_4BPP_Line_Double ) drawline_idx = 7;
+	else if( VGA_DrawLine == VGA_Draw_Linear_Line ) drawline_idx = 8;
+	else if( VGA_DrawLine == VGA_Draw_Xlat32_Linear_Line ) drawline_idx = 9;
+	else if( VGA_DrawLine == VGA_Draw_VGA_Line_HWMouse ) drawline_idx = 11;
+	else if( VGA_DrawLine == VGA_Draw_LIN16_Line_HWMouse ) drawline_idx = 12;
+	else if( VGA_DrawLine == VGA_Draw_LIN32_Line_HWMouse ) drawline_idx = 13;
+	else if( VGA_DrawLine == VGA_TEXT_Draw_Line ) drawline_idx = 14;
+	else if( VGA_DrawLine == VGA_TEXT_Herc_Draw_Line ) drawline_idx = 15;
+	else if( VGA_DrawLine == VGA_TEXT_Xlat32_Draw_Line ) drawline_idx = 17;
+
+	//**********************************************
+	//**********************************************
+
+	// - near-pure (struct) data
+	WRITE_POD( &vga.draw, vga.draw );
+
+
+	// - reloc ptr
+	WRITE_POD( &linear_base_idx, linear_base_idx );
+	WRITE_POD( &font_tables_idx, font_tables_idx );
+
+	//**********************************************
+	//**********************************************
+
+	// static globals
+
+	// - reloc function ptr
+	WRITE_POD( &drawline_idx, drawline_idx );
+
+
+	// - pure data
+	WRITE_POD( &TempLine, TempLine );
+
+
+	// - system data
+	//WRITE_POD( &vsync, vsync );
+	//WRITE_POD( &uservsyncjolt, uservsyncjolt );
+
+
+	// - pure data
+	WRITE_POD( &temp, temp );
+	WRITE_POD( &FontMask, FontMask );
+	WRITE_POD( &bg_color_index, bg_color_index );
+}
+
+
+void POD_Load_VGA_Draw( std::istream& stream )
+{
+	Bit8u linear_base_idx;
+	Bit8u font_tables_idx[2];
+	Bit8u drawline_idx;
+
+	//**********************************************
+	//**********************************************
+
+	// - near-pure (struct) data
+	READ_POD( &vga.draw, vga.draw );
+
+
+	// - reloc ptr
+	READ_POD( &linear_base_idx, linear_base_idx );
+	READ_POD( &font_tables_idx, font_tables_idx );
+
+	//**********************************************
+	//**********************************************
+
+	// static globals
+
+	// - reloc function ptr
+	READ_POD( &drawline_idx, drawline_idx );
+
+
+	// - pure data
+	READ_POD( &TempLine, TempLine );
+
+
+	// - system data
+	//READ_POD( &vsync, vsync );
+	//READ_POD( &uservsyncjolt, uservsyncjolt );
+
+
+	// - pure data
+	READ_POD( &temp, temp );
+	READ_POD( &FontMask, FontMask );
+	READ_POD( &bg_color_index, bg_color_index );
+
+	//**********************************************
+	//**********************************************
+
+	switch( linear_base_idx ) {
+		case 0: vga.draw.linear_base = vga.mem.linear; break;
+		//case 1: vga.draw.linear_base = vga.fastmem; break;
+	}
+
+
+	for( int lcv=0; lcv<2; lcv++ ) {
+		switch( font_tables_idx[lcv] ) {
+			case 0: vga.draw.font_tables[lcv] = &(vga.draw.font[0*1024]); break;
+			case 1: vga.draw.font_tables[lcv] = &(vga.draw.font[8*1024]); break;
+			case 2: vga.draw.font_tables[lcv] = &(vga.draw.font[16*1024]); break;
+			case 3: vga.draw.font_tables[lcv] = &(vga.draw.font[24*1024]); break;
+			case 4: vga.draw.font_tables[lcv] = &(vga.draw.font[32*1024]); break;
+			case 5: vga.draw.font_tables[lcv] = &(vga.draw.font[40*1024]); break;
+			case 6: vga.draw.font_tables[lcv] = &(vga.draw.font[48*1024]); break;
+			case 7: vga.draw.font_tables[lcv] = &(vga.draw.font[56*1024]); break;
+		}
+	}
+
+
+	switch( drawline_idx ) {
+		case 1: VGA_DrawLine = VGA_Draw_1BPP_Line; break;
+		case 3: VGA_DrawLine = VGA_Draw_2BPP_Line; break;
+		case 4: VGA_DrawLine = VGA_Draw_2BPPHiRes_Line; break;
+		case 5: VGA_DrawLine = VGA_Draw_CGA16_Line; break;
+		case 6: VGA_DrawLine = VGA_Draw_4BPP_Line; break;
+		case 7: VGA_DrawLine = VGA_Draw_4BPP_Line_Double; break;
+		case 8: VGA_DrawLine = VGA_Draw_Linear_Line; break;
+		case 9: VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line; break;
+		case 11: VGA_DrawLine = VGA_Draw_VGA_Line_HWMouse; break;
+		case 12: VGA_DrawLine = VGA_Draw_LIN16_Line_HWMouse; break;
+		case 13: VGA_DrawLine = VGA_Draw_LIN32_Line_HWMouse; break;
+		case 14: VGA_DrawLine = VGA_TEXT_Draw_Line; break;
+		case 15: VGA_DrawLine = VGA_TEXT_Herc_Draw_Line; break;
+		case 17: VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line; break;
+	}
+}

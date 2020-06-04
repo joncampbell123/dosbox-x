@@ -463,3 +463,22 @@ Bitu vga_read_p3d5x(Bitu port,Bitu iolen) {
 	}
 }
 
+// save state support 
+void POD_Save_VGA_Crtc( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.crtc, vga.crtc );
+ 
+ 
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Crtc( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.crtc, vga.crtc );
+
+
+	// no static globals found
+}

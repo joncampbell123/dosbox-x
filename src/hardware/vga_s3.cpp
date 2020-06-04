@@ -592,3 +592,25 @@ void SVGA_Setup_S3Trio(void) {
     PCI_AddSVGAS3_Device();
 }
 
+// save state support
+void POD_Save_VGA_S3( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.s3, vga.s3 );
+
+	//*****************************************
+	//*****************************************
+
+	// static globals
+}
+
+void POD_Load_VGA_S3( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.s3, vga.s3 );
+
+	//*****************************************
+	//*****************************************
+
+	// static globals
+}

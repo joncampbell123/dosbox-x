@@ -456,3 +456,106 @@ void DISNEY_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
 }
 
+// save state support
+void *DISNEY_disable_PIC_Event = (void*)DISNEY_disable;
+
+void POD_Save_Disney( std::ostream& stream )
+{
+	const char pod_name[32] = "Disney";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dac_leader_idx;
+
+
+	dac_leader_idx = 0xff;
+	for( int lcv=0; lcv<2; lcv++ ) {
+		if( disney.leader == &disney.da[lcv] ) { dac_leader_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - near-pure struct data
+	WRITE_POD( &disney, disney );
+
+
+
+
+	// - reloc ptr
+	WRITE_POD( &dac_leader_idx, dac_leader_idx );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	disney.chan->SaveState(stream);
+}
+
+void POD_Load_Disney( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Disney" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dac_leader_idx;
+	MixerObject *mo_old;
+	MixerChannel *chan_old;
+
+
+	// save old ptrs
+	mo_old = disney.mo;
+	chan_old = disney.chan;
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// - near-pure struct data
+	READ_POD( &disney, disney );
+
+
+
+	// - reloc ptr
+	READ_POD( &dac_leader_idx, dac_leader_idx );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	disney.leader = NULL;
+	if( dac_leader_idx != 0xff ) disney.leader = &disney.da[dac_leader_idx];
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// restore old ptrs
+	disney.mo = mo_old;
+	disney.chan = chan_old;
+
+
+	disney.chan->LoadState(stream);
+}

@@ -2657,3 +2657,31 @@ void KEYBOARD_Reset() {
     KEYBOARD_SetLEDs(0);
 }
 
+//save state support
+void *KEYBOARD_TransferBuffer_PIC_Event = (void*)KEYBOARD_TransferBuffer;
+void *KEYBOARD_TickHandler_PIC_Timer = (void*)KEYBOARD_TickHandler;
+
+namespace
+{
+class SerializeKeyboard : public SerializeGlobalPOD
+{
+public:
+    SerializeKeyboard() : SerializeGlobalPOD("Keyboard")
+    {
+        registerPOD(keyb.buffer);
+        registerPOD(keyb.used); 
+        registerPOD(keyb.pos); 
+        registerPOD(keyb.repeat.key); 
+        registerPOD(keyb.repeat.wait); 
+        registerPOD(keyb.repeat.pause); 
+        registerPOD(keyb.repeat.rate); 
+        registerPOD(keyb.command); 
+        registerPOD(keyb.p60data); 
+        registerPOD(keyb.p60changed); 
+        registerPOD(keyb.active); 
+        registerPOD(keyb.scanning); 
+        registerPOD(keyb.scheduled);
+        registerPOD(port_61_data);
+    }
+} dummy;
+}

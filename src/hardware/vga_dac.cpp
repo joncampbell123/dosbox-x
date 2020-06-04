@@ -386,3 +386,22 @@ void VGA_UnsetupDAC(void) {
     IO_FreeReadHandler(0x3c9,IO_MB);
 }
 
+// save state support
+void POD_Save_VGA_Dac( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.dac, vga.dac );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Dac( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.dac, vga.dac );
+
+
+	// no static globals found
+}

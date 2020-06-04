@@ -218,3 +218,22 @@ void VGA_UnsetupSEQ(void) {
     IO_FreeReadHandler(0x3c5,IO_MB);
 }
 
+// save state support
+void POD_Save_VGA_Seq( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.seq, vga.seq );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Seq( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.seq, vga.seq );
+
+
+	// no static globals found
+}

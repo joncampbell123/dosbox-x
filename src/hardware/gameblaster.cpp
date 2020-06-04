@@ -178,3 +178,71 @@ void CMS_ShutDown(Section* sec) {
         test = NULL;
     }
 }
+
+// save state support
+void POD_Save_Gameblaster( std::ostream& stream )
+{
+	const char pod_name[32] = "CMS";
+
+    if( stream.fail() ) return;
+    if( !test ) return;
+    if( !cms_chan ) return;
+
+    WRITE_POD( &pod_name, pod_name );
+
+    //*******************************************
+    //*******************************************
+    //*******************************************
+
+    // - pure data
+    WRITE_POD( &lastWriteTicks, lastWriteTicks );
+    WRITE_POD( &cmsBase, cmsBase );
+    WRITE_POD( &cms_detect_register, cms_detect_register );
+
+    //************************************************
+    //************************************************
+    //************************************************
+
+    for (int i=0; i<2; i++) {
+        device[i]->SaveState(stream);
+    }
+
+    cms_chan->SaveState(stream);
+}
+
+
+void POD_Load_Gameblaster( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !cms_chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "CMS" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+    // - pure data
+    READ_POD( &lastWriteTicks, lastWriteTicks );
+    READ_POD( &cmsBase, cmsBase );
+    READ_POD( &cms_detect_register, cms_detect_register );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+    for (int i=0; i<2; i++) {
+        device[i]->LoadState(stream);
+   }
+
+	cms_chan->LoadState(stream);
+}

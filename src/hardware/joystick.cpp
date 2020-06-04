@@ -289,3 +289,21 @@ void JOYSTICK_Init() {
         AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
 }
 
+//save state support
+namespace
+{
+class SerializeStick : public SerializeGlobalPOD
+{
+public:
+    SerializeStick() : SerializeGlobalPOD("Joystick")
+    {
+        registerPOD(joytype);
+        registerPOD(stick);
+        registerPOD(last_write);
+        registerPOD(write_active);
+        registerPOD(swap34);
+        registerPOD(button_wrapping_enabled);
+        registerPOD(autofire);
+    }
+} dummy;
+}

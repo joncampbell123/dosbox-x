@@ -1036,3 +1036,20 @@ void TIMER_Init() {
 	AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
 }
 
+//save state support
+void *PIT0_Event_PIC_Event = (void*)PIT0_Event;
+
+namespace
+{
+class SerializeTimer : public SerializeGlobalPOD
+{
+public:
+    SerializeTimer() : SerializeGlobalPOD("IntTimer10")
+    {
+        registerPOD(pit);
+        //registerPOD(gate2);
+        registerPOD(latched_timerstatus);
+		registerPOD(latched_timerstatus_locked);
+    }
+} dummy;
+}

@@ -64,6 +64,41 @@ namespace OPL2 {
 			adlib_init((Bit32u)rate);
 		}
 
+		virtual void SaveState( std::ostream& stream ) {
+			const char pod_name[32] = "OPL2";
+
+			if( stream.fail() ) return;
+
+
+			WRITE_POD( &pod_name, pod_name );
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_savestate(stream);
+		}
+
+		virtual void LoadState( std::istream& stream ) {
+			char pod_name[32] = {0};
+
+			if( stream.fail() ) return;
+
+
+			// error checking
+			READ_POD( &pod_name, pod_name );
+			if( strcmp( pod_name, "OPL2" ) ) {
+				stream.clear( std::istream::failbit | std::istream::badbit );
+				return;
+			}
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_loadstate(stream);
+		}
+
 		~Handler() {
 		}
 	};
@@ -93,6 +128,41 @@ namespace OPL3 {
 
 		virtual void Init( Bitu rate ) {
 			adlib_init((Bit32u)rate);
+		}
+
+		virtual void SaveState( std::ostream& stream ) {
+			const char pod_name[32] = "OPL3";
+
+			if( stream.fail() ) return;
+
+
+			WRITE_POD( &pod_name, pod_name );
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_savestate(stream);
+		}
+
+		virtual void LoadState( std::istream& stream ) {
+			char pod_name[32] = {0};
+
+			if( stream.fail() ) return;
+
+
+			// error checking
+			READ_POD( &pod_name, pod_name );
+			if( strcmp( pod_name, "OPL3" ) ) {
+				stream.clear( std::istream::failbit | std::istream::badbit );
+				return;
+			}
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_loadstate(stream);
 		}
 
 		~Handler() {
@@ -155,6 +225,40 @@ struct Handler : public Adlib::Handler {
 	virtual void Init(Bitu rate) {
 		chip = ym3812_init(0, OPL2_INTERNAL_FREQ, (uint32_t)rate);
 	}
+	virtual void SaveState( std::ostream& stream ) {
+    	const char pod_name[32] = "MAMEOPL2";
+
+    	if( stream.fail() ) return;
+
+
+    	WRITE_POD( &pod_name, pod_name );
+
+    	//************************************************
+    	//************************************************
+    	//************************************************
+
+    	FMOPL_SaveState(chip, stream);
+    }
+
+    virtual void LoadState( std::istream& stream ) {
+    	char pod_name[32] = {0};
+
+    	if( stream.fail() ) return;
+
+
+    	// error checking
+    	READ_POD( &pod_name, pod_name );
+    	if( strcmp( pod_name, "MAMEOPL2" ) ) {
+    		stream.clear( std::istream::failbit | std::istream::badbit );
+    		return;
+    	}
+
+    	//************************************************
+    	//************************************************
+    	//************************************************
+
+    	FMOPL_LoadState(chip, stream);
+    }
 	~Handler() {
 		ym3812_shutdown(chip);
 	}
@@ -195,6 +299,39 @@ struct Handler : public Adlib::Handler {
 	}
 	virtual void Init(Bitu rate) {
 		chip = ymf262_init(0, OPL3_INTERNAL_FREQ, (int)rate);
+	}
+	virtual void SaveState( std::ostream& stream ) {
+    	const char pod_name[32] = "MAMEOPL3";
+
+    	if( stream.fail() ) return;
+
+
+    	WRITE_POD( &pod_name, pod_name );
+
+    	//************************************************
+    	//************************************************
+    	//************************************************
+
+    	YMF_SaveState(chip, stream);
+ 	}
+    virtual void LoadState( std::istream& stream ) {
+    	char pod_name[32] = {0};
+
+    	if( stream.fail() ) return;
+
+
+    	// error checking
+    	READ_POD( &pod_name, pod_name );
+    	if( strcmp( pod_name, "MAMEOPL3" ) ) {
+    		stream.clear( std::istream::failbit | std::istream::badbit );
+    		return;
+    	}
+
+    	//************************************************
+    	//************************************************
+    	//************************************************
+
+    	YMF_LoadState(chip, stream);
 	}
 	~Handler() {
 		ymf262_shutdown(chip);
@@ -1008,3 +1145,76 @@ void OPL_ShutDown(Section* sec){
 	module = 0;
 }
 
+// savestate support
+void Adlib::Module::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &mode, mode );
+	WRITE_POD( &reg, reg );
+	WRITE_POD( &ctrl, ctrl );
+	WRITE_POD( &oplmode, oplmode );
+	WRITE_POD( &lastUsed, lastUsed );
+
+	handler->SaveState(stream);
+
+	WRITE_POD( &cache, cache );
+	WRITE_POD( &chip, chip );
+}
+
+void Adlib::Module::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &mode, mode );
+	READ_POD( &reg, reg );
+	READ_POD( &ctrl, ctrl );
+	READ_POD( &oplmode, oplmode );
+	READ_POD( &lastUsed, lastUsed );
+
+	handler->LoadState(stream);
+
+	READ_POD( &cache, cache );
+	READ_POD( &chip, chip );
+}
+
+void POD_Save_Adlib(std::ostream& stream)
+{
+	const char pod_name[32] = "Adlib";
+
+	if( stream.fail() ) return;
+	if( !module ) return;
+	if( !module->mixerChan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	module->SaveState(stream);
+	module->mixerChan->SaveState(stream);
+}
+
+void POD_Load_Adlib(std::istream& stream)
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !module ) return;
+	if( !module->mixerChan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Adlib" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	module->LoadState(stream);
+	module->mixerChan->LoadState(stream);
+}

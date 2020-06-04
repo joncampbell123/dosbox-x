@@ -2475,3 +2475,122 @@ void GUS_Init() {
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
 }
 
+// save state support
+void *GUS_TimerEvent_PIC_Event = (void*)GUS_TimerEvent;
+void *GUS_DMA_Callback_Func = (void*)GUS_DMA_Callback;
+
+
+void POD_Save_GUS( std::ostream& stream )
+{
+const char pod_name[32] = "GUS";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !gus_chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	Bit8u curchan_idx;
+
+	curchan_idx = 0xff;
+	for( int lcv=0; lcv<32; lcv++ ) {
+		if( curchan == guschan[lcv] ) { curchan_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - pure data
+	WRITE_POD( &adlib_commandreg, adlib_commandreg );
+	WRITE_POD( &GUSRam, GUSRam );
+	WRITE_POD( &vol16bit, vol16bit );
+	WRITE_POD( &pantable, pantable );
+
+	// - pure struct data
+	WRITE_POD( &myGUS, myGUS );
+
+
+	// - pure data
+	for( int lcv=0; lcv<32; lcv++ ) {
+		WRITE_POD( guschan[lcv], *guschan[lcv] );
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	WRITE_POD( &curchan_idx, curchan_idx );
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	gus_chan->SaveState(stream);
+}
+
+
+void POD_Load_GUS( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !gus_chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "GUS" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u curchan_idx;
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// - pure data
+	READ_POD( &adlib_commandreg, adlib_commandreg );
+	READ_POD( &GUSRam, GUSRam );
+	READ_POD( &vol16bit, vol16bit );
+	READ_POD( &pantable, pantable );
+
+	READ_POD( &myGUS, myGUS );
+
+	for( int lcv=0; lcv<32; lcv++ ) {
+		if( !guschan[lcv] ) continue;
+
+		READ_POD( guschan[lcv], *guschan[lcv] );
+	}
+
+
+
+	// - reloc ptr
+	READ_POD( &curchan_idx, curchan_idx );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	curchan = NULL;
+	if( curchan_idx != 0xff ) curchan = guschan[curchan_idx];
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	gus_chan->LoadState(stream);
+}
