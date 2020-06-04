@@ -2156,6 +2156,8 @@ void *Memory_PageHandler_table[] =
 	VGA_PageHandler_Func[15],
 };
 
+extern bool dos_kernel_disabled;
+
 namespace
 {
 class SerializeMemory : public SerializeGlobalPOD
@@ -2168,15 +2170,15 @@ private:
 	virtual void getBytes(std::ostream& stream)
 	{
 		Bit8u pagehandler_idx[0x10000];
-		int size_table;
+		unsigned int size_table;
 
 
 		// assume 256MB max memory
 		size_table = sizeof(Memory_PageHandler_table) / sizeof(void *);
-		for( int lcv=0; lcv<memory.pages; lcv++ ) {
+		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			pagehandler_idx[lcv] = 0xff;
 
-			for( int lcv2=0; lcv2<size_table; lcv2++ ) {
+			for( unsigned int lcv2=0; lcv2<size_table; lcv2++ ) {
 				if( memory.phandlers[lcv] == Memory_PageHandler_table[lcv2] ) {
 					pagehandler_idx[lcv] = lcv2;
 					break;
@@ -2198,7 +2200,16 @@ private:
 		//***********************************************
 		//***********************************************
 
-		WRITE_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		if (!dos_kernel_disabled) {
+			WRITE_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		}
+		else {
+			/* gotta fake it! */
+			MemHandle m = 0;
+			for (unsigned int i=0;i < memory.pages;i++) {
+				WRITE_POD_SIZE( &m, sizeof(MemHandle) );
+			}
+		}
 		WRITE_POD( &pagehandler_idx, pagehandler_idx );
 	}
 
@@ -2227,17 +2238,26 @@ private:
 		//***********************************************
 		//***********************************************
 
-	memory.phandlers = (PageHandler **) old_ptrs[0];
+		memory.phandlers = (PageHandler **) old_ptrs[0];
 		memory.mhandles = (MemHandle *) old_ptrs[1];
 		memory.lfb.handler = (PageHandler *) old_ptrs[2];
 		memory.lfb_mmio.handler = (PageHandler *) old_ptrs[3];
 
 
-		READ_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		if (!dos_kernel_disabled) {
+			READ_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		}
+		else {
+			/* gotta fake it! */
+			MemHandle m = 0;
+			for (unsigned int i=0;i < memory.pages;i++) {
+				READ_POD_SIZE( &m, sizeof(MemHandle) );
+			}
+		}
 		READ_POD( &pagehandler_idx, pagehandler_idx );
 
 
-		for( int lcv=0; lcv<memory.pages; lcv++ ) {
+		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			if( pagehandler_idx[lcv] == 0xff ) continue;
 
 			memory.phandlers[lcv] = (PageHandler *) Memory_PageHandler_table[ pagehandler_idx[lcv] ];

@@ -590,15 +590,21 @@ Bitu INT29_HANDLER(void) {
     return CBRET_NONE;
 }
 
+extern bool dos_kernel_disabled;
+
 // save state support
 void POD_Save_DOS_Devices( std::ostream& stream )
 {
-	if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
-		Devices[2]->SaveState(stream);
+	if (!dos_kernel_disabled) {
+		if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
+			Devices[2]->SaveState(stream);
+	}
 }
 
 void POD_Load_DOS_Devices( std::istream& stream )
 {
-	if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
-		Devices[2]->LoadState(stream, false);
+	if (!dos_kernel_disabled) {
+		if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
+			Devices[2]->LoadState(stream, false);
+	}
 }
