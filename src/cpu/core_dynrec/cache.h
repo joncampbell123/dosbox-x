@@ -590,6 +590,79 @@ static void dyn_run_code(void);
 
 static bool cache_initialized = false;
 
+static void cache_reset(void) {
+	if (cache_initialized) {
+		for (;;) {
+			if (cache.used_pages) {
+				CodePageHandlerDynRec * cpage=cache.used_pages;
+				CodePageHandlerDynRec * npage=cache.used_pages->next;
+				cpage->ClearRelease();
+				delete cpage;
+				cache.used_pages=npage;
+			} else break;
+		}
+
+		if (cache_blocks == NULL) {
+			cache_blocks=(CacheBlockDynRec*)malloc(CACHE_BLOCKS*sizeof(CacheBlockDynRec));
+			if(!cache_blocks) E_Exit("Allocating cache_blocks has failed");
+		}
+		memset(cache_blocks,0,sizeof(CacheBlockDynRec)*CACHE_BLOCKS);
+		cache.block.free=&cache_blocks[0];
+		for (Bits i=0;i<CACHE_BLOCKS-1;i++) {
+			cache_blocks[i].link[0].to=(CacheBlockDynRec *)1;
+			cache_blocks[i].link[1].to=(CacheBlockDynRec *)1;
+			cache_blocks[i].cache.next=&cache_blocks[i+1];
+		}
+
+		if (cache_code_start_ptr==NULL) {
+#if defined (WIN32)
+			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+			if (!cache_code_start_ptr)
+				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+#else
+			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+#endif
+			if (!cache_code_start_ptr) E_Exit("Allocating dynamic cache failed");
+
+			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
+
+			cache_code_link_blocks=cache_code;
+			cache_code+=PAGESIZE_TEMP;
+
+#if (C_HAVE_MPROTECT)
+			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
+				LOG_MSG("Setting excute permission on the code cache has failed!");
+#endif
+		}
+
+		CacheBlockDynRec * block=cache_getblock();
+		cache.block.first=block;
+		cache.block.active=block;
+		block->cache.start=&cache_code[0];
+		block->cache.size=CACHE_TOTAL;
+		block->cache.next=0;								//Last block in the list
+
+		/* Setup the default blocks for block linkage returns */
+		cache.pos=&cache_code_link_blocks[0];
+		link_blocks[0].cache.start=cache.pos;
+		dyn_return(BR_Link1,false);
+		cache.pos=&cache_code_link_blocks[32];
+		link_blocks[1].cache.start=cache.pos;
+		dyn_return(BR_Link2,false);
+		cache.free_pages=0;
+		cache.last_page=0;
+		cache.used_pages=0;
+		/* Setup the code pages */
+		for (Bitu i=0;i<CACHE_PAGES;i++) {
+			CodePageHandlerDynRec * newpage=new CodePageHandlerDynRec();
+			newpage->next=cache.free_pages;
+			cache.free_pages=newpage;
+		}
+	}
+}
+
+
 static void cache_init(bool enable) {
 	if (enable) {
 		Bits i;
