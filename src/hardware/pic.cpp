@@ -735,13 +735,12 @@ bool PIC_RunQueue(void) {
         while (pic_queue.next_entry && (pic_queue.next_entry->index*CPU_CycleMax<=index_nd)) {
             PICEntry * entry=pic_queue.next_entry;
             pic_queue.next_entry=entry->next;
-
-#if 0//DEBUGGING FOR LOAD/SAVE STATE ISSUES
-            if (entry->pic_event == NULL) E_Exit("PIC_RunQueue event with NULL event function!");
-#endif
-
             srv_lag = entry->index;
-            (entry->pic_event)(entry->value); // call the event handler
+
+            if (entry->pic_event != NULL)
+                (entry->pic_event)(entry->value); // call the event handler
+            else
+                LOG(LOG_MISC,LOG_WARN)("PIC: Event in queue with NULL handler"); // This can happen after save state / load state
 
             /* Put the entry in the free list */
             entry->next=pic_queue.free_entry;
