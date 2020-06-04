@@ -2174,6 +2174,7 @@ private:
 
 
 		// assume 256MB max memory
+		// FIXME: Memory size can be much larger! Up to 3.5GB on 64-bit builds!
 		size_table = sizeof(Memory_PageHandler_table) / sizeof(void *);
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			pagehandler_idx[lcv] = 0xff;
@@ -2258,9 +2259,10 @@ private:
 
 
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
-			if( pagehandler_idx[lcv] == 0xff ) continue;
-
-			memory.phandlers[lcv] = (PageHandler *) Memory_PageHandler_table[ pagehandler_idx[lcv] ];
+			if( pagehandler_idx[lcv] != 0xff )
+				memory.phandlers[lcv] = (PageHandler *) Memory_PageHandler_table[ pagehandler_idx[lcv] ];
+			else
+				memory.phandlers[lcv] = NULL; /* MEM_SlowPath() will fill it in again */
 		}
 	}
 } dummy;
