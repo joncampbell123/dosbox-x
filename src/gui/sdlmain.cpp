@@ -40,6 +40,7 @@
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool force_load_state;
 
 bool OpenGL_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -182,6 +183,78 @@ void MenuUnmountDrive(char drive);
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive);
+void SetGameState_Run(int value);
+size_t GetGameState_Run(void);
+
+bool save_slot_0_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(0);
+	return true;
+}
+
+bool save_slot_1_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(1);
+	return true;
+}
+
+bool save_slot_2_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(2);
+	return true;
+}
+
+bool save_slot_3_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(3);
+	return true;
+}
+
+bool save_slot_4_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(4);
+	return true;
+}
+
+bool save_slot_5_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(5);
+	return true;
+}
+
+bool save_slot_6_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(6);
+	return true;
+}
+
+bool save_slot_7_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(7);
+	return true;
+}
+
+bool save_slot_8_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(8);
+	return true;
+}
+
+bool save_slot_9_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+	SetGameState_Run(9);
+	return true;
+}
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -364,7 +437,6 @@ bool drive_boot_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 
     return true;
 }
-
 
 const DOSBoxMenu::callback_t drive_callbacks[] = {
 #if defined(WIN32)
@@ -7525,6 +7597,16 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
     return true;
 }
 
+bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+#if !defined(C_EMSCRIPTEN)
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    force_load_state = !force_load_state;
+    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+#endif
+    return true;
+}
+
 #if defined(LINUX)
 bool x11_on_top = false;
 #endif
@@ -8645,6 +8727,26 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 # endif
+		{
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveslotmenu");
+            item.set_text("Select save slot");
+
+            {
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot0").set_text("Slot 1").set_callback_function(save_slot_0_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot1").set_text("Slot 2").set_callback_function(save_slot_1_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot2").set_text("Slot 3").set_callback_function(save_slot_2_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot3").set_text("Slot 4").set_callback_function(save_slot_3_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot4").set_text("Slot 5").set_callback_function(save_slot_4_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot5").set_text("Slot 6").set_callback_function(save_slot_5_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot6").set_text("Slot 7").set_callback_function(save_slot_6_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot7").set_text("Slot 8").set_callback_function(save_slot_7_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot8").set_text("Slot 9").set_callback_function(save_slot_8_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot9").set_text("Slot 10").set_callback_function(save_slot_9_callback);
+            }
+			char name[6]="slot0";
+			name[4]='0'+GetGameState_Run();
+			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+		}
 #endif
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
@@ -8851,6 +8953,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
@@ -9430,3 +9533,18 @@ void SDL_GL_SwapBuffers(void) {
     SDL_GL_SwapWindow(sdl.window);
 }
 #endif
+
+// save state support
+void POD_Save_Sdlmain( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &sdl.mouse.autolock, sdl.mouse.autolock );
+	WRITE_POD( &sdl.mouse.requestlock, sdl.mouse.requestlock );
+}
+
+void POD_Load_Sdlmain( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &sdl.mouse.autolock, sdl.mouse.autolock );
+	READ_POD( &sdl.mouse.requestlock, sdl.mouse.requestlock );
+}

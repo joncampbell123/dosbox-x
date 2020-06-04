@@ -1094,3 +1094,56 @@ void RENDER_Init() {
     RENDER_UpdateScalerMenu();
 }
 
+//save state support
+namespace
+{
+class SerializeRender : public SerializeGlobalPOD
+{
+public:
+	SerializeRender() : SerializeGlobalPOD("Render")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		// - pure data
+		WRITE_POD( &render.src, render.src );
+
+		WRITE_POD( &render.pal, render.pal );
+		WRITE_POD( &render.updating, render.updating );
+		WRITE_POD( &render.active, render.active );
+		WRITE_POD( &render.fullFrame, render.fullFrame );
+		WRITE_POD( &render.frameskip, render.frameskip );
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		// - pure data
+		READ_POD( &render.src, render.src );
+
+		READ_POD( &render.pal, render.pal );
+		READ_POD( &render.updating, render.updating );
+		READ_POD( &render.active, render.active );
+		READ_POD( &render.fullFrame, render.fullFrame );
+		READ_POD( &render.frameskip, render.frameskip );
+
+		//***************************************
+		//***************************************
+
+		// reset screen
+		//memset( &render.frameskip, 0, sizeof(render.frameskip) );
+
+		render.scale.clearCache = true;
+		if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
+
+		RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+
+	}
+} dummy;
+}

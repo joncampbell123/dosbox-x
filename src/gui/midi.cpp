@@ -683,3 +683,109 @@ void MIDI_GUI_OnSectionPropChange(Section *x) {
 	test = new MIDI(control->GetSection("midi"));
 }
 
+//save state support
+namespace {
+class SerializeMidi : public SerializeGlobalPOD {
+public:
+    SerializeMidi() : SerializeGlobalPOD("Midi")
+    {}
+
+private:
+    virtual void getBytes(std::ostream& stream)
+    {
+				if( !test ) return;
+
+				//******************************************
+				//******************************************
+				//******************************************
+
+				SerializeGlobalPOD::getBytes(stream);
+
+
+				// - pure data
+				WRITE_POD( &midi.status, midi.status );
+				WRITE_POD( &midi.cmd_len, midi.cmd_len );
+				WRITE_POD( &midi.cmd_pos, midi.cmd_pos );
+				WRITE_POD( &midi.cmd_buf, midi.cmd_buf );
+				WRITE_POD( &midi.rt_buf, midi.rt_buf );
+				WRITE_POD( &midi.sysex, midi.sysex );
+
+				//*******************************************
+				//*******************************************
+				//*******************************************
+
+				// Supports MT-32 MUNT only!!
+				if(0) {
+				}
+
+				// external MIDI 
+				else if( midi.available ) {
+					const char pod_name[32] = "External";
+
+
+					WRITE_POD( &pod_name, pod_name );
+
+					//*******************************************
+					//*******************************************
+					//*******************************************
+
+					// - pure data
+					WRITE_POD( &midi_state, midi_state );
+				}
+    }
+
+    virtual void setBytes(std::istream& stream)
+    {
+				if( !test ) return;
+
+				//******************************************
+				//******************************************
+				//******************************************
+
+        SerializeGlobalPOD::setBytes(stream);
+
+
+				// - pure data
+				READ_POD( &midi.status, midi.status );
+				READ_POD( &midi.cmd_len, midi.cmd_len );
+				READ_POD( &midi.cmd_pos, midi.cmd_pos );
+				READ_POD( &midi.cmd_buf, midi.cmd_buf );
+				READ_POD( &midi.rt_buf, midi.rt_buf );
+				READ_POD( &midi.sysex, midi.sysex );
+
+				//*******************************************
+				//*******************************************
+				//*******************************************
+
+				// Supports MT-32 MUNT only!!
+				if(0) {
+				}
+
+				// external MIDI
+				else if( midi.available ) {
+					char pod_name[32] = {0};
+
+
+					// error checking
+					READ_POD( &pod_name, pod_name );
+					if( strcmp( pod_name, "External" ) ) {
+						stream.clear( std::istream::failbit | std::istream::badbit );
+						return;
+					}
+
+					//************************************************
+					//************************************************
+					//************************************************
+
+				// - pure data
+					READ_POD( &midi_state, midi_state );
+
+					//************************************************
+					//************************************************
+					//************************************************
+
+					MIDI_State_LoadMessage();
+				}
+    }
+} dummy;
+}
