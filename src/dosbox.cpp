@@ -74,6 +74,13 @@
 #include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
+#include "zip.h"
+#include "unzip.h"
+#include "ioapi.h"
+#define MAXU32 0xffffffff
+#include "vs2015/zlib/contrib/minizip/zip.c"
+#include "vs2015/zlib/contrib/minizip/unzip.c"
+#include "vs2015/zlib/contrib/minizip/ioapi.c"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -139,6 +146,7 @@ Bit16u              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;
+bool                force_load_state = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
 
@@ -670,6 +678,48 @@ void DOSBOX_SlowDown( bool pressed ) {
     }
 }
 
+namespace
+{
+std::string getTime()
+{
+    const time_t current = time(NULL);
+    tm* timeinfo;
+    timeinfo = localtime(&current); //convert to local time
+    char buffer[50];
+    ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
+    return buffer;
+}
+
+class SlotPos
+{
+public:
+    SlotPos() : slot(0) {}
+
+    void next()
+    {
+        ++slot;
+        slot %= SaveState::SLOT_COUNT;
+    }
+
+    void previous()
+    {
+        slot += SaveState::SLOT_COUNT - 1;
+        slot %= SaveState::SLOT_COUNT;
+    }
+
+    void set(int value)
+    {
+        slot = value;
+    }
+
+    operator size_t() const
+    {
+        return slot;
+    }
+private:
+    size_t slot;
+} currentSlot;
+
 void notifyError(const std::string& message)
 {
 #ifdef WIN32
@@ -677,6 +727,92 @@ void notifyError(const std::string& message)
 #endif
     LOG_MSG("%s",message.c_str());
 }
+
+size_t GetGameState(void) {
+    return currentSlot;
+}
+
+void SetGameState(int value) {
+	char name[6]="slot0";
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    currentSlot.set(value);
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+	
+	const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
+    LOG_MSG("Active save slot: %d %s", currentSlot + 1,  emptySlot ? "[Empty]" : "");
+}
+
+void SaveGameState(bool pressed) {
+    if (!pressed) return;
+
+    try
+    {
+        SaveState::instance().save(currentSlot);
+        LOG_MSG("[%s]: State %d saved!", getTime().c_str(), currentSlot + 1);
+    }
+    catch (const SaveState::Error& err)
+    {
+        notifyError(err);
+    }
+}
+
+void LoadGameState(bool pressed) {
+    if (!pressed) return;
+
+//    if (SaveState::instance().isEmpty(currentSlot))
+//    {
+//        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
+//        return;
+//    }
+    try
+    {
+        SaveState::instance().load(currentSlot);
+        LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), currentSlot + 1);
+    }
+    catch (const SaveState::Error& err)
+    {
+        notifyError(err);
+    }
+}
+
+void NextSaveSlot(bool pressed) {
+    if (!pressed) return;
+
+	char name[6]="slot0";
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    currentSlot.next();
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+
+    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
+    LOG_MSG("Active save slot: %d %s", currentSlot + 1,  emptySlot ? "[Empty]" : "");
+}
+
+
+void PreviousSaveSlot(bool pressed) {
+    if (!pressed) return;
+
+	char name[6]="slot0";
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    currentSlot.previous();
+	name[4]='0'+currentSlot;
+	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+
+    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
+    LOG_MSG("Active save slot: %d %s", currentSlot + 1, emptySlot ? "[Empty]" : "");
+}
+}
+
+size_t GetGameState_Run(void) { return GetGameState(); }
+void SetGameState_Run(int value) { SetGameState(value); }
+void SaveGameState_Run(void) { SaveGameState(true); }
+void LoadGameState_Run(void) { LoadGameState(true); }
+void NextSaveSlot_Run(void) { NextSaveSlot(true); }
+void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
 
 /* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
@@ -844,6 +980,16 @@ void DOSBOX_RealInit() {
         MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDn", &item);
         item->set_text("Slow down");
     }
+
+	//add support for loading/saving game states
+	MAPPER_AddHandler(SaveGameState, MK_f5, MMOD2,"savestate","SaveState", &item);
+        item->set_text("Save state");
+	MAPPER_AddHandler(LoadGameState, MK_f9, MMOD2,"loadstate","LoadState", &item);
+        item->set_text("Load state");
+	MAPPER_AddHandler(PreviousSaveSlot, MK_f6, MMOD2,"prevslot","PrevSlot", &item);
+        item->set_text("Previous slot");
+	MAPPER_AddHandler(NextSaveSlot, MK_f7, MMOD2,"nextslot","NextSlot", &item);
+        item->set_text("Next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
@@ -3574,4 +3720,1131 @@ int utf16le_decode(const char **ptr,const char *fence) {
 
     *ptr = p;
     return (int)ret;
+}
+
+extern void POD_Save_Sdlmain( std::ostream& stream );
+extern void POD_Load_Sdlmain( std::istream& stream );
+
+// save state support
+
+namespace
+{
+class SerializeDosbox : public SerializeGlobalPOD
+{
+public:
+	SerializeDosbox() : SerializeGlobalPOD("Dosbox-x")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+
+		//******************************************
+		//******************************************
+		//******************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+		//******************************************
+		//******************************************
+		//******************************************
+
+		POD_Save_Sdlmain(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+
+		//******************************************
+		//******************************************
+		//******************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+		//******************************************
+		//******************************************
+		//******************************************
+
+		POD_Load_Sdlmain(stream);
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		// Reset any auto cycle guessing for this frame
+		ticksRemain=5;
+		ticksLast = GetTicks();
+		ticksAdded = 0;
+		ticksDone = 0;
+		ticksScheduled = 0;
+	}
+} dummy;
+}
+
+#include "zlib.h"
+#ifdef WIN32
+#include "direct.h"
+#endif
+#include "cross.h"
+#include "logging.h"
+#if defined (__APPLE__)
+#else
+#include <malloc.h>
+#endif
+#include <cstring>
+#include <fstream>
+
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <string>
+#include <stdlib.h>
+#include "SDL.h"
+
+#ifndef WIN32
+char* itoa(int value, char* str, int radix) {
+	/**
+		* C++ version 0.4 char* style "itoa":
+		* Written by LukÃ¡s Chmela
+		* Released under GPLv3.
+	*/
+		// check that the radix if valid
+		if (radix < 2 || radix > 36) { *str = '\0'; return str; }
+
+		char* ptr = str, *ptr1 = str, tmp_char;
+		int tmp_value;
+
+		do {
+			tmp_value = value;
+			value /= radix;
+			*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * radix)];
+		} while ( value );
+
+		// Apply negative sign
+		if (tmp_value < 0) *ptr++ = '-';
+		*ptr-- = '\0';
+		while(ptr1 < ptr) {
+			tmp_char = *ptr;
+			*ptr--= *ptr1;
+			*ptr1++ = tmp_char;
+		}
+		return str;
+}
+#endif
+
+SaveState& SaveState::instance() {
+    static SaveState singleton;
+    return singleton;
+}
+
+void SaveState::registerComponent(const std::string& uniqueName, Component& comp) {
+    components.insert(std::make_pair(uniqueName, CompData(comp)));
+}
+
+namespace Util {
+std::string compress(const std::string& input) { //throw (SaveState::Error)
+	if (input.empty())
+		return input;
+
+	const uLong bufferSize = ::compressBound(input.size());
+
+	std::string output;
+	output.resize(bufferSize);
+
+	uLongf actualSize = bufferSize;
+	if (::compress2(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
+					reinterpret_cast<const Bytef*>(input.c_str()), input.size(), Z_BEST_SPEED) != Z_OK)
+		throw SaveState::Error("Compression failed!");
+
+	output.resize(actualSize);
+
+	//save size of uncompressed data
+	const size_t uncompressedSize = input.size(); //save size of uncompressed data
+	output.resize(output.size() + sizeof(uncompressedSize)); //won't trigger a reallocation
+	::memcpy(&output[0] + output.size() - sizeof(uncompressedSize), &uncompressedSize, sizeof(uncompressedSize));
+
+	return std::string(&output[0], output.size()); //strip reserved space
+}
+
+std::string decompress(const std::string& input) { //throw (SaveState::Error)
+	if (input.empty())
+		return input;
+
+	//retrieve size of uncompressed data
+	size_t uncompressedSize = 0;
+	::memcpy(&uncompressedSize, &input[0] + input.size() - sizeof(uncompressedSize), sizeof(uncompressedSize));
+
+	std::string output;
+	output.resize(uncompressedSize);
+
+	uLongf actualSize = uncompressedSize;
+	if (::uncompress(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
+					 reinterpret_cast<const Bytef*>(input.c_str()), input.size() - sizeof(uncompressedSize)) != Z_OK)
+		throw SaveState::Error("Decompression failed!");
+
+	output.resize(actualSize); //should be superfluous!
+
+	return output;
+}
+}
+
+inline void SaveState::RawBytes::set(const std::string& stream) {
+	bytes = stream;
+	isCompressed = false;
+	dataExists   = true;
+}
+
+inline std::string SaveState::RawBytes::get() const { //throw (Error){
+	if (isCompressed)
+		(Util::decompress(bytes)).swap(bytes);
+	isCompressed = false;
+	return bytes;
+}
+
+inline void SaveState::RawBytes::compress() const { //throw (Error)
+	if (!isCompressed)
+		(Util::compress(bytes)).swap(bytes);
+	isCompressed = true;
+}
+
+inline bool SaveState::RawBytes::dataAvailable() const {
+	return dataExists;
+}
+
+#define CASESENSITIVITY (0)
+#define WRITEBUFFERSIZE (8192)
+#define MAXFILENAME (256)
+
+int mymkdir(const char* dirname)
+{
+    int ret=0;
+#ifdef _WIN32
+    ret = _mkdir(dirname);
+#elif unix
+    ret = mkdir (dirname,0775);
+#elif __APPLE__
+    ret = mkdir (dirname,0775);
+#endif
+    return ret;
+}
+
+int makedir(const char *newdir)
+{
+  char *buffer ;
+  char *p;
+  int  len = (int)strlen(newdir);
+
+  if (len <= 0)
+    return 0;
+
+  buffer = (char*)malloc(len+1);
+        if (buffer==NULL)
+        {
+                printf("Error allocating memory\n");
+                return UNZ_INTERNALERROR;
+        }
+  strcpy(buffer,newdir);
+
+  if (buffer[len-1] == '/') {
+    buffer[len-1] = '\0';
+  }
+  if (mymkdir(buffer) == 0)
+    {
+      free(buffer);
+      return 1;
+    }
+
+  p = buffer+1;
+  while (1)
+    {
+      char hold;
+
+      while(*p && *p != '\\' && *p != '/')
+        p++;
+      hold = *p;
+      *p = 0;
+      if ((mymkdir(buffer) == -1) && (errno == ENOENT))
+        {
+          printf("couldn't create directory %s\n",buffer);
+          free(buffer);
+          return 0;
+        }
+      if (hold == 0)
+        break;
+      *p++ = hold;
+    }
+  free(buffer);
+  return 1;
+}
+
+void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
+{
+#ifdef _WIN32
+  HANDLE hFile;
+  FILETIME ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite;
+
+  hFile = CreateFileA(filename,GENERIC_READ | GENERIC_WRITE,
+                      0,NULL,OPEN_EXISTING,0,NULL);
+  GetFileTime(hFile,&ftCreate,&ftLastAcc,&ftLastWrite);
+  DosDateTimeToFileTime((WORD)(dosdate>>16),(WORD)dosdate,&ftLocal);
+  LocalFileTimeToFileTime(&ftLocal,&ftm);
+  SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
+  CloseHandle(hFile);
+#else
+#ifdef unix || __APPLE__
+  struct utimbuf ut;
+  struct tm newdate;
+  newdate.tm_sec = tmu_date.tm_sec;
+  newdate.tm_min=tmu_date.tm_min;
+  newdate.tm_hour=tmu_date.tm_hour;
+  newdate.tm_mday=tmu_date.tm_mday;
+  newdate.tm_mon=tmu_date.tm_mon;
+  if (tmu_date.tm_year > 1900)
+      newdate.tm_year=tmu_date.tm_year - 1900;
+  else
+      newdate.tm_year=tmu_date.tm_year ;
+  newdate.tm_isdst=-1;
+
+  ut.actime=ut.modtime=mktime(&newdate);
+  utime(filename,&ut);
+#endif
+#endif
+}
+
+int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password)
+{
+    char filename_inzip[256];
+    char* filename_withoutpath;
+    char* p;
+    int err=UNZ_OK;
+    FILE *fout=NULL;
+    void* buf;
+    uInt size_buf;
+
+    unz_file_info64 file_info;
+    uLong ratio=0;
+    err = unzGetCurrentFileInfo64(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
+
+    if (err!=UNZ_OK)
+    {
+        printf("error %d with zipfile in unzGetCurrentFileInfo\n",err);
+        return err;
+    }
+
+    size_buf = WRITEBUFFERSIZE;
+    buf = (void*)malloc(size_buf);
+    if (buf==NULL)
+    {
+        printf("Error allocating memory\n");
+        return UNZ_INTERNALERROR;
+    }
+
+    p = filename_withoutpath = filename_inzip;
+    while ((*p) != '\0')
+    {
+        if (((*p)=='/') || ((*p)=='\\'))
+            filename_withoutpath = p+1;
+        p++;
+    }
+
+    if ((*filename_withoutpath)=='\0')
+    {
+        if ((*popt_extract_without_path)==0)
+        {
+            printf("creating directory: %s\n",filename_inzip);
+            mymkdir(filename_inzip);
+        }
+    }
+    else
+    {
+        const char* write_filename;
+        int skip=0;
+
+        if ((*popt_extract_without_path)==0)
+            write_filename = filename_inzip;
+        else
+            write_filename = filename_withoutpath;
+
+        err = unzOpenCurrentFilePassword(uf,password);
+        if (err!=UNZ_OK)
+        {
+            printf("error %d with zipfile in unzOpenCurrentFilePassword\n",err);
+        }
+
+        if (((*popt_overwrite)==0) && (err==UNZ_OK))
+        {
+            char rep=0;
+            FILE* ftestexist;
+            ftestexist = FOPEN_FUNC(write_filename,"rb");
+            if (ftestexist!=NULL)
+            {
+                fclose(ftestexist);
+                do
+                {
+                    char answer[128];
+                    int ret;
+
+                    printf("The file %s exists. Overwrite ? [y]es, [n]o, [A]ll: ",write_filename);
+                    ret = scanf("%1s",answer);
+                    if (ret != 1)
+                    {
+                       exit(EXIT_FAILURE);
+                    }
+                    rep = answer[0] ;
+                    if ((rep>='a') && (rep<='z'))
+                        rep -= 0x20;
+                }
+                while ((rep!='Y') && (rep!='N') && (rep!='A'));
+            }
+
+            if (rep == 'N')
+                skip = 1;
+
+            if (rep == 'A')
+                *popt_overwrite=1;
+        }
+
+        if ((skip==0) && (err==UNZ_OK))
+        {
+            fout=FOPEN_FUNC(write_filename,"wb");
+            /* some zipfile don't contain directory alone before file */
+            if ((fout==NULL) && ((*popt_extract_without_path)==0) &&
+                                (filename_withoutpath!=(char*)filename_inzip))
+            {
+                char c=*(filename_withoutpath-1);
+                *(filename_withoutpath-1)='\0';
+                makedir(write_filename);
+                *(filename_withoutpath-1)=c;
+                fout=FOPEN_FUNC(write_filename,"wb");
+            }
+
+            if (fout==NULL)
+            {
+                printf("error opening %s\n",write_filename);
+            }
+        }
+
+        if (fout!=NULL)
+        {
+            printf(" extracting: %s\n",write_filename);
+
+            do
+            {
+                err = unzReadCurrentFile(uf,buf,size_buf);
+                if (err<0)
+                {
+                    printf("error %d with zipfile in unzReadCurrentFile\n",err);
+                    break;
+                }
+                if (err>0)
+                    if (fwrite(buf,err,1,fout)!=1)
+                    {
+                        printf("error in writing extracted file\n");
+                        err=UNZ_ERRNO;
+                        break;
+                    }
+            }
+            while (err>0);
+            if (fout)
+                    fclose(fout);
+
+            if (err==0)
+                change_file_date(write_filename,file_info.dosDate,
+                                 file_info.tmu_date);
+        }
+
+        if (err==UNZ_OK)
+        {
+            err = unzCloseCurrentFile (uf);
+            if (err!=UNZ_OK)
+            {
+                printf("error %d with zipfile in unzCloseCurrentFile\n",err);
+            }
+        }
+        else
+            unzCloseCurrentFile(uf); /* don't lose the error */
+    }
+
+    free(buf);
+    return err;
+}
+
+int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, const char* password)
+{
+    uLong i;
+    unz_global_info64 gi;
+    int err;
+    FILE* fout=NULL;
+
+    err = unzGetGlobalInfo64(uf,&gi);
+    if (err!=UNZ_OK)
+        printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+
+    for (i=0;i<gi.number_entry;i++)
+    {
+        if (do_extract_currentfile(uf,&opt_extract_without_path,
+                                      &opt_overwrite,
+                                      password) != UNZ_OK)
+            break;
+
+        if ((i+1)<gi.number_entry)
+        {
+            err = unzGoToNextFile(uf);
+            if (err!=UNZ_OK)
+            {
+                printf("error %d with zipfile in unzGoToNextFile\n",err);
+                break;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password)
+{
+    int err = UNZ_OK;
+    if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
+    {
+        printf("file %s not found in the zipfile\n",filename);
+        return 2;
+    }
+
+    if (do_extract_currentfile(uf,&opt_extract_without_path,
+                                      &opt_overwrite,
+                                      password) == UNZ_OK)
+        return 0;
+    else
+        return 1;
+}
+
+int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
+    const char *zipfilename=NULL;
+    const char *filename_to_extract=NULL;
+    const char *password=NULL;
+    char filename_try[MAXFILENAME+16] = "";
+    int ret_value=0;
+    int opt_do_extract=1;
+    int opt_do_extract_withoutpath=0;
+    int opt_overwrite=0;
+    int opt_extractdir=0;
+    const char *dirname=NULL;
+    unzFile uf=NULL;
+
+		opt_do_extract = opt_do_extract_withoutpath = 1;
+		opt_overwrite=1;
+		opt_extractdir=1;
+		dirname=savedir;
+        zipfilename = (const char *)savefile;
+        filename_to_extract = savefile2;
+
+    if (zipfilename!=NULL)
+    {
+
+#        ifdef USEWIN32IOAPI
+        zlib_filefunc64_def ffunc;
+#        endif
+
+        strncpy(filename_try, zipfilename,MAXFILENAME-1);
+        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        filename_try[ MAXFILENAME ] = '\0';
+
+#        ifdef USEWIN32IOAPI
+        fill_win32_filefunc64A(&ffunc);
+        uf = unzOpen2_64(zipfilename,&ffunc);
+#        else
+        uf = unzOpen64(zipfilename);
+#        endif
+    }
+
+    if (uf==NULL)
+    {
+        //printf("Cannot open %s\n",zipfilename,zipfilename);
+        return 1;
+    }
+    //printf("%s opened\n",filename_try);
+
+	if (opt_do_extract==1)
+    {
+		char cCurrentPath[FILENAME_MAX];
+		char *ret=getcwd(cCurrentPath, sizeof(cCurrentPath));
+        if (opt_extractdir && chdir(dirname))
+        {
+          printf("Error changing into %s, aborting\n", dirname);
+          exit(-1);
+        }
+
+        if (filename_to_extract == NULL)
+            ret_value = do_extract(uf, opt_do_extract_withoutpath, opt_overwrite, password);
+        else
+            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password);
+		if (ret!=NULL) chdir(cCurrentPath);
+    }
+
+    unzClose(uf);
+
+    return ret_value;
+}
+
+#define WRITEBUFFERSIZE (16384)
+#define MAXFILENAME (256)
+
+#ifdef _WIN32
+uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
+{
+  int ret = 0;
+  {
+      FILETIME ftLocal;
+      HANDLE hFind;
+      WIN32_FIND_DATAA ff32;
+
+      hFind = FindFirstFileA(f,&ff32);
+      if (hFind != INVALID_HANDLE_VALUE)
+      {
+        FileTimeToLocalFileTime(&(ff32.ftLastWriteTime),&ftLocal);
+        FileTimeToDosDateTime(&ftLocal,((LPWORD)dt)+1,((LPWORD)dt)+0);
+        FindClose(hFind);
+        ret = 1;
+      }
+  }
+  return ret;
+}
+#else
+#ifdef unix || __APPLE__
+uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
+{
+  int ret=0;
+  struct stat s;        /* results of stat() */
+  struct tm* filedate;
+  time_t tm_t=0;
+
+  if (strcmp(f,"-")!=0)
+  {
+    char name[MAXFILENAME+1];
+    int len = strlen(f);
+    if (len > MAXFILENAME)
+      len = MAXFILENAME;
+
+    strncpy(name, f,MAXFILENAME-1);
+    /* strncpy doesnt append the trailing NULL, of the string is too long. */
+    name[ MAXFILENAME ] = '\0';
+
+    if (name[len - 1] == '/')
+      name[len - 1] = '\0';
+    /* not all systems allow stat'ing a file with / appended */
+    if (stat(name,&s)==0)
+    {
+      tm_t = s.st_mtime;
+      ret = 1;
+    }
+  }
+  filedate = localtime(&tm_t);
+
+  tmzip->tm_sec  = filedate->tm_sec;
+  tmzip->tm_min  = filedate->tm_min;
+  tmzip->tm_hour = filedate->tm_hour;
+  tmzip->tm_mday = filedate->tm_mday;
+  tmzip->tm_mon  = filedate->tm_mon ;
+  tmzip->tm_year = filedate->tm_year;
+
+  return ret;
+}
+#else
+uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
+{
+    return 0;
+}
+#endif
+#endif
+
+#ifdef __APPLE__
+// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
+#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
+#define FTELLO_FUNC(stream) ftello(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
+#else
+#define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
+#define FTELLO_FUNC(stream) ftello64(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
+#endif
+
+int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigned long* result_crc)
+{
+   unsigned long calculate_crc=0;
+   int err=ZIP_OK;
+   FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
+
+   unsigned long size_read = 0;
+   unsigned long total_read = 0;
+   if (fin==NULL)
+   {
+       err = ZIP_ERRNO;
+   }
+
+    if (err == ZIP_OK)
+        do
+        {
+            err = ZIP_OK;
+            size_read = (int)fread(buf,1,size_buf,fin);
+            if (size_read < size_buf)
+                if (feof(fin)==0)
+            {
+                printf("error in reading %s\n",filenameinzip);
+                err = ZIP_ERRNO;
+            }
+
+            if (size_read>0)
+                calculate_crc = crc32(calculate_crc,(const Bytef*)buf,size_read);
+            total_read += size_read;
+
+        } while ((err == ZIP_OK) && (size_read>0));
+
+    if (fin)
+        fclose(fin);
+
+    *result_crc=calculate_crc;
+    printf("file %s crc %lx\n", filenameinzip, calculate_crc);
+    return err;
+}
+
+int isLargeFile(const char* filename)
+{
+  int largeFile = 0;
+  ZPOS64_T pos = 0;
+  FILE* pFile = FOPEN_FUNC(filename, "rb");
+
+  if(pFile != NULL)
+  {
+    int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
+    pos = FTELLO_FUNC(pFile);
+
+                printf("File : %s is %lld bytes\n", filename, pos);
+
+    if(pos >= 0xffffffff)
+     largeFile = 1;
+
+                fclose(pFile);
+  }
+
+ return largeFile;
+}
+
+int my_minizip(char ** savefile, char ** savefile2) {
+    int opt_overwrite=0;
+    int opt_compress_level=Z_DEFAULT_COMPRESSION;
+    int opt_exclude_path=0;
+    int zipfilenamearg = 0;
+    //char filename_try[MAXFILENAME16];
+    int err=0;
+    int size_buf=0;
+    void* buf=NULL;
+    const char* password=NULL;
+
+	opt_overwrite = 2;
+	opt_compress_level = 9;
+	opt_exclude_path = 1;
+
+    size_buf = WRITEBUFFERSIZE;
+    buf = (void*)malloc(size_buf);
+    if (buf==NULL)
+    {
+        //printf("Error allocating memory\n");
+        return ZIP_INTERNALERROR;
+    }
+
+    {
+        zipFile zf;
+        int errclose;
+#        ifdef USEWIN32IOAPI
+        zlib_filefunc64_def ffunc;
+        fill_win32_filefunc64A(&ffunc);
+        zf = zipOpen2_64(savefile,(opt_overwrite==2) ? 2 : 0,NULL,&ffunc);
+#        else
+        zf = zipOpen64(savefile,(opt_overwrite==2) ? 2 : 0);
+#        endif
+
+        if (zf == NULL)
+        {
+            //printf("error opening %s\n",savefile);
+            err= ZIP_ERRNO;
+        }
+        else
+            //printf("creating %s\n",savefile);
+
+            {
+                FILE * fin;
+                int size_read;
+                char* filenameinzip = (char *)savefile2;
+                const char *savefilenameinzip;
+                zip_fileinfo zi;
+                unsigned long crcFile=0;
+                int zip64 = 0;
+
+                zi.tmz_date.tm_sec = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
+                zi.tmz_date.tm_mday = zi.tmz_date.tm_mon = zi.tmz_date.tm_year = 0;
+                zi.dosDate = 0;
+                zi.internal_fa = 0;
+                zi.external_fa = 0;
+                filetime(filenameinzip,&zi.tmz_date,&zi.dosDate);
+
+                if ((password != NULL) && (err==ZIP_OK))
+                    err = getFileCrc(filenameinzip,buf,size_buf,&crcFile);
+
+                zip64 = isLargeFile(filenameinzip);
+
+                                                         /* The path name saved, should not include a leading slash. */
+               /*if it did, windows/xp and dynazip couldn't read the zip file. */
+                 savefilenameinzip = filenameinzip;
+                 while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )
+                 {
+                     savefilenameinzip++;
+                 }
+
+                 /*should the zip file contain any path at all?*/
+                 if( opt_exclude_path )
+                 {
+                     const char *tmpptr;
+                     const char *lastslash = 0;
+                     for( tmpptr = savefilenameinzip; *tmpptr; tmpptr++)
+                     {
+                         if( *tmpptr == '\\' || *tmpptr == '/')
+                         {
+                             lastslash = tmpptr;
+                         }
+                     }
+                     if( lastslash != NULL )
+                     {
+                         savefilenameinzip = lastslash+1; // base filename follows last slash.
+                     }
+                 }
+
+                 /**/
+                err = zipOpenNewFileInZip3_64(zf,savefilenameinzip,&zi,
+                                 NULL,0,NULL,0,NULL /* comment*/,
+                                 (opt_compress_level != 0) ? Z_DEFLATED : 0,
+                                 opt_compress_level,0,
+                                 /* -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY, */
+                                 -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+                                 password,crcFile, zip64);
+
+                if (err != ZIP_OK) {
+                    //printf("error in opening %s in zipfile\n",filenameinzip);
+				}
+                else
+                {
+                    fin = fopen64(filenameinzip,"rb");
+                    if (fin==NULL)
+                    {
+                        err=ZIP_ERRNO;
+                        //printf("error in opening %s for reading\n",filenameinzip);
+                    }
+                }
+
+                if (err == ZIP_OK)
+                    do
+                    {
+                        err = ZIP_OK;
+                        size_read = (int)fread(buf,1,size_buf,fin);
+                        if (size_read < size_buf)
+                            if (feof(fin)==0)
+                        {
+                            //printf("error in reading %s\n",filenameinzip);
+                            err = ZIP_ERRNO;
+                        }
+
+                        if (size_read>0)
+                        {
+                            err = zipWriteInFileInZip (zf,buf,size_read);
+                            if (err<0)
+                            {
+                                //printf("error in writing %s in the zipfile\n",
+                                //                 filenameinzip);
+                            }
+
+                        }
+                    } while ((err == ZIP_OK) && (size_read>0));
+
+                if (fin)
+                    fclose(fin);
+
+                if (err<0)
+                    err=ZIP_ERRNO;
+                else
+                {
+                    err = zipCloseFileInZip(zf);
+                    if (err!=ZIP_OK) {
+                        //printf("error in closing %s in the zipfile\n",
+                        //            filenameinzip);
+					}
+                }
+            }
+        errclose = zipClose(zf,NULL);
+        if (errclose != ZIP_OK) {
+            //printf("error in closing %s\n",savefile);
+		}
+    }
+
+    free(buf);
+    return 0;
+}
+
+void SaveState::save(size_t slot) { //throw (Error)
+	if (slot >= SLOT_COUNT)  return;
+	SDL_PauseAudio(0);
+	bool save_err=false;
+	if((MEM_TotalPages()*4096/1024/1024)>200) {
+		LOG_MSG("Stopped. 200 MB is the maximum memory size for saving/loading states.");
+		return;
+	}
+	bool create_title=false;
+	bool create_memorysize=false;
+	extern const char* RunningProgram;
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path+=CROSS_FILESPLIT;
+		path+="save";
+		Cross::CreateDir(path);
+		path+=CROSS_FILESPLIT;
+	}
+
+	std::string temp, save2;
+	std::stringstream slotname;
+	slotname << slot+1;
+	temp=path;
+	std::string save=temp+slotname.str()+".sav";
+	remove(save.c_str());
+	std::ofstream file (save.c_str());
+	file << "";
+	file.close();
+	try {
+		for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
+			std::ostringstream ss;
+			i->second.comp.getBytes(ss);
+			i->second.rawBytes[slot].set(ss.str());
+			
+			//LOG_MSG("Component is %s",i->first.c_str());
+
+			if(!create_title) {
+				std::string tempname = temp+"Program_Name";
+				std::ofstream programname (tempname.c_str(), std::ofstream::binary);
+				programname << RunningProgram;
+				create_title=true;
+				programname.close();
+			}
+
+			if(!create_memorysize) {
+                 std::string tempname = temp+"Memory_Size";
+				  std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
+				  memorysize << MEM_TotalPages();
+				  create_memorysize=true;
+				  memorysize.close();
+			}
+			std::string realtemp;
+			realtemp = temp + i->first;
+			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
+			outfile << (Util::compress(ss.str()));
+			//compress all other saved states except position "slot"
+			//const std::vector<RawBytes>& rb = i->second.rawBytes;
+			//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
+			//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
+			outfile.close();
+			ss.clear();
+			if(outfile.fail()) {
+				LOG_MSG("Save failed! - %s", realtemp.c_str());
+				save_err=true;
+				remove(save.c_str());
+				goto delete_all;
+			}
+		}
+	}
+	catch (const std::bad_alloc&) {
+		LOG_MSG("Save failed! Out of Memory!");
+		save_err=true;
+		remove(save.c_str());
+		goto delete_all;
+	}
+
+	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
+		save2=temp+i->first;
+		my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	}
+	save2=temp+"Program_Name";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Memory_Size";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+
+delete_all:
+	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
+		save2=temp+i->first;
+		remove(save2.c_str());
+	}
+	save2=temp+"Program_Name";
+	remove(save2.c_str());
+	save2=temp+"Memory_Size";
+	remove(save2.c_str());
+	if (!save_err) LOG_MSG("Saved. (Slot %d)",slot+1);
+}
+
+void SaveState::load(size_t slot) const { //throw (Error)
+//	if (isEmpty(slot)) return;
+	bool load_err=false;
+	if((MEM_TotalPages()*4096/1024/1024)>200) {
+		LOG_MSG("Stopped. 200 MB is the maximum memory size for saving/loading states.");
+		return;
+	}
+	SDL_PauseAudio(0);
+	extern const char* RunningProgram;
+	bool read_title=false;
+	bool read_memorysize=false;
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	if(check_slot.fail()) {
+		LOG_MSG("No saved slot - %d (%s)",slot+1,save.c_str());
+		load_err=true;
+		return;
+	}
+
+	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
+		std::filebuf * fb;
+		std::ifstream ss;
+		std::ifstream check_file;
+		fb = ss.rdbuf();
+		
+		//LOG_MSG("Component is %s",i->first.c_str());
+
+		my_miniunz((char **)save.c_str(),i->first.c_str(),temp.c_str());
+
+		if(!read_title) {
+			my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
+			std::ifstream check_title;
+			int length = 8;
+
+			std::string tempname = temp+"Program_Name";
+			check_title.open(tempname.c_str(), std::ifstream::in);
+			if(check_title.fail()) {
+				LOG_MSG("Save state corrupted! Program in inconsistent state! - Program_Name");
+				load_err=true;
+				goto delete_all;
+			}
+			check_title.seekg (0, std::ios::end);
+			length = check_title.tellg();
+			check_title.seekg (0, std::ios::beg);
+
+			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
+			check_title.read (buffer, length);
+			check_title.close();
+#if defined(WIN32)
+			if(!force_load_state&&strncmp(buffer,RunningProgram,length)&&MessageBox(GetHWND(),"Program name mismatch. Continue anyway?","Warning",MB_YESNO)==IDNO) {
+#else
+			if(!force_load_state&&strncmp(buffer,RunningProgram,length)) {
+#endif
+				buffer[length]='\0';
+				LOG_MSG("Aborted. Check your program name: %s",buffer);
+				load_err=true;
+				goto delete_all;
+			}
+			read_title=true;
+		}
+
+		if(!read_memorysize) {
+			my_miniunz((char **)save.c_str(),"Memory_Size",temp.c_str());
+			std::fstream check_memorysize;
+			int length = 8;
+
+			std::string tempname = temp+"Memory_Size";
+			check_memorysize.open(tempname.c_str(), std::ifstream::in);
+			if(check_memorysize.fail()) {
+				LOG_MSG("Save state corrupted! Program in inconsistent state! - Memory_Size");
+				load_err=true;
+				goto delete_all;
+			}
+			check_memorysize.seekg (0, std::ios::end);
+			length = check_memorysize.tellg();
+			check_memorysize.seekg (0, std::ios::beg);
+
+			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
+			check_memorysize.read (buffer, length);
+			check_memorysize.close();
+			char str[10];
+			itoa(MEM_TotalPages(), str, 10);
+			if(strncmp(buffer,str,length)) {
+				buffer[length]='\0';
+				LOG_MSG("WARNING: Check your memory size.");
+			}
+			read_memorysize=true;
+		}
+		std::string realtemp;
+		realtemp = temp + i->first;
+		check_file.open(realtemp.c_str(), std::ifstream::in);
+		check_file.close();
+		if(check_file.fail()) {
+			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
+			load_err=true;
+			goto delete_all;
+		}
+
+		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
+		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
+		std::stringstream mystream;
+		mystream << (Util::decompress(str));
+		i->second.comp.setBytes(mystream);
+		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
+			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
+			load_err=true;
+			goto delete_all;
+		}
+		//compress all other saved states except position "slot"
+		//const std::vector<RawBytes>& rb = i->second.rawBytes;
+		//std::for_each(rb.begin(), rb.begin() + slot, std::mem_fun_ref(&RawBytes::compress));
+		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
+		fb->close();
+		mystream.clear();
+	}
+delete_all:
+	std::string save2;
+	for (CompEntry::const_iterator i = components.begin(); i != components.end(); ++i) {
+		save2=temp+i->first;
+		remove(save2.c_str());
+	}
+	save2=temp+"Program_Name";
+	remove(save2.c_str());
+	save2=temp+"Memory_Size";
+	remove(save2.c_str());
+	if (!load_err) LOG_MSG("Loaded. (Slot %d)",slot+1);
+}
+
+bool SaveState::isEmpty(size_t slot) const {
+	if (slot >= SLOT_COUNT) return true;
+	return (components.empty() || !components.begin()->second.rawBytes[slot].dataAvailable());
 }
