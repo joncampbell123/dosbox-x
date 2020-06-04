@@ -8732,16 +8732,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot0").set_text("Slot 1").set_callback_function(save_slot_0_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot1").set_text("Slot 2").set_callback_function(save_slot_1_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot2").set_text("Slot 3").set_callback_function(save_slot_2_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot3").set_text("Slot 4").set_callback_function(save_slot_3_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot4").set_text("Slot 5").set_callback_function(save_slot_4_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot5").set_text("Slot 6").set_callback_function(save_slot_5_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot6").set_text("Slot 7").set_callback_function(save_slot_6_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot7").set_text("Slot 8").set_callback_function(save_slot_7_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot8").set_text("Slot 9").set_callback_function(save_slot_8_callback);
-				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot9").set_text("Slot 10").set_callback_function(save_slot_9_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot0").set_text(("Slot 1"+std::string(SaveState::instance().isEmpty(0)?" [Empty]":"")).c_str()).set_callback_function(save_slot_0_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot1").set_text(("Slot 2"+std::string(SaveState::instance().isEmpty(1)?" [Empty]":"")).c_str()).set_callback_function(save_slot_1_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot2").set_text(("Slot 3"+std::string(SaveState::instance().isEmpty(2)?" [Empty]":"")).c_str()).set_callback_function(save_slot_2_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot3").set_text(("Slot 4"+std::string(SaveState::instance().isEmpty(3)?" [Empty]":"")).c_str()).set_callback_function(save_slot_3_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot4").set_text(("Slot 5"+std::string(SaveState::instance().isEmpty(4)?" [Empty]":"")).c_str()).set_callback_function(save_slot_4_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot5").set_text(("Slot 6"+std::string(SaveState::instance().isEmpty(5)?" [Empty]":"")).c_str()).set_callback_function(save_slot_5_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot6").set_text(("Slot 7"+std::string(SaveState::instance().isEmpty(6)?" [Empty]":"")).c_str()).set_callback_function(save_slot_6_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot7").set_text(("Slot 8"+std::string(SaveState::instance().isEmpty(7)?" [Empty]":"")).c_str()).set_callback_function(save_slot_7_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot8").set_text(("Slot 9"+std::string(SaveState::instance().isEmpty(8)?" [Empty]":"")).c_str()).set_callback_function(save_slot_8_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"slot9").set_text(("Slot 10"+std::string(SaveState::instance().isEmpty(9)?" [Empty]":"")).c_str()).set_callback_function(save_slot_9_callback);
             }
 			char name[6]="slot0";
 			name[4]='0'+GetGameState_Run();
