@@ -172,12 +172,14 @@ void CPU_Core_Full_Init(void);
 void CPU_Core_Dyn_X86_Init(void);
 void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 void CPU_Core_Dyn_X86_Cache_Close(void);
+void CPU_Core_Dyn_X86_Cache_Reset(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #elif (C_DYNREC)
 void CPU_Core_Dynrec_Init(void);
 void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 void CPU_Core_Dynrec_Cache_Close(void);
+void CPU_Core_Dynrec_Cache_Reset(void);
 #endif
 
 bool CPU_IsDynamicCore(void);
@@ -705,6 +707,9 @@ public:
 		is386=desc.Is386();
 		return true;
 	}
+
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 
 	TSS_Descriptor desc;
 	Bitu selector = 0;
@@ -3597,6 +3602,8 @@ public:
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+		// savestate support
+		cpu.hlt.old_decoder=cpudecoder;
 		return true;
 	}
 	~CPU(){ /* empty */};
@@ -3770,6 +3777,63 @@ void CPU_Init() {
 //initialize static members
 bool CPU::inited=false;
 
+//save state support
+void DescriptorTable::SaveState( std::ostream& stream )
+{
+	WRITE_POD( &table_base, table_base );
+	WRITE_POD( &table_limit, table_limit );
+}
+ 
+ 
+void DescriptorTable::LoadState( std::istream& stream )
+{
+	READ_POD( &table_base, table_base );
+	READ_POD( &table_limit, table_limit );
+}
+
+
+void GDTDescriptorTable::SaveState(std::ostream& stream)
+{
+	this->DescriptorTable::SaveState(stream);
+
+
+	WRITE_POD( &ldt_base, ldt_base );
+	WRITE_POD( &ldt_limit, ldt_limit );
+	WRITE_POD( &ldt_value, ldt_value );
+}
+
+
+void GDTDescriptorTable::LoadState(std::istream& stream)
+{
+	this->DescriptorTable::LoadState(stream);
+
+
+	READ_POD( &ldt_base, ldt_base );
+	READ_POD( &ldt_limit, ldt_limit );
+	READ_POD( &ldt_value, ldt_value );
+}
+
+
+void TaskStateSegment::SaveState( std::ostream& stream )
+{
+	WRITE_POD( &desc.saved, desc.saved );
+	WRITE_POD( &selector, selector );
+	WRITE_POD( &base, base );
+	WRITE_POD( &limit, limit );
+	WRITE_POD( &is386, is386 );
+	WRITE_POD( &valid, valid );
+}
+
+
+void TaskStateSegment::LoadState( std::istream& stream )
+{
+	READ_POD( &desc.saved, desc.saved );
+	READ_POD( &selector, selector );
+	READ_POD( &base, base );
+	READ_POD( &limit, limit );
+	READ_POD( &is386, is386 );
+	READ_POD( &valid, valid );
+}
 
 // TODO: This looks to be unused
 Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
@@ -3787,13 +3851,20 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 #if !defined(C_EMSCRIPTEN)
 	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
+	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 #endif
 #if C_DYNAMIC_X86
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
 #endif
+#if (C_DYNREC)
+else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
+#endif
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 #if C_DYNAMIC_X86
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
+#endif
+#if(C_DYNREC)
+else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
 #endif
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
@@ -3814,14 +3885,29 @@ CPU_Decoder* CPU_IndexDecoderType(Bit16u decoder_idx)
 #if C_DYNAMIC_X86
     case 4: return &CPU_Core_Dyn_X86_Run;
 #endif
+#if (C_DYNREC)
+    case 5: return &CPU_Core_Dynrec_Run;
+#endif
     case 100: return &CPU_Core_Normal_Trap_Run;
 #if C_DYNAMIC_X86
     case 101: return &CPU_Core_Dyn_X86_Trap_Run;
+#endif
+#if(C_DYNREC)
+	case 102: return &CPU_Core_Dynrec_Trap_Run;
 #endif
     case 200: return &HLT_Decode;
     default: return 0;
     }
 }
+
+extern void POD_Save_CPU_Flags( std::ostream& stream );
+extern void POD_Save_CPU_Paging( std::ostream& stream );
+extern void POD_Load_CPU_Flags( std::istream& stream );
+extern void POD_Load_CPU_Paging( std::istream& stream );
+
+#if (C_DYNAMIC_X86)
+extern void CPU_Core_Dyn_X86_Cache_Reset(void);
+#endif
 
 Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
 Bitu vm86_fake_io_off = 0x0700;
@@ -3980,3 +4066,181 @@ void CPU_Core_Dyn_X86_SaveDHFPUState(void) {
 void CPU_Core_Dyn_X86_RestoreDHFPUState(void) {
 }
 
+namespace
+{
+class SerializeCPU : public SerializeGlobalPOD
+{
+public:
+SerializeCPU() : SerializeGlobalPOD("CPU")
+{}
+
+private:
+virtual void getBytes(std::ostream& stream)
+{
+    Bit16u decoder_idx;
+
+    extern Bits PageFaultCore(void);
+    extern Bits IOFaultCore(void);
+
+
+
+    decoder_idx = CPU_FindDecoderType( cpudecoder );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    SerializeGlobalPOD::getBytes(stream);
+
+
+    // - pure data
+    WRITE_POD( &cpu_regs, cpu_regs );
+
+    WRITE_POD( &cpu.cpl, cpu.cpl );
+    WRITE_POD( &cpu.mpl, cpu.mpl );
+    WRITE_POD( &cpu.cr0, cpu.cr0 );
+    WRITE_POD( &cpu.pmode, cpu.pmode );
+    cpu.gdt.SaveState(stream);
+    cpu.idt.SaveState(stream);
+    WRITE_POD( &cpu.stack, cpu.stack );
+    WRITE_POD( &cpu.code, cpu.code );
+    WRITE_POD( &cpu.hlt.cs, cpu.hlt.cs );
+    WRITE_POD( &cpu.hlt.eip, cpu.hlt.eip );
+    WRITE_POD( &cpu.exception, cpu.exception );
+    WRITE_POD( &cpu.direction, cpu.direction );
+    WRITE_POD( &cpu.trap_skip, cpu.trap_skip );
+    WRITE_POD( &cpu.drx, cpu.drx );
+    WRITE_POD( &cpu.trx, cpu.trx );
+
+    WRITE_POD( &Segs, Segs );
+    WRITE_POD( &CPU_Cycles, CPU_Cycles );
+    WRITE_POD( &CPU_CycleLeft, CPU_CycleLeft );
+    WRITE_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+    cpu_tss.SaveState(stream);
+    WRITE_POD( &lastint, lastint );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    // - reloc func ptr
+    WRITE_POD( &decoder_idx, decoder_idx );
+
+    POD_Save_CPU_Flags(stream);
+	POD_Save_CPU_Paging(stream);
+}
+
+virtual void setBytes(std::istream& stream)
+{
+    Bit16u decoder_idx;
+    Bit16u decoder_old;
+
+
+
+
+
+    decoder_old = CPU_FindDecoderType( cpudecoder );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    SerializeGlobalPOD::setBytes(stream);
+
+
+    // - pure data
+    READ_POD( &cpu_regs, cpu_regs );
+
+    READ_POD( &cpu.cpl, cpu.cpl );
+    READ_POD( &cpu.mpl, cpu.mpl );
+    READ_POD( &cpu.cr0, cpu.cr0 );
+    READ_POD( &cpu.pmode, cpu.pmode );
+    cpu.gdt.LoadState(stream);
+    cpu.idt.LoadState(stream);
+    READ_POD( &cpu.stack, cpu.stack );
+    READ_POD( &cpu.code, cpu.code );
+    READ_POD( &cpu.hlt.cs, cpu.hlt.cs );
+    READ_POD( &cpu.hlt.eip, cpu.hlt.eip );
+    READ_POD( &cpu.exception, cpu.exception );
+    READ_POD( &cpu.direction, cpu.direction );
+    READ_POD( &cpu.trap_skip, cpu.trap_skip );
+    READ_POD( &cpu.drx, cpu.drx );
+    READ_POD( &cpu.trx, cpu.trx );
+
+    READ_POD( &Segs, Segs );
+    READ_POD( &CPU_Cycles, CPU_Cycles );
+    READ_POD( &CPU_CycleLeft, CPU_CycleLeft );
+    READ_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+    cpu_tss.LoadState(stream);
+    READ_POD( &lastint, lastint );
+
+    //********************************************
+    //********************************************
+    //********************************************
+
+    // - reloc func ptr
+    READ_POD( &decoder_idx, decoder_idx );
+
+
+
+    POD_Load_CPU_Flags(stream);
+	POD_Load_CPU_Paging(stream);
+
+    //*******************************************
+    //*******************************************
+    //*******************************************
+
+    // switch to running core
+    if( decoder_idx < 100 ) {
+        switch( decoder_old ) {
+            // run -> run (0-99)
+
+            // trap -> run
+            case 100: cpudecoder = CPU_IndexDecoderType(0); break;
+            case 101: cpudecoder = CPU_IndexDecoderType(4); break;
+            case 102: cpudecoder = CPU_IndexDecoderType(5); break;
+
+            // hlt -> run
+            case 200: cpudecoder = cpu.hlt.old_decoder; break;
+        }
+    }
+
+    // switch to trap core
+    else if( decoder_idx < 200 ) {
+        switch( decoder_old ) {
+            // run -> trap
+            case 0:
+            case 1:
+            case 2:
+            case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+            case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+            case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+
+            // trap -> trap (100-199)
+
+            // hlt -> trap
+            case 200: {
+                switch( CPU_FindDecoderType(cpu.hlt.old_decoder) ) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+                    case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+                    case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+                }
+            }
+        }
+    }
+
+    // switch to hlt core
+    else if( decoder_idx < 300 ) {
+        cpudecoder = CPU_IndexDecoderType(200);
+    }
+#if (C_DYNAMIC_X86)
+    CPU_Core_Dyn_X86_Cache_Reset();
+#elif (C_DYNREC)
+    CPU_Core_Dynrec_Cache_Reset();
+#endif
+}
+} dummy;
+}
