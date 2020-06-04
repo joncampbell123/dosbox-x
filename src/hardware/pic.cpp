@@ -1072,7 +1072,7 @@ extern void *cmos_timerevent_PIC_Event;						// Cmos.cpp
 extern void *DISNEY_disable_PIC_Event;						// Disney.cpp
 extern void *GUS_TimerEvent_PIC_Event;						// Gus.cpp
 #if C_IPX
-extern void *IPX_AES_EventHandler_PIC_Event;			// Ipx.cpp
+//extern void *IPX_AES_EventHandler_PIC_Event;			// Ipx.cpp
 #endif
 extern void *KEYBOARD_TransferBuffer_PIC_Event;		// Keyboard.cpp
 extern void *MOUSE_Limit_Events_PIC_Event;				// Mouse.cpp
@@ -1100,8 +1100,8 @@ extern void *VGA_VerticalTimer_PIC_Event;
 
 // PIC_TimerHandlers
 #if C_IPX
-extern void *IPX_ClientLoop_PIC_Timer;						// Ipx.cpp
-extern void *IPX_ServerLoop_PIC_Timer;						// Ipxserver.cpp
+//extern void *IPX_ClientLoop_PIC_Timer;						// Ipx.cpp
+//extern void *IPX_ServerLoop_PIC_Timer;						// Ipxserver.cpp
 #endif
 extern void *KEYBOARD_TickHandler_PIC_Timer;			// Keyboard.cpp
 extern void *KEYBOARD_TickHandler_PIC_Timer;			// Keyboard.cpp
@@ -1119,7 +1119,7 @@ const void *pic_state_event_table[] = {
 	DISNEY_disable_PIC_Event,
 	GUS_TimerEvent_PIC_Event,
 #if C_IPX	
-	IPX_AES_EventHandler_PIC_Event,
+//	IPX_AES_EventHandler_PIC_Event,
 #endif	
 	KEYBOARD_TransferBuffer_PIC_Event,
 	MOUSE_Limit_Events_PIC_Event,
@@ -1150,8 +1150,8 @@ const void *pic_state_event_table[] = {
 const void *pic_state_timer_table[] = {
 	NULL,
 #if C_IPX	
-	IPX_ClientLoop_PIC_Timer,
-	IPX_ServerLoop_PIC_Timer,
+//	IPX_ClientLoop_PIC_Timer,
+//	IPX_ServerLoop_PIC_Timer,
 #endif	
 	KEYBOARD_TickHandler_PIC_Timer,
 	KEYBOARD_TickHandler_PIC_Timer,

@@ -179,10 +179,6 @@ extern bool dos_kernel_disabled;
 
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
-#if defined(WIN32)
-void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
-void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive);
 void SetGameState_Run(int value);
 size_t GetGameState_Run(void);
 
@@ -255,6 +251,11 @@ bool save_slot_9_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 	SetGameState_Run(9);
 	return true;
 }
+
+#if defined(WIN32)
+void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
+void MenuBrowseFolder(char drive, std::string drive_type);
+void MenuBrowseImageFile(char drive);
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED

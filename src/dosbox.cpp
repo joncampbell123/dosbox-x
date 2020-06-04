@@ -91,6 +91,10 @@
 #include <windows.h>
 #endif
 
+#if defined(unix)
+# include <utime.h>
+#endif
+
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
@@ -741,7 +745,7 @@ void SetGameState(int value) {
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 	
 	const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", currentSlot + 1,  emptySlot ? "[Empty]" : "");
+    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1,  emptySlot ? "[Empty]" : "");
 }
 
 void SaveGameState(bool pressed) {
@@ -750,7 +754,7 @@ void SaveGameState(bool pressed) {
     try
     {
         SaveState::instance().save(currentSlot);
-        LOG_MSG("[%s]: State %d saved!", getTime().c_str(), currentSlot + 1);
+        LOG_MSG("[%s]: State %d saved!", getTime().c_str(), (int)currentSlot + 1);
 		char name[6]="slot0";
 		name[4]='0'+currentSlot;
 		std::string str="Slot 1"+std::string(SaveState::instance().isEmpty(currentSlot)?" [Empty]":"");
@@ -774,7 +778,7 @@ void LoadGameState(bool pressed) {
     try
     {
         SaveState::instance().load(currentSlot);
-        LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), currentSlot + 1);
+        LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), (int)currentSlot + 1);
     }
     catch (const SaveState::Error& err)
     {
@@ -793,7 +797,7 @@ void NextSaveSlot(bool pressed) {
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", currentSlot + 1,  emptySlot ? "[Empty]" : "");
+    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
 
 
@@ -808,7 +812,7 @@ void PreviousSaveSlot(bool pressed) {
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", currentSlot + 1, emptySlot ? "[Empty]" : "");
+    LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
 }
 
@@ -3917,7 +3921,9 @@ inline bool SaveState::RawBytes::dataAvailable() const {
 }
 
 #define CASESENSITIVITY (0)
+#ifndef WRITEBUFFERSIZE
 #define WRITEBUFFERSIZE (8192)
+#endif
 #define MAXFILENAME (256)
 
 int mymkdir(const char* dirname)
@@ -3984,6 +3990,7 @@ int makedir(const char *newdir)
 
 void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
 {
+    (void)dosdate;
 #ifdef _WIN32
   HANDLE hFile;
   FILETIME ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite;
@@ -3996,7 +4003,7 @@ void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
   SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
   CloseHandle(hFile);
 #else
-#ifdef unix || __APPLE__
+#if defined(unix) || defined(__APPLE__)
   struct utimbuf ut;
   struct tm newdate;
   newdate.tm_sec = tmu_date.tm_sec;
@@ -4029,6 +4036,8 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
     unz_file_info64 file_info;
     uLong ratio=0;
     err = unzGetCurrentFileInfo64(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
+
+    (void)ratio;
 
     if (err!=UNZ_OK)
     {
@@ -4181,9 +4190,13 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
     int err;
     FILE* fout=NULL;
 
+    (void)fout;
+
     err = unzGetGlobalInfo64(uf,&gi);
-    if (err!=UNZ_OK)
+    if (err!=UNZ_OK) {
         printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+        return 0;
+    }
 
     for (i=0;i<gi.number_entry;i++)
     {
@@ -4209,6 +4222,7 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
 int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password)
 {
     int err = UNZ_OK;
+    (void)err;
     if (unzLocateFile(uf,filename,CASESENSITIVITY)!=UNZ_OK)
     {
         printf("file %s not found in the zipfile\n",filename);
@@ -4291,7 +4305,9 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
     return ret_value;
 }
 
+#ifndef WRITEBUFFERSIZE
 #define WRITEBUFFERSIZE (16384)
+#endif
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
@@ -4315,9 +4331,10 @@ uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
   return ret;
 }
 #else
-#ifdef unix || __APPLE__
+#if defined(unix) || defined(__APPLE__)
 uLong filetime(char *f, tm_zip *tmzip, uLong *dt)
 {
+    (void)dt;
   int ret=0;
   struct stat s;        /* results of stat() */
   struct tm* filedate;
@@ -4422,6 +4439,7 @@ int isLargeFile(const char* filename)
   {
     int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
     pos = FTELLO_FUNC(pFile);
+    (void)n;
 
                 printf("File : %s is %lld bytes\n", filename, pos);
 
@@ -4439,6 +4457,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
     int opt_compress_level=Z_DEFAULT_COMPRESSION;
     int opt_exclude_path=0;
     int zipfilenamearg = 0;
+    (void)zipfilenamearg;
     //char filename_try[MAXFILENAME16];
     int err=0;
     int size_buf=0;
@@ -4697,7 +4716,7 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
-	if (!save_err) LOG_MSG("Saved. (Slot %d)",slot+1);
+	if (!save_err) LOG_MSG("Saved. (Slot %d)",(int)slot+1);
 }
 
 void SaveState::load(size_t slot) const { //throw (Error)
@@ -4735,7 +4754,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if(check_slot.fail()) {
-		LOG_MSG("No saved slot - %d (%s)",slot+1,save.c_str());
+		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
 #if defined(WIN32)
 		MessageBox(GetHWND(),"The selected save slot is empty.","Error",MB_OK);
 #endif
@@ -4858,7 +4877,7 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
-	if (!load_err) LOG_MSG("Loaded. (Slot %d)",slot+1);
+	if (!load_err) LOG_MSG("Loaded. (Slot %d)",(int)slot+1);
 }
 
 bool SaveState::isEmpty(size_t slot) const {
