@@ -736,6 +736,10 @@ bool PIC_RunQueue(void) {
             PICEntry * entry=pic_queue.next_entry;
             pic_queue.next_entry=entry->next;
 
+#if 0//DEBUGGING FOR LOAD/SAVE STATE ISSUES
+            if (entry->pic_event == NULL) E_Exit("PIC_RunQueue event with NULL event function!");
+#endif
+
             srv_lag = entry->index;
             (entry->pic_event)(entry->value); // call the event handler
 
