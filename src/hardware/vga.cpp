@@ -149,8 +149,6 @@
 
 #include "zipfile.h"
 
-extern ZIPFile savestate_zip;
-
 using namespace std;
 
 Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);

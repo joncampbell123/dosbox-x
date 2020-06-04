@@ -38,8 +38,6 @@
 
 #include <string.h>
 
-extern ZIPFile savestate_zip;
-
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
 

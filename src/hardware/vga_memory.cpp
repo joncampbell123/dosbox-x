@@ -33,8 +33,6 @@
 #include "pc98_gdc.h"
 #include "zipfile.h"
 
-extern ZIPFile savestate_zip;
-
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 

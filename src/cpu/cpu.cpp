@@ -39,8 +39,6 @@
 #pragma warning(disable:4065)
 #endif
 
-extern ZIPFile savestate_zip;
-
 /* caution: do not uncomment unless you want a lot of spew */
 //#define CPU_DEBUG_SPEW
 

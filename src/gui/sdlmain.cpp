@@ -3356,8 +3356,6 @@ void ResetSystem(bool pressed) {
     throw int(3);
 }
 
-ZIPFile savestate_zip;
-
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
