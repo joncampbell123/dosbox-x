@@ -1,4 +1,7 @@
 0.83.3
+  - Save/load state now saves PC-98 FM interrupt state so
+    that reloading state does not cause hung music.
+  - Save/load state now supports Sound Blaster Goldplay mode.
   - Save/load state fixed not to crash when used within a
     guest operting system (when the DOS kernel has been
     shut down using the BOOT command).
