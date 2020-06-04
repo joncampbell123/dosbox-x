@@ -4731,6 +4731,9 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if(check_slot.fail()) {
 		LOG_MSG("No saved slot - %d (%s)",slot+1,save.c_str());
+#if defined(WIN32)
+		MessageBox(GetHWND(),"The selected save slot is empty.","Error",MB_OK);
+#endif
 		load_err=true;
 		return;
 	}
@@ -4754,6 +4757,9 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_title.open(tempname.c_str(), std::ifstream::in);
 			if(check_title.fail()) {
 				LOG_MSG("Save state corrupted! Program in inconsistent state! - Program_Name");
+#if defined(WIN32)
+				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
+#endif
 				load_err=true;
 				goto delete_all;
 			}
@@ -4765,7 +4771,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_title.read (buffer, length);
 			check_title.close();
 #if defined(WIN32)
-			if(!force_load_state&&strncmp(buffer,RunningProgram,length)&&MessageBox(GetHWND(),"Program name mismatch. Continue anyway?","Warning",MB_YESNO)==IDNO) {
+			if(!force_load_state&&strncmp(buffer,RunningProgram,length)&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO)==IDNO) {
 #else
 			if(!force_load_state&&strncmp(buffer,RunningProgram,length)) {
 #endif
@@ -4810,6 +4816,9 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		check_file.close();
 		if(check_file.fail()) {
 			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
+#if defined(WIN32)
+			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
+#endif
 			load_err=true;
 			goto delete_all;
 		}
@@ -4821,6 +4830,9 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
 			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
+#if defined(WIN32)
+			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
+#endif
 			load_err=true;
 			goto delete_all;
 		}
