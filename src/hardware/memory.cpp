@@ -2261,6 +2261,8 @@ private:
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			if( pagehandler_idx[lcv] != 0xff )
 				memory.phandlers[lcv] = (PageHandler *) Memory_PageHandler_table[ pagehandler_idx[lcv] ];
+			else if ( lcv >= 0xa0 && lcv <= 0xff)
+				{ /* VGA and BIOS emulation does not handle this right, yet */ }
 			else
 				memory.phandlers[lcv] = NULL; /* MEM_SlowPath() will fill it in again */
 		}
