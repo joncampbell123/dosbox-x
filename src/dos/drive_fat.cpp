@@ -1956,11 +1956,11 @@ void fatDrive::SetBPB(const FAT_BootSector::bpb_union_t &bpb) {
 	BPB.v.BPB_NumHeads = bpb.v.BPB_NumHeads;
 	BPB.v.BPB_HiddSec = bpb.v.BPB_HiddSec;
 	BPB.v.BPB_TotSec32 = bpb.v.BPB_TotSec32;
-	if (!BPB.is_fat32() && (BPB.v.BPB_BootSig == 0x28 || BPB.v.BPB_BootSig == 0x29))
+	if (!bpb.is_fat32() && (bpb.v.BPB_BootSig == 0x28 || bpb.v.BPB_BootSig == 0x29))
 		BPB.v.BPB_VolID = bpb.v.BPB_VolID;
-	if (BPB.is_fat32() && (BPB.v32.BS_BootSig == 0x28 || BPB.v32.BS_BootSig == 0x29))
+	if (bpb.is_fat32() && (bpb.v32.BS_BootSig == 0x28 || bpb.v32.BS_BootSig == 0x29))
 		BPB.v32.BS_VolID = bpb.v32.BS_VolID;
-	if (BPB.is_fat32()) {
+	if (bpb.is_fat32()) {
 		BPB.v32.BPB_BytsPerSec = bpb.v32.BPB_BytsPerSec;
 		BPB.v32.BPB_SecPerClus = bpb.v32.BPB_SecPerClus;
 		BPB.v32.BPB_RsvdSecCnt = bpb.v32.BPB_RsvdSecCnt;

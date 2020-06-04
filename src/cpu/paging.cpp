@@ -1197,3 +1197,58 @@ void PAGING_Init() {
 	pf_queue.used=0;
 }
 
+// save state support
+void POD_Save_CPU_Paging( std::ostream& stream )
+{
+	WRITE_POD( &paging.cr3, paging.cr3 );
+	WRITE_POD( &paging.cr2, paging.cr2 );
+//	WRITE_POD( &paging.wp, paging.wp );
+	WRITE_POD( &paging.base, paging.base );
+
+	WRITE_POD( &paging.tlb.read, paging.tlb.read );
+	WRITE_POD( &paging.tlb.write, paging.tlb.write );
+	WRITE_POD( &paging.tlb.phys_page, paging.tlb.phys_page );
+
+	WRITE_POD( &paging.links, paging.links );
+//	WRITE_POD( &paging.ur_links, paging.ur_links );
+//	WRITE_POD( &paging.krw_links, paging.krw_links );
+//	WRITE_POD( &paging.kr_links, paging.kr_links );
+
+	WRITE_POD( &paging.firstmb, paging.firstmb );
+	WRITE_POD( &paging.enabled, paging.enabled );
+
+	WRITE_POD( &pf_queue, pf_queue );
+}
+
+void POD_Load_CPU_Paging( std::istream& stream )
+{
+	READ_POD( &paging.cr3, paging.cr3 );
+	READ_POD( &paging.cr2, paging.cr2 );
+//	READ_POD( &paging.wp, paging.wp );
+	READ_POD( &paging.base, paging.base );
+
+	READ_POD( &paging.tlb.read, paging.tlb.read );
+	READ_POD( &paging.tlb.write, paging.tlb.write );
+	READ_POD( &paging.tlb.phys_page, paging.tlb.phys_page );
+
+	READ_POD( &paging.links, paging.links );
+//	READ_POD( &paging.ur_links, paging.ur_links );
+//	READ_POD( &paging.krw_links, paging.krw_links );
+//	READ_POD( &paging.kr_links, paging.kr_links );
+
+	READ_POD( &paging.firstmb, paging.firstmb );
+	READ_POD( &paging.enabled, paging.enabled );
+
+	READ_POD( &pf_queue, pf_queue );
+
+	// reset all information
+	paging.links.used = PAGING_LINKS;
+	PAGING_ClearTLB();
+
+	for( int lcv=0; lcv<TLB_SIZE; lcv++ ) {
+		paging.tlb.read[lcv] = 0;
+		paging.tlb.write[lcv] = 0;
+		paging.tlb.readhandler[lcv] = &init_page_handler;
+		paging.tlb.writehandler[lcv] = &init_page_handler;
+	}
+}

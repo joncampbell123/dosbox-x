@@ -1067,4 +1067,365 @@ void DEBUG_LogPIC(void) {
 }
 #endif
 
+// PIC_EventHandlers
+extern void *cmos_timerevent_PIC_Event;						// Cmos.cpp
+extern void *DISNEY_disable_PIC_Event;						// Disney.cpp
+extern void *GUS_TimerEvent_PIC_Event;						// Gus.cpp
+#if C_IPX
+extern void *IPX_AES_EventHandler_PIC_Event;			// Ipx.cpp
+#endif
+extern void *KEYBOARD_TransferBuffer_PIC_Event;		// Keyboard.cpp
+extern void *MOUSE_Limit_Events_PIC_Event;				// Mouse.cpp
+extern void *MPU401_Event_PIC_Event;							// Mpu401.cpp
+extern void *DMA_Silent_Event_PIC_Event;					// Sblaster.cpp
+extern void *DSP_FinishReset_PIC_Event;
+extern void *DSP_RaiseIRQEvent_PIC_Event;
+extern void *END_DMA_Event_PIC_Event;
+extern void *Serial_EventHandler_PIC_Event;				// Serialport.cpp
+extern void *PIT0_Event_PIC_Event;								// Timer.cpp
+extern void *VGA_DisplayStartLatch_PIC_Event;			// Vga.cpp
+extern void *VGA_DrawEGASingleLine_PIC_Event;
+//extern void *VGA_DrawPart_PIC_Event;
+extern void *VGA_DrawSingleLine_PIC_Event;
+extern void *VGA_Other_VertInterrupt_PIC_Event;
+extern void *VGA_PanningLatch_PIC_Event;
+extern void *VGA_SetupDrawing_PIC_Event;
+extern void *VGA_VertInterrupt_PIC_Event;
+extern void *VGA_VerticalTimer_PIC_Event;
+
+#if C_NE2000
+//extern void *NE2000_TX_Event_PIC_Event;						// Ne2000.cpp
+#endif
+
+
+// PIC_TimerHandlers
+#if C_IPX
+extern void *IPX_ClientLoop_PIC_Timer;						// Ipx.cpp
+extern void *IPX_ServerLoop_PIC_Timer;						// Ipxserver.cpp
+#endif
+extern void *KEYBOARD_TickHandler_PIC_Timer;			// Keyboard.cpp
+extern void *KEYBOARD_TickHandler_PIC_Timer;			// Keyboard.cpp
+//extern void *MIXER_Mix_NoSound_PIC_Timer;					// Mixer.cpp
+extern void *MIXER_Mix_PIC_Timer;
+
+#if C_NE2000
+//extern void *NE2000_Poller_PIC_Event;							// Ne2000.cpp
+#endif
+
+
+const void *pic_state_event_table[] = {
+	NULL,
+	cmos_timerevent_PIC_Event,
+	DISNEY_disable_PIC_Event,
+	GUS_TimerEvent_PIC_Event,
+#if C_IPX	
+	IPX_AES_EventHandler_PIC_Event,
+#endif	
+	KEYBOARD_TransferBuffer_PIC_Event,
+	MOUSE_Limit_Events_PIC_Event,
+	MPU401_Event_PIC_Event,
+	DMA_Silent_Event_PIC_Event,
+	DSP_FinishReset_PIC_Event,
+	DSP_RaiseIRQEvent_PIC_Event,
+	END_DMA_Event_PIC_Event,
+	END_DMA_Event_PIC_Event,
+	Serial_EventHandler_PIC_Event,
+	PIT0_Event_PIC_Event,
+	VGA_DisplayStartLatch_PIC_Event,
+	VGA_DrawEGASingleLine_PIC_Event,
+	//VGA_DrawPart_PIC_Event,
+	VGA_DrawSingleLine_PIC_Event,
+	VGA_Other_VertInterrupt_PIC_Event,
+	VGA_PanningLatch_PIC_Event,
+	VGA_SetupDrawing_PIC_Event,
+	VGA_VertInterrupt_PIC_Event,
+	VGA_VerticalTimer_PIC_Event,
+
+#if C_NE2000
+	//NE2000_TX_Event_PIC_Event,
+#endif
+};
+
+
+const void *pic_state_timer_table[] = {
+	NULL,
+#if C_IPX	
+	IPX_ClientLoop_PIC_Timer,
+	IPX_ServerLoop_PIC_Timer,
+#endif	
+	KEYBOARD_TickHandler_PIC_Timer,
+	KEYBOARD_TickHandler_PIC_Timer,
+	//MIXER_Mix_NoSound_PIC_Timer,
+	MIXER_Mix_PIC_Timer,
+
+#if C_NE2000
+	//NE2000_Poller_PIC_Event,
+#endif
+};
+
+
+
+//#include <windows.h>
+Bit16u PIC_State_FindEvent( Bitu addr ) {
+	int size;
+
+	size = sizeof(pic_state_event_table) / sizeof(void *);
+	for( int lcv=0; lcv<size; lcv++ ) {
+		if( addr == (Bitu) (pic_state_event_table[lcv]) ) return lcv;
+	}
+
+
+	// ERROR!! (place debug breakpoint here)
+	//MessageBox(0,"PIC - State FindEvent",0,0);
+	return 0xffff;
+}
+
+
+Bit16u PIC_State_FindTimer( Bitu addr ) {
+	int size;
+
+	size = sizeof(pic_state_timer_table) / sizeof(void *);
+	for( int lcv=0; lcv<size; lcv++ ) {
+		if( addr == (Bitu) (pic_state_timer_table[lcv]) ) return lcv;
+	}
+
+
+	// ERROR!! (place debug breakpoint here)
+	//MessageBox(0,"PIC - State FindTimer",0,0);
+	return 0xffff;
+}
+
+
+Bitu PIC_State_IndexEvent( Bit16u index ) {
+	if( index == 0xffff ) return 0;
+
+	return (Bitu) (pic_state_event_table[index]);
+}
+
+
+Bitu PIC_State_IndexTimer( Bit16u index ) {
+	if( index == 0xffff ) return 0;
+
+	return (Bitu) (pic_state_timer_table[index]);
+}
+
+//save state support
+namespace
+{
+class SerializePic : public SerializeGlobalPOD
+{
+public:
+		SerializePic() : SerializeGlobalPOD("Pic")
+    {}
+
+private:
+    virtual void getBytes(std::ostream& stream)
+    {
+				Bit16u pic_free_idx, pic_next_idx;
+				Bit16u pic_next_ptr[PIC_QUEUESIZE];
+
+				TickerBlock *ticker_ptr;
+				Bit16u ticker_size;
+				Bit16u ticker_handler_idx;
+
+
+				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
+					Bitu pic_addr;
+
+					pic_addr = (Bitu) pic_queue.entries[lcv].next;
+					pic_next_ptr[lcv] = 0xffff;
+
+					for( int lcv2=0; lcv2<PIC_QUEUESIZE; lcv2++ ) {
+						if( pic_addr == (Bitu) &pic_queue.entries[lcv2] ) {
+							pic_next_ptr[lcv] = lcv2;
+							break;
+						}
+					}
+				}
+
+
+				ticker_size = 0;
+				ticker_ptr = firstticker;
+				while( ticker_ptr != NULL ) {
+					ticker_ptr = ticker_ptr->next;
+					ticker_size++;
+				}
+
+				// ***************************************************
+				// ***************************************************
+				// ***************************************************
+
+        SerializeGlobalPOD::getBytes(stream);
+
+
+				// - data
+        stream.write(reinterpret_cast<const char*>(&PIC_Ticks), sizeof(PIC_Ticks) );
+        stream.write(reinterpret_cast<const char*>(&PIC_IRQCheck), sizeof(PIC_IRQCheck) );
+
+				// - data structs
+        stream.write(reinterpret_cast<const char*>(&pics), sizeof(pics) );
+
+
+				pic_free_idx = 0xffff;
+				pic_next_idx = 0xffff;
+				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
+					Bit16u event_idx;
+
+					// - data
+					stream.write(reinterpret_cast<const char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
+					stream.write(reinterpret_cast<const char*>(&pic_queue.entries[lcv].value), sizeof(pic_queue.entries[lcv].value) );
+
+					// - function ptr
+					event_idx = PIC_State_FindEvent( (Bitu) (pic_queue.entries[lcv].pic_event) );
+					stream.write(reinterpret_cast<const char*>(&event_idx), sizeof(event_idx) );
+
+					// - reloc ptr
+					stream.write(reinterpret_cast<const char*>(&pic_next_ptr[lcv]), sizeof(pic_next_ptr[lcv]) );
+
+
+					if( &pic_queue.entries[lcv] == pic_queue.free_entry ) pic_free_idx = lcv;
+					if( &pic_queue.entries[lcv] == pic_queue.next_entry ) pic_next_idx = lcv;
+				}
+
+				// - reloc ptrs
+        stream.write(reinterpret_cast<const char*>(&pic_free_idx), sizeof(pic_free_idx) );
+        stream.write(reinterpret_cast<const char*>(&pic_next_idx), sizeof(pic_next_idx) );
+
+
+				// - data
+        stream.write(reinterpret_cast<const char*>(&InEventService), sizeof(InEventService) );
+        stream.write(reinterpret_cast<const char*>(&srv_lag), sizeof(srv_lag) );
+
+
+				// - reloc ptr
+        stream.write(reinterpret_cast<const char*>(&ticker_size), sizeof(ticker_size) );
+
+				ticker_ptr = firstticker;
+				for( int lcv=0; lcv<ticker_size; lcv++ ) {
+					// - function ptr
+					ticker_handler_idx = PIC_State_FindTimer( (Bitu) (ticker_ptr->handler) );
+					stream.write(reinterpret_cast<const char*>(&ticker_handler_idx), sizeof(ticker_handler_idx) );
+
+					// - reloc new ptr (leave alone)
+					//stream.write(reinterpret_cast<const char*>(&ticker_ptr->next), sizeof(ticker_ptr->next) );
+
+					ticker_ptr = ticker_ptr->next;
+				}
+
+
+				// - system (leave alone)
+        //stream.write(reinterpret_cast<const char*>(&PIC_benchstart), sizeof(PIC_benchstart) );
+        //stream.write(reinterpret_cast<const char*>(&PIC_tickstart), sizeof(PIC_tickstart) );
+
+				// - static (leave alone)
+				//test->saveState(stream);
+		}
+
+    virtual void setBytes(std::istream& stream)
+    {
+				Bit16u free_idx, next_idx;
+				Bit16u ticker_size;
+
+
+        SerializeGlobalPOD::setBytes(stream);
+
+
+				// - data
+        stream.read(reinterpret_cast<char*>(&PIC_Ticks), sizeof(PIC_Ticks) );
+        stream.read(reinterpret_cast<char*>(&PIC_IRQCheck), sizeof(PIC_IRQCheck) );
+
+				// - data structs
+        stream.read(reinterpret_cast<char*>(&pics), sizeof(pics) );
+
+
+				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
+					Bit16u event_idx, next_idx;
+
+					// - data
+					stream.read(reinterpret_cast<char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
+					stream.read(reinterpret_cast<char*>(&pic_queue.entries[lcv].value), sizeof(pic_queue.entries[lcv].value) );
+
+
+					// - function ptr
+					stream.read(reinterpret_cast<char*>(&event_idx), sizeof(event_idx) );
+					pic_queue.entries[lcv].pic_event = (PIC_EventHandler) PIC_State_IndexEvent( event_idx );
+
+
+					// - reloc ptr
+					stream.read(reinterpret_cast<char*>(&next_idx), sizeof(next_idx) );
+
+					pic_queue.entries[lcv].next = NULL;
+					if( next_idx != 0xffff )
+						pic_queue.entries[lcv].next = &pic_queue.entries[next_idx];
+				}
+
+				// - reloc ptrs
+        stream.read(reinterpret_cast<char*>(&free_idx), sizeof(free_idx) );
+        stream.read(reinterpret_cast<char*>(&next_idx), sizeof(next_idx) );
+
+				pic_queue.free_entry = NULL;
+				if( free_idx != 0xffff )
+					pic_queue.free_entry = &pic_queue.entries[free_idx];
+
+				pic_queue.next_entry = NULL;
+				if( next_idx != 0xffff )
+					pic_queue.next_entry = &pic_queue.entries[next_idx];
+
+
+				// - data
+        stream.read(reinterpret_cast<char*>(&InEventService), sizeof(InEventService) );
+        stream.read(reinterpret_cast<char*>(&srv_lag), sizeof(srv_lag) );
+
+
+				// 1- wipe old data
+				// 2- insert new data
+				while( firstticker != NULL ) {
+					TickerBlock *ticker_ptr;
+
+					ticker_ptr = firstticker;
+					firstticker = firstticker->next;
+
+					delete ticker_ptr;
+				}
+
+
+				// - reloc ptr
+        stream.read(reinterpret_cast<char*>(&ticker_size), sizeof(ticker_size) );
+
+				firstticker = NULL;
+				if( ticker_size ) {
+					TickerBlock *ticker_ptr;
+
+					for( int lcv = 0; lcv<ticker_size; lcv++ ) {
+						Bit16u ticker_idx;
+
+						if( lcv == 0 ) {
+							ticker_ptr = new TickerBlock;
+							firstticker = ticker_ptr;
+						}
+						else {
+							ticker_ptr->next = new TickerBlock;
+							ticker_ptr = ticker_ptr->next;
+						}
+
+
+						// - function ptr
+						stream.read(reinterpret_cast<char*>(&ticker_idx), sizeof(ticker_idx) );
+						ticker_ptr->handler = (TIMER_TickHandler) PIC_State_IndexTimer( ticker_idx );
+
+						// - reloc new ptr (linked list)
+						ticker_ptr->next = NULL;
+					}
+				}
+
+
+				// - system (leave alone)
+        //stream.read(reinterpret_cast<char*>(&PIC_benchstart), sizeof(PIC_benchstart) );
+        //stream.read(reinterpret_cast<char*>(&PIC_tickstart), sizeof(PIC_tickstart) );
+
+				// - static (leave alone)
+				//test->loadState(stream);
+    }
+} dummy;
+}
 

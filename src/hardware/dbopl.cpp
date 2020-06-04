@@ -1528,5 +1528,156 @@ void Handler::Init( Bitu rate ) {
 	InitTables();
 	chip.Setup( (Bit32u)rate );
 }
+
+// save state support
+void Handler::SaveState( std::ostream& stream )
+{
+	const char pod_name[32] = "DBOPL";
+
+	if( stream.fail() ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u volhandler_idx[18][2];
+	Bit32u wavebase_idx[18][2];
+	Bit8u synthhandler_idx[18];
+
+
+	for( int lcv1=0; lcv1<18; lcv1++ ) {
+		for( int lcv2=0; lcv2<2; lcv2++ ) {
+			volhandler_idx[lcv1][lcv2] = 0xff;
+
+			for( int lcv3=0; lcv3<5; lcv3++ ) {
+				if( chip.chan[lcv1].op[lcv2].volHandler == VolumeHandlerTable[lcv3] ) {
+					volhandler_idx[lcv1][lcv2] = lcv3;
+					break;
+				}
+			}
+
+			wavebase_idx[lcv1][lcv2] = (Bitu) chip.chan[lcv1].op[lcv2].waveBase - (Bitu) &WaveTable;
+		}
+
+
+		synthhandler_idx[lcv1] = 0xff;
+		if(0) {}
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3FMFM > ) synthhandler_idx[lcv1] = 0x00;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3AMFM > ) synthhandler_idx[lcv1] = 0x01;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3FMAM > ) synthhandler_idx[lcv1] = 0x02;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3AMAM > ) synthhandler_idx[lcv1] = 0x03;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3AM > ) synthhandler_idx[lcv1] = 0x04;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3FM > ) synthhandler_idx[lcv1] = 0x05;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm2AM > ) synthhandler_idx[lcv1] = 0x06;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm2FM > ) synthhandler_idx[lcv1] = 0x07;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm3Percussion > ) synthhandler_idx[lcv1] = 0x08;
+		else if( chip.chan[lcv1].synthHandler == &Channel::BlockTemplate< sm2Percussion > ) synthhandler_idx[lcv1] = 0x09;
+	}
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.cpp
+
+	// - pure data
+	WRITE_POD( &WaveTable, WaveTable );
+	WRITE_POD( &doneTables, doneTables );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.h
+
+	// - near-pure data
+	WRITE_POD( &chip, chip );
+
+
+
+
+	// - reloc ptr (!!!)
+	WRITE_POD( &volhandler_idx, volhandler_idx );
+	WRITE_POD( &wavebase_idx, wavebase_idx );
+	WRITE_POD( &synthhandler_idx, synthhandler_idx );
 }
 
+void Handler::LoadState( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "DBOPL" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u volhandler_idx[18][2];
+	Bit32u wavebase_idx[18][2];
+	Bit8u synthhandler_idx[18];
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.cpp
+
+	// - pure data
+	READ_POD( &WaveTable, WaveTable );
+	READ_POD( &doneTables, doneTables );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.h
+
+	// - near-pure data
+	READ_POD( &chip, chip );
+
+
+
+
+	// - reloc ptr (!!!)
+	READ_POD( &volhandler_idx, volhandler_idx );
+	READ_POD( &wavebase_idx, wavebase_idx );
+	READ_POD( &synthhandler_idx, synthhandler_idx );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	for( int lcv1=0; lcv1<18; lcv1++ ) {
+		for( int lcv2=0; lcv2<2; lcv2++ ) {
+			chip.chan[lcv1].op[lcv2].volHandler = VolumeHandlerTable[ volhandler_idx[lcv1][lcv2] ];
+
+			chip.chan[lcv1].op[lcv2].waveBase = (Bit16s *) ((Bitu) wavebase_idx[lcv1][lcv2] + (Bitu) &WaveTable);
+		}
+
+
+		switch( synthhandler_idx[lcv1] ) {
+			case 0x00: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FMFM >; break;
+			case 0x01: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AMFM >; break;
+			case 0x02: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FMAM >; break;
+			case 0x03: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AMAM >; break;
+			case 0x04: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AM >; break;
+			case 0x05: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FM >; break;
+			case 0x06: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2AM >; break;
+			case 0x07: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2FM >; break;
+			case 0x08: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3Percussion >; break;
+			case 0x09: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2Percussion >; break;
+		}
+	}
+}
+ };		//Namespace DBOPL

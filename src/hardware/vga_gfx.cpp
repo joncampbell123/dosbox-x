@@ -250,3 +250,29 @@ void VGA_UnsetupGFX(void) {
     IO_FreeReadHandler(0x3cf,IO_MB);
 }
 
+// save state support
+ 
+void POD_Save_VGA_Gfx( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.gfx, vga.gfx );
+
+	//*******************************************
+	//*******************************************
+
+	// - system data
+	//WRITE_POD( &index9warned, index9warned );
+}
+
+
+void POD_Load_VGA_Gfx( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.gfx, vga.gfx );
+
+	//*******************************************
+	//*******************************************
+
+	// - system data
+	//READ_POD( &index9warned, index9warned );
+}

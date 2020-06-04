@@ -362,3 +362,22 @@ void VGA_UnsetupAttr(void) {
     IO_FreeReadHandler(0x3c1,IO_MB);
 }
 
+// save state support
+void POD_Save_VGA_Attr( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.attr, vga.attr );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Attr( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.attr, vga.attr );
+
+
+	// no static globals found
+}

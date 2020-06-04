@@ -616,3 +616,27 @@ void CMOS_Init() {
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));
 }
 
+// save state support
+void *cmos_timerevent_PIC_Event = (void*)cmos_timerevent;
+
+namespace
+{
+class SerializeCmos : public SerializeGlobalPOD
+{
+public:
+    SerializeCmos() : SerializeGlobalPOD("CMOS")
+    {
+        registerPOD(cmos.regs);
+        registerPOD(cmos.nmi);
+        registerPOD(cmos.reg);
+        registerPOD(cmos.timer.enabled);
+        registerPOD(cmos.timer.div);
+        registerPOD(cmos.timer.delay);
+        registerPOD(cmos.timer.acknowledged);
+        registerPOD(cmos.last.timer);
+        registerPOD(cmos.last.ended);
+        registerPOD(cmos.last.alarm);
+        registerPOD(cmos.update_ended);
+    }
+} dummy;
+}

@@ -438,7 +438,12 @@ static const char *def_menu_capture[] =
     "mapper_recmtwave",
     "mapper_caprawopl",
     "mapper_caprawmidi",
+    "--",
 #endif
+    "force_loadstate",
+    "mapper_savestate",
+    "mapper_loadstate",
+	"saveslotmenu",
     NULL
 };
 
@@ -455,6 +460,27 @@ static const char *def_menu_capture_format[] =
 };
 # endif
 #endif
+
+/* Save slots */
+static const char *def_save_slots[] =
+{
+	"mapper_prevslot",
+	"mapper_nextslot",
+	"--",
+    "slot0",
+    "slot1",
+    "slot2",
+    "slot3",
+    "slot4",
+    "slot5",
+    "slot6",
+    "slot7",
+    "slot8",
+    "slot9",
+	"--",
+    "refreshslot",
+	NULL
+};
 
 /* Drive menu ("DriveMenu") */
 static const char *def_menu_drive[] =
@@ -1212,6 +1238,7 @@ void ConstructMenu(void) {
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
 # endif
 #endif
+    ConstructSubMenu(mainMenu.get_item("saveslotmenu").get_master_id(), def_save_slots);
 
     /* Drive menu */
     ConstructSubMenu(mainMenu.get_item("DriveMenu").get_master_id(), def_menu_drive);

@@ -1332,3 +1332,22 @@ void VGA_SetupXGA(void) {
 	IO_RegisterReadHandler(0xe2ea,&XGA_Read,IO_MB | IO_MW | IO_MD);
 }
 
+// save state support
+void POD_Save_VGA_XGA( std::ostream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	WRITE_POD( &xga, xga );
+}
+
+
+void POD_Load_VGA_XGA( std::istream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	READ_POD( &xga, xga );
+}

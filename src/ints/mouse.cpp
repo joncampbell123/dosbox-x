@@ -744,7 +744,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit1
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
 						text[len++]=(j1+1)/2+(j1<95?112:176);
 						text[len++]=j2+(j1%2?31+(j2/96):126);
-					}			
+					}
 				} else
 					text[len++]=result;
 			} else {
@@ -1856,3 +1856,115 @@ bool MOUSE_HasInterruptSub()
     return (mouse.sub_mask != 0);
 }
 
+//save state support
+void *MOUSE_Limit_Events_PIC_Event = (void*)MOUSE_Limit_Events;
+
+
+namespace
+{
+class SerializeMouse : public SerializeGlobalPOD
+{
+public:
+	SerializeMouse() : SerializeGlobalPOD("Mouse")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		Bit8u screenMask_idx, cursorMask_idx;
+
+
+		if( mouse.screenMask == defaultScreenMask ) screenMask_idx = 0x00;
+		else if( mouse.screenMask == userdefScreenMask ) screenMask_idx = 0x01;
+
+		if( mouse.cursorMask == defaultCursorMask ) cursorMask_idx = 0x00;
+		else if( mouse.cursorMask == userdefCursorMask ) cursorMask_idx = 0x01;
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		// - pure data
+		WRITE_POD( &ps2cbseg, ps2cbseg );
+		WRITE_POD( &ps2cbofs, ps2cbofs );
+		WRITE_POD( &useps2callback, useps2callback );
+		WRITE_POD( &ps2callbackinit, ps2callbackinit );
+		
+		WRITE_POD( &userdefScreenMask, userdefScreenMask );
+		WRITE_POD( &userdefCursorMask, userdefCursorMask );
+
+
+		// - near-pure data
+		WRITE_POD( &mouse, mouse );
+
+		// - pure data
+		WRITE_POD( &gfxReg3CE, gfxReg3CE );
+		WRITE_POD( &index3C4, index3C4 );
+		WRITE_POD( &gfxReg3C5, gfxReg3C5 );
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		// - reloc ptr
+		WRITE_POD( &screenMask_idx, screenMask_idx );
+		WRITE_POD( &cursorMask_idx, cursorMask_idx );
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		Bit8u screenMask_idx, cursorMask_idx;
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+		// - pure data
+		READ_POD( &ps2cbseg, ps2cbseg );
+		READ_POD( &ps2cbofs, ps2cbofs );
+		READ_POD( &useps2callback, useps2callback );
+		READ_POD( &ps2callbackinit, ps2callbackinit );
+		
+		READ_POD( &userdefScreenMask, userdefScreenMask );
+		READ_POD( &userdefCursorMask, userdefCursorMask );
+
+
+		// - near-pure data
+		READ_POD( &mouse, mouse );
+
+
+		// - pure data
+		READ_POD( &gfxReg3CE, gfxReg3CE );
+		READ_POD( &index3C4, index3C4 );
+		READ_POD( &gfxReg3C5, gfxReg3C5 );
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		// - reloc ptr
+		READ_POD( &screenMask_idx, screenMask_idx );
+		READ_POD( &cursorMask_idx, cursorMask_idx );
+
+
+		if( screenMask_idx == 0x00 ) mouse.screenMask = defaultScreenMask;
+		else if( screenMask_idx == 0x01 ) mouse.screenMask = userdefScreenMask;
+
+		if( cursorMask_idx == 0x00 ) mouse.cursorMask = defaultCursorMask;
+		else if( cursorMask_idx == 0x01 ) mouse.cursorMask = userdefCursorMask;
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		// reset
+		oldmouseX = static_cast<Bit16s>(mouse.x);
+		oldmouseY = static_cast<Bit16s>(mouse.y);
+	}
+} dummy;
+}

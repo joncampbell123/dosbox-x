@@ -39,6 +39,8 @@ public:
 //	auto ready_cb() { return m_ready_handler.bind(); }
 
 	void convert_samplerate(int32_t target_rate);
+	void SaveState( std::ostream& stream );
+    void LoadState( std::istream& stream );
 protected:
 	sn76496_base_device(
 			const machine_config &mconfig,

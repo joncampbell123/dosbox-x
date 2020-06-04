@@ -1888,3 +1888,235 @@ void DOS_SetupFiles (void) {
 	Drives[25]=new Virtual_Drive();
 }
 
+// save state support
+void DOS_File::SaveState( std::ostream& stream )
+{
+	Bit32u file_namelen, seek_pos;
+
+
+	file_namelen = strlen( name );
+	seek_pos = GetSeekPos();
+
+	//******************************************
+	//******************************************
+	//******************************************
+
+	// - pure data
+	WRITE_POD( &file_namelen, file_namelen );
+	WRITE_POD_SIZE( name, file_namelen );
+
+	WRITE_POD( &flags, flags );
+	WRITE_POD( &open, open );
+
+	WRITE_POD( &attr, attr );
+	WRITE_POD( &time, time );
+	WRITE_POD( &date, date );
+	WRITE_POD( &refCtr, refCtr );
+	WRITE_POD( &hdrive, hdrive );
+
+	//******************************************
+	//******************************************
+	//******************************************
+
+	// - reloc ptr
+	WRITE_POD( &seek_pos, seek_pos );
+}
+
+
+void DOS_File::LoadState( std::istream& stream, bool pop )
+{
+	Bit32u file_namelen, seek_pos;
+	char *file_name;
+
+	//******************************************
+	//******************************************
+	//******************************************
+
+	// - pure data
+	READ_POD( &file_namelen, file_namelen );
+	file_name = (char*)alloca( file_namelen * sizeof(char) );
+	READ_POD_SIZE( file_name, file_namelen );
+
+	READ_POD( &flags, flags );
+	READ_POD( &open, open );
+
+	READ_POD( &attr, attr );
+	READ_POD( &time, time );
+	READ_POD( &date, date );
+	READ_POD( &refCtr, refCtr );
+	READ_POD( &hdrive, hdrive );
+
+	//******************************************
+	//******************************************
+	//******************************************
+
+	// - reloc ptr
+	READ_POD( &seek_pos, seek_pos );
+
+	if (pop)
+		return;
+
+	if( open ) Seek( &seek_pos, DOS_SEEK_SET );
+	else Close();
+}
+
+
+void POD_Save_DOS_Files( std::ostream& stream )
+{
+	// 1. Do drives first (directories -> files)
+	// 2. Then files next
+
+	for( int lcv=0; lcv<DOS_DRIVES; lcv++ ) {
+		Bit8u drive_valid;
+
+		drive_valid = 0;
+		if( Drives[lcv] == 0 ) drive_valid = 0xff;
+
+		//**********************************************
+		//**********************************************
+		//**********************************************
+
+		// - reloc ptr
+		WRITE_POD( &drive_valid, drive_valid );
+
+		if( drive_valid == 0xff ) continue;
+		Drives[lcv]->SaveState(stream);
+	}
+
+	for( int lcv=0; lcv<DOS_FILES; lcv++ ) {
+		Bit8u file_valid;
+		char *file_name;
+		Bit8u file_namelen, file_drive, file_flags;
+
+		file_valid = 0;
+		if( !Files[lcv] || Files[lcv]->GetName() == NULL ) file_valid = 0xff;
+		else {
+			if( strcmp( Files[lcv]->GetName(), "NUL" ) == 0 ) file_valid = 0xfe;//earth 2140 needs this
+			if( strcmp( Files[lcv]->GetName(), "CON" ) == 0 ) file_valid = 0xfe;
+			if( strcmp( Files[lcv]->GetName(), "LPT1" ) == 0 ) file_valid = 0xfe;
+			if( strcmp( Files[lcv]->GetName(), "PRN" ) == 0 ) file_valid = 0xfe;
+			if( strcmp( Files[lcv]->GetName(), "AUX" ) == 0 ) file_valid = 0xfe;
+			if( strcmp( Files[lcv]->GetName(), "EMMXXXX0" ) == 0 ) file_valid = 0xfe;//raiden needs this
+		}
+
+		// - reloc ptr
+		WRITE_POD( &file_valid, file_valid );
+		// system files
+		if( file_valid == 0xff ) continue;
+		if( file_valid == 0xfe ) {
+			WRITE_POD( &Files[lcv]->refCtr, Files[lcv]->refCtr );
+			continue;
+		}
+
+		//**********************************************
+		//**********************************************
+		//**********************************************
+
+		file_namelen = strlen( Files[lcv]->name );
+		file_name = (char *) alloca( file_namelen );
+		strcpy( file_name, Files[lcv]->name );
+
+		file_drive = Files[lcv]->GetDrive();
+		file_flags = Files[lcv]->flags;
+
+		// - Drives->FileOpen vars (repeat copy)
+		WRITE_POD( &file_namelen, file_namelen );
+		WRITE_POD_SIZE( file_name, file_namelen );
+
+		WRITE_POD( &file_drive, file_drive );
+		WRITE_POD( &file_flags, file_flags );
+
+
+		Files[lcv]->SaveState(stream);
+	}
+}
+
+
+void POD_Load_DOS_Files( std::istream& stream )
+{
+	// 1. Do drives first (directories -> files)
+	// 2. Then files next
+
+	for( int lcv=0; lcv<DOS_DRIVES; lcv++ ) {
+		Bit8u drive_valid;
+
+		// - reloc ptr
+		READ_POD( &drive_valid, drive_valid );
+		if( drive_valid == 0xff ) continue;
+
+		if( Drives[lcv] ) Drives[lcv]->LoadState(stream);
+	}
+
+	//Alien Carnage - game creates and unlinks temp files
+	//Here are two situations
+	//1. Game already unlinked temp file, but information about file is still in Files[] and we saved it. In this case we must only pop old data from stream by loading. This is fixed.
+	//2. Game still did not unlink file, We saved this information. Then was game restarted and temp files were removed. Then we try load save state, but we don't have temp file. This is not fixed
+	DOS_File *dummy = NULL;
+
+	for( int lcv=0; lcv<DOS_FILES; lcv++ ) {
+		Bit8u file_valid;
+		char *file_name;
+		Bit8u file_namelen, file_drive, file_flags;
+
+		// - reloc ptr
+		READ_POD( &file_valid, file_valid );
+
+		// ignore system files
+		if( file_valid == 0xfe ) {
+			READ_POD( &Files[lcv]->refCtr, Files[lcv]->refCtr );
+			continue;
+		}
+
+		// shutdown old file
+		if( Files[lcv] ) {
+			// invalid file state - abort
+			if( strcmp( Files[lcv]->GetName(), "NUL" ) == 0 ) break;
+			if( strcmp( Files[lcv]->GetName(), "CON" ) == 0 ) break;
+			if( strcmp( Files[lcv]->GetName(), "LPT1" ) == 0 ) break;
+			if( strcmp( Files[lcv]->GetName(), "PRN" ) == 0 ) break;
+			if( strcmp( Files[lcv]->GetName(), "AUX" ) == 0 ) break;
+			if( strcmp( Files[lcv]->GetName(), "EMMXXXX0" ) == 0 ) break;//raiden needs this
+
+
+			if( Files[lcv]->IsOpen() ) Files[lcv]->Close();
+			if (Files[lcv]->RemoveRef()<=0) {
+				delete Files[lcv];
+			}
+			Files[lcv]=0;
+		}
+
+		// ignore NULL file
+		if( file_valid == 0xff ) continue;
+
+		//**********************************************
+		//**********************************************
+		//**********************************************
+
+		// - Drives->FileOpen vars (repeat copy)
+
+		READ_POD( &file_namelen, file_namelen );
+		file_name = (char *) alloca( file_namelen );
+		READ_POD_SIZE( file_name, file_namelen );
+
+		READ_POD( &file_drive, file_drive );
+		READ_POD( &file_flags, file_flags );
+
+
+		// NOTE: Must open regardless to get 'new' DOS_File class
+		Drives[file_drive]->FileOpen( &Files[lcv], file_name, file_flags );
+
+		if( Files[lcv] ) {
+			Files[lcv]->LoadState(stream, false);
+		} else {
+			//Alien carnage ->pop data for invalid file from stream
+			if (dummy == NULL) {
+				dummy = new localFile();
+			}
+			dummy->LoadState(stream, true);
+		};
+	}
+
+	if (dummy != NULL) {
+		delete dummy;
+	}
+}

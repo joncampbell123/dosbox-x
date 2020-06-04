@@ -1040,3 +1040,15 @@ void FPU_Init() {
 
 #endif
 
+//save state support
+namespace
+{
+class SerializeFpu : public SerializeGlobalPOD
+{
+public:
+    SerializeFpu() : SerializeGlobalPOD("FPU")
+    {
+        registerPOD(fpu);
+    }
+} dummy;
+}

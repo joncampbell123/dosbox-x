@@ -3850,3 +3850,99 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 			E_Exit("DOS:Illegal LFN Subst call %2X",reg_bh);
 	}
 }
+
+//save state support
+extern void POD_Save_DOS_Devices( std::ostream& stream );
+extern void POD_Save_DOS_DriveManager( std::ostream& stream );
+extern void POD_Save_DOS_Files( std::ostream& stream );
+extern void POD_Save_DOS_Memory( std::ostream& stream);
+extern void POD_Save_DOS_Mscdex( std::ostream& stream );
+extern void POD_Save_DOS_Tables( std::ostream& stream );
+
+extern void POD_Load_DOS_Devices( std::istream& stream );
+extern void POD_Load_DOS_DriveManager( std::istream& stream );
+extern void POD_Load_DOS_Files( std::istream& stream );
+extern void POD_Load_DOS_Memory( std::istream& stream );
+extern void POD_Load_DOS_Mscdex( std::istream& stream );
+extern void POD_Load_DOS_Tables( std::istream& stream );
+
+namespace
+{
+class SerializeDos : public SerializeGlobalPOD
+{
+public:
+	SerializeDos() : SerializeGlobalPOD("Dos") 
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		SerializeGlobalPOD::getBytes(stream);
+
+		//***********************************************
+		//***********************************************
+		//***********************************************
+		// - pure data
+		WRITE_POD( &dos_copybuf, dos_copybuf );
+
+		// - pure data
+		WRITE_POD( &dos.firstMCB, dos.firstMCB );
+		WRITE_POD( &dos.errorcode, dos.errorcode );
+		//WRITE_POD( &dos.env, dos.env );
+		//WRITE_POD( &dos.cpmentry, dos.cpmentry );
+		WRITE_POD( &dos.return_code, dos.return_code );
+		WRITE_POD( &dos.return_mode, dos.return_mode );
+
+		WRITE_POD( &dos.current_drive, dos.current_drive );
+		WRITE_POD( &dos.verify, dos.verify );
+		WRITE_POD( &dos.breakcheck, dos.breakcheck );
+		WRITE_POD( &dos.echo, dos.echo );
+		WRITE_POD( &dos.direct_output, dos.direct_output );
+		WRITE_POD( &dos.internal_output, dos.internal_output );
+
+		WRITE_POD( &dos.loaded_codepage, dos.loaded_codepage );
+
+		POD_Save_DOS_Devices(stream);
+		POD_Save_DOS_DriveManager(stream);
+		POD_Save_DOS_Files(stream);
+		POD_Save_DOS_Memory(stream);
+		POD_Save_DOS_Mscdex(stream);
+		POD_Save_DOS_Tables(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		SerializeGlobalPOD::setBytes(stream);
+
+		//***********************************************
+		//***********************************************
+		//***********************************************
+		// - pure data
+		READ_POD( &dos_copybuf, dos_copybuf );
+
+		// - pure data
+		READ_POD( &dos.firstMCB, dos.firstMCB );
+		READ_POD( &dos.errorcode, dos.errorcode );
+		//READ_POD( &dos.env, dos.env );
+		//READ_POD( &dos.cpmentry, dos.cpmentry );
+		READ_POD( &dos.return_code, dos.return_code );
+		READ_POD( &dos.return_mode, dos.return_mode );
+
+		READ_POD( &dos.current_drive, dos.current_drive );
+		READ_POD( &dos.verify, dos.verify );
+		READ_POD( &dos.breakcheck, dos.breakcheck );
+		READ_POD( &dos.echo, dos.echo );
+		READ_POD( &dos.direct_output, dos.direct_output );
+        READ_POD( &dos.internal_output, dos.internal_output );
+	
+		READ_POD( &dos.loaded_codepage, dos.loaded_codepage );
+
+		POD_Load_DOS_Devices(stream);
+		POD_Load_DOS_DriveManager(stream);
+		POD_Load_DOS_Files(stream);
+		POD_Load_DOS_Memory(stream);
+		POD_Load_DOS_Mscdex(stream);
+		POD_Load_DOS_Tables(stream);
+	}
+} dummy;
+}

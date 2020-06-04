@@ -2266,6 +2266,160 @@ void ym3812_update_one(void *chip, OPLSAMPLE *buffer, int length)
 	}
 
 }
+
+// save state support
+void SaveState_Channel(OPL_CH *CH, std::ostream& stream) {
+	int slot, ch;
+
+	for( ch=0 ; ch < 9 ; ch++, CH++ ) {
+		/* channel */
+		WRITE_POD( &CH->block_fnum, CH->block_fnum );
+	    WRITE_POD( &CH->kcode, CH->kcode );
+	    /* slots */
+  		for( slot=0 ; slot < 2 ; slot++ ) {
+        	OPL_SLOT *SLOT = &CH->SLOT[slot];
+
+        	WRITE_POD( &SLOT->ar, SLOT->ar );
+        	WRITE_POD( &SLOT->dr, SLOT->dr );
+        	WRITE_POD( &SLOT->rr, SLOT->rr );
+        	WRITE_POD( &SLOT->KSR, SLOT->KSR );
+       	    WRITE_POD( &SLOT->ksl, SLOT->ksl );
+        	WRITE_POD( &SLOT->mul, SLOT->mul );
+
+        	WRITE_POD( &SLOT->Cnt, SLOT->Cnt );
+        	WRITE_POD( &SLOT->FB, SLOT->FB );
+        	WRITE_POD( &SLOT->op1_out, SLOT->op1_out );
+        	WRITE_POD( &SLOT->CON, SLOT->CON );
+
+        	WRITE_POD( &SLOT->eg_type, SLOT->eg_type );
+            WRITE_POD( &SLOT->state, SLOT->state );
+            WRITE_POD( &SLOT->TL, SLOT->TL );
+            WRITE_POD( &SLOT->volume, SLOT->volume );
+            WRITE_POD( &SLOT->sl, SLOT->sl );
+            WRITE_POD( &SLOT->key, SLOT->key );
+
+            WRITE_POD( &SLOT->AMmask, SLOT->AMmask );
+            WRITE_POD( &SLOT->vib, SLOT->vib );
+
+            WRITE_POD( &SLOT->wavetable, SLOT->wavetable );
+    	}
+	}
+}
+
+void LoadState_Channel(OPL_CH *CH, std::istream& stream) {
+	int slot, ch;
+
+	for( ch=0 ; ch < 9 ; ch++, CH++ ) {
+		/* channel */
+	    READ_POD( &CH->block_fnum, CH->block_fnum );
+	    READ_POD( &CH->kcode, CH->kcode );
+	    /* slots */
+   		for( slot=0 ; slot < 2 ; slot++ ) {
+        	OPL_SLOT *SLOT = &CH->SLOT[slot];
+
+        	READ_POD( &SLOT->ar, SLOT->ar );
+        	READ_POD( &SLOT->dr, SLOT->dr );
+        	READ_POD( &SLOT->rr, SLOT->rr );
+        	READ_POD( &SLOT->KSR, SLOT->KSR );
+        	READ_POD( &SLOT->ksl, SLOT->ksl );
+        	READ_POD( &SLOT->mul, SLOT->mul );
+
+        	READ_POD( &SLOT->Cnt, SLOT->Cnt );
+        	READ_POD( &SLOT->FB, SLOT->FB );
+        	READ_POD( &SLOT->op1_out, SLOT->op1_out );
+        	READ_POD( &SLOT->CON, SLOT->CON );
+
+        	READ_POD( &SLOT->eg_type, SLOT->eg_type );
+            READ_POD( &SLOT->state, SLOT->state );
+            READ_POD( &SLOT->TL, SLOT->TL );
+            READ_POD( &SLOT->volume, SLOT->volume );
+            READ_POD( &SLOT->sl, SLOT->sl );
+            READ_POD( &SLOT->key, SLOT->key );
+
+            READ_POD( &SLOT->AMmask, SLOT->AMmask );
+            READ_POD( &SLOT->vib, SLOT->vib );
+
+            READ_POD( &SLOT->wavetable, SLOT->wavetable );
+    	}
+	}
+}
+
+void FMOPL_SaveState(void *chip, std::ostream& stream ) {
+    FM_OPL *OPL = (FM_OPL *)chip;
+
+    SaveState_Channel(OPL->P_CH, stream);
+
+    WRITE_POD(&OPL->eg_cnt, OPL->eg_cnt);
+    WRITE_POD(&OPL->eg_timer, OPL->eg_timer);
+    WRITE_POD(&OPL->rhythm, OPL->rhythm);
+
+    WRITE_POD(&OPL->lfo_am_depth, OPL->lfo_am_depth);
+    WRITE_POD(&OPL->lfo_pm_depth_range, OPL->lfo_pm_depth_range);
+    WRITE_POD(&OPL->lfo_am_cnt, OPL->lfo_am_cnt);
+    WRITE_POD(&OPL->lfo_pm_cnt, OPL->lfo_pm_cnt);
+
+    WRITE_POD(&OPL->noise_rng, OPL->noise_rng);
+    WRITE_POD(&OPL->noise_p, OPL->noise_p);
+
+   	if( OPL->type & OPL_TYPE_WAVESEL ) {
+    	WRITE_POD(&OPL->wavesel, OPL->wavesel);
+  	}
+
+    WRITE_POD(&OPL->T, OPL->T);
+    WRITE_POD(&OPL->st, OPL->st);
+
+#if BUILD_Y8950
+    //ToDo - Bruenor
+	/*if ( (OPL->type & OPL_TYPE_ADPCM) && (OPL->deltat) ) {
+		// OPL->deltat->savestate(device);
+	}
+
+	if ( OPL->type & OPL_TYPE_IO ) {
+		// device->save_item(NAME(OPL->portDirection));
+		// device->save_item(NAME(OPL->portLatch));
+	}*/
+#endif
+
+    WRITE_POD(&OPL->address, OPL->address);
+    WRITE_POD(&OPL->status, OPL->status);
+    WRITE_POD(&OPL->statusmask, OPL->statusmask);
+    WRITE_POD(&OPL->mode, OPL->mode);
+}
+
+void FMOPL_LoadState(void *chip, std::istream& stream ) {
+    FM_OPL *OPL = (FM_OPL *)chip;
+
+    LoadState_Channel(OPL->P_CH, stream);
+
+    READ_POD(&OPL->eg_cnt, OPL->eg_cnt);
+    READ_POD(&OPL->eg_timer, OPL->eg_timer);
+
+    READ_POD(&OPL->rhythm, OPL->rhythm);
+
+    READ_POD(&OPL->lfo_am_depth, OPL->lfo_am_depth);
+    READ_POD(&OPL->lfo_pm_depth_range, OPL->lfo_pm_depth_range);
+    READ_POD(&OPL->lfo_am_cnt, OPL->lfo_am_cnt);
+    READ_POD(&OPL->lfo_pm_cnt, OPL->lfo_pm_cnt);
+
+    READ_POD(&OPL->noise_rng, OPL->noise_rng);
+    READ_POD(&OPL->noise_p, OPL->noise_p);
+
+   	if( OPL->type & OPL_TYPE_WAVESEL ) {
+    	READ_POD(&OPL->wavesel, OPL->wavesel);
+  	}
+
+    READ_POD(&OPL->T, OPL->T);
+    READ_POD(&OPL->st, OPL->st);
+
+#if BUILD_Y8950
+    //ToDo - Bruenor
+#endif
+
+    READ_POD(&OPL->address, OPL->address);
+    READ_POD(&OPL->status, OPL->status);
+    READ_POD(&OPL->statusmask, OPL->statusmask);
+    READ_POD(&OPL->mode, OPL->mode);
+}
 #endif /* BUILD_YM3812 */
 
 

@@ -420,3 +420,39 @@ char * DOS_Drive::GetBaseDir(void) {
 	return info + 16;
 }
 
+// save state support
+void DOS_Drive::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &curdir, curdir );
+	WRITE_POD( &info, info );
+}
+
+void DOS_Drive::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &curdir, curdir );
+	READ_POD( &info, info );
+}
+
+void DriveManager::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &currentDrive, currentDrive );
+}
+
+void DriveManager::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &currentDrive, currentDrive );
+}
+
+void POD_Save_DOS_DriveManager( std::ostream& stream )
+{
+	DriveManager::SaveState(stream);
+}
+
+void POD_Load_DOS_DriveManager( std::istream& stream )
+{
+	DriveManager::LoadState(stream);
+}

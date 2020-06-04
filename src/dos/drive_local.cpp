@@ -1540,6 +1540,7 @@ Bit32u localFile::GetSeekPos() {
 	return (Bit32u)ftell( fhandle );
 }
 
+localFile::localFile() {}
 
 localFile::localFile(const char* _name, FILE * handle) {
 	fhandle=handle;

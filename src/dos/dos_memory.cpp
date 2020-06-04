@@ -607,3 +607,16 @@ void DOS_SetupMemory(void) {
 	dos.firstMCB=DOS_MEM_START;
 	dos_infoblock.SetFirstMCB(DOS_MEM_START);
 }
+
+// save state support
+void POD_Save_DOS_Memory( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &memAllocStrategy, memAllocStrategy );
+}
+
+void POD_Load_DOS_Memory( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &memAllocStrategy, memAllocStrategy );
+}

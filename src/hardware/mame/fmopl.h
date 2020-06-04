@@ -51,6 +51,8 @@ void ym3812_update_one(void *chip, OPLSAMPLE *buffer, int length);
 void ym3812_set_timer_handler(void *chip, OPL_TIMERHANDLER TimerHandler, device_t *device);
 void ym3812_set_irq_handler(void *chip, OPL_IRQHANDLER IRQHandler, device_t *device);
 void ym3812_set_update_handler(void *chip, OPL_UPDATEHANDLER UpdateHandler, device_t *device);
+void FMOPL_SaveState( void *chip, std::ostream& stream );
+void FMOPL_LoadState( void *chip, std::istream& stream );
 
 #endif /* BUILD_YM3812 */
 

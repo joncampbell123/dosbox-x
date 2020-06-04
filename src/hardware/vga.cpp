@@ -1735,3 +1735,278 @@ void VGA_SetCaptureStride(uint32_t v) {
     VGA_UpdateCapturePending();
 }
 
+extern void POD_Save_VGA_Draw( std::ostream & );
+extern void POD_Save_VGA_Seq( std::ostream & );
+extern void POD_Save_VGA_Attr( std::ostream & );
+extern void POD_Save_VGA_Crtc( std::ostream & );
+extern void POD_Save_VGA_Gfx( std::ostream & );
+extern void POD_Save_VGA_Dac( std::ostream & );
+extern void POD_Save_VGA_S3( std::ostream & );
+extern void POD_Save_VGA_Other( std::ostream & );
+extern void POD_Save_VGA_Memory( std::ostream & );
+extern void POD_Save_VGA_Paradise( std::ostream & );
+extern void POD_Save_VGA_Tseng( std::ostream & );
+extern void POD_Save_VGA_XGA( std::ostream & );
+extern void POD_Load_VGA_Draw( std::istream & );
+extern void POD_Load_VGA_Seq( std::istream & );
+extern void POD_Load_VGA_Attr( std::istream & );
+extern void POD_Load_VGA_Crtc( std::istream & );
+extern void POD_Load_VGA_Gfx( std::istream & );
+extern void POD_Load_VGA_Dac( std::istream & );
+extern void POD_Load_VGA_S3( std::istream & );
+extern void POD_Load_VGA_Other( std::istream & );
+extern void POD_Load_VGA_Memory( std::istream & );
+extern void POD_Load_VGA_Paradise( std::istream & );
+extern void POD_Load_VGA_Tseng( std::istream & );
+extern void POD_Load_VGA_XGA( std::istream & );
+
+//save state support
+void *VGA_SetupDrawing_PIC_Event = (void*)VGA_SetupDrawing;
+
+
+namespace {
+class SerializeVga : public SerializeGlobalPOD {
+public:
+	SerializeVga() : SerializeGlobalPOD("Vga")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+
+
+
+
+		if( vga.tandy.draw_base == vga.mem.linear ) tandy_drawbase_idx=0xffffffff;
+		else tandy_drawbase_idx = vga.tandy.draw_base - MemBase;
+
+		if( vga.tandy.mem_base == vga.mem.linear ) tandy_membase_idx=0xffffffff;
+		else tandy_membase_idx = vga.tandy.mem_base - MemBase;
+
+		//********************************
+		//********************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		// - pure data
+		WRITE_POD( &vga.mode, vga.mode );
+		WRITE_POD( &vga.misc_output, vga.misc_output );
+
+		
+		// VGA_Draw.cpp
+		POD_Save_VGA_Draw(stream);
+
+
+		// - pure struct data
+		WRITE_POD( &vga.config, vga.config );
+		WRITE_POD( &vga.internal, vga.internal );
+
+
+		// VGA_Seq.cpp / VGA_Attr.cpp / (..)
+		POD_Save_VGA_Seq(stream);
+		POD_Save_VGA_Attr(stream);
+		POD_Save_VGA_Crtc(stream);
+		POD_Save_VGA_Gfx(stream);
+		POD_Save_VGA_Dac(stream);
+
+
+		// - pure data
+		WRITE_POD( &vga.latch, vga.latch );
+
+
+		// VGA_S3.cpp
+		POD_Save_VGA_S3(stream);
+
+
+		// - pure struct data
+		WRITE_POD( &vga.svga, vga.svga );
+		WRITE_POD( &vga.herc, vga.herc );
+
+
+		// - near-pure struct data
+		WRITE_POD( &vga.tandy, vga.tandy );
+
+		// - reloc data
+		WRITE_POD( &tandy_drawbase_idx, tandy_drawbase_idx );
+		WRITE_POD( &tandy_membase_idx, tandy_membase_idx );
+
+
+		// vga_other.cpp / vga_memory.cpp
+		POD_Save_VGA_Other(stream);
+		POD_Save_VGA_Memory(stream);
+
+
+		// - pure data
+		//WRITE_POD( &vga.vmemwrap, vga.vmemwrap );
+
+
+		// - static ptrs + 'new' data
+		//Bit8u* fastmem;
+		//Bit8u* fastmem_orgptr;
+
+		// - 'new' data
+		//WRITE_POD_SIZE( vga.fastmem_orgptr, sizeof(Bit8u) * ((vga.vmemsize << 1) + 4096 + 16) );
+
+
+		// - pure data (variable on S3 card)
+		WRITE_POD( &vga.mem.memsize, vga.mem.memsize );
+
+
+#ifdef VGA_KEEP_CHANGES
+		// - static ptr
+		//Bit8u* map;
+
+		// - 'new' data
+		WRITE_POD_SIZE( vga.changes.map, sizeof(Bit8u) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
+
+
+		// - pure data
+		WRITE_POD( &vga.changes.checkMask, vga.changes.checkMask );
+		WRITE_POD( &vga.changes.frame, vga.changes.frame );
+		WRITE_POD( &vga.changes.writeMask, vga.changes.writeMask );
+		WRITE_POD( &vga.changes.active, vga.changes.active );
+		WRITE_POD( &vga.changes.clearMask, vga.changes.clearMask );
+		WRITE_POD( &vga.changes.start, vga.changes.start );
+		WRITE_POD( &vga.changes.last, vga.changes.last );
+		WRITE_POD( &vga.changes.lastAddress, vga.changes.lastAddress );
+#endif
+
+
+		// - pure data
+		WRITE_POD( &vga.lfb.page, vga.lfb.page );
+		WRITE_POD( &vga.lfb.addr, vga.lfb.addr );
+		WRITE_POD( &vga.lfb.mask, vga.lfb.mask );
+
+		// - static ptr
+		//PageHandler *handler;
+
+
+		// VGA_paradise.cpp / VGA_tseng.cpp / VGA_xga.cpp
+		POD_Save_VGA_Paradise(stream);
+		POD_Save_VGA_Tseng(stream);
+		POD_Save_VGA_XGA(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+
+
+
+		//********************************
+		//********************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		// - pure data
+		READ_POD( &vga.mode, vga.mode );
+		READ_POD( &vga.misc_output, vga.misc_output );
+
+		
+		// VGA_Draw.cpp
+		POD_Load_VGA_Draw(stream);
+
+
+		// - pure struct data
+		READ_POD( &vga.config, vga.config );
+		READ_POD( &vga.internal, vga.internal );
+
+
+		// VGA_Seq.cpp / VGA_Attr.cpp / (..)
+		POD_Load_VGA_Seq(stream);
+		POD_Load_VGA_Attr(stream);
+		POD_Load_VGA_Crtc(stream);
+		POD_Load_VGA_Gfx(stream);
+		POD_Load_VGA_Dac(stream);
+
+
+		// - pure data
+		READ_POD( &vga.latch, vga.latch );
+
+
+		// VGA_S3.cpp
+		POD_Load_VGA_S3(stream);
+
+
+		// - pure struct data
+		READ_POD( &vga.svga, vga.svga );
+		READ_POD( &vga.herc, vga.herc );
+
+
+		// - near-pure struct data
+		READ_POD( &vga.tandy, vga.tandy );
+
+		// - reloc data
+		READ_POD( &tandy_drawbase_idx, tandy_drawbase_idx );
+		READ_POD( &tandy_membase_idx, tandy_membase_idx );
+
+
+		// vga_other.cpp / vga_memory.cpp
+		POD_Load_VGA_Other(stream);
+		POD_Load_VGA_Memory(stream);
+
+
+		// - pure data
+		//READ_POD( &vga.vmemwrap, vga.vmemwrap );
+
+
+		// - static ptrs + 'new' data
+		//Bit8u* fastmem;
+		//Bit8u* fastmem_orgptr;
+
+		// - 'new' data
+		//READ_POD_SIZE( vga.fastmem_orgptr, sizeof(Bit8u) * ((vga.vmemsize << 1) + 4096 + 16) );
+
+
+		// - pure data (variable on S3 card)
+		READ_POD( &vga.mem.memsize, vga.mem.memsize );
+
+
+#ifdef VGA_KEEP_CHANGES
+		// - static ptr
+		//Bit8u* map;
+
+		// - 'new' data
+		READ_POD_SIZE( vga.changes.map, sizeof(Bit8u) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
+
+
+		// - pure data
+		READ_POD( &vga.changes.checkMask, vga.changes.checkMask );
+		READ_POD( &vga.changes.frame, vga.changes.frame );
+		READ_POD( &vga.changes.writeMask, vga.changes.writeMask );
+		READ_POD( &vga.changes.active, vga.changes.active );
+		READ_POD( &vga.changes.clearMask, vga.changes.clearMask );
+		READ_POD( &vga.changes.start, vga.changes.start );
+		READ_POD( &vga.changes.last, vga.changes.last );
+		READ_POD( &vga.changes.lastAddress, vga.changes.lastAddress );
+#endif
+
+
+		// - pure data
+		READ_POD( &vga.lfb.page, vga.lfb.page );
+		READ_POD( &vga.lfb.addr, vga.lfb.addr );
+		READ_POD( &vga.lfb.mask, vga.lfb.mask );
+
+		// - static ptr
+		//PageHandler *handler;
+
+
+		// VGA_paradise.cpp / VGA_tseng.cpp / VGA_xga.cpp
+		POD_Load_VGA_Paradise(stream);
+		POD_Load_VGA_Tseng(stream);
+		POD_Load_VGA_XGA(stream);
+
+		//********************************
+		//********************************
+
+		if( tandy_drawbase_idx == 0xffffffff ) vga.tandy.draw_base = vga.mem.linear;
+		else vga.tandy.draw_base = MemBase + tandy_drawbase_idx;
+
+		if( tandy_membase_idx == 0xffffffff ) vga.tandy.mem_base = vga.mem.linear;
+		else vga.tandy.mem_base = MemBase + tandy_membase_idx;
+	}
+} dummy;
+}

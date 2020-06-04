@@ -386,3 +386,21 @@ void DOS_SetupTables(void) {
     mem_writew(Real2Phys(DOS_DriveDataListHead)+0x04,0x0000);
 }
 
+// save state support
+void POD_Save_DOS_Tables( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &DOS_TableUpCase, DOS_TableUpCase );
+	WRITE_POD( &DOS_TableLowCase, DOS_TableLowCase );
+
+	WRITE_POD( &dos_memseg, dos_memseg );
+}
+
+void POD_Load_DOS_Tables( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &DOS_TableUpCase, DOS_TableUpCase );
+	READ_POD( &DOS_TableLowCase, DOS_TableLowCase );
+
+	READ_POD( &dos_memseg, dos_memseg );
+}

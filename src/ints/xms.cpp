@@ -886,3 +886,15 @@ void XMS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(XMS_ShutDown));
 }
 
+//save state support
+namespace
+{
+class SerializeXMS : public SerializeGlobalPOD
+{
+public:
+    SerializeXMS() : SerializeGlobalPOD("XMS")
+    {
+        registerPOD(xms_handles);
+    }
+} dummy;
+}

@@ -96,6 +96,8 @@ public:
 	virtual Bit32u	GetSeekPos()	{ return 0xffffffff; }
 	void SetDrive(Bit8u drv) { hdrive=drv;}
 	Bit8u GetDrive(void) { return hdrive;}
+	virtual void 	SaveState( std::ostream& stream );
+	virtual void 	LoadState( std::istream& stream, bool pop );
     virtual void    Flush(void) { }
 
 	char* name = NULL;
@@ -141,6 +143,7 @@ private:
 
 class localFile : public DOS_File {
 public:
+	localFile();
 	localFile(const char* _name, FILE * handle);
 	bool Read(Bit8u * data,Bit16u * size);
 	bool Write(const Bit8u * data,Bit16u * size);
@@ -310,6 +313,8 @@ public:
 	virtual void MediaChange() {};
 	// disk cycling functionality (request resources)
 	virtual void Activate(void) {};
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 	virtual void UpdateDPB(unsigned char dos_drive) { (void)dos_drive; };
 
     // INT 25h/INT 26h

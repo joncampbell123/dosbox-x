@@ -829,3 +829,18 @@ void IO_PutCallout(IO_CalloutObject *obj) {
     obj->getcounter--;
 }
 
+//save state support
+namespace
+{
+class SerializeIO : public SerializeGlobalPOD
+{
+public:
+    SerializeIO() : SerializeGlobalPOD("IO handler")
+    {
+        //io_writehandlers -> quasi constant
+        //io_readhandlers  -> quasi constant
+
+        //registerPOD(iof_queue.used); registerPOD(iof_queue.entries);
+    }
+} dummy;
+}
