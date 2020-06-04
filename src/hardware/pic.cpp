@@ -1096,6 +1096,7 @@ extern void *VGA_PanningLatch_PIC_Event;
 extern void *VGA_SetupDrawing_PIC_Event;
 extern void *VGA_VertInterrupt_PIC_Event;
 extern void *VGA_VerticalTimer_PIC_Event;
+extern void *PIC_IRQCheckDelayed_PIC_Event;
 
 #if C_NE2000
 //extern void *NE2000_TX_Event_PIC_Event;						// Ne2000.cpp
@@ -1149,6 +1150,7 @@ const void *pic_state_event_table[] = {
 	VGA_VerticalTimer_PIC_Event,
 	fmport_a_pic_event_PIC_Event,
 	fmport_b_pic_event_PIC_Event,
+	PIC_IRQCheckDelayed_PIC_Event,
 
 #if C_NE2000
 	//NE2000_TX_Event_PIC_Event,
@@ -1219,6 +1221,8 @@ Bitu PIC_State_IndexTimer( Bit16u index ) {
 }
 
 //save state support
+void *PIC_IRQCheckDelayed_PIC_Event = (void*)PIC_IRQCheckDelayed;
+
 namespace
 {
 class SerializePic : public SerializeGlobalPOD
@@ -1270,6 +1274,7 @@ private:
 				// - data
         stream.write(reinterpret_cast<const char*>(&PIC_Ticks), sizeof(PIC_Ticks) );
         stream.write(reinterpret_cast<const char*>(&PIC_IRQCheck), sizeof(PIC_IRQCheck) );
+        stream.write(reinterpret_cast<const char*>(&PIC_IRQCheckPending), sizeof(PIC_IRQCheckPending) );
 
 				// - data structs
         stream.write(reinterpret_cast<const char*>(&pics), sizeof(pics) );
@@ -1342,6 +1347,7 @@ private:
 				// - data
         stream.read(reinterpret_cast<char*>(&PIC_Ticks), sizeof(PIC_Ticks) );
         stream.read(reinterpret_cast<char*>(&PIC_IRQCheck), sizeof(PIC_IRQCheck) );
+        stream.read(reinterpret_cast<char*>(&PIC_IRQCheckPending), sizeof(PIC_IRQCheckPending) );
 
 				// - data structs
         stream.read(reinterpret_cast<char*>(&pics), sizeof(pics) );
