@@ -1,4 +1,7 @@
 0.83.3
+  - Save/load state fixed not to crash when used within a
+    guest operting system (when the DOS kernel has been
+    shut down using the BOOT command).
   - Re-ported and improved the save state feature for saving
     and loading states with support for up to 10 save slots.
     They can be selected from the "Capture" menu. (Wengier)
