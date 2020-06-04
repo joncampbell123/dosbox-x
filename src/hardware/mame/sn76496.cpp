@@ -489,6 +489,47 @@ void sn76496_base_device::convert_samplerate(int32_t target_rate) {
 	rate_counter = 0;
 }
 
+void sn76496_base_device::SaveState( std::ostream& stream ) {
+    WRITE_POD(&m_vol_table, m_vol_table);
+    WRITE_POD(&m_register, m_register);
+    WRITE_POD(&m_last_register, m_last_register);
+    WRITE_POD(&m_volume, m_volume);
+    WRITE_POD(&m_RNG, m_RNG);
+    //WRITE_POD(&m_clock_divider, m_clock_divider);
+    WRITE_POD(&m_current_clock, m_current_clock);
+    //WRITE_POD(&m_feedback_mask, m_feedback_mask);
+    //WRITE_POD(&m_whitenoise_tap1, m_whitenoise_tap1);
+    //WRITE_POD(&m_whitenoise_tap2, m_whitenoise_tap2);
+    //WRITE_POD(&m_negate, m_negate);
+    //WRITE_POD(&m_stereo, m_stereo);
+    WRITE_POD(&m_stereo_mask, m_stereo_mask);
+    WRITE_POD(&m_period, m_period);
+    WRITE_POD(&m_count, m_count);
+    WRITE_POD(&m_output, m_output);
+    WRITE_POD(&m_cycles_to_ready, m_cycles_to_ready);
+    //WRITE_POD(&m_sega_style_psg, m_sega_style_psg);
+}
+void sn76496_base_device::LoadState( std::istream& stream ) {
+    READ_POD(&m_vol_table, m_vol_table);
+    READ_POD(&m_register, m_register);
+    READ_POD(&m_last_register, m_last_register);
+    READ_POD(&m_volume, m_volume);
+    READ_POD(&m_RNG, m_RNG);
+    //READ_POD(&m_clock_divider, m_clock_divider);
+    READ_POD(&m_current_clock, m_current_clock);
+    //READ_POD(&m_feedback_mask, m_feedback_mask);
+    //READ_POD(&m_whitenoise_tap1, m_whitenoise_tap1);
+    //READ_POD(&m_whitenoise_tap2, m_whitenoise_tap2);
+    //READ_POD(&m_negate, m_negate);
+    //READ_POD(&m_stereo, m_stereo);
+    READ_POD(&m_stereo_mask, m_stereo_mask);
+    READ_POD(&m_period, m_period);
+    READ_POD(&m_count, m_count);
+    READ_POD(&m_output, m_output);
+    READ_POD(&m_cycles_to_ready, m_cycles_to_ready);
+    //READ_POD(&m_sega_style_psg, m_sega_style_psg);
+}
+
 void sn76496_base_device::register_for_save_states()
 {
 	save_item(NAME(m_vol_table));

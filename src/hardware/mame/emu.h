@@ -135,6 +135,13 @@ public:
         (void)owner;
 	}
 
+	void SaveState( std::ostream& stream ) {
+	    WRITE_POD( &clockRate, clockRate );
+	}
+	void LoadState( std::istream& stream ) {
+	    READ_POD( &clockRate, clockRate );
+	}
+
 	virtual ~device_t() {
 	}
 };

@@ -2594,6 +2594,129 @@ void ymf262_set_update_handler(void *chip, OPL3_UPDATEHANDLER UpdateHandler, dev
 	reinterpret_cast<OPL3 *>(chip)->SetUpdateHandler(UpdateHandler, device);
 }
 
+void SaveState_Channel(OPL3_CH *channel, std::ostream& stream) {
+    WRITE_POD( &channel->block_fnum, channel->block_fnum );
+    WRITE_POD( &channel->fc, channel->fc );
+    WRITE_POD( &channel->ksl_base, channel->ksl_base );
+    WRITE_POD( &channel->kcode, channel->kcode );
+    WRITE_POD( &channel->extended, channel->extended );
+}
+
+void LoadState_Channel(OPL3_CH *channel, std::istream& stream) {
+    READ_POD( &channel->block_fnum, channel->block_fnum );
+    READ_POD( &channel->fc, channel->fc );
+    READ_POD( &channel->ksl_base, channel->ksl_base );
+    READ_POD( &channel->kcode, channel->kcode );
+    READ_POD( &channel->extended, channel->extended );
+}
+
+void SaveState_Slot(OPL3_SLOT *slot, std::ostream& stream) {
+    WRITE_POD( &slot->ar, slot->ar );
+    WRITE_POD( &slot->dr, slot->dr );
+    WRITE_POD( &slot->rr, slot->rr );
+    WRITE_POD( &slot->KSR, slot->KSR );
+    WRITE_POD( &slot->ksl, slot->ksl );
+    WRITE_POD( &slot->ksr, slot->ksr );
+    WRITE_POD( &slot->mul, slot->mul );
+
+    WRITE_POD( &slot->Cnt, slot->Cnt );
+    WRITE_POD( &slot->Incr, slot->Incr );
+    WRITE_POD( &slot->FB, slot->FB );
+    WRITE_POD( &slot->conn_enum, slot->conn_enum );
+    WRITE_POD( &slot->op1_out, slot->op1_out );
+    WRITE_POD( &slot->CON, slot->CON );
+
+    WRITE_POD( &slot->eg_type, slot->eg_type );
+    WRITE_POD( &slot->state, slot->state );
+    WRITE_POD( &slot->TL, slot->TL );
+    WRITE_POD( &slot->TLL, slot->TLL );
+    WRITE_POD( &slot->volume, slot->volume );
+    WRITE_POD( &slot->sl, slot->sl );
+
+    WRITE_POD( &slot->eg_m_ar, slot->eg_m_ar );
+    WRITE_POD( &slot->eg_sh_ar, slot->eg_sh_ar );
+    WRITE_POD( &slot->eg_sel_ar, slot->eg_sel_ar );
+    WRITE_POD( &slot->eg_m_dr, slot->eg_m_dr );
+    WRITE_POD( &slot->eg_sh_dr, slot->eg_sh_dr );
+    WRITE_POD( &slot->eg_sel_dr, slot->eg_sel_dr );
+    WRITE_POD( &slot->eg_m_rr, slot->eg_m_rr );
+    WRITE_POD( &slot->eg_sh_rr, slot->eg_sh_rr );
+    WRITE_POD( &slot->eg_sel_rr, slot->eg_sel_rr );
+
+    WRITE_POD( &slot->key, slot->key );
+
+    WRITE_POD( &slot->AMmask, slot->AMmask );
+    WRITE_POD( &slot->vib, slot->vib );
+
+    WRITE_POD( &slot->waveform_number, slot->waveform_number );
+    WRITE_POD( &slot->wavetable, slot->wavetable );
+}
+
+void LoadState_Slot(OPL3_SLOT *slot, std::istream& stream) {
+    READ_POD( &slot->ar, slot->ar );
+    READ_POD( &slot->dr, slot->dr );
+    READ_POD( &slot->rr, slot->rr );
+    READ_POD( &slot->KSR, slot->KSR );
+    READ_POD( &slot->ksl, slot->ksl );
+    READ_POD( &slot->ksr, slot->ksr );
+    READ_POD( &slot->mul, slot->mul );
+
+    READ_POD( &slot->Cnt, slot->Cnt );
+    READ_POD( &slot->Incr, slot->Incr );
+    READ_POD( &slot->FB, slot->FB );
+    READ_POD( &slot->conn_enum, slot->conn_enum );
+    READ_POD( &slot->op1_out, slot->op1_out );
+    READ_POD( &slot->CON, slot->CON );
+
+    READ_POD( &slot->eg_type, slot->eg_type );
+    READ_POD( &slot->state, slot->state );
+    READ_POD( &slot->TL, slot->TL );
+    READ_POD( &slot->TLL, slot->TLL );
+    READ_POD( &slot->volume, slot->volume );
+    READ_POD( &slot->sl, slot->sl );
+
+    READ_POD( &slot->eg_m_ar, slot->eg_m_ar );
+    READ_POD( &slot->eg_sh_ar, slot->eg_sh_ar );
+    READ_POD( &slot->eg_sel_ar, slot->eg_sel_ar );
+    READ_POD( &slot->eg_m_dr, slot->eg_m_dr );
+    READ_POD( &slot->eg_sh_dr, slot->eg_sh_dr );
+    READ_POD( &slot->eg_sel_dr, slot->eg_sel_dr );
+    READ_POD( &slot->eg_m_rr, slot->eg_m_rr );
+    READ_POD( &slot->eg_sh_rr, slot->eg_sh_rr );
+    READ_POD( &slot->eg_sel_rr, slot->eg_sel_rr );
+
+    READ_POD( &slot->key, slot->key );
+
+    READ_POD( &slot->AMmask, slot->AMmask );
+    READ_POD( &slot->vib, slot->vib );
+
+    READ_POD( &slot->waveform_number, slot->waveform_number );
+    READ_POD( &slot->wavetable, slot->wavetable );
+}
+
+void YMF_SaveState( void *chip, std::ostream& stream ) {
+    for (int ch=0; ch<18; ch++) {
+        OPL3_CH *channel = &((OPL3 *)chip)->P_CH[ch];
+
+        SaveState_Channel(channel, stream);
+
+        for (int sl=0; sl<2; sl++) {
+            SaveState_Slot(&channel->SLOT[sl], stream);
+        }
+    }
+}
+
+void YMF_LoadState( void *chip, std::istream& stream ) {
+    for (int ch=0; ch<18; ch++) {
+        OPL3_CH *channel = &((OPL3 *)chip)->P_CH[ch];
+
+        LoadState_Channel(channel, stream);
+
+        for (int sl=0; sl<2; sl++) {
+            LoadState_Slot(&channel->SLOT[sl], stream);
+        }
+    }
+}
 
 /*
 ** Generate samples for one of the YMF262's

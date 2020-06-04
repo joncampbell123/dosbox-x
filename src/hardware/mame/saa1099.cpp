@@ -475,3 +475,46 @@ WRITE8_MEMBER(saa1099_device::write)
 	else
 		data_w(space, 0, data);
 }
+
+void saa1099_device::SaveState( std::ostream& stream )
+{
+	// - pure data
+	device_t::SaveState(stream);
+ 
+	WRITE_POD( &m_noise_params, m_noise_params );
+	WRITE_POD( &m_env_enable, m_env_enable );
+	WRITE_POD( &m_env_reverse_right, m_env_reverse_right );
+	WRITE_POD( &m_env_mode, m_env_mode );
+	WRITE_POD( &m_env_bits, m_env_bits );
+	WRITE_POD( &m_env_clock, m_env_clock );
+	WRITE_POD( &m_env_step, m_env_step );
+	WRITE_POD( &m_all_ch_enable, m_all_ch_enable );
+	WRITE_POD( &m_sync_state, m_sync_state );
+	WRITE_POD( &m_selected_reg, m_selected_reg );
+	WRITE_POD( &m_channels, m_channels );
+	WRITE_POD( &m_noise, m_noise );
+	WRITE_POD( &m_sample_rate, m_sample_rate );
+	WRITE_POD( &m_master_clock, m_master_clock );
+}
+
+
+void saa1099_device::LoadState( std::istream& stream )
+{
+	// - pure data
+	device_t::LoadState(stream);
+
+	READ_POD( &m_noise_params, m_noise_params );
+	READ_POD( &m_env_enable, m_env_enable );
+	READ_POD( &m_env_reverse_right, m_env_reverse_right );
+	READ_POD( &m_env_mode, m_env_mode );
+	READ_POD( &m_env_bits, m_env_bits );
+	READ_POD( &m_env_clock, m_env_clock );
+	READ_POD( &m_env_step, m_env_step );
+	READ_POD( &m_all_ch_enable, m_all_ch_enable );
+	READ_POD( &m_sync_state, m_sync_state );
+	READ_POD( &m_selected_reg, m_selected_reg );
+	READ_POD( &m_channels, m_channels );
+	READ_POD( &m_noise, m_noise );
+	READ_POD( &m_sample_rate, m_sample_rate );
+	READ_POD( &m_master_clock, m_master_clock );
+}
