@@ -438,6 +438,10 @@ public:
         desc.Load((PhysPt)(table_base+selector));
         return true;
     }
+	
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
+
 
 protected:
     PhysPt table_base;
@@ -489,6 +493,9 @@ public:
 		ldt_value=value;
 		return true;
 	}
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 
 private:
 	PhysPt ldt_base;
