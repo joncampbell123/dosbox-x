@@ -2072,7 +2072,7 @@ void POD_Load_DOS_Files( std::istream& stream )
 			}
 
 			// shutdown old file
-			if( Files[lcv] ) {
+			if( Files[lcv] && Files[lcv]->GetName() != NULL ) {
 				// invalid file state - abort
 				if( strcmp( Files[lcv]->GetName(), "NUL" ) == 0 ) break;
 				if( strcmp( Files[lcv]->GetName(), "CON" ) == 0 ) break;
