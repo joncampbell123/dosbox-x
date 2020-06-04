@@ -3901,6 +3901,11 @@ private:
 		WRITE_POD( &dos.internal_output, dos.internal_output );
 
 		WRITE_POD( &dos.loaded_codepage, dos.loaded_codepage );
+		WRITE_POD( &dos.version.major, dos.version.major );
+		WRITE_POD( &dos.version.minor, dos.version.minor );
+		WRITE_POD( &countryNo, countryNo );
+		WRITE_POD( &uselfn, uselfn );
+		WRITE_POD( &lfn_filefind_handle, lfn_filefind_handle );
 
 		POD_Save_DOS_Devices(stream);
 		POD_Save_DOS_DriveManager(stream);
@@ -3936,6 +3941,11 @@ private:
         READ_POD( &dos.internal_output, dos.internal_output );
 	
 		READ_POD( &dos.loaded_codepage, dos.loaded_codepage );
+		READ_POD( &dos.version.major, dos.version.major );
+		READ_POD( &dos.version.minor, dos.version.minor );
+		READ_POD( &countryNo, countryNo );
+		READ_POD( &uselfn, uselfn );
+		READ_POD( &lfn_filefind_handle, lfn_filefind_handle );
 
 		POD_Load_DOS_Devices(stream);
 		POD_Load_DOS_DriveManager(stream);
