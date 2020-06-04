@@ -3858,6 +3858,7 @@ void SBLASTER_Init() {
 }
 
 // save state support
+void *DMA_DAC_Event_PIC_Event = (void*)DMA_DAC_Event;
 void *DMA_Silent_Event_PIC_Event = (void*)DMA_Silent_Event;
 void *DSP_FinishReset_PIC_Event = (void*)DSP_FinishReset;
 void *DSP_RaiseIRQEvent_PIC_Event = (void*)DSP_RaiseIRQEvent;

@@ -1081,6 +1081,7 @@ extern void *KEYBOARD_TransferBuffer_PIC_Event;		// Keyboard.cpp
 extern void *MOUSE_Limit_Events_PIC_Event;				// Mouse.cpp
 extern void *MPU401_Event_PIC_Event;							// Mpu401.cpp
 extern void *DMA_Silent_Event_PIC_Event;					// Sblaster.cpp
+extern void *DMA_DAC_Event_PIC_Event;
 extern void *DSP_FinishReset_PIC_Event;
 extern void *DSP_RaiseIRQEvent_PIC_Event;
 extern void *END_DMA_Event_PIC_Event;
@@ -1130,6 +1131,7 @@ const void *pic_state_event_table[] = {
 	DMA_Silent_Event_PIC_Event,
 	DSP_FinishReset_PIC_Event,
 	DSP_RaiseIRQEvent_PIC_Event,
+	DMA_DAC_Event_PIC_Event,
 	END_DMA_Event_PIC_Event,
 	END_DMA_Event_PIC_Event,
 	Serial_EventHandler_PIC_Event,
