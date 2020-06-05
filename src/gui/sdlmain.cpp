@@ -8791,10 +8791,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
 
-#if defined(__WIN32__) && !defined(C_SDL2)
-			MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","TogMenu");
-#endif // WIN32
-
             MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "ToggleMenu", &item);
             item->set_text("Hide/show menu bar");
 
