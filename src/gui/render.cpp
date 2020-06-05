@@ -324,6 +324,7 @@ static void RENDER_Halt( void ) {
 extern Bitu PIC_Ticks;
 extern bool pause_on_vsync;
 void PauseDOSBox(bool pressed);
+void AspectRatio_mapper_shortcut(bool pressed);
 
 void RENDER_EndUpdate( bool abort ) {
     if (GCC_UNLIKELY(!render.updating))
@@ -1045,6 +1046,17 @@ void RENDER_Init() {
 
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
+    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
+    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
+
+	DOSBoxMenu::item *item;
+
+	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+	item->set_text("Fit to aspect ratio");
+
+    // DEBUG option
+    MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,"blankrefreshtest","RefrshTest");
+
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
@@ -1082,12 +1094,6 @@ void RENDER_Init() {
 
     if(!running) render.updating=true;
     running = true;
-
-    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
-    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
-
-    // DEBUG option
-    MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,"blankrefreshtest","RefrshTest");
 
     GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
 

@@ -8798,13 +8798,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item->set_text("Pause with interrupts enabled");
         }
 
-        {
-            DOSBoxMenu::item *item;
-
-            MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
-            item->set_text("Fit to aspect ratio");
-        }
-
         RENDER_Init();
         CAPTURE_Init();
         IO_Init();
