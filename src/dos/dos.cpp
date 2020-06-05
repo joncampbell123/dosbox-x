@@ -3043,6 +3043,10 @@ public:
 		else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
 		else enablelfn=-1;
 
+        mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
+
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {
 			const char *s = ver.c_str();
