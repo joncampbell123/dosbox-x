@@ -270,10 +270,32 @@ public:
 		(void)conf;
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
-		const char * sf = section->Get_string("fluid.soundfont");
-		if (!*sf) {
-			LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
-			return false;
+		const char *sf = section->Get_string("fluid.soundfont");
+		if (!*sf) { // Let's try to find a soundfont before bailing
+#if defined (WIN32)
+			// default for windows according to fluidsynth docs
+			if (FILE *file = fopen("C:\soundfonts\default.sf2", "r")) {
+				fclose(file);
+				sf = "C:\soundfonts\default.sf2";
+			} else {
+				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
+				return false;
+			}
+#else
+			// Default on "other" platforms according to fluidsynth docs
+			// This works on RH and Fedora, if a soundfont is installed
+			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/soundfonts/default.sf2";
+			// Ubuntu and Debian don't have a default.sf2...
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else {
+				LOG_MSG("MIDI:fluidsynth: SoundFont not specified, and no system SoundFont found");
+				return false;
+			}
+#endif
 		}
 		soundfont.assign(sf);
 		settings = new_fluid_settings();

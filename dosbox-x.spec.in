@@ -1,5 +1,9 @@
-BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel make, libtool, gcc
+BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel
+BuildRequires: alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel
+BuildRequires: mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel
+BuildRequires: fluidsynth-devel libpcap-devel make libtool gcc
 Requires: libX11 libXext libpng alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
+Requires: fluid-soundfont-gm
 Name: @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Release: 0%{?dist}
@@ -29,7 +33,7 @@ of Windows.
 %autosetup -n dosbox-x
 
 %build
-./build-debug-no-avcodec
+./build-debug
 
 %check
 
