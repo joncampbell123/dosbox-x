@@ -282,6 +282,7 @@ public:
 				return false;
 			}
 #else
+			// Default on "other" platforms according to fluidsynth docs
 			// This works on RH and Fedora, if a soundfont is installed
 			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
 				fclose(file);
