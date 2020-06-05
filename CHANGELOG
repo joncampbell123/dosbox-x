@@ -1,4 +1,6 @@
 0.83.3
+  - Added GUI menu option under "DOS" to change the long
+    filename setting (enable, disable, or auto). (Wengier)
   - Improvements and fixes to the save/load state feature:
     It now supports Sound Blaster Goldplay mode;
     It now saves PC-98 FM interrupt state so that reloading
