@@ -4841,8 +4841,10 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_version.read (buffer, length);
 			check_version.close();
 			std::string platform;
-			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform() + std::string("\n") + UPDATED_STR;
-			if (strncmp(buffer,emulatorversion.c_str(),length)) {
+			char *p=strrchr(buffer, '\n');
+			if (p!=NULL) *p=0;
+			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
+			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"DOSBox-X version mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else
