@@ -1022,13 +1022,13 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f5, MMOD2,"savestate","SaveState", &item);
+	MAPPER_AddHandler(SaveGameState, MK_f9, MMOD1|MMOD2,"savestate","SaveState", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f9, MMOD2,"loadstate","LoadState", &item);
+	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
         item->set_text("Load state");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_f6, MMOD2,"prevslot","PrevSlot", &item);
+	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
         item->set_text("Previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_f7, MMOD2,"nextslot","NextSlot", &item);
+	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
         item->set_text("Next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
