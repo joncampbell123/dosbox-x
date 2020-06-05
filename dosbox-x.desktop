@@ -2,7 +2,7 @@
 Name=DOSBox-X
 Comment=An enhanced x86/DOS emulator with sound/graphics
 Exec=dosbox-x
-Icon=dosbox-x.png
+Icon=dosbox-x
 Terminal=false
 Type=Application
 Categories=System;Emulator;
