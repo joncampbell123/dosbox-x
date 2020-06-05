@@ -4840,7 +4840,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_version.read (buffer, length);
 			check_version.close();
-			std::string platform;
+			buffer[length]='\0';
 			char *p=strrchr(buffer, '\n');
 			if (p!=NULL) *p=0;
 			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
@@ -4850,7 +4850,6 @@ void SaveState::load(size_t slot) const { //throw (Error)
 #else
 				if(!force_load_state) {
 #endif
-					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
 					load_err=true;
 					goto delete_all;
