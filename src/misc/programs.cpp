@@ -32,6 +32,7 @@
 #include "cross.h"
 #include "control.h"
 #include "shell.h"
+#include "menu.h"
 
 Bitu call_program;
 
@@ -1060,6 +1061,9 @@ void CONFIG::Run(void) {
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
 								else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
 								else enablelfn=-1;
+								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
+								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
+								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								std::string ver = section->Get_string("ver");

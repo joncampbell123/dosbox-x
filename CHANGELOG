@@ -1,4 +1,6 @@
 0.83.3
+  - Added GUI menu option under "DOS" to change the long
+    filename setting (enable, disable, or auto). (Wengier)
   - Improvements and fixes to the save/load state feature:
     It now supports Sound Blaster Goldplay mode;
     It now saves PC-98 FM interrupt state so that reloading
@@ -6,6 +8,9 @@
     It is also fixed not to crash when used within a guest
     operting system (when the DOS kernel has been shut down
     using the BOOT command);
+    It will save and verify the DOSBox-X version and build.
+    States saved by DOSBox-X in one platform (e.g. 64-bit
+    Windows) may not work in another (e.g. 32-bit Linux). 
     The GUI menu will show if the save slot is empty, and if
     not the program name of save state will be displayed.
   - Re-ported and improved the save state feature for saving

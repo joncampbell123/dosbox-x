@@ -77,6 +77,8 @@
 #include "zip.h"
 #include "unzip.h"
 #include "ioapi.h"
+#include "shell.h"
+#include "build_timestamp.h"
 #define MAXU32 0xffffffff
 #include "vs2015/zlib/contrib/minizip/zip.c"
 #include "vs2015/zlib/contrib/minizip/unzip.c"
@@ -816,6 +818,30 @@ void PreviousSaveSlot(bool pressed) {
 }
 }
 
+std::string GetPlatform(void) {
+	char platform[30];
+	strcpy(platform, 
+#if defined(WIN32)
+	"Windows"
+#elif defined(LINUX)
+	"Linux"
+#elif unix
+    "Unix"
+#elif defined(MACOSX)
+    "macOS"
+#else
+    "Other"
+#endif
+);
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64)
+	strcat(platform, " 64");
+#else
+	strcat(platform, " 32");
+#endif
+	strcat(platform, "-bit build");
+	return std::string(platform);
+}
+
 size_t GetGameState_Run(void) { return GetGameState(); }
 void SetGameState_Run(int value) { SetGameState(value); }
 void SaveGameState_Run(void) { SaveGameState(true); }
@@ -965,6 +991,7 @@ void Init_VGABIOS() {
         memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
 }
 
+void SetCyclesCount_mapper_shortcut(bool pressed);
 void DOSBOX_RealInit() {
     DOSBoxMenu::item *item;
 
@@ -989,15 +1016,19 @@ void DOSBOX_RealInit() {
         MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDn", &item);
         item->set_text("Slow down");
     }
+	{
+		MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
+		item->set_text("Edit cycles");
+	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f5, MMOD2,"savestate","SaveState", &item);
+	MAPPER_AddHandler(SaveGameState, MK_f9, MMOD1|MMOD2,"savestate","SaveState", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f9, MMOD2,"loadstate","LoadState", &item);
+	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
         item->set_text("Load state");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_f6, MMOD2,"prevslot","PrevSlot", &item);
+	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
         item->set_text("Previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_f7, MMOD2,"nextslot","NextSlot", &item);
+	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
         item->set_text("Next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -4606,10 +4637,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT)  return;
 	SDL_PauseAudio(0);
 	bool save_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>200) {
-		LOG_MSG("Stopped. 200 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>400) {
+		LOG_MSG("Stopped. 400 MB is the maximum memory size for saving/loading states.");
+#if defined(WIN32)
+		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
+#endif
 		return;
 	}
+	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
 	extern const char* RunningProgram;
@@ -4647,6 +4682,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 			i->second.rawBytes[slot].set(ss.str());
 			
 			//LOG_MSG("Component is %s",i->first.c_str());
+
+			if(!create_version) {
+				std::string tempname = temp+"DOSBox-X_Version";
+				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
+				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform() << std::endl << UPDATED_STR;
+				create_version=true;
+				emulatorversion.close();
+			}
 
 			if(!create_title) {
 				std::string tempname = temp+"Program_Name";
@@ -4692,6 +4735,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 		save2=temp+i->first;
 		my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	}
+	save2=temp+"DOSBox-X_Version";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Program_Name";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
@@ -4702,22 +4747,33 @@ delete_all:
 		save2=temp+i->first;
 		remove(save2.c_str());
 	}
+	save2=temp+"DOSBox-X_Version";
+	remove(save2.c_str());
 	save2=temp+"Program_Name";
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
-	if (!save_err) LOG_MSG("Saved. (Slot %d)",(int)slot+1);
+	if (save_err) {
+#if defined(WIN32)
+		MessageBox(GetHWND(),"Failed to save the current state.","Error",MB_OK);
+#endif
+	} else
+		LOG_MSG("Saved. (Slot %d)",(int)slot+1);
 }
 
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>200) {
-		LOG_MSG("Stopped. 200 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>400) {
+		LOG_MSG("Stopped. 400 MB is the maximum memory size for saving/loading states.");
+#if defined(WIN32)
+		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
+#endif
 		return;
 	}
 	SDL_PauseAudio(0);
 	extern const char* RunningProgram;
+	bool read_version=false;
 	bool read_title=false;
 	bool read_memorysize=false;
 	std::string path;
@@ -4762,6 +4818,46 @@ void SaveState::load(size_t slot) const { //throw (Error)
 
 		my_miniunz((char **)save.c_str(),i->first.c_str(),temp.c_str());
 
+		if(!read_version) {
+			my_miniunz((char **)save.c_str(),"DOSBox-X_Version",temp.c_str());
+			std::ifstream check_version;
+			int length = 8;
+
+			std::string tempname = temp+"DOSBox-X_Version";
+			check_version.open(tempname.c_str(), std::ifstream::in);
+			if(check_version.fail()) {
+				LOG_MSG("Save state corrupted! Program in inconsistent state! - DOSBox-X_Version");
+#if defined(WIN32)
+				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
+#endif
+				load_err=true;
+				goto delete_all;
+			}
+			check_version.seekg (0, std::ios::end);
+			length = check_version.tellg();
+			check_version.seekg (0, std::ios::beg);
+
+			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
+			check_version.read (buffer, length);
+			check_version.close();
+			buffer[length]='\0';
+			char *p=strrchr(buffer, '\n');
+			if (p!=NULL) *p=0;
+			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
+			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
+#if defined(WIN32)
+				if(!force_load_state&&MessageBox(GetHWND(),"DOSBox-X version mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
+#else
+				if(!force_load_state) {
+#endif
+					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
+					load_err=true;
+					goto delete_all;
+				}
+			}
+			read_version=true;
+		}
+
 		if(!read_title) {
 			my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 			std::ifstream check_title;
@@ -4784,11 +4880,11 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
-			if (strncmp(buffer,RunningProgram,length)) {
+			if (strncmp(buffer,RunningProgram,length)||!length) {
 #if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO)==IDNO) {
+				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else
-				if(!force_load_state&&strncmp(buffer,RunningProgram,length)) {
+				if(!force_load_state) {
 #endif
 					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your program name: %s",buffer);
@@ -4875,6 +4971,8 @@ delete_all:
 		save2=temp+i->first;
 		remove(save2.c_str());
 	}
+	save2=temp+"DOSBox-X_Version";
+	remove(save2.c_str());
 	save2=temp+"Program_Name";
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
@@ -4952,5 +5050,6 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.read (buffer, length);
 	check_title.close();
 	remove(tempname.c_str());
+	buffer[length]='\0';
 	return std::string(buffer);
 }
