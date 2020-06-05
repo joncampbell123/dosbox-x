@@ -3676,9 +3676,6 @@ static void GUI_StartUp() {
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
-#if defined(__WIN32__) && !defined(C_SDL2)
-    MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
-#endif // WIN32
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset guest system");
 
@@ -8794,7 +8791,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
 
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "TogMenu", &item);
+#if defined(__WIN32__) && !defined(C_SDL2)
+			MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","TogMenu");
+#endif // WIN32
+
+            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "ToggleMenu", &item);
             item->set_text("Hide/show menu bar");
 
             MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "PauseInts", &item);
