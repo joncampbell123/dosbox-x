@@ -8992,6 +8992,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         extern bool Mouse_Vertical;
         extern bool Mouse_Drv;
 
+        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);	
+        mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
 #endif
