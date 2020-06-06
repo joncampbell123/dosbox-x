@@ -51,6 +51,22 @@ common opcode "OR" param(dst,src) {
     output dst; /* writes dst */
 }
 
+common opcode "ADC" param(dst,src) {
+    modifies flags(CF,PF,AF,ZF,SF,OF);
+
+    /* dst += src + CF */
+    input dst,src,flags(CF); /* reads dst, src, CF flag */
+    output dst; /* writes dst */
+}
+
+common opcode "SBB" param(dst,src) {
+    modifies flags(CF,PF,AF,ZF,SF,OF);
+
+    /* dst -= src + CF */
+    input dst,src,flags(CF); /* reads dst, src, CF flag */
+    output dst; /* writes dst */
+}
+
 common opcode "PUSH" param(src) {
     modifies stackp; /* stackp -= word size */
     output stackdataw;
@@ -88,4 +104,22 @@ opcode sequence(0x0F) name "POP" { /* POP CS */
         reject; /* prefix, not opcode, this rule does not apply */
     }
 }
+
+opcode sequence(0x10 mrm) name "ADC" { /* ADC r/m, reg */ common opcode "ADC" param(rmb,regb); }
+opcode sequence(0x11 mrm) name "ADC" { /* ADC r/m, reg */ common opcode "ADC" param(rmw,regw); }
+opcode sequence(0x12 mrm) name "ADC" { /* ADC reg, r/m */ common opcode "ADC" param(regb,rmb); }
+opcode sequence(0x13 mrm) name "ADC" { /* ADC reg, r/m */ common opcode "ADC" param(regw,rmw); }
+opcode sequence(0x14 immb) name "ADC" { /* ADC AL, imm */ common opcode "ADC" param(AL,immb); }
+opcode sequence(0x15 immw) name "ADC" { /* ADC AX, imm */ common opcode "ADC" param(accum,immw); }
+opcode sequence(0x16) name "PUSH" { /* PUSH ES */ common opcode "PUSH" param(SS); }
+opcode sequence(0x17) name "POP" { /* POP ES */ common opcode "POP" param(SS); }
+
+opcode sequence(0x18 mrm) name "SBB" { /* SBB r/m, reg */ common opcode "SBB" param(rmb,regb); }
+opcode sequence(0x19 mrm) name "SBB" { /* SBB r/m, reg */ common opcode "SBB" param(rmw,regw); }
+opcode sequence(0x1A mrm) name "SBB" { /* SBB reg, r/m */ common opcode "SBB" param(regb,rmb); }
+opcode sequence(0x1B mrm) name "SBB" { /* SBB reg, r/m */ common opcode "SBB" param(regw,rmw); }
+opcode sequence(0x1C immb) name "SBB" { /* SBB AL, imm */ common opcode "SBB" param(AL,immb); }
+opcode sequence(0x1D immw) name "SBB" { /* SBB AX, imm */ common opcode "SBB" param(accum,immw); }
+opcode sequence(0x1E) name "PUSH" { /* PUSH ES */ common opcode "PUSH" param(DS); }
+opcode sequence(0x1F) name "POP" { /* POP ES */ common opcode "POP" param(DS); }
 
