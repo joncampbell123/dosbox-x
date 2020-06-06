@@ -868,10 +868,12 @@ void UpdateWindowDimensions(void)
     PrintScreenSizeInfo();
 }
 
+#define MAPPERFILE_SDL1         "mapper-" VERSION ".map"
+#define MAPPERFILE_SDL2         "mapper-" VERSION ".sdl2.map"
 #if defined(C_SDL2)
-# define MAPPERFILE             "mapper-" VERSION ".sdl2.map"
+# define MAPPERFILE             MAPPERFILE_SDL2
 #else
-# define MAPPERFILE             "mapper-" VERSION ".map"
+# define MAPPERFILE             MAPPERFILE_SDL1
 #endif
 
 void                        GUI_ResetResize(bool);
@@ -6114,8 +6116,11 @@ void SDL_SetupConfigSection() {
     Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
     Pstring->Set_values(inactt);
 
-    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE);
+    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE_SDL1);
     Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
+
+    Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
+    Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
 
 #if C_DIRECT3D && C_D3DSHADERS
     Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
