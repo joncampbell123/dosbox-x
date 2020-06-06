@@ -67,6 +67,22 @@ common opcode "SBB" param(dst,src) {
     output dst; /* writes dst */
 }
 
+common opcode "AND" param(dst,src) {
+    modifies flags(CF,PF,AF,ZF,SF,OF);
+
+    /* dst &= src */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "SUB" param(dst,src) {
+    modifies flags(CF,PF,AF,ZF,SF,OF);
+
+    /* dst -= src */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
 common opcode "PUSH" param(src) {
     modifies stackp; /* stackp -= word size */
     output stackdataw;
@@ -122,4 +138,18 @@ opcode sequence(0x1C immb) name "SBB" { /* SBB AL, imm */ common opcode "SBB" pa
 opcode sequence(0x1D immw) name "SBB" { /* SBB AX, imm */ common opcode "SBB" param(accum,immw); }
 opcode sequence(0x1E) name "PUSH" { /* PUSH ES */ common opcode "PUSH" param(DS); }
 opcode sequence(0x1F) name "POP" { /* POP ES */ common opcode "POP" param(DS); }
+
+opcode sequence(0x20 mrm) name "AND" { /* AND r/m, reg */ common opcode "AND" param(rmb,regb); }
+opcode sequence(0x21 mrm) name "AND" { /* AND r/m, reg */ common opcode "AND" param(rmw,regw); }
+opcode sequence(0x22 mrm) name "AND" { /* AND reg, r/m */ common opcode "AND" param(regb,rmb); }
+opcode sequence(0x23 mrm) name "AND" { /* AND reg, r/m */ common opcode "AND" param(regw,rmw); }
+opcode sequence(0x24 immb) name "AND" { /* AND AL, imm */ common opcode "AND" param(AL,immb); }
+opcode sequence(0x25 immw) name "AND" { /* AND AX, imm */ common opcode "AND" param(accum,immw); }
+
+opcode sequence(0x28 mrm) name "SUB" { /* SUB r/m, reg */ common opcode "SUB" param(rmb,regb); }
+opcode sequence(0x29 mrm) name "SUB" { /* SUB r/m, reg */ common opcode "SUB" param(rmw,regw); }
+opcode sequence(0x2A mrm) name "SUB" { /* SUB reg, r/m */ common opcode "SUB" param(regb,rmb); }
+opcode sequence(0x2B mrm) name "SUB" { /* SUB reg, r/m */ common opcode "SUB" param(regw,rmw); }
+opcode sequence(0x2C immb) name "SUB" { /* SUB AL, imm */ common opcode "SUB" param(AL,immb); }
+opcode sequence(0x2D immw) name "SUB" { /* SUB AX, imm */ common opcode "SUB" param(accum,immw); }
 
