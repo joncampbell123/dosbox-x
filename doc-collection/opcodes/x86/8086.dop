@@ -145,8 +145,12 @@ common opcode "Jcc" param(imm,insp,flags,cond) {
 
     input insp,flags,imm;
 
+    /* if cond(), instruction pointer (after decode) is set to insp+imm */
+    var fip = insp+imm;
+    insp = fip if cond();
+
     /* how to show it (disassemblers show the sum, not the immediate) */
-    syntax (insp+imm);
+    syntax fip;
 }
 
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
