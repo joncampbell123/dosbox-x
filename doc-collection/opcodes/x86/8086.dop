@@ -267,14 +267,14 @@ opcode sequence([0x58,0x5F]) name "POP" {
 
 opcode sequence(0x70 immsb) name "JO" { common opcode "Jcc" param(immsb,ip,flags(OF),function(flags(OF))); }
 opcode sequence(0x71 immsb) name "JNO" { common opcode "Jcc" param(immsb,ip,flags(OF),function(!flags(OF))); }
-opcode sequence(0x72 immsb) name "JB" { common opcode "Jcc" param(immsb,ip,flags(CF),function(flags(CF))); }
-opcode sequence(0x73 immsb) name "JNB" { common opcode "Jcc" param(immsb,ip,flags(CF),function(!flags(CF))); }
-opcode sequence(0x74 immsb) name "JZ" { common opcode "Jcc" param(immsb,ip,flags(ZF),function(flags(ZF))); }
-opcode sequence(0x75 immsb) name "JNZ" { common opcode "Jcc" param(immsb,ip,flags(ZF),function(!flags(ZF))); }
-opcode sequence(0x76 immsb) name "JBE" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(flags(CF) | flags(ZF))); }
-opcode sequence(0x77 immsb) name "JNBE" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(!(flags(CF) | flags(ZF)))); }
+opcode sequence(0x72 immsb) name "JB" alias "JNAE" { common opcode "Jcc" param(immsb,ip,flags(CF),function(flags(CF))); }
+opcode sequence(0x73 immsb) name "JNB" alias "JAE" { common opcode "Jcc" param(immsb,ip,flags(CF),function(!flags(CF))); }
+opcode sequence(0x74 immsb) name "JZ" alias "JE" { common opcode "Jcc" param(immsb,ip,flags(ZF),function(flags(ZF))); }
+opcode sequence(0x75 immsb) name "JNZ" alias "JNE" { common opcode "Jcc" param(immsb,ip,flags(ZF),function(!flags(ZF))); }
+opcode sequence(0x76 immsb) name "JBE" alias "JNA" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(flags(CF) | flags(ZF))); }
+opcode sequence(0x77 immsb) name "JNBE" alias "JA" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(!(flags(CF) | flags(ZF)))); }
 opcode sequence(0x78 immsb) name "JS" { common opcode "Jcc" param(immsb,ip,flags(SF),function(flags(SF))); }
 opcode sequence(0x79 immsb) name "JNS" { common opcode "Jcc" param(immsb,ip,flags(SF),function(!flags(SF))); }
-opcode sequence(0x7A immsb) name "JP" { common opcode "Jcc" param(immsb,ip,flags(PF),function(flags(PF))); }
-opcode sequence(0x7B immsb) name "JNP" { common opcode "Jcc" param(immsb,ip,flags(PF),function(!flags(PF))); }
+opcode sequence(0x7A immsb) name "JP" alias "JPE" { common opcode "Jcc" param(immsb,ip,flags(PF),function(flags(PF))); }
+opcode sequence(0x7B immsb) name "JNP" alias "JPO" { common opcode "Jcc" param(immsb,ip,flags(PF),function(!flags(PF))); }
 
