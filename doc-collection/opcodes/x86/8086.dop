@@ -103,12 +103,18 @@ common opcode "PUSH" param(src) {
     modifies stackp; /* stackp -= word size */
     output stackdataw;
     input src;
+
+    /* how to show it */
+    syntax src;
 }
 
 common opcode "POP" param(dst) {
     modifies stackp; /* stackp += word size */
     input stackdataw;
-    output src;
+    output dst;
+
+    /* how to show it */
+    syntax dst;
 }
 
 common opcode "INC" param(what) {
@@ -117,6 +123,9 @@ common opcode "INC" param(what) {
     /* what++ or what = what + 1 */
     input what;
     output what;
+
+    /* how to show it */
+    syntax what;
 }
 
 common opcode "DEC" param(what) {
@@ -125,6 +134,9 @@ common opcode "DEC" param(what) {
     /* what-- or what = what - 1 */
     input what;
     output what;
+
+    /* how to show it */
+    syntax what;
 }
 
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
