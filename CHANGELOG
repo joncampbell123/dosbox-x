@@ -1,4 +1,5 @@
 0.83.3
+  - Rewrote the Windows installer for DOSBox-X. (Wengier)
   - Added GUI menu option under "DOS" to change the long
     filename setting (enable, disable, or auto). (Wengier)
   - Improvements and fixes to the save/load state feature:
