@@ -302,6 +302,10 @@ public:
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
 			fluid_settings_setstr(settings, "audio.driver", section->Get_string("fluid.driver"));
 		}
+#if defined (__linux__) // Let's use pulseaudio as default on Linux, and not the FluidSynth default of Jack
+		else
+		    fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+#endif
 		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
 		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
 		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
