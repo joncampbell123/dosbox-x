@@ -1,9 +1,9 @@
 rem This script will build Inno-Setup based Windows installer for DOSBox-X (Wengier).
-rem All Visual Studio and MinGW builds will be extracted from the Windows ZIP packages.
+rem All Visual Studio and MinGW builds will be extracted from the Windows ZIP packages
+rem located in %%vsbinpath%% and %%mgbinpath%% directories (built with other scripts).
 rem One of them will be selected by user as the default Windows version to be executed.
 
 @echo off
-cls
 
 rem %rootdir% is the root directory of the respository. "." assumes the current directory.
 rem Make sure to surround the directory in quotes (") in case it includes spaces.
@@ -12,6 +12,8 @@ set rootdir=.
 set isspath=%rootdir%\windows-installer
 set vsbinpath=%rootdir%\release\windows
 set mgbinpath=%rootdir%\..
+
+cls
 
 if not exist %isspath%\date.exe (
 	echo Couldn't find %isspath%\date.exe
@@ -59,6 +61,7 @@ if not exist "%m64zip%" (
 	goto error
 )
 
+echo.
 echo ***************************************
 echo * Extract DOSBox-X executables ...    *
 echo ***************************************
