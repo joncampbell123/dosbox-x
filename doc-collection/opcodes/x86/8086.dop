@@ -34,6 +34,7 @@ charset_encoding "UTF-8"; /* default */
    stackdataw: word value on stack [SS:stackp]. 16-bit or 32-bit depending on ?
    ip: instruction pointer (IP/EIP). For input, the value is the instruction pointer after decode.
    cpulevel: 0=8086 1=80186 2=286 3=386 4=486 5=Pentium
+   [A,B]: Range syntax, A <= x <= B inclusive
 */
 
 /* avoid copy-pasta */
