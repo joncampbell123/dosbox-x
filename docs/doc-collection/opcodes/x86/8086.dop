@@ -279,4 +279,6 @@ opcode sequence(0x7A immsb) name "JP" alias "JPE" { common opcode "Jcc" param(im
 opcode sequence(0x7B immsb) name "JNP" alias "JPO" { common opcode "Jcc" param(immsb,ip,flags(PF),function(!flags(PF))); }
 opcode sequence(0x7C immsb) name "JL" alias "JNGE" { common opcode "Jcc" param(immsb,ip,flags(SF,OF),function(flags(SF) ^ flags(OF))); }
 opcode sequence(0x7D immsb) name "JNL" alias "JGE" { common opcode "Jcc" param(immsb,ip,flags(SF,OF),function(!(flags(SF) ^ flags(OF)))); }
+opcode sequence(0x7E immsb) name "JLE" alias "JNG" { common opcode "Jcc" param(immsb,ip,flags(SF,OF,ZF),function((flags(SF) ^ flags(OF)) | flags(ZF))); }
+opcode sequence(0x7F immsb) name "JNLE" alias "JG" { common opcode "Jcc" param(immsb,ip,flags(SF,OF,ZF),function(!((flags(SF) ^ flags(OF)) | flags(ZF)))); }
 
