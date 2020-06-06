@@ -265,7 +265,5 @@ opcode sequence([0x58,0x5F]) name "POP" {
     common opcode "POP" param(regw);
 }
 
-opcode sequence(0x70 immsb) name "JO" {
-    common opcode "Jcc" param(immsb,ip,flags(JO),function(flags(JO)));
-}
+opcode sequence(0x70 immsb) name "JO" { common opcode "Jcc" param(immsb,ip,flags(JO),function(flags(JO))); }
 
