@@ -1,5 +1,10 @@
 0.83.3
   - Rewrote the Windows installer for DOSBox-X. (Wengier)
+  - Added config option "mapperfile_sdl2" for SDL2 builds.
+    SDL1 and SDL2 builds of DOSBox-X can not use the same
+    mapper file, or they will likely malfunction. Adding
+    this option allows SDL1 and SDL2 builds of DOSBox-X
+    to work with the same dosbox-x.conf file. (Wengier)
   - Added GUI menu option under "DOS" to change the long
     filename setting (enable, disable, or auto). (Wengier)
   - Improvements and fixes to the save/load state feature:
