@@ -35,13 +35,11 @@ if not exist %ISCC% (
 	echo Inno Setup 5 not found at %ISCC%, skipping ...
 	goto success
 )
-%ISCC% DOSBox-X-setup-win32.iss
-%ISCC% DOSBox-X-setup-win64.iss
-ren DOSBox-X-setup-win32.exe DOSBox-X-setup-win32-%DOSBOXDATE%.exe
-ren DOSBox-X-setup-win64.exe DOSBox-X-setup-win64-%DOSBOXDATE%.exe
-7za a dosbox-x-setup-win32-%DOSBOXDATE%.zip DOSBox-X-setup-win32-%DOSBOXDATE%.exe
-7za a dosbox-x-setup-win64-%DOSBOXDATE%.zip DOSBox-X-setup-win64-%DOSBOXDATE%.exe
-del dosbox-x-setup-win*.exe
+%ISCC% DOSBox-X-setup.iss
+ren DOSBox-X-setup.exe DOSBox-X-setup-%DOSBOXDATE%.exe
+7za a dosbox-x-setup-%DOSBOXDATE%.zip DOSBox-X-setup-%DOSBOXDATE%.exe
+DOSBOXDATE%.exe
+del dosbox-x-setup-*.exe
 
 goto success
 

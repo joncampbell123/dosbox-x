@@ -4392,8 +4392,14 @@ void MAPPER_StartUp() {
         }
     }
 #endif
-
-    Prop_path* pp = section->Get_path("mapperfile");
+    Prop_path* pp;
+#if defined(C_SDL2)
+	pp = section->Get_path("mapperfile_sdl2");
+    mapper.filename = pp->realpath;
+	if (mapper.filename=="") pp = section->Get_path("mapperfile");
+#else
+    pp = section->Get_path("mapperfile");
+#endif
     mapper.filename = pp->realpath;
 
     {

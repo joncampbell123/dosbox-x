@@ -1,1 +1,3 @@
-epilogue
+For the latest information about DOSBox-X, please visit the online user guide in the DOSBox-X Wiki: https://github.com/joncampbell123/dosbox-x/wiki
+
+You can also visit the DOSBox-X issue tracker if you have any issues or want to request new features in DOSBox-X: https://github.com/joncampbell123/dosbox-x/issues
