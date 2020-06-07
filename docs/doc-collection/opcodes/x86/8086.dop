@@ -101,6 +101,21 @@ common opcode "CMP" param(dst,src) {
     input dst,src; /* reads dst, src */
 }
 
+common opcode "TEST" param(dst,src) {
+    modifies flags(CF,PF,AF,ZF,SF,OF);
+
+    /* tmp = dst & src */
+    input dst,src; /* reads dst, src */
+}
+
+common opcode "XCHG" param(dst,src) {
+    /* does not modify flags */
+
+    /* tmp = dst; dst = src; src = tmp */
+    input dst,src; /* reads dst, src */
+    output dst,src; /* writes dst, src */
+}
+
 common opcode "PUSH" param(src) {
     modifies stackp; /* stackp -= word size */
     output stackdataw;
@@ -328,4 +343,9 @@ opcode sequence(0x80 mrm immb)  where reg == 7 name "CMP" { common opcode "CMP" 
 opcode sequence(0x81 mrm immw)  where reg == 7 name "CMP" { common opcode "CMP" param(rmw,immw);  }
 opcode sequence(0x82 mrm immb)  where reg == 7 name "CMP" { common opcode "CMP" param(rmb,immb);  }
 opcode sequence(0x83 mrm immsb) where reg == 7 name "CMP" { common opcode "CMP" param(rmw,immsb); }
+
+opcode sequence(0x84 mrm) name "TEST" { common opcode "TEST" param(regb,rmb); }
+opcode sequence(0x85 mrm) name "TEST" { common opcode "TEST" param(regw,rmw); }
+opcode sequence(0x86 mrm) name "XCHG" { common opcode "XCHG" param(regb,rmb); }
+opcode sequence(0x87 mrm) name "XCHG" { common opcode "XCHG" param(regw,rmw); }
 
