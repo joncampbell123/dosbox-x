@@ -489,4 +489,6 @@ opcode sequence(0xA7) name "CMPSW" {
     /* how to show it */
     syntax ;
 }
+opcode sequence(0xA8 immb) name "TEST" { common opcode "TEST" param(AL,immb); }
+opcode sequence(0xA9 immw) name "TEST" { common opcode "TEST" param(accum,immw); }
 
