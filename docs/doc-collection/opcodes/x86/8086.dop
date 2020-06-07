@@ -287,3 +287,45 @@ opcode sequence(0x7D immsb) name "JNL" alias "JGE" { common opcode "Jcc" param(i
 opcode sequence(0x7E immsb) name "JLE" alias "JNG" { common opcode "Jcc" param(immsb,ip,flags(SF,OF,ZF),function((flags(SF) ^ flags(OF)) | flags(ZF))); }
 opcode sequence(0x7F immsb) name "JNLE" alias "JG" { common opcode "Jcc" param(immsb,ip,flags(SF,OF,ZF),function(!((flags(SF) ^ flags(OF)) | flags(ZF)))); }
 
+/* GRP1. reg selects function. Notice reg maps instructions the same as 0x00-0x3F? */
+/* For the 0x83 opcode byte case the immediate byte is sign extended to a word. */
+opcode sequence(0x80 mrm immb)  where reg == 0 name "ADD" { common opcode "ADD" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 0 name "ADD" { common opcode "ADD" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 0 name "ADD" { common opcode "ADD" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 0 name "ADD" { common opcode "ADD" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 1 name "OR" { common opcode "OR" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 1 name "OR" { common opcode "OR" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 1 name "OR" { common opcode "OR" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 1 name "OR" { common opcode "OR" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 2 name "ADC" { common opcode "ADC" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 2 name "ADC" { common opcode "ADC" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 2 name "ADC" { common opcode "ADC" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 2 name "ADC" { common opcode "ADC" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 3 name "SBB" { common opcode "SBB" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 3 name "SBB" { common opcode "SBB" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 3 name "SBB" { common opcode "SBB" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 3 name "SBB" { common opcode "SBB" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 4 name "AND" { common opcode "AND" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 4 name "AND" { common opcode "AND" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 4 name "AND" { common opcode "AND" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 4 name "AND" { common opcode "AND" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 5 name "SUB" { common opcode "SUB" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 5 name "SUB" { common opcode "SUB" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 5 name "SUB" { common opcode "SUB" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 5 name "SUB" { common opcode "SUB" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 6 name "XOR" { common opcode "XOR" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 6 name "XOR" { common opcode "XOR" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 6 name "XOR" { common opcode "XOR" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 6 name "XOR" { common opcode "XOR" param(rmw,immsb); }
+
+opcode sequence(0x80 mrm immb)  where reg == 7 name "CMP" { common opcode "CMP" param(rmb,immb);  }
+opcode sequence(0x81 mrm immw)  where reg == 7 name "CMP" { common opcode "CMP" param(rmw,immw);  }
+opcode sequence(0x82 mrm immb)  where reg == 7 name "CMP" { common opcode "CMP" param(rmb,immb);  }
+opcode sequence(0x83 mrm immsb) where reg == 7 name "CMP" { common opcode "CMP" param(rmw,immsb); }
+
