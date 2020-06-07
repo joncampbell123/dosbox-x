@@ -41,9 +41,6 @@ of Windows.
 %make_install DESTDIR=%{buildroot}
 
 desktop-file-install \
-%if 0%{?fedora} && 0%{?fedora} < 19
-  --vendor fedora            \
-%endif
   --dir=%{buildroot}%{_datadir}/applications \
   %{SOURCE1}
 
@@ -59,4 +56,9 @@ install -p -m 0644 %SOURCE3 %{buildroot}%{_datadir}/metainfo
 %{_datadir}/metainfo/*
 %{_datadir}/dosbox-x
 
+# Required for NE2000 networking support
+%post
+if [ -x /usr/sbin/setcap ]; then
+    setcap cap_net_raw+ep %{_bindir}/dosbox-x
+fi
 
