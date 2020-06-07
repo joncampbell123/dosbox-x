@@ -22,7 +22,7 @@
 
 /*
  *  DOSBox-X FLAC decoder API implementation
- *  --------------------------------------
+ *  ----------------------------------------
  *  This decoder makes use of the dr_flac library by David Reid (mackron@gmail.com)
  *    - dr_libs: https://github.com/mackron/dr_libs (source)
  *    - dr_flac: http://mackron.github.io/dr_flac.html (website)

@@ -1,6 +1,6 @@
 /*
- *  DOSBox MP3 decoder API implementation
- *  -------------------------------------
+ *  DOSBox-X MP3 decoder API implementation
+ *  ---------------------------------------
  *  It makes use of the stand-alone STB Vorbis library:
  *   - STB: https://github.com/nothings/stb (source)
  *   - STB: https://twitter.com/nothings (website/author info)

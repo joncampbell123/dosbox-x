@@ -1,6 +1,6 @@
 /*
  *  DOSBox-X MP3 decoder API implementation
- *  -------------------------------------
+ *  ---------------------------------------
  *  It makes use of the dr_wav library by David Reid (mackron@gmail.com)
  *  Source links:
  *   - dr_libs: https://github.com/mackron/dr_libs (source)

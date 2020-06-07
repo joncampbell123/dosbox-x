@@ -22,7 +22,7 @@
 
 /*
  *  DOSBox-X MP3 decoder API implementation
- *  -------------------------------------
+ *  ---------------------------------------
  *  This decoder makes use of the dr_mp3 library by David Reid (mackron@gmail.com)
  *    - dr_libs: https://github.com/mackron/dr_libs (source)
  *    - dr_mp3:  http://mackron.github.io/dr_mp3.html (website)
