@@ -15,6 +15,7 @@ charset_encoding "UTF-8"; /* default */
    rm: register/memory operand, word operand
    rmb: register/memory operand, byte operand
    rmw: register/memory operand, byte operand
+   rm16: register/memory operand, 16-bit word operand
    mrm: mod/reg/rm (with optional scalar/index/byte if 32-bit addressing with the right combination)
    opbyte(n): opcode byte n
    accum: AX/EAX
@@ -360,4 +361,5 @@ opcode sequence(0x88 mrm) name "MOV"  { common opcode "MOV"  param(rmb,regb); }
 opcode sequence(0x89 mrm) name "MOV"  { common opcode "MOV"  param(rmw,regw); }
 opcode sequence(0x8A mrm) name "MOV"  { common opcode "MOV"  param(regb,rmb); }
 opcode sequence(0x8B mrm) name "MOV"  { common opcode "MOV"  param(regw,rmw); }
+opcode sequence(0x8C mrm) name "MOV"  { common opcode "MOV"  param(rm16,sreg); } /* mov r/m,segment register */
 
