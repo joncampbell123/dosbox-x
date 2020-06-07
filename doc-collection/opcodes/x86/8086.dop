@@ -438,4 +438,12 @@ opcode sequence(0x9B) name "WAIT" { /* wait for FPU */
 }
 opcode sequence(0x9C) name "PUSHF" { common opcode "PUSHF" param(flags); }
 opcode sequence(0x9D) name "POPF" { common opcode "POPF" param(flags); }
+opcode sequence(0x9E) name "SAHF" {
+    input AH;
+    output flags;
+}
+opcode sequence(0x9F) name "LAHF" {
+    input flags;
+    output AH;
+}
 
