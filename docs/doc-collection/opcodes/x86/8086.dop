@@ -27,6 +27,7 @@ charset_encoding "UTF-8"; /* default */
    dstidx: DI/EDI
    immb: 8-bit immediate
    immw: word immediate
+   imma: address (offset) immediate
    immsb: 8-bit immediate signed
    sib: scalar/index/byte
    flags: flags register (FLAGS if 16-bit, EFLAGS if 32-bit)
@@ -446,4 +447,8 @@ opcode sequence(0x9F) name "LAHF" {
     input flags;
     output AH;
 }
+opcode sequence(0xA0 imma) name "MOV" { common opcode "MOV" param(AL,memory reference word imma); }
+opcode sequence(0xA1 imma) name "MOV" { common opcode "MOV" param(accum,memory reference word imma); }
+opcode sequence(0xA2 imma) name "MOV" { common opcode "MOV" param(memory reference word imma,AL); }
+opcode sequence(0xA3 imma) name "MOV" { common opcode "MOV" param(memory reference word imma,accum); }
 
