@@ -471,4 +471,22 @@ opcode sequence(0xA5) name "MOVSW" {
     /* how to show it */
     syntax ;
 }
+opcode sequence(0xA6) name "CMPSB" {
+    /* if DF = 1, srcidx -= 1, dstidx -= 1; */
+    /* if DF = 0, srcidx += 1, dstidx += 1; */
+    input memory reference byte srcidx, memory reference byte farptr(ES,dstidx), DF;
+    modifies srcidx,dstidx,flags(CF,PF,AF,ZF,SF,OF);
+
+    /* how to show it */
+    syntax ;
+}
+opcode sequence(0xA7) name "CMPSW" {
+    /* if DF = 1, srcidx -= wordsize, dstidx -= wordsize; */
+    /* if DF = 0, srcidx += wordsize, dstidx += wordsize; */
+    input memory reference word srcidx, memory reference word farptr(ES,dstidx), DF;
+    modifies srcidx,dstidx,flags(CF,PF,AF,ZF,SF,OF);
+
+    /* how to show it */
+    syntax ;
+}
 
