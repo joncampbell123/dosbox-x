@@ -1,5 +1,9 @@
 0.83.3
-  - Rewrote the Windows installer for DOSBox-X. (Wengier)
+  - Rewrote the Windows installer for DOSBox-X, as well as
+    the building script for the installer. All required
+    build tools including the Inno Setup Compiler are now
+    provided in the repository and will be automatically
+    called by the building script. (Wengier)
   - Added config option "mapperfile_sdl2" for SDL2 builds.
     SDL1 and SDL2 builds of DOSBox-X can not use the same
     mapper file, or they will likely malfunction. Adding
