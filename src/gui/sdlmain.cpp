@@ -6762,6 +6762,7 @@ void XMS_Init();
 void EMS_Init();
 void MOUSE_Init();
 void DOS_KeyboardLayout_Init();
+void CDROM_Image_Init();
 void MSCDEX_Init();
 void DRIVES_Init();
 void IPX_Init();
@@ -8929,6 +8930,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         IPX_Init();
 #endif
         MSCDEX_Init();
+        CDROM_Image_Init();
 
         /* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
          * per page. FIXME: I would like to push this down to the point that it's never called until
