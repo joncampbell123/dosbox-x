@@ -549,4 +549,12 @@ opcode sequence(0xAF) name "SCASW" {
     /* how to show it */
     syntax ;
 }
+opcode sequence([0xB0,0xB7] immb) name "MOV" {
+    reg index = opbyte(0) & 7;
+    common opcode "MOV"  param(regb,immb);
+}
+opcode sequence([0xB8,0xBF] immw) name "MOV" {
+    reg index = opbyte(0) & 7;
+    common opcode "MOV"  param(regw,immw);
+}
 
