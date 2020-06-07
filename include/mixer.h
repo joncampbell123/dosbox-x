@@ -29,6 +29,10 @@
 typedef void (*MIXER_MixHandler)(Bit8u * sampdate,Bit32u len);
 typedef void (*MIXER_Handler)(Bitu len);
 
+template <class T> T clamp(const T& n, const T& lower, const T& upper) {
+	return std::max<T>(lower, std::min<T>(n, upper));
+}
+
 #define MIXER_BUFSIZE (16*1024)
 #define MIXER_BUFMASK (MIXER_BUFSIZE-1)
 extern Bit8u MixTemp[MIXER_BUFSIZE];
@@ -42,6 +46,7 @@ class MixerChannel {
 public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
+	void SetScale(float _left, float _right);
 	void UpdateVolume(void);
 	void SetLowpassFreq(Bitu _freq,unsigned int order=2); // _freq / 1 Hz. call with _freq == 0 to disable
 	void SetSlewFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
@@ -90,7 +95,7 @@ public:
 
 	MIXER_Handler handler;
 	float volmain[2];
-	float scale;
+	float scale[2];
 	Bit32s volmul[2];
 	Bit32s lowpass[LOWPASS_ORDER][2];	// lowpass filter
 	Bit32s lowpass_alpha;			// "alpha" multiplier for lowpass (16.16 fixed point)
