@@ -110,6 +110,14 @@ common opcode "MOV" param(dst,src) {
     output dst; /* writes dst */
 }
 
+common opcode "LEA" param(dst,ea) {
+    /* does not modify flags */
+
+    /* dst = ea */
+    input ea; /* reads src */
+    output dst; /* writes dst */
+}
+
 common opcode "TEST" param(dst,src) {
     modifies flags(CF,PF,AF,ZF,SF,OF);
 
@@ -362,4 +370,7 @@ opcode sequence(0x89 mrm) name "MOV"  { common opcode "MOV"  param(rmw,regw); }
 opcode sequence(0x8A mrm) name "MOV"  { common opcode "MOV"  param(regb,rmb); }
 opcode sequence(0x8B mrm) name "MOV"  { common opcode "MOV"  param(regw,rmw); }
 opcode sequence(0x8C mrm) name "MOV"  { common opcode "MOV"  param(rm16,sreg); } /* mov r/m,segment register */
+opcode sequence(0x8D mrm) name "LEA" where mod != 3 { common opcode "LEA" param(regw,eaw); } /* LEA reg, [memory ref] */
+opcode sequence(0x8E mrm) name "MOV"  { common opcode "MOV"  param(sreg,rm16); } /* mov segment register,r/m */
+opcode sequence(0x8F mrm) where reg == 0 name "POP" { common opcode "POP" param(rmw); } /* POP r/m */
 
