@@ -415,4 +415,7 @@ opcode sequence(0x99) name "CDQ" if datasize == 32 {
 opcode sequence(0x9A immw imm16) name "CALL" { /* CALL FAR imm16:immw aka seg:off */
     common opcode "CALL FAR" param(imm16,immw);
 }
+opcode sequence(0x9B) name "WAIT" { /* wait for FPU */
+    /* check pending unmasked floating point exceptions */
+}
 
