@@ -1,4 +1,6 @@
 0.83.3
+  - Support for mounting cues files with MP3/OGG/WAV/FLAC
+    compressed audio tracks. (Wengier) 
   - Rewrote the Windows installer for DOSBox-X, as well as
     the building script for the installer. All required
     build tools including the Inno Setup Compiler are now
