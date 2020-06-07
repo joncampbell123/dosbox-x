@@ -511,4 +511,24 @@ opcode sequence(0xAB) name "STOSW" {
     /* how to show it */
     syntax ;
 }
+opcode sequence(0xAC) name "LODSB" {
+    /* if DF = 1, srcidx -= 1; */
+    /* if DF = 0, srcidx += 1; */
+    input memory reference byte srcidx;
+    output AL;
+    modifies srcidx;
+
+    /* how to show it */
+    syntax ;
+}
+opcode sequence(0xAD) name "LODSW" {
+    /* if DF = 1, srcidx -= wordsize; */
+    /* if DF = 0, srcidx += wordsize; */
+    input memory reference word srcidx;
+    output accum;
+    modifies srcidx;
+
+    /* how to show it */
+    syntax ;
+}
 
