@@ -373,4 +373,9 @@ opcode sequence(0x8C mrm) name "MOV"  { common opcode "MOV"  param(rm16,sreg); }
 opcode sequence(0x8D mrm) name "LEA" where mod != 3 { common opcode "LEA" param(regw,eaw); } /* LEA reg, [memory ref] */
 opcode sequence(0x8E mrm) name "MOV"  { common opcode "MOV"  param(sreg,rm16); } /* mov segment register,r/m */
 opcode sequence(0x8F mrm) where reg == 0 name "POP" { common opcode "POP" param(rmw); } /* POP r/m */
+opcode sequence(0x90) name "NOP" { }
+opcode sequence([0x91,0x97]) name "XCHG" {
+    reg index = opbyte(0) & 7;
+    common opcode "XCHG" param(regw,accum);
+}
 
