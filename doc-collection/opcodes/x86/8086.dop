@@ -101,6 +101,14 @@ common opcode "CMP" param(dst,src) {
     input dst,src; /* reads dst, src */
 }
 
+common opcode "MOV" param(dst,src) {
+    /* does not modify flags */
+
+    /* dst = src */
+    input src; /* reads src */
+    output dst; /* writes dst */
+}
+
 common opcode "TEST" param(dst,src) {
     modifies flags(CF,PF,AF,ZF,SF,OF);
 
@@ -348,4 +356,8 @@ opcode sequence(0x84 mrm) name "TEST" { common opcode "TEST" param(regb,rmb); }
 opcode sequence(0x85 mrm) name "TEST" { common opcode "TEST" param(regw,rmw); }
 opcode sequence(0x86 mrm) name "XCHG" { common opcode "XCHG" param(regb,rmb); }
 opcode sequence(0x87 mrm) name "XCHG" { common opcode "XCHG" param(regw,rmw); }
+opcode sequence(0x88 mrm) name "MOV"  { common opcode "MOV"  param(rmb,regb); }
+opcode sequence(0x89 mrm) name "MOV"  { common opcode "MOV"  param(rmw,regw); }
+opcode sequence(0x8A mrm) name "MOV"  { common opcode "MOV"  param(regb,rmb); }
+opcode sequence(0x8B mrm) name "MOV"  { common opcode "MOV"  param(regw,rmw); }
 
