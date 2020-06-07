@@ -1,6 +1,6 @@
 /*
- *  DOSBox Opus decoder API implementation
- *  --------------------------------------
+ *  DOSBox-X Opus decoder API implementation
+ *  ----------------------------------------
  *  This decoders makes use of:
  *    - libopusfile, for .opus file handing and frame decoding
  *
@@ -397,7 +397,7 @@ extern const Sound_DecoderFunctions __Sound_DecoderFunctions_OPUS =
     {
         extensions_opus,
         "Ogg Opus audio using libopusfile",
-        "The DOSBox Team"
+        "The DOSBox-X project"
     },
 
     opus_init,   /*   init() method */

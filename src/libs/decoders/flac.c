@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2020-2020  The dosbox-staging team
+ *  Copyright (C) 2020-2020  The DOSBox-X project
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  */
 
 /*
- *  DOSBox FLAC decoder API implementation
+ *  DOSBox-X FLAC decoder API implementation
  *  --------------------------------------
  *  This decoder makes use of the dr_flac library by David Reid (mackron@gmail.com)
  *    - dr_libs: https://github.com/mackron/dr_libs (source)
@@ -160,7 +160,7 @@ const Sound_DecoderFunctions __Sound_DecoderFunctions_FLAC =
     {
         extensions_flac,
         "Free Lossless Audio Codec (FLAC)",
-        "The DOSBox Team"
+        "The DOSBox-X project"
     },
 
     FLAC_init,       /*   init() method */

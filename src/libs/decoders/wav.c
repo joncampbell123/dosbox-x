@@ -1,5 +1,5 @@
 /*
- *  DOSBox MP3 decoder API implementation
+ *  DOSBox-X MP3 decoder API implementation
  *  -------------------------------------
  *  It makes use of the dr_wav library by David Reid (mackron@gmail.com)
  *  Source links:
@@ -167,7 +167,7 @@ const Sound_DecoderFunctions __Sound_DecoderFunctions_WAV =
     {
         extensions_wav,
         "WAV Audio Codec",
-        "The DOSBox Team"
+        "The DOSBox-X project"
     },
 
     WAV_init,       /*   init() method */
