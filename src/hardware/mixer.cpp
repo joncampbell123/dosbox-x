@@ -225,7 +225,6 @@ inline void MixerChannel::updateSlew(void) {
 
 MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * name) {
     MixerChannel * chan=new MixerChannel();
-    chan->scale = 1.0;
     chan->freq_fslew = 0;
     chan->freq_nslew_want = 0;
     chan->freq_nslew = 0;
@@ -250,6 +249,7 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
     chan->freq_f = 0;
     chan->SetFreq(freq);
     chan->next=mixer.channels;
+    chan->SetScale(1.0);
     chan->SetVolume(1,1);
     chan->enabled=false;
     chan->last[0] = chan->last[1] = 0;
@@ -288,8 +288,8 @@ void MIXER_DelChannel(MixerChannel* delchan) {
 }
 
 void MixerChannel::UpdateVolume(void) {
-    volmul[0]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[0]);
-    volmul[1]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[1]);
+    volmul[0]=(Bits)((1 << MIXER_VOLSHIFT)*scale[0]*volmain[0]);
+    volmul[1]=(Bits)((1 << MIXER_VOLSHIFT)*scale[1]*volmain[1]);
 }
 
 void MixerChannel::SetVolume(float _left,float _right) {
@@ -299,8 +299,20 @@ void MixerChannel::SetVolume(float _left,float _right) {
 }
 
 void MixerChannel::SetScale( float f ) {
-    scale = f;
-    UpdateVolume();
+    SetScale(f, f);
+}
+
+void MixerChannel::SetScale(float _left, float _right) {
+	// Constrain application-defined volume between 0% and 100%
+	const float min_volume(0.0);
+	const float max_volume(1.0);
+	_left  = clamp(_left,  min_volume, max_volume);
+	_right = clamp(_right, min_volume, max_volume);
+	if (scale[0] != _left || scale[1] != _right) {
+		scale[0] = _left;
+		scale[1] = _right;
+		UpdateVolume();
+	}
 }
 
 static void MIXER_FillUp(void);
