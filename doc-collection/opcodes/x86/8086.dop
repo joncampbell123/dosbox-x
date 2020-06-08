@@ -494,7 +494,7 @@ opcode sequence(0xA9 immw) name "TEST" { common opcode "TEST" param(accum,immw);
 opcode sequence(0xAA) name "STOSB" {
     /* if DF = 1, dstidx -= 1; */
     /* if DF = 0, dstidx += 1; */
-    input AL;
+    input AL, flags(DF);
     output memory reference byte farptr(ES,dstidx);
     modifies dstidx;
 
@@ -504,7 +504,7 @@ opcode sequence(0xAA) name "STOSB" {
 opcode sequence(0xAB) name "STOSW" {
     /* if DF = 1, dstidx -= wordsize; */
     /* if DF = 0, dstidx += wordsize; */
-    input accum;
+    input accum, flags(DF);
     output memory reference word farptr(ES,dstidx);
     modifies dstidx;
 
@@ -514,7 +514,7 @@ opcode sequence(0xAB) name "STOSW" {
 opcode sequence(0xAC) name "LODSB" {
     /* if DF = 1, srcidx -= 1; */
     /* if DF = 0, srcidx += 1; */
-    input memory reference byte srcidx;
+    input memory reference byte srcidx, flags(DF);
     output AL;
     modifies srcidx;
 
@@ -524,7 +524,7 @@ opcode sequence(0xAC) name "LODSB" {
 opcode sequence(0xAD) name "LODSW" {
     /* if DF = 1, srcidx -= wordsize; */
     /* if DF = 0, srcidx += wordsize; */
-    input memory reference word srcidx;
+    input memory reference word srcidx, flags(DF);
     output accum;
     modifies srcidx;
 
@@ -534,7 +534,7 @@ opcode sequence(0xAD) name "LODSW" {
 opcode sequence(0xAE) name "SCASB" {
     /* if DF = 1, dstidx -= 1; */
     /* if DF = 0, dstidx += 1; */
-    input AL,memory reference byte farptr(ES,dstidx);
+    input AL,memory reference byte farptr(ES,dstidx), flags(DF);
     modifies flags(CF,PF,AF,ZF,SF,OF);
 
     /* how to show it */
@@ -543,7 +543,7 @@ opcode sequence(0xAE) name "SCASB" {
 opcode sequence(0xAF) name "SCASW" {
     /* if DF = 1, dstidx -= wordsize; */
     /* if DF = 0, dstidx += wordsize; */
-    input accum,memory reference word farptr(ES,dstidx);
+    input accum,memory reference word farptr(ES,dstidx), flags(DF);
     modifies flags(CF,PF,AF,ZF,SF,OF);
 
     /* how to show it */
