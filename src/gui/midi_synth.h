@@ -274,9 +274,9 @@ public:
 		if (!*sf) { // Let's try to find a soundfont before bailing
 #if defined (WIN32)
 			// default for windows according to fluidsynth docs
-			if (FILE *file = fopen("C:\soundfonts\default.sf2", "r")) {
+			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
 				fclose(file);
-				sf = "C:\soundfonts\default.sf2";
+				sf = "C:\\soundfonts\\default.sf2";
 			} else {
 				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
 				return false;
