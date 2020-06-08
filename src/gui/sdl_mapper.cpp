@@ -31,6 +31,7 @@
 #include "dosbox.h"
 #include "video.h"
 #include "keyboard.h"
+#include "mouse.h"
 #include "pic.h"
 #include "control.h"
 #include "joystick.h"
@@ -2247,6 +2248,34 @@ public:
     KBD_KEYS key;
 };
 
+class CMouseButtonEvent : public CTriggeredEvent {
+public:
+	CMouseButtonEvent(char const * const _entry,Bit8u _button) : CTriggeredEvent(_entry) {
+		button=_button;
+        notify_button=NULL;
+	}
+	void Active(bool yesno) {
+		if (yesno)
+			Mouse_ButtonPressed(button);
+		else
+			Mouse_ButtonReleased(button);
+	}
+    //! \brief Associate this object with a text button in the mapper UI
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+
+    virtual void RebindRedraw(void) {
+        if (notify_button != NULL)
+            notify_button->RebindRedraw();
+    }
+
+    //! \brief Text button in the mapper UI to indicate our status by
+    CTextButton *notify_button;
+
+	Bit8u button;
+};
+
 //! \brief Joystick axis event handling for the mapper
 class CJAxisEvent : public CContinuousEvent {
 public:
@@ -2856,6 +2885,16 @@ static CKeyEvent * AddKeyButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * 
     return event;
 }
 
+static CMouseButtonEvent * AddMouseButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,char const * const entry,Bit8u key) {
+	char buf[64];
+	strcpy(buf,"mouse_");
+	strcat(buf,entry);
+	CMouseButtonEvent * event=new CMouseButtonEvent(buf,key);
+	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(button);
+	return event;
+}
+
 static CJAxisEvent * AddJAxisButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu stick,Bitu axis,bool positive,CJAxisEvent * opposite_axis) {
     char buf[64];
     sprintf(buf,"jaxis_%d_%d%s",(int)stick,(int)axis,positive ? "+" : "-");
@@ -2954,23 +2993,32 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
 
     /* Arrow Keys */
-#define XO 17
+#define XO 18
 #define YO 0
 
     AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
     AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
     AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
-    AddKeyButtonEvent(PX(XO+3),PY(YO),BW,BH,"NEQ","kp_equals",KBD_kpequals);
     AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"INS","insert",KBD_insert);
     AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"HOM","home",KBD_home);
     AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"PUP","pageup",KBD_pageup);
     AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"DEL","delete",KBD_delete);
     AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"END","end",KBD_end);
     AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"PDN","pagedown",KBD_pagedown);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW,BH,"\x18","up",KBD_up);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+5),BW,BH,"\x1B","left",KBD_left);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+5),BW,BH,"\x19","down",KBD_down);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+5),BW,BH,"\x1A","right",KBD_right);
+    AddKeyButtonEvent(PX(XO-4),PY(YO),BW,BH,"NEQ","kp_equals",KBD_kpequals);
+    AddKeyButtonEvent(PX(XO-2),PY(YO),BW,BH,"\x18 U","up",KBD_up);
+    AddKeyButtonEvent(PX(XO-3),PY(YO+1),BW,BH,"\x1B L","left",KBD_left);
+    AddKeyButtonEvent(PX(XO-2),PY(YO+1),BW,BH,"\x19 D","down",KBD_down);
+    AddKeyButtonEvent(PX(XO-1),PY(YO+1),BW,BH,"\x1A R","right",KBD_right);
+#undef XO
+#undef YO
+#define XO 18
+#define YO 5
+	/* Mouse Buttons */
+	new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Mouse keys");
+	AddMouseButtonEvent(PX(XO+0),PY(YO),BW,BH,"L","left",0);
+	AddMouseButtonEvent(PX(XO+1),PY(YO),BW,BH,"M","middle",2);
+	AddMouseButtonEvent(PX(XO+2),PY(YO),BW,BH,"R","right",1);
 #undef XO
 #undef YO
 #define XO 0
@@ -3150,8 +3198,8 @@ static void CreateLayout(void) {
         btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
         btn->SetColor(CLR_GREY);
     }
-   
-   
+#undef XO
+#undef YO
    
     /* The modifier buttons */
     AddModButton(PX(0),PY(17),50,BH,"Mod1",1);
