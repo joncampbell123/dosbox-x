@@ -1,5 +1,7 @@
 0.83.3
-  - Support for mounting cues files with MP3/OGG/WAV/FLAC
+  - Mouse buttons (left, middle, right) can now be mapped
+    to keys in the keyboard mapper. (Wengier)
+  - Support for mounting .cue files with MP3/OGG/WAV/FLAC
     compressed audio tracks. (Wengier) 
   - Rewrote the Windows installer for DOSBox-X, as well as
     the building script for the installer. All required
