@@ -1,4 +1,6 @@
 0.83.3
+  - Added code page 866 (Cyrillic Russian) to supported
+    host to guest code page mapping (tuffnatty)
   - Mouse buttons (left, middle, right) can now be mapped
     to keys in the keyboard mapper. (Wengier)
   - Support for mounting .cue files with MP3/OGG/WAV/FLAC
