@@ -807,9 +807,10 @@ bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, const uint32_t
 	}
 	uint32_t offset = track->skip + (sector - track->start) * track->sectorSize;
 	const uint16_t length = (raw ? BYTES_PER_RAW_REDBOOK_FRAME : BYTES_PER_COOKED_REDBOOK_FRAME);
-	if (track->sectorSize != BYTES_PER_RAW_REDBOOK_FRAME && raw) {
+	if (track->sectorSize != BYTES_PER_RAW_REDBOOK_FRAME && raw)
 		return false;
-	}
+	if (!raw && !(track->attr & 0x40)) /* non-raw (data) reads must fail against non-data (Windows 95 CDPLAYER.EXE fix) */
+		return false;
 	if (track->sectorSize == BYTES_PER_RAW_REDBOOK_FRAME && !track->mode2 && !raw)
 		offset += 16;
 	if (track->mode2 && !raw)
