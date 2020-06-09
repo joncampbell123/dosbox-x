@@ -39,6 +39,7 @@
 #endif
 
 #include "cp437_uni.h"
+#include "cp866_uni.h"
 #include "cp932_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
@@ -282,6 +283,8 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 866:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -301,6 +304,8 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 866:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
