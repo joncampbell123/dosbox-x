@@ -770,7 +770,7 @@ void IDEATAPICDROMDevice::read_toc() {
             start.fr = 0;
         }
 
-        LOG_MSG("Track %u attr=0x%02x\n",first,attr);
+        LOG_MSG("Track %u attr=0x%02x %02u:%02u:%02u\n",first,attr,start.min,start.sec,start.fr);
 
         *write++ = 0x00;        /* entry+0 RESERVED */
         *write++ = (attr >> 4) | 0x10;  /* entry+1 ADR=1 CONTROL=4 (DATA) */
@@ -813,7 +813,7 @@ void IDEATAPICDROMDevice::read_toc() {
             if ((write+8) > (sector+AllocationLength))
                 break;
 
-            LOG_MSG("Track %u attr=0x%02x\n",track,attr);
+            LOG_MSG("Track %u attr=0x%02x %02u:%02u:%02u\n",first,attr,start.min,start.sec,start.fr);
 
             *write++ = 0x00;        /* entry+0 RESERVED */
             *write++ = (attr >> 4) | 0x10; /* entry+1 ADR=1 CONTROL=4 (DATA) */
