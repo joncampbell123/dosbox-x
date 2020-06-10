@@ -1,5 +1,10 @@
 0.83.3
-  - Added code page 866 (Cyrillic Russian) to supported
+  - Added AUTOTYPE command to perform scripted keyboard
+    entry into a running DOS program or game. Ported from
+    DOSBox-staging, it can be used to reliably skip intro,
+    provide input to answer initial startup or config
+    questions, or conduct a simple demo. (Wengier)
+  - Added code page 866 (Cyrillic Russian) to support
     host to guest code page mapping (tuffnatty)
   - Mouse buttons (left, middle, right) can now be mapped
     to keys in the keyboard mapper. (Wengier)
