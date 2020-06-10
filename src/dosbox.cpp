@@ -2476,21 +2476,21 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_help("Fluidsynth chorus type. 0 is sine wave, 1 is triangle wave.");
 #endif
 
-    secprop=control->AddSection_prop("sblaster",&Null_Init,true);//done
+    secprop=control->AddSection_prop("sblaster",&Null_Init,true);
     
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
     Pstring->Set_values(sbtypes);
-    Pstring->Set_help("Type of Soundblaster to emulate. gb is Gameblaster.");
+    Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
 
     Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_values(ios);
-    Phex->Set_help("The IO address of the soundblaster.\n"
+    Phex->Set_help("The IO address of the Sound Blaster.\n"
                    "220h to 2E0h are for use with IBM PC Sound Blaster emulation.\n"
                    "D2h to DEh are for use with NEC PC-98 Sound Blaster 16 emulation.");
 
     Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
     Pint->Set_values(irqssb);
-    Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
+    Pint->Set_help("The IRQ number of the Sound Blaster. Set to -1 to start DOSBox-X with the IRQ unassigned");
 
     Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
     Pint->Set_help( "Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds. Set to -1 for default.\n"
@@ -2519,14 +2519,14 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox-X with the DMA unassigned");
+    Pint->Set_help("The DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the DMA unassigned");
 
     Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox-X with the High DMA unassigned");
+    Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned");
 
     Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the sound blaster IRQ already unmasked at the PIC.\n"
+    Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster IRQ already unmasked at the PIC.\n"
             "Some early DOS games/demos that support Sound Blaster expect the IRQ to fire but make\n"
             "no attempt to unmask the IRQ. If audio cuts out no matter what IRQ you try, then try\n"
             "setting this option.\n"
@@ -2534,7 +2534,7 @@ void DOSBOX_SetupConfigSections(void) {
             "   Public NMI \"jump\" demo (1992)");
 
     Pbool = secprop->Add_bool("enable speaker",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the sound blaster speaker enabled.\n"
+    Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster speaker enabled.\n"
                     "Sound Blaster Pro and older cards have a speaker disable/enable command.\n"
                     "Normally the card boots up with the speaker disabled. If a DOS game or demo\n"
                     "attempts to play without enabling the speaker, set this option to true to\n"
@@ -2563,13 +2563,12 @@ void DOSBOX_SetupConfigSections(void) {
             "   Inconexia by Iguana (1993)");
 
     Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox-X mixer.");
+    Pbool->Set_help("Allow the Sound Blaster mixer to modify the DOSBox-X mixer.");
 
     Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(oplmodes);
-    Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by sblaster type.\n"
-        "To emulate Adlib, set sbtype=none and oplmode=opl2. To emulate a Game Blaster, set\n"
-        "sbtype=none and oplmode=cms");
+    Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by the 'sbtype' setting.\n"
+			"All OPL modes are AdLib-compatible, except for 'cms' (set 'sbtype=none' with 'cms' for a Game Blaster).");
 
     Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
@@ -2592,14 +2591,15 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
     Pstring->Set_values(oplemus);
-    Pstring->Set_help("Provider for the OPL emulation. compat might provide better quality (see oplrate as well).");
+    Pstring->Set_help("Provider for the OPL emulation. 'compat' might provide better quality.\n"
+		"'nuked' is the most accurate (but the most CPU-intensive). See oplrate as well.");
 
     Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(oplrates);
     Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
 
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
-    Phex->Set_help("base address of the real hardware soundblaster:\n"\
+    Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
         "210,220,230,240,250,260,280");
 
     Pbool = secprop->Add_bool("force dsp auto-init",Property::Changeable::WhenIdle,false);
