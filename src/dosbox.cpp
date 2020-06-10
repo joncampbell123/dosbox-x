@@ -93,7 +93,7 @@
 #include <windows.h>
 #endif
 
-#if defined(unix)
+#if defined(unix) || defined(__APPLE__)
 # include <utime.h>
 #endif
 
