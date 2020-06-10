@@ -5069,7 +5069,8 @@ void AUTOTYPE_ProgramStart(Program **make);
 void AUTOTYPE::PrintUsage()
 {
 	constexpr const char *msg =
-	        "\033[32;1mAUTOTYPE\033[0m [-list] [-w WAIT] [-p PACE] "
+	        "Performs scripted keyboard entry into a running DOS program.\n\n"
+			"\033[32;1mAUTOTYPE\033[0m [-list] [-w WAIT] [-p PACE] "
 	        "button_1 [button_2 [...]] \n\n"
 	        "Where:\n"
 	        "  -list:   prints all available button names.\n"
