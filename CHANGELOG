@@ -1,4 +1,6 @@
 0.83.3
+  - Updated Nuked OPL3 to latest version 1.8 for accurate
+    OPL3 emulation (Wengier)
   - Added AUTOTYPE command to perform scripted keyboard
     entry into a running DOS program or game. Ported from
     DOSBox-staging, it can be used to reliably skip intro,
