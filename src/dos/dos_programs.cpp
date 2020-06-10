@@ -5672,39 +5672,32 @@ void DOS_SetupPrograms(void) {
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
-    //MSG_Add("PROGRAM_MORE_USAGE","Usage: \033[34;1mMORE <\033[0m text-file\n");
-    //MSG_Add("PROGRAM_MORE_MORE","-- More --");
 
     /*regular setup*/
-    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
-    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart);
     PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart);
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
 
     if (!IS_PC98_ARCH)
         PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart);
 
     PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart);
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
+    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
+    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
 
-    if (!IS_PC98_ARCH)
-        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
-
-    //PROGRAMS_MakeFile("MORE.COM", MORE_ProgramStart);
-
-    if (!IS_PC98_ARCH)
+    if (!IS_PC98_ARCH) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
-
-    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+	}
 
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 #endif
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
+    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart);
 
     if (IS_VGA_ARCH && svgaCard != SVGA_None)
         PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart);
