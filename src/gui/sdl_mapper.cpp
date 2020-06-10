@@ -19,6 +19,8 @@
 
 #include <vector>
 #include <list>
+#include <chrono>
+#include <thread>
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -129,29 +131,6 @@ static struct {
     Bit16s                                      axis_pos[MAX_VJOY_AXES];
     bool                                        hat_pressed[MAX_VJOY_HATS];
 } virtual_joysticks[2];
-
-static struct CMapper {
-#if defined(C_SDL2)
-    SDL_Window*                                 window;
-    SDL_Rect                                    draw_rect;
-    SDL_Surface*                                draw_surface_nonpaletted;
-    SDL_Surface*                                draw_surface;
-#endif
-    SDL_Surface*                                surface = NULL;
-    bool                                        exit = false;
-    CEvent*                                     aevent = NULL;                     //Active Event
-    CBind*                                      abind = NULL;                      //Active Bind
-    CBindList_it                                abindit;                    //Location of active bind in list
-    bool                                        redraw = false;
-    bool                                        addbind = false;
-    bool                                        running = false;
-    Bitu                                        mods = 0;
-    struct {
-        Bitu                                    num_groups,num;
-        CStickBindGroup*                        stick[MAXSTICKS];
-    } sticks = {};
-    std::string                                 filename;
-} mapper;
 
 static struct {
     CCaptionButton*                             event_title;
@@ -668,6 +647,117 @@ public:
 protected:
 
 };
+
+void MAPPER_TriggerEvent(const CEvent *event, const bool deactivation_state) {
+	assert(event);
+	for (auto &bind : event->bindlist) {
+		bind->ActivateBind(32767, true, false);
+		bind->DeActivateBind(deactivation_state);
+	}
+}
+
+class Typer {
+	public:
+		Typer() = default;
+		Typer(const Typer&) = delete; // prevent copy
+		Typer& operator=(const Typer&) = delete; // prevent assignment
+		~Typer() {
+			Stop();
+		}
+		void Start(std::vector<CEvent*>     *ext_events,
+		           std::vector<std::string> &ext_sequence,
+                   const uint32_t           wait_ms,
+                   const uint32_t           pace_ms) {
+			// Guard against empty inputs
+			if (!ext_events || ext_sequence.empty())
+				return;
+			Wait();
+			m_events = ext_events;
+			m_sequence = std::move(ext_sequence);
+			m_wait_ms = wait_ms;
+			m_pace_ms = pace_ms;
+			m_stop_requested = false;
+			m_instance = std::thread(&Typer::Callback, this);
+		}
+		void Wait() {
+			if (m_instance.joinable())
+				m_instance.join();
+		}
+		void Stop() {
+			m_stop_requested = true;
+			Wait();
+		}
+	private:
+		void Callback() {
+ 			// quit before our initial wait time
+ 			if (m_stop_requested)
+				return;
+			std::this_thread::sleep_for(std::chrono::milliseconds(m_wait_ms));
+			for (const auto &button : m_sequence) {
+				bool found = false;
+				// comma adds an extra pause, similar to the pause used in a phone number
+				if (button == ",") {
+					found = true;
+					 // quit before the pause
+					if (m_stop_requested)
+						return;
+					std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
+				// Otherwise trigger the matching button if we have one
+				} else {
+					const std::string bind_name = "key_" + button;
+					for (auto &event : *m_events) {
+						if (bind_name == event->GetName()) {
+							found = true;
+							MAPPER_TriggerEvent(event, true);
+							break;
+						}
+					}
+				}
+				/*
+				*  Terminate the sequence for safety reasons if we can't find a button.
+				*  For example, we don't wan't DEAL becoming DEL, or 'rem' becoming 'rm'
+				*/
+				if (!found) {
+					LOG_MSG("MAPPER: Couldn't find a button named '%s', stopping.",
+							button.c_str());
+					return;
+				}
+				if (m_stop_requested) // quit before the pacing delay
+					return;
+				std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
+			}
+		}
+		std::thread              m_instance;
+		std::vector<std::string> m_sequence;
+		std::vector<CEvent*>     *m_events = nullptr;
+		uint32_t                 m_wait_ms = 0;
+		uint32_t                 m_pace_ms = 0;
+		bool                     m_stop_requested = false;
+};
+
+static struct CMapper {
+#if defined(C_SDL2)
+    SDL_Window*                                 window;
+    SDL_Rect                                    draw_rect;
+    SDL_Surface*                                draw_surface_nonpaletted;
+    SDL_Surface*                                draw_surface;
+#endif
+    SDL_Surface*                                surface = NULL;
+    bool                                        exit = false;
+    CEvent*                                     aevent = NULL;                     //Active Event
+    CBind*                                      abind = NULL;                      //Active Bind
+    CBindList_it                                abindit;                    //Location of active bind in list
+    bool                                        redraw = false;
+    bool                                        addbind = false;
+    bool                                        running = false;
+    Bitu                                        mods = 0;
+    struct {
+        Bitu                                    num_groups,num;
+        CStickBindGroup*                        stick[MAXSTICKS];
+    } sticks = {};
+	Typer										typist;
+    std::string                                 filename;
+} mapper;
 
 #if defined(C_SDL2) /* SDL 2.x */
 
@@ -1894,6 +1984,7 @@ protected:
 };
 
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
+	assert(list);
     Bitu validmod=0;
     CBindList_it it;
     for (it=list->begin();it!=list->end();++it) {
@@ -1907,6 +1998,7 @@ void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
 }
 
 void CBindGroup::DeactivateBindList(CBindList * list,bool ev_trigger) {
+	assert(list);
     CBindList_it it;
     for (it=list->begin();it!=list->end();++it) {
         (*it)->DeActivateBind(ev_trigger);
@@ -2829,6 +2921,7 @@ static void SetActiveBind(CBind * _bind) {
 }
 
 static void SetActiveEvent(CEvent * event) {
+	assert(event);
     mapper.aevent=event;
     mapper.redraw=true;
     mapper.addbind=false;
@@ -4218,6 +4311,26 @@ bool mapper_menu_save(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem)
     (void)menuitem;//UNUSED
     MAPPER_SaveBinds();
     return true;
+}
+
+std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix) {
+	std::vector<std::string> key_names;
+	key_names.reserve(events.size());
+	for (auto & e : events) {
+		const std::string name = e->GetName();
+		const std::size_t found = name.find(prefix);
+		if (found != std::string::npos) {
+			const std::string key_name = name.substr(found + prefix.length());
+			key_names.push_back(key_name);
+		}
+	}
+	return key_names;
+}
+
+void MAPPER_AutoType(std::vector<std::string> &sequence,
+                     const uint32_t wait_ms,
+                     const uint32_t pace_ms) {
+	mapper.typist.Start(&events, sequence, wait_ms, pace_ms);
 }
 
 void MAPPER_Init(void) {
