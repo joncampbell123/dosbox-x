@@ -4703,6 +4703,11 @@ private:
             }
         }
 
+        /* try auto-detect */
+        if (sizes[3] == 0 && sizes[2] == 0) {
+            DetectGeometry(fname, sizes); /* NTS: Opens the file again, even though WE have the file open already! */
+        }
+
         /* auto-fill: sector/track count */
         if (sizes[1] == 0) sizes[1] = 63;
         /* auto-fill: head/cylinder count */
