@@ -681,14 +681,14 @@ public:
         cmd->FindString("-t",type,true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
-        if (type=="floppy" || type=="dir" || type=="cdrom") {
+        if (type=="floppy" || type=="dir" || type=="cdrom" || type =="overlay") {
             Bit16u sizes[4];
             Bit8u mediaid;
             std::string str_size;
             if (type=="floppy") {
                 str_size="512,1,2880,2880";
                 mediaid=0xF0;       /* Floppy 1.44 media */
-            } else if (type=="dir") {
+            } else if (type=="dir" || type == "overlay") {
                 // 512*32*32765==~500MB total size
                 // 512*32*16000==~250MB total free size
                 str_size="512,32,0,0";
@@ -923,7 +923,38 @@ public:
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
                     LOG_MSG("ERROR:This build does not support physfs");
 					return;
-                } else {
+                } else if(type == "overlay") {
+                  //Ensure that the base drive exists:
+                  if (!Drives[drive-'A']) { 
+                      WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
+                      return;
+                  }
+                  localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive-'A']);
+                  cdromDrive* cdp = dynamic_cast<cdromDrive*>(Drives[drive-'A']);
+                  if (!ldp || cdp) {
+					  WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
+                      return;
+                  }
+                  std::string base = ldp->getBasedir();
+                  Bit8u o_error = 0;
+                  newdrive = new Overlay_Drive(base.c_str(),temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,o_error,options);
+                  //Erase old drive on succes
+                  if (newdrive) {
+                      if (o_error) { 
+                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.");
+                          else if (o_error == 2) WriteOut("overlay directory can not be the same as underlying filesystem.");
+                          else WriteOut("An error occurred when trying to create an overlay drive.");
+                          delete newdrive;
+                          return;
+                      } else
+						dynamic_cast<Overlay_Drive*>(newdrive)->ovlreadonly = readonly;  
+                      delete Drives[drive-'A'];
+                      Drives[drive-'A'] = 0;
+                  } else { 
+                      WriteOut("overlay drive construction failed.");
+                      return;
+                  }
+              } else {
                     newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,options);
                     newdrive->nocachedir = nocachedir;
                     newdrive->readonly = readonly;
@@ -943,13 +974,16 @@ public:
         DOS_EnableDriveMenu(drive);
         /* Set the correct media byte in the table */
         mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
-        if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
+        if (!quiet) {
+			if (type != "overlay") WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
+			else WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_STATUS"),temp_line.c_str(),drive);
+		}
         /* check if volume label is given and don't allow it to updated in the future */
         if (cmd->FindString("-label",label,true)) newdrive->SetLabel(label.c_str(),iscdrom,false);
         /* For hard drives set the label to DRIVELETTER_Drive.
          * For floppy drives set the label to DRIVELETTER_Floppy.
          * This way every drive except cdroms should get a label.*/
-        else if(type == "dir") { 
+        else if(type == "dir" || type == "overlay") { 
 #if defined (WIN32) || defined(OS2)
             if(temp_line.size()==3 && toupper(drive) == toupper(temp_line[0]))  {
                 // automatic mount
@@ -5289,6 +5323,9 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL","Virtual Drives can not be unMOUNTed.\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_WIN","\033[31;1mMounting C:\\ is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
     MSG_Add("PROGRAM_MOUNT_WARNING_OTHER","\033[31;1mMounting / is NOT recommended. Please mount a (sub)directory next time.\033[0m\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_NO_BASE","Please MOUNT a normal directory first before adding an overlay on top.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE","The overlay is NOT compatible with the drive that is specified.\n");
+	MSG_Add("PROGRAM_MOUNT_OVERLAY_STATUS","Overlay %s on drive %c mounted.\n");
 
     MSG_Add("PROGRAM_LOADFIX_ALLOC","%d kb allocated.\n");
     MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");

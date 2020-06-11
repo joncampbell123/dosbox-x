@@ -188,7 +188,8 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
 
     if (*work) {
         size_t len = strlen(work);
-#if defined (WIN32) 
+#if defined (WIN32)
+//What about OS/2
         if((work[len-1] == CROSS_FILESPLIT ) && (len >= 2) && (work[len-2] != ':')) {
 #else
         if((len > 1) && (work[len-1] == CROSS_FILESPLIT )) {
@@ -229,6 +230,75 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
         //      LOG_DEBUG("DIR: Added Entry %s",path);
     } else {
 //      LOG_DEBUG("DIR: Error: Failed to add %s",path); 
+    }
+}
+
+bool filename_not_strict_8x3(const char *n);
+void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, const char *sfile, bool checkExists) {
+  // Get Last part...
+  char file   [CROSS_LEN];
+  char expand [CROSS_LEN];
+  char dironly[CROSS_LEN + 1];
+
+  //When adding a directory, the directory we want to operate inside in is the above it. (which can go wrong if the directory already exists.)
+  strcpy(dironly,path);
+  char* post = strrchr(dironly,CROSS_FILESPLIT);
+
+  if (post) {
+#if defined (WIN32) 
+      //OS2 ?
+      if (post > dironly && *(post - 1) == ':' && (post - dironly) == 2) 
+          post++; //move away from X: as need to end up with x:\ 
+#else
+  //Lets hope this is not really used.. (root folder specified as overlay)
+      if (post == dironly)
+          post++; //move away from / 
+#endif
+      *post = 0; //TODO take care of AddEntryDIR D:\\piet) (so mount d d:\ as base)
+      *(post + 1) = 0; //As FindDirInfo is skipping over the base directory
+  }
+  CFileInfo* dir = FindDirInfo(dironly,expand);
+  const char* pos = strrchr(path,CROSS_FILESPLIT);
+
+  if (pos) {
+      strcpy(file,pos + 1);   
+      // Check if directory already exists, then don't add new entry...
+      if (checkExists) {
+          Bits index = GetLongName(dir,(char *)(!strlen(sfile)||filename_not_strict_8x3(sfile)?file:sfile));
+          if (index >= 0) {
+              //directory already exists, but most likely empty. 
+              dir = dir->fileList[index];
+              if (dir->isOverlayDir && dir->fileList.empty()) {
+                  //maybe care about searches ? but this function should only run on cache inits/refreshes.
+                  //add dot entries
+                  CreateEntry(dir,".",".",true);
+                  CreateEntry(dir,"..","..",true);
+              }
+              return;
+          }
+      }
+
+      char sname[DOS_NAMELENGTH];
+      sname[0]=0;
+      CreateEntry(dir,file,sname,true);
+      
+      Bits index = GetLongName(dir,(char *)(!strlen(sfile)||filename_not_strict_8x3(sfile)?file:sfile));
+      if (index>=0) {
+          Bit32u i;
+          // Check if there are any open search dir that are affected by this...
+          if (dir) for (i=0; i<MAX_OPENDIRS; i++) {
+              if ((dirSearch[i]==dir) && ((Bit32u)index<=dirSearch[i]->nextEntry)) 
+                  dirSearch[i]->nextEntry++;
+          }
+
+          dir = dir->fileList[index];
+          dir->isOverlayDir = true;
+          CreateEntry(dir,".",".",true);
+          CreateEntry(dir,"..","..",true);
+      }
+      //      LOG_DEBUG("DIR: Added Entry %s",path);
+  } else {
+      //      LOG_DEBUG("DIR: Error: Failed to add %s",path); 
     }
 }
 
@@ -284,7 +354,7 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
 }
 
 bool DOS_Drive_Cache::IsCachedIn(CFileInfo* curDir) {
-    return (curDir->fileList.size()>0);
+    return (curDir->isOverlayDir || curDir->fileList.size()>0);
 }
 
 
@@ -302,7 +372,7 @@ bool DOS_Drive_Cache::GetShortName(const char* fullname, char* shortname) {
     // The orgname part of the list is not sorted (shortname is)! So we can only walk through it.
     for(Bitu i = 0; i < filelist_size; i++) {
 #if defined (WIN32) || defined (OS2)                        /* Win 32 & OS/2*/
-        if (strcasecmp(pos,curDir->longNameList[i]->orgname) == 0) {
+        if (strcmp(pos,curDir->longNameList[i]->orgname) == 0) {
 #else
         if (strcmp(pos,curDir->longNameList[i]->orgname) == 0) {
 #endif
@@ -448,7 +518,7 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     Bits res;
     while (low<=high) {
         Bits mid = (low+high)/2;
-        res = strcmp(shortName,curDir->fileList[(size_t)mid]->shortname);
+        res = strcasecmp(shortName,curDir->fileList[(size_t)mid]->shortname);
         if (res>0)  low  = mid+1; else
         if (res<0)  high = mid-1; else
         {   // Found
@@ -690,9 +760,9 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
     if (dirSearch[id]) {
         // open dir
         void* dirp = drive->opendir(expandcopy);
-        if (dirp) { 
+        if (dirp || dir->isOverlayDir) { 
             // Reset it..
-            drive->closedir(dirp);
+            if (dirp) drive->closedir(dirp);
             strcpy(dirPath,expandcopy);
             return true;
         }
