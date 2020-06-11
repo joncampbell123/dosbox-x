@@ -1,4 +1,6 @@
 0.83.3
+  - IMGMOUNT -fs none fixed to use same geometry detect
+    function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
     command with "-t overlay" option. This feature allows
     the user to redirect new and changed file(s) to a
