@@ -95,6 +95,7 @@ public:
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
+	const char* getBasedir() {return basedir;};
 
 	int remote = -1;
 
@@ -722,6 +723,62 @@ public:
 	virtual char const* GetLabel(void);
 private:
     VFILE_Block* search_file = 0;
+};
+
+class Overlay_Drive: public localDrive {
+public:
+	Overlay_Drive(const char * startdir,const char* overlay, Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid,Bit8u &error, std::vector<std::string> &options);
+
+	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/);
+	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst);
+	virtual bool FindNext(DOS_DTA & dta);
+	virtual bool FileUnlink(const char * name);
+	virtual bool SetFileAttr(const char * name,Bit16u attr);
+	virtual bool GetFileAttr(const char * name,Bit16u * attr);
+	virtual bool FileExists(const char* name);
+	virtual bool Rename(const char * oldname,const char * newname);
+	virtual bool FileStat(const char* name, FileStat_Block * const stat_block);
+	virtual void EmptyCache(void);
+
+	FILE* create_file_in_overlay(const char* dos_filename, char const* mode);
+	virtual Bits UnMount(void);
+	virtual bool TestDir(const char * dir);
+	virtual bool RemoveDir(const char * dir);
+	virtual bool MakeDir(const char * dir);
+	bool ovlreadonly = false;
+private:
+	char overlaydir[CROSS_LEN];
+	bool optimize_cache_v1;
+	bool Sync_leading_dirs(const char* dos_filename);
+	void add_DOSname_to_cache(const char* name);
+	void remove_DOSname_from_cache(const char* name);
+	void add_DOSdir_to_cache(const char* name, const char* sname);
+	void remove_DOSdir_from_cache(const char* name);
+	void update_cache(bool read_directory_contents = false);
+	
+	std::vector<std::string> deleted_files_in_base; //Set is probably better, or some other solution (involving the disk).
+	std::vector<std::string> deleted_paths_in_base; //Currently only used to hide the overlay folder.
+	std::string overlap_folder;
+	void add_deleted_file(const char* name, bool create_on_disk);
+	void remove_deleted_file(const char* name, bool create_on_disk);
+	bool is_deleted_file(const char* name);
+	void add_deleted_path(const char* name, bool create_on_disk);
+	void remove_deleted_path(const char* name, bool create_on_disk);
+	bool is_deleted_path(const char* name);
+	bool check_if_leading_is_deleted(const char* name);
+
+	bool is_dir_only_in_overlay(const char* name); //cached
+
+
+	void remove_special_file_from_disk(const char* dosname, const char* operation);
+	void add_special_file_to_disk(const char* dosname, const char* operation);
+	std::string create_filename_of_special_operation(const char* dosname, const char* operation);
+	void convert_overlay_to_DOSname_in_base(char* dirname );
+	//For caching the update_cache routine.
+	std::vector<std::string> DOSnames_cache; //Also set is probably better.
+	std::vector<std::string> DOSdirs_cache; //Can not blindly change its type. it is important that subdirs come after the parent directory.
+	const std::string special_prefix;
 };
 
 /* No LFN filefind in progress (SFN call). This index is out of range and meant to indicate no LFN call in progress. */

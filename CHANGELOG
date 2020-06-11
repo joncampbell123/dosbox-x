@@ -1,4 +1,8 @@
 0.83.3
+  - Added suppprt for mounting overlay drives using MOUNT
+    command with "-t overlay" option. This feature allows
+    the user to redirect new and changed file(s) to a
+    different location transparently. (Wengier)
   - Updated Nuked OPL3 to latest version 1.8 for accurate
     OPL3 emulation (Wengier)
   - Added AUTOTYPE command to perform scripted keyboard

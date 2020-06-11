@@ -157,8 +157,8 @@ public:
 	void FlagReadOnlyMedium(void);
 	void Flush(void);
 	Bit32u GetSeekPos(void);
-private:
 	FILE * fhandle;
+private:
 	bool read_only_medium;
 	enum { NONE,READ,WRITE } last_action;
 };
@@ -192,6 +192,7 @@ public:
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExists = false);
+	void        AddEntryDirOverlay	(const char* path, const char *sfile, bool checkExist = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
 
 	void		EmptyCache			(void);
@@ -203,7 +204,7 @@ public:
 	public:
 		CFileInfo(void) {
 			orgname[0] = shortname[0] = 0;
-			isDir = false;
+			isOverlayDir = isDir = false;
 			id = MAX_OPENDIRS;
 			nextEntry = shortNr = 0;
 		}
@@ -214,6 +215,7 @@ public:
 		};
 		char		orgname		[CROSS_LEN];
 		char		shortname	[DOS_NAMELENGTH_ASCII];
+		bool        isOverlayDir;
 		bool		isDir;
 		Bit16u		id;
 		Bitu		nextEntry;
