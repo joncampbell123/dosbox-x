@@ -1,4 +1,5 @@
 0.83.3
+  - Added suppprt for mounting overlay drives. (Wengier)
   - Updated Nuked OPL3 to latest version 1.8 for accurate
     OPL3 emulation (Wengier)
   - Added AUTOTYPE command to perform scripted keyboard
