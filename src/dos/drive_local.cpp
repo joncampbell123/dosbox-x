@@ -1921,7 +1921,6 @@ public:
 
 FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const* mode) {
 
-	if (logoverlay) LOG_MSG("create_file_in_overlay called %s %s",dos_filename,mode);
 	char newname[CROSS_LEN];
 	strcpy(newname,overlaydir); //TODO GOG make part of class and join in 
 	strcat(newname,dos_filename); //HERE we need to convert it to Linux TODO
@@ -1948,8 +1947,6 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 bool OverlayFile::create_copy() {
 	//test if open/valid/etc
 	//ensure file position
-	if (logoverlay) LOG_MSG("create_copy called %s",GetName());
-
 	FILE* lhandle = this->fhandle;
 	fseek(lhandle,ftell(lhandle),SEEK_SET);
 	int location_in_old_file = ftell(lhandle);
@@ -1973,7 +1970,6 @@ bool OverlayFile::create_copy() {
 	fseek(newhandle,location_in_old_file,SEEK_SET);
 	this->fhandle = newhandle;
 	//Flags ?
-	if (logoverlay) LOG_MSG("success");
 	return true;
 }
 
@@ -2497,7 +2493,6 @@ again:
 	strcat(ovname,prel);
 	bool statok = ( stat(ovname,&stat_block)==0);
 
-	if (logoverlay) LOG_MSG("listing %s",uselfn?ldir_entcopy:dir_entcopy);
 	if (statok) {
 		if (logoverlay) LOG_MSG("using overlay data for %s : %s",uselfn?lfull_name:full_name, ovname);
 	} else {
@@ -2508,7 +2503,6 @@ again:
 			if (logoverlay) LOG_MSG("skipping deleted file %s %s %s",preldos,uselfn?lfull_name:full_name,ovname);
 			goto again;
 		}
-		LOG_MSG("full_name %s lfull_name %s\n", full_name, lfull_name);
 		if (stat(dirCache.GetExpandName(lfull_name),&stat_block)!=0) {
 			if (logoverlay) LOG_MSG("stat failed for %s . This should not happen.",dirCache.GetExpandName(uselfn?lfull_name:full_name));
 			goto again;//No symlinks and such
@@ -2738,7 +2732,6 @@ bool Overlay_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 
 
 void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
-	if (logoverlay) LOG_MSG("add del file %s",name);
 	if (!is_deleted_file(name)) {
 		deleted_files_in_base.push_back(name);
 		if (create_on_disk) add_special_file_to_disk(name, "DEL");
@@ -2829,7 +2822,6 @@ void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 }
 void Overlay_Drive::add_deleted_path(const char* name, bool create_on_disk) {
 	if (!name || !*name ) return; //Skip empty file.
-	if (logoverlay) LOG_MSG("add del path %s",name);
 	if (!is_deleted_path(name)) {
 		deleted_paths_in_base.push_back(name);
 		//Add it to deleted files as well, so it gets skipped in FindNext. 
