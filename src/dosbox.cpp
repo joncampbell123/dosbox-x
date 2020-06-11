@@ -4517,7 +4517,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
             //printf("creating %s\n",savefile);
 
             {
-                FILE * fin;
+                FILE *fin = NULL;
                 int size_read;
                 char* filenameinzip = (char *)savefile2;
                 const char *savefilenameinzip;
