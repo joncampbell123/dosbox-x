@@ -234,7 +234,7 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
 }
 
 bool filename_not_strict_8x3(const char *n);
-void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, const char *sfile, bool checkExists) {
+void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool checkExists) {
   // Get Last part...
   char file   [CROSS_LEN];
   char expand [CROSS_LEN];
@@ -260,11 +260,16 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, const char *sfile, bo
   CFileInfo* dir = FindDirInfo(dironly,expand);
   const char* pos = strrchr(path,CROSS_FILESPLIT);
 
+  char sname[CROSS_LEN], *p=strrchr(sfile, '\\');
+  if (p!=NULL)
+	strcpy(sname, p+1);
+  else
+	strcpy(sname, sfile);
   if (pos) {
       strcpy(file,pos + 1);   
       // Check if directory already exists, then don't add new entry...
       if (checkExists) {
-          Bits index = GetLongName(dir,(char *)(!strlen(sfile)||filename_not_strict_8x3(sfile)?file:sfile));
+          Bits index = GetLongName(dir,(char *)(!strlen(sname)||filename_not_strict_8x3(sname)?file:sname));
           if (index >= 0) {
               //directory already exists, but most likely empty. 
               dir = dir->fileList[index];
@@ -278,11 +283,18 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, const char *sfile, bo
           }
       }
 
-      char sname[DOS_NAMELENGTH];
       sname[0]=0;
-      CreateEntry(dir,file,sname,true);
-      
-      Bits index = GetLongName(dir,(char *)(!strlen(sfile)||filename_not_strict_8x3(sfile)?file:sfile));
+      char* genname=CreateEntry(dir,file,sname,true);
+      Bits index = GetLongName(dir,(char *)(!strlen(sname)||filename_not_strict_8x3(sname)?file:sname));
+	  if (strlen(genname)) {
+		  strcpy(sfile, sname);
+		  p=strrchr(sfile, '\\');
+		  if (p!=NULL) {
+			  *(p+1)=0;
+			  strcat(sfile, genname);
+		  } else
+			  strcpy(sfile, genname);
+	  }
       if (index>=0) {
           Bit32u i;
           // Check if there are any open search dir that are affected by this...
@@ -518,7 +530,11 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     Bits res;
     while (low<=high) {
         Bits mid = (low+high)/2;
-        res = strcasecmp(shortName,curDir->fileList[(size_t)mid]->shortname);
+		if (uselfn&&!strcasecmp(shortName,curDir->fileList[(size_t)mid]->orgname)) {
+            strcpy(shortName,curDir->fileList[(size_t)mid]->orgname);
+			return mid;
+		}
+        res = uselfn?strcmp(shortName,curDir->fileList[(size_t)mid]->shortname):strcasecmp(shortName,curDir->fileList[(size_t)mid]->shortname);
         if (res>0)  low  = mid+1; else
         if (res<0)  high = mid-1; else
         {   // Found
@@ -774,7 +790,7 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
     return false;
 }
 
-void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
+char* DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
     CFileInfo* info = new CFileInfo;
     strcpy(info->shortname, sname);
 	strcpy(info->orgname, name);
@@ -782,8 +798,7 @@ void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* 
     info->isDir = is_directory;
 
     // Check for long filenames...
-    if (sname[0]==0) CreateShortName(dir, info);                   
-
+    if (sname[0]==0) CreateShortName(dir, info);
 
     // keep list sorted (so GetLongName works correctly, used by CreateShortName in this routine)
     if (dir->fileList.size()>0) {
@@ -808,6 +823,9 @@ void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* 
         // empty file list, append
         dir->fileList.push_back(info);
     }
+	static char sgenname[DOS_NAMELENGTH+1];
+	strcpy(sgenname, info->shortname);
+	return sgenname;
 }
 
 void DOS_Drive_Cache::CopyEntry(CFileInfo* dir, CFileInfo* from) {
