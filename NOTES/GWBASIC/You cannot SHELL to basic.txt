@@ -1,0 +1,26 @@
+One persistent issue in any MS-DOS HDD image I generate is that
+I can never get BASIC.COM, BASICA.COM, and GWBASIC.EXE to run.
+
+Even from the command line, it will always print "You cannot SHELL to basic".
+
+It turns out from some investigation that BASIC/GWBASIC uses the byte
+value at 0000:050F as a flag whether or not it is currently running.
+
+If the flag value is nonzero, GWBASIC thinks it's already running and
+prints the error message.
+
+Problem is that for some reason, there is junk at 0000:0500-0000:05FF
+that looks like the remnants of a directory listing, when booting
+my disk images.
+
+DOSBox-X does not write those byte values, which is why the same
+executable runs just fine under the DOSBox-X DOS kernel.
+
+If GWBASIC refuses to run when clearly it is not already running,
+break into the debugger and type:
+
+SM 0:50F 0
+
+and hit enter. Resume emulation and BASIC/GWBASIC should then
+run without complaint.
+
