@@ -192,7 +192,7 @@ public:
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExists = false);
-	void        AddEntryDirOverlay	(const char* path, const char *sfile, bool checkExist = false);
+	void        AddEntryDirOverlay	(const char* path, char *sfile, bool checkExist = false);
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
 
 	void		EmptyCache			(void);
@@ -239,7 +239,7 @@ private:
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
 	bool		OpenDir			(CFileInfo* dir, const char* expand, Bit16u& id);
-    void        CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
+    char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	Bit16u		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
