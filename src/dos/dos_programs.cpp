@@ -4422,16 +4422,33 @@ private:
             return false;
         }
         // check MBR partition entry 1
-        Bitu starthead = buf[0x1bf];
-        Bitu startsect = (buf[0x1c0] & 0x3fu) - 1u;
-        Bitu startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
-        Bitu endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-
-        Bitu ptype = buf[0x1c2];
-        Bitu heads = buf[0x1c3] + 1u;
-        Bitu sectors = buf[0x1c4] & 0x3fu;
-
-        Bitu pe1_size = host_readd(&buf[0x1ca]);
+        // This is used for plain MFM sector format as created by IMGMAKE
+        Bit8u starthead = 0;
+        Bit8u startsect = 0;
+        Bit16u startcyl = 0;
+        Bit16u endcyl = 0;
+        Bit8u ptype = 0;
+        Bit8u heads = 0;
+        Bit8u sectors = 0;
+        Bit16u pe1_size = host_readd(&buf[0x1fa]);
+        if (pe1_size != 0) { // DOS 2.0-3.21 partition table
+            starthead = buf[0x1ef];
+            startsect = (buf[0x1f0] & 0x3fu) - 1u;
+            startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
+            endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
+            ptype = buf[0x1f2];
+            heads = buf[0x1f3] + 1u;
+            sectors = buf[0x1f4] & 0x3fu;
+        } else {             // DOS 3.3+ partition table
+            pe1_size = host_readd(&buf[0x1ca]);
+            starthead = buf[0x1bf];
+            startsect = (buf[0x1c0] & 0x3fu) - 1u;
+            startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+            endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
+            ptype = buf[0x1c2];
+            heads = buf[0x1c3] + 1u;
+            sectors = buf[0x1c4] & 0x3fu;
+        }
         if (pe1_size != 0) {
             Bitu part_start = startsect + sectors * starthead +
                 startcyl * sectors*heads;
