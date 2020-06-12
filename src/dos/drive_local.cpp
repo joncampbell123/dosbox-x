@@ -2676,7 +2676,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	strcat(overlayname,name);
 	CROSS_FILENAME(overlayname);
 	strcpy(tmp, overlayname);
-	const char* temp_name = dirCache.GetExpandName(overlayname);
+	char* temp_name = dirCache.GetExpandName(overlayname);
 	char *p=strrchr(tmp, '\\'), *q=strrchr(temp_name, '\\');
 	if (uselfn&&p!=NULL&&q!=NULL) {
 		*(p+1)=0;
@@ -2756,7 +2756,7 @@ bool Overlay_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 	strcat(overlayname,name);
 	CROSS_FILENAME(overlayname);
 	strcpy(tmp, overlayname);
-	const char* temp_name = dirCache.GetExpandName(overlayname);
+	char* temp_name = dirCache.GetExpandName(overlayname);
 	char *p=strrchr(tmp, '\\'), *q=strrchr(temp_name, '\\');
 	if (uselfn&&p!=NULL&&q!=NULL) {
 		*(p+1)=0;
