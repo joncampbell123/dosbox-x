@@ -564,22 +564,22 @@ void IDEATAPICDROMDevice::mode_sense() {
             *write++ = 0x00;    /* +10 Recovery Time Limit (should be zero)         (MSB) */
             *write++ = 0x00;    /* +11                                              (LSB) */
             break;
-        case 0x0E: /* CD-ROM audio control */
-            *write++ = 0x04;    /* ?? */
-            *write++ = 0x00;    /* reserved @+3 */
-            *write++ = 0x00;    /* reserved @+4 */
-            *write++ = 0x00;    /* reserved @+5 */
-            *write++ = 0x00;
-            *write++ = 75;      /* logical blocks per second */
-
-            *write++ = 0x01;    /* output port 0 selection */
-            *write++ = 0xD8;    /* output port 0 volume (?) */
-            *write++ = 0x02;    /* output port 1 selection */
-            *write++ = 0xD8;    /* output port 1 volume (?) */
-            *write++ = 0x00;    /* output port 2 selection */
-            *write++ = 0x00;    /* output port 2 volume (?) */
-            *write++ = 0x00;    /* output port 3 selection */
-            *write++ = 0x00;    /* output port 3 volume (?) */
+        case 0x0E: /* CD-ROM audio control MMC-3 Section 6.3.7 table 354 */
+                   /* also MMC-1 Section 5.2.3.1 table 97 */
+            *write++ = 0x04;    /* +2 Reserved|IMMED=1|SOTC=0|Reserved */
+            *write++ = 0x00;    /* +3 Reserved */
+            *write++ = 0x00;    /* +4 Reserved */
+            *write++ = 0x00;    /* +5 Reserved */
+            *write++ = 0x00;    /* +6 Obsolete (75) */
+            *write++ = 75;      /* +7 Obsolete (75) */
+            *write++ = 0x01;    /* +8 output port 0 selection (0001b = channel 0) */
+            *write++ = 0xFF;    /* +9 output port 0 volume (0xFF = 0dB atten.) */
+            *write++ = 0x02;    /* +10 output port 1 selection (0010b = channel 1) */
+            *write++ = 0xFF;    /* +11 output port 1 volume (0xFF = 0dB atten.) */
+            *write++ = 0x00;    /* +12 output port 2 selection (none) */
+            *write++ = 0x00;    /* +13 output port 2 volume (0x00 = mute) */
+            *write++ = 0x00;    /* +14 output port 3 selection (none) */
+            *write++ = 0x00;    /* +15 output port 3 volume (0x00 = mute) */
             break;
         case 0x2A: /* CD-ROM mechanical status */
             *write++ = 0x00;    /* reserved @+2 ?? */
