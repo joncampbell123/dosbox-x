@@ -552,13 +552,17 @@ void IDEATAPICDROMDevice::mode_sense() {
     *write++ = PAGE;    /* PS|reserved|Page Code */
     *write++ = 0x00;    /* Page Length (n - 1) ... Length in bytes of the mode parameters that follow */
     switch (PAGE) {
-        case 0x01: /* Read error recovery */
-            *write++ = 0x00;    /* maximum error correction */
-            *write++ = 3;       /* read retry count */
-            *write++ = 0x00;
-            *write++ = 0x00;
-            *write++ = 0x00;
-            *write++ = 0x00;
+        case 0x01: /* Read error recovery MMC-3 Section 6.3.4 table 344 */
+            *write++ = 0x00;    /* +2 Error recovery Parameter  AWRE|ARRE|TB|RC|Reserved|PER|DTE|DCR */
+            *write++ = 3;       /* +3 Read Retry Count */
+            *write++ = 0x00;    /* +4 Reserved */
+            *write++ = 0x00;    /* +5 Reserved */
+            *write++ = 0x00;    /* +6 Reserved */
+            *write++ = 0x00;    /* +7 Reserved */
+            *write++ = 0x00;    /* +8 Write Retry Count (this is not yet CD burner) */
+            *write++ = 0x00;    /* +9 Reserved */
+            *write++ = 0x00;    /* +10 Recovery Time Limit (should be zero)         (MSB) */
+            *write++ = 0x00;    /* +11                                              (LSB) */
             break;
         case 0x0E: /* CD-ROM audio control */
             *write++ = 0x04;    /* ?? */
