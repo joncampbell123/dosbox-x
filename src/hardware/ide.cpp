@@ -582,13 +582,21 @@ void IDEATAPICDROMDevice::mode_sense() {
             *write++ = 0x00;    /* +15 output port 3 volume (0x00 = mute) */
             break;
         case 0x2A: /* CD-ROM mechanical status MMC-3 Section 6.3.11 table 361 */
-                                /*    MSB            |             |             |             |             |               |              |       LSB */
-            *write++ = 0x07;    /* +2 Reserved       |Reserved     |DVD-RAM read |DVD-R read   |DVD-ROM read |   Method 2    | CD-RW read   | CD-R read */
-            *write++ = 0x00;    /* +3 Reserved       |Reserved     |DVD-RAM write|DVD-R write  |   Reserved  |  Test Write   | CD-RW write  | CD-R write */
-            *write++ = 0x71;    /* +4 Buffer Underrun|Multisession |Mode 2 form 2|Mode 2 form 1|Digital Port 2|Digital Port 1|  Composite   | Audio play */
-            *write++ = 0xFF;    /* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
-            *write++ = 0x29;    /* loading mechanism type=tray  eject=1  prevent jumper=0  lockstate=0  lock=1 */
-            *write++ = 0x03;    /* separate channel mute=1 separate channel volume levels=1 */
+                                /*    MSB            |             |             |             |              |               |              |       LSB */
+            *write++ = 0x07;    /* +2 Reserved       |Reserved     |DVD-RAM read |DVD-R read   |DVD-ROM read  |   Method 2    | CD-RW read   | CD-R read */
+            *write++ = 0x00;    /* +3 Reserved       |Reserved     |DVD-RAM write|DVD-R write  |   Reserved   |  Test Write   | CD-RW write  | CD-R write */
+            *write++ = 0x71;    /* +4 Buffer Underrun|Multisession |Mode 2 form 2|Mode 2 form 1|Digital Port 2|Digital Port 1 |  Composite   | Audio play */
+            *write++ = 0xFF;    /* +5 Read code bar  |UPC          |ISRC         |C2 Pointers  |R-W deintcorr | R-W supported |CDDA accurate |CDDA support */
+            *write++ = 0x2F;    /* +6 Loading mechanism type                     |Reserved     |Eject         |Prevent Jumper |Lock state    |Lock */
+                                /*      0 (0x00) = Caddy
+                                 *      1 (0x20) = Tray
+                                 *      2 (0x40) = Popup
+                                 *      3 (0x60) = Reserved
+                                 *      4 (0x80) = Changer with indivually changeable discs
+                                 *      5 (0xA0) = Changer using a magazine mechanism
+                                 *      6 (0xC0) = Reserved
+                                 *      6 (0xE0) = Reserved */
+            *write++ = 0x03;    /* +7 Reserved       |Reserved     |R-W in leadin|Side chg cap |S/W slot sel  |Changer disc pr|Sep. ch. mute |Sep. volume levels */
 
             x = 176 * 8;        /* maximum speed supported: 8X */
             *write++ = x>>8;
