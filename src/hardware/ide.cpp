@@ -581,10 +581,11 @@ void IDEATAPICDROMDevice::mode_sense() {
             *write++ = 0x00;    /* +14 output port 3 selection (none) */
             *write++ = 0x00;    /* +15 output port 3 volume (0x00 = mute) */
             break;
-        case 0x2A: /* CD-ROM mechanical status */
-            *write++ = 0x00;    /* reserved @+2 ?? */
-            *write++ = 0x00;    /* reserved @+3 ?? */
-            *write++ = 0xF1;    /* multisession=0 mode2form2=1 mode2form=1 audioplay=1 */
+        case 0x2A: /* CD-ROM mechanical status MMC-3 Section 6.3.11 table 361 */
+                                /*    MSB            |             |             |             |             |               |              |       LSB */
+            *write++ = 0x07;    /* +2 Reserved       |Reserved     |DVD-RAM read |DVD-R read   |DVD-ROM read |   Method 2    | CD-RW read   | CD-R read */
+            *write++ = 0x00;    /* +3 Reserved       |Reserved     |DVD-RAM write|DVD-R write  |   Reserved  |  Test Write   | CD-RW write  | CD-R write */
+            *write++ = 0x71;    /* +4 Buffer Underrun|Multisession |Mode 2 form 2|Mode 2 form 1|Digital Port 2|Digital Port 1|  Composite   | Audio play */
             *write++ = 0xFF;    /* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
             *write++ = 0x29;    /* loading mechanism type=tray  eject=1  prevent jumper=0  lockstate=0  lock=1 */
             *write++ = 0x03;    /* separate channel mute=1 separate channel volume levels=1 */
