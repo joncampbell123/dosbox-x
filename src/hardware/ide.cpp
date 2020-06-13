@@ -533,18 +533,24 @@ void IDEATAPICDROMDevice::mode_sense() {
 
     write = sector;
 
-    /* some header. not well documented */
-    *write++ = 0x00;    /* ?? */
-    *write++ = 0x00;    /* length */
-    *write++ = 0x00;    /* ?? */
-    *write++ = 0x00;
-    *write++ = 0x00;
-    *write++ = 0x00;
-    *write++ = 0x00;
-    *write++ = 0x00;
+    /* Mode Parameter List MMC-3 Table 340 */
+    /* - Mode parameter header */
+    /* - Page(s) */
 
-    *write++ = PAGE;    /* page code */
-    *write++ = 0x00;    /* page length (fill in later) */
+    /* Mode Parameter Header (response for 10-byte MODE SENSE) SPC-2 Table 148 */
+    *write++ = 0x00;    /* MODE DATA LENGTH                     (MSB) */
+    *write++ = 0x00;    /*                                      (LSB) */
+    *write++ = 0x00;    /* MEDIUM TYPE */
+    *write++ = 0x00;    /* DEVICE-SPECIFIC PARAMETER */
+    *write++ = 0x00;    /* Reserved */
+    *write++ = 0x00;    /* Reserved */
+    *write++ = 0x00;    /* BLOCK DESCRIPTOR LENGTH              (MSB) */
+    *write++ = 0x00;    /*                                      (LSB) */
+    /* NTS: MMC-3 Table 342 says that BLOCK DESCRIPTOR LENGTH is zero, where it would be 8 for legacy units */
+
+    /* Mode Page Format MMC-3 Table 341 */
+    *write++ = PAGE;    /* PS|reserved|Page Code */
+    *write++ = 0x00;    /* Page Length (n - 1) ... Length in bytes of the mode parameters that follow */
     switch (PAGE) {
         case 0x01: /* Read error recovery */
             *write++ = 0x00;    /* maximum error correction */
@@ -601,8 +607,11 @@ void IDEATAPICDROMDevice::mode_sense() {
             break;
     }
 
-    /* fill in page length */
-    sector[1] = (unsigned int)(write-sector) - 2;
+    /* mode param header, data length */
+    x = (unsigned int)(write-sector) - 2;
+    sector[0] = (unsigned char)(x >> 8u);
+    sector[1] = (unsigned char)x;
+    /* page length */
     sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
 
     prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
