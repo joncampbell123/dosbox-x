@@ -598,19 +598,19 @@ void IDEATAPICDROMDevice::mode_sense() {
                                  *      6 (0xE0) = Reserved */
             *write++ = 0x03;    /* +7 Reserved       |Reserved     |R-W in leadin|Side chg cap |S/W slot sel  |Changer disc pr|Sep. ch. mute |Sep. volume levels */
 
-            x = 176 * 8;        /* maximum speed supported: 8X */
+            x = 176 * 8;        /* +8 maximum speed supported in kB: 8X  (obsolete in MMC-3) */
             *write++ = x>>8;
             *write++ = x;
 
-            x = 256;        /* (?) */
+            x = 256;            /* +10 Number of volume levels supported */
             *write++ = x>>8;
             *write++ = x;
 
-            x = 6 * 256;        /* (?) */
+            x = 6 * 256;        /* +12 buffer size supported by drive in kB */
             *write++ = x>>8;
             *write++ = x;
 
-            x = 176 * 8;        /* current speed supported: 8X */
+            x = 176 * 8;        /* +14 current read speed selected in kB: 8X  (obsolete in MMC-3) */
             *write++ = x>>8;
             *write++ = x;
             break;
