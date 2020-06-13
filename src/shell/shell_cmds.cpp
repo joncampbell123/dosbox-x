@@ -422,6 +422,10 @@ void DOS_Shell::CMD_DELETE(char * args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
 		return;
 	}
+	if (!*args) {
+		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
+		return;
+	}
 
 	StripSpaces(args);
 	args=trim(args);
@@ -947,6 +951,10 @@ void DOS_Shell::CMD_MKDIR(char * args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
 		return;
 	}
+	if (!*args) {
+		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
+		return;
+	}
 	if (!DOS_MakeDir(args)) {
 		WriteOut(MSG_Get("SHELL_CMD_MKDIR_ERROR"),args);
 	}
@@ -961,6 +969,10 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 	char * rem=ScanCMDRemain(args);
 	if (rem) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
+		return;
+	}
+	if (!*args) {
+		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
 		return;
 	}
 	if (!DOS_RemoveDir(args)) {
@@ -1544,7 +1556,7 @@ void DOS_Shell::CMD_LS(char *args) {
 	if (!strrchr(pattern.c_str(), '.'))
 		pattern += ".*";
 
-	char spattern[CROSS_LEN]; 
+	char spattern[CROSS_LEN];
 	if (!DOS_GetSFNPath(pattern.c_str(),spattern,false)) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
@@ -1554,7 +1566,10 @@ void DOS_Shell::CMD_LS(char *args) {
 	bool ret = DOS_FindFirst((char *)((uselfn?"\"":"")+std::string(spattern)+(uselfn?"\"":"")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
 	if (!ret) {
 		lfn_filefind_handle=fbak;
-		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), trim(args));
+		if (trim(args))
+			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), trim(args));
+		else
+			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		dos.dta(save_dta);
 		return;
 	}
