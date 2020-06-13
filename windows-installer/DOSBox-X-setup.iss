@@ -1,5 +1,5 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.2"
+#define MyAppVersion "0.83.3"
 #define MyAppPublisher "joncampbell123"
 #define MyAppURL "http://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
@@ -48,7 +48,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
+Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -105,6 +105,15 @@ var
   msg: string;
   build64: Boolean;    
   Page: TInputOptionWizardPage;
+function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
+var
+  Version: TWindowsVersion;
+begin
+  GetWindowsVersionEx(Version);
+  Result :=
+    (Version.Major > Major) or
+    ((Version.Major = Major) and (Version.Minor >= Minor));
+end;
 procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. ';
@@ -117,12 +126,21 @@ begin
     Page.Add('MinGW build for lowend systems');
     Page.Add('MinGW build SDL2');
     Page.Add('MinGW build with custom drawn menu');
-    Page.Values[0] := True;
     if IsX86 or IsX64 then
     begin
       Page.CheckListBox.ItemEnabled[2] := False;
       Page.CheckListBox.ItemEnabled[3] := False;
     end
+    if IsARM64 then
+      begin
+        Page.Values[2] := True;
+      end
+    else if IsWindowsVersionOrNewer(6, 0) then
+      begin
+        Page.Values[0] := True;
+      end
+    else
+      Page.Values[4] := True;
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
