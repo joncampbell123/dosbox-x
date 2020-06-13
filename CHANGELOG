@@ -1,4 +1,8 @@
 0.83.3
+  - Cleaned up the DPI awareness auto detection code to
+    allow Visual Studio builds to again run on Windows 7.
+    Meanwhile, MinGW builds (either SDL1 or SDL2 version)
+    are still required for Windows XP systems. (Wengier)
   - IMGMOUNT -fs none fixed to use same geometry detect
     function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
