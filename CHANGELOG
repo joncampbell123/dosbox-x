@@ -1,4 +1,6 @@
 0.83.3
+  - IMGMOUNT can now autodetect DOS <= 3.21 harddisk
+    geometry with MFM sector images (rderooy)
   - IMGMOUNT -fs none fixed to use same geometry detect
     function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
