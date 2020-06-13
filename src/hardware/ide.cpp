@@ -613,6 +613,17 @@ void IDEATAPICDROMDevice::mode_sense() {
             x = 176 * 8;        /* +14 current read speed selected in kB: 8X  (obsolete in MMC-3) */
             *write++ = x>>8;
             *write++ = x;
+
+            *write++ = 0;       /* +16 Reserved */
+            *write++ = 0x00;    /* +17 Reserved | Reserved | Length | Length | LSBF | RCK | BCK | Reserved */
+
+            x = 0;              /* +18 maximum write speed supported in kB: 0  (obsolete in MMC-3) */
+            *write++ = x>>8;
+            *write++ = x;
+
+            x = 0;              /* +20 current write speed in kB: 0  (obsolete in MMC-3) */
+            *write++ = x>>8;
+            *write++ = x;
             break;
         default:
             memset(write,0,6); write += 6;
