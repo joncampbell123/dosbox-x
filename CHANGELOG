@@ -4,9 +4,14 @@
   - IMGMOUNT -fs none fixed to use same geometry detect
     function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
-    command with "-t overlay" option. This feature allows
-    the user to redirect new and changed file(s) to a
-    different location transparently. (Wengier)
+    command with "-t overlay" option. Ported from DOSBox
+    SVN and adopted for DOSBox-X, this feature allows the
+    user to redirect new and changed files to a different
+    location transparently. (Wengier)
+  - Cleaned up the DPI awareness auto detection code to
+    allow Visual Studio builds to again run on Windows 7.
+    Meanwhile, MinGW builds (either SDL1 or SDL2 version)
+    are still required for Windows XP systems. (Wengier)
   - Updated Nuked OPL3 to latest version 1.8 for accurate
     OPL3 emulation (Wengier)
   - Added AUTOTYPE command to perform scripted keyboard
