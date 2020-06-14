@@ -3176,14 +3176,16 @@ bool Overlay_Drive::FileExists(const char* name) {
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name);
 	CROSS_FILENAME(overlayname);
-	struct stat temp_stat;
-	if(stat(overlayname,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
+	ht_stat_t temp_stat;
+	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
+	if (host_name != NULL && ht_stat(host_name ,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
 	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
 	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 		strcpy(overlayname,overlaydir);
 		strcat(overlayname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
 		CROSS_FILENAME(overlayname);
-		if(stat(overlayname,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
+		host_name = CodePageGuestToHost(overlayname);
+		if(host_name != NULL && ht_stat(host_name,&temp_stat)==0 && (temp_stat.st_mode & S_IFDIR)==0) return true;
 	}
 	
 	if (is_deleted_file(name)) return false;
@@ -3377,13 +3379,19 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	strcat(overlayname,name);
 	CROSS_FILENAME(overlayname);
 	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
-	struct stat temp_stat;
+	const host_cnv_char_t* host_name;
+	ht_stat_t temp_stat;
 	bool success=false;
 	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
-		strcpy(overlayname,overlaydir);
-		strcat(overlayname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
-		CROSS_FILENAME(overlayname);
-		if (stat(overtmpname,&temp_stat)==0) success=true;
+		strcpy(overtmpname,overlaydir);
+		strcat(overtmpname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_FILENAME(overtmpname);
+		host_name = CodePageGuestToHost(overtmpname);
+		if (host_name != NULL && ht_stat(host_name,&temp_stat)==0) success=true;
+	}
+	if (!success) {
+		host_name = CodePageGuestToHost(overlayname);
+		if (host_name != NULL && ht_stat(host_name,&temp_stat) == 0) success=true;
 	}
 	if (!success) {
 		strcpy(tmp,name);
@@ -3401,9 +3409,10 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 		strcpy(overtmpname,overlaydir);
 		strcat(overtmpname,tmp);
 		CROSS_FILENAME(overtmpname);
-		if (stat(overtmpname,&temp_stat)==0) success=true;
+		host_name = CodePageGuestToHost(overtmpname);
+		if (host_name != NULL && ht_stat(host_name,&temp_stat)==0) success=true;
 	}
-	if(!success && stat(overlayname,&temp_stat) != 0) {
+	if(!success) {
 		if (is_deleted_file(name)) return false;
 		return localDrive::FileStat(name,stat_block);
 	}
