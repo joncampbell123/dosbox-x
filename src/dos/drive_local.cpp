@@ -2811,6 +2811,7 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 	CROSS_FILENAME(overlayname);
 	
 	bool removed=false;
+	const host_cnv_char_t* host_name;
 	struct stat temp_stat;
 	if (stat(overlayname,&temp_stat)) {
 		char* temp_name = dirCache.GetExpandName(basename);
@@ -2820,22 +2821,23 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 			strcpy(overtmpname,overlaydir);
 			strcat(overtmpname,temp_name);
 			CROSS_FILENAME(overtmpname);
-			const host_cnv_char_t* host_name = CodePageGuestToHost(overtmpname);
+			host_name = CodePageGuestToHost(overtmpname);
 			if (host_name != NULL && ht_unlink(host_name)==0) removed=true;
 		}
 	}
 //	char *fullname = dirCache.GetExpandName(newname);
 	if (!removed&&unlink(overlayname)) {
 		//Unlink failed for some reason try finding it.
-		struct stat buffer;
-		if(stat(overlayname,&buffer)) {
+		ht_stat_t status;
+		host_name = CodePageGuestToHost(overlayname);
+		if(host_name==NULL || ht_stat(host_name,&status)) {
 			//file not found in overlay, check the basedrive
 			//Check if file not already deleted 
 			if (is_deleted_file(name)) return false;
 
-
 			char *fullname = dirCache.GetExpandName(basename);
-			if (stat(fullname,&buffer)) return false; // File not found in either, return file false.
+			host_name = CodePageGuestToHost(fullname);
+			if (host_name==NULL || ht_stat(host_name,&status)) return false; // File not found in either, return file false.
 			//File does exist in normal drive.
 			//Maybe do something with the drive_cache.
 			add_deleted_file(name,true);
@@ -3110,7 +3112,14 @@ void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name.c_str());
 	CROSS_FILENAME(overlayname);
-	FILE* f = fopen_wrap(overlayname,"wb+");
+	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
+	FILE* f;
+#ifdef host_cnv_use_wchar
+	if (host_name!=NULL)
+		f = _wfopen(host_name,_HT("wb+"));
+	else
+#endif
+		f = fopen_wrap(overlayname,"wb+");
 	if (!f) {
 		Sync_leading_dirs(dosname);
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name.c_str()));
@@ -3120,7 +3129,14 @@ void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
 			strcat(overlayname,temp_name);
 			CROSS_FILENAME(overlayname);
 		}
-		f = fopen_wrap(overlayname,"wb+");
+		host_name = CodePageGuestToHost(overlayname);
+		FILE* f;
+#ifdef host_cnv_use_wchar
+		if (host_name!=NULL)
+			f = _wfopen(host_name,_HT("wb+"));
+		else
+#endif
+			f = fopen_wrap(overlayname,"wb+");
 	}
 	if (!f) E_Exit("Failed creation of %s",overlayname);
 	char buf[5] = {'e','m','p','t','y'};
@@ -3141,7 +3157,9 @@ void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const cha
 		strcat(overlayname,temp_name);
 		CROSS_FILENAME(overlayname);
 	}
-	if(unlink(overlayname) != 0) E_Exit("Failed removal of %s",overlayname);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
+	if ((host_name == NULL || ht_unlink(host_name) != 0) && unlink(overlayname) != 0)
+		E_Exit("Failed removal of %s",overlayname);
 }
 
 std::string Overlay_Drive::create_filename_of_special_operation(const char* dosname, const char* operation) {
