@@ -4430,59 +4430,58 @@ private:
             yet_detected = DetectBximagePartition(fcsize, sizes);
         }
         Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
-		bool assume_lba = false;
+	bool assume_lba = false;
 
-		/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
-		 * then assume LBA and make up a geometry */
-		if (!yet_detected && (ptype == 0x0C/*FAT32+LBA*/ || ptype == 0x0E/*FAT16+LBA*/)) {
+	/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
+	 * then assume LBA and make up a geometry */
+	if (!yet_detected && (ptype == 0x0C/*FAT32+LBA*/ || ptype == 0x0E/*FAT16+LBA*/)) {
+		yet_detected = 1;
+		assume_lba = true;
+		LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
+	}
+
+	/* If the MBR has only a partition table, but the part that normally contains executable
+	 * code is all zeros. To avoid false negatives, check only the first 0x20 bytes since
+	 * at boot time executable code must reside there to do something, and many of these
+	 * disk images while they ARE mostly zeros, do have some extra nonzero bytes immediately
+	 * before the partition table at 0x1BE.
+	 *
+	 * Modern FAT32 generator tools and older digital cameras will format FAT32 like this.
+	 * These tools are unlikely to support non-LBA disks.
+	 *
+	 * To avoid false positives, the partition type has to be something related to FAT */
+	if (!yet_detected && (ptype == 0x01 || ptype == 0x04 || ptype == 0x06 || ptype == 0x0B || ptype == 0x0C || ptype == 0x0E)) {
+		/* buf[] still contains MBR */
+		unsigned int i=0;
+		while (i < 0x20 && buf[i] == 0) i++;
+		if (i == 0x20) {
 			yet_detected = 1;
 			assume_lba = true;
-			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
+			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT-related) and lack of executable code in the MBR");
 		}
+	}
 
-		/* If the MBR has only a partition table, but the part that normally contains executable
-		 * code is all zeros. To avoid false negatives, check only the first 0x20 bytes since
-		 * at boot time executable code must reside there to do something, and many of these
-		 * disk images while they ARE mostly zeros, do have some extra nonzero bytes immediately
-		 * before the partition table at 0x1BE.
-		 *
-		 * Modern FAT32 generator tools and older digital cameras will format FAT32 like this.
-		 * These tools are unlikely to support non-LBA disks.
-		 *
-		 * To avoid false positives, the partition type has to be something related to FAT */
-		if (!yet_detected && (ptype == 0x01 || ptype == 0x04 || ptype == 0x06 || ptype == 0x0B || ptype == 0x0C || ptype == 0x0E)) {
-			/* buf[] still contains MBR */
-			unsigned int i=0;
-			while (i < 0x20 && buf[i] == 0) i++;
-			if (i == 0x20) {
-				yet_detected = 1;
-				assume_lba = true;
-				LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT-related) and lack of executable code in the MBR");
-			}
-		}
+	/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
+	 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
+	 * backward compatibility anyway. fcsize is in 512-byte sectors. */
+	if (!yet_detected && fcsize >= ((4ull*1024ull*1024ull*1024ull)/512ull)) {
+		yet_detected = 1;
+		assume_lba = true;
+		LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on size");
+	}
 
-		/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
-		 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
-		 * backward compatibility anyway. fcsize is in 512-byte sectors. */
-		if (!yet_detected && fcsize >= ((4ull*1024ull*1024ull*1024ull)/512ull)) {
-			yet_detected = 1;
-			assume_lba = true;
-			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on size");
-		}
-
-		if (yet_detected && assume_lba) {
-			sizes[0] = 512;
-			sizes[1] = 63;
-			sizes[2] = 255;
-			{
-				const Bitu d = sizes[1]*sizes[2];
-				sizes[3] = (fcsize + d - 1) / d; /* round up */
-			}
-		}
-
-		if (yet_detected)
+	if (yet_detected && assume_lba) {
+		sizes[0] = 512;
+		sizes[1] = 63;
+		sizes[2] = 255;
 		{
-			//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
+			const Bitu d = sizes[1]*sizes[2];
+			sizes[3] = (fcsize + d - 1) / d; /* round up */
+		}
+	}
+
+	if (yet_detected) {
+            //"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
             //sizes[0],sizes[1],sizes[2],sizes[3]);
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
             return true;
