@@ -512,7 +512,7 @@ bool CDROM_Interface_Image::GetAudioTrackInfo(int requested_track_num,
 	if (tracks.size() < MIN_REDBOOK_TRACKS
 	    || requested_track_num < 1
 	    || requested_track_num > 99
-	    || requested_track_num >= tracks.size()) {
+	    || (unsigned int)requested_track_num >= tracks.size()) {
 		return false;
 	}
 
