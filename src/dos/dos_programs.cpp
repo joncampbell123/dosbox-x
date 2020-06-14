@@ -4425,19 +4425,11 @@ private:
         if (!yet_detected)
             yet_detected = DetectMFMsectorPartition(buf, fcsize, sizes);
 
-        Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
+        // Try bximage disk geometry
         if (!yet_detected) {
-            // Try bximage disk geometry
-            //Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
-            Bitu cylinders = (Bitu)(fcsize / (16 * 63));
-            // Int13 only supports up to 1023 cylinders
-            // For mounting unknown images we could go up with the heads to 255
-            if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
-                yet_detected = true;
-                sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
-            }
-		}
-
+            yet_detected = DetectBximagePartition(fcsize, sizes);
+        }
+        Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
 		bool assume_lba = false;
 
 		/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
@@ -4556,7 +4548,19 @@ private:
         }
         return false;
     }
-
+    
+    bool DetectBximagePartition(Bit32u fcsize, Bitu sizes[]) {
+        // Try bximage disk geometry
+        Bit32u cylinders = fcsize / (16 * 63);
+        // Int13 only supports up to 1023 cylinders
+        // For mounting unknown images we could go up with the heads to 255
+        if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
+            sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
+            return true;
+        }
+        return false;
+    }
+    
     bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
         //mount cdrom
         if (Drives[drive - 'A']) {
