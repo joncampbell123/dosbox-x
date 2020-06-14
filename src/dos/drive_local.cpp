@@ -2669,7 +2669,7 @@ again:
 	CROSS_DOSFILENAME(preldos);
 	strcat(ovname,prel);
 	bool statok = false;
-	const host_cnv_char_t* host_name;
+	const host_cnv_char_t* host_name=NULL;
 	if (!is_deleted_file(preldos)) {
 		host_name = CodePageGuestToHost(ovname);
 		if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
@@ -2703,7 +2703,7 @@ again:
 	if(stat_block.st_mode & S_IFDIR) find_attr=DOS_ATTR_DIRECTORY;
 	else find_attr=0;
 #if defined (WIN32)
-	Bitu attribs = GetFileAttributesW(host_name);
+	Bitu attribs = host_name==NULL?INVALID_FILE_ATTRIBUTES:GetFileAttributesW(host_name);
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
@@ -2856,12 +2856,15 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	strcat(overtmpname,tmp);
 	CROSS_FILENAME(overtmpname);
 
-	struct stat status;
+	ht_stat_t status;
+	const host_cnv_char_t* host_name;
 #if defined (WIN32)
-	if (SetFileAttributes(overtmpname, attr) || SetFileAttributes(overlayname, attr))
-		return true;
+    host_name = CodePageGuestToHost(overtmpname);
+    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
+	host_name = CodePageGuestToHost(overlayname);
+    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
 #else
-	if (stat(overtmpname,&status)==0 || stat(overlayname,&status)==0) {
+	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
 		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
 			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
 
@@ -2879,9 +2882,10 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	temp_name = dirCache.GetExpandName(newname);
+	host_name = CodePageGuestToHost(temp_name);
 
 	bool created=false;
-	if (stat(temp_name,&status)==0 && (status.st_mode & S_IFDIR)) {
+	if (host_name != NULL && ht_stat(host_name,&status)==0 && (status.st_mode & S_IFDIR)) {
 		int temp;
 #if defined (WIN32)
 		temp=mkdir(overtmpname);
@@ -2890,11 +2894,17 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 #endif
 		if (temp==0) created=true;
 	} else {
-		FILE * hand = fopen_wrap(temp_name,"rb");
-		//bool fileopened = false;
+		host_name = CodePageGuestToHost(temp_name);
+		FILE * hand;
+		if (host_name!=NULL)
+			hand = _wfopen(host_name,_HT("rb"));
+		else
+			hand = fopen_wrap(temp_name,"rb");
 		if (hand) {
 			if (logoverlay) LOG_MSG("overlay file opened %s",temp_name);
-			FILE * layfile = fopen_wrap(overtmpname,"wb");
+			FILE * layfile=NULL;
+			host_name = CodePageGuestToHost(overtmpname);
+			if (host_name!=NULL) layfile=_wfopen(host_name,_HT("wb"));
 			if (layfile==NULL) layfile=fopen_wrap(overlayname,"wb");
 			int numr,numw;
 			char buffer[1000];
@@ -2919,11 +2929,12 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	}
 	if (created) {
 #if defined (WIN32)
-		if (SetFileAttributes(overtmpname, attr) || SetFileAttributes(overlayname, attr))
-			return true;
+		host_name = CodePageGuestToHost(overtmpname);
+		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
+		host_name = CodePageGuestToHost(overlayname);
+		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
 #else
-		struct stat status;
-		if (stat(overtmpname,&status)==0 || stat(overlayname,&status)==0) {
+		if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
 			if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
 				LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
 
