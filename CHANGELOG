@@ -5,8 +5,9 @@
     function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
     command with "-t overlay" option. Ported from DOSBox
-    SVN and adopted for DOSBox-X, this feature allows the
-    user to redirect new and changed files to a different
+    SVN and adopted for DOSBox-X with additional features
+    such as long filename support, this allows the users
+    to redirect new and changed file(s) to a different
     location transparently. (Wengier)
   - Cleaned up the DPI awareness auto detection code to
     allow Visual Studio builds to again run on Windows 7.
