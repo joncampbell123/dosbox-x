@@ -1786,7 +1786,15 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		strcpy(odir,overlaydir);
 		strcat(odir,sdir);
 		CROSS_FILENAME(odir);
-		int temp = rmdir(odir);
+		const host_cnv_char_t* host_name = CodePageGuestToHost(odir);
+		int temp=-1;
+		if (host_name!=NULL) {
+#if defined (WIN32)
+			temp=_wrmdir(host_name);
+#else
+			temp=rmdir(host_name);
+#endif
+		}
 		if (temp) {
 			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,dir));
 			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
@@ -1794,7 +1802,14 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 				strcpy(odir,overlaydir);
 				strcat(odir,sdir);
 				CROSS_FILENAME(odir);
-				temp = rmdir(odir);
+				host_name = CodePageGuestToHost(odir);
+				if (host_name!=NULL) {
+#if defined (WIN32)
+					temp=_wrmdir(host_name);
+#else
+					temp=rmdir(host_name);
+#endif
+				}
 			}
 		}
 		if (temp == 0) {
@@ -1898,6 +1913,8 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 	strcat(newdir,sdir);
 	CROSS_FILENAME(newdir);
 	p=strrchr(sdir,'\\');
+	int temp=-1;
+	bool madepdir=false;
 	if (p!=NULL) {
 		*p=0;
 		if (strlen(sdir)) {
@@ -1906,18 +1923,23 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 			CROSS_FILENAME(pdir);
 			if (!is_deleted_path(sdir) && localDrive::TestDir(sdir)) {
 #if defined (WIN32)
-				mkdir(pdir);
+				temp=mkdir(pdir);
 #else
-				mkdir(pdir,0700);
+				temp=mkdir(pdir,0700);
 #endif
+				if (temp==0) madepdir=true;
 			}
 		}
 	}
-#if defined (WIN32)						/* MS Visual C++ */
-	int temp = mkdir(newdir);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newdir);
+	temp=-1;
+	if (host_name!=NULL) {
+#if defined (WIN32)
+		temp=_wmkdir(host_name);
 #else
-	int temp = mkdir(newdir,0700);
+		temp=mkdir(host_name,0700);
 #endif
+	}
 	if (temp==0) {
 		char fakename[CROSS_LEN];
 		strcpy(fakename,basedir);
@@ -1929,7 +1951,8 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 		add_DOSdir_to_cache(dir,sdir);
 		dirCache.EmptyCache();
 		update_cache(true);
-	}
+	} else if (madepdir)
+		rmdir(pdir);
 
 	return (temp == 0);// || ((temp!=0) && (errno==EEXIST));
 }
@@ -2886,25 +2909,32 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 
 	bool created=false;
 	if (host_name != NULL && ht_stat(host_name,&status)==0 && (status.st_mode & S_IFDIR)) {
-		int temp;
+		host_name = CodePageGuestToHost(overtmpname);
+		int temp=-1;
+		if (host_name!=NULL) {
 #if defined (WIN32)
-		temp=mkdir(overtmpname);
+			temp=_wmkdir(host_name);
 #else
-		temp=mkdir(overtmpname,0700);
+			temp=mkdir(host_name,0700);
 #endif
+		}
 		if (temp==0) created=true;
 	} else {
-		host_name = CodePageGuestToHost(temp_name);
 		FILE * hand;
+		host_name = CodePageGuestToHost(temp_name);
+#ifdef host_cnv_use_wchar
 		if (host_name!=NULL)
 			hand = _wfopen(host_name,_HT("rb"));
 		else
+#endif
 			hand = fopen_wrap(temp_name,"rb");
 		if (hand) {
 			if (logoverlay) LOG_MSG("overlay file opened %s",temp_name);
 			FILE * layfile=NULL;
 			host_name = CodePageGuestToHost(overtmpname);
+#ifdef host_cnv_use_wchar
 			if (host_name!=NULL) layfile=_wfopen(host_name,_HT("wb"));
+#endif
 			if (layfile==NULL) layfile=fopen_wrap(overlayname,"wb");
 			int numr,numw;
 			char buffer[1000];
