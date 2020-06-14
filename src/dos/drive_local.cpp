@@ -2707,7 +2707,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	CROSS_FILENAME(newname);
 
 	FILE * hand = fopen_wrap(newname,"rb");
-	bool fileopened = false;
+//	bool fileopened = false;
 	if (hand) {
 		if (logoverlay) LOG_MSG("overlay file opened %s",newname);
 		FILE * layfile = fopen_wrap(overlayname,"wb");
@@ -2719,7 +2719,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 					fclose(hand);
 					fclose(layfile);
 					return false;
-				} else if(feof(hand)!=0);
+				} else if(feof(hand)!=0) { }
 			}
 			if((numw=fwrite(buffer,1,numr,layfile))!=numr){
 					fclose(hand);
