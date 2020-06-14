@@ -248,7 +248,7 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
 #if defined (WIN32) 
       //OS2 ?
       if (post > dironly && *(post - 1) == ':' && (post - dironly) == 2) 
-          post++; //move away from X: as need to end up with x:\ 
+          post++; //move away from X: as need to end up with "x:\"
 #else
   //Lets hope this is not really used.. (root folder specified as overlay)
       if (post == dironly)
