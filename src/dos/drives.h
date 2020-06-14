@@ -746,6 +746,7 @@ public:
 	virtual bool TestDir(const char * dir);
 	virtual bool RemoveDir(const char * dir);
 	virtual bool MakeDir(const char * dir);
+	bool ovlnocachedir = false;
 	bool ovlreadonly = false;
 private:
 	char overlaydir[CROSS_LEN];

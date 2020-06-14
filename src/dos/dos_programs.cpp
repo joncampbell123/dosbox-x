@@ -946,8 +946,13 @@ public:
                           else WriteOut("An error occurred when trying to create an overlay drive.\n");
                           delete newdrive;
                           return;
-                      } else
-						dynamic_cast<Overlay_Drive*>(newdrive)->ovlreadonly = readonly;  
+                      } else {
+						  Overlay_Drive* odrive=dynamic_cast<Overlay_Drive*>(newdrive);
+						  if (odrive!=NULL) {
+							odrive->ovlnocachedir = nocachedir;
+							odrive->ovlreadonly = readonly;
+						  }
+					  }
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 

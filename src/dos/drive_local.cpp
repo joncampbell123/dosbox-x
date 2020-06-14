@@ -1762,6 +1762,11 @@ char* GetCrossedName(const char *basedir, const char *dir) {
 //Or create an empty directory in local drive base. 
 
 bool Overlay_Drive::RemoveDir(const char * dir) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+	
     if (ovlreadonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -1848,6 +1853,11 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 }
 
 bool Overlay_Drive::MakeDir(const char * dir) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
     if (ovlreadonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -1925,6 +1935,11 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 }
 
 bool Overlay_Drive::TestDir(const char * dir) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
 	//First check if directory exist exclusively in the overlay. 
 	//Currently using the update_cache cache, alternatively access the directory itself.
 
@@ -2159,6 +2174,11 @@ void Overlay_Drive::convert_overlay_to_DOSname_in_base(char* dirname )
 }
 
 bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
     if (ovlreadonly) {
         if ((flags&0xf) == OPEN_WRITE || (flags&0xf) == OPEN_READWRITE) {
             DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -2252,6 +2272,11 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 }
 
 bool Overlay_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+	
     if (ovlreadonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -2915,6 +2940,11 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 }
 
 bool Overlay_Drive::GetFileAttr(const char * name,Bit16u * attr) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
 	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name);
@@ -3172,6 +3202,11 @@ bool Overlay_Drive::check_if_leading_is_deleted(const char* name){
 }
 
 bool Overlay_Drive::FileExists(const char* name) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
 	char overlayname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name);
@@ -3343,6 +3378,11 @@ bool Overlay_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
+	
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
 
 	if (*_dir) {
 		char newname[CROSS_LEN], tmp[CROSS_LEN];
@@ -3374,6 +3414,11 @@ bool Overlay_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 }
 
 bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block) {
+	if (ovlnocachedir) {
+		dirCache.EmptyCache();
+		update_cache(true);
+	}
+
 	char overlayname[CROSS_LEN], tmp[CROSS_LEN], overtmpname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name);
