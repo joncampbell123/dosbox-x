@@ -2117,7 +2117,7 @@ void IDEATADevice::update_from_biosdisk() {
         cyls = (tmp + ((63 * 16) - 1)) / (63 * 16);
         LOG_MSG("WARNING: Unable to reduce heads to 16 and below\n");
         LOG_MSG("If at all possible, please consider using INT 13h geometry with a head\n");
-        LOG_MSG("cound that is easier to map to the BIOS, like 240 heads or 128 heads/track.\n");
+        LOG_MSG("count that is easier to map to the BIOS, like 240 heads or 128 heads/track.\n");
         LOG_MSG("Some OSes, such as Windows 95, will not enable their 32-bit IDE driver if\n");
         LOG_MSG("a clean mapping does not exist between IDE and BIOS geometry.\n");
         LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (non-straightforward mapping)\n",
