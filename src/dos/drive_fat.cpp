@@ -1366,6 +1366,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
 	struct partTable mbrData;
+	req_ver = 0.0;
 
 	if(!loadedDisk) {
 		created_successfully = false;
@@ -1541,17 +1542,22 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                             countSector = mbrData.pentry[m].partSize;
                             break;
                         }
-                        else if (dos.version.major >= 7 && mbrData.pentry[m].parttype == 0x0E/*FAT16B LBA*/) { /* MS-DOS 7.0 or higher */
-                            LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
-                            startSector = mbrData.pentry[m].absSectStart;
-                            countSector = mbrData.pentry[m].partSize;
+                        else if (mbrData.pentry[m].parttype == 0x0E/*FAT16B LBA*/) {
+							if (dos.version.major >= 7) { /* MS-DOS 7.0 or higher */
+								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
+								startSector = mbrData.pentry[m].absSectStart;
+								countSector = mbrData.pentry[m].partSize;
+							} else
+								req_ver = 7.0;
                             break;
                         }
-                        else if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) && /* MS-DOS 7.10 or higher */
-                                (mbrData.pentry[m].parttype == 0x0B || mbrData.pentry[m].parttype == 0x0C)) { /* FAT32 types */
-                            LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
-                            startSector = mbrData.pentry[m].absSectStart;
-                            countSector = mbrData.pentry[m].partSize;
+                        else if (mbrData.pentry[m].parttype == 0x0B || mbrData.pentry[m].parttype == 0x0C) { /* FAT32 types */
+							if (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) { /* MS-DOS 7.10 or higher */
+								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
+								startSector = mbrData.pentry[m].absSectStart;
+								countSector = mbrData.pentry[m].partSize;
+							} else
+								req_ver = 7.1;
                             break;
                         }
                     }

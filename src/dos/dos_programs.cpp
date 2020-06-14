@@ -4109,8 +4109,14 @@ private:
                     newDrive = new fatDrive(paths[i].c_str(), (Bit32u)sizes[0], (Bit32u)sizes[1], (Bit32u)sizes[2], (Bit32u)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
-                if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
+                if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+					if (fdrive->req_ver>0) {
+						char ver_msg[60];
+						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n", fdrive->req_ver);
+						errorMessage=(std::string(ver_msg)+std::string(errorMessage)).c_str();
+					}
                 }
             }
             if (errorMessage) {
