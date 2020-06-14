@@ -283,7 +283,7 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
           }
       }
 
-      sname[0]=0;
+      if (filename_not_strict_8x3(sname)) sname[0]=0;
       char* genname=CreateEntry(dir,file,sname,true);
       Bits index = GetLongName(dir,(char *)(!strlen(sname)||filename_not_strict_8x3(sname)?file:sname));
 	  if (strlen(genname)) {
@@ -528,20 +528,14 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     Bits low    = 0;
     Bits high   = (Bits)(filelist_size-1);
     Bits res;
-    while (low<=high) {
-        Bits mid = (low+high)/2;
-		if (uselfn&&!strcasecmp(shortName,curDir->fileList[(size_t)mid]->orgname)) {
-            strcpy(shortName,curDir->fileList[(size_t)mid]->orgname);
-			return mid;
+	if (strlen(shortName))
+		for (Bitu i=0; i<filelist_size; i++) {
+			if (!strcasecmp(shortName,curDir->fileList[i]->orgname) || !strcasecmp(shortName,curDir->fileList[i]->shortname)) {
+				strcpy(shortName,curDir->fileList[i]->orgname);
+				return (Bits)i;
+			}
 		}
-        res = uselfn?strcmp(shortName,curDir->fileList[(size_t)mid]->shortname):strcasecmp(shortName,curDir->fileList[(size_t)mid]->shortname);
-        if (res>0)  low  = mid+1; else
-        if (res<0)  high = mid-1; else
-        {   // Found
-            strcpy(shortName,curDir->fileList[(size_t)mid]->orgname);
-            return mid;
-        }
-    }
+
 #ifdef WINE_DRIVE_SUPPORT
     if (strlen(shortName) < 8 || shortName[4] != '~' || shortName[5] == '.' || shortName[6] == '.' || shortName[7] == '.') return -1; // not available
     // else it's most likely a Wine style short name ABCD~###, # = not dot  (length at least 8) 
