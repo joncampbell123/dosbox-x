@@ -2688,7 +2688,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 		return true;
 #else
 	ht_stat_t status;
-	if (ht_stat(overlayname,&status)==0 || uselfn && ht_stat(tmp,&status)==0) {
+	if (ht_stat(overlayname,&status)==0 || (uselfn && ht_stat(tmp,&status)==0)) {
 		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
 			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
 
@@ -2730,11 +2730,11 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 		fclose(hand);
 		fclose(layfile);
 #if defined (WIN32)
-		if (SetFileAttributes(overlayname, attr) || uselfn && SetFileAttributes(tmp, attr))
+		if (SetFileAttributes(overlayname, attr) || (uselfn && SetFileAttributes(tmp, attr)))
 			return true;
 #else
 		ht_stat_t status;
-		if (ht_stat(overlayname,&status)==0 || uselfn && ht_stat(tmp,&status)==0) {
+		if (ht_stat(overlayname,&status)==0 || (uselfn && ht_stat(tmp,&status)==0)) {
 			if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
 				LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
 
@@ -2773,7 +2773,7 @@ bool Overlay_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 	}
 #else
 	ht_stat_t status;
-	if (ht_stat(overlayname,&status)==0 || uselfn && ht_stat(tmp,&status)==0) {
+	if (ht_stat(overlayname,&status)==0 || (uselfn && ht_stat(tmp,&status)==0)) {
 		*attr=DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
@@ -2848,7 +2848,7 @@ bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 				if (!strcasecmp(mname, name)) return true;
 			}
 		}
-		if (!strcasecmp((*it).c_str(), name)||(*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name)) return true;
+		if (!strcasecmp((*it).c_str(), name) || ((*(it+1)).length() && !strcasecmp((*(it+1)).c_str(), name))) return true;
 	}
 	return false;
 }
@@ -2887,7 +2887,7 @@ void Overlay_Drive::remove_DOSdir_from_cache(const char* name) {
 				}
 			}
 		}
-		if (!strcasecmp((*it).c_str(), name)||(*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name)) {
+		if (!strcasecmp((*it).c_str(), name) || ((*(it+1)).length() && !strcasecmp((*(it+1)).c_str(), name))) {
 			DOSdirs_cache.erase(it+1);
 			DOSdirs_cache.erase(it);
 			return;
