@@ -2913,11 +2913,14 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 
 	ht_stat_t status;
 	const host_cnv_char_t* host_name;
+	bool success=false;
 #if defined (WIN32)
     host_name = CodePageGuestToHost(overtmpname);
-    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
-	host_name = CodePageGuestToHost(overlayname);
-    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
+    if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
+	if (!success) {
+		host_name = CodePageGuestToHost(overlayname);
+		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
+	}
 #else
 	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
 		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
@@ -2927,10 +2930,15 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 		else
 			status.st_mode |=  S_IWUSR;
-		if (chmod(overlayname,status.st_mode) >= 0)
-			return true;
+		if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
+			success=true;
 	}
 #endif
+	if (success) {
+		dirCache.EmptyCache();
+		update_cache(false);
+		return true;
+	}
 
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
@@ -2992,9 +3000,11 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 	if (created) {
 #if defined (WIN32)
 		host_name = CodePageGuestToHost(overtmpname);
-		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
-		host_name = CodePageGuestToHost(overlayname);
-		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) return true;
+		if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
+		if (!success) {
+			host_name = CodePageGuestToHost(overlayname);
+			if (host_name != NULL&&SetFileAttributesW(host_name, attr)) success=true;
+		}
 #else
 		if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
 			if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
@@ -3004,10 +3014,15 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 				status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 			else
 				status.st_mode |=  S_IWUSR;
-			if (chmod(overlayname,status.st_mode) >= 0)
-				return true;
+			if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
+				success=true;
 		}
 #endif
+		if (success) {
+			dirCache.EmptyCache();
+			update_cache(false);
+			return true;
+		}
 	}
 	return false;
 }
