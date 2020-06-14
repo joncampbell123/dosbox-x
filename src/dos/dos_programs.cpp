@@ -941,9 +941,9 @@ public:
                   //Erase old drive on succes
                   if (newdrive) {
                       if (o_error) { 
-                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.");
-                          else if (o_error == 2) WriteOut("overlay directory can not be the same as underlying filesystem.");
-                          else WriteOut("An error occurred when trying to create an overlay drive.");
+                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.\n");
+                          else if (o_error == 2) WriteOut("Overlay directory cannot be the same as underlying filesystem.\n");
+                          else WriteOut("An error occurred when trying to create an overlay drive.\n");
                           delete newdrive;
                           return;
                       } else
@@ -951,7 +951,7 @@ public:
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 
-                      WriteOut("overlay drive construction failed.");
+                      WriteOut("Overlay drive construction failed.\n");
                       return;
                   }
               } else {
@@ -2948,7 +2948,8 @@ void RESCAN::Run(void)
         if (drive < DOS_DRIVES && Drives[drive]) {
             Drives[drive]->EmptyCache();
             WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
-        }
+        } else
+            WriteOut("Invalid drive specification\n");
     }
 }
 
