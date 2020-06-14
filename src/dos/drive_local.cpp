@@ -3113,8 +3113,10 @@ bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 	char fname[CROSS_LEN];
 	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
 	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
+	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_DOSFILENAME(fname);
+	}
 	for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
 		if (!strcasecmp((*it).c_str(), name)||strlen(fname)&&!strcasecmp((*it).c_str(), fname)||(*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name)) return true;
 	}
@@ -3139,8 +3141,10 @@ bool Overlay_Drive::is_deleted_file(const char* name) {
 	else
 		strcat(tname,temp_name);
 	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
+	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_DOSFILENAME(fname);
+	}
 	for(std::vector<std::string>::iterator it = deleted_files_in_base.begin(); it != deleted_files_in_base.end(); it++) {
 		if (!strcasecmp((*it).c_str(), name)||!strcasecmp((*it).c_str(), tname)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))) return true;
 	}
@@ -3159,8 +3163,10 @@ void Overlay_Drive::remove_DOSdir_from_cache(const char* name) {
 	char fname[CROSS_LEN];
 	char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
 	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
+	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_DOSFILENAME(fname);
+	}
 	for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
 		if (!strcasecmp((*it).c_str(), name)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))||((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name))) {
 			DOSdirs_cache.erase(it+1);
@@ -3186,8 +3192,10 @@ void Overlay_Drive::remove_deleted_file(const char* name,bool create_on_disk) {
 	else
 		strcat(tname,temp_name);
 	strcpy(fname, "");
-	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir)))
+	if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 		strcpy(fname,temp_name+strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0));
+		CROSS_DOSFILENAME(fname);
+	}
 	for(std::vector<std::string>::iterator it = deleted_files_in_base.begin(); it != deleted_files_in_base.end(); ++it) {
 		if (!strcasecmp((*it).c_str(), name)||!strcasecmp((*it).c_str(), tname)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))) {
 			deleted_files_in_base.erase(it);
