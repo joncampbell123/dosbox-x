@@ -4426,10 +4426,13 @@ private:
             yet_detected = DetectMFMsectorPartition(buf, fcsize, sizes);
 
         // Try bximage disk geometry
+        // bximage flat images should already be detected by
+        // DetectMFMSectorPartition(), not sure what this adds...
         if (!yet_detected) {
             yet_detected = DetectBximagePartition(fcsize, sizes);
         }
-        Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
+        
+        Bit8u ptype = buf[0x1c2]; // Location of DOS 3.3+ partition type
 	bool assume_lba = false;
 
 	/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
