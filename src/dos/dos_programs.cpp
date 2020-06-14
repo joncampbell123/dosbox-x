@@ -4422,59 +4422,13 @@ private:
             return false;
         }
         // check MBR partition entry 1
-        // This is used for plain MFM sector format as created by IMGMAKE
-        Bit8u starthead = 0;
-        Bit8u startsect = 0;
-        Bit16u startcyl = 0;
-        Bit16u endcyl = 0;
-        Bit8u ptype = 0;
-        Bit8u heads = 0;
-        Bit8u sectors = 0;
-        Bit16u pe1_size = host_readd(&buf[0x1fa]);
-        if (pe1_size != 0) { // DOS 2.0-3.21 partition table
-            starthead = buf[0x1ef];
-            startsect = (buf[0x1f0] & 0x3fu) - 1u;
-            startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
-            endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
-            ptype = buf[0x1f2];
-            heads = buf[0x1f3] + 1u;
-            sectors = buf[0x1f4] & 0x3fu;
-        } else {             // DOS 3.3+ partition table
-            pe1_size = host_readd(&buf[0x1ca]);
-            starthead = buf[0x1bf];
-            startsect = (buf[0x1c0] & 0x3fu) - 1u;
-            startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
-            endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-            ptype = buf[0x1c2];
-            heads = buf[0x1c3] + 1u;
-            sectors = buf[0x1c4] & 0x3fu;
-        }
-        if (pe1_size != 0) {
-            Bitu part_start = startsect + sectors * starthead +
-                startcyl * sectors*heads;
-            Bitu part_end = heads * sectors*endcyl;
-            Bits part_len = (Bits)(part_end - part_start);
-            // partition start/end sanity check
-            // partition length should not exceed file length
-            // real partition size can be a few cylinders less than pe1_size
-            // if more than 1023 cylinders see if first partition fits
-            // into 1023, else bail.
-            if ((part_len<0) || ((Bitu)part_len > pe1_size) || (pe1_size > fcsize) ||
-                ((pe1_size - (Bitu)part_len) / (sectors*heads)>2u) ||
-                ((pe1_size / (heads*sectors))>1023u)) {
-                //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
-                //LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
-                //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
-            }
-            else if (!yet_detected) {
-                sizes[0] = 512; sizes[1] = sectors;
-                sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
-                if (sizes[3]>1023) sizes[3] = 1023;
-                yet_detected = true;
-            }
-        }
+        if (!yet_detected)
+            yet_detected = DetectMFMsectorPartition(buf, fcsize, sizes);
+
+        Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
         if (!yet_detected) {
             // Try bximage disk geometry
+            //Bit8u ptype = buf[0x1c2]; // DOS 3.3+ partition type
             Bitu cylinders = (Bitu)(fcsize / (16 * 63));
             // Int13 only supports up to 1023 cylinders
             // For mounting unknown images we could go up with the heads to 255
@@ -4545,6 +4499,62 @@ private:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
             return false;
         }
+    }
+
+    bool DetectMFMsectorPartition(Bit8u buf[], Bit32u fcsize, Bitu sizes[]) {
+        // This is used for plain MFM sector format as created by IMGMAKE
+        Bit8u starthead = 0;
+        Bit8u startsect = 0;
+        Bit16u startcyl = 0;
+        Bit16u endcyl = 0;
+        Bit8u ptype = 0;    // Partition Type
+        Bit8u heads = 0;
+        Bit8u sectors = 0;
+        Bit16u pe1_size = host_readd(&buf[0x1fa]);
+        if (pe1_size != 0) {                     // DOS 2.0-3.21 partition table
+            starthead = buf[0x1ef];
+            startsect = (buf[0x1f0] & 0x3fu) - 1u;
+            startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
+            endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
+            ptype = buf[0x1f2];
+            heads = buf[0x1f3] + 1u;
+            sectors = buf[0x1f4] & 0x3fu;
+        } else {                                // DOS 3.3+ partition table
+            pe1_size = host_readd(&buf[0x1ca]);
+            if (pe1_size != 0) {
+                starthead = buf[0x1bf];
+                startsect = (buf[0x1c0] & 0x3fu) - 1u;
+                startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+                endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
+                ptype = buf[0x1c2];
+                heads = buf[0x1c3] + 1u;
+                sectors = buf[0x1c4] & 0x3fu;
+            }
+        }
+        if (pe1_size != 0) {
+            Bit32u part_start = startsect + sectors * starthead +
+                startcyl * sectors * heads;
+            Bit32u part_end = heads * sectors * endcyl;
+            Bit32u part_len = part_end - part_start;
+            // partition start/end sanity check
+            // partition length should not exceed file length
+            // real partition size can be a few cylinders less than pe1_size
+            // if more than 1023 cylinders see if first partition fits
+            // into 1023, else bail.
+            if ((part_len<0) || (part_len > pe1_size) || (pe1_size > fcsize) ||
+                ((pe1_size - part_len) / (sectors*heads)>2u) ||
+                ((pe1_size / (heads*sectors))>1023u)) {
+                //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
+                //LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
+                //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
+            } else {
+                sizes[0] = 512; sizes[1] = sectors;
+                sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
+                if (sizes[3]>1023) sizes[3] = 1023;
+                return true;
+            }
+        }
+        return false;
     }
 
     bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
