@@ -5689,7 +5689,9 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or harddisk images.\n"
         "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
+#ifdef WIN32
         "  [-source source] [-r retries] [-bat]\n"
+#endif
         "  file: The image file that is to be created - !path on the host!\n"
         "  -t: Type of image.\n"
         "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
