@@ -1103,7 +1103,7 @@ static int compute_codewords(Codebook *c, uint8 *len, int n, uint32 *values)
       add_entry(c, bit_reverse(res), i, m++, len[i], values);
       // propagate availability up the tree
       if (z != len[i]) {
-         assert(len[i] >= 0 && len[i] < 32);
+         assert(/*len[i] >= 0 always true, len is unsigned char ptr && */len[i] < 32u);
          for (y=len[i]; y > z; --y) {
             assert(available[y] == 0);
             available[y] = res + (1 << (32-y));
@@ -3093,6 +3093,7 @@ typedef int YTYPE;
 #endif
 static int do_floor(vorb *f, Mapping *map, int i, int n, float *target, YTYPE *finalY, uint8 *step2_flag)
 {
+   (void)step2_flag;
    int n2 = n >> 1;
    int s = map->chan[i].mux, floor;
    floor = map->submap_floor[s];
@@ -3200,6 +3201,7 @@ static int vorbis_decode_initial(vorb *f, int *p_left_start, int *p_left_end, in
 
 static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start, int left_end, int right_start, int right_end, int *p_left)
 {
+   (void)left_end;
    Mapping *map;
    int i,j,k,n,n2;
    int zero_channel[256];
