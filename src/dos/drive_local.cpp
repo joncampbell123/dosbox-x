@@ -2165,12 +2165,12 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
             return false;
         }
     }
-	const char* type;
+	const host_cnv_char_t * type;
 	switch (flags&0xf) {
-	case OPEN_READ:        type = "rb" ; break;
-	case OPEN_WRITE:       type = "rb+"; break;
-	case OPEN_READWRITE:   type = "rb+"; break;
-	case OPEN_READ_NO_MOD: type = "rb" ; break; //No modification of dates. LORD4.07 uses this
+	case OPEN_READ:        type = _HT("rb"); break;
+	case OPEN_WRITE:       type = _HT("rb+"); break;
+	case OPEN_READWRITE:   type = _HT("rb+"); break;
+	case OPEN_READ_NO_MOD: type = _HT("rb"); break; //No modification of dates. LORD4.07 uses this
 	default:
 		DOS_SetError(DOSERR_ACCESS_CODE_INVALID);
 		return false;
@@ -2200,8 +2200,12 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	strcpy(newname,overlaydir);
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
-
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+#ifdef host_cnv_use_wchar
+    FILE * hand = _wfopen(host_name,type);
+#else
 	FILE * hand = fopen_wrap(newname,type);
+#endif
 	if (!hand) {
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name));
 		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
@@ -2209,7 +2213,14 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 			strcpy(newname,overlaydir);
 			strcat(newname,temp_name);
 			CROSS_FILENAME(newname);
-			hand = fopen_wrap(newname,type);
+			host_name = CodePageGuestToHost(newname);
+			if (host_name != NULL) {
+#ifdef host_cnv_use_wchar
+				hand = _wfopen(host_name,type);
+#else
+				hand = fopen_wrap(newname,type);
+#endif
+			}
 		}
 	}
 	bool fileopened = false;
@@ -2578,7 +2589,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 bool Overlay_Drive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent, *ldir_ent;
-	struct stat stat_block;
+	ht_stat_t stat_block;
 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
@@ -2633,14 +2644,17 @@ again:
 	CROSS_DOSFILENAME(preldos);
 	strcat(ovname,prel);
 	bool statok = false;
+	const host_cnv_char_t* host_name;
 	if (!is_deleted_file(preldos)) {
-		statok = stat(ovname,&stat_block)==0;
+		host_name = CodePageGuestToHost(ovname);
+		if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
 		if (!statok) {
 			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,prel));
 			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
 				strcpy(ovname,GetCrossedName(overlaydir,temp_name));
-				statok = stat(ovname,&stat_block)==0;
+				host_name = CodePageGuestToHost(ovname);
+				if (host_name != NULL) statok = ht_stat(host_name,&stat_block)==0;
 			}
 		}
 	}
@@ -2654,7 +2668,8 @@ again:
 			if (logoverlay) LOG_MSG("skipping deleted file %s %s %s",preldos,uselfn?lfull_name:full_name,ovname);
 			goto again;
 		}
-		if (stat(dirCache.GetExpandName(lfull_name),&stat_block)!=0) {
+		const host_cnv_char_t* host_name = CodePageGuestToHost(dirCache.GetExpandName(lfull_name));
+		if (ht_stat(host_name,&stat_block)!=0) {
 			if (logoverlay) LOG_MSG("stat failed for %s . This should not happen.",dirCache.GetExpandName(uselfn?lfull_name:full_name));
 			goto again;//No symlinks and such
 		}
@@ -2663,7 +2678,7 @@ again:
 	if(stat_block.st_mode & S_IFDIR) find_attr=DOS_ATTR_DIRECTORY;
 	else find_attr=0;
 #if defined (WIN32)
-	Bitu attribs = GetFileAttributes(statok?ovname:lfull_name);
+	Bitu attribs = GetFileAttributesW(host_name);
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
@@ -2922,15 +2937,19 @@ bool Overlay_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 
 #if defined (WIN32)
 	Bitu attribs = INVALID_FILE_ATTRIBUTES;
-	attribs = GetFileAttributes(overtmpname);
-	if (attribs == INVALID_FILE_ATTRIBUTES) attribs = GetFileAttributes(overlayname);
+    const host_cnv_char_t* host_name = CodePageGuestToHost(overtmpname);
+    if (host_name != NULL) attribs = GetFileAttributesW(host_name);
+	if (attribs == INVALID_FILE_ATTRIBUTES) {
+		host_name = CodePageGuestToHost(overlayname);
+		if (host_name != NULL) attribs = GetFileAttributesW(host_name);
+	}
 	if (attribs != INVALID_FILE_ATTRIBUTES) {
 		*attr = attribs&0x3f;
 		return true;
 	}
 #else
-	struct stat status;
-	if (stat(overtmpname,&status)==0 || stat(overlayname,&status)==0) {
+	ht_stat_t status;
+	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
 		*attr=DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
