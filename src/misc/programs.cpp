@@ -550,7 +550,7 @@ private:
 	}
 };
 
-void ReloadMapper(Section_prop *sec);
+void ReloadMapper(Section_prop *sec, bool init);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
@@ -1054,9 +1054,9 @@ void CONFIG::Run(void) {
 							paste_speed = section->Get_int("clip_paste_speed");
 							wheel_key = section->Get_int("mouse_wheel_key");
 #if defined(C_SDL2)
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section);
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section);
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
