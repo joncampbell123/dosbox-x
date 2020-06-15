@@ -409,6 +409,7 @@ public:
 	const FAT_BootSector::bpb_union_t &GetBPB(void);
 	void SetBPB(const FAT_BootSector::bpb_union_t &bpb);
 	imageDisk *loadedDisk = NULL;
+	float req_ver = 0.0;
 	bool created_successfully = true;
 private:
 	char* Generate_SFN(const char *path, const char *name);
@@ -746,6 +747,7 @@ public:
 	virtual bool TestDir(const char * dir);
 	virtual bool RemoveDir(const char * dir);
 	virtual bool MakeDir(const char * dir);
+	bool ovlnocachedir = false;
 	bool ovlreadonly = false;
 private:
 	char overlaydir[CROSS_LEN];

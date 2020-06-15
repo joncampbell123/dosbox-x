@@ -941,17 +941,22 @@ public:
                   //Erase old drive on succes
                   if (newdrive) {
                       if (o_error) { 
-                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.");
-                          else if (o_error == 2) WriteOut("overlay directory can not be the same as underlying filesystem.");
-                          else WriteOut("An error occurred when trying to create an overlay drive.");
+                          if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.\n");
+                          else if (o_error == 2) WriteOut("Overlay directory cannot be the same as underlying filesystem.\n");
+                          else WriteOut("An error occurred when trying to create an overlay drive.\n");
                           delete newdrive;
                           return;
-                      } else
-						dynamic_cast<Overlay_Drive*>(newdrive)->ovlreadonly = readonly;  
+                      } else {
+						  Overlay_Drive* odrive=dynamic_cast<Overlay_Drive*>(newdrive);
+						  if (odrive!=NULL) {
+							odrive->ovlnocachedir = nocachedir;
+							odrive->ovlreadonly = readonly;
+						  }
+					  }
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 
-                      WriteOut("overlay drive construction failed.");
+                      WriteOut("Overlay drive construction failed.\n");
                       return;
                   }
               } else {
@@ -2948,7 +2953,8 @@ void RESCAN::Run(void)
         if (drive < DOS_DRIVES && Drives[drive]) {
             Drives[drive]->EmptyCache();
             WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
-        }
+        } else
+            WriteOut("Invalid drive specification\n");
     }
 }
 
@@ -4103,8 +4109,14 @@ private:
                     newDrive = new fatDrive(paths[i].c_str(), (Bit32u)sizes[0], (Bit32u)sizes[1], (Bit32u)sizes[2], (Bit32u)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
-                if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
+                if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+					if (fdrive->req_ver>0) {
+						char ver_msg[60];
+						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n", fdrive->req_ver);
+						errorMessage=(std::string(ver_msg)+std::string(errorMessage)).c_str();
+					}
                 }
             }
             if (errorMessage) {
