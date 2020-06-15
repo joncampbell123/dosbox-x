@@ -2200,6 +2200,7 @@ public:
             change_action_text("Press a key/joystick button or move the joystick.",CLR_RED);
             break;
         case BB_Del:
+            assert(mapper.aevent != NULL);
             if (mapper.abindit!=mapper.aevent->bindlist.end())  {
                 delete (*mapper.abindit);
                 mapper.abindit=mapper.aevent->bindlist.erase(mapper.abindit);
@@ -2211,6 +2212,7 @@ public:
             RedrawMapperBindButton(mapper.aevent);
             break;
         case BB_Next:
+            assert(mapper.aevent != NULL);
             if (mapper.abindit!=mapper.aevent->bindlist.end()) 
                 ++mapper.abindit;
             if (mapper.abindit==mapper.aevent->bindlist.end()) 
@@ -3959,6 +3961,7 @@ void BIND_MappingEvents(void) {
                 for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();++it) {
                     CBind * newbind=(*it)->CreateEventBind(&event);
                     if (!newbind) continue;
+                    assert(mapper.aevent != NULL);
                     mapper.aevent->AddBind(newbind);
                     SetActiveEvent(mapper.aevent);
                     mapper.addbind=false;
