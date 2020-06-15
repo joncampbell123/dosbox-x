@@ -527,6 +527,8 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     // Search long name and return array number of element
     Bits low    = 0;
     Bits high   = (Bits)(filelist_size-1);
+    (void)low;//unused
+    (void)high;//unused
     Bits res;
 	if (strlen(shortName))
 		for (Bitu i=0; i<filelist_size; i++) {

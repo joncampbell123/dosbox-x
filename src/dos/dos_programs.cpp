@@ -4517,6 +4517,7 @@ private:
         Bit8u heads = 0;
         Bit8u sectors = 0;
         Bit16u pe1_size = host_readd(&buf[0x1fa]);
+        (void)ptype;//unused
         if (pe1_size != 0) {                     // DOS 2.0-3.21 partition table
             starthead = buf[0x1ef];
             startsect = (buf[0x1f0] & 0x3fu) - 1u;
@@ -4547,7 +4548,7 @@ private:
             // real partition size can be a few cylinders less than pe1_size
             // if more than 1023 cylinders see if first partition fits
             // into 1023, else bail.
-            if ((part_len<0) || (part_len > pe1_size) || (pe1_size > fcsize) ||
+            if (/*(part_len<0) always false because unsigned || */(part_len > pe1_size) || (pe1_size > fcsize) ||
                 ((pe1_size - part_len) / (sectors*heads)>2u) ||
                 ((pe1_size / (heads*sectors))>1023u)) {
                 //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
