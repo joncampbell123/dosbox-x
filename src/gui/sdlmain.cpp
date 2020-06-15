@@ -3675,7 +3675,7 @@ static void GUI_StartUp() {
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
 
-    /* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
+    /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
@@ -5279,7 +5279,7 @@ void GFX_Events() {
 
                                 /* Now poke a "release ALT" command into the keyboard buffer
                                  * we have to do this, otherwise ALT will 'stick' and cause
-                                 * problems with the app running in the DOSBox.
+                                 * problems with the app running in the DOSBox-X.
                                  */
                                 KEYBOARD_AddKey(KBD_leftalt, false);
                                 KEYBOARD_AddKey(KBD_rightalt, false);
@@ -5581,7 +5581,7 @@ void GFX_Events() {
 
                                 /* Now poke a "release ALT" command into the keyboard buffer
                                  * we have to do this, otherwise ALT will 'stick' and cause
-                                 * problems with the app running in the DOSBox.
+                                 * problems with the app running in the DOSBox-X.
                                  */
                                 KEYBOARD_AddKey(KBD_leftalt, false);
                                 KEYBOARD_AddKey(KBD_rightalt, false);
@@ -6131,12 +6131,6 @@ void SDL_SetupConfigSection() {
         "If the default setting of 20 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
 
-    const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
-    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
-	Pstring->Set_values(wheelkeys);
-    Pint->Set_help("Convert mouse wheel movements into keyboard presses in Windows.\n"
-		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
-
     Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
     Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
     Pmulti->SetValue("100");
@@ -6157,6 +6151,12 @@ void SDL_SetupConfigSection() {
         "When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the\n"
         "sensitiveness of your device, i.e. the mouse is slower but more precise.");
     Pstring->Set_values(emulation);
+
+    const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
+    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
+    Pstring->Set_values(wheelkeys);
+    Pint->Set_help("Convert mouse wheel movements into keyboard presses in Windows.\n"
+		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
