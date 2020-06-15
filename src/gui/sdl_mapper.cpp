@@ -4389,8 +4389,7 @@ void MAPPER_Init(void) {
     }
 }
 
-void ReloadMapper(Section_prop *sec, bool init) {
-	Section_prop const *const section=static_cast<Section_prop *>(control->GetSection("sdl"));
+void ReloadMapper(Section_prop *section, bool init) {
     Prop_path* pp;
 #if defined(C_SDL2)
 	pp = section->Get_path("mapperfile_sdl2");
