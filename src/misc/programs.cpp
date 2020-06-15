@@ -36,7 +36,7 @@
 
 Bitu call_program;
 
-extern int enablelfn, paste_speed;
+extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
 extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
 
@@ -550,6 +550,7 @@ private:
 	}
 };
 
+void ReloadMapper(Section_prop *sec);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
@@ -1037,10 +1038,6 @@ void CONFIG::Run(void) {
 			//Due to parsing there can be a = at the start of value.
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
-			if (value.empty() ) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
-				return;
-			}
 			std::string inputline = pvars[1] + "=" + value;
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
@@ -1055,6 +1052,12 @@ void CONFIG::Run(void) {
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
+							wheel_key = section->Get_int("mouse_wheel_key");
+#if defined(C_SDL2)
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section);
+#else
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section);
+#endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
