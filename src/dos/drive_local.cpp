@@ -2709,15 +2709,6 @@ again:
 	strcpy(ovname,overlaydir);
 	char* prel = lfull_name + strlen(basedir);
 
-#if 0
-	//Check hidden/deleted directories first. TODO is this really needed. If the directory exist in the overlay things are weird anyway.
-	//the deleted paths are added to the deleted_files list.
-	if (is_deleted_dir(prel)) {
-		LOG_MSG("skipping early out deleted dir %s",prel);
-		goto again;
-	}
-#endif
-
 	char preldos[CROSS_LEN];
 	strcpy(preldos,prel);
 	CROSS_DOSFILENAME(preldos);
@@ -3350,8 +3341,8 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 
 	//TODO with cache function!
 	//Tricky function.
-	//Renaming directories is currently not supported, due the drive_cache not handling that smoothly.
-	//So oldname is directory => Exit!
+	//Renaming directories is currently not fully supported, due the drive_cache not handling that smoothly.
+	//So oldname is directory => exit unless it is only in overlay.
 	//If oldname is on overlay => simple rename.
 	//if oldname is on base => copy file to overlay with new name and mark old file as deleted. 
 	//More advanced version. keep track of the file being renamed in order to detect that the file is being renamed back. 
