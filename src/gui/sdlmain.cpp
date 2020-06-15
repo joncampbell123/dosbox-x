@@ -895,7 +895,7 @@ bool                        dos_kernel_disabled = true;
 bool                        startup_state_numlock = false; // Global for keyboard initialisation
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
-int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed;
+int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0;
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -3561,6 +3561,7 @@ static void GUI_StartUp() {
 
     modifier = section->Get_string("clip_key_modifier");
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
+    wheel_key = (unsigned int)section->Get_int("mouse_wheel_key");
 
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
@@ -4815,10 +4816,36 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-            Mouse_ButtonPressed(100-1);
-            break;
+			if (wheel_key) {
+#if defined(WIN32)
+				INPUT ip = {0};
+				ip.type = INPUT_KEYBOARD;
+				ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+				ip.ki.time = 0;
+				ip.ki.dwExtraInfo = 0;
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+#endif
+			} else
+				Mouse_ButtonPressed(100-1);
+			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-            Mouse_ButtonPressed(100+1);
+			if (wheel_key) {
+#if defined(WIN32)
+				INPUT ip = {0};
+				ip.type = INPUT_KEYBOARD;
+				ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+				ip.ki.time = 0;
+				ip.ki.dwExtraInfo = 0;
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+#endif
+			} else
+				Mouse_ButtonPressed(100+1);
             break;
 #endif
         }
@@ -5301,6 +5328,31 @@ void GFX_Events() {
             throw(0);
             break;
 #if defined (WIN32)
+		case SDL_MOUSEWHEEL:
+			if (wheel_key) {
+				if(event.wheel.y > 0) {
+					INPUT ip = {0};
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+				} else if(event.wheel.y < 0) {
+					INPUT ip = {0};
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+				}
+			}
+			break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
@@ -6078,6 +6130,12 @@ void SDL_SetupConfigSection() {
     Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
         "If the default setting of 20 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
+
+    const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
+    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
+	Pstring->Set_values(wheelkeys);
+    Pint->Set_help("Convert mouse wheel movements into keyboard presses in Windows.\n"
+		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
 
     Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
     Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
