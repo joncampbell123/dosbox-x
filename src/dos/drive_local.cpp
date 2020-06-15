@@ -1731,14 +1731,10 @@ char* GetCrossedName(const char *basedir, const char *dir) {
 }
 
 /* 
- * design principles/limitations/requirements:
- * 1) All filenames inside the overlay directories are UPPERCASE and conform to the 8.3 standard except for the special DBOVERLAY files.
- * 2) Renaming directories is currently not supported.
+ * Wengier: Long filenames are supported in all including overlay drives.
+ * Shift-JIS characters (Kana, Kanji, etc) are also supported in PC-98 mode.
  *
- * Point 2 is still being worked on.
- */
-
-/* New rename for base directories:
+ * New rename for base directories (not yet supported):
  * Alter shortname in the drive_cache: take care of order and long names. 
  * update stored deleted files list in overlay. 
  */
