@@ -4113,9 +4113,9 @@ private:
                 if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 					if (fdrive->req_ver>0) {
-						char ver_msg[60];
-						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n", fdrive->req_ver);
-						errorMessage=(std::string(ver_msg)+std::string(errorMessage)).c_str();
+						static char ver_msg[150];
+						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n%s", fdrive->req_ver, errorMessage);
+						errorMessage = ver_msg;
 					}
                 }
             }
