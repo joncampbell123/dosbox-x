@@ -3190,7 +3190,7 @@ bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 		CROSS_DOSFILENAME(fname);
 	}
 	for(std::vector<std::string>::iterator it = DOSdirs_cache.begin(); it != DOSdirs_cache.end(); it+=2) {
-		if (!strcasecmp((*it).c_str(), name)||strlen(fname)&&!strcasecmp((*it).c_str(), fname)||(*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name)) return true;
+		if (!strcasecmp((*it).c_str(), name)||(strlen(fname)&&!strcasecmp((*it).c_str(), fname))||((*(it+1)).length()&&!strcasecmp((*(it+1)).c_str(), name))) return true;
 	}
 	return false;
 }
