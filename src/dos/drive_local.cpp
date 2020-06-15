@@ -2034,12 +2034,16 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 
 	FILE* f;
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+	if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-	if (host_name!=NULL)
 		f = _wfopen(host_name,_HT("wb+"));
-	else
+#else
+		f = fopen_wrap(host_name,mode);
 #endif
+	}
+	else {
 		f = fopen_wrap(newname,mode);
+	}
 	//Check if a directories are part of the name:
 	char* dir = strrchr((char *)dos_filename,'\\');
 	if (!f && dir && *dir) {
@@ -2065,12 +2069,16 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 			strcat(temp_name,dir);
 			CROSS_FILENAME(temp_name);
 			const host_cnv_char_t* host_name = CodePageGuestToHost(temp_name);
+			if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-			if (host_name!=NULL)
 				f = _wfopen(host_name,_HT("wb+"));
-			else
+#else
+				f = fopen_wrap(host_name,mode);
 #endif
+			}
+			else {
 				f = fopen_wrap(temp_name,mode);
+			}
 		}
 		if (!f) {
 			strcpy(temp_name,dirCache.GetExpandName(GetCrossedName(basedir,dos_filename)));
@@ -2080,12 +2088,16 @@ FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const
 				CROSS_FILENAME(newname);
 			}
 			const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
+			if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-			if (host_name!=NULL)
 				f = _wfopen(host_name,_HT("wb+"));
-			else
+#else
+				f = fopen_wrap(host_name,mode);
 #endif
+			}
+			else {
 				f = fopen_wrap(newname,mode);
+			}
 		}
 	}
 
@@ -3101,12 +3113,17 @@ void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
 	CROSS_FILENAME(overlayname);
 	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
 	FILE* f;
+	if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-	if (host_name!=NULL)
 		f = _wfopen(host_name,_HT("wb+"));
-	else
+#else
+		f = fopen_wrap(host_name,"wb+");
 #endif
+	}
+	else {
 		f = fopen_wrap(overlayname,"wb+");
+	}
+
 	if (!f) {
 		Sync_leading_dirs(dosname);
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,name.c_str()));
@@ -3117,13 +3134,16 @@ void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
 			CROSS_FILENAME(overlayname);
 		}
 		host_name = CodePageGuestToHost(overlayname);
-		FILE* f;
+		if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-		if (host_name!=NULL)
 			f = _wfopen(host_name,_HT("wb+"));
-		else
+#else
+			f = fopen_wrap(host_name,"wb+");
 #endif
+		}
+		else {
 			f = fopen_wrap(overlayname,"wb+");
+		}
 	}
 	if (!f) E_Exit("Failed creation of %s",overlayname);
 	char buf[5] = {'e','m','p','t','y'};
@@ -3450,6 +3470,7 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 #endif
 	(host_namenew, CodePageGuestToHost(overlaynamenew));
 	bool success=false;
+	(void)success;//unused
 	if (ht_stat(host_nameold,&temp_stat)) {
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
 		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
@@ -3505,12 +3526,16 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 		dirCache.ExpandName(newold);
 		const host_cnv_char_t* host_name = CodePageGuestToHost(newold);
 		FILE* o;
+		if (host_name!=NULL) {
 #ifdef host_cnv_use_wchar
-		if (host_name!=NULL)
 			o = _wfopen(host_name,_HT("rb"));
-		else
+#else
+			o = fopen_wrap(host_name,"rb");
 #endif
+		}
+		else {
 			o = fopen_wrap(newold,"rb");
+		}
 		if (!o) return false;
 		FILE* n = create_file_in_overlay(newname,"wb+");
 		if (!n) {fclose(o); return false;}
