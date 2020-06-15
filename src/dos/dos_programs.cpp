@@ -4516,9 +4516,10 @@ private:
         Bit8u ptype = 0;    // Partition Type
         Bit8u heads = 0;
         Bit8u sectors = 0;
-        Bit16u pe1_size = host_readd(&buf[0x1fa]);
+        Bitu pe1_size = host_readd(&buf[0x1ca]);
         (void)ptype;//unused
-        if (pe1_size != 0) {                     // DOS 2.0-3.21 partition table
+        if ((Bit16u)host_readd(&buf[0x1fa]) != 0) {		// DOS 2.0-3.21 partition table
+			pe1_size = host_readd(&buf[0x1fa]);
             starthead = buf[0x1ef];
             startsect = (buf[0x1f0] & 0x3fu) - 1u;
             startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
@@ -4526,17 +4527,14 @@ private:
             ptype = buf[0x1f2];
             heads = buf[0x1f3] + 1u;
             sectors = buf[0x1f4] & 0x3fu;
-        } else {                                // DOS 3.3+ partition table
-            pe1_size = host_readd(&buf[0x1ca]);
-            if (pe1_size != 0) {
-                starthead = buf[0x1bf];
-                startsect = (buf[0x1c0] & 0x3fu) - 1u;
-                startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
-                endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-                ptype = buf[0x1c2];
-                heads = buf[0x1c3] + 1u;
-                sectors = buf[0x1c4] & 0x3fu;
-            }
+        } else if (pe1_size != 0) {						// DOS 3.3+ partition table
+			starthead = buf[0x1bf];
+			startsect = (buf[0x1c0] & 0x3fu) - 1u;
+			startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+			endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
+			ptype = buf[0x1c2];
+			heads = buf[0x1c3] + 1u;
+			sectors = buf[0x1c4] & 0x3fu;
         }
         if (pe1_size != 0) {
             Bit32u part_start = startsect + sectors * starthead +
