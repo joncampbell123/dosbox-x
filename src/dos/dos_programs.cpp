@@ -4434,121 +4434,69 @@ private:
             return false;
         }
         // check MBR partition entry 1
-        // This is used for plain MFM sector format as created by IMGMAKE
-        Bit8u starthead = 0;
-        Bit8u startsect = 0;
-        Bit16u startcyl = 0;
-        Bit16u endcyl = 0;
-        Bit8u ptype = 0;
-        Bit8u heads = 0;
-        Bit8u sectors = 0;
-        Bit16u pe1_size = host_readd(&buf[0x1fa]);
-        if (pe1_size != 0) { // DOS 2.0-3.21 partition table
-            starthead = buf[0x1ef];
-            startsect = (buf[0x1f0] & 0x3fu) - 1u;
-            startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
-            endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
-            ptype = buf[0x1f2];
-            heads = buf[0x1f3] + 1u;
-            sectors = buf[0x1f4] & 0x3fu;
-        } else {             // DOS 3.3+ partition table
-            pe1_size = host_readd(&buf[0x1ca]);
-            starthead = buf[0x1bf];
-            startsect = (buf[0x1c0] & 0x3fu) - 1u;
-            startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
-            endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-            ptype = buf[0x1c2];
-            heads = buf[0x1c3] + 1u;
-            sectors = buf[0x1c4] & 0x3fu;
-        }
-        if (pe1_size != 0) {
-            Bitu part_start = startsect + sectors * starthead +
-                startcyl * sectors*heads;
-            Bitu part_end = heads * sectors*endcyl;
-            Bits part_len = (Bits)(part_end - part_start);
-            // partition start/end sanity check
-            // partition length should not exceed file length
-            // real partition size can be a few cylinders less than pe1_size
-            // if more than 1023 cylinders see if first partition fits
-            // into 1023, else bail.
-            if ((part_len<0) || ((Bitu)part_len > pe1_size) || (pe1_size > fcsize) ||
-                ((pe1_size - (Bitu)part_len) / (sectors*heads)>2u) ||
-                ((pe1_size / (heads*sectors))>1023u)) {
-                //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
-                //LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
-                //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
-            }
-            else if (!yet_detected) {
-                sizes[0] = 512; sizes[1] = sectors;
-                sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
-                if (sizes[3]>1023) sizes[3] = 1023;
-                yet_detected = true;
-            }
-        }
+        if (!yet_detected)
+            yet_detected = DetectMFMsectorPartition(buf, fcsize, sizes);
+
+        // Try bximage disk geometry
+        // bximage flat images should already be detected by
+        // DetectMFMSectorPartition(), not sure what this adds...
         if (!yet_detected) {
-            // Try bximage disk geometry
-            Bitu cylinders = (Bitu)(fcsize / (16 * 63));
-            // Int13 only supports up to 1023 cylinders
-            // For mounting unknown images we could go up with the heads to 255
-            if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
-                yet_detected = true;
-                sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
-            }
-		}
+            yet_detected = DetectBximagePartition(fcsize, sizes);
+        }
+        
+        Bit8u ptype = buf[0x1c2]; // Location of DOS 3.3+ partition type
+	bool assume_lba = false;
 
-		bool assume_lba = false;
+	/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
+	 * then assume LBA and make up a geometry */
+	if (!yet_detected && (ptype == 0x0C/*FAT32+LBA*/ || ptype == 0x0E/*FAT16+LBA*/)) {
+		yet_detected = 1;
+		assume_lba = true;
+		LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
+	}
 
-		/* If the first partition is a Windows 95 FAT32 (LBA) type partition, and we failed to detect,
-		 * then assume LBA and make up a geometry */
-		if (!yet_detected && (ptype == 0x0C/*FAT32+LBA*/ || ptype == 0x0E/*FAT16+LBA*/)) {
+	/* If the MBR has only a partition table, but the part that normally contains executable
+	 * code is all zeros. To avoid false negatives, check only the first 0x20 bytes since
+	 * at boot time executable code must reside there to do something, and many of these
+	 * disk images while they ARE mostly zeros, do have some extra nonzero bytes immediately
+	 * before the partition table at 0x1BE.
+	 *
+	 * Modern FAT32 generator tools and older digital cameras will format FAT32 like this.
+	 * These tools are unlikely to support non-LBA disks.
+	 *
+	 * To avoid false positives, the partition type has to be something related to FAT */
+	if (!yet_detected && (ptype == 0x01 || ptype == 0x04 || ptype == 0x06 || ptype == 0x0B || ptype == 0x0C || ptype == 0x0E)) {
+		/* buf[] still contains MBR */
+		unsigned int i=0;
+		while (i < 0x20 && buf[i] == 0) i++;
+		if (i == 0x20) {
 			yet_detected = 1;
 			assume_lba = true;
-			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT with LBA)");
+			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT-related) and lack of executable code in the MBR");
 		}
+	}
 
-		/* If the MBR has only a partition table, but the part that normally contains executable
-		 * code is all zeros. To avoid false negatives, check only the first 0x20 bytes since
-		 * at boot time executable code must reside there to do something, and many of these
-		 * disk images while they ARE mostly zeros, do have some extra nonzero bytes immediately
-		 * before the partition table at 0x1BE.
-		 *
-		 * Modern FAT32 generator tools and older digital cameras will format FAT32 like this.
-		 * These tools are unlikely to support non-LBA disks.
-		 *
-		 * To avoid false positives, the partition type has to be something related to FAT */
-		if (!yet_detected && (ptype == 0x01 || ptype == 0x04 || ptype == 0x06 || ptype == 0x0B || ptype == 0x0C || ptype == 0x0E)) {
-			/* buf[] still contains MBR */
-			unsigned int i=0;
-			while (i < 0x20 && buf[i] == 0) i++;
-			if (i == 0x20) {
-				yet_detected = 1;
-				assume_lba = true;
-				LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on first partition type (FAT-related) and lack of executable code in the MBR");
-			}
-		}
+	/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
+	 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
+	 * backward compatibility anyway. fcsize is in 512-byte sectors. */
+	if (!yet_detected && fcsize >= ((4ull*1024ull*1024ull*1024ull)/512ull)) {
+		yet_detected = 1;
+		assume_lba = true;
+		LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on size");
+	}
 
-		/* If we failed to detect, but the disk image is 4GB or larger, make up a geometry because
-		 * IDE drives by that point were pure LBA anyway and supported C/H/S for the sake of
-		 * backward compatibility anyway. fcsize is in 512-byte sectors. */
-		if (!yet_detected && fcsize >= ((4ull*1024ull*1024ull*1024ull)/512ull)) {
-			yet_detected = 1;
-			assume_lba = true;
-			LOG_MSG("Failed to autodetect geometry, assuming LBA approximation based on size");
-		}
-
-		if (yet_detected && assume_lba) {
-			sizes[0] = 512;
-			sizes[1] = 63;
-			sizes[2] = 255;
-			{
-				const Bitu d = sizes[1]*sizes[2];
-				sizes[3] = (fcsize + d - 1) / d; /* round up */
-			}
-		}
-
-		if (yet_detected)
+	if (yet_detected && assume_lba) {
+		sizes[0] = 512;
+		sizes[1] = 63;
+		sizes[2] = 255;
 		{
-			//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
+			const Bitu d = sizes[1]*sizes[2];
+			sizes[3] = (fcsize + d - 1) / d; /* round up */
+		}
+	}
+
+	if (yet_detected) {
+            //"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
             //sizes[0],sizes[1],sizes[2],sizes[3]);
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
             return true;
@@ -4559,6 +4507,74 @@ private:
         }
     }
 
+    bool DetectMFMsectorPartition(Bit8u buf[], Bit32u fcsize, Bitu sizes[]) {
+        // This is used for plain MFM sector format as created by IMGMAKE
+        Bit8u starthead = 0;
+        Bit8u startsect = 0;
+        Bit16u startcyl = 0;
+        Bit16u endcyl = 0;
+        Bit8u ptype = 0;    // Partition Type
+        Bit8u heads = 0;
+        Bit8u sectors = 0;
+        Bit16u pe1_size = host_readd(&buf[0x1fa]);
+        if (pe1_size != 0) {                     // DOS 2.0-3.21 partition table
+            starthead = buf[0x1ef];
+            startsect = (buf[0x1f0] & 0x3fu) - 1u;
+            startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
+            endcyl = (unsigned char)buf[0x1f5] | (unsigned int)((buf[0x1f4] & 0xc0) << 2u);
+            ptype = buf[0x1f2];
+            heads = buf[0x1f3] + 1u;
+            sectors = buf[0x1f4] & 0x3fu;
+        } else {                                // DOS 3.3+ partition table
+            pe1_size = host_readd(&buf[0x1ca]);
+            if (pe1_size != 0) {
+                starthead = buf[0x1bf];
+                startsect = (buf[0x1c0] & 0x3fu) - 1u;
+                startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+                endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
+                ptype = buf[0x1c2];
+                heads = buf[0x1c3] + 1u;
+                sectors = buf[0x1c4] & 0x3fu;
+            }
+        }
+        if (pe1_size != 0) {
+            Bit32u part_start = startsect + sectors * starthead +
+                startcyl * sectors * heads;
+            Bit32u part_end = heads * sectors * endcyl;
+            Bit32u part_len = part_end - part_start;
+            // partition start/end sanity check
+            // partition length should not exceed file length
+            // real partition size can be a few cylinders less than pe1_size
+            // if more than 1023 cylinders see if first partition fits
+            // into 1023, else bail.
+            if ((part_len<0) || (part_len > pe1_size) || (pe1_size > fcsize) ||
+                ((pe1_size - part_len) / (sectors*heads)>2u) ||
+                ((pe1_size / (heads*sectors))>1023u)) {
+                //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
+                //LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
+                //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
+            } else {
+                sizes[0] = 512; sizes[1] = sectors;
+                sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
+                if (sizes[3]>1023) sizes[3] = 1023;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool DetectBximagePartition(Bit32u fcsize, Bitu sizes[]) {
+        // Try bximage disk geometry
+        Bit32u cylinders = fcsize / (16 * 63);
+        // Int13 only supports up to 1023 cylinders
+        // For mounting unknown images we could go up with the heads to 255
+        if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
+            sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
+            return true;
+        }
+        return false;
+    }
+    
     bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
         //mount cdrom
         if (Drives[drive - 'A']) {
@@ -5685,7 +5701,9 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or harddisk images.\n"
         "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
+#ifdef WIN32
         "  [-source source] [-r retries] [-bat]\n"
+#endif
         "  file: The image file that is to be created - !path on the host!\n"
         "  -t: Type of image.\n"
         "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
