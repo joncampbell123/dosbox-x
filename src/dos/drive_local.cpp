@@ -3357,9 +3357,10 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 	//More advanced version. keep track of the file being renamed in order to detect that the file is being renamed back. 
 	
 	char tmp[CROSS_LEN];
+	host_cnv_char_t host_nameold[CROSS_LEN], host_namenew[CROSS_LEN];
 	Bit16u attr = 0;
 	if (!GetFileAttr(oldname,&attr)) E_Exit("rename, but source doesn't exist, should not happen %s",oldname);
-	struct stat tempstat;
+	ht_stat_t temp_stat;
 	if (attr&DOS_ATTR_DIRECTORY) {
 		//See if the directory exists only in the overlay, then it should be possible.
 #if OVERLAY_DIR
@@ -3373,16 +3374,35 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 		strcpy(overlaynameold,overlaydir);
 		strcat(overlaynameold,oldname);
 		CROSS_FILENAME(overlaynameold);
+#ifdef host_cnv_use_wchar
+		wcscpy
+#else
+		strcpy
+#endif
+		(host_nameold, CodePageGuestToHost(overlaynameold));
 
 		char overlaynamenew[CROSS_LEN];
 		strcpy(overlaynamenew,overlaydir);
 		strcat(overlaynamenew,newname);
 		CROSS_FILENAME(overlaynamenew);
-		if (stat(overlaynameold,&tempstat)) {
+#ifdef host_cnv_use_wchar
+		wcscpy
+#else
+		strcpy
+#endif
+		(host_namenew, CodePageGuestToHost(overlaynamenew));
+
+		if (ht_stat(host_nameold,&temp_stat)) {
 			char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
 			if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 				temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
 				strcpy(overlaynameold,GetCrossedName(overlaydir,temp_name));
+#ifdef host_cnv_use_wchar
+				wcscpy
+#else
+				strcpy
+#endif
+				(host_nameold, CodePageGuestToHost(overlaynameold));
 			}
 			strcpy(tmp,newname);
 			char *p=strrchr(tmp,'\\'), ndir[CROSS_LEN];
@@ -3394,10 +3414,22 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 					strcat(ndir,"\\");
 					strcat(ndir,p+1);
 					strcpy(overlaynamenew,GetCrossedName(overlaydir,ndir));
+#ifdef host_cnv_use_wchar
+					wcscpy
+#else
+					strcpy
+#endif
+					(host_namenew, CodePageGuestToHost(overlaynamenew));
 				}
 			}
 		}
-		if (rename(overlaynameold,overlaynamenew)==0) {
+		int temp=-1;
+#ifdef host_cnv_use_wchar
+		temp = _wrename(host_nameold,host_namenew);
+#else
+		temp = rename(host_nameold,host_namenew);
+#endif
+		if (temp==0) {
 			dirCache.EmptyCache();
 			update_cache(true);
 			return true;
@@ -3413,16 +3445,35 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 	strcpy(overlaynameold,overlaydir);
 	strcat(overlaynameold,oldname);
 	CROSS_FILENAME(overlaynameold);
+#ifdef host_cnv_use_wchar
+	wcscpy
+#else
+	strcpy
+#endif
+	(host_nameold, CodePageGuestToHost(overlaynameold));
 
 	char overlaynamenew[CROSS_LEN];
 	strcpy(overlaynamenew,overlaydir);
 	strcat(overlaynamenew,newname);
 	CROSS_FILENAME(overlaynamenew);
-	if (stat(overlaynameold,&tempstat)) {
+#ifdef host_cnv_use_wchar
+	wcscpy
+#else
+	strcpy
+#endif
+	(host_namenew, CodePageGuestToHost(overlaynamenew));
+	bool success=false;
+	if (ht_stat(host_nameold,&temp_stat)) {
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
 		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {
 			temp_name+=strlen(basedir)+(*(temp_name+strlen(basedir))=='\\'?1:0);
 			strcpy(overlaynameold,GetCrossedName(overlaydir,temp_name));
+#ifdef host_cnv_use_wchar
+			wcscpy
+#else
+			strcpy
+#endif
+			(host_nameold, CodePageGuestToHost(overlaynameold));
 		}
 		strcpy(tmp,newname);
 		char *p=strrchr(tmp,'\\'), ndir[CROSS_LEN];
@@ -3434,6 +3485,12 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 				strcat(ndir,"\\");
 				strcat(ndir,p+1);
 				strcpy(overlaynamenew,GetCrossedName(overlaydir,ndir));
+#ifdef host_cnv_use_wchar
+				wcscpy
+#else
+				strcpy
+#endif
+				(host_namenew, CodePageGuestToHost(overlaynamenew));
 			}
 		}
 	}
@@ -3442,9 +3499,13 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 
 	//Check if overlay source file exists
 	int temp = -1; 
-	if (stat(overlaynameold,&tempstat) == 0) {
+	if (ht_stat(host_nameold,&temp_stat) == 0) {
 		//Simple rename
-		temp = rename(overlaynameold,overlaynamenew);
+#ifdef host_cnv_use_wchar
+		temp = _wrename(host_nameold,host_namenew);
+#else
+		temp = rename(host_nameold,host_namenew);
+#endif
 		//TODO CHECK if base has a file with same oldname!!!!! if it does mark it as deleted!!
 		if (localDrive::FileExists(oldname)) add_deleted_file(oldname,true);
 	} else {
@@ -3455,7 +3516,14 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 		strcat(newold,oldname);
 		CROSS_FILENAME(newold);
 		dirCache.ExpandName(newold);
-		FILE* o = fopen_wrap(newold,"rb");
+		const host_cnv_char_t* host_name = CodePageGuestToHost(newold);
+		FILE* o;
+#ifdef host_cnv_use_wchar
+		if (host_name!=NULL)
+			o = _wfopen(host_name,_HT("rb"));
+		else
+#endif
+			o = fopen_wrap(newold,"rb");
 		if (!o) return false;
 		FILE* n = create_file_in_overlay(newname,"wb+");
 		if (!n) {fclose(o); return false;}
