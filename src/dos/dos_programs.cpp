@@ -4509,16 +4509,24 @@ private:
 
     bool DetectMFMsectorPartition(Bit8u buf[], Bit32u fcsize, Bitu sizes[]) {
         // This is used for plain MFM sector format as created by IMGMAKE
-        Bit8u starthead = 0;
-        Bit8u startsect = 0;
-        Bit16u startcyl = 0;
-        Bit16u endcyl = 0;
-        Bit8u ptype = 0;    // Partition Type
-        Bit8u heads = 0;
-        Bit8u sectors = 0;
-        Bit16u pe1_size = host_readd(&buf[0x1fa]);
-        (void)ptype;//unused
-        if (pe1_size != 0) {                     // DOS 2.0-3.21 partition table
+        // It tries to find the first partition. Addressing is in CHS format.
+        /* Offset   | Length    | Description
+         * +0       | 1 byte    | 80 hex = active, 00 = inactive
+         * +1       | 3 bytes   | CHS of first sector in partition
+         * +4       | 1 byte    | partition type
+         * +5       | 3 bytes   | CHS of last sector in partition
+         * +8       | 4 bytes   | LBA of first sector in partition
+         * +C       | 4 bytes   | Number of sectors in partition. 0 may mean, use LBA
+         */
+        Bit8u starthead = 0; // start head of partition
+        Bit8u startsect = 0; // start sector of partition
+        Bit16u startcyl = 0; // start cylinder of partition
+        Bit8u ptype = 0;     // Partition Type
+        Bit16u endcyl = 0;   // end cylinder of partition
+        Bit8u heads = 0;     // heads in partition
+        Bit8u sectors = 0;   // sectors per track in partition
+        Bit32u pe1_size = host_readd(&buf[0x1fa]); // number of sectors in partition
+        if (pe1_size != 0) {     // DOS 2.0-3.21 partition table, starting at 0x1EE
             starthead = buf[0x1ef];
             startsect = (buf[0x1f0] & 0x3fu) - 1u;
             startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
@@ -4526,7 +4534,7 @@ private:
             ptype = buf[0x1f2];
             heads = buf[0x1f3] + 1u;
             sectors = buf[0x1f4] & 0x3fu;
-        } else {                                // DOS 3.3+ partition table
+        } else {                 // DOS 3.3+ partition table, starting at 0x1BE
             pe1_size = host_readd(&buf[0x1ca]);
             if (pe1_size != 0) {
                 starthead = buf[0x1bf];
