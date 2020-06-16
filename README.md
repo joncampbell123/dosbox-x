@@ -191,6 +191,7 @@ design as implemented now cannot accomodate.
 * Pentium II or higher CPU level emulation.
 
   DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
+  MS-DOS and compatibles also work best with these CPUs.
 
   If Pentium II or higher emulation is desired, consider using Bochs
   or QEMU instead. DOSBox-X may eventually develop Pentium II emulation,
@@ -200,10 +201,8 @@ design as implemented now cannot accomodate.
 
   The official cutoff for DOSBox-X is 2001, when updated "PC 2001"
   specifications from Microsoft mandated the removal of the ISA slots
-  from motherboards.
-
-  The focus is on implementing hardware emulation for hardware made
-  before that point.
+  from motherboards. The focus is on implementing hardware emulation
+  for hardware made before that point.
 
   Contributers are free to focus on emulating hardware within the
   1980-2001 timeframe of their choice.
@@ -216,7 +215,7 @@ design as implemented now cannot accomodate.
   versions are not a priority and will not be considered at this time.
 
   If you need to run Windows XP and later, please consider using
-  QEMU, Bochs, or VirtualBox.
+  QEMU, Bochs, VirtualBox, or VMware.
 
 * Any MS-DOS system other than IBM PC/XT/AT, Tandy, PCjr, and NEC PC-98.
 
@@ -224,6 +223,10 @@ design as implemented now cannot accomodate.
   in DOSBox-X. This restriction prevents stretching of the codebase
   to an unmanageable level and helps keep the code base organized.
 
+  It would be easier on myself and the open source community if
+  developers could focus on emulating their platform of interest in
+  parallel instead of putting everything into one project that,
+  most likely, will do a worse job overall emulating all platforms.
   However, if adding emulation of the system requires only small
   minimal changes, then the new system in question may be considered.
 
@@ -234,11 +237,6 @@ design as implemented now cannot accomodate.
   system of interest, and if desired, the ability to strip away
   conflicting IBM PC/XT/AT emulation and unnecessary code to keep
   your branch's code manageable and maintainable.
-
-  It would be easier on myself and the open source community if
-  developers could focus on emulating their platform of interest in
-  parallel instead of putting everything into one project that,
-  most likely, will do a worse job overall emulating all platforms.
 
   If you are starting a fork, feel free to let me know where your
   fork is and what system it is emulating, so I can list it in
@@ -277,7 +275,7 @@ design as implemented now cannot accomodate.
   the QBasic/TurboBasic runtime to use software emulation instead.
 
 
-Origin and History of the DOSBox-X project
+Origin and history of the DOSBox-X project
 ------------------------------------------
 
 DOSBox-X started as a fork of the original DOSBox project sometime
