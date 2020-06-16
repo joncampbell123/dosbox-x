@@ -7,15 +7,17 @@ DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbo
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
-DOSBox-X is open-source and totally free of charge to use and distribute. It is released under the GNU General Public License, version 2.
+DOSBox-X is open-source and totally free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
-(Please always use the latest version of DOSBox-X from the [Releases page](https://github.com/joncampbell123/dosbox-x/releases))
+(Please always use the latest version of DOSBox-X from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page)
 
 This project has a Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), please read it.
 
 Brought to you by: joncampbell123 (Jonathan Campbell)
+
+New information will be added to this README over time.
 
 
 Notable features in DOSBox-X
@@ -54,8 +56,8 @@ DOSBox-X also has several important platform-dependent features, such as support
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
 
-Open source development
------------------------
+Contributing to DOSBox-X
+------------------------
 
 Ideas and patches are always welcome, though not necessarily accepted.
 
@@ -84,7 +86,7 @@ If you want to tweak or write some code and you don't know what to work
 on, feel free to visit the issue tracker to get some ideas.
 
 For more information about the source code, please take a look at the
-[source code description](README.source-code-description) page.
+[DOSBox-X source code description](README.source-code-description) page.
 
 Information about the debugger is also available in the
 [DOSBox-X Debugger](README.debugger) page.
@@ -105,9 +107,11 @@ overall.
 There are also patches in patch-integration/ for possible feature
 integations in the future.
 
+See also [General TODO.txt](PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
-Comments on DOSBox-X development
---------------------------------
+
+DOSBox-X development platforms
+------------------------------
 
 The four major operating systems and platforms of DOSBox-X are (in this order):
 
@@ -121,10 +125,10 @@ The four major operating systems and platforms of DOSBox-X are (in this order):
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
-A preliminary CMake build system is available, see README.cmake.md for details.
+A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
 
 Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 or Visual Studio 2017 and the DirectX 2010 SDK.
+of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 
 Mac OS X builds are expected to compile on the terminal using GNU autotools
 and the LLVM/Clang compiler provided by XCode.
@@ -132,14 +136,12 @@ and the LLVM/Clang compiler provided by XCode.
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
 
-
 Note that DOSBox-X is written to compile against the in-tree copy of the
 SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
 by your Linux distribution.
 
 For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
 used.
-
 
 The in-tree SDL 1.x library has been HEAVILY MODIFIED from the original
 SDL 1.x source code and is somewhat incompatible with the stock library.
@@ -280,23 +282,8 @@ design as implemented now cannot accomodate.
     - FM Towns emulation (machine=fm_towns)
 
 
-Known DOSBox-X forks
---------------------
-
-DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
-Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
-These significant changes require dropping some useful features (including the menus) but are required for performance.
-
-url: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
-
-
-Origins, and crediting of source code
--------------------------------------
-
-by Jonathan Campbell.
-
-As the developer of DOSBox-X, I cannot legitimately claim to have
-written all of the code in this project.
+Origin and History of the DOSBox-X project
+------------------------------------------
 
 DOSBox-X started as a fork of the original DOSBox project sometime
 mid 2011. It was started out of a desire to improve the emulator
@@ -320,90 +307,37 @@ to run their favorite DOS game. I have also been cleaning up
 and organizing the code to improve stability and portability
 where possible.
 
-It's more accurate to say then, that I wrote *some* of the code,
-that I rewrote other parts of the code, and the rest is the DOSBox
-SVN code as it existed since mid 2011.
-
-The purpose of this section, is to try and build a comprehensive
-list of source code in this repository that was borrowed from
-other projects.
-
-Some of the code is DOSBox SVN code in which some of the SVN
-commits made since 2011 were incorporated into DOSBox-X.
-
 The original DOSBox project was not written by one programmer. It
 has been under development since late 2000 with patches, fixes,
 and improvements from members all over the Vogons forums. Despite
 not having a major official release since DOSBox 0.74 over 10
-years ago, the project is still in active development today. Some
-of the changes themselves incorporated code from other projects,
-which are also credited in the list below.
+years ago, the project is still in active development today.
+Meanwhile, some of the changes themselves incorporated code from
+other projects.
 
-Some of the code in this source tree also came from another
+Some features and improvments in DOSBox-X also came from another
 branch of DOSBox known as DOSBox Daum (http://ykhwong.x-y.net)
-which itself incorporated code from the original DOSBox project,
-DOSBox-X, and many experimental patches. Although the Daum
-branch seems to be dead, the code borrowed from it still
+which itself incorporated features from the original DOSBox
+project, DOSBox-X, and many experimental patches. Although the
+Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X.
 
-Later on, DOSBox-X also incorporates code from other projects such
-as DOSBox ECE, DOSBox-staging and vDosPlus for more features, with
-major improvements from contributors such as Wengier and rderooy.
+Later on, DOSBox-X incorporates features and other improvements
+also from other projects such as DOSBox ECE, DOSBox-staging and
+vDosPlus, with major improvements and works from its contributors
+such as Wengier and rderooy.
 
-This is my attempt to properly credit the code and it's
-sources below. Feel free to revise and correct this list
-if there are errors.
+See also the [DOSBox-X source code description](README.source-code-description) page for crediting of the source code.
 
-NE2000 network card emulation (Bochs; LGPLv2+)
-  src/hardware/ne2000.cpp
 
-MT32 synthesizer (MUNT; LGPLv2.1+)
-  src/mt32/*.cpp
-  src/mt32/*.h
+Known DOSBox-X forks
+--------------------
 
-AVI writer with OpenDML support (written by myself; GPLv2+)
-  src/aviwriter/*.cpp
-  src/aviwriter/*.h
+DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
+Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
+These significant changes require dropping some useful features (including the menus) but are required for performance.
 
-Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+)
-  src/libs/gui_tk/*.cpp
-  src/libs/gui_tk/*.h
-
-Porttalk library, to read/write I/O ports directly (Unknown source)
-  src/libs/porttalk/*.cpp
-  src/libs/porttalk/*.h
-
-FreeDOS utilities as binary blobs (FreeDOS; no license)
-  src/builtin/*.cpp
-
-NukedOPL OPL3 emulation (Alexey Khokholov; GPLv2+)
-  src/hardware/nukedopl.cpp
-
-OPL emulation based on Ken Silverman OPL2 emulation (LGPLv2.1+)
-  src/hardware/opl.cpp
-
-MOS6581 SID emulation (GPLv2+)
-  src/hardware/reSID/*.cpp
-  src/hardware/reSID/*.h
-
-SN76496 emulation (MAME project; GPLv2+)
-  src/hardware/sn76496.h
-  src/hardware/tandy_sound.cpp
-
-PC-98 video rendering and I/O handling code (written by myself; GPLv2+)
-  src/hardware/vga_pc98*.cpp
-
-3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause)
-  src/hardware/voodoo_emu.cpp
-
-PC-98 FM board emulation (Neko Project II; BSD 3-clause)
-  src/hardware/snd_pc98/*
-
-QCOW image support (Michael Greger; GPLv2+)
-  src/ints/qcow2_disk.cpp
-
-HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+)
-  src/gui/render_templates_hq2x.h
+url: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
 Foreign keyboard layouts
@@ -414,4 +348,3 @@ with only a few additional layouts natively supported.
 
 To add additional layouts, see file "README.keyboard-layout-handling"
 on how to do so as a developer.
-
