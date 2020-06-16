@@ -489,7 +489,9 @@ const char *drive_opts[][2] = {
     { "unmount",                "Unmount" },
     { "rescan",                 "Rescan" },
     { "boot",                   "Boot from drive" },
+#if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
+#endif
     { NULL, NULL }
 };
 
@@ -3524,7 +3526,7 @@ static void GUI_StartUp() {
   #ifdef WIN32
     /* NTS: This should not print any warning whatsoever because Windows builds by default will use
      *      the Windows API to disable DPI scaling of the main window, unless the user modifies the
-     *      setting through dosbox.conf or the command line. */
+     *      setting through dosbox-x.conf or the command line. */
     /* NTS: Mac OS X has high DPI scaling too, though Apple is wise to enable it by default only for
      *      Macbooks with "Retina" displays. On Mac OS X, unless otherwise wanted by the user, it is
      *      wise to let Mac OS X scale up the DOSBox-X window by 2x so that the DOS prompt is not
@@ -6879,7 +6881,7 @@ void AUTOEXEC_Init();
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
-    // if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
+    // if the user says not to from the command line, or disables it from dosbox-x.conf, then don't enable DPI awareness.
     if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
         return;
 
