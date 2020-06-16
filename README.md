@@ -59,17 +59,19 @@ DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit bu
 DOSBox-X's supported platforms
 ------------------------------
 
-DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including at least:
+DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including:
 
-1. Linux (with X11), 32-bit and 64-bit.
+1. Windows XP or higher, 32-bit and 64-bit
 
-2. Windows XP or later, 32-bit and 64-bit.
+2. Linux (with X11), 32-bit and 64-bit
 
-3. Mac OS X Sierra 10.12 or higher 64-bit.
+3. Mac OS X Sierra 10.12 or higher 64-bit
 
-The full source code is provided, which may be compiled to run on other operating systems too.
+4. MS-DOS (or compatible) with HX-DOS Extender
 
-Note that the Visual Studio builds only support Windows Vista and higher versions. For Windows XP, please use the MinGW builds instead. There is also a special HX-DOS build for running DOSBox-X in a real DOS system with the freely-available HX-DOS Extender.
+The full source code is officially provided with each release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
+
+Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available HX-DOS Extender, please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual studio or MinGW builds in the Windows platform instead.
 
 
 Contributing to DOSBox-X
