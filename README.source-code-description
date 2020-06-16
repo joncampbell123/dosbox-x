@@ -1,3 +1,9 @@
+This page tries to explain the source code of DOSBox-X, including some technical details and compiling information.
+
+Such information is primarily targeted at developers and anyone who wants to contribute to the DOSBox-X project.
+
+There is also a section for crediting the source code.
+
 General description of source code
 ----------------------------------
 
@@ -268,62 +274,6 @@ src/hardware/pc98_fm.cpp    PC-98 FM board emulation (ties DOSBox-X to emulation
 
 src/hardware/snd_pc98/*     PC-98 FM board emulation (code borrowed from
                             Neko Project II)
-
-Crediting of source code
-------------------------
-by Jonathan Campbell.
-
-As the developer of DOSBox-X, I cannot legitimately claim to have
-written all of the code in this project.
-
-It's more accurate to say then, that I wrote some of the code,
-that I rewrote other parts of the code, based on the DOSBox SVN
-code as it existed since mid 2011.
-
-The purpose of this section, is to try and build a comprehensive
-list of source code in this repository that was borrowed from
-other projects.
-
-Some of the code is DOSBox SVN code in which some of the SVN
-commits made since 2011 were incorporated into DOSBox-X.
-
-Some of the code in this source tree also came from other forks of
-DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging as well as
-vDosPlus, with major works from contributors like Wengier and rderooy.
-
-This is my attempt to properly credit the code and it's sources below.
-Feel free to revise and correct this list if there are errors.
-
-NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
-
-MT32 synthesizer (MUNT; LGPLv2.1+) src/mt32/.cpp src/mt32/.h
-
-AVI writer with OpenDML support (written by myself; GPLv2+) src/aviwriter/.cpp src/aviwriter/.h
-
-Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
-
-Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
-
-FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
-
-NukedOPL OPL3 emulation (Alexey Khokholov; GPLv2+) src/hardware/nukedopl.cpp
-
-OPL emulation based on Ken Silverman OPL2 emulation (LGPLv2.1+) src/hardware/opl.cpp
-
-MOS6581 SID emulation (GPLv2+) src/hardware/reSID/.cpp src/hardware/reSID/.h
-
-SN76496 emulation (MAME project; GPLv2+) src/hardware/sn76496.h src/hardware/tandy_sound.cpp
-
-PC-98 video rendering and I/O handling code (written by myself; GPLv2+) src/hardware/vga_pc98*.cpp
-
-3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause) src/hardware/voodoo_emu.cpp
-
-PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
-
-QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
-
-HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templates_hq2x.h
-
 
 Tips for hacking and modifying the source code
 ----------------------------------------------
@@ -1355,3 +1305,60 @@ host byte order.
 For more information, see vga/hardware/vga_memory.cpp
 and vga/hardware/vga.cpp where these bitmasks
 are computed and used.
+
+Crediting of source code
+------------------------
+by Jonathan Campbell.
+
+As the developer of DOSBox-X, I cannot legitimately claim to have
+written all of the code in this project.
+
+It's more accurate to say then, that I wrote some of the code,
+that I rewrote other parts of the code, based on the DOSBox SVN
+code as it existed since mid 2011.
+
+The purpose of this section, is to try and build a comprehensive
+list of source code in this repository that was borrowed from
+other projects.
+
+Some of the code is DOSBox SVN code in which some of the SVN
+commits made since 2011 were incorporated into DOSBox-X.
+
+Some of the code in this source tree also came from other forks of
+DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging as well as
+vDosPlus, with major works from contributors like Wengier and rderooy.
+
+This is my attempt to properly credit the code and it's sources below.
+It is not yet complete, and feel free to revise and correct this list
+if there are errors.
+
+NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
+
+MT32 synthesizer (MUNT; LGPLv2.1+) src/mt32/.cpp src/mt32/.h
+
+AVI writer with OpenDML support (written by myself; GPLv2+) src/aviwriter/.cpp src/aviwriter/.h
+
+Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
+
+Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
+
+FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
+
+NukedOPL OPL3 emulation (Alexey Khokholov; GPLv2+) src/hardware/nukedopl.cpp
+
+OPL emulation based on Ken Silverman OPL2 emulation (LGPLv2.1+) src/hardware/opl.cpp
+
+MOS6581 SID emulation (GPLv2+) src/hardware/reSID/.cpp src/hardware/reSID/.h
+
+SN76496 emulation (MAME project; GPLv2+) src/hardware/sn76496.h src/hardware/tandy_sound.cpp
+
+PC-98 video rendering and I/O handling code (written by myself; GPLv2+) src/hardware/vga_pc98*.cpp
+
+3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause) src/hardware/voodoo_emu.cpp
+
+PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
+
+QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
+
+HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templates_hq2x.h
+
