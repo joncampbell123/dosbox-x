@@ -169,6 +169,7 @@ void osx_init_touchbar(void);
 #endif
 
 void ShutDownMemHandles(Section * sec);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -255,7 +256,7 @@ bool save_slot_9_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #if defined(WIN32)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive);
+void MenuBrowseImageFile(char drive, bool boot);
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -364,7 +365,28 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A');
+    MenuBrowseImageFile(drive+'A', false);
+
+    return true;
+}
+
+bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive != 0 && drive != 2 && drive != 3) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A', true);
 
     return true;
 }
@@ -450,6 +472,9 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_unmount_menu_callback,
     drive_rescan_menu_callback,
     drive_boot_menu_callback,
+#if defined(WIN32)
+    drive_bootimg_menu_callback,
+#endif
     NULL
 };
 
@@ -463,7 +488,10 @@ const char *drive_opts[][2] = {
 #endif
     { "unmount",                "Unmount" },
     { "rescan",                 "Rescan" },
-	{ "boot",                   "Boot from drive" },
+    { "boot",                   "Boot from drive" },
+#if defined(WIN32)
+    { "bootimg",                "Boot from disk image" },
+#endif
     { NULL, NULL }
 };
 
@@ -895,7 +923,7 @@ bool                        dos_kernel_disabled = true;
 bool                        startup_state_numlock = false; // Global for keyboard initialisation
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
-int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed;
+int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0;
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -3498,7 +3526,7 @@ static void GUI_StartUp() {
   #ifdef WIN32
     /* NTS: This should not print any warning whatsoever because Windows builds by default will use
      *      the Windows API to disable DPI scaling of the main window, unless the user modifies the
-     *      setting through dosbox.conf or the command line. */
+     *      setting through dosbox-x.conf or the command line. */
     /* NTS: Mac OS X has high DPI scaling too, though Apple is wise to enable it by default only for
      *      Macbooks with "Retina" displays. On Mac OS X, unless otherwise wanted by the user, it is
      *      wise to let Mac OS X scale up the DOSBox-X window by 2x so that the DOS prompt is not
@@ -3561,6 +3589,7 @@ static void GUI_StartUp() {
 
     modifier = section->Get_string("clip_key_modifier");
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
+    wheel_key = (unsigned int)section->Get_int("mouse_wheel_key");
 
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
@@ -3674,7 +3703,7 @@ static void GUI_StartUp() {
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
 
-    /* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
+    /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
@@ -4815,10 +4844,44 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-            Mouse_ButtonPressed(100-1);
-            break;
+			if (wheel_key) {
+#if defined(WIN32)
+				INPUT ip = {0};
+				ip.type = INPUT_KEYBOARD;
+				ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+				ip.ki.time = 0;
+				ip.ki.dwExtraInfo = 0;
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+#else
+				std::vector<std::string> sequence;
+				sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
+				MAPPER_AutoType(sequence, 0.5, 0);
+#endif
+			} else
+				Mouse_ButtonPressed(100-1);
+			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-            Mouse_ButtonPressed(100+1);
+			if (wheel_key) {
+#if defined(WIN32)
+				INPUT ip = {0};
+				ip.type = INPUT_KEYBOARD;
+				ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+				ip.ki.time = 0;
+				ip.ki.dwExtraInfo = 0;
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+				SendInput(1, &ip, sizeof(INPUT));
+#else
+				std::vector<std::string> sequence;
+				sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
+				MAPPER_AutoType(sequence, 0.5, 0);
+#endif
+			} else
+				Mouse_ButtonPressed(100+1);
             break;
 #endif
         }
@@ -5252,7 +5315,7 @@ void GFX_Events() {
 
                                 /* Now poke a "release ALT" command into the keyboard buffer
                                  * we have to do this, otherwise ALT will 'stick' and cause
-                                 * problems with the app running in the DOSBox.
+                                 * problems with the app running in the DOSBox-X.
                                  */
                                 KEYBOARD_AddKey(KBD_leftalt, false);
                                 KEYBOARD_AddKey(KBD_rightalt, false);
@@ -5300,6 +5363,43 @@ void GFX_Events() {
         case SDL_QUIT:
             throw(0);
             break;
+		case SDL_MOUSEWHEEL:
+			if (wheel_key) {
+				if(event.wheel.y > 0) {
+#if defined (WIN32)
+					INPUT ip = {0};
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+#else
+					std::vector<std::string> sequence;
+					sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
+					MAPPER_AutoType(sequence, 0.5, 0);
+#endif
+				} else if(event.wheel.y < 0) {
+#if defined (WIN32)
+					INPUT ip = {0};
+					ip.type = INPUT_KEYBOARD;
+					ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
+					ip.ki.time = 0;
+					ip.ki.dwExtraInfo = 0;
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
+					SendInput(1, &ip, sizeof(INPUT));
+#else
+					std::vector<std::string> sequence;
+					sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
+					MAPPER_AutoType(sequence, 0.5, 0);
+#endif
+				}
+			}
+			break;
 #if defined (WIN32)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
@@ -5529,7 +5629,7 @@ void GFX_Events() {
 
                                 /* Now poke a "release ALT" command into the keyboard buffer
                                  * we have to do this, otherwise ALT will 'stick' and cause
-                                 * problems with the app running in the DOSBox.
+                                 * problems with the app running in the DOSBox-X.
                                  */
                                 KEYBOARD_AddKey(KBD_leftalt, false);
                                 KEYBOARD_AddKey(KBD_rightalt, false);
@@ -6099,6 +6199,12 @@ void SDL_SetupConfigSection() {
         "When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the\n"
         "sensitiveness of your device, i.e. the mouse is slower but more precise.");
     Pstring->Set_values(emulation);
+
+    const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
+    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
+    Pstring->Set_values(wheelkeys);
+    Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
+		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
@@ -6775,7 +6881,7 @@ void AUTOEXEC_Init();
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
-    // if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
+    // if the user says not to from the command line, or disables it from dosbox-x.conf, then don't enable DPI awareness.
     if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
         return;
 

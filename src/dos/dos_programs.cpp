@@ -417,10 +417,10 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 #endif
 }
 
-void MenuBrowseImageFile(char drive) {
+void MenuBrowseImageFile(char drive, bool boot) {
 	std::string str(1, drive);
 	std::string drive_warn;
-	if (Drives[drive-'A']) {
+	if (Drives[drive-'A']&&!boot) {
 		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
 		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 		return;
@@ -486,13 +486,23 @@ search:
 		temp_str[1]=' ';
 		strcat(mountstring,temp_str);
 		strcat(mountstring,path);
+		if (boot) strcat(mountstring," -U");
 		strcat(mountstring," >nul");
 		DOS_Shell temp;
 		temp.ParseLine(mountstring);
 		if (!Drives[drive-'A']) {
-			drive_warn="Drive "+str+": failed to mounted.";
+			drive_warn="Drive "+str+": failed to mount.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 			return;
+		} else if (boot) {
+			char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
+			strcpy(bootstring,"BOOT -L ");
+			strcat(bootstring,str.c_str());
+			strcat(bootstring," >nul");
+			DOS_Shell temp;
+			temp.ParseLine(bootstring);
+			std::string drive_warn="Drive "+str+": failed to boot.";
+			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 		}
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
@@ -4113,9 +4123,9 @@ private:
                 if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
 					if (fdrive->req_ver>0) {
-						char ver_msg[60];
-						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n", fdrive->req_ver);
-						errorMessage=(std::string(ver_msg)+std::string(errorMessage)).c_str();
+						static char ver_msg[150];
+						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n%s", fdrive->req_ver, errorMessage);
+						errorMessage = ver_msg;
 					}
                 }
             }
@@ -4525,8 +4535,9 @@ private:
         Bit16u endcyl = 0;   // end cylinder of partition
         Bit8u heads = 0;     // heads in partition
         Bit8u sectors = 0;   // sectors per track in partition
-        Bit32u pe1_size = host_readd(&buf[0x1fa]); // number of sectors in partition
-        if (pe1_size != 0) {     // DOS 2.0-3.21 partition table, starting at 0x1EE
+        Bit32u pe1_size = host_readd(&buf[0x1ca]);
+        if ((Bit32u)host_readd(&buf[0x1fa]) != 0) {     // DOS 2.0-3.21 partition table
+            pe1_size = host_readd(&buf[0x1fa]);
             starthead = buf[0x1ef];
             startsect = (buf[0x1f0] & 0x3fu) - 1u;
             startcyl = (unsigned char)buf[0x1f1] | (unsigned int)((buf[0x1f0] & 0xc0) << 2u);
@@ -4534,17 +4545,14 @@ private:
             ptype = buf[0x1f2];
             heads = buf[0x1f3] + 1u;
             sectors = buf[0x1f4] & 0x3fu;
-        } else {                 // DOS 3.3+ partition table, starting at 0x1BE
-            pe1_size = host_readd(&buf[0x1ca]);
-            if (pe1_size != 0) {
-                starthead = buf[0x1bf];
-                startsect = (buf[0x1c0] & 0x3fu) - 1u;
-                startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
-                endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
-                ptype = buf[0x1c2];
-                heads = buf[0x1c3] + 1u;
-                sectors = buf[0x1c4] & 0x3fu;
-            }
+        } else if (pe1_size != 0) {                     // DOS 3.3+ partition table, starting at 0x1BE
+            starthead = buf[0x1bf];
+            startsect = (buf[0x1c0] & 0x3fu) - 1u;
+            startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+            endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
+            ptype = buf[0x1c2];
+            heads = buf[0x1c3] + 1u;
+            sectors = buf[0x1c4] & 0x3fu;
         }
         if (pe1_size != 0) {
             Bit32u part_start = startsect + sectors * starthead +
@@ -5138,9 +5146,7 @@ void LABEL_ProgramStart(Program** make)
 }
 
 std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix);
-void MAPPER_AutoType(std::vector<std::string> &sequence,
-                     const uint32_t wait_ms,
-                     const uint32_t pacing_ms);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 class AUTOTYPE : public Program {
 public:

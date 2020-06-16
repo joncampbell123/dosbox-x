@@ -343,6 +343,7 @@ public:
 
     //! \brief Add binding to the bindlist
     void AddBind(CBind * bind);
+	void ClearBinds();
 
     virtual ~CEvent();
 
@@ -622,6 +623,12 @@ CEvent::~CEvent() {
 void CEvent::AddBind(CBind * bind) {
     bindlist.push_front(bind);
     bind->event=this;
+}
+void CEvent::ClearBinds() {
+	for (CBind *bind : bindlist) {
+		delete bind;
+	}
+	bindlist.clear();
 }
 void CEvent::DeActivateAll(void) {
     for (CBindList_it bit=bindlist.begin();bit!=bindlist.end();++bit) {
@@ -3543,7 +3550,13 @@ static struct {
 
 #endif
 
+static void ClearAllBinds(void) {
+	for (CEvent *event : events)
+		event->ClearBinds();
+}
+
 static void CreateDefaultBinds(void) {
+	ClearAllBinds();
     char buffer[512];
     Bitu i=0;
     while (DefaultKeys[i].eventend) {
@@ -3716,6 +3729,7 @@ static void MAPPER_SaveBinds(void) {
 static bool MAPPER_LoadBinds(void) {
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) return false;
+	ClearAllBinds();
     char linein[512];
     while (fgets(linein,512,loadfile)) {
         CreateStringBind(linein,/*loading*/true);
@@ -4336,14 +4350,14 @@ void MAPPER_AutoType(std::vector<std::string> &sequence,
 }
 
 void MAPPER_Init(void) {
-    LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox mapper");
+    LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox-X mapper");
 
     mapper.exit=true;
 
     MAPPER_CheckKeyboardLayout();
     InitializeJoysticks();
-    CreateLayout();
-    CreateBindGroups();
+    if (buttons.empty()) CreateLayout();
+    if (bindgroups.empty()) CreateBindGroups();
     if (!MAPPER_LoadBinds()) CreateDefaultBinds();
     for (CButton_it but_it = buttons.begin(); but_it != buttons.end(); ++but_it) {
         (*but_it)->BindColor();
@@ -4374,6 +4388,23 @@ void MAPPER_Init(void) {
         if (ev != NULL) ev->update_menu_shortcut();
     }
 }
+
+void ReloadMapper(Section_prop *section, bool init) {
+    Prop_path* pp;
+#if defined(C_SDL2)
+	pp = section->Get_path("mapperfile_sdl2");
+    mapper.filename = pp->realpath;
+	if (mapper.filename=="") pp = section->Get_path("mapperfile");
+#else
+    pp = section->Get_path("mapperfile");
+#endif
+    mapper.filename = pp->realpath;
+	if (init) {
+		GFX_LosingFocus(); //Release any keys pressed, or else they'll get stuck.
+		MAPPER_Init();
+	}
+}
+
 //Somehow including them at the top conflicts with something in setup.h
 #ifdef C_X11_XKB
 #include "SDL_syswm.h"
@@ -4555,15 +4586,7 @@ void MAPPER_StartUp() {
         }
     }
 #endif
-    Prop_path* pp;
-#if defined(C_SDL2)
-	pp = section->Get_path("mapperfile_sdl2");
-    mapper.filename = pp->realpath;
-	if (mapper.filename=="") pp = section->Get_path("mapperfile");
-#else
-    pp = section->Get_path("mapperfile");
-#endif
-    mapper.filename = pp->realpath;
+	ReloadMapper(section, false);
 
     {
         DOSBoxMenu::item *itemp = NULL;

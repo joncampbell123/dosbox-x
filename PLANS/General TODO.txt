@@ -53,8 +53,8 @@
 
 * Support for loading BIOS images and mapping them into adapter ROM
 
-  - We could test various VGA BIOSes in DOSBox that way
-  - We could also run old motherboard BIOSes in DOSBox that way
+  - We could test various VGA BIOSes in DOSBox-X that way
+  - We could also run old motherboard BIOSes in DOSBox-X that way
 
 * Convert I/O and memory handler callback system to on-demand bus mapping and
   tracing design
@@ -89,7 +89,7 @@
     changes, the emulator has to invalidate all I/O and memory callbacks
     to allow the "slow" path to do it's work again.
   - The reason we don't do bus lookup every time is one of performance.
-    DOSBox already has an array of IO handlers and memory page handlers,
+    DOSBox-X already has an array of IO handlers and memory page handlers,
     so why not make use of it as a cache for callbacks once the slow path
     has been taken? Doing it this way should have almost no impact on
     emulator performance.
@@ -137,12 +137,14 @@
 
 * Multiple DOS kernel emulation
 
-  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.22 syscalls,
-    allow dosbox.conf setting (and command line at runtime) to choose that
+  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.x syscalls,
+    allow dosbox-x.conf setting (and command line at runtime) to choose that
     a particular brand and version is emulated. For example, if you say that
-    you want DOSBox to emulate MS-DOS 3.3, then it will return values and act
+    you want DOSBox-X to emulate MS-DOS 3.3, then it will return values and act
     like MS-DOS 3.3 (including the shorter form of the disk parameter table
-    prior to MS-DOS 4.0.
+    prior to MS-DOS 4.0). On the ther hand, if you say that you want DOSBox-X
+    to emulate MS-DOS 7.1, then it will return values and act like MS-DOS 7.1
+    (including support for FAT32 drives and long filenames).
 
 * Misc
 

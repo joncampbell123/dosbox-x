@@ -1,4 +1,16 @@
 0.83.3
+  - Added the "Boot from disk image" menu item (A:, C:,
+    and D: drives only) in the "Drive" menu to boot the
+    specified disk image directly in Windows (Wengier)
+  - Support for converting mouse wheel movements into
+    keyboard presses like arrow keys, configurable by
+    the option "mouse_wheel_key" (default is 0 which
+    disables this feature). When set to 1, mouse wheel
+    movements are converted to up/down arrows. Setting
+    it to 2 or 3 converts such movements to left/right
+    arrows or PageUp/PageDn keys respectively. (Wengier)
+  - Support for reloading the keyboard mapper file with
+    the config -set command. (Wengier)
   - IMGMOUNT can now autodetect DOS <= 3.21 harddisk
     geometry with MFM sector images (rderooy)
   - IMGMOUNT -fs none fixed to use same geometry detect

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -445,7 +445,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
         }
         else {
             /* Certain configurations always give an exact sleepingtime of 1, this causes problems due to the fact that
-               dosbox keeps track of full blocks.
+               DOSBox-X keeps track of full blocks.
                This code introduces some randomness to the time slept, which improves stability on those configurations
              */
             static const Bit32u sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2 };
@@ -1070,7 +1070,7 @@ void DOSBOX_RealInit() {
 
     // TODO: should be parsed by...? perhaps at some point we support machine= for backwards compat
     //       but translate it into two separate params that specify what machine vs what video hardware.
-    //       or better yet as envisioned, a possible dosbox.conf schema that allows a machine with no
+    //       or better yet as envisioned, a possible dosbox-x.conf schema that allows a machine with no
     //       base video of it's own, and then to specify an ISA or PCI card attached to the bus that
     //       provides video.
     std::string mtype(section->Get_string("machine"));
@@ -1251,7 +1251,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqhandler[] = {
         "", "simple", "cooperative_2nd", 0 };
 
-    /* Setup all the different modules making up DOSBox */
+    /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
         "vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
@@ -1714,7 +1714,7 @@ void DOSBOX_SetupConfigSections(void) {
     // TODO: "Special mode" which apparently triggers this alternate behavior and used by default on PC-98, is configurable
     //       by software through the PIC control words, and should control this setting if this is "auto".
     //       It's time for "auto" default setting to end once and for all the running gag that PC-98 games will not run
-    //       properly without having to add "cascade interrupt ignore in service=true" to your dosbox.conf all the time.
+    //       properly without having to add "cascade interrupt ignore in service=true" to your dosbox-x.conf all the time.
     Pstring = secprop->Add_string("cascade interrupt ignore in service",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("If true, PIC emulation will allow slave pic interrupts even if the cascade interrupt is still \"in service\" (common PC-98 behavior)\n"
