@@ -4554,6 +4554,7 @@ private:
             heads = buf[0x1c3] + 1u;
             sectors = buf[0x1c4] & 0x3fu;
         }
+        (void)ptype;//GCC: Set but not used. Assume it will be used someday --J.C.
         if (pe1_size != 0) {
             Bit32u part_start = startsect + sectors * starthead +
                 startcyl * sectors * heads;
