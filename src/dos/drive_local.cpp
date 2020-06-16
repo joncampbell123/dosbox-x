@@ -955,7 +955,7 @@ bool localDrive::MakeDir(const char * dir) {
 #if defined (WIN32)						/* MS Visual C++ */
 	int temp=_wmkdir(host_name);
 #else
-	int temp=mkdir(host_name,0700);
+	int temp=mkdir(host_name,0775);
 #endif
 	if (temp==0) dirCache.CacheOut(newdir,true);
 
@@ -1924,7 +1924,7 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 #if defined (WIN32)
 					temp=_wmkdir(host_name);
 #else
-					temp=mkdir(host_name,0700);
+					temp=mkdir(host_name,0775);
 #endif
 					if (temp==0) madepdir=true;
 				}
@@ -1937,7 +1937,7 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 #if defined (WIN32)
 		temp=_wmkdir(host_name);
 #else
-		temp=mkdir(host_name,0700);
+		temp=mkdir(host_name,0775);
 #endif
 	}
 	if (temp==0) {
@@ -2428,7 +2428,7 @@ bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
 #if defined (WIN32)						/* MS Visual C++ */
 				int temp = mkdir(dirnameoverlay);
 #else
-				int temp = mkdir(dirnameoverlay,0700);
+				int temp = mkdir(dirnameoverlay,0775);
 #endif
 				if (temp != 0) return false;
 			}
@@ -2956,7 +2956,7 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 #if defined (WIN32)
 			temp=_wmkdir(host_name);
 #else
-			temp=mkdir(host_name,0700);
+			temp=mkdir(host_name,0775);
 #endif
 		}
 		if (temp==0) created=true;
