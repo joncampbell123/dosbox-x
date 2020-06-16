@@ -529,7 +529,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 
     // "type" always has ANSI chars (like "rb"), nothing fancy
     for (tis=0;tis < 7 && type[tis] != 0;tis++) wtype[tis] = (wchar_t)type[tis];
-    assert(tis < 7); // guard
+    assert(tis <= 7); // guard
     wtype[tis] = 0;
 
 	return _wfopen(host_name,wtype);
