@@ -169,6 +169,7 @@ void osx_init_touchbar(void);
 #endif
 
 void ShutDownMemHandles(Section * sec);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -4827,6 +4828,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				SendInput(1, &ip, sizeof(INPUT));
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
+#else
+				std::vector<std::string> sequence;
+				sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
+				MAPPER_AutoType(sequence, 0.5, 0);
 #endif
 			} else
 				Mouse_ButtonPressed(100-1);
@@ -4843,6 +4848,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				SendInput(1, &ip, sizeof(INPUT));
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
+#else
+				std::vector<std::string> sequence;
+				sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
+				MAPPER_AutoType(sequence, 0.5, 0);
 #endif
 			} else
 				Mouse_ButtonPressed(100+1);
@@ -5327,10 +5336,10 @@ void GFX_Events() {
         case SDL_QUIT:
             throw(0);
             break;
-#if defined (WIN32)
 		case SDL_MOUSEWHEEL:
 			if (wheel_key) {
 				if(event.wheel.y > 0) {
+#if defined (WIN32)
 					INPUT ip = {0};
 					ip.type = INPUT_KEYBOARD;
 					ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
@@ -5340,7 +5349,13 @@ void GFX_Events() {
 					SendInput(1, &ip, sizeof(INPUT));
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
+#else
+					std::vector<std::string> sequence;
+					sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
+					MAPPER_AutoType(sequence, 0.5, 0);
+#endif
 				} else if(event.wheel.y < 0) {
+#if defined (WIN32)
 					INPUT ip = {0};
 					ip.type = INPUT_KEYBOARD;
 					ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
@@ -5350,9 +5365,15 @@ void GFX_Events() {
 					SendInput(1, &ip, sizeof(INPUT));
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
+#else
+					std::vector<std::string> sequence;
+					sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
+					MAPPER_AutoType(sequence, 0.5, 0);
+#endif
 				}
 			}
 			break;
+#if defined (WIN32)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
@@ -6155,7 +6176,7 @@ void SDL_SetupConfigSection() {
     const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
     Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
     Pstring->Set_values(wheelkeys);
-    Pint->Set_help("Convert mouse wheel movements into keyboard presses in Windows.\n"
+    Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
 		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
