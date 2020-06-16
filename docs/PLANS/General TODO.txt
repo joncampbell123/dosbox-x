@@ -137,10 +137,10 @@
 
 * Multiple DOS kernel emulation
 
-  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.22 syscalls,
-    allow dosbox.conf setting (and command line at runtime) to choose that
+  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 7.1 syscalls,
+    allow dosbox-x.conf setting (and command line at runtime) to choose that
     a particular brand and version is emulated. For example, if you say that
-    you want DOSBox to emulate MS-DOS 3.3, then it will return values and act
+    you want DOSBox-X to emulate MS-DOS 3.3, then it will return values and act
     like MS-DOS 3.3 (including the shorter form of the disk parameter table
     prior to MS-DOS 4.0.
 
