@@ -256,7 +256,7 @@ bool save_slot_9_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #if defined(WIN32)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive);
+void MenuBrowseImageFile(char drive, bool boot);
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -365,7 +365,28 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A');
+    MenuBrowseImageFile(drive+'A', false);
+
+    return true;
+}
+
+bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive != 0 && drive != 2 && drive != 3) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A', true);
 
     return true;
 }
@@ -451,6 +472,9 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_unmount_menu_callback,
     drive_rescan_menu_callback,
     drive_boot_menu_callback,
+#if defined(WIN32)
+    drive_bootimg_menu_callback,
+#endif
     NULL
 };
 
@@ -464,7 +488,8 @@ const char *drive_opts[][2] = {
 #endif
     { "unmount",                "Unmount" },
     { "rescan",                 "Rescan" },
-	{ "boot",                   "Boot from drive" },
+    { "boot",                   "Boot from drive" },
+    { "bootimg",                "Boot from disk image" },
     { NULL, NULL }
 };
 
