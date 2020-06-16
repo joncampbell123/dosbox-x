@@ -9,6 +9,8 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 DOSBox-X is open-source and totally free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
+Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use for users.
+
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 (Please always use the latest version of DOSBox-X from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page)
@@ -69,7 +71,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS (or compatible) with HX-DOS Extender
 
-The full source code is officially provided with each release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
+The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
 
 Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available HX-DOS Extender, please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual studio or MinGW builds in the Windows platform instead.
 
@@ -77,6 +79,7 @@ Note that the Visual Studio builds only support Windows Vista and later versions
 Contributing to DOSBox-X
 ------------------------
 
+We encourage new contributors by removing barriers to entry.
 Ideas and patches are always welcome, though not necessarily accepted.
 
 If you really need that feature or change, and your changes are not
@@ -248,7 +251,7 @@ Origin and history of the DOSBox-X project
 ------------------------------------------
 
 DOSBox-X started as a fork of the original DOSBox project sometime
-mid 2011. It was started out of a desire to improve the emulator
+in mid-2011. It was started out of a desire to improve the emulator
 without having to fight with or worry about submitting patches
 upstream.
 
