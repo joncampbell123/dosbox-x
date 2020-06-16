@@ -316,15 +316,15 @@ Meanwhile, some of the changes themselves incorporated code from
 other projects.
 
 Some features and improvments in DOSBox-X also came from another
-branch of DOSBox known as DOSBox Daum (http://ykhwong.x-y.net)
+branch of DOSBox known as [DOSBox Daum](http://ykhwong.x-y.net)
 which itself incorporated features from the original DOSBox
 project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X.
 
 Later on, DOSBox-X incorporates features and other improvements
-also from other projects such as DOSBox ECE, DOSBox-staging and
-vDosPlus, with major improvements and works from its contributors
+also from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
+[vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
 such as Wengier and rderooy.
 
 See also the [DOSBox-X source code description](README.source-code-description) page for crediting of the source code.
@@ -337,7 +337,7 @@ DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
 Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
 These significant changes require dropping some useful features (including the menus) but are required for performance.
 
-url: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
+URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
 Foreign keyboard layouts
@@ -346,5 +346,5 @@ Foreign keyboard layouts
 DOSBox-X was developed around the US keyboard layout,
 with only a few additional layouts natively supported.
 
-To add additional layouts, see file "README.keyboard-layout-handling"
+To add additional layouts, see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
