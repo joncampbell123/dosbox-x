@@ -339,6 +339,16 @@ until that reference is removed.
 General information on source code compilation
 ----------------------------------------------
 
+The four major operating systems and platforms of DOSBox-X are (in this order):
+
+1. Linux (with X11) 32-bit and 64-bit x86.
+
+2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+
+3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+
+4. Mac OS X Sierra 10.12 or higher 64-bit.
+
 Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 
