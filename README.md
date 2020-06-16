@@ -182,41 +182,11 @@ If your Linux distribution has it enabled, consider using the auditing
 system to limit what the DOSBox-X executable is allowed to do.
 
 
-Comments on what DOSBox-X is lacking
-------------------------------------
+Features that DOSBox-X unlikely to support at this time
+-------------------------------------------------------
 
 DOSBox-X aims for accuracy in emulation however there are some things the
 design as implemented now cannot accomodate.
-
-* Cycle-accurate timing of x86 instructions and execution.
-
-  Instructions generally run one per cycle in DOSBox-X, except for I/O
-  and memory access.
-
-  If accurate emulation of cycles per instruction is needed, please
-  consider using PCem, 86Box, or VARCem instead.
-
-* Full precision floating point emulation.
-
-  Unless using the dynamic core, DOSBox and DOSBox-X emulate the FPU
-  registers using the "double" 64-bit floating point data type.
-
-  The Intel FPU registers are 80-bit "extended precision" floating
-  point values, not 64-bit double precision, so this is effectively
-  12 bits of precision loss and 5 bits of range loss (64 to 53 mantissa
-  bits and 16 to 11 exponent bits).
-
-  This slight loss of precision is perfectly fine considering DOSBox's
-  original goal in supporting DOS games, but may cause problems in
-  other cases that need the full precision.
-
-  It is known at this time that this lack of precision is enough to
-  cause otherwise straightforward comparisons against integers to
-  fail in DOS applications originally written in QBasic or Turbo Basic.
-  There are such DOS games written that check their file size using
-  a floating point compare that will fail in this manner. To run these
-  games, you will need to disable FPU emulation (fpu=false) to force
-  the QBasic/TurboBasic runtime to use software emulation instead.
 
 * Pentium II or higher CPU level emulation.
 
@@ -230,7 +200,7 @@ design as implemented now cannot accomodate.
 
   The official cutoff for DOSBox-X is 2001, when updated "PC 2001"
   specifications from Microsoft mandated the removal of the ISA slots
-  from motherboards. 
+  from motherboards.
 
   The focus is on implementing hardware emulation for hardware made
   before that point.
@@ -272,14 +242,39 @@ design as implemented now cannot accomodate.
 
   If you are starting a fork, feel free to let me know where your
   fork is and what system it is emulating, so I can list it in
-  this README file for others seeking emulation of that system.
+  this README file for others seeking emulation of that system. To
+  help, I have added machine and video mode enumerations as "stubs"
+  to provide a starting point for your branch's implementation of
+  the platform. A stub implemented so far is "FM Towns emulation"
+  (machine=fm_towns).
 
-  To help, I have added machine and video mode enumerations as
-  "stubs" to provide a starting point for your branch's implementation
-  of the platform.
+* Cycle-accurate timing of x86 instructions and execution.
 
-  Stubs implemented so far:
-    - FM Towns emulation (machine=fm_towns)
+  Instructions generally run one per cycle in DOSBox-X, except for I/O
+  and memory access.
+
+  If accurate emulation of cycles per instruction is needed, please
+  consider using PCem, 86Box, or VARCem instead.
+
+* Full precision floating point emulation.
+
+  Unless using the dynamic core, DOSBox and DOSBox-X emulate the FPU
+  registers using the "double" 64-bit floating point data type.
+
+  The Intel FPU registers are 80-bit "extended precision" floating point
+  values, not 64-bit double precision, so this is effectively 12 bits of
+  precision loss and 5 bits of range loss (64 to 53 mantissa bits and 16
+  to 11 exponent bits). This slight loss of precision is perfectly fine
+  considering DOSBox's original goal in supporting DOS games, but may
+  cause problems in other cases that need the full precision.
+
+  It is known at this time that this lack of precision is enough to
+  cause otherwise straightforward comparisons against integers to
+  fail in DOS applications originally written in QBasic or Turbo Basic.
+  There are such DOS games written that check their file size using
+  a floating point compare that will fail in this manner. To run these
+  games, you will need to disable FPU emulation (fpu=false) to force
+  the QBasic/TurboBasic runtime to use software emulation instead.
 
 
 Origin and History of the DOSBox-X project
