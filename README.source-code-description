@@ -336,6 +336,42 @@ a setting or referring to settings before the
 creation of them can cause this code to crash
 until that reference is removed.
 
+General information on source code compilation
+----------------------------------------------
+
+Straight Windows builds are expected to compile using the free community edition
+of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
+
+Linux and MinGW Windows builds are expected to compile with the GNU autotools.
+A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
+
+Mac OS X builds are expected to compile on the terminal using GNU autotools
+and the LLVM/Clang compiler provided by XCode.
+
+In all cases, the code requires a C++ compiler that can support the C++11
+standard.
+
+Note that DOSBox-X is written to compile against the in-tree copy of the
+SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
+by your Linux distribution.
+
+For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
+used. Note that the in-tree SDL 1.x library has been HEAVILY MODIFIED from
+the original SDL 1.x source code and is thus somewhat incompatible with the
+stock library.
+
+The modifications provide additional functions needed to improve DOSBox-X
+and fix many issues with keyboard input, window mangement, and display
+management that previously required terrible kludges within the DOSBox
+and DOSBox-X source code.
+
+In Windows, the modifications also permit the emulation to run independent
+of the main window so that moving, resizing, or using menus does not cause
+emulation to pause.
+
+In Mac OS X, the modifications provide an interface to allow DOSBox-X to
+replace and manage the OS X menu bar.
+
 How to compile the source code
 ------------------------------
 
