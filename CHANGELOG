@@ -1,4 +1,7 @@
 0.83.3
+  - Added the "Boot from disk image" menu item (A:, C:
+    and D: drives only) in the "Drive" menu for the
+    Windows platform. (Wengier)
   - Support for converting mouse wheel movements into
     keyboard presses like arrow keys, configurable by
     the option "mouse_wheel_key" (default is 0 which
