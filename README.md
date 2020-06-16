@@ -56,6 +56,22 @@ DOSBox-X also has several important platform-dependent features, such as support
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
 
+DOSBox-X's supported platforms
+------------------------------
+
+DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including at least:
+
+1. Linux (with X11), 32-bit and 64-bit.
+
+2. Windows XP or later, 32-bit and 64-bit.
+
+3. Mac OS X Sierra 10.12 or higher 64-bit.
+
+The full source code is provided, which may be compiled to run on other operating systems too.
+
+Note that the Visual Studio builds only support Windows Vista and higher versions. For Windows XP, please use the MinGW builds instead. There is also a special HX-DOS build for running DOSBox-X in a real DOS system with the freely-available HX-DOS Extender.
+
+
 Contributing to DOSBox-X
 ------------------------
 
@@ -110,55 +126,6 @@ integations in the future.
 See also [General TODO.txt](PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
 
-DOSBox-X development platforms
-------------------------------
-
-The four major operating systems and platforms of DOSBox-X are (in this order):
-
-1. Linux (with X11) 32-bit and 64-bit x86.
-
-2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
-
-3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
-
-4. Mac OS X Sierra 10.12 or higher 64-bit.
-
-Linux and MinGW Windows builds are expected to compile with the GNU autotools.
-
-A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
-
-Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
-
-Mac OS X builds are expected to compile on the terminal using GNU autotools
-and the LLVM/Clang compiler provided by XCode.
-
-In all cases, the code requires a C++ compiler that can support the C++11
-standard.
-
-Note that DOSBox-X is written to compile against the in-tree copy of the
-SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
-by your Linux distribution.
-
-For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
-used.
-
-The in-tree SDL 1.x library has been HEAVILY MODIFIED from the original
-SDL 1.x source code and is somewhat incompatible with the stock library.
-
-The modifications provide additional functions needed to improve DOSBox-X
-and fix many issues with keyboard input, window mangement, and display
-management that previously required terrible kludges within the DOSBox
-and DOSBox-X source code.
-
-In Windows, the modifications also permit the emulation to run independent
-of the main window so that moving, resizing, or using menus does not cause
-emulation to pause.
-
-In Mac OS X, the modifications provide an interface to allow DOSBox-X to
-replace and manage the OS X menu bar.
-
-
 Software security comments
 --------------------------
 
@@ -191,7 +158,7 @@ design as implemented now cannot accomodate.
 * Pentium II or higher CPU level emulation.
 
   DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
-  MS-DOS and compatibles also work best with these CPUs.
+  Real DOS systems (MS-DOS and compatibles) also work best with these CPUs.
 
   If Pentium II or higher emulation is desired, consider using Bochs
   or QEMU instead. DOSBox-X may eventually develop Pentium II emulation,
