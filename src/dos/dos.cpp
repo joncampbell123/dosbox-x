@@ -3152,6 +3152,10 @@ void DOS_EnableDriveMenu(char drv) {
 		if (drv == 'A' || drv == 'C' || drv == 'D') {
 			name = std::string("drive_") + drv + "_boot";
 			mainMenu.get_item(name).enable(!dos_kernel_disabled).refresh_item(mainMenu);
+#if defined (WIN32)
+			name = std::string("drive_") + drv + "_bootimg";
+			mainMenu.get_item(name).enable(!dos_kernel_disabled).refresh_item(mainMenu);
+#endif
 		}
     }
 }

@@ -417,10 +417,10 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 #endif
 }
 
-void MenuBrowseImageFile(char drive) {
+void MenuBrowseImageFile(char drive, bool boot) {
 	std::string str(1, drive);
 	std::string drive_warn;
-	if (Drives[drive-'A']) {
+	if (Drives[drive-'A']&&!boot) {
 		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
 		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 		return;
@@ -486,13 +486,23 @@ search:
 		temp_str[1]=' ';
 		strcat(mountstring,temp_str);
 		strcat(mountstring,path);
+		if (boot) strcat(mountstring," -U");
 		strcat(mountstring," >nul");
 		DOS_Shell temp;
 		temp.ParseLine(mountstring);
 		if (!Drives[drive-'A']) {
-			drive_warn="Drive "+str+": failed to mounted.";
+			drive_warn="Drive "+str+": failed to mount.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 			return;
+		} else if (boot) {
+			char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
+			strcpy(bootstring,"BOOT -L ");
+			strcat(bootstring,str.c_str());
+			strcat(bootstring," >nul");
+			DOS_Shell temp;
+			temp.ParseLine(bootstring);
+			std::string drive_warn="Drive "+str+": failed to boot.";
+			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 		}
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
@@ -5128,9 +5138,7 @@ void LABEL_ProgramStart(Program** make)
 }
 
 std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix);
-void MAPPER_AutoType(std::vector<std::string> &sequence,
-                     const uint32_t wait_ms,
-                     const uint32_t pacing_ms);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 class AUTOTYPE : public Program {
 public:
