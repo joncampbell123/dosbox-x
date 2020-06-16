@@ -1,11 +1,11 @@
 0.83.3
   - Support for converting mouse wheel movements into
-    keyboard presses in Windows, configurable by the
-    option "mouse_wheel_key" (default is 0 which disables
-    this feature). When set to 1, mouse wheel movements
-    will be converted to up/down arrows. Setting to 2 or
-    3 will convert such movements to left/right arrows
-    or PageUp/PageDown keys respectively. (Wengier)
+    keyboard presses like arrow keys, configurable by
+    the option "mouse_wheel_key" (default is 0 which
+    disables this feature). When set to 1, mouse wheel
+    movements are converted to up/down arrows. Setting
+    it to 2 or 3 converts such movements to left/right
+    arrows or PageUp/PageDn keys respectively. (Wengier)
   - Support for reloading the keyboard mapper file with
     the config -set command. (Wengier)
   - IMGMOUNT can now autodetect DOS <= 3.21 harddisk
