@@ -228,7 +228,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i: Integer;
-  line, linetmp: String;
+  section, line, linetmp: String;
   FileLines: TStringList;
 begin
   if (CurrentStep = ssPostInstall) then
@@ -241,13 +241,16 @@ begin
       begin
         FileLines := TStringList.Create;
         FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
         for i := 0 to FileLines.Count - 1 do
         begin
           line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
           if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
           begin
             linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
-            if (CompareText(linetmp, 'ver') = 0) then
+            if (CompareText(linetmp, 'ver') = 0) and (CompareText(section, 'dos') = 0) then
             begin
               if (PageVer.Values[0]) then
                 FileLines[i] := line+' 3.3';
@@ -257,6 +260,7 @@ begin
                 FileLines[i] := line+' 6.22';
               if (PageVer.Values[3]) then
                 FileLines[i] := line+' 7.1';
+              break;
             end
           end
         end
