@@ -9,7 +9,7 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 DOSBox-X is open-source and totally free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
-Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use for users.
+Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use for users. We make efforts to deliver a consistent cross-platform experience and also strike a balance between emulation accuracy, quality, speed, and usability.
 
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
@@ -43,7 +43,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for 3dfx Glide and Voodoo chip emulation
 
-* Support for NE2000 Ethernet for networking features
+* Support for NE2000 Ethernet for Internet and Modem Phonebook mapping
 
 * Support for cue files with FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 
@@ -136,17 +136,13 @@ This is DOSBox-X’s official release pattern, although it may change later.
 Future development experiments
 ------------------------------
 
-Scattered experiments and small projects are in experiments/ as
-proving grounds for future revisions to DOSBox-X and it's codebase.
+Scattered experiments and small projects are in experiments/ as proving grounds for future revisions to DOSBox-X and it's codebase.
 
-These experiments may or may not make it into future revisions
-or the next version.
+These experiments may or may not make it into future revisions or the next version.
 
-Comments are welcome on the experiments, to help improve the code
-overall.
+Comments are welcome on the experiments, to help improve the code overall.
 
-There are also patches in patch-integration/ for possible feature
-integations in the future.
+There are also patches in patch-integration/ for possible feature integations in the future. We have already integrated many community-developed patches into DOSBox-X in the past.
 
 See also [General TODO.txt](PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
