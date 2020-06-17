@@ -105,7 +105,7 @@ greatly appreciated:
     - Hardware accuracy
     - Software accuracy
     - Games, applications, demoscene executables
-    - Windows 1.x through Millenium guest OS support
+    - Windows 1.0 to Windows ME guest system support
     - Retro development
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
@@ -136,7 +136,7 @@ This is DOSBox-X’s official release pattern, although it may change later.
 Future development experiments
 ------------------------------
 
-Scattered experiments and small projects are in experiments/ as proving grounds for future revisions to DOSBox-X and it's codebase.
+Scattered experiments and small projects are in experiments/ as proving grounds for future revisions to DOSBox-X and its codebase.
 
 These experiments may or may not make it into future revisions or the next version.
 
@@ -193,7 +193,7 @@ design as implemented now cannot accomodate.
   for hardware made before that point.
 
   Contributers are free to focus on emulating hardware within the
-  1980-2001 timeframe of their choice.
+  timeframe between 1980 and 2000/2001 of their choice.
 
 * Windows guest emulation, Windows XP or later.
 
@@ -334,14 +334,15 @@ Alternatively, the KEYB command can be used from the
 DOSBox-X command line to change the keyboard layout.
 For example:
 
-KEYB UK 858
+```KEYB UK 858```
 
 This command will switch the current keyboard layout to
 the UK keyboard layout (code page 858).
 
-The Japanese keyboard layout is also supported in PC-98
-mode. You can start DOSBox-X in PC-98 mode by setting
-"machine=pc98" in the [dosbox] section of dosbox-x.conf.
+The Japanese keyboard layout is also supported in NEC
+PC-98 mode. You can start DOSBox-X in PC-98 mode directly
+by setting "machine=pc98" in the [dosbox] section of the
+dosbox-x.conf file.
 
 If you find that a keyboard layout is not yet supported
 by DOSBox-X, in order to add additional layouts for use
