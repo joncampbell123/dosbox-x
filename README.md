@@ -25,7 +25,7 @@ New information will be added to this README over time.
 Notable features in DOSBox-X
 ----------------------------
 
-Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own schedules and development priorities. At this time DOSBox-X has quite a few features that do not exist in DOSBox. Examples of such features include:
+Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. At this time DOSBox-X has quite a few features that do not exist in DOSBox. Examples of such features include:
 
 * GUI menu bar and configuration tool
 
@@ -74,6 +74,14 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
 
 Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
+
+
+Compatibility with DOS programs and games
+-----------------------------------------
+
+With the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, we are making efforts to ensure that the vast majority of DOS games and applications will run in DOSBox-X, and these include both text-mode and graphical-mode DOS programs. Microsoft Windows versions that are largely DOS-based (such as Windows 3.x and 9x) are officially supported by DOSBox-X as well. Note that certain config settings may need to be changed from the default ones for some of these programs to work smoothly.
+
+DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we are also making a lot of efforts to test DOSBox-X against other DOS games and applications, as well as PC-98 programs (most of them are games).
 
 
 Contributing to DOSBox-X
