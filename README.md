@@ -126,7 +126,7 @@ Information about the debugger is also available in the
 DOSBox-X’s release pattern
 --------------------------
 
-In order to make DOSBox-X's developments more smooth, the release pattern for DOSbox-X will be as follows:
+In order to make DOSBox-X's developments more smooth, the current release pattern for DOSbox-X is as follows:
 
 New DOSBox-X versions are made public at the start of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
 
@@ -329,15 +329,21 @@ Foreign keyboard layouts
 ------------------------
 
 DOSBox-X was developed around the US keyboard layout,
-with only a few additional layouts natively supported.
+with support for a few additional layouts.
 
-You can use the KEYB command in the DOSBox-X command line
-to change the keyboard layout. For example:
+You can change the keyboard layout in the [dos] section
+of the dosbox-x.conf file.
+
+Alternatively, the KEYB command can be used from the 
+DOSBox-X command line to change the keyboard layout.
+For example:
 
 KEYB UK 858
 
 This command will switch the current keyboard layout to
 the UK keyboard layout (code page 858).
 
-To add additional layouts, see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
+If you find that a keyboard layout is not yet supported
+by DOSBox-X, in order to add additional layouts for use
+with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
