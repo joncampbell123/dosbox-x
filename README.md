@@ -69,7 +69,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 3. Mac OS X Sierra 10.12 or higher 64-bit
 
-4. MS-DOS (or compatible) with HX-DOS Extender
+4. MS-DOS (or compatible) with HX DOS Extender
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
 
@@ -82,6 +82,8 @@ Compatibility with DOS programs and games
 With the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, we are making efforts to ensure that the vast majority of DOS games and applications will run in DOSBox-X, and these include both text-mode and graphical-mode DOS programs. Microsoft Windows versions that are largely DOS-based (such as Windows 3.x and 9x) are officially supported by DOSBox-X as well. Note that certain config settings may need to be changed from the default ones for some of these programs to work smoothly.
 
 DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we are also making a lot of efforts to test DOSBox-X against other DOS games and applications, as well as PC-98 programs (most of them are games).
+
+We add new features and make other improvements in every new DOSBox-X version, so its compatibility with  DOS programs and games are also improving over time. If you have some issue with a specific DOS program or game, please feel free to post it in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues).
 
 
 Contributing to DOSBox-X
