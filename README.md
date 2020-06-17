@@ -9,13 +9,13 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use. Instead of focusing on a  particular platform, we try our best to deliver a consistent cross-platform experience for users. While we have made effort to maintain the emulation accuracy, we also strike a balance between emulation quality, speed, and usability.
 
-For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+For more information about DOSBox-X, such as running and using DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 (Please always use the latest version of DOSBox-X from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page)
 
-DOSBox-X is open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
+DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
-This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for general information on contributing to the project.
+This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for general information on contributing to or getting support from the project.
 
 Brought to you by: joncampbell123 (Jonathan Campbell)
 
