@@ -1,8 +1,116 @@
-This page tries to explain the source code of DOSBox-X, including some technical details and compiling information.
+DOSBox-X Source Code Description
+================================
+
+This page tries to explain the source code of DOSBox-X, including compiling information and some technical details.
 
 Such information is primarily targeted at developers and anyone who wants to contribute to the DOSBox-X project.
 
-There is also a section for crediting the source code.
+There is also a section for crediting the source code in the end of this page.
+
+General information on source code compilation
+----------------------------------------------
+
+The four major operating systems and platforms of DOSBox-X are (in this order):
+
+1. Linux (with X11) 32-bit and 64-bit x86.
+
+2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+
+3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+
+4. Mac OS X Sierra 10.12 or higher 64-bit.
+
+Straight Windows builds are expected to compile using the free community edition
+of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
+
+Linux and MinGW Windows builds are expected to compile with the GNU autotools.
+A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
+
+Mac OS X builds are expected to compile on the terminal using GNU autotools
+and the LLVM/Clang compiler provided by XCode.
+
+In all cases, the code requires a C++ compiler that can support the C++11
+standard.
+
+Note that DOSBox-X is written to compile against the in-tree copy of the
+SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
+by your Linux distribution.
+
+For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
+used. Note that the in-tree SDL 1.x library has been HEAVILY MODIFIED from
+the original SDL 1.x source code and is thus somewhat incompatible with the
+stock library.
+
+The modifications provide additional functions needed to improve DOSBox-X
+and fix many issues with keyboard input, window mangement, and display
+management that previously required terrible kludges within the DOSBox
+and DOSBox-X source code.
+
+In Windows, the modifications also permit the emulation to run independent
+of the main window so that moving, resizing, or using menus does not cause
+emulation to pause.
+
+In Mac OS X, the modifications provide an interface to allow DOSBox-X to
+replace and manage the OS X menu bar.
+
+How to compile the source code
+------------------------------
+
+General Linux compile (FFMPEG/libav support required)
+./build-debug
+
+
+General Linux compile if FFMPEG/libav not desired
+./build-debug-no-avcodec
+
+
+Mac OS X compile
+./build-macosx
+
+
+Mac OS X compile (SDL2)
+./build-macosx-sdl2
+
+
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
+./build-mingw
+
+
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
+./build-mingw-lowend
+
+
+MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
+./build-mingw-hx-dos
+
+NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
+        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
+
+
+Mac OS X: If you want to make an .app bundle you can run from the Finder, compile the
+program as instructed then run "make dosbox-x.app".
+
+
+Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
+Use the ./vs2015/dosbox-x.sln "solution" file and compile.
+You will need the DirectX 2010 SDK for Direct3D9 support.
+
+As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
+a processor that supports the SSE instruction set.
+
+Visual Studio Code is supported, too.
+
+Check the README.Windows file for more information about this platform.
+
+
+XCode (on Mac OS X, from the Terminal) to target Mac OS X
+./build-debug
+
+To compile DOSBox-X in Ubuntu (kapper1224)
+
+sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
+./build
+sudo make install
 
 General description of source code
 ----------------------------------
@@ -338,111 +446,6 @@ referce to a setting is NULL. Therefore, removing
 a setting or referring to settings before the
 creation of them can cause this code to crash
 until that reference is removed.
-
-General information on source code compilation
-----------------------------------------------
-
-The four major operating systems and platforms of DOSBox-X are (in this order):
-
-1. Linux (with X11) 32-bit and 64-bit x86.
-
-2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
-
-3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
-
-4. Mac OS X Sierra 10.12 or higher 64-bit.
-
-Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
-
-Linux and MinGW Windows builds are expected to compile with the GNU autotools.
-A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
-
-Mac OS X builds are expected to compile on the terminal using GNU autotools
-and the LLVM/Clang compiler provided by XCode.
-
-In all cases, the code requires a C++ compiler that can support the C++11
-standard.
-
-Note that DOSBox-X is written to compile against the in-tree copy of the
-SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
-by your Linux distribution.
-
-For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
-used. Note that the in-tree SDL 1.x library has been HEAVILY MODIFIED from
-the original SDL 1.x source code and is thus somewhat incompatible with the
-stock library.
-
-The modifications provide additional functions needed to improve DOSBox-X
-and fix many issues with keyboard input, window mangement, and display
-management that previously required terrible kludges within the DOSBox
-and DOSBox-X source code.
-
-In Windows, the modifications also permit the emulation to run independent
-of the main window so that moving, resizing, or using menus does not cause
-emulation to pause.
-
-In Mac OS X, the modifications provide an interface to allow DOSBox-X to
-replace and manage the OS X menu bar.
-
-How to compile the source code
-------------------------------
-
-General Linux compile (FFMPEG/libav support required)
-./build-debug
-
-
-General Linux compile if FFMPEG/libav not desired
-./build-debug-no-avcodec
-
-
-Mac OS X compile
-./build-macosx
-
-
-Mac OS X compile (SDL2)
-./build-macosx-sdl2
-
-
-MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
-./build-mingw
-
-
-MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
-./build-mingw-lowend
-
-
-MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
-./build-mingw-hx-dos
-
-NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
-        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
-
-
-Mac OS X: If you want to make an .app bundle you can run from the Finder, compile the
-program as instructed then run "make dosbox-x.app".
-
-
-Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
-Use the ./vs2015/dosbox-x.sln "solution" file and compile.
-You will need the DirectX 2010 SDK for Direct3D9 support.
-
-As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
-a processor that supports the SSE instruction set.
-
-Visual Studio Code is supported, too.
-
-Check the README.Windows file for more information about this platform.
-
-
-XCode (on Mac OS X, from the Terminal) to target Mac OS X
-./build-debug
-
-To compile DOSBox-X in Ubuntu (kapper1224)
-
-sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
-./build
-sudo make install
 
 Warnings regarding C integer types
 ----------------------------------
