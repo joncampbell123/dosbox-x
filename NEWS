@@ -1,8 +1,8 @@
 For the latest version of DOSBox-X please go to the Releases page.
 
-Also look at the file CHANGELOG for latest changes to the DOSBox-X source code.
+Also look at the file CHANGELOG for latest changes to the DOSBox-X source tree.
 
-Below are changes to DOSBox.
+Below are changes to DOSBox (up to 0.74-3).
 
 0.74-3
 A security release for DOSBox 0.74:
@@ -16,7 +16,6 @@ A security release for DOSBox 0.74:
 
 It's recommended to use config -securemode when dealing with untrusted
 files. 
-See the Changelog for all the changes.
 
 0.74-2
 A maintenance release for DOSBox 0.74, which solves the following problems:
@@ -28,7 +27,6 @@ A maintenance release for DOSBox 0.74, which solves the following problems:
          Add patches for the WINE Team.
 
 The game compatibility should be identical to 0.74.
-See the Changelog for a full list of changes.
 
 0.74
   - Several small game specific fixes/hacks/support. (Offensive,
