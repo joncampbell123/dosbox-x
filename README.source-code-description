@@ -15,14 +15,17 @@ src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
 src/shell/shell_batch.cpp   Batch file (*.BAT) handling
 
 src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
-                                DIR     CHDIR   ATTRIB  CALL    CD      CHOICE
-                                CLS     COPY    DATE    DEL     DELETE  ERASE
-                                ECHO    EXIT    GOTO    HELP    IF      LOADHIGH
-                                LH      MKDIR   MD      PATH    PAUSE   RMDIR
-                                RD      REM     RENAME  REN     SET     SHIFT
-                                SUBST   TIME    TYPE    VER     ADDKEY  VOL
-                                PROMPT  LABEL   MORE    FOR     INT2FDBG
-                                CTTY    DEBUGBOX
+                                DIR         CD/CHDIR   ADDKEY     ALIAS
+                                ATTRIB      BREAK      CALL       CHOICE
+                                CLS         COPY       CTTY       DATE
+                                DEL/ERASE   ECHO       EXIT       FOR
+                                GOTO        HELP       IF         LFNFOR
+                                LH/LOADHIGH LS         MD/MKDIR   MORE
+                                PATH        PAUSE      PROMPT     RD/RMDIR
+                                REM         REN/RENAME SET        SHIFT
+                                SUBST       TIME       TYPE       VER
+                                VERIFY      VOL        TRUENAME   DX-CAPTURE
+                                DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
