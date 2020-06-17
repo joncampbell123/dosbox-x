@@ -73,7 +73,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
 
-Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available HX-DOS Extender, please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual studio or MinGW builds in the Windows platform instead.
+Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
 
 Contributing to DOSBox-X
@@ -287,8 +287,8 @@ project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X.
 
-Later on, DOSBox-X incorporates features and other improvements
-also from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
+Later on, DOSBox-X also incorporated some features and improvements
+from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
 [vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
 such as Wengier and rderooy.
 
@@ -310,6 +310,14 @@ Foreign keyboard layouts
 
 DOSBox-X was developed around the US keyboard layout,
 with only a few additional layouts natively supported.
+
+You can use the KEYB command in the DOSBox-X command line
+to change the keyboard layout. For example:
+
+KEYB UK 858
+
+This command will switch the current keyboard layout to
+the UK keyboard layout (code page 858).
 
 To add additional layouts, see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
