@@ -7,7 +7,7 @@ DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbo
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
-Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use for users. We make efforts to deliver a consistent cross-platform experience and also strike a balance between emulation accuracy, quality, speed, and usability.
+Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use. Instead of focusing on a  particular platform, we try our best to deliver a consistent cross-platform experience for users. While we have made effort to maintain the emulation accuracy, we also strike a balance between emulation quality, speed, and usability.
 
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
@@ -53,7 +53,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-DOSBox-X also has several important platform-dependent features, such as support for automatic drive mounting and clipboard copy & paste on the Windows platform.
+DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting as well as clipboard copy and paste on the Windows platform.
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
@@ -126,7 +126,7 @@ Information about the debugger is also available in the
 DOSBox-X’s release pattern
 --------------------------
 
-In order to make DOSBox-X's developments more smooth, the current release pattern for DOSBox-X is as follows:
+In order to make DOSBox-X's development process more smooth, the current release pattern for DOSBox-X is as follows:
 
 New DOSBox-X versions are made public at the start of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
 
