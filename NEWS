@@ -4,6 +4,32 @@ Also look at the file CHANGELOG for latest changes to the DOSBox-X source code.
 
 Below are changes to DOSBox.
 
+0.74-3
+A security release for DOSBox 0.74:
+- Fixed that a very long line inside a bat file would overflow the parsing 
+  buffer (CVE-2019-7165 by Alexandre Bartel)
+- Added a basic permission system so that a program running inside DOSBox 
+  can't access the contents of /proc (e.g. /proc/self/mem) when / or /proc
+  were (to be) mounted (CVE-2019-12594 by Alexandre Bartel)  
+- Several other fixes for out of bounds access and buffer overflows.
+- Some fixes to the OpenGL rendering.
+
+It's recommended to use config -securemode when dealing with untrusted
+files. 
+See the Changelog for all the changes.
+
+0.74-2
+A maintenance release for DOSBox 0.74, which solves the following problems:
+
+- Windows: Fix auto/max cycles algorithm on Windows 7, which helps with 
+           stuttering audio.
+- Mac OS X: Bring a 64 bit version and improve performance.
+- Linux: Fix the 64bit dynrec cpu core and a lot of compilation problems. 
+         Add patches for the WINE Team.
+
+The game compatibility should be identical to 0.74.
+See the Changelog for a full list of changes.
+
 0.74
   - Several small game specific fixes/hacks/support. (Offensive,
     Roadhog, GTA installer, Kingdom O' Magic soundcard detection, 
