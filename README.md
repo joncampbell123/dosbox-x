@@ -7,15 +7,15 @@ DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbo
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
-DOSBox-X is open-source and totally free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
-
 Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use for users. We make efforts to deliver a consistent cross-platform experience and also strike a balance between emulation accuracy, quality, speed, and usability.
 
 For more information about DOSBox-X, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 (Please always use the latest version of DOSBox-X from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page)
 
-This project has a Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), please read it.
+DOSBox-X is open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
+
+This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for general information on contributing to the project.
 
 Brought to you by: joncampbell123 (Jonathan Campbell)
 
@@ -43,11 +43,11 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for 3dfx Glide and Voodoo chip emulation
 
-* Support for NE2000 Ethernet for Internet and Modem Phonebook mapping
-
 * Support for cue files with FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
+
+* Support for NE2000 Ethernet for networking and Modem Phonebook mapping
 
 * Support for features such as V-Sync, overscan border and stereo swapping
 
@@ -71,7 +71,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS (or compatible) with HX DOS Extender
 
-The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly.
+The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
 
 Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
@@ -126,7 +126,7 @@ Information about the debugger is also available in the
 DOSBox-X’s release pattern
 --------------------------
 
-In order to make DOSBox-X's developments more smooth, the current release pattern for DOSbox-X is as follows:
+In order to make DOSBox-X's developments more smooth, the current release pattern for DOSBox-X is as follows:
 
 New DOSBox-X versions are made public at the start of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
 
