@@ -141,12 +141,12 @@ begin
       end
     else
       PageBuild.Values[4] := True;
-    msg:='You can specify a default DOS version for DOSBox-X to report. For example, specifying DOS version 7.1 will enable long filename and FAT32 disk image support by default.';
+    msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature set of DOSBox-X. For example, specifying the reported DOS version as 7.10 will enable long filename (LFN) and FAT32 disk image support by default.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(100, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
-    PageVer.Add('DOS version 3.3');
-    PageVer.Add('DOS version 5.0');
+    PageVer.Add('DOS version 3.30');
+    PageVer.Add('DOS version 5.00');
     PageVer.Add('DOS version 6.22');
-    PageVer.Add('DOS version 7.1');
+    PageVer.Add('DOS version 7.10');
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
@@ -214,13 +214,13 @@ begin
       Wizardform.ReadyMemo.Lines.Add('Reported DOS version:');
       msg:='Default';
       if (PageVer.Values[0]) then
-        msg:='3.3';
+        msg:='3.30';
       if (PageVer.Values[1]) then
-        msg:='5.0';
+        msg:='5.00';
       if (PageVer.Values[2]) then
         msg:='6.22';
       if (PageVer.Values[3]) then
-        msg:='7.1';
+        msg:='7.10';
       Wizardform.ReadyMemo.Lines.Add('      '+msg);
     end
   end;
