@@ -123,6 +123,16 @@ Information about the debugger is also available in the
 [DOSBox-X Debugger](README.debugger) page.
 
 
+DOSBox-X’s release pattern
+--------------------------
+
+In order to make DOSBox-X's developments more smooth, the release pattern for DOSbox-X will be as follows:
+
+New DOSBox-X versions are made public at the start of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
+
+This is DOSBox-X’s official release pattern, although it may change later.
+
+
 Future development experiments
 ------------------------------
 
