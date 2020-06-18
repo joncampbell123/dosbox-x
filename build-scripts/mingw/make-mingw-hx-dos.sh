@@ -54,6 +54,7 @@ git clean -dfx
 git reset --hard
 ./build-mingw-hx-dos || exit 1
 
+# The paths of copied files and HX DOS Extender files 
 copydir="build-scripts/mingw/dosbox-x-mingw-hx-dos"
 hxdir="build-scripts/mingw/hxdos"
 
@@ -61,9 +62,9 @@ strip src/dosbox-x.exe || exit 1
 cp src/dosbox-x.exe $copydir/dosbox-x.exe || exit 1
 $hxdir/pestub.exe -n $copydir/dosbox-x.exe 
 cp CHANGELOG $copydir/CHANGELOG.txt || exit 1
-cp $hxdir/HDPMI32.EXE $copydir || exit 1
+cp $hxdir/HDPMI32.EXE $copydir/ || exit 1
 cp $hxdir/HXGUIHLP.INI $copydir/ || exit 1
-cp $hxdir/README.TXT $copydir || exit 1
+cp $hxdir/README.TXT $copydir/ || exit 1
 cp $hxdir/*.DLL $copydir/ || exit 1
 
 cd "$top" || exit 1
