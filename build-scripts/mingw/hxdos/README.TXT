@@ -1,5 +1,11 @@
-This is a special DOSBox-X build for use with a real DOS system.
+README for DOSBox-X DOS version
+===============================
 
-The required HX DOS Extender files are already included.
+Welcome to DOSBox-X, a cross-platform DOS emulator based on the DOSBox project.
 
-Simply run DOSBOX-X.EXE in MS-DOS or compatible.
+This is a special DOSBox-X version for use in a real DOS system. Not all features in other builds can be supported in this build.
+
+Simply run DOSBOX-X.EXE in MS-DOS or compatible to start DOSBox-X, as all required HX DOS Extender files are already included. 
+
+For more information about DOSBox-X, including usage tips and common ways to configure DOSBox-X, please read the online user guide in the DOSBox-X Wiki:
+https://github.com/joncampbell123/dosbox-x/wiki
