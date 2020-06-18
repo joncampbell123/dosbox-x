@@ -1,0 +1,152 @@
+Information about the DOSBox-X Debugger
+
+Debugger interface
+------------------
+
+In builds where it is enabled, DOSBox-X supports breaking into the debugger
+interface, which is shown on the console.
+
+A mapper shortcut is provided to break into the debugger on demand. Normally
+this shortcut is set to Alt+Pause.
+
+In Windows, DOSBox-X can create a console and show the debugger interface
+on it.
+
+On other systems including Linux and Mac OS X, DOSBox-X must be started
+from a terminal in order to enable the debugger.
+
+The debugger interface should scale and respond to resizing of the
+terminal window.
+
+WARNING: Fitting to the window was added in DOSBox-X. The debugger
+         interface in DOSBox SVN requires a minimum terminal window
+         size to function, and may segfault if the terminal is too
+         small.
+
+The debugger interface is written against the "ncurses" library.
+
+The window regions of the debugger interface are:
+ - Register Overview
+ - Data view
+ - Code Overview
+ - Variable (not shown by default)
+ - Output
+
+The register window will show at all times the contents of the CPU
+registers and segment registers as well as other important CPU
+state.
+
+Data view allows viewing the contents of memory while debugging.
+The location shown is controlled by a segment:offset pair.
+
+In DOSBox-X, the Data view also permits viewing data as a linear
+(pageable) offset and as a physical memory view (outside the
+CPU's paging control).
+
+The code overview/disassembly window shows the contents of a
+memory location as disassembled x86 instructions. Normally, this
+is set to the instruction pointer, but it can be set anywhere.
+Decoding is based on the CPU mode.
+
+The variable list is used when the debugger is given variables
+to debug by.
+
+The output window allows you to scroll through the last 1000
+or so log messages written from within the codebase by LOG()
+or LOG_MSG(). If the window is scrolled to the bottom, new
+messages will appear by default.
+
+The lowest row of the terminal is reserved for a line where
+the user can enter debugger commands. An underscore shows
+where the cursor is positioned.
+
+The code and data views have been fixed in DOSBox-X to indicate
+when data is not available to view for a specific segment:offset
+or linear address.
+
+If the CPU is in protected mode, and the segment portion refers
+to a segment that does not exist, or the offset extends past
+the limit of that segment, the code or data view will show
+'na' instead of a byte value.
+
+If 80386 paging is enabled, and the segment:offset or linear
+address refers to a page that is not present, then the data
+view will show 'pf' to indicate this.
+
+  na = segment does not exist, or offset exceeds segment limit
+
+  pf = segment:offset or linear address is paged out or
+       not present according to page tables.
+
+Debugger keyboard shortcuts
+---------------------------
+
+Tab                 Switch between windows
+F5                  Resume emulation
+F9                  Set/clear breakpoint
+F10                 Single step (over)
+F11                 Single step (into)
+Up arrow            Scroll up one line (if applicable)
+Down arrow          Scroll down one line (if applicable)
+Page Up             Scroll up by window height (if applicable)
+Page Down           Scroll down by window height (if applicable)
+
+Debugger commands
+-----------------
+
+MOVEWINDN                                   Move current window down
+MOVEWINDU                                   Move current window up
+SHOWWIN <winname>                           Show window (by name)
+HIDEWIN <winname>                           Hide window (by name)
+MEMDUMP <seg> <off> <bytecount>             Dump memory to file (MEMDUMP.TXT)
+MEMDUMPBIN <seg> <off> <bytecount>          Dump memory to file (MEMDUMP.BIN)
+IV <seg> <off> <name>                       Insert variable
+SV <name>                                   Save variables to <name>
+LV <name>                                   Load variables from <name>
+SR <reg> <value>                            Set register <reg> value to <value>
+SM <seg> <off> [bytes in hex]               Set memory at <seg>:<off> to byte values given
+BP <seg> <off>                              Add breakpoint (real mode)
+BPM <seg> <off>                             Add breakpoint (protected mode)
+BPLM <offset>                               Add breakpoint (linear/virtual address)
+BPINT <intnum>                              Add breakpoint on interrupt
+BPINT <intnum> <value>                      Add breakpoint on interrupt and AH=<value>
+BPLIST                                      List breakpoints
+BPDEL <breakpoint number>                   Delete breakpoint
+RUN                                         Resume emulation
+RUNWATCH                                    Resume emulation, but show state while running
+A20                                         Show A20 gate state
+A20 ON                                      Turn on A20 gate
+A20 OFF                                     Turn off A20 gate
+PIC                                         Show interrupt controller state
+PIC MASKIRQ <irq>                           Mask IRQ at interrupt controller
+PIC UNMASKIRQ <irq>                         Unmask IRQ at interrupt controller
+PIC ACKIRQ <irq>                            Acknowledge IRQ at interrupt controller
+PIC LOWERIRQ <irq>                          Manually lower interrupt signal
+PIC RAISEIRQ <irq>                          Manually raise interrupt signal
+C <seg> <off>                               Set code view to address
+D <seg> <off>                               Set data view to address (segment:offset)
+DV <offset>                                 Set data view to address (linear/virtual address)
+DP <offset>                                 Set data view to address (physical)
+LOG <hexadecimal count>                     Log CPU state, for the specified number of instructions, to LOGCPU.TXT
+LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.TXT
+LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
+INTT <intnum>                               Trace interrupt
+INT <intnum>                                Start interrupt
+SELINFO <n>                                 Show selector information
+DOS MCBS                                    Dump DOS kernel MCB chain (conventional memory allocation chain)
+DOS KERN                                    Dump DOS kernel memory allocation list
+DOS XMS                                     Dump XMS (extended memory) allocation list
+DOS EMS                                     Dump EMS (expanded memory) allocation list
+BIOS MEM                                    Dump BIOS allocation and layout list
+GDT                                         Dump GDT (global descriptor table)
+LDT                                         Dump LDT (local descriptor table)
+IDT                                         Dump IDT (interrupt descriptor table)
+PAGING                                      Dump page table information
+CPU                                         Dump additional CPU information
+INTVEC <file>                               Dump interrupt vector table to <file>
+INTHAND <intnum>                            Set code view to start of interrupt handler
+EXTEND                                      Toggle additional information
+TIMERIRQ                                    Start timer IRQ
+HEAVYLOG                                    Toggle heavy CPU logging
+ZEROPROTECT                                 Toggle zero protection
+HELP                                        Show some debugger commands for reference

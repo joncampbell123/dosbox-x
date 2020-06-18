@@ -53,14 +53,25 @@ git pull
 git clean -dfx
 git reset --hard
 ./build-mingw-hx-dos || exit 1
+
+# The paths of copied files and HX DOS Extender files 
+copydir="build-scripts/mingw/dosbox-x-mingw-hx-dos"
+hxdir="build-scripts/mingw/hxdos"
+
 strip src/dosbox-x.exe || exit 1
-cp src/dosbox-x.exe dosbox-x.exe || exit 1
-cp CHANGELOG CHANGELOG.txt || exit 1
+cp src/dosbox-x.exe $copydir/dosbox-x.exe || exit 1
+$hxdir/pestub.exe -n $copydir/dosbox-x.exe
+cp CHANGELOG $copydir/CHANGELOG.txt || exit 1
+cp dosbox-x.reference.conf $copydir/dosbox-x.ref || exit 1
+cp $hxdir/HDPMI32.EXE $copydir/ || exit 1
+cp $hxdir/HXGUIHLP.INI $copydir/ || exit 1
+cp $hxdir/README.TXT $copydir/ || exit 1
+cp $hxdir/*.DLL $copydir/ || exit 1
 
 cd "$top" || exit 1
 echo "Packing up now..."
 
-$ziptool -r -9 "$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe} || exit 1
+$ziptool -r -9 "$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
 
 exit 0
 

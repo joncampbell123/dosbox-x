@@ -104,7 +104,7 @@ Type: files; Name: "{app}\stderr.txt"
 var
   msg: string;
   build64: Boolean;    
-  Page: TInputOptionWizardPage;
+  PageBuild, PageVer: TInputOptionWizardPage;
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
 var
   Version: TWindowsVersion;
@@ -117,30 +117,36 @@ end;
 procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. ';
-    Page:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
-    Page.Add('Windows Release SDL1');
-    Page.Add('Windows Release SDL2');
-    Page.Add('Windows ARM SDL1 (ARM platform only)');
-    Page.Add('Windows ARM SDL2 (ARM platform only)');
-    Page.Add('MinGW build SDL1');
-    Page.Add('MinGW build for lowend systems');
-    Page.Add('MinGW build SDL2');
-    Page.Add('MinGW build with custom drawn menu');
+    PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
+    PageBuild.Add('Windows Release SDL1');
+    PageBuild.Add('Windows Release SDL2');
+    PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
+    PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
+    PageBuild.Add('MinGW build SDL1');
+    PageBuild.Add('MinGW build for lowend systems');
+    PageBuild.Add('MinGW build SDL2');
+    PageBuild.Add('MinGW build with custom drawn menu');
     if IsX86 or IsX64 then
     begin
-      Page.CheckListBox.ItemEnabled[2] := False;
-      Page.CheckListBox.ItemEnabled[3] := False;
+      PageBuild.CheckListBox.ItemEnabled[2] := False;
+      PageBuild.CheckListBox.ItemEnabled[3] := False;
     end
     if IsARM64 then
       begin
-        Page.Values[2] := True;
+        PageBuild.Values[2] := True;
       end
     else if IsWindowsVersionOrNewer(6, 0) then
       begin
-        Page.Values[0] := True;
+        PageBuild.Values[0] := True;
       end
     else
-      Page.Values[4] := True;
+      PageBuild.Values[4] := True;
+    msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, specifying the reported DOS version as 7.10 will enable long filename (LFN) and FAT32 disk image support by default.' #13#13 'If you leave this unselected, a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
+    PageVer:=CreateInputOptionPage(100, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
+    PageVer.Add('DOS version 3.30');
+    PageVer.Add('DOS version 5.00');
+    PageVer.Add('DOS version 6.22');
+    PageVer.Add('DOS version 7.10');
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
@@ -154,6 +160,10 @@ begin
         build64:=True;
     end;
   end;
+end;
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = 101) and FileExists(ExpandConstant('{app}\dosbox-x.conf'));
 end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
@@ -181,26 +191,45 @@ begin
     else
       msg:='32';
     msg:=msg+'-bit ';
-    if (Page.Values[0]) then
+    if (PageBuild.Values[0]) then
       msg:=msg+'Windows Release SDL1';
-    if (Page.Values[1]) then
+    if (PageBuild.Values[1]) then
       msg:=msg+'Windows Release SDL2';
-    if (Page.Values[2]) then
+    if (PageBuild.Values[2]) then
       msg:=msg+'Windows ARM SDL1';
-    if (Page.Values[3]) then
+    if (PageBuild.Values[3]) then
       msg:=msg+'Windows ARM SDL2';
-    if (Page.Values[4]) then
+    if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
-    if (Page.Values[5]) then
+    if (PageBuild.Values[5]) then
       msg:=msg+'MinGW for lowend systems';
-    if (Page.Values[6]) then
+    if (PageBuild.Values[6]) then
       msg:=msg+'MinGW build SDL2';
-    if (Page.Values[7]) then
+    if (PageBuild.Values[7]) then
       msg:=msg+'MinGW build with custom drawn menu';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
+    if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
+    begin
+      Wizardform.ReadyMemo.Lines.Add('');
+      Wizardform.ReadyMemo.Lines.Add('Reported DOS version:');
+      msg:='Default';
+      if (PageVer.Values[0]) then
+        msg:='3.30';
+      if (PageVer.Values[1]) then
+        msg:='5.00';
+      if (PageVer.Values[2]) then
+        msg:='6.22';
+      if (PageVer.Values[3]) then
+        msg:='7.10';
+      Wizardform.ReadyMemo.Lines.Add('      '+msg);
+    end
   end;
 end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
+var
+  i: Integer;
+  section, line, linetmp: String;
+  FileLines: TStringList;
 begin
   if (CurrentStep = ssPostInstall) then
   begin
@@ -208,6 +237,35 @@ begin
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
+      if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3]) then
+      begin
+        FileLines := TStringList.Create;
+        FileLines.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf'));
+        section := '';
+        for i := 0 to FileLines.Count - 1 do
+        begin
+          line := Trim(FileLines[i]);
+          if (Length(line)>2) and (Copy(line, 1, 1) = '[') and (Copy(line, Length(line), 1) = ']') then
+            section := Copy(line, 2, Length(line)-2);
+          if (Length(line)>0) and (Copy(line, 1, 1) <> '#') and (Copy(line, 1, 1) <> '[') and (Pos('=', line) > 1) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line) - 1));
+            if (CompareText(linetmp, 'ver') = 0) and (CompareText(section, 'dos') = 0) then
+            begin
+              if (PageVer.Values[0]) then
+                FileLines[i] := line+' 3.3';
+              if (PageVer.Values[1]) then
+                FileLines[i] := line+' 5.0';
+              if (PageVer.Values[2]) then
+                FileLines[i] := line+' 6.22';
+              if (PageVer.Values[3]) then
+                FileLines[i] := line+' 7.1';
+              break;
+            end
+          end
+        end
+        FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+      end
     end
     else if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO) then
     begin
@@ -236,34 +294,34 @@ begin
     if (build64) then
       begin
         dir:='Win64_builds\';
-        if (Page.Values[0]) then
+        if (PageBuild.Values[0]) then
           dir:=dir+'x64_Release';
-        if (Page.Values[1]) then
+        if (PageBuild.Values[1]) then
           dir:=dir+'x64_Release_SDL2';
-        if (Page.Values[2]) then
+        if (PageBuild.Values[2]) then
           dir:=dir+'ARM64\Release';
-        if (Page.Values[3]) then
+        if (PageBuild.Values[3]) then
           dir:=dir+'ARM64\Release_SDL2';
       end
     else
       begin
         dir:='Win32_builds\';
-        if (Page.Values[0]) then
+        if (PageBuild.Values[0]) then
           dir:=dir+'x86_Release';
-        if (Page.Values[1]) then
+        if (PageBuild.Values[1]) then
           dir:=dir+'x86_Release_SDL2';
-        if (Page.Values[2]) then
+        if (PageBuild.Values[2]) then
           dir:=dir+'ARM_Release';
-        if (Page.Values[3]) then
+        if (PageBuild.Values[3]) then
           dir:=dir+'ARM_Release_SDL2';
       end
-    if (Page.Values[4]) then
+    if (PageBuild.Values[4]) then
       dir:=dir+'mingw';
-    if (Page.Values[5]) then
+    if (PageBuild.Values[5]) then
       dir:=dir+'mingw-lowend';
-    if (Page.Values[6]) then
+    if (PageBuild.Values[6]) then
       dir:=dir+'mingw-sdl2';
-    if (Page.Values[7]) then
+    if (PageBuild.Values[7]) then
       dir:=dir+'mingw-sdldraw';
     Result := False;
     if (dir=name) then
