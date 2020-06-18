@@ -1,4 +1,8 @@
 0.83.3
+  - Improved the HX-DOS build script to make it fully
+    automated: all required HX DOS Extender files will
+    be included in the package, and dosbox-x.exe can
+    now be run directly in a real DOS system. (Wengier)
   - Fixed incorrect frame rate reported by 3Dfx Voodoo
     emulation (rderooy, backported from DOSBox SVN).
   - Added the "Boot from disk image" menu item (A:, C:,
@@ -14,15 +18,15 @@
   - Support for reloading the keyboard mapper file with
     the config -set command. (Wengier)
   - IMGMOUNT can now autodetect DOS <= 3.21 harddisk
-    geometry with MFM sector images (rderooy)
+    geometry with MFM sector images (rderooy & Wengier)
   - IMGMOUNT -fs none fixed to use same geometry detect
     function that FAT filesystem mounting uses.
   - Added suppprt for mounting overlay drives using MOUNT
-    command with "-t overlay" option. Ported from DOSBox
-    SVN and adopted for DOSBox-X with additional features
-    such as long filename and PC-98 support, this allows
-    the users to redirect new and changed file(s) to a
-    different location transparently. (Wengier)
+    command with "-t overlay" option. Backported from
+    DOSBox SVN and adopted for DOSBox-X with additional
+    features such as long filename and PC-98 support, it
+    allows the users to redirect new and changed file(s)
+    to different location transparently. (Wengier)
   - Cleaned up the DPI awareness auto detection code to
     allow Visual Studio builds to again run on Windows 7.
     Meanwhile, MinGW builds (either SDL1 or SDL2 version)
