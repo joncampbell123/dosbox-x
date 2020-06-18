@@ -1,13 +1,13 @@
 **README for DOSBox-X** (official website: [dosbox-x.com](http://dosbox-x.com))
 
-**Introduction to DOSBox-X**
----------------
+Introduction to DOSBox-X
+------------------------
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com)
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
-Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use. Instead of focusing on a  particular platform, we try our best to deliver a consistent cross-platform experience for users. While we have made effort to maintain and improve the emulation accuracy, we also strike a balance between emulation quality, speed, and usability.
+Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use. Instead of focusing on a particular platform, we try our best to deliver a consistent cross-platform experience for users. While we have made effort to maintain and improve the emulation accuracy, we also strike a balance between emulation quality, speed, and usability.
 
 For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
@@ -53,7 +53,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting as well as clipboard copy and paste on the Windows platform.
+DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting as well as clipboard copy and paste on the Windows platform. These features cannot be easily ported to other platforms.
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
@@ -173,8 +173,8 @@ system to limit what the DOSBox-X executable is allowed to do.
 Features that DOSBox-X unlikely to support at this time
 -------------------------------------------------------
 
-DOSBox-X aims for accuracy in emulation however there are some things the
-design as implemented now cannot accomodate.
+DOSBox-X aims to be a fully-featured DOS emulation package, but there are
+some things the design as implemented now cannot accomodate.
 
 * Pentium II or higher CPU level emulation.
 
@@ -303,7 +303,7 @@ project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X.
 
-Later on, DOSBox-X also incorporated some features and improvements
+Later on, DOSBox-X also incorporated several features and improvements
 from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
 [vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
 such as Wengier and rderooy.
