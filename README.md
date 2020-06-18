@@ -69,11 +69,11 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 3. Mac OS X Sierra 10.12 or higher 64-bit
 
-4. MS-DOS (or compatible) with HX DOS Extender
+4. MS-DOS or compatible (with the help of HX DOS Extender)
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
 
-Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
+Note that the Visual Studio builds only support Windows Vista and later versions. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds may happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
 
 Compatibility with DOS programs and games
