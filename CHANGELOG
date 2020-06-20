@@ -1,5 +1,7 @@
 0.83.3
-  - Improved the HX-DOS build script to make it fully
+  - IMGMOUNT command without parameters will show disk
+    names for drive-number only mounts. (Wengier)
+  - Improved the HX-DOS build package to make it fully
     automated: all required HX DOS Extender files will
     be included in the package, and dosbox-x.exe can
     now be run directly in a real DOS system without
