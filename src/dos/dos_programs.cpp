@@ -3321,16 +3321,12 @@ public:
             root[1] = 0; //This way, the format string can be reused.
             WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
         }
-		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		bool numbers=false;
-		for (int index = 0; index < MAX_DISK_IMAGES; index++)
-			if (imageDiskList[index]) {
-				if (numbers) WriteOut(",");
-				numbers=true;
-				WriteOut(" %d", index);
-			}
-		if (!numbers) WriteOut(" none");
 		WriteOut("\n");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
+        for(int p = 0;p < 8;p++) WriteOut("----------");
+		for (int index = 0; index < MAX_DISK_IMAGES; index++)
+			if (imageDiskList[index]) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
         dos.dta(save_dta);
     }
     void Run(void) {
@@ -5360,11 +5356,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
     MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
+    MSG_Add("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT","%-12s  %-50s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as El Torito floppy drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
-    MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
