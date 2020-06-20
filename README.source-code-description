@@ -1380,37 +1380,4 @@ Some of the code in this source tree also came from other forks of
 DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging as well as
 vDosPlus, with major works from contributors like Wengier and rderooy.
 
-This is my attempt to properly credit the code and it's sources below.
-It is not yet complete, and feel free to revise and correct this list
-if there are errors.
-
-NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
-
-MT32 synthesizer (MUNT; LGPLv2.1+) src/mt32/.cpp src/mt32/.h
-
-AVI writer with OpenDML support (written by myself; GPLv2+) src/aviwriter/.cpp src/aviwriter/.h
-
-Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
-
-Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
-
-FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
-
-NukedOPL OPL3 emulation (Alexey Khokholov; GPLv2+) src/hardware/nukedopl.cpp
-
-OPL emulation based on Ken Silverman OPL2 emulation (LGPLv2.1+) src/hardware/opl.cpp
-
-MOS6581 SID emulation (GPLv2+) src/hardware/reSID/.cpp src/hardware/reSID/.h
-
-SN76496 emulation (MAME project; GPLv2+) src/hardware/sn76496.h src/hardware/tandy_sound.cpp
-
-PC-98 video rendering and I/O handling code (written by myself; GPLv2+) src/hardware/vga_pc98*.cpp
-
-3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause) src/hardware/voodoo_emu.cpp
-
-PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
-
-QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
-
-HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templates_hq2x.h
-
+For more information please look at the CREDITS.md file.
