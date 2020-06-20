@@ -308,7 +308,7 @@ from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DO
 [vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
 such as Wengier and rderooy.
 
-See also the [DOSBox-X source code description](README.source-code-description) page for crediting of the source code.
+See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 
 Known DOSBox-X forks
