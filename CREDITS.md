@@ -5,8 +5,7 @@ Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all
 
 Some of the code is DOSBox SVN code in which some of the SVN commits made since 2011 were incorporated into DOSBox-X.
 
-Some of the source code also came from DOSBox forks such as DOSBox Daum, DOSBox ECE, DOSBox-staging as well as
-vDosPlus, with major works from contributors like Wengier and rderooy.
+Some of the source code also came from similar projects such as DOSBox Daum, DOSBox ECE, DOSBox-staging and vDosPlus, with major works from contributors like Wengier and rderooy.
 
 A list of features ported from DOSBox Daum:
 
@@ -18,7 +17,7 @@ A list of features ported from DOSBox Daum:
 * MT-32 emulation (MUNT)
 * Internal 3dfx voodoo chip emulation
 * Some support for FluidSynth MIDI synthesizer
-* improved PC Speaker emulation accuracy
+* Improved PC Speaker emulation accuracy
 * CGA with Monochrome Monitor Support
 * Support for CPU types like Pentium MMX
 * Features such as V-Sync, xBRZ scaler, overscan border and stereo-swap
@@ -47,7 +46,7 @@ A list of features ported from vDosPlus by Wengier:
 
 Features such as save and load states are also recently ported from community contributions and have since been improved by the DOSBox-X project.
 
-This is an attempt to properly credit the other code and its sources below. It is not yet complete, and feel free to revise and correct this list if there are errors.
+This is an attempt to properly credit the other code and its sources below. It is not yet a complete list, and please feel free to revise and correct this list if there are errors.
 
 NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
 
