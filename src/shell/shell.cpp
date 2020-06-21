@@ -577,7 +577,7 @@ void DOS_Shell::Run(void) {
 
     }
     else {
-        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nBased on DOSBox by the DOSBox Team, 2011-2020\n\n",VERSION,SDL_STRING);
+        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
     }
 
 	if (cmd->FindString("/INIT",line,true)) {
@@ -878,8 +878,6 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported commands type \033[33;1mHELP /ALL\033[0m.\nA short list of the most often used commands:\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
-        MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER",
-	        "Unexpected control character: Dec %03u and Hex %#04x.\n");
 	MSG_Add("SHELL_ILLEGAL_SWITCH","Illegal switch: %s.\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
