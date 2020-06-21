@@ -26,12 +26,13 @@ A list of features ported from DOSBox Daum:
 
 A list of features ported from DOSBox ECE:
 
+* Support for FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 * Support for mapping mouse buttons to keyboard
 * Improved support for FluidSynth MIDI synthesizer
+* Updated Nuked OPL3 to 1.8
 
 A list of features ported from DOSBox-staging:
 
-* Support for FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 * AUTOTYPE command for scripted keyboard entry
 * LS command (heavily improved since then by Wengier)
 * Modem phonebook support
