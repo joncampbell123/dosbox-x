@@ -1,7 +1,7 @@
 Credits
 =======
 
-The developer of DOSBox-X does not claim to have written all of the code in this project.
+Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all of the code in this project.
 
 Some of the code is DOSBox SVN code in which some of the SVN commits made since 2011 were incorporated into DOSBox-X.
 
@@ -22,7 +22,7 @@ A list of features ported from DOSBox Daum:
 * CGA with Monochrome Monitor Support
 * Support for CPU types like Pentium MMX
 * Features such as V-Sync, xBRZ scaler, overscan border and stereo-swap
-* Patches such as DBCS and font patch
+* Various patches such as DBCS and font patch
 
 A list of features ported from DOSBox ECE:
 
