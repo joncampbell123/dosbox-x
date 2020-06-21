@@ -1,6 +1,4 @@
 0.83.3
-  - IMGMOUNT command without parameters will show disk
-    names for drive-number only mounts. (Wengier)
   - Improved the HX-DOS build package to make it fully
     automated: all required HX DOS Extender files will
     be included in the package, and dosbox-x.exe can
@@ -20,6 +18,8 @@
     arrows or PageUp/PageDn keys respectively. (Wengier)
   - Support for reloading the keyboard mapper file with
     the config -set command. (Wengier)
+  - IMGMOUNT command without parameters will show disk
+    names for drive-number only mounts. (Wengier)
   - IMGMOUNT can now autodetect DOS <= 3.21 harddisk
     geometry with MFM sector images (rderooy & Wengier)
   - IMGMOUNT -fs none fixed to use same geometry detect
