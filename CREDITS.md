@@ -3,10 +3,9 @@ Credits
 
 Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all of the code in this project.
 
-Some of the code is DOSBox SVN code in which some of the SVN commits made since 2011 were incorporated into DOSBox-X.
+The original code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X.
 
-Some of the source code also came from similar projects such as [DOSBox Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier and rderooy.
-
+Some of the source code also came from similar projects such as [DOSBox Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
 
 A list of features ported from DOSBox Daum:
 
