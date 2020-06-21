@@ -5,7 +5,8 @@ Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all
 
 Some of the code is DOSBox SVN code in which some of the SVN commits made since 2011 were incorporated into DOSBox-X.
 
-Some of the source code also came from similar projects such as DOSBox Daum, DOSBox ECE, DOSBox-staging and vDosPlus, with major works from contributors like Wengier and rderooy.
+Some of the source code also came from similar projects such as [DOSBox Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier and rderooy.
+
 
 A list of features ported from DOSBox Daum:
 
@@ -44,7 +45,7 @@ A list of features ported from vDosPlus by Wengier:
 * Support for clipboard copy and paste (Windows)
 * Several shell improvements
 
-Features such as save and load states are also recently ported from community contributions and have since been improved by the DOSBox-X project.
+Features such as save and load states have also been recently ported from community contributions and have since been improved by the DOSBox-X project.
 
 This is an attempt to properly credit the other code and its sources below. It is not yet a complete list, and please feel free to revise and correct this list if there are errors.
 
