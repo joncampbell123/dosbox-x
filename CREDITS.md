@@ -44,7 +44,9 @@ A list of features ported from vDosPlus by Wengier:
 * Support for clipboard copy and paste (Windows)
 * Several shell improvements
 
-Features such as save and load states have also been recently ported from community contributions and have since been improved by the DOSBox-X project.
+Features such as save and load states were also ported from community contributions and have since been improved by the DOSBox-X project.
+
+The DOSBox-X Wiki pages were created and updated by Wengier and rderooy. 
 
 This is an attempt to properly credit the other code and its sources below. It is not yet a complete list, and please feel free to revise and correct this list if there are errors.
 
