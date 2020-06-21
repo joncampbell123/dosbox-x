@@ -15,8 +15,9 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
  *
- *  Heavy improvements by the DOSBox-X Team - joncampbell123, Wengier, rderooy
- *  AUTOTYPE Copyright (C) 2020 The dosbox-staging team
+ *  Heavy improvements to various commands by the DOSBox-X Team
+ *  With major works from joncampbell123, Wengier, and rderooy
+ *  AUTOTYPE command Copyright (C) 2020 the dosbox-staging team
  */
 
 
