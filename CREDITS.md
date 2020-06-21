@@ -12,7 +12,7 @@ A list of features ported from DOSBox Daum:
 
 * GUI menu bar (heavily improved since then)
 * Some commands (PROMPT, MOUSE, VOL, DEVICE, etc)
-* Some support for automatic drive mount (Windows)
+* Basic support for automatic drive mount (Windows)
 * Printer output
 * NE2000 Ethernet
 * MT-32 emulation (MUNT)
@@ -33,17 +33,18 @@ A list of features ported from DOSBox-staging:
 
 * Support for FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 * AUTOTYPE command for scripted keyboard entry
-* LS command (heavily improved since then)
+* LS command (heavily improved since then by Wengier)
 * Modem phonebook support
 * Support for changing key bindings in runtime
 
-A list of features ported from vDosPlus:
+A list of features ported from vDosPlus by Wengier:
 
-* Long filename support (improved for FAT drives since then)
-* Clipboard copy & paste (Windows)
+* Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
+* Improved support for automatic drive mount (Windows)
+* Support for clipboard copy and paste (Windows)
 * Several shell improvements
 
-This is an attempt to properly credit the other code and it's sources below. It is not yet complete, and feel free to revise and correct this list if there are errors.
+This is an attempt to properly credit the other code and its sources below. It is not yet complete, and feel free to revise and correct this list if there are errors.
 
 NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
 
