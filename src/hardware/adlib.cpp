@@ -645,7 +645,7 @@ bool Chip::Write( Bit32u reg, Bit8u val ) {
 			timer1.Reset( time );
 		} else {
 			//timer 0 not masked
-			if (!(val & 0x40)) {
+			if (val&0x20) {
 				if (val & 0x1) {
 					timer0.Start(time);
 				}
@@ -654,7 +654,7 @@ bool Chip::Write( Bit32u reg, Bit8u val ) {
 				}
 			}
 			//Timer 1 not masked
-			if (!(val & 0x20)) {
+			if (val&0x40) {
 				if (val & 0x2) {
 					timer1.Start(time);
 				}
