@@ -868,6 +868,8 @@ overflow:
 }
 
 std::string full_arguments = "";
+bool infix=false;
+extern bool packerr;
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1097,6 +1099,7 @@ continue_1:
 		SegSet16(cs,RealSeg(newcsip));
 		reg_ip=RealOff(newcsip);
 #endif
+		packerr=false;
 		/* Start up a dos execute interrupt */
 		reg_ax=0x4b00;
 		//Filename pointer
@@ -1113,6 +1116,20 @@ continue_1:
 		reg_eip=oldeip;
 		SegSet16(cs,oldcs);
 #endif
+		if (packerr&&!infix) {
+			Bit16u segment;
+			Bit16u blocks = (Bit16u)(64*1024/16);
+			if (DOS_AllocateMemory(&segment,&blocks)) {
+				DOS_MCB mcb((Bit16u)(segment-1));
+				mcb.SetPSPSeg(0x40);
+				WriteOut("\r\nTrying to run with LOADFIX..\r\n");
+				infix=true;
+				Execute(name, args);
+				infix=false;
+				DOS_FreeMemory(segment);
+			}
+		}
+		packerr=false;
 	}
 	return true; //Executable started
 }

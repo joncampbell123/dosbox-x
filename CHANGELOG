@@ -1,4 +1,7 @@
 0.83.3
+  - DOSBox-X will try to automatically run the program
+    with LOADFIX if the error message "Packed file is
+    corrupt" is detected. (Wengier)
   - MOUNT command can now mount a drive to the UNC
     root path in the form \\ComputerName\SharedFolder
     on Windows systems (Wengier)
