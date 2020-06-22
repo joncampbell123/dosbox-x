@@ -14,6 +14,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *
+ *  Heavy improvements by the DOSBox-X Team
+ *  With major works from joncampbell123 and Wengier
  */
 
 
@@ -1009,6 +1012,9 @@ bool localDrive::TestDir(const char * dir) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
         return false;
     }
+
+	std::string temp_line=std::string(newdir);
+	if(temp_line.size() > 4 && temp_line[0]=='\\' && temp_line[1]=='\\' && temp_line[2]!='\\' && std::count(temp_line.begin()+3, temp_line.end(), '\\')==1) strcat(newdir,"\\");
 
 	// Skip directory test, if "\"
 	size_t len = strlen(newdir);
