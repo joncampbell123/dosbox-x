@@ -1,4 +1,7 @@
 0.83.3
+  - MOUNT command can now mount a drive to the UNC
+    root path in the form \\ComputerName\SharedFolder
+    on Windows systems (Wengier)
   - Improved the HX-DOS build package to make it fully
     automated: all required HX DOS Extender files will
     be included in the package, and dosbox-x.exe can
