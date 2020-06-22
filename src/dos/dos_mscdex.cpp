@@ -1154,75 +1154,70 @@ static bool MSCDEX_Handler(void) {
 
 	PhysPt data = PhysMake(SegValue(es),reg_bx);
 	MSCDEX_LOG("MSCDEX: INT 2F AX=%04X BX=%04X CX=%04X",reg_ax,reg_bx,reg_cx);
+	CALLBACK_SCF(false); // carry flag cleared for all functions (undocumented); only set on error
 	switch (reg_ax) {
-	
 		case 0x1500:	/* Install check */
 						reg_bx = mscdex->GetNumDrives();
 						if (reg_bx>0) reg_cx = mscdex->GetFirstDrive();
 						reg_al = 0xff;
-						return true;
+						break;
 		case 0x1501:	/* Get cdrom driver info */
 						mscdex->GetDriverInfo(data);
-						return true;
+						break;
 		case 0x1502:	/* Get Copyright filename */
 		case 0x1503:	/* Get Abstract filename */
 		case 0x1504:	/* Get Documentation filename */
-						if (mscdex->GetFileName(reg_cx,702+(reg_al-2)*37,data)) {
-							CALLBACK_SCF(false);
-						} else {
+						if (!mscdex->GetFileName(reg_cx,702+(reg_al-2)*37,data)) {
 							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
-							CALLBACK_SCF(true);							
+							CALLBACK_SCF(true);						
 						}
-						return true;		
+						break;		
 		case 0x1505: {	// read vtoc 
 						Bit16u offset = 0, error = 0;
-						if (mscdex->ReadVTOC(reg_cx,reg_dx,data,offset,error)) {
-//							reg_ax = error;	// return code
-							CALLBACK_SCF(false);
-						} else {
-							reg_ax = error;
-							CALLBACK_SCF(true);							
-						}
-					 }
-						return true;
+						bool success = mscdex->ReadVTOC(reg_cx,reg_dx,data,offset,error);
+						reg_ax = error;
+						if (!success) CALLBACK_SCF(true);
+					}
+						break;
+		case 0x1506:	/* Debugging on */
+		case 0x1507:	/* Debugging off */
+						// not functional in production MSCDEX
+						break;
 		case 0x1508: {	// read sectors 
 						Bit32u sector = ((Bit32u)reg_si << 16u) + (Bit32u)reg_di;
 						if (mscdex->ReadSectors(reg_cx,sector,reg_dx,data)) {
 							reg_ax = 0;
-							CALLBACK_SCF(false);
 						} else {
 							// possibly: MSCDEX_ERROR_DRIVE_NOT_READY if sector is beyond total length
 							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
 							CALLBACK_SCF(true);
 						}
-						return true;
-					 }
+					}
+						break;
 		case 0x1509:	// write sectors - not supported 
 						reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
 						CALLBACK_SCF(true);
-						return true;
+						break;
+		case 0x150A:	/* Reserved */
+						break;
 		case 0x150B:	/* Valid CDROM drive ? */
 						reg_ax = (mscdex->IsValidDrive(reg_cx) ? 0x5ad8 : 0x0000);
 						reg_bx = 0xADAD;
-						return true;
+						break;
 		case 0x150C:	/* Get MSCDEX Version */
 						reg_bx = mscdex->GetVersion();
-						return true;
+						break;
 		case 0x150D:	/* Get drives */
 						mscdex->GetDrives(data);
-						return true;
+						break;
 		case 0x150E:	/* Get/Set Volume Descriptor Preference */
 						if (mscdex->IsValidDrive(reg_cx)) {
 							if (reg_bx == 0) {
 								// get preference
 								reg_dx = 0x100;	// preference?
-								CALLBACK_SCF(false);
 							} else if (reg_bx == 1) {
 								// set preference
-								if (reg_dh == 1) {
-									// valid
-									CALLBACK_SCF(false);
-								} else {
+								if (reg_dh != 1) {
 									reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
 									CALLBACK_SCF(true);
 								}
@@ -1234,23 +1229,25 @@ static bool MSCDEX_Handler(void) {
 							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
 							CALLBACK_SCF(true);
 						}
-						return true;
+						break;
 		case 0x150F: {	// Get directory entry
 						Bit16u error;
 						bool success = mscdex->GetDirectoryEntry(reg_cl,reg_ch&1,data,PhysMake(reg_si,reg_di),error);
 						reg_ax = error;
-						CALLBACK_SCF(!success);
-					 }	return true;
+						if (!success) CALLBACK_SCF(true);
+					 }
+						break;
 		case 0x1510:	/* Device driver request */
-						if (mscdex->SendDriverRequest(reg_cx,data)) {
-							CALLBACK_SCF(false);
-						} else {
+						if (!mscdex->SendDriverRequest(reg_cx,data)) {
 							reg_ax = MSCDEX_ERROR_UNKNOWN_DRIVE;
 							CALLBACK_SCF(true);
 						}
-						return true;
+						break;
+		default:		LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unknown call : %04X",reg_ax);
+						reg_ax = MSCDEX_ERROR_INVALID_FUNCTION;
+						CALLBACK_SCF(true);
+						break;
 	}
-	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unknown call : %04X",reg_ax);
 	return true;
 }
 
