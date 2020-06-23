@@ -26,45 +26,64 @@
 
 #if C_FPU
 
-MMX_reg reg_mmx[8];
-
+MMX_reg *reg_mmx[8] = {
+#if defined(HAS_LONG_DOUBLE)
+	&fpu._do_not_use__regs[0].reg_mmx,
+	&fpu._do_not_use__regs[1].reg_mmx,
+	&fpu._do_not_use__regs[2].reg_mmx,
+	&fpu._do_not_use__regs[3].reg_mmx,
+	&fpu._do_not_use__regs[4].reg_mmx,
+	&fpu._do_not_use__regs[5].reg_mmx,
+	&fpu._do_not_use__regs[6].reg_mmx,
+	&fpu._do_not_use__regs[7].reg_mmx,
+#else
+	&fpu.regs[0].reg_mmx,
+	&fpu.regs[1].reg_mmx,
+	&fpu.regs[2].reg_mmx,
+	&fpu.regs[3].reg_mmx,
+	&fpu.regs[4].reg_mmx,
+	&fpu.regs[5].reg_mmx,
+	&fpu.regs[6].reg_mmx,
+	&fpu.regs[7].reg_mmx,
+#endif
+};
 
 MMX_reg * lookupRMregMM[256]={
-	&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],
-	&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],
-	&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],
-	&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],
-	&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],
-	&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],
-	&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],
-	&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],
+	reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+	reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+	reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+	reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+	reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+	reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+	reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+	reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
 
-	&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],
-	&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],
-	&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],
-	&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],
-	&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],
-	&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],
-	&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],
-	&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],
+	reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+	reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+	reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+	reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+	reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+	reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+	reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+	reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
 
-	&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],
-	&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],
-	&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],
-	&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],
-	&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],
-	&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],
-	&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],
-	&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],
+	reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+	reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+	reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+	reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+	reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+	reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+	reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+	reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
 
-	&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],&reg_mmx[0],
-	&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],&reg_mmx[1],
-	&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],&reg_mmx[2],
-	&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],&reg_mmx[3],
-	&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],&reg_mmx[4],
-	&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],&reg_mmx[5],
-	&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],&reg_mmx[6],
-	&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],&reg_mmx[7],
+	reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+	reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+	reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+	reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+	reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+	reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+	reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+	reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
 };
 
 
@@ -96,10 +115,19 @@ Bit16u SaturateDwordSToWordU(Bit32s value)
   return (Bit16u) value;
 }
 
-void setFPU(Bit16u tag) {
-	FPU_SET_TOP(0);
-	TOP=FPU_GET_TOP();
-	FPU_SetTag(tag);
+void setFPUTagEmpty() {
+	FPU_SetCW(0x37F);
+	fpu.sw = 0;
+	TOP = FPU_GET_TOP();
+	fpu.tags[0] = TAG_Empty;
+	fpu.tags[1] = TAG_Empty;
+	fpu.tags[2] = TAG_Empty;
+	fpu.tags[3] = TAG_Empty;
+	fpu.tags[4] = TAG_Empty;
+	fpu.tags[5] = TAG_Empty;
+	fpu.tags[6] = TAG_Empty;
+	fpu.tags[7] = TAG_Empty;
+	fpu.tags[8] = TAG_Valid; // is only used by us
 }
 
 #endif
