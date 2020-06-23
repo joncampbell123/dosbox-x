@@ -68,3 +68,30 @@ compat-site-update:
 	(cd ../dosbox-x-gh-pages && git add msdos-compat.html)
 	(cd ../dosbox-x-gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
 
+install: src/dosbox-x
+	install -D -d $(DESTDIR)$(bindir)
+	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
+	install -D -d $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 font/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -D -d $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
+	install -m 644 src/dosbox.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	install -d $(DESTDIR)$(prefix)/share/applications
+	install -m 644 dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
+	install -d $(DESTDIR)$(prefix)/share/metainfo
+	install -m 644 dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
+	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
+
+install_strip: src/dosbox-x install
+	install -m 755 -s src/dosbox-x $(DESTDIR)$(bindir)
+	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
+
+uninstall:
+	rm -f $(DESTDIR)$(bindir)/dosbox-x
+	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/*
+	rmdir $(DESTDIR)$(prefix)/share/dosbox-x
+	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	rm -f $(DESTDIR)$(prefix)/share/applications/dosbox-x.desktop
+	rm -f $(DESTDIR)$(prefix)/share/metainfo/dosbox-x.appdata.xml
+
