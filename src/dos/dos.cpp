@@ -87,6 +87,7 @@ bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 bool rsize = false;
+bool packerr = false;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
 int dos_clipboard_device_access;
@@ -97,6 +98,7 @@ int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
+extern bool infix;
 extern bool int15_wait_force_unmask_irq;
 extern bool startup_state_numlock;
 
@@ -560,6 +562,7 @@ static Bitu DOS_21Handler(void) {
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     
     static Bitu time_start = 0; //For emulating temporary time changes.
+    if (reg_ah!=0x4c) packerr=false;
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
             /* HACK for demoscene prod parties/1995/wired95/surprisecode/w95spcod.zip/WINNERS/SURP-KLF
@@ -1420,6 +1423,7 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
+                if (reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite)) packerr=true;
                 if (DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
                     reg_ax=towrite;
                     CALLBACK_SCF(false);
@@ -1561,7 +1565,7 @@ static Bitu DOS_21Handler(void) {
                 break;
             }
         case 0x4b:                  /* EXEC Load and/or execute program */
-            { 
+            {
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
                 LOG(LOG_EXEC,LOG_NORMAL)("Execute %s %d",name1,reg_al);
                 if (!DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
@@ -3082,6 +3086,7 @@ public:
         }
 	}
 	~DOS(){
+		infix=false;
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

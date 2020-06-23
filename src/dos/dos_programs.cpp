@@ -810,6 +810,7 @@ public:
 #if defined (WIN32) || defined(OS2)
             /* Removing trailing backslash if not root dir so stat will succeed */
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
+			if(temp_line.size() > 4 && temp_line[0]=='\\' && temp_line[1]=='\\' && temp_line[2]!='\\' && std::count(temp_line.begin()+3, temp_line.end(), '\\')==1) temp_line.append("\\");
             if (!is_physfs && stat(temp_line.c_str(),&test)) {
 #endif
 #if defined(WIN32)

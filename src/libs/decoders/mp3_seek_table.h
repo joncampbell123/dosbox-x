@@ -1,6 +1,6 @@
 /*
- * DOSBox MP3 Seek Table Handler
- * -----------------------------
+ * DOSBox-X MP3 Seek Table Handler
+ * -------------------------------
  * See mp3_seek_table.cpp for more documentation.
  *
  * The seek table handler makes use of the following single-header
@@ -9,7 +9,7 @@
  *   - archive: https://github.com/voidah/archive, by Arthur Ouellet
  *   - xxHash: http://cyan4973.github.io/xxHash, by Yann Collet
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The DOSBox-X Team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -55,8 +55,8 @@ struct drmp3_seek_point_serial {
 //   - a pointer to the working dr_mp3 instance
 //   - a template vector of seek_points (the serializeable form)
 struct mp3_t {
-    drmp3* p_dr;    // the actual drmp3 instance we open, read, and seek within
-    std::vector<drmp3_seek_point_serial> seek_points_vector;
+    drmp3* p_dr = nullptr;    // the actual drmp3 instance we open, read, and seek within
+    std::vector<drmp3_seek_point_serial> seek_points_vector = {};
 };
 
 uint64_t populate_seek_points(struct SDL_RWops* const context,
