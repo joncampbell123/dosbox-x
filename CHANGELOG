@@ -1,4 +1,6 @@
 0.83.3
+  - Updated the code for Pentium MMX instructions to
+    the latest version by kekko (Wengier)
   - DOSBox-X will try to automatically run the program
     with LOADFIX if the error message "Packed file is
     corrupt" is detected. (Wengier)
