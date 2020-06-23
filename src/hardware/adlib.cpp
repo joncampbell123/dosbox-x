@@ -619,9 +619,6 @@ skipWrite:
 Chip
 */
 
-Chip::Chip() : timer0(80), timer1(320) {
-}
-
 bool Chip::Write( Bit32u reg, Bit8u val ) {
 	if (adlib_force_timer_overflow_on_polling) {
 		/* detect end of polling loop by whether it writes */
@@ -631,37 +628,37 @@ bool Chip::Write( Bit32u reg, Bit8u val ) {
 
 	switch ( reg ) {
 	case 0x02:
-		timer0.SetCounter(val);
+		timer[0].counter = val;
 		return true;
 	case 0x03:
-		timer1.SetCounter(val);
+		timer[1].counter = val;
 		return true;
 	case 0x04:
 		double time;
 		time = PIC_FullIndex();
-		//Reset overflow in both timers
 		if ( val & 0x80 ) {
-			timer0.Reset( time );
-			timer1.Reset( time );
+			timer[0].Reset( time );
+			timer[1].Reset( time );
 		} else {
-			//timer 0 not masked
-			if (val&0x20) {
-				if (val & 0x1) {
-					timer0.Start(time);
-				}
-				else {
-					timer0.Stop();
-				}
+			timer[0].Update( time );
+			timer[1].Update( time );
+			if ( val & 0x1 ) {
+				timer[0].Start( time, 80 );
+			} else {
+				timer[0].Stop( );
 			}
-			//Timer 1 not masked
-			if (val&0x40) {
-				if (val & 0x2) {
-					timer1.Start(time);
-				}
-				else {
-					timer1.Stop();
-				}
+			timer[0].masked = (val & 0x40) > 0;
+			if ( timer[0].masked )
+				timer[0].overflow = false;
+			if ( val & 0x2 ) {
+				timer[1].Start( time, 320 );
+			} else {
+				timer[1].Stop( );
 			}
+			timer[1].masked = (val & 0x20) > 0;
+			if ( timer[1].masked )
+				timer[1].overflow = false;
+
 		}
 		return true;
 	}
@@ -670,7 +667,9 @@ bool Chip::Write( Bit32u reg, Bit8u val ) {
 
 
 Bit8u Chip::Read( ) {
-	const double time( PIC_FullIndex() );
+	double time( PIC_FullIndex() );
+	timer[0].Update( time );
+	timer[1].Update( time );
 
 	if (adlib_force_timer_overflow_on_polling) {
 		static const double poll_timeout = 0.1; /* if polling more than 100us per second, do timeout */
@@ -682,13 +681,13 @@ Bit8u Chip::Read( ) {
 //			LOG_MSG("Adlib polling hack triggered. Forcing timers to reset. Hope this helps your DOS game to detect Adlib.");
 
 			poll_counter = 0;
-			if (!timer0.overflow && timer0.enabled) {
-				timer0.Stop();
-				timer0.overflow = true;
+			if (!timer[0].overflow && timer[0].enabled) {
+				timer[0].Stop();
+				timer[0].overflow = true;
 			}
-			if (!timer1.overflow && timer1.enabled) {
-				timer1.Stop();
-				timer1.overflow = true;
+			if (!timer[1].overflow && timer[1].enabled) {
+				timer[1].Stop();
+				timer[1].overflow = true;
 			}
 		}
 
@@ -697,15 +696,16 @@ Bit8u Chip::Read( ) {
 
 	Bit8u ret = 0;
 	//Overflow won't be set if a channel is masked
-	if (timer0.Update(time)) {
+	if ( timer[0].overflow ) {
 		ret |= 0x40;
 		ret |= 0x80;
 	}
-	if (timer1.Update(time)) {
+	if ( timer[1].overflow ) {
 		ret |= 0x20;
 		ret |= 0x80;
 	}
 	return ret;
+
 }
 
 void Module::CacheWrite( Bit32u reg, Bit8u val ) {
