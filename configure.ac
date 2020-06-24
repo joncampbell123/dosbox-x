@@ -363,14 +363,17 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+dnl LIBRARY TEST: SDLnet 1.x initial test
+AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -limm32 -lole32"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-         LIBS="$LIBS -lws2_32"
+       if test x$have_sdl_net_h = xyes ; then
+         LIBS="$LIBS -lws2_32 -liphlpapi"
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
