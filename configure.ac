@@ -363,6 +363,27 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+dnl LIBRARY TEST: SDL 2.x
+SDL2_VERSION=2.0.5
+AM_PATH_SDL2($SDL2_VERSION)
+
+dnl LIBRARY TEST: SDL 1.x
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION)
+
+dnl LIBRARY USE: SDL selection
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+  fi
+fi
+
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`pwd`
 
@@ -496,27 +517,6 @@ dnl TODO: Need GCC to know this code is using C++ lamda functions
 
 dnl LIBRARY TEST: ALSA
 AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
-
-dnl LIBRARY TEST: SDL 2.x
-SDL2_VERSION=2.0.5
-AM_PATH_SDL2($SDL2_VERSION)
-
-dnl LIBRARY TEST: SDL 1.x
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION)
-
-dnl LIBRARY USE: SDL selection
-if test -n "$SDL2_LIBS"; then
-    LIBS="$LIBS $SDL2_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
-else
-  if test -n "$SDL_LIBS"; then
-    LIBS="$LIBS $SDL_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-  else
-    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
-  fi
-fi
 
 dnl Some stuff for the icon.
 case "$host" in
