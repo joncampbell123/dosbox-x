@@ -239,10 +239,14 @@ static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
 
 static void TandyDACGenerateDMASound(Bitu length) {
 	if (length) {
-		Bitu read=tandy.dac.dma.chan->Read(length,tandy.dac.dma.buf);
-		tandy.dac.chan->AddSamples_m8(read,tandy.dac.dma.buf);
+		Bitu read = tandy.dac.dma.chan->Read(length,tandy.dac.dma.buf);
+		if (read > 0) {
+			tandy.dac.chan->AddSamples_m8(read,tandy.dac.dma.buf);
+			tandy.dac.dma.last_sample = tandy.dac.dma.buf[read - 1u];
+		}
+
+		/* repeat the last sample to fill output if not enough */
 		if (read < length) {
-			if (read>0) tandy.dac.dma.last_sample=tandy.dac.dma.buf[read-1];
 			for (Bitu ct=read; ct < length; ct++) {
 				tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
 			}
