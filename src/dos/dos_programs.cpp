@@ -5244,8 +5244,8 @@ T to_finite(const std::string& input) {
 			result = static_cast<T>(interim);
 	}
 	// Capture expected exceptions stod may throw
-	catch (std::invalid_argument &e) {}
-	catch (std::out_of_range &e) {}
+    catch (std::invalid_argument& e) { (void)e;  }
+    catch (std::out_of_range& e) { (void)e; }
 	return result;
 }
 
