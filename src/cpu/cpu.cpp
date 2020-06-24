@@ -249,7 +249,7 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
 #if C_FPU
     mainMenu.get_item("cputype_pentium_mmx").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW).
         refresh_item(mainMenu);
 #else
     mainMenu.get_item("cputype_pentium_mmx").
@@ -2783,8 +2783,8 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW) {
-			reg_eax=0x543;		/* intel pentium mmx (P55C) */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
+			reg_eax=0x543;		/* intel pentium mmx (PMMX) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
@@ -3490,7 +3490,7 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
 #if C_FPU
-			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+			CPU_ArchitectureType = CPU_ARCHTYPE_PMMXSLOW;
 #else
             E_Exit("Pentium MMX emulation requires FPU emulation, which was not compiled into this binary");
 #endif

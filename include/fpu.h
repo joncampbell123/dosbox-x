@@ -23,6 +23,8 @@
 #include "mem.h"
 #endif
 
+#include "mmx.h"
+
 void FPU_ESC0_Normal(Bitu rm);
 void FPU_ESC0_EA(Bitu rm,PhysPt addr);
 void FPU_ESC1_Normal(Bitu rm);
@@ -61,6 +63,7 @@ typedef union {
     } l;
 #endif
     Bit64s ll;
+	MMX_reg reg_mmx;
 } FPU_Reg;
 
 // dynamic x86 core needs this

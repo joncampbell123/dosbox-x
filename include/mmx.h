@@ -77,7 +77,7 @@ typedef union {
 
 } MMX_reg;
 
-extern MMX_reg reg_mmx[8];
+extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
 
 
@@ -86,7 +86,7 @@ Bit16s SaturateDwordSToWordS(Bit32s value);
 Bit8u  SaturateWordSToByteU(Bit16s value);
 Bit16u SaturateDwordSToWordU(Bit32s value);
 
-void   setFPU(Bit16u tag);
+void   setFPUTagEmpty();
 
 #endif
 

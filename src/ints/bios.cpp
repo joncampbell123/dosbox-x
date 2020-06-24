@@ -8388,7 +8388,7 @@ private:
                 case CPU_ARCHTYPE_PENTIUM:
                     cpuType = "Pentium";
                     break;
-                case CPU_ARCHTYPE_P55CSLOW:
+                case CPU_ARCHTYPE_PMMXSLOW:
                     cpuType = "Pentium MMX";
                     break;
                 case CPU_ARCHTYPE_MIXED:
