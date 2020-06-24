@@ -365,7 +365,9 @@ run_block:
 			cpu.exception.which=0;
 			// fallthrough, let the normal core handle the block-modifying instruction
 		case BR_Opcode:
+#if (C_DEBUG)
 		case BR_OpcodeFull:
+#endif
 			// some instruction has been encountered that could not be translated
 			// (thus it is not part of the code block), the normal core will
 			// handle this instruction
