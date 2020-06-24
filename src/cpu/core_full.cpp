@@ -70,6 +70,9 @@ Bits CPU_Core_Full_Run(void) {
 	static bool tf_warn=false;
 	FullData inst;
 
+	if (CPU_Cycles <= 0)
+		return CBRET_NONE;
+
 	while (CPU_Cycles-->0) {
 		cycle_count++;
 
