@@ -1,4 +1,7 @@
 0.83.3
+  - Fixed Pentium MMX instructions so that they work
+    in both 16-bit real mode and 32-bit protected mode
+    to match real hardware (joncampbell123)
   - Updated the code for Pentium MMX instructions to
     the latest version by kekko (Wengier)
   - DOSBox-X will try to automatically run the program
