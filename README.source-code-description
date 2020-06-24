@@ -56,7 +56,7 @@ replace and manage the OS X menu bar.
 How to compile the source code
 ------------------------------
 
-General Linux compile (FFMPEG/libav support required)
+General Linux compile
 ./build-debug
 sudo make install
 
