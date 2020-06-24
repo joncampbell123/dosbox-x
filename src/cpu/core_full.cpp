@@ -28,6 +28,8 @@
 #include "inout.h"
 #include "callback.h"
 
+extern bool ignore_opcode_63;
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 typedef PhysPt EAPoint;
@@ -119,7 +121,23 @@ nextopcode:;
 		SaveIP();
 		continue;
 illegalopcode:
-		LOG(LOG_CPU,LOG_NORMAL)("Illegal opcode");
+#if C_DEBUG	
+		{
+			bool ignore=false;
+			Bitu len=(GetIP()-reg_eip);
+			LoadIP();
+			if (len>16) len=16;
+			char tempcode[16*2+1];char * writecode=tempcode;
+			if (ignore_opcode_63 && mem_readb(inst.cseip) == 0x63)
+				ignore = true;
+			for (;len>0;len--) {
+				sprintf(writecode,"%02X",mem_readb(inst.cseip++));
+				writecode+=2;
+			}
+			if (!ignore)
+				LOG(LOG_CPU,LOG_NORMAL)("Illegal/Unhandled opcode %s",tempcode);
+		}
+#endif
 		CPU_Exception(0x6,0);
 	}
 	FillFlags();
