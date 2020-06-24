@@ -663,6 +663,14 @@ void MAPPER_TriggerEvent(const CEvent *event, const bool deactivation_state) {
 	}
 }
 
+/* TODO: This is fine, but it should not call MAPPER functions from a separate thread.
+ *       These functions are not necessarily reentrant and can cause screw ups when
+ *       called from multiple threads.
+ *
+ *       Also the HX-DOS builds cannot use this code because the older MinGW lacks
+ *       std::thread.
+ *
+ *       Replace thread with PIC_AddEvent() to callback. */
 class Typer {
 	public:
 		Typer() = default;
