@@ -17,7 +17,7 @@
  */
 
 /* State Management */
-	CASE_0F_D(0x77)												/* EMMS */
+	CASE_0F_MMX(0x77)												/* EMMS */
 	{
 		setFPUTagEmpty();
 		break;
@@ -25,7 +25,7 @@
 
 
 /* Data Movement */
-	CASE_0F_D(0x6e)												/* MOVD Pq,Ed */
+	CASE_0F_MMX(0x6e)												/* MOVD Pq,Ed */
 	{
 		GetRM;
 		MMX_reg* rmrq=lookupRMregMM[rm];
@@ -40,7 +40,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0x7e)												/* MOVD Ed,Pq */
+	CASE_0F_MMX(0x7e)												/* MOVD Ed,Pq */
 	{
 		GetRM;
 		MMX_reg* rmrq=lookupRMregMM[rm];
@@ -54,7 +54,7 @@
 		break;
 	}
 
-	CASE_0F_D(0x6f)												/* MOVQ Pq,Qq */
+	CASE_0F_MMX(0x6f)												/* MOVQ Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -67,7 +67,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0x7f)												/* MOVQ Qq,Pq */
+	CASE_0F_MMX(0x7f)												/* MOVQ Qq,Pq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -82,7 +82,7 @@
 	}
 
 /* Boolean Logic */
-	CASE_0F_D(0xef)												/* PXOR Pq,Qq */
+	CASE_0F_MMX(0xef)												/* PXOR Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -96,7 +96,7 @@
 		break;
 	}
 
-	CASE_0F_D(0xeb)												/* POR Pq,Qq */
+	CASE_0F_MMX(0xeb)												/* POR Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -109,7 +109,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xdb)												/* PAND Pq,Qq */
+	CASE_0F_MMX(0xdb)												/* PAND Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -122,7 +122,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xdf)												/* PANDN Pq,Qq */
+	CASE_0F_MMX(0xdf)												/* PANDN Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -137,7 +137,7 @@
 	}
 
 /* Shift */
-	CASE_0F_D(0xf1)												/* PSLLW Pq,Qq */
+	CASE_0F_MMX(0xf1)												/* PSLLW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -157,7 +157,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xd1)												/* PSRLW Pq,Qq */
+	CASE_0F_MMX(0xd1)												/* PSRLW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -177,7 +177,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xe1)												/* PSRAW Pq,Qq */
+	CASE_0F_MMX(0xe1)												/* PSRAW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -208,7 +208,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0x71)												/* PSLLW/PSRLW/PSRAW Pq,Ib */
+	CASE_0F_MMX(0x71)												/* PSLLW/PSRLW/PSRAW Pq,Ib */
 	{
 		GetRM;
 		Bit8u op=(rm>>3)&7;
@@ -256,7 +256,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xf2)												/* PSLLD Pq,Qq */
+	CASE_0F_MMX(0xf2)												/* PSLLD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -274,7 +274,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xd2)												/* PSRLD Pq,Qq */
+	CASE_0F_MMX(0xd2)												/* PSRLD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -292,7 +292,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0xe2)												/* PSRAD Pq,Qq */
+	CASE_0F_MMX(0xe2)												/* PSRAD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -317,7 +317,7 @@
 		}
 		break;
 	}
-	CASE_0F_D(0x72)												/* PSLLD/PSRLD/PSRAD Pq,Ib */
+	CASE_0F_MMX(0x72)												/* PSLLD/PSRLD/PSRAD Pq,Ib */
 	{
 		GetRM;
 		Bit8u op=(rm>>3)&7;
@@ -356,7 +356,7 @@
 		break;
 	}
 
-	CASE_0F_D(0xf3)												/* PSLLQ Pq,Qq */
+	CASE_0F_MMX(0xf3)												/* PSLLQ Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -371,7 +371,7 @@
 		else dest->q <<= src.ub.b0;
 		break;
 	}
-	CASE_0F_D(0xd3)												/* PSRLQ Pq,Qq */
+	CASE_0F_MMX(0xd3)												/* PSRLQ Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -386,7 +386,7 @@
 		else dest->q >>= src.ub.b0;
 		break;
 	}
-	CASE_0F_D(0x73)												/* PSLLQ/PSRLQ Pq,Ib */
+	CASE_0F_MMX(0x73)												/* PSLLQ/PSRLQ Pq,Ib */
 	{
 		GetRM;
 		Bit8u shift=Fetchb();
@@ -404,7 +404,7 @@
 	}
 
 /* Math */
-	CASE_0F_D(0xFC)												/* PADDB Pq,Qq */
+	CASE_0F_MMX(0xFC)												/* PADDB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -425,7 +425,7 @@
 		dest->ub.b7 += src.ub.b7;
 		break;
 	}
-	CASE_0F_D(0xFD)												/* PADDW Pq,Qq */
+	CASE_0F_MMX(0xFD)												/* PADDW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -442,7 +442,7 @@
 		dest->uw.w3 += src.uw.w3;
 		break;
 	}
-	CASE_0F_D(0xFE)												/* PADDD Pq,Qq */
+	CASE_0F_MMX(0xFE)												/* PADDD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -457,7 +457,7 @@
 		dest->ud.d1 += src.ud.d1;
 		break;
 	}
-	CASE_0F_D(0xEC)												/* PADDSB Pq,Qq */
+	CASE_0F_MMX(0xEC)												/* PADDSB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -478,7 +478,7 @@
 		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7+(Bit16s)src.sb.b7);
 		break;
 	}
-	CASE_0F_D(0xED)												/* PADDSW Pq,Qq */
+	CASE_0F_MMX(0xED)												/* PADDSW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -495,7 +495,7 @@
 		dest->sw.w3 = SaturateDwordSToWordS((Bit32s)dest->sw.w3+(Bit32s)src.sw.w3);
 		break;
 	}
-	CASE_0F_D(0xDC)												/* PADDUSB Pq,Qq */
+	CASE_0F_MMX(0xDC)												/* PADDUSB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -516,7 +516,7 @@
 		dest->ub.b7 = SaturateWordSToByteU((Bit16s)dest->ub.b7+(Bit16s)src.ub.b7);
 		break;
 	}
-	CASE_0F_D(0xDD)												/* PADDUSW Pq,Qq */
+	CASE_0F_MMX(0xDD)												/* PADDUSW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -533,7 +533,7 @@
 		dest->uw.w3 = SaturateDwordSToWordU((Bit32s)dest->uw.w3+(Bit32s)src.uw.w3);
 		break;
 	}
-	CASE_0F_D(0xF8)												/* PSUBB Pq,Qq */
+	CASE_0F_MMX(0xF8)												/* PSUBB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -554,7 +554,7 @@
 		dest->ub.b7 -= src.ub.b7;
 		break;
 	}
-	CASE_0F_D(0xF9)												/* PSUBW Pq,Qq */
+	CASE_0F_MMX(0xF9)												/* PSUBW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -571,7 +571,7 @@
 		dest->uw.w3 -= src.uw.w3;
 		break;
 	}
-	CASE_0F_D(0xFA)												/* PSUBD Pq,Qq */
+	CASE_0F_MMX(0xFA)												/* PSUBD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -586,7 +586,7 @@
 		dest->ud.d1 -= src.ud.d1;
 		break;
 	}
-	CASE_0F_D(0xE8)												/* PSUBSB Pq,Qq */
+	CASE_0F_MMX(0xE8)												/* PSUBSB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -607,7 +607,7 @@
 		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7-(Bit16s)src.sb.b7);
 		break;
 	}
-	CASE_0F_D(0xE9)												/* PSUBSW Pq,Qq */
+	CASE_0F_MMX(0xE9)												/* PSUBSW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -624,7 +624,7 @@
 		dest->sw.w3 = SaturateDwordSToWordS((Bit32s)dest->sw.w3-(Bit32s)src.sw.w3);
 		break;
 	}
-	CASE_0F_D(0xD8)												/* PSUBUSB Pq,Qq */
+	CASE_0F_MMX(0xD8)												/* PSUBUSB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -649,7 +649,7 @@
 		break;
 	}
 
-	CASE_0F_D(0xD9)												/* PSUBUSW Pq,Qq */
+	CASE_0F_MMX(0xD9)												/* PSUBUSW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -669,7 +669,7 @@
 		dest->q = result.q;
 		break;
 	}
-	CASE_0F_D(0xE5)												/* PMULHW Pq,Qq */
+	CASE_0F_MMX(0xE5)												/* PMULHW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -690,7 +690,7 @@
 		dest->uw.w3 = (Bit16u)(product3 >> 16);
 		break;
 	}
-	CASE_0F_D(0xD5)												/* PMULLW Pq,Qq */
+	CASE_0F_MMX(0xD5)												/* PMULLW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -711,7 +711,7 @@
 		dest->uw.w3 = (product3 & 0xffff);
 		break;
 	}
-	CASE_0F_D(0xF5)												/* PMADDWD Pq,Qq */
+	CASE_0F_MMX(0xF5)												/* PMADDWD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -740,7 +740,7 @@
 	}
 
 /* Comparison */
-	CASE_0F_D(0x74)												/* PCMPEQB Pq,Qq */
+	CASE_0F_MMX(0x74)												/* PCMPEQB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -761,7 +761,7 @@
 		dest->ub.b7 = dest->ub.b7==src.ub.b7?0xff:0;
 		break;
 	}
-	CASE_0F_D(0x75)												/* PCMPEQW Pq,Qq */
+	CASE_0F_MMX(0x75)												/* PCMPEQW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -778,7 +778,7 @@
 		dest->uw.w3 = dest->uw.w3==src.uw.w3?0xffff:0;
 		break;
 	}
-	CASE_0F_D(0x76)												/* PCMPEQD Pq,Qq */
+	CASE_0F_MMX(0x76)												/* PCMPEQD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -793,7 +793,7 @@
 		dest->ud.d1 = dest->ud.d1==src.ud.d1?0xffffffff:0;
 		break;
 	}
-	CASE_0F_D(0x64)												/* PCMPGTB Pq,Qq */
+	CASE_0F_MMX(0x64)												/* PCMPGTB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -814,7 +814,7 @@
 		dest->ub.b7 = dest->sb.b7>src.sb.b7?0xff:0;
 		break;
 	}
-	CASE_0F_D(0x65)												/* PCMPGTW Pq,Qq */
+	CASE_0F_MMX(0x65)												/* PCMPGTW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -831,7 +831,7 @@
 		dest->uw.w3 = dest->sw.w3>src.sw.w3?0xffff:0;
 		break;
 	}
-	CASE_0F_D(0x66)												/* PCMPGTD Pq,Qq */
+	CASE_0F_MMX(0x66)												/* PCMPGTD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -848,7 +848,7 @@
 	}
 
 /* Data Packing */
-	CASE_0F_D(0x63)												/* PACKSSWB Pq,Qq */
+	CASE_0F_MMX(0x63)												/* PACKSSWB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -869,7 +869,7 @@
 		dest->sb.b7 = SaturateWordSToByteS(src.sw.w3);
 		break;
 	}
-	CASE_0F_D(0x6B)												/* PACKSSDW Pq,Qq */
+	CASE_0F_MMX(0x6B)												/* PACKSSDW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -886,7 +886,7 @@
 		dest->sw.w3 = SaturateDwordSToWordS(src.sd.d1);
 		break;
 	}
-	CASE_0F_D(0x67)												/* PACKUSWB Pq,Qq */
+	CASE_0F_MMX(0x67)												/* PACKUSWB Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -907,7 +907,7 @@
 		dest->ub.b7 = SaturateWordSToByteU(src.sw.w3);
 		break;
 	}
-	CASE_0F_D(0x68)												/* PUNPCKHBW Pq,Qq */
+	CASE_0F_MMX(0x68)												/* PUNPCKHBW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -928,7 +928,7 @@
 		dest->ub.b7 = src.ub.b7;
 		break;
 	}
-	CASE_0F_D(0x69)												/* PUNPCKHWD Pq,Qq */
+	CASE_0F_MMX(0x69)												/* PUNPCKHWD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -945,7 +945,7 @@
 		dest->uw.w3 = src.uw.w3;
 		break;
 	}
-	CASE_0F_D(0x6A)												/* PUNPCKHDQ Pq,Qq */
+	CASE_0F_MMX(0x6A)												/* PUNPCKHDQ Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -960,7 +960,7 @@
 		dest->ud.d1 = src.ud.d1;
 		break;
 	}
-	CASE_0F_D(0x60)												/* PUNPCKLBW Pq,Qq */
+	CASE_0F_MMX(0x60)												/* PUNPCKLBW Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -980,7 +980,7 @@
 		dest->ub.b1 = src.ub.b0;
 		break;
 	}
-	CASE_0F_D(0x61)												/* PUNPCKLWD Pq,Qq */
+	CASE_0F_MMX(0x61)												/* PUNPCKLWD Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];
@@ -996,7 +996,7 @@
 		dest->uw.w1 = src.uw.w0;
 		break;
 	}
-	CASE_0F_D(0x62)												/* PUNPCKLDQ Pq,Qq */
+	CASE_0F_MMX(0x62)												/* PUNPCKLDQ Pq,Qq */
 	{
 		GetRM;
 		MMX_reg* dest=lookupRMregMM[rm];

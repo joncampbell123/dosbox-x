@@ -732,4 +732,8 @@
 	CASE_0F_W(0xcf)												/* BSWAP DI */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPW(reg_di);break;
-		
+#if C_FPU
+#define CASE_0F_MMX(x) CASE_0F_W(x)
+#include "prefix_0f_mmx.h"
+#undef CASE_0F_MMX
+#endif
