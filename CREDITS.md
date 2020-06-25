@@ -3,6 +3,8 @@ Credits
 
 Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all of the code in this project.
 
+The purpose of this document is to try and build a comprehensive list of source code in this repository that was borrowed from other projects.
+
 The base code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
 Some of the source code also came from similar projects such as [DOSBox Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
@@ -19,7 +21,7 @@ A list of features ported from DOSBox Daum:
 * Some support for FluidSynth MIDI synthesizer
 * Improved PC Speaker emulation accuracy
 * CGA with Monochrome Monitor Support
-* Support for CPU types like Pentium MMX
+* Support for CPU types like Pentium Pro
 * Features such as V-Sync, xBRZ scaler, overscan border and stereo-swap
 * Various patches such as DBCS and font patch
 
@@ -44,11 +46,11 @@ A list of features ported from vDosPlus by Wengier:
 * Support for clipboard copy and paste (Windows)
 * Several shell improvements
 
-Features such as save and load states were also ported from community contributions and have since been improved by the DOSBox-X project.
+Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.
 
 The DOSBox-X Wiki pages were created and updated by Wengier and rderooy. 
 
-This is an attempt to properly credit the other code and its sources below. It is not yet a complete list, and please feel free to revise and correct this list if there are errors.
+This is an attempt to properly credit the other code and its sources below. It is **not** a complete list yet, and please feel free to revise and correct this list if there are errors.
 
 NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
 
