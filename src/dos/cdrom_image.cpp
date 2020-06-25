@@ -617,7 +617,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 
 	// Seek to the calculated byte offset, bounded to the valid byte offsets
 	const uint32_t offset = (track->skip
-	                        + clamp((const uint32_t)start - static_cast<uint32_t>(track->start),
+	                        + clamp((uint32_t)start - static_cast<uint32_t>(track->start),
 	                                0u, track->length - 1)
 	                        * track->sectorSize);
 
