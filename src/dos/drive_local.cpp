@@ -2006,7 +2006,7 @@ public:
 		overlay_active = false;
 		if (logoverlay) LOG_MSG("constructing OverlayFile: %s",name);
 	}
-	bool Write(Bit8u * data,Bit16u * size) {
+	bool Write(const Bit8u * data,Bit16u * size) {
 		Bit32u f = flags&0xf;
 		if (!overlay_active && (f == OPEN_READWRITE || f == OPEN_WRITE)) {
 			if (logoverlay) LOG_MSG("write detected, switching file for %s",GetName());

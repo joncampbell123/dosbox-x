@@ -3967,8 +3967,9 @@ virtual void getBytes(std::ostream& stream)
 {
     Bit16u decoder_idx;
 
-    extern Bits PageFaultCore(void);
-    extern Bits IOFaultCore(void);
+// UNUSED
+//  extern Bits PageFaultCore(void);
+//  extern Bits IOFaultCore(void);
 
 
 

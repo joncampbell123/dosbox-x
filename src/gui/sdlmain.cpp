@@ -4858,7 +4858,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #else
 				std::vector<std::string> sequence;
 				sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-				MAPPER_AutoType(sequence, 0.5, 0);
+				MAPPER_AutoType(sequence, 1/*ms*/, 0);
 #endif
 			} else
 				Mouse_ButtonPressed(100-1);
@@ -4878,7 +4878,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #else
 				std::vector<std::string> sequence;
 				sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-				MAPPER_AutoType(sequence, 0.5, 0);
+				MAPPER_AutoType(sequence, 1/*ms*/, 0);
 #endif
 			} else
 				Mouse_ButtonPressed(100+1);
@@ -5379,7 +5379,7 @@ void GFX_Events() {
 #else
 					std::vector<std::string> sequence;
 					sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-					MAPPER_AutoType(sequence, 0.5, 0);
+					MAPPER_AutoType(sequence, 1/*ms*/, 0);
 #endif
 				} else if(event.wheel.y < 0) {
 #if defined (WIN32)
@@ -5395,7 +5395,7 @@ void GFX_Events() {
 #else
 					std::vector<std::string> sequence;
 					sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-					MAPPER_AutoType(sequence, 0.5, 0);
+					MAPPER_AutoType(sequence, 1/*ms*/, 0);
 #endif
 				}
 			}

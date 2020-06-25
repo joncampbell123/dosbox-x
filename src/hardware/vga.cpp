@@ -847,7 +847,6 @@ void VGA_Reset(Section*) {
         LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);
 
     vga.draw.resizing=false;
-    vga.mode=M_ERROR;           //For first init
 
     vga_8bit_dac = false;
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
@@ -1395,6 +1394,7 @@ bool debugpollvga_rtp_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item *
 void VGA_Init() {
     Bitu i,j;
 
+    vga.mode=M_ERROR;           //For first init
     vga.other.mcga_mode_control = 0;
 
 	vga.config.chained = false;

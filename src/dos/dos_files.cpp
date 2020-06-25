@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
+#if defined(WIN32) && defined(__MINGW32__)
+# include <malloc.h>
+#endif
 
 #include "dosbox.h"
 #include "bios.h"

@@ -663,6 +663,15 @@ void MAPPER_TriggerEvent(const CEvent *event, const bool deactivation_state) {
 	}
 }
 
+#if !defined(HX_DOS)
+/* TODO: This is fine, but it should not call MAPPER functions from a separate thread.
+ *       These functions are not necessarily reentrant and can cause screw ups when
+ *       called from multiple threads.
+ *
+ *       Also the HX-DOS builds cannot use this code because the older MinGW lacks
+ *       std::thread.
+ *
+ *       Replace thread with PIC_AddEvent() to callback. */
 class Typer {
 	public:
 		Typer() = default;
@@ -741,6 +750,7 @@ class Typer {
 		uint32_t                 m_pace_ms = 0;
 		bool                     m_stop_requested = false;
 };
+#endif
 
 static struct CMapper {
 #if defined(C_SDL2)
@@ -762,7 +772,9 @@ static struct CMapper {
         Bitu                                    num_groups,num;
         CStickBindGroup*                        stick[MAXSTICKS];
     } sticks = {};
+#if !defined(HX_DOS)
 	Typer										typist;
+#endif
     std::string                                 filename;
 } mapper;
 
@@ -4346,7 +4358,9 @@ std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix) {
 void MAPPER_AutoType(std::vector<std::string> &sequence,
                      const uint32_t wait_ms,
                      const uint32_t pace_ms) {
+#if !defined(HX_DOS)
 	mapper.typist.Start(&events, sequence, wait_ms, pace_ms);
+#endif
 }
 
 void MAPPER_Init(void) {

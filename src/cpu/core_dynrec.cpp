@@ -365,19 +365,15 @@ run_block:
 			cpu.exception.which=0;
 			// fallthrough, let the normal core handle the block-modifying instruction
 		case BR_Opcode:
+#if (C_DEBUG)
+		case BR_OpcodeFull:
+#endif
 			// some instruction has been encountered that could not be translated
 			// (thus it is not part of the code block), the normal core will
 			// handle this instruction
 			CPU_CycleLeft+=CPU_Cycles;
 			CPU_Cycles=1;
 			return CPU_Core_Normal_Run();
-
-#if (C_DEBUG)
-		case BR_OpcodeFull:
-			CPU_CycleLeft+=CPU_Cycles;
-			CPU_Cycles=1;
-			return CPU_Core_Full_Run();
-#endif
 
 		case BR_Link1:
 		case BR_Link2:

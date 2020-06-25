@@ -363,14 +363,47 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+dnl LIBRARY TEST: SDL 2.x
+SDL2_VERSION=2.0.5
+AM_PATH_SDL2($SDL2_VERSION)
+
+dnl LIBRARY TEST: SDL 1.x
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION)
+
+dnl LIBRARY USE: SDL selection
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+  fi
+fi
+
+# FIXME: Arrggh we need the WHOLE PATH
+pwd=`pwd`
+
+CFLAGS="$CFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
+CPPFLAGS="$CPPFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+
+dnl LIBRARY TEST: SDLnet 1.x initial test
+AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -limm32 -lole32"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-         LIBS="$LIBS -lws2_32"
+       if test x$have_sdl_net_h = xyes ; then
+         dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
+         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -liphlpapi"
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
@@ -486,27 +519,6 @@ dnl TODO: Need GCC to know this code is using C++ lamda functions
 dnl LIBRARY TEST: ALSA
 AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
 
-dnl LIBRARY TEST: SDL 2.x
-SDL2_VERSION=2.0.5
-AM_PATH_SDL2($SDL2_VERSION)
-
-dnl LIBRARY TEST: SDL 1.x
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION)
-
-dnl LIBRARY USE: SDL selection
-if test -n "$SDL2_LIBS"; then
-    LIBS="$LIBS $SDL2_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
-else
-  if test -n "$SDL_LIBS"; then
-    LIBS="$LIBS $SDL_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-  else
-    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
-  fi
-fi
-
 dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
@@ -548,14 +560,6 @@ dnl LIBRARY TEST: libiconv
 dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
 AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
-
-# FIXME: Arrggh we need the WHOLE PATH
-pwd=`pwd`
-
-CFLAGS="$CFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 
 dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)

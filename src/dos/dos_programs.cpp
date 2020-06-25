@@ -20,11 +20,11 @@
  *  AUTOTYPE command Copyright (C) 2020 the dosbox-staging team
  */
 
-
 #include "dosbox.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -5244,8 +5244,8 @@ T to_finite(const std::string& input) {
 			result = static_cast<T>(interim);
 	}
 	// Capture expected exceptions stod may throw
-	catch (std::invalid_argument &e) {}
-	catch (std::out_of_range &e) {}
+    catch (std::invalid_argument& e) { (void)e;  }
+    catch (std::out_of_range& e) { (void)e; }
 	return result;
 }
 
@@ -5274,14 +5274,18 @@ bool AUTOTYPE::ReadDoubleArg(const std::string &name,
 	if (cmd->FindString(flag, str_value, true)) {
 		// Can the user's value be parsed?
 		const double user_value = to_finite<double>(str_value);
+#if defined(MACOSX)
+		if (isfinite(user_value)) { /* *sigh* Really, clang, really? */
+#else
 		if (std::isfinite(user_value)) {
+#endif
 			result = true;
 
 			// Clamp the user's value if needed
 			value = clamp(user_value, min_value, max_value);
 
 			// Inform them if we had to clamp their value
-			if (std::fabs(user_value - value) >
+			if (fabs(user_value - value) >
 			    std::numeric_limits<double>::epsilon())
 				WriteOut("AUTOTYPE: bounding %s value of %.2f "
 				         "to %.2f\n",

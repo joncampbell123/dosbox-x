@@ -1392,43 +1392,43 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
 
-    /* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
-    if (!IS_PC98_ARCH) {
-        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
-        VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
+	if (!IS_PC98_ARCH) {
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 
-        if (IS_VGA_ARCH)
-            VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
-        else if (IS_EGA_ARCH)
-            VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
-        else
-            VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
-    }
+		if (IS_VGA_ARCH)
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+		else if (IS_EGA_ARCH)
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega);
+		else
+			VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other);
+	}
 
-    /* don't register 28.com unless EGA/VGA */
-    if (IS_VGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
-    else if (IS_EGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
+	/* don't register 28.com unless EGA/VGA */
+	if (IS_VGA_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
+	else if (IS_EGA_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega);
 
-    /* don't register 50 unless VGA */
-    if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
+	/* don't register 50 unless VGA */
+	if (IS_VGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
 
-    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
-    if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+	/* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+	if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+		VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 
-    /* DSXMENU.EXE */
-    if (IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
-    else
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
+	/* DSXMENU.EXE */
+	if (IS_PC98_ARCH)
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
+	else
+		VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);

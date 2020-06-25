@@ -16,10 +16,9 @@ chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
 echo Compiling our internal SDL 1.x
 (cd vs2015/sdl && ./build-dosbox.sh) || exit 1
 
-# MinGW cannot compile SDL_net, configure goes off trying to autogen
 # prefer to compile against our own copy of SDLnet 1.x
-#echo Compiling our internal SDLnet 1.x
-#(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
+echo Compiling our internal SDLnet 1.x
+(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
 
 # NTS: MinGW provides zlib for us
 if false; then

@@ -116,6 +116,7 @@ protected:
 	} allocation;
 };
 
+#if 0 // nothing uses this
 class physfsDrive : public localDrive {
 private:
 	bool isdir(const char *dir);
@@ -145,6 +146,7 @@ public:
 	virtual const char *GetInfo(void);
 	virtual ~physfsDrive(void);
 };
+#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -522,6 +524,7 @@ private:
 	Bit8u subUnit;	char driveLetter;
 };
 
+#if 0 // nothing uses this
 class physfscdromDrive : public physfsDrive
 {
 public:
@@ -543,6 +546,7 @@ private:
 	Bit8u subUnit;
 	char driveLetter;
 };
+#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)

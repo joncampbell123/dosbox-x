@@ -56,13 +56,13 @@ replace and manage the OS X menu bar.
 How to compile the source code
 ------------------------------
 
-General Linux compile (FFMPEG/libav support required)
+General Linux compile
 ./build-debug
+sudo make install
 
-
-General Linux compile if FFMPEG/libav not desired
-./build-debug-no-avcodec
-
+General Linux compile (SDL2)
+./build-debug-sdl2
+sudo make install
 
 Mac OS X compile
 ./build-macosx
@@ -111,6 +111,10 @@ To compile DOSBox-X in Ubuntu (kapper1224)
 sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
 ./build
 sudo make install
+
+To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora
+
+./make-rpm.sh
 
 General description of source code
 ----------------------------------
