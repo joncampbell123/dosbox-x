@@ -112,11 +112,12 @@ For building the source code in Visual Studio 2015 or 2017,
 you may change the platform toolset to v140 or v141 respectively.
 
 Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
-but the FluidSynth support is not included by default for Visual Studio builds.
+but support for FluidSynth MIDI Synthesizer is not included or enabled by default
+for Visual Studio builds.
 
 You can enable FluidSynth support by setting up vcpkg to install the build dependency.
 vcpkg is a command-line package manager for C/C++ by Microsoft, and it is freely
-available from: https://github.com/microsoft/vcpkg
+available from (with install instructions): https://github.com/microsoft/vcpkg
 
 Once vcpkg is installed and bootstrapped, open Command Prompt or PowerShell, and run:
 
@@ -129,6 +130,8 @@ instead of "--triplet x64-windows".
 Then open ./vs2015/config.h and change "#undef C_FLUIDSYNTH" to "#define C_FLUIDSYNTH 1".
 
 Build the source code. FluidSynth support should now be enabled for DOSBox-X.
+Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
+(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
 
 As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
 a processor that supports the SSE instruction set.
