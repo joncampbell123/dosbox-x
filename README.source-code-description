@@ -50,11 +50,11 @@ In Windows, the modifications also permit the emulation to run independent
 of the main window so that moving, resizing, or using menus does not cause
 emulation to pause.
 
-In Mac OS X, the modifications provide an interface to allow DOSBox-X to
-replace and manage the OS X menu bar.
+In Mac OS X (macOS), the modifications provide an interface to allow DOSBox-X
+to replace and manage the macOS menu bar.
 
-How to compile the source code
-------------------------------
+How to compile the source code (cross-platform)
+-----------------------------------------------
 
 General Linux compile
 ./build-debug
@@ -67,18 +67,14 @@ sudo make install
 Mac OS X compile
 ./build-macosx
 
-
 Mac OS X compile (SDL2)
 ./build-macosx-sdl2
-
 
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
 ./build-mingw
 
-
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
 ./build-mingw-lowend
-
 
 MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
 ./build-mingw-hx-dos
@@ -86,27 +82,13 @@ MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX
 NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
         Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
 
-
 Mac OS X: If you want to make an .app bundle you can run from the Finder, compile the
 program as instructed then run "make dosbox-x.app".
-
-
-Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
-Use the ./vs2015/dosbox-x.sln "solution" file and compile.
-You will need the DirectX 2010 SDK for Direct3D9 support.
-
-As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
-a processor that supports the SSE instruction set.
-
-Visual Studio Code is supported, too.
-
-Check the README.Windows file for more information about this platform.
-
 
 XCode (on Mac OS X, from the Terminal) to target Mac OS X
 ./build-debug
 
-To compile DOSBox-X in Ubuntu (kapper1224)
+To compile DOSBox-X in Ubuntu (added by kapper1224):
 
 sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
 ./build
@@ -115,6 +97,48 @@ sudo make install
 To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora
 
 ./make-rpm.sh
+
+Compiling the source code using Visual Studio (Windows)
+-------------------------------------------------------
+
+You can build the source code with Visual Studio (2015, 2017, 2019).
+The executables will work on 32-bit and 64-bit Windows Vista or higher.
+
+Use the ./vs2015/dosbox-x.sln "solution" file and build the source code.
+You will need the DirectX 2010 SDK for Direct3D9 support.
+
+By default the targeted platform is v142 (Visual Studio 2019).
+For building the source code in Visual Studio 2015 or 2017,
+you may change the platform toolset to v140 or v141 respectively.
+
+Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
+but support for FluidSynth MIDI Synthesizer is not included or enabled by default
+for Visual Studio builds.
+
+You can enable FluidSynth support by setting up vcpkg to install the build dependency.
+vcpkg is a command-line package manager for C/C++ by Microsoft, and it is freely
+available from (with install instructions): https://github.com/microsoft/vcpkg
+
+Once vcpkg is installed and bootstrapped, open Command Prompt or PowerShell, and run:
+
+.\vcpkg integrate install
+.\vcpkg install --triplet x64-windows fluidsynth
+
+The above assumes 64-bit build. For 32-bit build please use "--triplet x86-windows"
+instead of "--triplet x64-windows".
+
+Then open ./vs2015/config.h and change "#undef C_FLUIDSYNTH" to "#define C_FLUIDSYNTH 1".
+
+Build the source code. FluidSynth support should now be enabled for DOSBox-X.
+Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
+(dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
+
+As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
+a processor that supports the SSE instruction set.
+
+Visual Studio Code is supported, too.
+
+Check the README.Windows file for more information about this platform.
 
 General description of source code
 ----------------------------------
@@ -1373,15 +1397,13 @@ It's more accurate to say then, that I wrote some of the code,
 that I rewrote other parts of the code, based on the DOSBox SVN
 code as it existed since mid 2011.
 
-The purpose of this section, is to try and build a comprehensive
-list of source code in this repository that was borrowed from
-other projects.
-
 Some of the code is DOSBox SVN code in which some of the SVN
 commits made since 2011 were incorporated into DOSBox-X.
 
 Some of the code in this source tree also came from other forks of
-DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging as well as
-vDosPlus, with major works from contributors like Wengier and rderooy.
+DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging and vDosPlus,
+with major works from contributors like Wengier, Allofich, rderooy.
 
-For more information please look at the CREDITS.md file.
+For details please look at the CREDITS.md file, which tries to build
+a comprehensive list of source code in this repository that was
+borrowed from other projects.

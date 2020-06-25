@@ -1,13 +1,13 @@
 0.83.3
   - Pentium MMX instructions now only available for
-    Pentium MMX or higher. A bug was fixed that allowed
+    Pentium MMX or higher. Fixed the bug that allowed
     MMX instructions for Pentium and lower if programs
-    ignored the CPUID feature bits.
-  - Fixed Pentium MMX instructions so that they work
-    in both 16-bit real mode and 32-bit protected mode
-    to match real hardware (joncampbell123)
-  - Updated the code for Pentium MMX instructions to
-    the latest version by kekko (Wengier)
+    ignored the CPUID feature bits. Also fixed Pentium
+    MMX instructions so that they work in both 16-bit
+    real mode and 32-bit protected mode to match how
+    they work in real hardware (joncampbell123)
+  - Updated DOSBox-X's implementation for Pentium MMX
+    instructions to latest version by kekko (Wengier)
   - DOSBox-X will try to automatically run the program
     with LOADFIX if the error message "Packed file is
     corrupt" is detected. (Wengier)
