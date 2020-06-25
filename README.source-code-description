@@ -50,8 +50,8 @@ In Windows, the modifications also permit the emulation to run independent
 of the main window so that moving, resizing, or using menus does not cause
 emulation to pause.
 
-In Mac OS X, the modifications provide an interface to allow DOSBox-X to
-replace and manage the OS X menu bar.
+In Mac OS X (macOS), the modifications provide an interface to allow DOSBox-X
+to replace and manage the macOS menu bar.
 
 How to compile the source code (cross-platform)
 -----------------------------------------------
@@ -98,11 +98,11 @@ To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora
 
 ./make-rpm.sh
 
-Compiling the source code using Visual Studio
----------------------------------------------
+Compiling the source code using Visual Studio (Windows)
+-------------------------------------------------------
 
 You can build the source code with Visual Studio (2015, 2017, 2019).
-The executables will work on 32/64-bit Windows Vista or higher.
+The executables will work on 32-bit and 64-bit Windows Vista or higher.
 
 Use the ./vs2015/dosbox-x.sln "solution" file and build the source code.
 You will need the DirectX 2010 SDK for Direct3D9 support.
@@ -115,6 +115,9 @@ Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already includ
 but the FluidSynth support is not included by default for Visual Studio builds.
 
 You can enable FluidSynth support by setting up vcpkg to install the build dependency.
+vcpkg is a command-line package manager for C/C++ by Microsoft, and it is freely
+available from: https://github.com/microsoft/vcpkg
+
 Once vcpkg is installed and bootstrapped, open Command Prompt or PowerShell, and run:
 
 .\vcpkg integrate install
