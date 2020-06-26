@@ -652,15 +652,13 @@ public:
 					if (batpath==".\\") batpath=".";
 					else if (batpath=="..\\") batpath="..";
 					batname = control->auto_bat_additional[i].substr(pos+1);
-					cmd += "@mount c: " + batpath + " -q\n";
+					cmd += "@mount c: \"" + batpath + "\" -q\n";
 				}
 				cmd += "@c:\n";
 				cmd += "@cd \\\n";
-                /* NTS: "CALL" does not support quoting the filename.
-                 *      This will break if the batch file name has spaces in it. */
-                cmd += "@CALL ";
+                cmd += "@CALL \"";
                 cmd += batname;
-                cmd += "\n";
+                cmd += "\"\n";
 				cmd += "@mount -u c: -q\n";
             }
 
