@@ -1120,13 +1120,13 @@ void CPU_Snap_Back_To_Real_Mode();
 static void KillSwitch(bool pressed) {
     if (!pressed) return;
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-#if 0 /* Re-enable this hack IF DOSBox continues to have problems page-faulting on kill switch */
+#if 0 /* Re-enable this hack IF DOSBox-X continues to have problems page-faulting on kill switch */
     CPU_Snap_Back_To_Real_Mode(); /* TEMPORARY HACK. There are portions of DOSBox that write to memory as if still running DOS. */
     /* ^ Without this hack, when running Windows NT 3.1 this Kill Switch effectively becomes the Instant Page Fault BSOD switch
-     * because the DOSBox code attempting to write to real mode memory causes a page fault (though hitting the kill switch a
-     * second time shuts DOSBox down properly). It's sort of the same issue behind the INT 33h emulation causing instant BSOD
-     * in Windows NT the instant you moved or clicked the mouse. The purpose of this hack is that, before any of that DOSBox
-     * code has a chance, we force the CPU back into real mode so that the code doesn't trigger funny page faults and DOSBox
+     * because the DOSBox-X code attempting to write to real mode memory causes a page fault (though hitting the kill switch a
+     * second time shuts DOSBox-X down properly). It's sort of the same issue behind the INT 33h emulation causing instant BSOD
+     * in Windows NT the instant you moved or clicked the mouse. The purpose of this hack is that, before any of that DOSBox-X
+     * code has a chance, we force the CPU back into real mode so that the code doesn't trigger funny page faults and DOSBox-X
      * shuts down properly. */
 #endif
     warn_on_mem_write = true;
@@ -2272,7 +2272,7 @@ static bool enable_hook_everything = false;
 // Whether or not to hook the keyboard and block special keys.
 // Setting this is recommended so that your keyboard is fully usable in the guest OS when you
 // enable the mouse+keyboard capture. But hooking EVERYTHING is not recommended because there is a
-// danger you become trapped in the DOSBox emulator!
+// danger you become trapped in the DOSBox-X emulator!
 static bool enable_hook_special_keys = true;
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -2347,7 +2347,7 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
                         case VK_TAB:    // try to catch ALT+TAB too (not blocking VK_TAB will allow host OS to switch tasks)
                         case VK_ESCAPE: // try to catch CTRL+ESC as well (so Windows 95 Start Menu is accessible)
                         case VK_SPACE:  // and space (catching VK_ZOOM isn't enough to prevent Windows 10 from changing res)
-                        // these keys have no meaning to DOSBox and so we hook them by default to allow the guest OS to use them
+                        // these keys have no meaning to DOSBox-X and so we hook them by default to allow the guest OS to use them
                         case VK_BROWSER_BACK: // Browser Back key
                         case VK_BROWSER_FORWARD: // Browser Forward key
                         case VK_BROWSER_REFRESH: // Browser Refresh key
@@ -3311,7 +3311,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
 #endif
     switch (level) {
 #ifdef WIN32
-    case PRIORITY_LEVEL_PAUSE:  // if DOSBox is paused, assume idle priority
+    case PRIORITY_LEVEL_PAUSE:  // if DOSBox-X is paused, assume idle priority
     case PRIORITY_LEVEL_LOWEST:
         SetPriorityClass(GetCurrentProcess(),IDLE_PRIORITY_CLASS);
         break;
@@ -3328,8 +3328,8 @@ static void SetPriority(PRIORITY_LEVELS level) {
         SetPriorityClass(GetCurrentProcess(),HIGH_PRIORITY_CLASS);
         break;
 #elif C_SET_PRIORITY
-/* Linux use group as dosbox has mulitple threads under linux */
-    case PRIORITY_LEVEL_PAUSE:  // if DOSBox is paused, assume idle priority
+/* Linux use group as dosbox-x has mulitple threads under linux */
+    case PRIORITY_LEVEL_PAUSE:  // if DOSBox-X is paused, assume idle priority
     case PRIORITY_LEVEL_LOWEST:
         setpriority (PRIO_PGRP, 0,PRIO_MAX);
         break;
@@ -3455,7 +3455,7 @@ static void GUI_StartUp() {
     else if (notfocus == "highest") { sdl.priority.nofocus=PRIORITY_LEVEL_HIGHEST; }
     else if (notfocus == "pause")   {
         /* we only check for pause here, because it makes no sense
-         * for DOSBox to be paused while it has focus
+         * for DOSBox-X to be paused while it has focus
          */
         sdl.priority.nofocus=PRIORITY_LEVEL_PAUSE;
     }
@@ -3539,7 +3539,7 @@ static void GUI_StartUp() {
         int win_h = GetSystemMetrics(SM_CYSCREEN);
         if (sdl_w != win_w && sdl_h != win_h) 
             LOG_MSG("Windows DPI/blurry apps scaling detected as it might be a large screen.\n"
-			"Please see the DOSBox-X documentation for more details.\n");
+				"Please see the DOSBox-X documentation for more details.\n");
         }
   #else
     if (!sdl.desktop.full.width || !sdl.desktop.full.height){
@@ -6522,7 +6522,7 @@ void DOSBox_ShowConsole() {
         return;
 
     /* Microsoft Windows: Allocate a console and begin spewing to it.
-       DOSBox is compiled on Windows platforms as a Win32 application, and therefore, no console. */
+       DOSBox-X is compiled on Windows platforms as a Win32 application, and therefore, no console. */
     /* FIXME: What about "file handles" 0/1/2 emulated by C library, for use with _open/_close/_lseek/etc? */
     AllocConsole();
 
@@ -9231,7 +9231,7 @@ fresh_boot:
         guest_msdos_mcb_chain = (Bit16u)(~0u);
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
-         *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
+         *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
         /* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
         try {
 #if C_DEBUG
@@ -9267,14 +9267,14 @@ fresh_boot:
                 wait_debugger = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
-            else if (x == 8) { /* Booting to a BIOS, shutting down DOSBox BIOS */
+            else if (x == 8) { /* Booting to a BIOS, shutting down DOSBox-X BIOS */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot into BIOS image");
 
                 reboot_machine = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
-                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox-X kill switch signal");
 
                 // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
                 run_machine = false;
@@ -9320,7 +9320,7 @@ fresh_boot:
             /* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
             DisableINT33();
 
-            /* unmap the DOSBox kernel private segment. if the user told us not to,
+            /* unmap the DOSBox-X kernel private segment. if the user told us not to,
              * but the segment exists below 640KB, then we must, because the guest OS
              * will trample it and assume control of that region of RAM. */
             if (!keep_private_area_on_boot || reboot_machine)
@@ -9334,7 +9334,7 @@ fresh_boot:
                 real_writed(0,0x03*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
-            /* shutdown DOSBox's virtual drive Z */
+            /* shutdown DOSBox-X's virtual drive Z */
             VFILE_Shutdown();
 
             /* shutdown the programs */
