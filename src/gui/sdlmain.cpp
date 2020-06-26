@@ -6169,10 +6169,10 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(feeds);
 
 	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", "disabled", 0};
-	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "disabled");
+	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
 	Pstring->Set_values(clipboardmodifier);
 	Pstring->Set_help("Change the keyboard modifier for the Windows clipboard copy/paste function using the right mouse button.\n"
-		"Set to \"none\" if no modifier is desired. Set to \"disabled\" will disable this feature (default).");
+		"The default modifier is \"shift\". Set to \"none\" if no modifier is desired, or \"disabled\" to disable this feature.");
 
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
     Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
