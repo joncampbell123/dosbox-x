@@ -1,4 +1,6 @@
 0.83.3
+  - Fixed command-line like "./dosbox-x /dir/app.bat"
+    not able to launch the specified program (Wengier)
   - Pentium MMX instructions now only available for
     Pentium MMX or higher. Fixed the bug that allowed
     MMX instructions for Pentium and lower if programs
