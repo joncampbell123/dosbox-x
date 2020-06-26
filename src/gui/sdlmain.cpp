@@ -6557,6 +6557,7 @@ bool DOSBOX_parse_argv() {
     assert(control != NULL);
     assert(control->cmdline != NULL);
 
+	control->cmdline->ChangeOptStyle(CommandLine::either_except);
     control->cmdline->BeginOpt(true/*eat argv*/);
     while (control->cmdline->GetOpt(optname)) {
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
@@ -6582,6 +6583,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"\ndosbox-x [options]\n");
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
             fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help\n");
             fprintf(stderr,"  -editconf                               Launch editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
