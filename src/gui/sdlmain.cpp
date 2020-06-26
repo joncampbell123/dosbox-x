@@ -3538,8 +3538,8 @@ static void GUI_StartUp() {
         int win_w = GetSystemMetrics(SM_CXSCREEN);
         int win_h = GetSystemMetrics(SM_CYSCREEN);
         if (sdl_w != win_w && sdl_h != win_h) 
-            LOG_MSG("Windows dpi/blurry apps scaling detected! The screen might be too large or not show properly,\n"
-                "please see the DOSBox Manual/README for details.\n");
+            LOG_MSG("Windows DPI/blurry apps scaling detected as it might be a large screen.\n"
+			"Please see the DOSBox-X documentation for more details.\n");
         }
   #else
     if (!sdl.desktop.full.width || !sdl.desktop.full.height){
