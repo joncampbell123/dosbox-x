@@ -37,13 +37,15 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for more DOS commands and built-in external tools
 
+* Support for CPU types like Pentium Pro and MMX instructions
+
 * Support for printer output, either a real or virtual printer
 
 * Support for long filenames and FAT32 disk images for DOS version 7+
 
 * Support for 3dfx Glide and Voodoo chip emulation
 
-* Support for cue files with FLAC, Opus, Vorbis, and MP3 CD-DA tracks
+* Support for cue sheets with FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
 
