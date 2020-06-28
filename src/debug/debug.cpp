@@ -443,6 +443,7 @@ std::vector<CDebugVar*> CDebugVar::varList;
 /* Breakpoint stuff */
 /********************/
 
+bool mustCompleteInstruction = false;
 bool skipFirstInstruction = false;
 
 enum EBreakpoint { BKPNT_UNKNOWN, BKPNT_PHYSICAL, BKPNT_INTERRUPT, BKPNT_MEMORY, BKPNT_MEMORY_PROT, BKPNT_MEMORY_LINEAR };
@@ -3167,11 +3168,13 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_F(10):	// Step over inst
                 DrawRegistersUpdateOld();
 				if (StepOver()) {
-                    inhibit_int_breakpoint = true;
+					mustCompleteInstruction = true;
+					inhibit_int_breakpoint = true;
                     skipFirstInstruction = true; // for heavy debugger
 					CPU_Cycles = 1;
 					ret=(*cpudecoder)();
                     inhibit_int_breakpoint = false;
+					mustCompleteInstruction = false;
 
 					DOSBOX_SetNormalLoop();
 
@@ -3186,8 +3189,10 @@ Bit32u DEBUG_CheckKeys(void) {
                 DrawRegistersUpdateOld();
 				exitLoop = false;
 				skipFirstInstruction = true; // for heavy debugger
+				mustCompleteInstruction = true;
 				CPU_Cycles = 1;
 				ret = (*cpudecoder)();
+				mustCompleteInstruction = false;
 				SetCodeWinStart();
 				break;
         case 0x09: //TAB
