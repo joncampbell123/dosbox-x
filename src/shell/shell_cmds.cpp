@@ -594,8 +594,12 @@ continue_1:
 }
 
 static size_t GetPauseCount() {
-	Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	return (CURSOR_POS_ROW(page) > 2u) ? (CURSOR_POS_ROW(page) - 2u) : 22u; /* <- FIXME: Please clarify this logic */
+	Bit16u rows;
+	if (IS_PC98_ARCH)
+		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+	else
+		rows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+	return (rows > 3u) ? (rows - 3u) : 22u;
 }
 
 void DOS_Shell::CMD_HELP(char * args){
