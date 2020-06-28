@@ -3580,7 +3580,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 									CALLBACK_SCF(false);
 								} else {
 									reg_ax=2;
-									CALLBACK_SCF(true);								
+									CALLBACK_SCF(true);
 								}
 								break;
 						case 2:         // LFN path name
@@ -3590,7 +3590,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 									CALLBACK_SCF(false);
 								} else {
 									reg_ax=2;
-									CALLBACK_SCF(true);								
+									CALLBACK_SCF(true);
 								}
 								break;
 						default:
@@ -3855,7 +3855,7 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 				CALLBACK_SCF(false);
 			} else {
 				reg_ax=3;
-				CALLBACK_SCF(true);						
+				CALLBACK_SCF(true);
 			}
 			break;
 		}
