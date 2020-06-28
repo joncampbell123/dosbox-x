@@ -1320,14 +1320,21 @@ bool CommandLine::GetOpt(std::string &name) {
         std::string &argv = *opt_scan;
         const char *str = argv.c_str();
 
-        if ((opt_style == CommandLine::either || opt_style == CommandLine::dos) && *str == '/') {
+        if (opt_style == CommandLine::either_except && *str == '/' && (strlen(str)<6 || (strlen(str)>5 && strcasecmp(str+strlen(str)-4, ".bat") && strcasecmp(str+strlen(str)-4, ".com") && strcasecmp(str+strlen(str)-4, ".exe")))) {
+            /* MS-DOS style /option, with the exception of ending with .BAT, .COM, .EXE */
+            name = str+1; /* copy to caller minus leaking slash, then erase/skip */
+            if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+            else ++opt_scan;
+            return true;
+        }
+        else if ((opt_style == CommandLine::either || opt_style == CommandLine::dos) && *str == '/') {
             /* MS-DOS style /option. Example: /A /OPT /HAX /BLAH */
             name = str+1; /* copy to caller minus leaking slash, then erase/skip */
             if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
             else ++opt_scan;
             return true;
         }
-        else if ((opt_style == CommandLine::either || opt_style == CommandLine::gnu || opt_style == CommandLine::gnu_getopt) && *str == '-') {
+        else if ((opt_style == CommandLine::either || opt_style == CommandLine::either_except || opt_style == CommandLine::gnu || opt_style == CommandLine::gnu_getopt) && *str == '-') {
             str++; /* step past '-' */
             if (str[0] == '-' && str[1] == 0) { /* '--' means to stop parsing */
                 opt_scan = cmds.end();

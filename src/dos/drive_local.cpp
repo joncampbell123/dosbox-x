@@ -2816,7 +2816,6 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 	strcat(basename,name);
 	CROSS_FILENAME(basename);
 
-
 	char overlayname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
 	strcat(overlayname,name);
@@ -2838,6 +2837,7 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 		}
 	}
 //	char *fullname = dirCache.GetExpandName(newname);
+
 	if (!removed&&unlink(overlayname)) {
 		//Unlink failed for some reason try finding it.
 		ht_stat_t status;
@@ -3482,8 +3482,6 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 	strcpy
 #endif
 	(host_namenew, CodePageGuestToHost(overlaynamenew));
-	bool success=false;
-	(void)success;//unused
 	if (ht_stat(host_nameold,&temp_stat)) {
 		char* temp_name = dirCache.GetExpandName(GetCrossedName(basedir,oldname));
 		if (strlen(temp_name)>strlen(basedir)&&!strncasecmp(temp_name, basedir, strlen(basedir))) {

@@ -641,22 +641,24 @@ public:
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
 				std::string batname;
 				/* NTS: this code might have problems with DBCS filenames - yksoft1 */
-				size_t pos = control->auto_bat_additional[i].find_last_of(CROSS_FILESPLIT);
+
+				std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
+				size_t pos = control->auto_bat_additional[i].find_last_of('\\');
 				if(pos == std::string::npos) {  //Only a filename, mount current directory
 					batname = control->auto_bat_additional[i];
 					cmd += "@mount c: . -q\n";
 				} else { //Parse the path of .BAT file
 					std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
+					if (batpath==".\\") batpath=".";
+					else if (batpath=="..\\") batpath="..";
 					batname = control->auto_bat_additional[i].substr(pos+1);
-					cmd += "@mount c: " + batpath + " -q\n";
+					cmd += "@mount c: \"" + batpath + "\" -q\n";
 				}
 				cmd += "@c:\n";
 				cmd += "@cd \\\n";
-                /* NTS: "CALL" does not support quoting the filename.
-                 *      This will break if the batch file name has spaces in it. */
-                cmd += "@CALL ";
+                cmd += "@CALL \"";
                 cmd += batname;
-                cmd += "\n";
+                cmd += "\"\n";
 				cmd += "@mount -u c: -q\n";
             }
 

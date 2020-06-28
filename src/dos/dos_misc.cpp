@@ -358,14 +358,19 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 		else return false;
 	case 0x160A:
+	{
+		char psp_name[9];
+		DOS_MCB psp_mcb(dos.psp()-1);
+		psp_mcb.GetFileName(psp_name);
 		// Report Windows version 4.0 (95) to NESTICLE x.xx so that it uses LFN when available
-		if (uselfn && reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp) == 0x1FBB) {
+		if (uselfn && (!strcmp(psp_name, "NESTICLE") || reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1F)) {
 			reg_ax = 0;
 			reg_bx = 0x400;
 			reg_cx = 2;
 			return true;
 		}
 		return false;
+	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
 		//TODO Maybe do some idling but could screw up other systems :)
 		return true; //So no warning in the debugger anymore

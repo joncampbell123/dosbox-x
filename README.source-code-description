@@ -124,8 +124,8 @@ Once vcpkg is installed and bootstrapped, open Command Prompt or PowerShell, and
 .\vcpkg integrate install
 .\vcpkg install --triplet x64-windows fluidsynth
 
-The above assumes 64-bit build. For 32-bit build please use "--triplet x86-windows"
-instead of "--triplet x64-windows".
+The above assumes Windows x64 build. For x86 build use "--triplet x86-windows" instead of
+"--triplet x64-windows". For ARM64 build please use "--triplet arm64-windows" instead.
 
 Then open ./vs2015/config.h and change "#undef C_FLUIDSYNTH" to "#define C_FLUIDSYNTH 1".
 

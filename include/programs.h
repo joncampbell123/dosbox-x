@@ -43,7 +43,8 @@ public:
 		dos=0,		// MS-DOS style /switches
 		gnu,		// GNU style --switches or -switches, switch parsing stops at --
 		gnu_getopt,	// GNU style --long or -a -b -c -d or -abcd (short as single char), switch parsing stops at --
-		either		// both dos and gnu, switch parsing stops at --
+		either,		// Both DOS and GNU styles, switch parsing stops at --
+		either_except	// Both DOS and GNU styles, except for paths to executables
 	};
 public:
 	CommandLine(int argc,char const * const argv[],enum opt_style opt=CommandLine::either);
