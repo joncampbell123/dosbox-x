@@ -4334,9 +4334,9 @@ private:
 				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
                 if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
-					if (fdrive->req_ver>0) {
+					if (fdrive->req_ver_major>0) {
 						static char ver_msg[150];
-						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n%s", fdrive->req_ver, errorMessage);
+						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
                 }
