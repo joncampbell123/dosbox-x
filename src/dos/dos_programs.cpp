@@ -2764,6 +2764,14 @@ restart_int:
                 if (vol_sectors >= 400) {
                     unsigned int tmp_fatlimit;
 
+                    /* 1 sector per cluster is very inefficent */
+                    if (vol_sectors >= 6144000/*3000MB*/)
+                        sectors_per_cluster = 8;
+                    else if (vol_sectors >= 1048576/*512MB*/)
+                        sectors_per_cluster = 4;
+                    else if (vol_sectors >= 131072/*64MB*/)
+                        sectors_per_cluster = 2;
+
                     /* no more than 5% of the disk */
                     switch (FAT) {
                         case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * (512u / fat_copies)) / 3u) * 2u) + 2u; break;
