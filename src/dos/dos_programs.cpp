@@ -2708,6 +2708,17 @@ restart_int:
                 }
             }
 
+            /* Root directory count, user choice.
+             * Does not apply to FAT32, which makes the root directory an allocation chain like any other directory/file. */
+            if (cmd->FindString("-rootdir",tmp,true)) {
+                root_ent = atoi(tmp.c_str());
+                if (root_ent < 1u || root_ent > 4096u) {
+                    WriteOut("Invalid -rootdir option\n");
+                    fclose(f);
+                    return;
+                }
+            }
+
             /* decide partition placement */
             if (mediadesc == 0xF8) {
                 bootsect_pos = (Bits)s;
