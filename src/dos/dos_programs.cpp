@@ -2855,6 +2855,14 @@ restart_int:
             // write the boot sector
             fseeko64(f,bootsect_pos*512,SEEK_SET);
             fwrite(&sbuf,512,1,f);
+
+            // FAT32: Write backup copy too.
+            //        The BPB we wrote says sector 6 from start of volume
+            if (FAT >= 32) {
+                fseeko64(f,(bootsect_pos+6u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
+
             // write FATs
             memset(sbuf,0,512);
             if (FAT >= 32) {
