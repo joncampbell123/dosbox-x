@@ -2678,6 +2678,7 @@ restart_int:
                 FAT = atoi(tmp.c_str());
                 if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
                     WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2687,6 +2688,7 @@ restart_int:
                 fat_copies = atoi(tmp.c_str());
                 if (fat_copies < 1u || fat_copies > 4u) {
                     WriteOut("Invalid -fatcopies option\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2696,10 +2698,12 @@ restart_int:
                 sectors_per_cluster = atoi(tmp.c_str());
                 if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
                     WriteOut("Invalid -spc option, out of range\n");
+                    fclose(f);
                     return;
                 }
                 if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
                     WriteOut("Invalid -spc option, must be a power of 2\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2865,6 +2869,7 @@ restart_int:
 
             if (FAT < 32 && sect_per_fat >= 65536u) {
                 WriteOut("Error: Generated filesystem has more than 64KB sectors per FAT and is not FAT32\n");
+                fclose(f);
                 return;
             }
 
@@ -2876,6 +2881,7 @@ restart_int:
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
                 WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                fclose(f);
                 return;
             }
             if ((clusters+2u) > fatlimit) {
