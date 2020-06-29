@@ -2860,6 +2860,9 @@ restart_int:
             if (FAT >= 32) {
                 host_writed(&sbuf[0],0x0FFFFF00 | mediadesc);
                 host_writed(&sbuf[4],0x0FFFFFFF);
+
+                /* The code above marks cluster 2 as the start of the root directory. */
+                host_writed(&sbuf[8],0x0FFFFFFF);
             }
             else if (FAT >= 16)
                 host_writed(&sbuf[0],0xFFFFFF00 | mediadesc);
