@@ -2628,7 +2628,6 @@ restart_int:
         }
 
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
-        WriteOut("%s\r\n",temp_line.c_str());
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
 
         // do it again for fixed chs values
@@ -2654,6 +2653,7 @@ restart_int:
 
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
+            unsigned int sectors_per_cluster;
             unsigned int vol_sectors = 0;
             unsigned int fatlimit;
             int FAT = -1;
@@ -2746,11 +2746,9 @@ restart_int:
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
-            {
-                Bitu cval = 1;
-                while((vol_sectors/cval) >= (fatlimit - 2u) && cval < 0x80u) cval <<= 1;
-                sbuf[0x0d]=(Bit8u)cval;
-            }
+            sectors_per_cluster = 1;
+            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
+            sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
             // reserverd sectors: 1 ( the boot sector)
             host_writew(&sbuf[0x0e],1);
@@ -2765,7 +2763,7 @@ restart_int:
             // sectors per FAT
             // needed entries: (sectors per cluster)
             Bitu sect_per_fat=0;
-            Bitu clusters = vol_sectors / sbuf[0x0d]; // initial estimate
+            Bitu clusters = vol_sectors / sectors_per_cluster; // initial estimate
 
             if (FAT >= 32)          sect_per_fat = ((clusters*4u)+511u)/512u;
             else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
@@ -2773,7 +2771,7 @@ restart_int:
 
             Bitu data_area = vol_sectors - 1u/*reserved*/ - (sect_per_fat * 2u/*number of FAT*/);
             if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
-            clusters = data_area / sbuf[0x0d];
+            clusters = data_area / sectors_per_cluster;
             host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
             // sectors per track
             host_writew(&sbuf[0x18],s);
