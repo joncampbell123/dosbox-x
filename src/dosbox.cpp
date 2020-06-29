@@ -1560,8 +1560,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help(
         "Amount of memory DOSBox-X has in megabytes.\n"
         "This value is best left at its default to avoid problems with some games,\n"
-        "though few games might require a higher value.\n"
-        "There is generally no speed advantage when raising this value.n"
+        "although other games and applications may require a higher value.\n"
         "Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
 
     Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
@@ -4637,8 +4636,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT)  return;
 	SDL_PauseAudio(0);
 	bool save_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>400) {
-		LOG_MSG("Stopped. 400 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>1000) {
+		LOG_MSG("Stopped. 1000 MB is the maximum memory size for saving/loading states.");
 #if defined(WIN32)
 		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
 #endif
@@ -4703,6 +4702,7 @@ void SaveState::save(size_t slot) { //throw (Error)
                  std::string tempname = temp+"Memory_Size";
 				  std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
 				  memorysize << MEM_TotalPages();
+
 				  create_memorysize=true;
 				  memorysize.close();
 			}
@@ -4764,8 +4764,8 @@ delete_all:
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>400) {
-		LOG_MSG("Stopped. 400 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>1000) {
+		LOG_MSG("Stopped. 1000 MB is the maximum memory size for saving/loading states.");
 #if defined(WIN32)
 		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
 #endif
@@ -4927,8 +4927,16 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char str[10];
 			itoa(MEM_TotalPages(), str, 10);
 			if(strncmp(buffer,str,length)) {
-				buffer[length]='\0';
-				LOG_MSG("WARNING: Check your memory size.");
+#if defined(WIN32)
+				if(!force_load_state&&MessageBox(GetHWND(),"Memory size mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
+#else
+				if(!force_load_state) {
+#endif
+					buffer[length]='\0';
+					LOG_MSG("Aborted. Check your memory size.");
+					load_err=true;
+					goto delete_all;
+				}
 			}
 			read_memorysize=true;
 		}

@@ -2117,12 +2117,12 @@ public:
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		Bit8u pagehandler_idx[0x10000];
+		Bit8u pagehandler_idx[0x40000];
 		unsigned int size_table;
 
 
-		// assume 256MB max memory
-		// FIXME: Memory size can be much larger! Up to 3.5GB on 64-bit builds!
+		// assume 1000MB max memory
+		// FIXME: Memory size can be even larger! Up to 3.5GB on 64-bit builds!
 		size_table = sizeof(Memory_PageHandler_table) / sizeof(void *);
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
 			pagehandler_idx[lcv] = 0xff;
@@ -2164,7 +2164,7 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		Bit8u pagehandler_idx[0x10000];
+		Bit8u pagehandler_idx[0x40000];
 		void *old_ptrs[4];
 
 		old_ptrs[0] = (void *) memory.phandlers;
