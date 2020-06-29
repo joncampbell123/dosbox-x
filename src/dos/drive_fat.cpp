@@ -1366,7 +1366,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
 	struct partTable mbrData;
-	req_ver = 0.0;
+
+	req_ver_major = req_ver_minor = 0;
 
 	if(!loadedDisk) {
 		created_successfully = false;
@@ -1547,8 +1548,9 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
 								startSector = mbrData.pentry[m].absSectStart;
 								countSector = mbrData.pentry[m].partSize;
-							} else
-								req_ver = 7.0;
+							} else {
+								req_ver_major = 7; req_ver_minor = 0;
+                            }
                             break;
                         }
                         else if (mbrData.pentry[m].parttype == 0x0B || mbrData.pentry[m].parttype == 0x0C) { /* FAT32 types */
@@ -1556,8 +1558,9 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 								LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
 								startSector = mbrData.pentry[m].absSectStart;
 								countSector = mbrData.pentry[m].partSize;
-							} else
-								req_ver = 7.1;
+							} else {
+								req_ver_major = 7; req_ver_minor = 10;
+                            }
                             break;
                         }
                     }

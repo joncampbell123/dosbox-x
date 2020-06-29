@@ -2416,6 +2416,7 @@ restart_int:
         std::string src;
         std::string filename;
         std::string dpath;
+        std::string tmp;
 
         unsigned int c, h, s, sectors; 
         Bit64u size = 0;
@@ -2566,7 +2567,7 @@ restart_int:
                         return;
                     }
                     size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
-                    if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)) {
+                    if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)/*8GB*/) {
                         // user picked geometry resulting in wrong size
                         printHelp();
                         return;
@@ -2577,9 +2578,9 @@ restart_int:
                 std::istringstream stream(isize);
                 stream >> size;
                 size *= 1024*1024LL; // size in megabytes
-                // low limit: 3 megs, high limit: 2 gigs
+                // low limit: 3 megs, high limit: 2 terabytes
                 // Int13 limit would be 8 gigs
-                if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFLL)) {
+                if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFFFLL)/*2TB*/) {
                     // wrong size
                     printHelp();
                     return;
@@ -2587,14 +2588,22 @@ restart_int:
                 sectors = (unsigned int)(size / 512);
 
                 // Now that we finally have the proper size, figure out good CHS values
-                h=2;
-                while(h*1023*63 < sectors) h <<= 1;
-                if(h>255) h=255;
-                s=8;
-                while(h*s*1023 < sectors) s *= 2;
-                if(s>63) s=63;
-                c=sectors/(h*s);
-                if(c>1023) c=1023;
+                if (size > 0xFFFFFFFFLL/*4GB*/) {
+                    /* beyond that point it's easier to just map like LBA and be done with it */
+                    h=16;
+                    s=63;
+                    c=sectors/(h*s);
+                }
+                else {
+                    h=2;
+                    while(h*1023*63 < sectors) h <<= 1;
+                    if(h>255) h=255;
+                    s=8;
+                    while(h*s*1023 < sectors) s *= 2;
+                    if(s>63) s=63;
+                    c=sectors/(h*s);
+                    if(c>1023) c=1023;
+                }
             }
         } else {
             // user passed a wrong -t argument
@@ -2609,9 +2618,12 @@ restart_int:
 
         size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
         Bits bootsect_pos = 0; // offset of the boot sector in clusters
-        if(cmd->FindExist("-nofs",true) || (size>(2048*1024*1024LL))) {
+        if(cmd->FindExist("-nofs",true)) {
             bootsect_pos = -1;
         }
+
+        /* beyond this point clamp c */
+        if (c > 1023) c = 1023;
 
         // temp_line is the filename
         if (!(cmd->FindCommand(1, temp_line))) {
@@ -2628,7 +2640,6 @@ restart_int:
         }
 
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
-        WriteOut("%s\r\n",temp_line.c_str());
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
 
         // do it again for fixed chs values
@@ -2654,6 +2665,88 @@ restart_int:
 
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
+            unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
+            unsigned int sectors_per_cluster = 0;
+            unsigned int vol_sectors = 0;
+            unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
+            unsigned int fatlimitmin;
+            unsigned int fatlimit;
+            int FAT = -1;
+
+            /* FAT filesystem, user choice */
+            if (cmd->FindString("-fat",tmp,true)) {
+                FAT = atoi(tmp.c_str());
+                if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
+                    WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    return;
+                }
+            }
+
+            /* FAT copies, user choice */
+            if (cmd->FindString("-fatcopies",tmp,true)) {
+                fat_copies = atoi(tmp.c_str());
+                if (fat_copies < 1u || fat_copies > 4u) {
+                    WriteOut("Invalid -fatcopies option\n");
+                    return;
+                }
+            }
+
+            /* Sectors per cluster, user choice */
+            if (cmd->FindString("-spc",tmp,true)) {
+                sectors_per_cluster = atoi(tmp.c_str());
+                if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
+                    WriteOut("Invalid -spc option, out of range\n");
+                    return;
+                }
+                if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
+                    WriteOut("Invalid -spc option, must be a power of 2\n");
+                    return;
+                }
+            }
+
+            /* decide partition placement */
+            if (mediadesc == 0xF8) {
+                bootsect_pos = (Bits)s;
+                vol_sectors = sectors - (unsigned int)bootsect_pos;
+            }
+
+            /* auto-decide FAT system */
+            if (FAT < 0) {
+                bool dosver_fat32 = (dos.version.major >= 8) || (dos.version.major == 7 && dos.version.minor >= 10);
+
+                if (vol_sectors >= 4194304 && !dosver_fat32) /* 2GB or larger */
+                    FAT = 32;
+                else if (vol_sectors >= 1048576 && dosver_fat32) /* 512MB or larger */
+                    FAT = 32;
+                else if (vol_sectors >= 24576) /* 12MB or larger */
+                    FAT = 16;
+                else
+                    FAT = 12;
+            }
+
+            /* highest cluster number + 1 */
+            switch (FAT) {
+                case 32:
+                    fatlimit = 0x0FFFFFF6;
+                    fatlimitmin = 0xFFF6;
+                    break;
+                case 16:
+                    fatlimit = 0xFFF6;
+                    fatlimitmin = 0xFF6;
+                    break;
+                case 12:
+                    fatlimit = 0xFF6;
+                    fatlimitmin = 0;
+                    break;
+                default:
+                    abort();
+                    break;
+            }
+
+            /* FAT32 increases reserved area to at least 7. Microsoft likes to use 32 */
+            if (FAT >= 32)
+                reserved_sectors = 32;
+
             Bit8u sbuf[512];
             if(mediadesc == 0xF8) {
                 // is a harddisk: write MBR
@@ -2666,8 +2759,25 @@ restart_int:
                 sbuf[0x1c0]=1;
                 // start cylinder bits 0-7
                 sbuf[0x1c1]=0;
-                // OS indicator: DOS what else ;)
-                sbuf[0x1c2]=0x06;
+                // OS indicator
+                if (FAT < 32 && (bootsect_pos+vol_sectors) < 65536) { /* 32MB or smaller */
+                    if (FAT >= 16)
+                        sbuf[0x1c2]=0x04; /* FAT16 within the first 32MB */
+                    else
+                        sbuf[0x1c2]=0x01; /* FAT12 within the first 32MB */
+                }
+                else if ((bootsect_pos+vol_sectors) < 8388608) { /* 4GB or smaller */
+                    if (FAT >= 32)
+                        sbuf[0x1c2]=0x0B; /* FAT32 C/H/S */
+                    else
+                        sbuf[0x1c2]=0x06; /* FAT12/FAT16 C/H/S */
+                }
+                else {
+                    if (FAT >= 32)
+                        sbuf[0x1c2]=0x0C; /* FAT32 LBA */
+                    else
+                        sbuf[0x1c2]=0x0E; /* FAT12/FAT16 LBA */
+                }
                 // end head (0-based)
                 sbuf[0x1c3]= h-1;
                 // end sector with bits 8-9 of end cylinder (0-based) in bits 6-7
@@ -2675,87 +2785,203 @@ restart_int:
                 // end cylinder (0-based) bits 0-7
                 sbuf[0x1c5]=(c-1)&0xFF;
                 // sectors preceding partition1 (one head)
-                host_writed(&sbuf[0x1c6],s);
+                host_writed(&sbuf[0x1c6],bootsect_pos);
                 // length of partition1, align to chs value
-                host_writed(&sbuf[0x1ca],((c-1)*h+(h-1))*s);
+                host_writed(&sbuf[0x1ca],vol_sectors);
 
                 // write partition table
                 fseeko64(f,0,SEEK_SET);
                 fwrite(&sbuf,512,1,f);
-                bootsect_pos = (Bits)s;
             }
 
             // set boot sector values
             memset(sbuf,0,512);
             // TODO boot code jump
-            sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
+            if (FAT >= 32) {
+                sbuf[0]=0xEB; sbuf[1]=0x58; sbuf[2]=0x90; // Windows 98 values
+            }
+            else {
+                sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
+            }
             // OEM
             sprintf((char*)&sbuf[0x03],"MSDOS5.0");
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
-            if(mediadesc == 0xF8) {
-                Bitu cval = 1;
-                while((sectors/cval) >= 65525) cval <<= 1;
-                sbuf[0x0d]=(Bit8u)cval;
-            } else sbuf[0x0d]=sectors/0x1000 + 1; // FAT12 can hold 0x1000 entries TODO
+            // NOTES: SCANDISK.EXE will hang if you ask it to check a FAT12 filesystem with 128 sectors/cluster.
+            if (sectors_per_cluster == 0) {
+                sectors_per_cluster = 1;
+                /* one sector per cluster on anything larger than 200KB is a bit wasteful (large FAT tables).
+                 * Improve capacity by starting from a larger value.*/
+                if (vol_sectors >= 400) {
+                    unsigned int tmp_fatlimit;
+
+                    /* 1 sector per cluster is very inefficent */
+                    if (vol_sectors >= 6144000/*3000MB*/)
+                        sectors_per_cluster = 8;
+                    else if (vol_sectors >= 1048576/*512MB*/)
+                        sectors_per_cluster = 4;
+                    else if (vol_sectors >= 131072/*64MB*/)
+                        sectors_per_cluster = 2;
+
+                    /* no more than 5% of the disk */
+                    switch (FAT) {
+                        case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * (512u / fat_copies)) / 3u) * 2u) + 2u; break;
+                        case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 2u)       + 2u; break;
+                        case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 4u)       + 2u; break;
+                        default:    abort(); break;
+                    }
+
+                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
+                }
+            }
+            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
+            sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
-            // reserverd sectors: 1 ( the boot sector)
-            host_writew(&sbuf[0x0e],1);
-            // Number of FATs - always 2
-            sbuf[0x10] = 2;
-            // Root entries - how are these made up? - TODO
-            host_writew(&sbuf[0x11],root_ent);
-            // sectors (under 32MB) - will OSes be sore if all HD's use large size?
-            if(mediadesc != 0xF8) host_writew(&sbuf[0x13],c*h*s);
+            // reserverd sectors
+            host_writew(&sbuf[0x0e],reserved_sectors);
+            // Number of FATs
+            sbuf[0x10] = fat_copies;
+            // Root entries if not FAT32
+            if (FAT < 32) host_writew(&sbuf[0x11],root_ent);
+            // sectors (under 32MB) if not FAT32 and less than 65536
+            if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[0x13],vol_sectors);
+            // sectors (32MB or larger or FAT32)
+            if (FAT >= 32 || vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
             // media descriptor
             sbuf[0x15]=mediadesc;
             // sectors per FAT
             // needed entries: (sectors per cluster)
             Bitu sect_per_fat=0;
-            Bitu clusters = (sectors-1)/sbuf[0x0d]; // TODO subtract root dir too maybe
-            if(mediadesc == 0xF8) sect_per_fat = (clusters*2)/512+1;
-            else sect_per_fat = ((clusters*3)/2)/512+1;
-            host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
+            Bitu clusters = vol_sectors / sectors_per_cluster; // initial estimate
+
+            if (FAT >= 32)          sect_per_fat = ((clusters*4u)+511u)/512u;
+            else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
+            else                    sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
+
+            if (FAT < 32 && sect_per_fat >= 65536u) {
+                WriteOut("Error: Generated filesystem has more than 64KB sectors per FAT and is not FAT32\n");
+                return;
+            }
+
+            Bitu data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
+            if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
+            clusters = data_area / sectors_per_cluster;
+            if (FAT < 32) host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
+
+            /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
+            if ((clusters+2u) < fatlimitmin) {
+                WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                return;
+            }
+            if ((clusters+2u) > fatlimit) {
+                clusters = fatlimit-2u;
+                /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
+                unsigned int adj_vol_sectors =
+                    reserved_sectors + (sect_per_fat * fat_copies) +
+                    (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster);
+
+                // sectors (under 32MB) if not FAT32 and less than 65536
+                if (adj_vol_sectors < 65536ul) host_writew(&sbuf[0x13],adj_vol_sectors);
+                // sectors (32MB or larger or FAT32)
+                if (adj_vol_sectors >= 65536ul) host_writed(&sbuf[0x20],adj_vol_sectors);
+            }
+
             // sectors per track
             host_writew(&sbuf[0x18],s);
             // heads
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            if(mediadesc == 0xF8) {
-                // sectors (large disk) - this is the same as partition length in MBR
-                host_writed(&sbuf[0x20],sectors-s);
+            /* after 0x24, FAT12/FAT16 and FAT32 diverge in structure */
+            if (FAT >= 32) {
+                host_writed(&sbuf[0x24],(Bit32u)sect_per_fat);
+                sbuf[0x28] = 0x00; // FAT is mirrored at runtime because that is what DOSBox-X's FAT driver does
+                host_writew(&sbuf[0x2A],0x0000); // FAT32 version 0.0
+                host_writed(&sbuf[0x2C],2); // root directory starting cluster
+                host_writew(&sbuf[0x30],1); // sector number in reserved area of FSINFO structure
+                host_writew(&sbuf[0x32],6); // sector number in reserved area of backup boot sector
                 // BIOS drive
-                sbuf[0x24]=0x80;
+                if(mediadesc == 0xF8) sbuf[0x40]=0x80;
+                else sbuf[0x40]=0x00;
+                // ext. boot signature
+                sbuf[0x42]=0x29;
+                // volume serial number
+                // let's use the BIOS time (cheap, huh?)
+                host_writed(&sbuf[0x43],mem_readd(BIOS_TIMER));
+                // Volume label
+                sprintf((char*)&sbuf[0x47],"NO NAME    ");
+                // file system type
+                sprintf((char*)&sbuf[0x52],"FAT32   ");
             }
-            else sbuf[0x24]=0x00;
-            // ext. boot signature
-            sbuf[0x26]=0x29;
-            // volume serial number
-            // let's use the BIOS time (cheap, huh?)
-            host_writed(&sbuf[0x27],mem_readd(BIOS_TIMER));
-            // Volume label
-            sprintf((char*)&sbuf[0x2b],"NO NAME    ");
-            // file system type
-            if(mediadesc == 0xF8) sprintf((char*)&sbuf[0x36],"FAT16   ");
-            else sprintf((char*)&sbuf[0x36],"FAT12   ");
+            else { /* FAT12/FAT16 */
+                // BIOS drive
+                if(mediadesc == 0xF8) sbuf[0x24]=0x80;
+                else sbuf[0x24]=0x00;
+                // ext. boot signature
+                sbuf[0x26]=0x29;
+                // volume serial number
+                // let's use the BIOS time (cheap, huh?)
+                host_writed(&sbuf[0x27],mem_readd(BIOS_TIMER));
+                // Volume label
+                sprintf((char*)&sbuf[0x2b],"NO NAME    ");
+                // file system type
+                if (FAT >= 16)  sprintf((char*)&sbuf[0x36],"FAT16   ");
+                else            sprintf((char*)&sbuf[0x36],"FAT12   ");
+            }
             // boot sector signature
             host_writew(&sbuf[0x1fe],0xAA55);
 
             // write the boot sector
             fseeko64(f,bootsect_pos*512,SEEK_SET);
             fwrite(&sbuf,512,1,f);
+
+            // FAT32: Write backup copy too.
+            //        The BPB we wrote says sector 6 from start of volume
+            if (FAT >= 32) {
+                fseeko64(f,(bootsect_pos+6u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
+
+            // FAT32: Write FSInfo sector too at sector 1 from start of volume.
+            //        Windows 98 behavior shows that the FSInfo is duplicated
+            //        along with the boot sector.
+            if (FAT >= 32) {
+                memset(sbuf,0,512);
+                host_writed(&sbuf[0x000],0x41615252); /* "RRaA" */
+                host_writed(&sbuf[0x1e4],0x61417272); /* "rrAa" */
+                host_writed(&sbuf[0x1e8],clusters-1); /* Last known free cluster count */
+                host_writed(&sbuf[0x1ec],3);          /* Next free cluster. We used 2 for the root dir, so 3 is next */
+                host_writed(&sbuf[0x1fc],0xAA550000); /* signature */
+                fseeko64(f,(bootsect_pos+1u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+                fseeko64(f,(bootsect_pos+6u+1u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
+
             // write FATs
             memset(sbuf,0,512);
-            if(mediadesc == 0xF8) host_writed(&sbuf[0],0xFFFFFFF8);
-            else host_writed(&sbuf[0],0xFFFFF0);
+            if (FAT >= 32) {
+                host_writed(&sbuf[0],0x0FFFFF00 | mediadesc);
+                host_writed(&sbuf[4],0x0FFFFFFF);
+
+                /* The code above marks cluster 2 as the start of the root directory. */
+                host_writed(&sbuf[8],0x0FFFFFFF);
+            }
+            else if (FAT >= 16)
+                host_writed(&sbuf[0],0xFFFFFF00 | mediadesc);
+            else
+                host_writed(&sbuf[0],0xFFFF00 | mediadesc);
             // 1st FAT
-            fseeko64(f,(off_t)((bootsect_pos+1ll)*512ll),SEEK_SET);
+            fseeko64(f,(off_t)((bootsect_pos+reserved_sectors)*512ll),SEEK_SET);
             fwrite(&sbuf,512,1,f);
             // 2nd FAT
-            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+1ull+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
+            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
             fwrite(&sbuf,512,1,f);
+
+            // warning
+            if (FAT == 12 && sectors_per_cluster > 64u)
+                WriteOut("WARNING: FAT12 with more than 64 sectors per cluster can cause problems with MS-DOS\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
@@ -4123,9 +4349,9 @@ private:
 				fatDrive* fdrive=dynamic_cast<fatDrive*>(newDrive);
                 if (!fdrive->created_successfully) {
                     errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
-					if (fdrive->req_ver>0) {
+					if (fdrive->req_ver_major>0) {
 						static char ver_msg[150];
-						sprintf(ver_msg, "This operation requires DOS version %.1f or higher.\n%s", fdrive->req_ver, errorMessage);
+						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
                 }
@@ -5740,6 +5966,9 @@ void DOS_SetupPrograms(void) {
         "  -chs: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: add this parameter if a blank image should be created.\n"
         "  -bat: creates a .bat file with the IMGMOUNT command required for this image.\n"
+        "  -fat: FAT filesystem type (12, 16, or 32)\n"
+        "  -spc: Sectors per cluster override. Must be a power of 2.\n"
+        "  -fatcopies: Override number of FAT table copies.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
