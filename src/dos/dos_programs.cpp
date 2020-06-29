@@ -2590,7 +2590,7 @@ restart_int:
                 // Now that we finally have the proper size, figure out good CHS values
                 if (size > 0xFFFFFFFFLL/*4GB*/) {
                     /* beyond that point it's easier to just map like LBA and be done with it */
-                    h=16;
+                    h=255;
                     s=63;
                     c=sectors/(h*s);
                 }
@@ -2678,6 +2678,7 @@ restart_int:
                 FAT = atoi(tmp.c_str());
                 if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
                     WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2687,6 +2688,7 @@ restart_int:
                 fat_copies = atoi(tmp.c_str());
                 if (fat_copies < 1u || fat_copies > 4u) {
                     WriteOut("Invalid -fatcopies option\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2696,10 +2698,23 @@ restart_int:
                 sectors_per_cluster = atoi(tmp.c_str());
                 if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
                     WriteOut("Invalid -spc option, out of range\n");
+                    fclose(f);
                     return;
                 }
                 if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
                     WriteOut("Invalid -spc option, must be a power of 2\n");
+                    fclose(f);
+                    return;
+                }
+            }
+
+            /* Root directory count, user choice.
+             * Does not apply to FAT32, which makes the root directory an allocation chain like any other directory/file. */
+            if (cmd->FindString("-rootdir",tmp,true)) {
+                root_ent = atoi(tmp.c_str());
+                if (root_ent < 1u || root_ent > 4096u) {
+                    WriteOut("Invalid -rootdir option\n");
+                    fclose(f);
                     return;
                 }
             }
@@ -2865,6 +2880,7 @@ restart_int:
 
             if (FAT < 32 && sect_per_fat >= 65536u) {
                 WriteOut("Error: Generated filesystem has more than 64KB sectors per FAT and is not FAT32\n");
+                fclose(f);
                 return;
             }
 
@@ -2876,6 +2892,7 @@ restart_int:
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
                 WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                fclose(f);
                 return;
             }
             if ((clusters+2u) > fatlimit) {
@@ -2978,12 +2995,11 @@ restart_int:
                 host_writed(&sbuf[0],0xFFFFFF00 | mediadesc);
             else
                 host_writed(&sbuf[0],0xFFFF00 | mediadesc);
-            // 1st FAT
-            fseeko64(f,(off_t)((bootsect_pos+reserved_sectors)*512ll),SEEK_SET);
-            fwrite(&sbuf,512,1,f);
-            // 2nd FAT
-            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
-            fwrite(&sbuf,512,1,f);
+
+            for (unsigned int fat=0;fat < fat_copies;fat++) {
+                fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat*(unsigned long long)fat)*512ull),SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
 
             // warning
             if (FAT == 12 && sectors_per_cluster > 64u)
@@ -5975,6 +5991,7 @@ void DOS_SetupPrograms(void) {
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
+        "  -rootdir: Size of root directory in entries. Ignored for FAT32.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
