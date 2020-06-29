@@ -2984,12 +2984,11 @@ restart_int:
                 host_writed(&sbuf[0],0xFFFFFF00 | mediadesc);
             else
                 host_writed(&sbuf[0],0xFFFF00 | mediadesc);
-            // 1st FAT
-            fseeko64(f,(off_t)((bootsect_pos+reserved_sectors)*512ll),SEEK_SET);
-            fwrite(&sbuf,512,1,f);
-            // 2nd FAT
-            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
-            fwrite(&sbuf,512,1,f);
+
+            for (unsigned int fat=0;fat < fat_copies;fat++) {
+                fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat*(unsigned long long)fat)*512ull),SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
 
             // warning
             if (FAT == 12 && sectors_per_cluster > 64u)
