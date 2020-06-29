@@ -69,7 +69,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 2. Linux (with X11), 32-bit and 64-bit
 
-3. Mac OS X (macOS) Sierra 10.12 or higher 64-bit
+3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit
 
 4. MS-DOS or compatible (with the help of HX DOS Extender)
 
