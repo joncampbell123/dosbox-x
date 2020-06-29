@@ -2748,7 +2748,24 @@ restart_int:
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
-            sectors_per_cluster = 1;
+            if (true/*TODO: Give the user a choice to override this logic*/) {
+                sectors_per_cluster = 1;
+                /* one sector per cluster on anything larger than 200KB is a bit wasteful (large FAT tables).
+                 * Improve capacity by starting from a larger value.*/
+                if (vol_sectors >= 400) {
+                    unsigned int tmp_fatlimit;
+
+                    /* no more than 5% of the disk */
+                    switch (FAT) {
+                        case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * 512u) / 3u) * 2u) + 2u; break;
+                        case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * 512u) / 2u)       + 2u; break;
+                        case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * 512u) / 4u)       + 2u; break;
+                        default:    abort(); break;
+                    }
+
+                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
+                }
+            }
             while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
