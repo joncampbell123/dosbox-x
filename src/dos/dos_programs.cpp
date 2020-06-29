@@ -2654,6 +2654,42 @@ restart_int:
 
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
+            unsigned int vol_sectors = 0;
+            unsigned int fatlimit;
+            int FAT = -1;
+
+            /* decide partition placement */
+            if (mediadesc == 0xF8) {
+                bootsect_pos = (Bits)s;
+                vol_sectors = sectors - (unsigned int)bootsect_pos;
+            }
+
+            /* auto-decide FAT system (TODO: Unless user specifies a format) */
+            if (FAT < 0) {
+                if (vol_sectors >= 4194304) /* 2GB or larger */
+                    FAT = 32;
+                else if (vol_sectors >= 49152) /* 24MB or larger */
+                    FAT = 16;
+                else
+                    FAT = 12;
+            }
+
+            /* highest cluster number + 1 */
+            switch (FAT) {
+                case 32:
+                    fatlimit = 0x0FFFFFF6;
+                    break;
+                case 16:
+                    fatlimit = 0xFFF6;
+                    break;
+                case 12:
+                    fatlimit = 0xFF6;
+                    break;
+                default:
+                    abort();
+                    break;
+            }
+
             Bit8u sbuf[512];
             if(mediadesc == 0xF8) {
                 // is a harddisk: write MBR
@@ -2666,8 +2702,25 @@ restart_int:
                 sbuf[0x1c0]=1;
                 // start cylinder bits 0-7
                 sbuf[0x1c1]=0;
-                // OS indicator: DOS what else ;)
-                sbuf[0x1c2]=0x06;
+                // OS indicator
+                if (FAT < 32 && (bootsect_pos+vol_sectors) < 65536) { /* 32MB or smaller */
+                    if (FAT >= 16)
+                        sbuf[0x1c2]=0x04; /* FAT16 within the first 32MB */
+                    else
+                        sbuf[0x1c2]=0x01; /* FAT12 within the first 32MB */
+                }
+                else if ((bootsect_pos+vol_sectors) < 8388608) { /* 4GB or smaller */
+                    if (FAT >= 32)
+                        sbuf[0x1c2]=0x0B; /* FAT32 C/H/S */
+                    else
+                        sbuf[0x1c2]=0x06; /* FAT12/FAT16 C/H/S */
+                }
+                else {
+                    if (FAT >= 32)
+                        sbuf[0x1c2]=0x0C; /* FAT32 LBA */
+                    else
+                        sbuf[0x1c2]=0x0E; /* FAT12/FAT16 LBA */
+                }
                 // end head (0-based)
                 sbuf[0x1c3]= h-1;
                 // end sector with bits 8-9 of end cylinder (0-based) in bits 6-7
@@ -2675,14 +2728,13 @@ restart_int:
                 // end cylinder (0-based) bits 0-7
                 sbuf[0x1c5]=(c-1)&0xFF;
                 // sectors preceding partition1 (one head)
-                host_writed(&sbuf[0x1c6],s);
+                host_writed(&sbuf[0x1c6],bootsect_pos);
                 // length of partition1, align to chs value
-                host_writed(&sbuf[0x1ca],((c-1)*h+(h-1))*s);
+                host_writed(&sbuf[0x1ca],vol_sectors);
 
                 // write partition table
                 fseeko64(f,0,SEEK_SET);
                 fwrite(&sbuf,512,1,f);
-                bootsect_pos = (Bits)s;
             }
 
             // set boot sector values
@@ -2694,11 +2746,11 @@ restart_int:
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
-            if(mediadesc == 0xF8) {
+            {
                 Bitu cval = 1;
-                while((sectors/cval) >= 65525) cval <<= 1;
+                while((vol_sectors/cval) >= (fatlimit - 2u) && cval < 0x80u) cval <<= 1;
                 sbuf[0x0d]=(Bit8u)cval;
-            } else sbuf[0x0d]=sectors/0x1000 + 1; // FAT12 can hold 0x1000 entries TODO
+            }
             // TODO small floppys have 2 sectors per cluster?
             // reserverd sectors: 1 ( the boot sector)
             host_writew(&sbuf[0x0e],1);
@@ -2706,16 +2758,22 @@ restart_int:
             sbuf[0x10] = 2;
             // Root entries - how are these made up? - TODO
             host_writew(&sbuf[0x11],root_ent);
-            // sectors (under 32MB) - will OSes be sore if all HD's use large size?
-            if(mediadesc != 0xF8) host_writew(&sbuf[0x13],c*h*s);
+            // sectors (under 32MB) if not FAT32 and less than 65536
+            if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[0x13],vol_sectors);
             // media descriptor
             sbuf[0x15]=mediadesc;
             // sectors per FAT
             // needed entries: (sectors per cluster)
             Bitu sect_per_fat=0;
-            Bitu clusters = (sectors-1)/sbuf[0x0d]; // TODO subtract root dir too maybe
-            if(mediadesc == 0xF8) sect_per_fat = (clusters*2)/512+1;
-            else sect_per_fat = ((clusters*3)/2)/512+1;
+            Bitu clusters = vol_sectors / sbuf[0x0d]; // initial estimate
+
+            if (FAT >= 32)          sect_per_fat = ((clusters*4u)+511u)/512u;
+            else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
+            else                    sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
+
+            Bitu data_area = vol_sectors - 1u/*reserved*/ - (sect_per_fat * 2u/*number of FAT*/);
+            if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
+            clusters = data_area / sbuf[0x0d];
             host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
             // sectors per track
             host_writew(&sbuf[0x18],s);
@@ -2723,12 +2781,10 @@ restart_int:
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            if(mediadesc == 0xF8) {
-                // sectors (large disk) - this is the same as partition length in MBR
-                host_writed(&sbuf[0x20],sectors-s);
-                // BIOS drive
-                sbuf[0x24]=0x80;
-            }
+            // sectors (32MB or larger) if not FAT32
+            if (FAT < 32 && vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
+            // BIOS drive
+            if(mediadesc == 0xF8) sbuf[0x24]=0x80;
             else sbuf[0x24]=0x00;
             // ext. boot signature
             sbuf[0x26]=0x29;
@@ -2738,8 +2794,8 @@ restart_int:
             // Volume label
             sprintf((char*)&sbuf[0x2b],"NO NAME    ");
             // file system type
-            if(mediadesc == 0xF8) sprintf((char*)&sbuf[0x36],"FAT16   ");
-            else sprintf((char*)&sbuf[0x36],"FAT12   ");
+            if (FAT >= 16)  sprintf((char*)&sbuf[0x36],"FAT16   ");
+            else            sprintf((char*)&sbuf[0x36],"FAT12   ");
             // boot sector signature
             host_writew(&sbuf[0x1fe],0xAA55);
 
@@ -2748,8 +2804,14 @@ restart_int:
             fwrite(&sbuf,512,1,f);
             // write FATs
             memset(sbuf,0,512);
-            if(mediadesc == 0xF8) host_writed(&sbuf[0],0xFFFFFFF8);
-            else host_writed(&sbuf[0],0xFFFFF0);
+            if (FAT >= 32) {
+                host_writed(&sbuf[0],0x0FFFFF00 | mediadesc);
+                host_writed(&sbuf[4],0x0FFFFFFF);
+            }
+            else if (FAT >= 16)
+                host_writed(&sbuf[0],0xFFFFFF00 | mediadesc);
+            else
+                host_writed(&sbuf[0],0xFFFF00 | mediadesc);
             // 1st FAT
             fseeko64(f,(off_t)((bootsect_pos+1ll)*512ll),SEEK_SET);
             fwrite(&sbuf,512,1,f);
