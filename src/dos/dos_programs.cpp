@@ -2653,8 +2653,10 @@ restart_int:
 
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
+            unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
             unsigned int sectors_per_cluster;
             unsigned int vol_sectors = 0;
+            unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
             unsigned int fatlimit;
             int FAT = -1;
 
@@ -2750,10 +2752,10 @@ restart_int:
             while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
-            // reserverd sectors: 1 ( the boot sector)
-            host_writew(&sbuf[0x0e],1);
-            // Number of FATs - always 2
-            sbuf[0x10] = 2;
+            // reserverd sectors
+            host_writew(&sbuf[0x0e],reserved_sectors);
+            // Number of FATs
+            sbuf[0x10] = fat_copies;
             // Root entries - how are these made up? - TODO
             host_writew(&sbuf[0x11],root_ent);
             // sectors (under 32MB) if not FAT32 and less than 65536
@@ -2769,7 +2771,7 @@ restart_int:
             else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
             else                    sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
 
-            Bitu data_area = vol_sectors - 1u/*reserved*/ - (sect_per_fat * 2u/*number of FAT*/);
+            Bitu data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
             if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
             clusters = data_area / sectors_per_cluster;
             host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
