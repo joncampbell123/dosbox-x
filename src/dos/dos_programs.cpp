@@ -2590,7 +2590,7 @@ restart_int:
                 // Now that we finally have the proper size, figure out good CHS values
                 if (size > 0xFFFFFFFFLL/*4GB*/) {
                     /* beyond that point it's easier to just map like LBA and be done with it */
-                    h=16;
+                    h=255;
                     s=63;
                     c=sectors/(h*s);
                 }
