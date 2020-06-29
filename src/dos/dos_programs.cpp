@@ -2709,6 +2709,10 @@ restart_int:
                 bootsect_pos = (Bits)s;
                 vol_sectors = sectors - (unsigned int)bootsect_pos;
             }
+            else {
+                bootsect_pos = 0;
+                vol_sectors = sectors;
+            }
 
             /* auto-decide FAT system */
             if (FAT < 0) {
@@ -2876,6 +2880,8 @@ restart_int:
             }
             if ((clusters+2u) > fatlimit) {
                 clusters = fatlimit-2u;
+                WriteOut("Warning: Cluster count is too high given the volume size. Reporting a\n");
+                WriteOut("         smaller sector count.\n");
                 /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
                 unsigned int adj_vol_sectors =
                     reserved_sectors + (sect_per_fat * fat_copies) +
