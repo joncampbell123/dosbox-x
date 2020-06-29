@@ -2827,6 +2827,8 @@ restart_int:
             if (FAT < 32) host_writew(&sbuf[0x11],root_ent);
             // sectors (under 32MB) if not FAT32 and less than 65536
             if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[0x13],vol_sectors);
+            // sectors (32MB or larger or FAT32)
+            if (FAT >= 32 || vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
             // media descriptor
             sbuf[0x15]=mediadesc;
             // sectors per FAT
@@ -2838,22 +2840,38 @@ restart_int:
             else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
             else                    sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
 
-            if (FAT < 32) {
-                assert(sect_per_fat < 65536u);
+            if (FAT < 32 && sect_per_fat >= 65536u) {
+                WriteOut("Error: Generated filesystem has more than 64KB sectors per FAT and is not FAT32\n");
+                return;
             }
 
             Bitu data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
             if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
             clusters = data_area / sectors_per_cluster;
             if (FAT < 32) host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
+
+            /* Too many clusters can foul up FAT12/FAT16 detection and cause corruption! */
+            if (FAT < 32) {
+                if ((clusters+2u) > fatlimit) {
+                    clusters = fatlimit-2u;
+                    /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
+                    unsigned int adj_vol_sectors =
+                        reserved_sectors + (sect_per_fat * fat_copies) +
+                        (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster);
+
+                    // sectors (under 32MB) if not FAT32 and less than 65536
+                    if (adj_vol_sectors < 65536ul) host_writew(&sbuf[0x13],adj_vol_sectors);
+                    // sectors (32MB or larger or FAT32)
+                    if (adj_vol_sectors >= 65536ul) host_writed(&sbuf[0x20],adj_vol_sectors);
+                }
+            }
+
             // sectors per track
             host_writew(&sbuf[0x18],s);
             // heads
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            // sectors (32MB or larger or FAT32)
-            if (FAT >= 32 || vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
             /* after 0x24, FAT12/FAT16 and FAT32 diverge in structure */
             if (FAT >= 32) {
                 host_writed(&sbuf[0x24],(Bit32u)sect_per_fat);
