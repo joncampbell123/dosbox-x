@@ -34,11 +34,13 @@
 
 #define DoString DoString_Normal8086
 
-extern bool mustCompleteInstruction;
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
-#include "debug.h"
+extern bool mustCompleteInstruction;
+# include "debug.h"
+#else
+# define mustCompleteInstruction (0)
 #endif
 
 static Bit16u last_ea86_offset;
