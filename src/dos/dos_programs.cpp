@@ -2609,7 +2609,7 @@ restart_int:
 
         size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
         Bits bootsect_pos = 0; // offset of the boot sector in clusters
-        if(cmd->FindExist("-nofs",true) || (size>(2048*1024*1024LL))) {
+        if(cmd->FindExist("-nofs",true)) {
             bootsect_pos = -1;
         }
 
@@ -2692,6 +2692,10 @@ restart_int:
                     break;
             }
 
+            /* FAT32 increases reserved area to at least 7. Microsoft likes to use 32 */
+            if (FAT >= 32)
+                reserved_sectors = 32;
+
             Bit8u sbuf[512];
             if(mediadesc == 0xF8) {
                 // is a harddisk: write MBR
@@ -2742,7 +2746,12 @@ restart_int:
             // set boot sector values
             memset(sbuf,0,512);
             // TODO boot code jump
-            sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
+            if (FAT >= 32) {
+                sbuf[0]=0xEB; sbuf[1]=0x58; sbuf[2]=0x90; // Windows 98 values
+            }
+            else {
+                sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
+            }
             // OEM
             sprintf((char*)&sbuf[0x03],"MSDOS5.0");
             // bytes per sector: always 512
@@ -2773,8 +2782,8 @@ restart_int:
             host_writew(&sbuf[0x0e],reserved_sectors);
             // Number of FATs
             sbuf[0x10] = fat_copies;
-            // Root entries - how are these made up? - TODO
-            host_writew(&sbuf[0x11],root_ent);
+            // Root entries if not FAT32
+            if (FAT < 32) host_writew(&sbuf[0x11],root_ent);
             // sectors (under 32MB) if not FAT32 and less than 65536
             if (FAT < 32 && vol_sectors < 65536ul) host_writew(&sbuf[0x13],vol_sectors);
             // media descriptor
@@ -2788,31 +2797,58 @@ restart_int:
             else if (FAT >= 16)     sect_per_fat = ((clusters*2u)+511u)/512u;
             else                    sect_per_fat = ((((clusters+1u)/2u)*3u)+511u)/512u;
 
+            if (FAT < 32) {
+                assert(sect_per_fat < 65536u);
+            }
+
             Bitu data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
             if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
             clusters = data_area / sectors_per_cluster;
-            host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
+            if (FAT < 32) host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
             // sectors per track
             host_writew(&sbuf[0x18],s);
             // heads
             host_writew(&sbuf[0x1a],h);
             // hidden sectors
             host_writed(&sbuf[0x1c],(Bit32u)bootsect_pos);
-            // sectors (32MB or larger) if not FAT32
-            if (FAT < 32 && vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
-            // BIOS drive
-            if(mediadesc == 0xF8) sbuf[0x24]=0x80;
-            else sbuf[0x24]=0x00;
-            // ext. boot signature
-            sbuf[0x26]=0x29;
-            // volume serial number
-            // let's use the BIOS time (cheap, huh?)
-            host_writed(&sbuf[0x27],mem_readd(BIOS_TIMER));
-            // Volume label
-            sprintf((char*)&sbuf[0x2b],"NO NAME    ");
-            // file system type
-            if (FAT >= 16)  sprintf((char*)&sbuf[0x36],"FAT16   ");
-            else            sprintf((char*)&sbuf[0x36],"FAT12   ");
+            // sectors (32MB or larger or FAT32)
+            if (FAT >= 32 || vol_sectors >= 65536ul) host_writed(&sbuf[0x20],vol_sectors);
+            /* after 0x24, FAT12/FAT16 and FAT32 diverge in structure */
+            if (FAT >= 32) {
+                host_writed(&sbuf[0x24],(Bit32u)sect_per_fat);
+                sbuf[0x28] = 0x00; // FAT is mirrored at runtime because that is what DOSBox-X's FAT driver does
+                host_writew(&sbuf[0x2A],0x0000); // FAT32 version 0.0
+                host_writed(&sbuf[0x2C],2); // root directory starting cluster
+                host_writew(&sbuf[0x30],1); // sector number in reserved area of FSINFO structure
+                host_writew(&sbuf[0x32],6); // sector number in reserved area of backup boot sector
+                // BIOS drive
+                if(mediadesc == 0xF8) sbuf[0x40]=0x80;
+                else sbuf[0x40]=0x00;
+                // ext. boot signature
+                sbuf[0x42]=0x29;
+                // volume serial number
+                // let's use the BIOS time (cheap, huh?)
+                host_writed(&sbuf[0x43],mem_readd(BIOS_TIMER));
+                // Volume label
+                sprintf((char*)&sbuf[0x47],"NO NAME    ");
+                // file system type
+                sprintf((char*)&sbuf[0x52],"FAT32   ");
+            }
+            else { /* FAT12/FAT16 */
+                // BIOS drive
+                if(mediadesc == 0xF8) sbuf[0x24]=0x80;
+                else sbuf[0x24]=0x00;
+                // ext. boot signature
+                sbuf[0x26]=0x29;
+                // volume serial number
+                // let's use the BIOS time (cheap, huh?)
+                host_writed(&sbuf[0x27],mem_readd(BIOS_TIMER));
+                // Volume label
+                sprintf((char*)&sbuf[0x2b],"NO NAME    ");
+                // file system type
+                if (FAT >= 16)  sprintf((char*)&sbuf[0x36],"FAT16   ");
+                else            sprintf((char*)&sbuf[0x36],"FAT12   ");
+            }
             // boot sector signature
             host_writew(&sbuf[0x1fe],0xAA55);
 
@@ -2830,10 +2866,10 @@ restart_int:
             else
                 host_writed(&sbuf[0],0xFFFF00 | mediadesc);
             // 1st FAT
-            fseeko64(f,(off_t)((bootsect_pos+1ll)*512ll),SEEK_SET);
+            fseeko64(f,(off_t)((bootsect_pos+reserved_sectors)*512ll),SEEK_SET);
             fwrite(&sbuf,512,1,f);
             // 2nd FAT
-            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+1ull+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
+            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
             fwrite(&sbuf,512,1,f);
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
