@@ -2416,6 +2416,7 @@ restart_int:
         std::string src;
         std::string filename;
         std::string dpath;
+        std::string tmp;
 
         unsigned int c, h, s, sectors; 
         Bit64u size = 0;
@@ -2660,13 +2661,31 @@ restart_int:
             unsigned int fatlimit;
             int FAT = -1;
 
+            /* FAT filesystem, user choice */
+            if (cmd->FindString("-fat",tmp,true)) {
+                FAT = atoi(tmp.c_str());
+                if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
+                    WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
+                    return;
+                }
+            }
+
+            /* FAT copies, user choice */
+            if (cmd->FindString("-fatcopies",tmp,true)) {
+                fat_copies = atoi(tmp.c_str());
+                if (fat_copies < 1u || fat_copies > 4u) {
+                    WriteOut("Invalid -fatcopies option\n");
+                    return;
+                }
+            }
+
             /* decide partition placement */
             if (mediadesc == 0xF8) {
                 bootsect_pos = (Bits)s;
                 vol_sectors = sectors - (unsigned int)bootsect_pos;
             }
 
-            /* auto-decide FAT system (TODO: Unless user specifies a format) */
+            /* auto-decide FAT system */
             if (FAT < 0) {
                 if (vol_sectors >= 4194304) /* 2GB or larger */
                     FAT = 32;
