@@ -2670,7 +2670,7 @@ restart_int:
             if (FAT < 0) {
                 if (vol_sectors >= 4194304) /* 2GB or larger */
                     FAT = 32;
-                else if (vol_sectors >= 49152) /* 24MB or larger */
+                else if (vol_sectors >= 24576) /* 12MB or larger */
                     FAT = 16;
                 else
                     FAT = 12;
