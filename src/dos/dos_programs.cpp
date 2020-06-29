@@ -2658,6 +2658,7 @@ restart_int:
             unsigned int sectors_per_cluster = 0;
             unsigned int vol_sectors = 0;
             unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
+            unsigned int fatlimitmin;
             unsigned int fatlimit;
             int FAT = -1;
 
@@ -2712,12 +2713,15 @@ restart_int:
             switch (FAT) {
                 case 32:
                     fatlimit = 0x0FFFFFF6;
+                    fatlimitmin = 0xFFF6;
                     break;
                 case 16:
                     fatlimit = 0xFFF6;
+                    fatlimitmin = 0xFF6;
                     break;
                 case 12:
                     fatlimit = 0xFF6;
+                    fatlimitmin = 0;
                     break;
                 default:
                     abort();
@@ -2850,20 +2854,22 @@ restart_int:
             clusters = data_area / sectors_per_cluster;
             if (FAT < 32) host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
 
-            /* Too many clusters can foul up FAT12/FAT16 detection and cause corruption! */
-            if (FAT < 32) {
-                if ((clusters+2u) > fatlimit) {
-                    clusters = fatlimit-2u;
-                    /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
-                    unsigned int adj_vol_sectors =
-                        reserved_sectors + (sect_per_fat * fat_copies) +
-                        (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster);
+            /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
+            if ((clusters+2u) < fatlimitmin) {
+                WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
+                return;
+            }
+            if ((clusters+2u) > fatlimit) {
+                clusters = fatlimit-2u;
+                /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
+                unsigned int adj_vol_sectors =
+                    reserved_sectors + (sect_per_fat * fat_copies) +
+                    (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster);
 
-                    // sectors (under 32MB) if not FAT32 and less than 65536
-                    if (adj_vol_sectors < 65536ul) host_writew(&sbuf[0x13],adj_vol_sectors);
-                    // sectors (32MB or larger or FAT32)
-                    if (adj_vol_sectors >= 65536ul) host_writed(&sbuf[0x20],adj_vol_sectors);
-                }
+                // sectors (under 32MB) if not FAT32 and less than 65536
+                if (adj_vol_sectors < 65536ul) host_writew(&sbuf[0x13],adj_vol_sectors);
+                // sectors (32MB or larger or FAT32)
+                if (adj_vol_sectors >= 65536ul) host_writed(&sbuf[0x20],adj_vol_sectors);
             }
 
             // sectors per track
