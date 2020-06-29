@@ -2709,6 +2709,10 @@ restart_int:
                 bootsect_pos = (Bits)s;
                 vol_sectors = sectors - (unsigned int)bootsect_pos;
             }
+            else {
+                bootsect_pos = 0;
+                vol_sectors = sectors;
+            }
 
             /* auto-decide FAT system */
             if (FAT < 0) {
