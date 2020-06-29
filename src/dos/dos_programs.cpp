@@ -2789,6 +2789,7 @@ restart_int:
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
+            // NOTES: SCANDISK.EXE will hang if you ask it to check a FAT12 filesystem with 128 sectors/cluster.
             if (sectors_per_cluster == 0) {
                 sectors_per_cluster = 1;
                 /* one sector per cluster on anything larger than 200KB is a bit wasteful (large FAT tables).
@@ -2812,10 +2813,10 @@ restart_int:
                         default:    abort(); break;
                     }
 
-                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
+                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
                 }
             }
-            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
+            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
             // reserverd sectors
