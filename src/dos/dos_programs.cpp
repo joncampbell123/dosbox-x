@@ -2655,7 +2655,7 @@ restart_int:
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
             unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
-            unsigned int sectors_per_cluster;
+            unsigned int sectors_per_cluster = 0;
             unsigned int vol_sectors = 0;
             unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
             unsigned int fatlimit;
@@ -2675,6 +2675,19 @@ restart_int:
                 fat_copies = atoi(tmp.c_str());
                 if (fat_copies < 1u || fat_copies > 4u) {
                     WriteOut("Invalid -fatcopies option\n");
+                    return;
+                }
+            }
+
+            /* Sectors per cluster, user choice */
+            if (cmd->FindString("-spc",tmp,true)) {
+                sectors_per_cluster = atoi(tmp.c_str());
+                if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
+                    WriteOut("Invalid -spc option, out of range\n");
+                    return;
+                }
+                if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
+                    WriteOut("Invalid -spc option, must be a power of 2\n");
                     return;
                 }
             }
@@ -2776,7 +2789,7 @@ restart_int:
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
-            if (true/*TODO: Give the user a choice to override this logic*/) {
+            if (sectors_per_cluster == 0) {
                 sectors_per_cluster = 1;
                 /* one sector per cluster on anything larger than 200KB is a bit wasteful (large FAT tables).
                  * Improve capacity by starting from a larger value.*/
