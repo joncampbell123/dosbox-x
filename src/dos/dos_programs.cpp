@@ -2567,7 +2567,7 @@ restart_int:
                         return;
                     }
                     size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
-                    if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)) {
+                    if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)/*8GB*/) {
                         // user picked geometry resulting in wrong size
                         printHelp();
                         return;
@@ -2578,9 +2578,9 @@ restart_int:
                 std::istringstream stream(isize);
                 stream >> size;
                 size *= 1024*1024LL; // size in megabytes
-                // low limit: 3 megs, high limit: 2 gigs
+                // low limit: 3 megs, high limit: 2 terabytes
                 // Int13 limit would be 8 gigs
-                if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFLL)) {
+                if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFFFLL)/*2TB*/) {
                     // wrong size
                     printHelp();
                     return;
@@ -2588,14 +2588,22 @@ restart_int:
                 sectors = (unsigned int)(size / 512);
 
                 // Now that we finally have the proper size, figure out good CHS values
-                h=2;
-                while(h*1023*63 < sectors) h <<= 1;
-                if(h>255) h=255;
-                s=8;
-                while(h*s*1023 < sectors) s *= 2;
-                if(s>63) s=63;
-                c=sectors/(h*s);
-                if(c>1023) c=1023;
+                if (size > 0xFFFFFFFFLL/*4GB*/) {
+                    /* beyond that point it's easier to just map like LBA and be done with it */
+                    h=16;
+                    s=63;
+                    c=sectors/(h*s);
+                }
+                else {
+                    h=2;
+                    while(h*1023*63 < sectors) h <<= 1;
+                    if(h>255) h=255;
+                    s=8;
+                    while(h*s*1023 < sectors) s *= 2;
+                    if(s>63) s=63;
+                    c=sectors/(h*s);
+                    if(c>1023) c=1023;
+                }
             }
         } else {
             // user passed a wrong -t argument
@@ -2613,6 +2621,9 @@ restart_int:
         if(cmd->FindExist("-nofs",true)) {
             bootsect_pos = -1;
         }
+
+        /* beyond this point clamp c */
+        if (c > 1023) c = 1023;
 
         // temp_line is the filename
         if (!(cmd->FindCommand(1, temp_line))) {
