@@ -5991,6 +5991,7 @@ void DOS_SetupPrograms(void) {
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
+        "  -rootdir: Size of root directory in entries. Ignored for FAT32.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
