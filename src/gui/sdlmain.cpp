@@ -8886,7 +8886,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ditem.set_text(dmenut.c_str());
 
                 for (size_t i=0;drive_opts[i][0] != NULL;i++) {
-					if (!strcmp(drive_opts[i][0], "boot")&&(c!='A'&&c!='C'&&c!='D')) continue;
+					if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg"))&&(c!='A'&&c!='C'&&c!='D')) continue;
                     const std::string name = std::string("drive_") + c + "_" + drive_opts[i][0];
 
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).

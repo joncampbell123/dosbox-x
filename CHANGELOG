@@ -1,15 +1,16 @@
 0.83.3
   - IMGMAKE can now generate FAT12, FAT16, and FAT32
-    filesystems.
-  - Fixed a bug with DIR command's /P option (Wengier)
-  - Single-stepping in the debugger with the 286 and
-    8086 normal cores now works correctly when stepping
-    over instructions with a segment prefix.
+    filesystems. A new option "-fat" is added.
   - Fixed command-line like "./dosbox-x /dir/app.bat"
     not able to launch the specified program (Wengier)
+  - Fixed a bug that may cause DIR command's /P option
+    to not work properly (Wengier)
   - The default key modifier for the Windows clipboard
     copy & paste via the right mouse button feature is
     now "shift" instead of "disabled" (Wengier)
+  - Single-stepping in the debugger with the 286 and
+    8086 normal cores now works correctly when stepping
+    over instructions with a segment prefix.
   - Pentium MMX instructions now only available for
     Pentium MMX or higher. Fixed the bug that allowed
     MMX instructions for Pentium and lower if programs
