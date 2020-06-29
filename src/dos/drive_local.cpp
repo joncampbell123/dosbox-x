@@ -3238,6 +3238,7 @@ bool Overlay_Drive::is_deleted_file(const char* name) {
 
 void Overlay_Drive::add_DOSdir_to_cache(const char* name, const char *sname) {
 	if (!name || !*name ) return; //Skip empty file.
+	if (logoverlay) LOG_MSG("Adding name to overlay_only_dir_cache %s",name);
 	if (!is_dir_only_in_overlay(name)) {
 		DOSdirs_cache.push_back(name);
 		DOSdirs_cache.push_back(sname);

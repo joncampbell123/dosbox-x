@@ -1,4 +1,5 @@
 0.83.3
+  - Fixed a bug with DIR command's /P option (Wengier)
   - Single-stepping in the debugger with the 286 and
     8086 normal cores now works correctly when stepping
     over instructions with a segment prefix.

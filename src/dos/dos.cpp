@@ -14,6 +14,9 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ *  Heavy improvements like PC-98 and LFN support by the DOSBox-X Team
+ *  With major works from joncampbell123 and Wengier
  */
 
 
@@ -2032,7 +2035,7 @@ static Bitu DOS_21Handler(void) {
             LOG(LOG_DOSMISC, LOG_ERROR)("DOS:6F ROM functions not implemented");
             goto default_fallthrough;
         case 0x71:                  /* Unknown probably 4dos detection */
-            LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
+            LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:MS-DOS 7+ long file name support call %2X",reg_al);
             if (!uselfn) {
                     reg_ax=0x7100;
                     CALLBACK_SCF(true); //Check this! What needs this ? See default case
@@ -2091,7 +2094,7 @@ static Bitu DOS_21Handler(void) {
 							DOS_Int21_71aa(name1, name2);
 							break;
 					case 0xa9:              /* LFN Server Create */
-							reg_ax=0x7100; // not implemented yet
+							reg_ax=0x7100; // unimplemented (not very useful)
                     default:
                             reg_ax=0x7100;
                             CALLBACK_SCF(true); //Check this! What needs this ? See default case
