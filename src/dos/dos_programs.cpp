@@ -5951,6 +5951,9 @@ void DOS_SetupPrograms(void) {
         "  -chs: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: add this parameter if a blank image should be created.\n"
         "  -bat: creates a .bat file with the IMGMOUNT command required for this image.\n"
+        "  -fat: FAT filesystem type (12, 16, or 32)\n"
+        "  -spc: Sectors per cluster override. Must be a power of 2.\n"
+        "  -fatcopies: Override number of FAT table copies.\n"
 #ifdef WIN32
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
