@@ -2701,7 +2701,11 @@ restart_int:
 
             /* auto-decide FAT system */
             if (FAT < 0) {
-                if (vol_sectors >= 4194304) /* 2GB or larger */
+                bool dosver_fat32 = (dos.version.major >= 8) || (dos.version.major == 7 && dos.version.minor >= 10);
+
+                if (vol_sectors >= 4194304 && !dosver_fat32) /* 2GB or larger */
+                    FAT = 32;
+                else if (vol_sectors >= 1048576 && dosver_fat32) /* 512MB or larger */
                     FAT = 32;
                 else if (vol_sectors >= 24576) /* 12MB or larger */
                     FAT = 16;
