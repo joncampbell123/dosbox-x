@@ -2863,6 +2863,22 @@ restart_int:
                 fwrite(&sbuf,512,1,f);
             }
 
+            // FAT32: Write FSInfo sector too at sector 1 from start of volume.
+            //        Windows 98 behavior shows that the FSInfo is duplicated
+            //        along with the boot sector.
+            if (FAT >= 32) {
+                memset(sbuf,0,512);
+                host_writed(&sbuf[0x000],0x41615252); /* "RRaA" */
+                host_writed(&sbuf[0x1e4],0x61417272); /* "rrAa" */
+                host_writed(&sbuf[0x1e8],clusters-1); /* Last known free cluster count */
+                host_writed(&sbuf[0x1ec],3);          /* Next free cluster. We used 2 for the root dir, so 3 is next */
+                host_writed(&sbuf[0x1fc],0xAA550000); /* signature */
+                fseeko64(f,(bootsect_pos+1u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+                fseeko64(f,(bootsect_pos+6u+1u)*512,SEEK_SET);
+                fwrite(&sbuf,512,1,f);
+            }
+
             // write FATs
             memset(sbuf,0,512);
             if (FAT >= 32) {
