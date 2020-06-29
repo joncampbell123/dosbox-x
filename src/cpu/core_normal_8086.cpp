@@ -34,6 +34,7 @@
 
 #define DoString DoString_Normal8086
 
+extern bool mustCompleteInstruction;
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
@@ -123,7 +124,7 @@ extern Bitu cycle_count;
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
-    if (GETFLAG(IF) && CPU_Cycles <= 0) goto prefix_out; \
+    if (GETFLAG(IF) && CPU_Cycles <= 0 && !mustCompleteInstruction) goto prefix_out; \
 	BaseDS=SegBase(_SEG);					\
 	BaseSS=SegBase(_SEG);					\
 	core.base_val_ds=_SEG;					\
@@ -134,7 +135,7 @@ extern Bitu cycle_count;
 	abort();									
 
 #define DO_PREFIX_REP(_ZERO)				\
-    if (GETFLAG(IF) && CPU_Cycles <= 0) goto prefix_out; \
+    if (GETFLAG(IF) && CPU_Cycles <= 0 && !mustCompleteInstruction) goto prefix_out; \
 	core.prefixes|=PREFIX_REP;				\
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;

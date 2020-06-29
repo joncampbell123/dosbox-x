@@ -1,4 +1,7 @@
 0.83.3
+  - Single-stepping in the debugger with the 286 and
+    8086 normal cores now works correctly when stepping
+    over instructions with a segment prefix.
   - Fixed command-line like "./dosbox-x /dir/app.bat"
     not able to launch the specified program (Wengier)
   - The default key modifier for the Windows clipboard
