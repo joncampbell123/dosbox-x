@@ -2966,7 +2966,7 @@ restart_int:
 
             // warning
             if (FAT == 12 && sectors_per_cluster > 64u)
-                WriteOut("WARNING: FAT12 with more than 64 sectors per cluster can cause problems with MS-DOS");
+                WriteOut("WARNING: FAT12 with more than 64 sectors per cluster can cause problems with MS-DOS\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
