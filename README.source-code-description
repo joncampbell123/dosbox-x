@@ -18,16 +18,16 @@ The four major operating systems and platforms of DOSBox-X are (in this order):
 
 3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
 
-4. Mac OS X Sierra 10.12 or higher 64-bit.
+4. Mac OS X (macOS) Sierra 10.12 or higher 64-bit.
 
 Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
-A preliminary CMake build system is available, see [README.cmake.md](README.cmake.md) for details.
+A preliminary CMake build system is available, see README.cmake.md for details.
 
-Mac OS X builds are expected to compile on the terminal using GNU autotools
-and the LLVM/Clang compiler provided by XCode.
+Mac OS X (macOS) builds are expected to compile on the terminal using GNU
+autotools and the LLVM/Clang compiler provided by XCode.
 
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
@@ -64,10 +64,10 @@ General Linux compile (SDL2)
 ./build-debug-sdl2
 sudo make install
 
-Mac OS X compile
+Mac OS X (macOS) compile
 ./build-macosx
 
-Mac OS X compile (SDL2)
+Mac OS X (macOS) compile (SDL2)
 ./build-macosx-sdl2
 
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
@@ -76,16 +76,16 @@ MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
 ./build-mingw-lowend
 
-MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
+MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS Extender
 ./build-mingw-hx-dos
 
 NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
-        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
+        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
 
-Mac OS X: If you want to make an .app bundle you can run from the Finder, compile the
+Mac OS X (macOS): If you want to make an .app bundle you can run from the Finder, compile the
 program as instructed then run "make dosbox-x.app".
 
-XCode (on Mac OS X, from the Terminal) to target Mac OS X
+XCode (on Mac OS X, from the Terminal) to target Mac OS X (macOS)
 ./build-debug
 
 To compile DOSBox-X in Ubuntu (added by kapper1224):
@@ -133,7 +133,7 @@ Build the source code. FluidSynth support should now be enabled for DOSBox-X.
 Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
 (dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
 
-As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
+As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
 a processor that supports the SSE instruction set.
 
 Visual Studio Code is supported, too.
