@@ -2766,9 +2766,9 @@ restart_int:
 
                     /* no more than 5% of the disk */
                     switch (FAT) {
-                        case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * 512u) / 3u) * 2u) + 2u; break;
-                        case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * 512u) / 2u)       + 2u; break;
-                        case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * 512u) / 4u)       + 2u; break;
+                        case 12:    tmp_fatlimit = ((((vol_sectors / 20u) * (512u / fat_copies)) / 3u) * 2u) + 2u; break;
+                        case 16:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 2u)       + 2u; break;
+                        case 32:    tmp_fatlimit =  (((vol_sectors / 20u) * (512u / fat_copies)) / 4u)       + 2u; break;
                         default:    abort(); break;
                     }
 
