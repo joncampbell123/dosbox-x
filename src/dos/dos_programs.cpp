@@ -2939,6 +2939,10 @@ restart_int:
             // 2nd FAT
             fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
             fwrite(&sbuf,512,1,f);
+
+            // warning
+            if (FAT == 12 && sectors_per_cluster > 64u)
+                WriteOut("WARNING: FAT12 with more than 64 sectors per cluster can cause problems with MS-DOS");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
