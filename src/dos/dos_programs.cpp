@@ -2425,6 +2425,10 @@ restart_int:
             printHelp();
             return;
         }
+		if (cmd->FindExist("-examples")) {
+			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
+			return;
+		}
 
 /*
         this stuff is too frustrating
@@ -2651,7 +2655,11 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
+#if defined (_MSC_VER) and (_MSC_VER >= 1400)
+        if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
+#else
         if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
+#endif
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
             return;
@@ -5971,10 +5979,11 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or harddisk images.\n"
         "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
+        "  [-bat] [-fat] [-spc] [-fatcopies] [-rootdir]"
 #ifdef WIN32
-        "  [-source source] [-r retries] [-bat]\n"
+        " [-source source] [-r retries]"
 #endif
-        "  file: The image file that is to be created - !path on the host!\n"
+        "\n  file: The image file that is to be created - !path on the host!\n"
         "  -t: Type of image.\n"
         "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
@@ -5984,10 +5993,10 @@ void DOS_SetupPrograms(void) {
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
         "    Custom harddisk images:\n"
         "     hd (requires -size or -chs)\n"
-        "  -size: size of a custom harddisk image in MB.\n"
-        "  -chs: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
-        "  -nofs: add this parameter if a blank image should be created.\n"
-        "  -bat: creates a .bat file with the IMGMOUNT command required for this image.\n"
+        "  -size: Size of a custom harddisk image in MB.\n"
+        "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
+        "  -nofs: Add this parameter if a blank image should be created.\n"
+        "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
@@ -5996,14 +6005,20 @@ void DOS_SetupPrograms(void) {
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
 #endif
-        " Examples:\n"
-        "    imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
-        "    imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
-        "    imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hd image"
+        "  -examples: Show some usage examples."
+        );
+    MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
+        "Some usage examples of IMGMAKE:\n\n"
+        "  imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
+        "  imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
+        "  imgmake c:\\image.img -t hd_520 -nofs     - create a 520MB blank hdd image\n"
+        "  imgmake c:\\image.img -t hd_2gig -fat 32  - create a 2GB FAT32 hdd image\n"
+        "  imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hdd image\n"
 #ifdef WIN32
-        "\n    imgmake c:\\image.img -source a           - read image from physical drive A"
+        "  imgmake c:\\image.img -source a           - read image from physical drive A\n"
 #endif
         );
+
 #ifdef WIN32
     MSG_Add("PROGRAM_IMGMAKE_FLREAD",
         "Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes\n\n");
