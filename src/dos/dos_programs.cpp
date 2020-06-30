@@ -2655,7 +2655,11 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
+#if defined (_MSC_VER) and (_MSC_VER >= 1400)
+        if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
+#else
         if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
+#endif
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
             return;
