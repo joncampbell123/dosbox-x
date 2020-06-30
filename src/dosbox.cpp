@@ -4702,7 +4702,6 @@ void SaveState::save(size_t slot) { //throw (Error)
                  std::string tempname = temp+"Memory_Size";
 				  std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
 				  memorysize << MEM_TotalPages();
-
 				  create_memorysize=true;
 				  memorysize.close();
 			}

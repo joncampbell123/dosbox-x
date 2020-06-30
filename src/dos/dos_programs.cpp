@@ -2425,6 +2425,10 @@ restart_int:
             printHelp();
             return;
         }
+		if (cmd->FindExist("-example")) {
+			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
+			return;
+		}
 
 /*
         this stuff is too frustrating
@@ -5971,10 +5975,11 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or harddisk images.\n"
         "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
+        "  [-bat] [-fat] [-spc] [-fatcopies] [-rootdir]"
 #ifdef WIN32
-        "  [-source source] [-r retries] [-bat]\n"
+        " [-source source] [-r retries]"
 #endif
-        "  file: The image file that is to be created - !path on the host!\n"
+        "\n  file: The image file that is to be created - !path on the host!\n"
         "  -t: Type of image.\n"
         "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
@@ -5996,14 +6001,20 @@ void DOS_SetupPrograms(void) {
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
 #endif
-        " Examples:\n"
-        "    imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
-        "    imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
-        "    imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hd image"
+        "  -example: Show some usage examples."
+        );
+    MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
+        "Some usage examples of IMGMAKE:\n\n"
+        "  imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
+        "  imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
+        "  imgmake c:\\image.img -t hd_520 -nofs     - create a 520MB blank hdd image\n"
+        "  imgmake c:\\image.img -t hd_2gig -fat 32  - create a 2GB FAT32 hdd image\n"
+        "  imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hdd image\n"
 #ifdef WIN32
-        "\n    imgmake c:\\image.img -source a           - read image from physical drive A"
+        "  imgmake c:\\image.img -source a           - read image from physical drive A\n"
 #endif
         );
+
 #ifdef WIN32
     MSG_Add("PROGRAM_IMGMAKE_FLREAD",
         "Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes\n\n");
