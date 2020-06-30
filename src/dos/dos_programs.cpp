@@ -2425,7 +2425,7 @@ restart_int:
             printHelp();
             return;
         }
-		if (cmd->FindExist("-example")) {
+		if (cmd->FindExist("-examples")) {
 			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
 			return;
 		}
@@ -5989,10 +5989,10 @@ void DOS_SetupPrograms(void) {
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
         "    Custom harddisk images:\n"
         "     hd (requires -size or -chs)\n"
-        "  -size: size of a custom harddisk image in MB.\n"
-        "  -chs: disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
-        "  -nofs: add this parameter if a blank image should be created.\n"
-        "  -bat: creates a .bat file with the IMGMOUNT command required for this image.\n"
+        "  -size: Size of a custom harddisk image in MB.\n"
+        "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
+        "  -nofs: Add this parameter if a blank image should be created.\n"
+        "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
@@ -6001,7 +6001,7 @@ void DOS_SetupPrograms(void) {
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
 #endif
-        "  -example: Show some usage examples."
+        "  -examples: Show some usage examples."
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
