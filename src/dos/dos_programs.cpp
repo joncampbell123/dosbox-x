@@ -2831,7 +2831,11 @@ restart_int:
                 sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
             }
             // OEM
-            sprintf((char*)&sbuf[0x03],"MSDOS5.0");
+            if (FAT >= 32) {
+                sprintf((char*)&sbuf[0x03],"MSWIN4.1");
+            } else {
+                sprintf((char*)&sbuf[0x03],"MSDOS5.0");
+            }
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
