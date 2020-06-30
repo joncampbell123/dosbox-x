@@ -1,13 +1,14 @@
 0.83.3
   - IMGMAKE can now generate FAT12, FAT16, and FAT32
-    filesystems. A new option "-fat" is added.
+    filesystems. New option "-fat" is added to select
+    the filesystem for the disk image.
   - Fixed command-line like "./dosbox-x /dir/app.bat"
     not able to launch the specified program (Wengier)
-  - Fixed a bug that may cause DIR command's /P option
-    to not work properly (Wengier)
+  - Fixed bug in DIR command's /P option which might
+    cause it to not work properly. (Wengier)
   - The default key modifier for the Windows clipboard
     copy & paste via the right mouse button feature is
-    now "shift" instead of "disabled" (Wengier)
+    now "shift" instead of "disabled". (Wengier)
   - Single-stepping in the debugger with the 286 and
     8086 normal cores now works correctly when stepping
     over instructions with a segment prefix.
@@ -25,7 +26,7 @@
     corrupt" is detected. (Wengier)
   - MOUNT command can now mount a drive to the UNC
     root path in the form \\ComputerName\SharedFolder
-    on Windows systems (Wengier)
+    on Windows systems. (Wengier)
   - Improved the HX-DOS build package to make it fully
     automated: all required HX DOS Extender files will
     be included in the package, and dosbox-x.exe can
@@ -93,9 +94,10 @@
     It is also fixed not to crash when used within a guest
     operting system (when the DOS kernel has been shut down
     using the BOOT command);
+    It now supports memory size up to 1000MB;
     It will save and verify the DOSBox-X version and build.
     States saved by DOSBox-X in one platform (e.g. 64-bit
-    Windows) may not work in another (e.g. 32-bit Linux). 
+    Windows) may not work in another (e.g. 32-bit Linux).
     The GUI menu will show if the save slot is empty, and if
     not the program name of save state will be displayed.
   - Re-ported and improved the save state feature for saving
