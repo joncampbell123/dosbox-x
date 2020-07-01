@@ -2831,7 +2831,11 @@ restart_int:
                 sbuf[0]=0xEB; sbuf[1]=0x3c; sbuf[2]=0x90;
             }
             // OEM
-            sprintf((char*)&sbuf[0x03],"MSDOS5.0");
+            if (FAT >= 32) {
+                sprintf((char*)&sbuf[0x03],"MSWIN4.1");
+            } else {
+                sprintf((char*)&sbuf[0x03],"MSDOS5.0");
+            }
             // bytes per sector: always 512
             host_writew(&sbuf[0x0b],512);
             // sectors per cluster: 1,2,4,8,16,...
@@ -2843,13 +2847,29 @@ restart_int:
                 if (vol_sectors >= 400) {
                     unsigned int tmp_fatlimit;
 
-                    /* 1 sector per cluster is very inefficent */
-                    if (vol_sectors >= 6144000/*3000MB*/)
-                        sectors_per_cluster = 8;
-                    else if (vol_sectors >= 1048576/*512MB*/)
-                        sectors_per_cluster = 4;
-                    else if (vol_sectors >= 131072/*64MB*/)
-                        sectors_per_cluster = 2;
+                    /* Windows 98 likes multiples of 4KB, which is actually reasonable considering
+                     * that it keeps FAT32 efficient. Also, Windows 98 SETUP will crash if sectors/cluster
+                     * is too small. Ref: [https://github.com/joncampbell123/dosbox-x/issues/1553#issuecomment-651880604]
+                     * and [http://www.helpwithwindows.com/windows98/fat32.html] */
+                    if (FAT >= 32) {
+                        if (vol_sectors >= 67108864/*32GB*/)
+                            sectors_per_cluster = 64; /* 32KB (64*512) */
+                        else if (vol_sectors >= 33554432/*16GB*/)
+                            sectors_per_cluster = 32; /* 16KB (32*512) */
+                        else if (vol_sectors >= 16777216/*8GB*/)
+                            sectors_per_cluster = 16; /* 8KB (16*512) */
+                        else
+                            sectors_per_cluster = 8; /* 4KB (8*512) */
+                    }
+                    else {
+                        /* 1 sector per cluster is very inefficent */
+                        if (vol_sectors >= 6144000/*3000MB*/)
+                            sectors_per_cluster = 8;
+                        else if (vol_sectors >= 1048576/*512MB*/)
+                            sectors_per_cluster = 4;
+                        else if (vol_sectors >= 131072/*64MB*/)
+                            sectors_per_cluster = 2;
+                    }
 
                     /* no more than 5% of the disk */
                     switch (FAT) {
