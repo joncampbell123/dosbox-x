@@ -1,5 +1,7 @@
 0.83.4
-  - 
+  - IMGMAKE warning replaced to indicate a general
+    incompatibility between MS-DOS/SCANDISK and
+    cluster sizes 64KB or larger.
 0.83.3
   - IMGMAKE can now generate FAT12, FAT16, and FAT32
     filesystems. New option "-fat" is added to select
