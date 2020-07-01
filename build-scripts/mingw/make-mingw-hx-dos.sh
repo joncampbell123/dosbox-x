@@ -69,10 +69,11 @@ cp $hxdir/HXGUIHLP.INI $copydir/ || exit 1
 cp $hxdir/README.TXT $copydir/ || exit 1
 cp $hxdir/*.DLL $copydir/ || exit 1
 
-cd "$top" || exit 1
+cd "$top"/dosbox-x-mingw-hx-dos || exit 1
 echo "Packing up now..."
 
-$ziptool -r -9 "$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
+$ziptool -r -9 ../"$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
+cd ..
 
 exit 0
 
