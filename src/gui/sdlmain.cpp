@@ -5366,7 +5366,7 @@ void GFX_Events() {
 		case SDL_MOUSEWHEEL:
 			if (wheel_key) {
 				if(event.wheel.y > 0) {
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 					INPUT ip = {0};
 					ip.type = INPUT_KEYBOARD;
 					ip.ki.wScan = wheel_key==2?75:(wheel_key==3?73:72);
@@ -5382,7 +5382,7 @@ void GFX_Events() {
 					MAPPER_AutoType(sequence, 1/*ms*/, 0);
 #endif
 				} else if(event.wheel.y < 0) {
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 					INPUT ip = {0};
 					ip.type = INPUT_KEYBOARD;
 					ip.ki.wScan = wheel_key==2?77:(wheel_key==3?81:80);
