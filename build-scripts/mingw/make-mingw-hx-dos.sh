@@ -59,20 +59,20 @@ copydir="build-scripts/mingw/dosbox-x-mingw-hx-dos"
 hxdir="build-scripts/mingw/hxdos"
 
 strip src/dosbox-x.exe || exit 1
-cp src/dosbox-x.exe $copydir/dosbox-x.exe || exit 1
-$hxdir/pestub.exe -n $copydir/dosbox-x.exe
-cp CHANGELOG $copydir/CHANGELOG.txt || exit 1
-cp dosbox-x.reference.conf $copydir/dosbox-x.ref || exit 1
-cp $hxdir/DPMILD32.EXE $copydir/ || exit 1
-cp $hxdir/HDPMI32.EXE $copydir/ || exit 1
-cp $hxdir/HXGUIHLP.INI $copydir/ || exit 1
-cp $hxdir/README.TXT $copydir/ || exit 1
-cp $hxdir/*.DLL $copydir/ || exit 1
+cp src/dosbox-x.exe dosbox-x.exe || exit 1
+$hxdir/pestub.exe -n dosbox-x.exe
+cp CHANGELOG CHANGELOG.txt || exit 1
+cp dosbox-x.reference.conf dosbox-x.ref || exit 1
+cp $hxdir/DPMILD32.EXE . || exit 1
+cp $hxdir/HDPMI32.EXE . || exit 1
+cp $hxdir/HXGUIHLP.INI . || exit 1
+cp $hxdir/README.TXT . || exit 1
+cp $hxdir/*.DLL . || exit 1
 
 cd "$top"/dosbox-x-mingw-hx-dos || exit 1
 echo "Packing up now..."
 
-$ziptool -r -9 ../"$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
+$ziptool -r -9 ../"$name" {CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
 cd ..
 
 exit 0
