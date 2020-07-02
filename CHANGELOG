@@ -1,4 +1,9 @@
 0.83.4
+  - Added "Quick right mouse button copy/paste" menu
+    item toggle to allow quick Windows clipboard copy
+    and paste via the right mouse button without any
+    key modifier that may have been specified by the
+    config option "clip_key_modifier". (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
