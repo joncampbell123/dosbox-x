@@ -1,9 +1,17 @@
-Things needed for compilation.
+For the latest releases of DOSBox-X please go to the Releases page:
+https://github.com/joncampbell123/dosbox-x/releases
+
+The following are some instructions for compiling the source code.
+
+See also the README.source-code-description file for more information
+on building the DOSBox-X source code.
+
+Things needed for compilation of the source code.
 
 SDL 
     The Simple DirectMedia Library available at http://www.libsdl.org
-    The dll distributed with the windows version of DOSBox is slightly
-    modified. You can find the changes in the sourcepackage of DOSBox
+    The DLL distributed with the Windows version of DOSBox-X had been
+    modified. You can find the changes in DOSBox-X's source package
     (src/platform/sdl-win32.diff). If you want the patched sourcetree
     send us an email. (see README)
     Licensed under LGPL
@@ -55,7 +63,7 @@ If you are building from developer sources run ./autogen.sh first before doing t
 In step 1 you could add the following switches:
 --enable-debug 
         enables the internal debugger. --enable-debug=heavy enables even more 
-        debug options. DOSBox should then be run from a xterm and when the sdl-
+        debug options. DOSBox-X should then be run from a xterm and when the sdl-
         window is active press alt-pause to enter the debugger.
 
 --enable-core-inline
@@ -73,7 +81,7 @@ In step 1 you could add the following switches:
 
 --disable-dynamic-x86
         disables the dynamic x86 specific cpu core. Although it might be 
-        be a bit unstable, it can greatly improve the speed of dosbox on x86 
+        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
         hosts.
         Please note that this option on x86 will result in a different
         dynamic/recompiling cpu core being compiled then the default.
@@ -89,7 +97,7 @@ In step 1 you could add the following switches:
 
 --disable-opengl
         disables OpenGL-support (output mode that can be selected in the
-        DOSBox configuration file).
+        DOSBox-X configuration file).
 
 --disable-unaligned-memory
         disables unaligned memory access.
