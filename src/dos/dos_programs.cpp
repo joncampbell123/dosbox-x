@@ -2879,10 +2879,10 @@ restart_int:
                         default:    abort(); break;
                     }
 
-                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
+                    while ((vol_sectors/sectors_per_cluster) >= (tmp_fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
                 }
             }
-            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < (FAT >= 16 ? 0x80u : 0x40u)) sectors_per_cluster <<= 1;
+            while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(Bit8u)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
             // reserverd sectors
@@ -3030,8 +3030,8 @@ restart_int:
             }
 
             // warning
-            if (FAT == 12 && sectors_per_cluster > 64u)
-                WriteOut("WARNING: FAT12 with more than 64 sectors per cluster can cause problems with MS-DOS\n");
+            if ((sectors_per_cluster*512ul) >= 65536ul)
+                WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
