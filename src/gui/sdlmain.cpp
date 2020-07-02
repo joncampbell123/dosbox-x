@@ -42,7 +42,7 @@ extern bool log_int21;
 extern bool log_fileio;
 extern bool force_load_state;
 #if defined(WIN32)
-bool direct_mouse_clipboard;
+bool direct_mouse_clipboard=false;
 #endif
 
 bool OpenGL_using(void);
@@ -9072,7 +9072,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"direct_mouse_clipboard").set_text("Direct right mouse button copy/paste").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"direct_mouse_clipboard").set_text("Quick right mouse button copy/paste").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
