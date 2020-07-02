@@ -127,6 +127,9 @@ static const char *def_menu_main[] =
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
+#if defined(WIN32)
+    "direct_mouse_clipboard",
+#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_pause",
