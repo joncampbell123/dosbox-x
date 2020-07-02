@@ -1,10 +1,13 @@
 For the latest releases of DOSBox-X please go to the Releases page:
 https://github.com/joncampbell123/dosbox-x/releases
 
-The following are some instructions for compiling the source code.
+You will find pre-compiled Windows binaries (both 32-bit and 64-bit)
+and Linux RPM packages (64-bit) from the Releases page.
 
-See also the README.source-code-description file for more information
-on building the DOSBox-X source code.
+Below are some old information for compiling the DOSBox-X source code,
+which may be outdated. See also the README.source-code-description
+file for updated and more detailed information on building the
+DOSBox-X source code and other related information.
 
 Things needed for compilation of the source code.
 
