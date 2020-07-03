@@ -8,11 +8,18 @@ You will find pre-compiled Windows binaries (both 32-bit and 64-bit)
 and Linux RPM packages (64-bit) from the Releases page.
 
 For each DOSBox-X version there are generally three zip packages for
-the Windows platform, built with Visual Studio, MinGW 32-bit and MinGW
-64-bit respectively. Select a zip package to download and unzip, then
-you will find various directories, which are some supported targets.
-Go to a target folder and run dosbox-x.exe inside it, then DOSBox-X
-will be launched and ready to be used.
+the Windows platform, built with Visual Studio, MinGW 32-bit and
+MinGW 64-bit respectively. In the case of DOSBox-X version 0.83.3,
+they correspond to the following:
+
+dosbox-x-windows-20200630-163819-windows.zip
+dosbox-x-mingw-win32-20200630164800.zip
+dosbox-x-mingw-win64-20200630174234.zip
+
+Select one of the zip packages to download and unzip, then you will
+find various directories, which are some supported targets (e.g. Win32
+and x64). Go to a target folder and run dosbox-x.exe inside it, then
+DOSBox-X will be launched and ready to be used.
 
 You can also compile DOSBox-X from the source code by yourself. Below
 are some old information for compiling the DOSBox-X source code, which
