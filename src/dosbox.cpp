@@ -4636,8 +4636,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT)  return;
 	SDL_PauseAudio(0);
 	bool save_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>1000) {
-		LOG_MSG("Stopped. 1000 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>1024) {
+		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
 #if defined(WIN32)
 		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
 #endif
@@ -4763,8 +4763,8 @@ delete_all:
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
-	if((MEM_TotalPages()*4096/1024/1024)>1000) {
-		LOG_MSG("Stopped. 1000 MB is the maximum memory size for saving/loading states.");
+	if((MEM_TotalPages()*4096/1024/1024)>1024) {
+		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
 #if defined(WIN32)
 		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
 #endif

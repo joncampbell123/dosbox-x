@@ -2120,7 +2120,7 @@ private:
 		Bit8u pagehandler_idx[0x40000];
 		unsigned int size_table;
 
-		// Assume 1000MB maximum memory size
+		// Assume 1GB maximum memory size
 		// FIXME: Memory size can be even larger! Up to 3.5GB on 64-bit builds!
 		size_table = sizeof(Memory_PageHandler_table) / sizeof(void *);
 		for( unsigned int lcv=0; lcv<memory.pages; lcv++ ) {
