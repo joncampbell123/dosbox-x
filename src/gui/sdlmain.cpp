@@ -6792,14 +6792,16 @@ bool DOSBOX_parse_argv() {
 
         {
             struct stat st;
-            const char *ext = strrchr(tmp.c_str(),'.');
-            if (ext != NULL) { /* if it looks like a file... with an extension */
-                if (stat(tmp.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
-                    if (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com")) { /* .BAT files given on the command line trigger automounting C: to run it */
-                        control->auto_bat_additional.push_back(tmp);
-                        control->cmdline->EatCurrentArgv();
-                        continue;
-                    }
+            const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
+            if (stat(tmp.c_str(), &st) == 0) {
+                if (st.st_mode & S_IFDIR) {
+                    control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
+                    control->cmdline->EatCurrentArgv();
+                    continue;
+                } else if (ext != NULL && S_ISREG(st.st_mode) && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
+                    control->auto_bat_additional.push_back(tmp);
+                    control->cmdline->EatCurrentArgv();
+                    continue;
                 }
             }
         }

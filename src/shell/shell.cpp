@@ -639,27 +639,33 @@ public:
             std::string cmd;
 
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
-				std::string batname;
-				/* NTS: this code might have problems with DBCS filenames - yksoft1 */
+                if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
+                    cmd += control->auto_bat_additional[i]+"\n";
+                    cmd += "@c:\n";
+                } else {
+                    std::string batname;
+                    /* NTS: this code might have problems with DBCS filenames - yksoft1 */
+                    LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
-				std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
-				size_t pos = control->auto_bat_additional[i].find_last_of('\\');
-				if(pos == std::string::npos) {  //Only a filename, mount current directory
-					batname = control->auto_bat_additional[i];
-					cmd += "@mount c: . -q\n";
-				} else { //Parse the path of .BAT file
-					std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
-					if (batpath==".\\") batpath=".";
-					else if (batpath=="..\\") batpath="..";
-					batname = control->auto_bat_additional[i].substr(pos+1);
-					cmd += "@mount c: \"" + batpath + "\" -q\n";
-				}
-				cmd += "@c:\n";
-				cmd += "@cd \\\n";
-                cmd += "@CALL \"";
-                cmd += batname;
-                cmd += "\"\n";
-				cmd += "@mount -u c: -q\n";
+                    std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
+                    size_t pos = control->auto_bat_additional[i].find_last_of('\\');
+                    if(pos == std::string::npos) {  //Only a filename, mount current directory
+                        batname = control->auto_bat_additional[i];
+                        cmd += "@mount c: . -q\n";
+                    } else { //Parse the path of .BAT file
+                        std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
+                        if (batpath==".\\") batpath=".";
+                        else if (batpath=="..\\") batpath="..";
+                        batname = control->auto_bat_additional[i].substr(pos+1);
+                        cmd += "@mount c: \"" + batpath + "\" -q\n";
+                    }
+                    cmd += "@c:\n";
+                    cmd += "@cd \\\n";
+                    cmd += "@CALL \"";
+                    cmd += batname;
+                    cmd += "\"\n";
+                    cmd += "@mount -u c: -q\n";
+                }
             }
 
             autoexec_auto_bat.Install(cmd);
@@ -718,7 +724,7 @@ public:
 				strcat(buffer,line.c_str());
 				if (stat(buffer,&test)) continue;
 			}
-			if (test.st_mode & S_IFDIR) { 
+			if (test.st_mode & S_IFDIR) {
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
 				if(secure) autoexec[14].Install("z:\\config.com -securemode");
