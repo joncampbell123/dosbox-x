@@ -69,13 +69,13 @@ compat-site-update:
 	(cd ../dosbox-x-gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
 
 install: src/dosbox-x
-	install -D -d $(DESTDIR)$(bindir)
+	install -d $(DESTDIR)$(bindir)
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
-	install -D -d $(DESTDIR)$(prefix)/share/dosbox-x
+	install -d $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 font/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
-	install -D -d $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
+	install -d $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
 	install -m 644 src/dosbox.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
 	install -d $(DESTDIR)$(prefix)/share/applications
 	install -m 644 dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
