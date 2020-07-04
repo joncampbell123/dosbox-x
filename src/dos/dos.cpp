@@ -3045,9 +3045,10 @@ public:
 		dos.direct_output=false;
 		dos.internal_output=false;
 
-		if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
-		else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
-		else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
+		std::string lfn = section->Get_string("lfn");
+		if (lfn=="true") enablelfn=1;
+		else if (lfn=="false") enablelfn=0;
+		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
         mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
